@@ -1,10 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dw4rvw6qbe3j2"]
 
 [ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
 [ext_resource type="Material" uid="uid://gdwm6k4mq7ew" path="res://styles/sharp_lines/flat_face_hull.tres" id="2_face"]
 [ext_resource type="Material" uid="uid://c33kpkh3cramj" path="res://styles/sharp_lines/flat_ground.tres" id="3_ground"]
-[ext_resource type="Material" path="res://styles/sharp_lines/flat_face.tres" id="5_plain"]
-[ext_resource type="Script" path="res://styles/sharp_lines/sharp_lines_geometry.gd" id="6_script"]
+[ext_resource type="Material" uid="uid://cdpc4kn8k72m4" path="res://styles/sharp_lines/flat_face.tres" id="5_plain"]
+[ext_resource type="Script" uid="uid://q38e7rq7vjt7" path="res://styles/sharp_lines/sharp_lines_geometry.gd" id="6_script"]
 
 [sub_resource type="Environment" id="Environment_sharp"]
 background_mode = 1

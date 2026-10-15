@@ -74,7 +74,7 @@ Six style scenes inherit `styles/style_base.tscn`, and each has a `NOTES.md` wit
 | Kenney gradient | [`kenney_gradient`](../styles/kenney_gradient/NOTES.md) | Palette texture, wrapped-Lambert `light()`. No post effects. | 0.12 / 0.56 |
 | Moebius hatching | [`moebius`](../styles/moebius/NOTES.md) | Hatching in `light()`, inverted-hull outline. No post effects. | sun colour ignored / 0 |
 | Soft flat | [`soft_flat`](../styles/soft_flat/NOTES.md) | Banded `light()`, inverted-hull outline, procedural ground. | 0.35 / 0.36 |
-| Sharp lines, flat city | [`sharp_lines`](../styles/sharp_lines/NOTES.md) | Banded `light()`, full-screen depth-edge pass (`hint_depth_texture`), or hulls. | 0.012 / 0.72 |
+| Sharp lines, flat city | [`sharp_lines`](../styles/sharp_lines/NOTES.md) | Banded `light()`, then one of: a full-screen depth-edge pass (`hint_depth_texture`), inverted hulls, or crease lines built as real ribbon geometry (the only one MSAA smooths on hard-edged models). | 0.012 / 0.72 |
 | Cosy glow | [`cosy_glow`](../styles/cosy_glow/NOTES.md) | Glow, fog, filmic tonemap, fake light quads, a vignette. | 0.25 / 0.42 |
 | Flat shadows | [`flat_shadows`](../styles/flat_shadows/NOTES.md) | One `light()` that turns the shadow term into a flat tint. | 0.35, colour ignored / white at 1 |
 
