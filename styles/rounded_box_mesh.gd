@@ -1,3 +1,4 @@
+@tool
 class_name RoundedBoxMesh
 extends PrimitiveMesh
 ## A box with rounded edges and corners. Godot has no built-in one.
