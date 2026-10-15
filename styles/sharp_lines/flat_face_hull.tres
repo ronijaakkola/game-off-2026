@@ -6,3 +6,4 @@
 [resource]
 next_pass = ExtResource("2_hull")
 shader = ExtResource("1_shader")
+shader_parameter/lit_strength = 1.0

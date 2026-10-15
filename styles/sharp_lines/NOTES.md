@@ -7,6 +7,7 @@ Near-white faces, thin dark ink on every edge, bright background, an isometric c
 | `sharp_lines.tscn` | The main one. Orthographic 35 degree camera, depth-edge post pass. |
 | `sharp_lines_perspective.tscn` | The same with a perspective camera. |
 | `sharp_lines_hull.tscn` | Orthographic, but with inverted-hull outlines instead of the post pass. |
+| `sharp_lines_geometry.tscn` | Orthographic, creases drawn as real ribbon geometry, hull only for the smooth subjects. The crispest of the three. |
 
 All three inherit `styles/style_base.tscn` and add a small `Town` of hard-edged boxes and a roof. The base's rounded cube and sphere have no creases, so on their own they can't show this style.
 
@@ -18,6 +19,12 @@ All three inherit `styles/style_base.tscn` and add a small `Town` of hard-edged 
 
 **Lines, inverted hull** (`outline_hull.gdshader`): the `next_pass` of the face material, back faces pushed out along the normal by a fixed number of pixels.
 
+**Lines, geometry** (`crease_lines.gd`, `crease_lines.gdshader`): at load, `CreaseLines` finds every edge whose two faces meet at more than about 35 degrees (or that has only one face) and builds a screen-space ribbon along it: four vertices per edge, a constant `line_px` wide in the vertex shader, nudged toward the camera so the faces don't hide it. These are real triangles, so MSAA smooths them. The sphere and rounded cube have no such edges and keep the hull. `sharp_lines_geometry.gd` adds the ribbons to every mesh under `Town`.
+
+## Anti-aliasing
+
+The post pass is stair-stepped and uneven in width (1 px on some edges, 2 px on others). It decides per pixel from a depth buffer that is a pixel grid, so MSAA does nothing for it, and the line is as aliased as the depth buffer. A fixed camera would not fix that; it would only stop the stair-steps from crawling while the camera moves. The hull and geometry lines are triangles, so with MSAA 4x they are smooth. The geometry lines are the ones to pick when MSAA is on and the models are hard-edged. Checked in the Web build with MSAA 4x set in `project.godot`.
+
 ## What works and breaks
 
 | | Post pass | Inverted hull |
@@ -27,7 +34,7 @@ All three inherit `styles/style_base.tscn` and add a small `Town` of hard-edged 
 | Hard-edged meshes (box, prism) | clean | gaps at every corner, because box normals are split |
 | Smooth meshes (sphere, rounded cube) | a line where the curve is steep, plus noise from depth steps | clean silhouette |
 | Line width | `line_px`, same everywhere | `line_px`, same everywhere |
-| Antialiasing | soft threshold only | MSAA works on the hull |
+| Antialiasing | none; MSAA can't reach it | MSAA smooths the hull |
 | Extra cost | one full-screen pass with 5 depth reads, and a depth copy | one more draw of every outlined mesh |
 
 - **Web**: the post pass runs in the Web build (checked in Chromium on WebGL 2, SwiftShader, software GL only). `hint_depth_texture` works in Compatibility. The normal-roughness buffer doesn't exist there, so normal-based edge detection isn't an option; the second difference of depth stands in for it.
