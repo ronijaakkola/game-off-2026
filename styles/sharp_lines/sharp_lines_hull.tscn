@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cyr1l7ce2cv74"]
 
-[ext_resource type="PackedScene" path="res://styles/style_base.tscn" id="1_base"]
-[ext_resource type="Material" path="res://styles/sharp_lines/flat_face_hull.tres" id="2_face"]
-[ext_resource type="Material" path="res://styles/sharp_lines/flat_ground.tres" id="3_ground"]
+[ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
+[ext_resource type="Material" uid="uid://gdwm6k4mq7ew" path="res://styles/sharp_lines/flat_face_hull.tres" id="2_face"]
+[ext_resource type="Material" uid="uid://c33kpkh3cramj" path="res://styles/sharp_lines/flat_ground.tres" id="3_ground"]
 
 [sub_resource type="Environment" id="Environment_sharp"]
 background_mode = 1

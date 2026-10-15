@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dfaqlwxibh3nw"]
 
-[ext_resource type="Script" path="res://styles/rounded_box_mesh.gd" id="1_box"]
-[ext_resource type="Script" path="res://styles/style_base.gd" id="2_base"]
+[ext_resource type="Script" uid="uid://cjtvabl02wu8d" path="res://styles/rounded_box_mesh.gd" id="1_box"]
+[ext_resource type="Script" uid="uid://siogrg3fc83y" path="res://styles/style_base.gd" id="2_base"]
 
 [sub_resource type="Environment" id="Environment_base"]
 background_mode = 1

@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://crpcg4rx1ehr4"]
 
-[ext_resource type="PackedScene" path="res://styles/sharp_lines/sharp_lines.tscn" id="1_sharp"]
-[ext_resource type="Material" path="res://styles/sharp_lines/edge_pass_perspective.tres" id="2_edge"]
+[ext_resource type="PackedScene" uid="uid://dprdt30j0t2jt" path="res://styles/sharp_lines/sharp_lines.tscn" id="1_sharp"]
+[ext_resource type="Material" uid="uid://dsiahfbpu2x35" path="res://styles/sharp_lines/edge_pass_perspective.tres" id="2_edge"]
 
 [node name="SharpLinesPerspective" unique_id=1 instance=ExtResource("1_sharp")]
 

@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bxhplj0otlfq2"]
 
-[ext_resource type="PackedScene" path="res://styles/style_base.tscn" id="1_base"]
-[ext_resource type="Shader" path="res://styles/moebius/moebius_ink.gdshader" id="2_ink"]
-[ext_resource type="Shader" path="res://styles/moebius/moebius_outline.gdshader" id="3_outline"]
+[ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
+[ext_resource type="Shader" uid="uid://ccvxsesg21ja8" path="res://styles/moebius/moebius_ink.gdshader" id="2_ink"]
+[ext_resource type="Shader" uid="uid://cn67d0s66d0xr" path="res://styles/moebius/moebius_outline.gdshader" id="3_outline"]
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_moebius"]
 sky_top_color = Color(0.58, 0.82, 0.88, 1)

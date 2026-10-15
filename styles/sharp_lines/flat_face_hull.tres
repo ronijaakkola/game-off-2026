@@ -1,7 +1,7 @@
-[gd_resource type="ShaderMaterial" format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://gdwm6k4mq7ew"]
 
-[ext_resource type="Shader" path="res://styles/sharp_lines/flat_face.gdshader" id="1_shader"]
-[ext_resource type="Material" path="res://styles/sharp_lines/outline_hull.tres" id="2_hull"]
+[ext_resource type="Shader" uid="uid://detqpjtk80ldd" path="res://styles/sharp_lines/flat_face.gdshader" id="1_shader"]
+[ext_resource type="Material" uid="uid://bsl6mrc5ryetd" path="res://styles/sharp_lines/outline_hull.tres" id="2_hull"]
 
 [resource]
 next_pass = ExtResource("2_hull")
