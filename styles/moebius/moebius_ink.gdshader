@@ -15,7 +15,15 @@ uniform float ink_floor : hint_range(0.0, 1.0) = 0.01;
 // Spacing between hatch lines: world units, or pixels with screen_space_hatching.
 uniform float line_spacing = 0.07;
 uniform float line_width : hint_range(0.05, 0.9) = 0.38;
-uniform float wobble : hint_range(0.0, 1.0) = 0.12;
+// Hand-drawn look. Each is in line spacings, so they scale with line_spacing.
+// How far each line sits off the grid.
+uniform float spacing_jitter : hint_range(0.0, 0.3) = 0.22;
+// How far each line wanders sideways along its length.
+uniform float waver : hint_range(0.0, 0.3) = 0.22;
+// How much a line's weight swells and thins along its length, 0 to 1.
+uniform float line_variation : hint_range(0.0, 0.6) = 0.4;
+// How far apart in tone the strokes of one hatch stop, so the hatched area has a ragged edge.
+uniform float end_jitter : hint_range(0.0, 0.5) = 0.18;
 uniform bool screen_space_hatching = false;
 uniform bool highlight = false;
 uniform float highlight_size : hint_range(0.001, 0.1) = 0.012;
@@ -26,14 +34,34 @@ void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
-// Ink coverage of one family of parallel lines: 1 on a line, 0 on paper. Lines fade to
-// their average coverage once they are too dense to resolve, which prevents moire.
-float lines(float coord, float width) {
-	float footprint = fwidth(coord);
+float hash(float n) {
+	return fract(sin(n * 127.1) * 43758.5453);
+}
+
+// Smooth random value along a line, between 0 and 1.
+float noise(float x) {
+	float cell = floor(x);
+	return mix(hash(cell), hash(cell + 1.0), smoothstep(0.0, 1.0, fract(x)));
+}
+
+// Ink coverage of one family of parallel strokes: 1 on a stroke, 0 on paper. across counts
+// strokes and along runs down them, both in line spacings. Every stroke gets its own offset,
+// waver, weight and end point, seeded by its index. Strokes fade to their average coverage once
+// they are too dense to resolve, which prevents moire.
+float strokes(float across, float along, float width, float tone, float threshold) {
+	float footprint = fwidth(across);
+	float id = floor(across);
+	float seed = hash(id * 1.7 + 3.1);
+	float seed_b = hash(id * 2.3 + 9.7);
+	float offset = fract(across) - 0.5 - (seed - 0.5) * spacing_jitter;
+	offset += (noise(along * 0.22 + seed_b * 50.0) - 0.5) * waver;
+	float weight = width * (1.0 - line_variation + 2.0 * line_variation * noise(along * 0.17 + seed * 40.0));
 	float edge = max(footprint * 1.5, 0.02);
-	float distance_to_line = abs(fract(coord) - 0.5) * 2.0;
-	float ink = 1.0 - smoothstep(width - edge, width + edge, distance_to_line);
-	return mix(ink, width, smoothstep(0.25, 0.6, footprint));
+	float ink = 1.0 - smoothstep(weight - edge, weight + edge, abs(offset) * 2.0);
+	float blur = fwidth(tone) * 0.5 + 0.003;
+	float stroke_tone = tone + (seed_b - 0.5) * end_jitter;
+	ink *= 1.0 - smoothstep(threshold - blur, threshold + blur, stroke_tone);
+	return mix(ink, width * (1.0 - smoothstep(threshold - blur, threshold + blur, tone)), smoothstep(0.25, 0.6, footprint));
 }
 
 void fragment() {
@@ -45,27 +73,26 @@ void fragment() {
 void light() {
 	float tone = clamp(dot(NORMAL, LIGHT), 0.0, 1.0) * ATTENUATION;
 
-	vec2 wobble_offset = vec2(
-		sin(dot(world_pos, vec3(9.1, 6.7, 7.3))) + sin(dot(world_pos, vec3(3.3, 11.9, 5.1))),
-		sin(dot(world_pos, vec3(6.2, 8.8, 10.4))) + sin(dot(world_pos, vec3(12.7, 4.1, 3.9)))
-	) * 0.5 * wobble;
-
-	float first_family;
-	float second_family;
+	float across_first;
+	float along_first;
+	float across_second;
+	float along_second;
 	if (screen_space_hatching) {
 		vec2 pixel = FRAGCOORD.xy / line_spacing;
-		first_family = (pixel.x + pixel.y) * 0.7071 + wobble_offset.x;
-		second_family = (pixel.x - pixel.y) * 0.7071 + wobble_offset.y;
+		across_first = (pixel.x + pixel.y) * 0.7071;
+		along_first = (pixel.x - pixel.y) * 0.7071;
 	} else {
 		vec3 from_world = world_pos / line_spacing;
-		first_family = dot(from_world, normalize(vec3(1.0, 0.35, 0.55))) + wobble_offset.x;
-		second_family = dot(from_world, normalize(vec3(-0.6, 0.35, 1.0))) + wobble_offset.y;
+		across_first = dot(from_world, normalize(vec3(1.0, 0.35, 0.55)));
+		along_first = dot(from_world, normalize(vec3(-0.6, 0.35, 1.0)));
 	}
+	across_second = along_first;
+	along_second = across_first;
 
-	float blur = fwidth(tone) + 0.01;
-	float shaded = 1.0 - smoothstep(light_edge - blur, light_edge + blur, tone);
-	float darkest = 1.0 - smoothstep(dark_edge - blur, dark_edge + blur, tone);
-	float ink = max(shaded * lines(first_family, line_width), darkest * lines(second_family, line_width));
+	float ink = max(
+		strokes(across_first, along_first, line_width, tone, light_edge),
+		strokes(across_second, along_second, line_width, tone, dark_edge)
+	);
 
 	DIFFUSE_LIGHT = vec3(mix(1.0, ink_floor, ink));
 
