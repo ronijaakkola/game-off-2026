@@ -1,0 +1,51 @@
+name: pr-preview
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+concurrency:
+  group: pr-preview-${{ github.event.number }}
+  cancel-in-progress: true
+jobs:
+  preview:
+    name: Preview build
+    # A fork's GITHUB_TOKEN is read-only, so fork PRs get no preview.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+        if: github.event.action != 'closed'
+      - uses: chickensoft-games/setup-godot@v2.4.3
+        if: github.event.action != 'closed'
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: true
+      - name: Export the preview build
+        if: github.event.action != 'closed'
+        run: uv run tools/check.py export --preview
+      # Deploys to gh-pages under pr-preview/pr-<N>/ and comments the link, or removes it on close.
+      # No waiting for Pages: a second push within ~30 s cancels the older Pages build, which the
+      # API reports as errored, so the wait would fail the run and drop the comment.
+      - uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1.8.1
+        with:
+          source-dir: build/web-preview
+          qr-code: false
+          wait-for-pages-deployment: false
+      # Every preview push adds a new .pck to gh-pages' history, and every clone fetches it.
+      # On close, replace the branch with one commit of its current tree. If another preview
+      # pushed since the fetch, the lease fails and a later close squashes instead.
+      - name: Squash gh-pages
+        if: github.event.action == 'closed'
+        run: |
+          git fetch --depth=1 origin gh-pages
+          read_sha=$(git rev-parse FETCH_HEAD)
+          squashed=$(git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit-tree "FETCH_HEAD^{tree}" -m "Squash preview builds")
+          git push --force-with-lease="gh-pages:$read_sha" origin "$squashed:refs/heads/gh-pages" \
+            || echo "::notice::gh-pages moved since it was read; a later close squashes it"

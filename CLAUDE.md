@@ -1,0 +1,55 @@
+# Godot jam game
+
+Godot 4.7.2, GDScript only, Compatibility renderer, played on the web (itch.io) first.
+
+- `CODING_STANDARDS.md`: layout, naming, typing, autoloads, scene composition, signals, merges. Read it before adding or moving any file.
+- `DESIGN.md`: what the game is. Read it before gameplay work, and update it when the design changes.
+- `CONTEXT.md`: the glossary. Use its terms in code and handoffs.
+- `docs/web-constraints.md`: read it before touching shaders, environment, lighting, loading or audio.
+
+Ask the human before changing anything outside the repo, such as export templates, editor settings or global git config.
+
+## Checks
+
+Run checks exactly as `uv run tools/check.py <command>`. That text is allowlisted, and the script owns every Godot flag.
+
+| Command | When |
+|---|---|
+| `lint [files]` | Runs by itself after every edit to a `.gd` file; fix what it reports. |
+| `load` | After editing scripts, scenes or resources. |
+| `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
+| `smoke [scene]` | After changes to anything that runs at startup. Runs the main scene, or the one given. |
+| `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |
+| `all` | Before every handoff. |
+| `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. Not part of `all`. |
+
+## Handoff
+
+- Paste the result lines of `uv run tools/check.py all` exactly as printed, failing step included.
+- When a change is about feel (the soft look, lighting, camera, motion, sound), end with "Needs a visual check: `<scene>`".
+- When a check can't run (Godot not found, no window for `capture`), say which ones didn't run and name the editor equivalent for the human:
+
+  | Check | In the editor |
+  |---|---|
+  | `load` | The Output panel's errors after opening the project, or F5 |
+  | `test` | The gdUnit panel's run button |
+  | `smoke` | F5 (main scene) or F6 (current scene), then the Output panel |
+  | `capture` | Run the scene and look at it |
+
+## Issues
+
+Work lives in this repo's GitHub Issues and the team's GitHub Project. Read one with `gh issue view <n>`.
+
+## Git conventions
+
+- **Commit messages and PR titles** follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): `<type>(<optional scope>)!: <description>`, with type one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Example: `feat(player): add double jump`. The `commit-msg` hook checks commits; nothing checks PR titles, and GitHub writes the squash commit from the title, so get it right by hand.
+- **Every change reaches `main` through a PR**, merged with GitHub's **Squash and merge**. Update a branch however you like, merge or rebase — the squash flattens it either way.
+
+Working on a PR:
+
+- The body follows `.github/pull_request_template.md`: what changed, the evidence it works, what it can reach.
+- Check the PR is still open before pushing to its branch: `gh pr view <n> --json state`.
+- Wait for CI with `gh pr checks <n> --watch`. Never write a polling loop.
+- Never close, reopen or merge a PR. A human merges.
+
+The hooks in `.githooks/` (`commit-msg`, `pre-commit`) enforce the commit message and lint what you commit. Enable them once per clone with `git config core.hooksPath .githooks`.

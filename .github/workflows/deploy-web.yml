@@ -1,0 +1,33 @@
+name: deploy-web
+on:
+  push:
+    branches: [main]
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+      - uses: chickensoft-games/setup-godot@v2.4.3
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: true
+      - name: Export web
+        run: uv run tools/check.py export
+      - name: Install butler 15.32.0
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/butler.zip" https://broth.itch.zone/butler/linux-amd64/15.32.0/archive/default
+          unzip -q "$RUNNER_TEMP/butler.zip" -d "$RUNNER_TEMP/butler"
+          chmod +x "$RUNNER_TEMP/butler/butler"
+          echo "$RUNNER_TEMP/butler" >> "$GITHUB_PATH"
+      - name: Push to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          butler push build/web "${{ vars.ITCH_TARGET }}:html5" \
+            --userversion "${{ github.run_number }}-${GITHUB_SHA::7}" --if-changed

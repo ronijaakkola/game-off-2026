@@ -1,0 +1,10 @@
+#!/bin/sh
+# Lint staged GDScript (check.py skips addons/). Needs uv, not Godot.
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.gd')
+if [ -n "$staged" ]; then
+  # shellcheck disable=SC2086 # file names are snake_case, no spaces
+  uv run tools/check.py lint $staged || {
+    echo "pre-commit: fix the lint problems above, then commit again." >&2
+    exit 1
+  }
+fi

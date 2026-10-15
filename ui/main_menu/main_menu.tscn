@@ -1,0 +1,93 @@
+[gd_scene format=3 uid="uid://c4fpqcj2sln3e"]
+
+[ext_resource type="Script" uid="uid://b0edylrhdf8aq" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" uid="uid://du1swv634nyif" path="res://ui/settings/settings_menu.tscn" id="3_settings"]
+
+[node name="MainMenu" type="Control" unique_id=1815156436]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_menu")
+
+[node name="Center" type="CenterContainer" parent="." unique_id=463875649]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Items" type="VBoxContainer" parent="Center" unique_id=579640886]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Center/Items" unique_id=952514897]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "Jam Game"
+horizontal_alignment = 1
+
+[node name="PlayButton" type="Button" parent="Center/Items" unique_id=1142676507]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play"
+
+[node name="SettingsButton" type="Button" parent="Center/Items" unique_id=1148331793]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Settings"
+
+[node name="QuitButton" type="Button" parent="Center/Items" unique_id=479414804]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit"
+
+[node name="SettingsMenu" parent="." unique_id=959905961 instance=ExtResource("3_settings")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="StartOverlay" type="ColorRect" parent="." unique_id=298445105]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Center" type="CenterContainer" parent="StartOverlay" unique_id=2123297052]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Items" type="VBoxContainer" parent="StartOverlay/Center" unique_id=2015960449]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="StartOverlay/Center/Items" unique_id=335360452]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "Jam Game"
+horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="StartOverlay/Center/Items" unique_id=2085566611]
+layout_mode = 2
+text = "Click to start"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="Center/Items/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="Center/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="Center/Items/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]

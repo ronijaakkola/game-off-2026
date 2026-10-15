@@ -1,0 +1,24 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "permissions": {
+    "allow": [
+      "Bash(uv run tools/check.py:*)",
+      "Bash(uv run tools/blender.py:*)",
+      "Bash(uvx --from gdtoolkit==4.5.0:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          { "type": "command", "command": "uv run \"$CLAUDE_PROJECT_DIR/tools/check.py\" lint --hook" }
+        ]
+      }
+    ]
+  }
+}

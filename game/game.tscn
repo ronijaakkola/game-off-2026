@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://djv310h8cbg3m"]
+
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="3_pause"]
+
+[node name="Game" type="Control" unique_id=1262963748]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Center" type="CenterContainer" parent="." unique_id=1995540751]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Center" unique_id=1392484506]
+layout_mode = 2
+text = "The game goes here. Esc pauses."
+
+[node name="PauseMenu" parent="." unique_id=976055618 instance=ExtResource("3_pause")]
+visible = false

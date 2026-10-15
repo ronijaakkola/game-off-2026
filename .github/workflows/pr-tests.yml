@@ -1,0 +1,49 @@
+name: pr
+on:
+  pull_request:
+concurrency:
+  group: pr-tests-${{ github.event.number }}
+  cancel-in-progress: true
+jobs:
+  test:
+    name: gdUnit4 tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      actions: write
+      checks: write
+      contents: write
+      pull-requests: write
+      statuses: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: godot-gdunit-labs/gdUnit4-action@v1.3.2
+        with:
+          godot-version: '4.7.2'
+          version: installed # use the vendored addons/gdUnit4
+          paths: res://test
+          timeout: 10
+          warnings-as-errors: false
+          report-name: test-report.xml
+      # gdUnit4 exits 0 when it finds no tests and writes no report, and the action
+      # passes that, so a wrong path or deleted suites would stay green.
+      - name: Fail when no tests ran
+        run: grep -qs '<testcase' reports/report_*/results.xml || { echo "::error::No test cases ran"; exit 1; }
+  checks:
+    name: Lint, load check, smoke run
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+      - uses: chickensoft-games/setup-godot@v2.4.3
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: false
+      - name: Lint
+        run: uv run tools/check.py lint
+      - name: Load check
+        run: uv run tools/check.py load
+      - name: Smoke run
+        run: uv run tools/check.py smoke

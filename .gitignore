@@ -1,0 +1,17 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# gdUnit4 reports and local export output
+reports/
+build/
+
+# Python bytecode from tools/blender.py importing check.py
+__pycache__/
+
+# gdUnit4's last editor test session (local)
+addons/gdUnit4/GdUnitRunner.cfg
+
+# The model library (art/models.blend and Blender's .blend1 backups) stays with the modeller
+/art/*
+!/art/.gdignore

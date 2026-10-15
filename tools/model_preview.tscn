@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://b3xlxkg2n0vgt"]
+
+[ext_resource type="Script" uid="uid://h4vkqvctuhi" path="res://tools/model_preview.gd" id="1_preview"]
+
+[sub_resource type="Environment" id="Environment_preview"]
+background_mode = 1
+background_color = Color(0.85, 0.87, 0.9, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.85, 0.87, 0.9, 1)
+ambient_light_energy = 0.6
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(20, 20)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.72, 0.74, 0.78, 1)
+
+[node name="ModelPreview" type="Node3D" unique_id=1101784822]
+script = ExtResource("1_preview")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=438716800]
+environment = SubResource("Environment_preview")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=2106318553]
+transform = Transform3D(0.866025, -0.321394, 0.383022, 0, 0.766044, 0.642788, -0.5, -0.55667, 0.663414, 0, 0, 0)
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=491764634]
+mesh = SubResource("PlaneMesh_ground")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=143599227]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.894427, 0.447214, 0, -0.447214, 0.894427, 0, 2, 4)
+fov = 40.0
