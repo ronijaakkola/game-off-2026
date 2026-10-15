@@ -1,6 +1,6 @@
 # Godot jam boilerplate
 
-The starting project the team clones on jam day: core systems and a main menu, ready to be replaced by the real game. The example game scene is still to build; an open GitHub Issue tracks it.
+The starting project the team clones on jam day: core systems and a main menu, ready to be replaced by the real game. The example game scene is still to build.
 
 ## Language
 
