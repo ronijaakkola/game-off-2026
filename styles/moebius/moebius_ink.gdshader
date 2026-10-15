@@ -12,9 +12,9 @@ uniform vec4 fill : source_color = vec4(0.9, 0.55, 0.45, 1.0);
 uniform float light_edge : hint_range(0.0, 1.0) = 0.5;
 uniform float dark_edge : hint_range(0.0, 1.0) = 0.2;
 uniform float ink_floor : hint_range(0.0, 1.0) = 0.01;
-// Spacing between hatch lines: world units, or pixels with screen_space_hatching.
-uniform float line_spacing = 0.07;
-uniform float line_width : hint_range(0.05, 0.9) = 0.38;
+// Spacing between hatch lines, in the mesh's own units.
+uniform float line_spacing = 0.05;
+uniform float line_width : hint_range(0.05, 0.9) = 0.34;
 // Hand-drawn look. Each is in line spacings, so they scale with line_spacing.
 // How far each line sits off the grid.
 uniform float spacing_jitter : hint_range(0.0, 0.3) = 0.22;
@@ -24,14 +24,27 @@ uniform float waver : hint_range(0.0, 0.3) = 0.22;
 uniform float line_variation : hint_range(0.0, 0.6) = 0.4;
 // How far apart in tone the strokes of one hatch stop, so the hatched area has a ragged edge.
 uniform float end_jitter : hint_range(0.0, 0.5) = 0.18;
-uniform bool screen_space_hatching = false;
+// How sharply the three hatch projections hand over on curved surfaces. Higher is a
+// narrower blend zone, where strokes from two directions overlap.
+uniform float projection_sharpness : hint_range(1.0, 16.0) = 12.0;
+// Hatch along the mesh's UVs instead: the first strokes follow v, the cross strokes follow u,
+// so on a UV sphere they run along parallels and meridians and follow the form. Only for
+// meshes with continuous UVs; uv_lines is how many strokes fit across u and v.
+uniform bool uv_hatching = false;
+uniform vec2 uv_lines = vec2(40.0, 20.0);
 uniform bool highlight = false;
 uniform float highlight_size : hint_range(0.001, 0.1) = 0.012;
 
-varying vec3 world_pos;
+// Strokes are pinned to the mesh: they are laid out in object space, so they move with the
+// surface instead of sliding over it when the camera moves.
+varying vec3 object_pos;
+varying vec3 object_normal;
+varying vec2 surface_uv;
 
 void vertex() {
-	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	object_pos = VERTEX;
+	object_normal = NORMAL;
+	surface_uv = UV;
 }
 
 float hash(float n) {
@@ -64,6 +77,17 @@ float strokes(float across, float along, float width, float tone, float threshol
 	return mix(ink, width * (1.0 - smoothstep(threshold - blur, threshold + blur, tone)), smoothstep(0.25, 0.6, footprint));
 }
 
+// Both stroke families of a hatch drawn on one of the three axis planes.
+float plane_ink(vec2 plane, float tone) {
+	vec2 cell = plane / line_spacing;
+	float diagonal = (cell.x + cell.y) * 0.7071;
+	float anti_diagonal = (cell.x - cell.y) * 0.7071;
+	return max(
+		strokes(diagonal, anti_diagonal, line_width, tone, light_edge),
+		strokes(anti_diagonal, diagonal, line_width, tone, dark_edge)
+	);
+}
+
 void fragment() {
 	ALBEDO = fill.rgb;
 	ROUGHNESS = 1.0;
@@ -73,26 +97,22 @@ void fragment() {
 void light() {
 	float tone = clamp(dot(NORMAL, LIGHT), 0.0, 1.0) * ATTENUATION;
 
-	float across_first;
-	float along_first;
-	float across_second;
-	float along_second;
-	if (screen_space_hatching) {
-		vec2 pixel = FRAGCOORD.xy / line_spacing;
-		across_first = (pixel.x + pixel.y) * 0.7071;
-		along_first = (pixel.x - pixel.y) * 0.7071;
+	float ink;
+	if (uv_hatching) {
+		vec2 cell = surface_uv * uv_lines;
+		ink = max(
+			strokes(cell.y, cell.x, line_width, tone, light_edge),
+			strokes(cell.x, cell.y, line_width, tone, dark_edge)
+		);
 	} else {
-		vec3 from_world = world_pos / line_spacing;
-		across_first = dot(from_world, normalize(vec3(1.0, 0.35, 0.55)));
-		along_first = dot(from_world, normalize(vec3(-0.6, 0.35, 1.0)));
+		// Triplanar: each axis plane draws its own hatch, weighted by how squarely the surface
+		// faces that axis. Flat faces get one clean hatch; curves blend over a narrow band.
+		vec3 weights = pow(abs(normalize(object_normal)), vec3(projection_sharpness));
+		weights /= weights.x + weights.y + weights.z;
+		ink = weights.x * plane_ink(object_pos.zy, tone)
+			+ weights.y * plane_ink(object_pos.xz, tone)
+			+ weights.z * plane_ink(object_pos.xy, tone);
 	}
-	across_second = along_first;
-	along_second = across_first;
-
-	float ink = max(
-		strokes(across_first, along_first, line_width, tone, light_edge),
-		strokes(across_second, along_second, line_width, tone, dark_edge)
-	);
 
 	DIFFUSE_LIGHT = vec3(mix(1.0, ink_floor, ink));
 

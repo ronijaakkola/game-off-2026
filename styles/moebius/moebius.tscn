@@ -29,8 +29,6 @@ render_priority = 0
 next_pass = SubResource("ShaderMaterial_outline")
 shader = ExtResource("2_ink")
 shader_parameter/fill = Color(0.93, 0.48, 0.44, 1)
-shader_parameter/screen_space_hatching = true
-shader_parameter/line_spacing = 6.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sphere"]
 render_priority = 0
@@ -38,15 +36,13 @@ next_pass = SubResource("ShaderMaterial_outline")
 shader = ExtResource("2_ink")
 shader_parameter/fill = Color(0.33, 0.45, 0.8, 1)
 shader_parameter/highlight = true
-shader_parameter/screen_space_hatching = true
-shader_parameter/line_spacing = 6.0
+shader_parameter/uv_hatching = true
+shader_parameter/uv_lines = Vector2(44, 22)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
 shader = ExtResource("2_ink")
 shader_parameter/fill = Color(0.97, 0.84, 0.76, 1)
-shader_parameter/screen_space_hatching = true
-shader_parameter/line_spacing = 8.0
-shader_parameter/line_width = 0.36
+shader_parameter/line_spacing = 0.06
 
 [node name="Moebius" instance=ExtResource("1_base")]
 
