@@ -5,6 +5,10 @@ shader_type spatial;
 render_mode specular_disabled;
 
 uniform vec3 base_color : source_color = vec3(0.9, 0.55, 0.4);
+// Authored colours: read the base colour from albedo_tex at the mesh's own UV (a Kenney
+// colormap, say) instead of using base_color.
+uniform bool use_albedo_tex = false;
+uniform sampler2D albedo_tex : source_color, filter_linear, repeat_disable;
 uniform float gradient_strength : hint_range(0.0, 1.0) = 0.25;
 uniform float gradient_height = 1.0;
 uniform sampler2D grain_tex : source_color, repeat_enable, filter_linear_mipmap;
@@ -28,7 +32,8 @@ void fragment() {
 	vec2 grain_uv = (world_pos.xz + world_pos.y * vec2(0.37, 0.61)) * grain_scale;
 	float grain = texture(grain_tex, grain_uv).r;
 	float height = clamp(world_pos.y / gradient_height, 0.0, 1.0);
-	vec3 col = base_color * mix(1.0 - gradient_strength, 1.0 + gradient_strength * 0.5, height);
+	vec3 base = use_albedo_tex ? texture(albedo_tex, UV).rgb : base_color;
+	vec3 col = base * mix(1.0 - gradient_strength, 1.0 + gradient_strength * 0.5, height);
 	col *= 1.0 + (grain - 0.5) * 2.0 * grain_strength;
 	// One level of dither: there is no debanding on the web, and gradients band.
 	float dither = fract(sin(dot(FRAGCOORD.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;

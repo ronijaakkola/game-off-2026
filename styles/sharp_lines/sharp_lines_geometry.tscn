@@ -39,7 +39,7 @@ size = 6.0
 surface_material_override/0 = ExtResource("3_ground")
 
 [node name="Cube" parent="Subjects" index="0"]
-surface_material_override/0 = ExtResource("2_face")
+surface_material_override/0 = ExtResource("5_plain")
 
 [node name="Sphere" parent="Subjects" index="1"]
 surface_material_override/0 = ExtResource("2_face")

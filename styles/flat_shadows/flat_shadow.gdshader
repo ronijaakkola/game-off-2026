@@ -19,6 +19,13 @@ uniform vec3 shadow_color : source_color = vec3(0.6, 0.55, 0.7);
 uniform float top_value = 1.0;
 uniform float x_value = 1.0;
 uniform float z_value = 1.0;
+// Authored colours: when use_albedo_tex is on, the lit colour comes from albedo_tex at the
+// mesh's own UV (a Kenney colormap, say) and the shadow colour is that colour times
+// shadow_tint, so every face keeps its own colour and every shadow shares one tint. Each
+// channel of shadow_tint has to be <= 1.
+uniform bool use_albedo_tex = false;
+uniform sampler2D albedo_tex : source_color, filter_linear, repeat_disable;
+uniform vec3 shadow_tint = vec3(0.62, 0.56, 1.0);
 // Shadow term (0 shadowed .. 1 lit) where the edge sits, and how wide the edge is.
 uniform float edge_threshold : hint_range(0.0, 1.0) = 0.5;
 uniform float edge_width : hint_range(0.001, 0.5) = 0.08;
@@ -43,13 +50,17 @@ void vertex() {
 }
 
 void fragment() {
-	ALBEDO = shadow_color * face_value;
+	vec3 shadow = use_albedo_tex ? texture(albedo_tex, UV).rgb * shadow_tint : shadow_color;
+	ALBEDO = shadow * face_value;
 }
 
 void light() {
 	float sun_side = step(0.0, dot(NORMAL, LIGHT));
 	float shadow = smoothstep(edge_threshold - edge_width, edge_threshold + edge_width, ATTENUATION);
-	vec3 gain = max(lit_color - shadow_color, vec3(0.0)) * face_value;
+	// With a texture ALBEDO is already shadow * face_value, and lit = shadow / shadow_tint.
+	vec3 gain = use_albedo_tex
+		? ALBEDO * (1.0 / max(shadow_tint, vec3(0.002)) - 1.0)
+		: max(lit_color - shadow_color, vec3(0.0)) * face_value;
 	// The light pass computes DIFFUSE_LIGHT * linear(ALBEDO) and encodes that to sRGB, so
 	// ask for linear(gain) / linear(ALBEDO) to land exactly on gain.
 	DIFFUSE_LIGHT += to_linear(gain) / max(ALBEDO, vec3(0.002)) * sun_side * shadow;

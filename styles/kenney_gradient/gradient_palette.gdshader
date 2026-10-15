@@ -14,6 +14,9 @@ uniform vec2 v_range = vec2(0.0, 1.0);
 // UVs that run in a different direction on every face, so the cube uses this; a mesh with
 // authored UVs, like the sphere, doesn't need it.
 uniform bool gradient_from_height = false;
+// Read the palette at the mesh's own UV instead of picking a swatch. For Kenney models, whose
+// UVs already point into their colormap: every face keeps the colour the artist gave it.
+uniform bool uv_lookup = false;
 // How far light wraps past the terminator. 0 is plain Lambert, 1 lights the whole object.
 uniform float wrap : hint_range(0.0, 1.0) = 0.5;
 
@@ -26,7 +29,8 @@ void vertex() {
 void fragment() {
 	float t = gradient_from_height ? clamp(0.5 - local_height, 0.0, 1.0) : UV.y;
 	float row = mix(v_range.x, v_range.y, t);
-	ALBEDO = texture(palette, vec2((swatch + 0.5) / swatch_count, row)).rgb;
+	vec2 palette_uv = uv_lookup ? UV : vec2((swatch + 0.5) / swatch_count, row);
+	ALBEDO = texture(palette, palette_uv).rgb;
 	ROUGHNESS = 1.0;
 }
 

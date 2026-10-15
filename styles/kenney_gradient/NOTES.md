@@ -6,7 +6,7 @@ Soft, low-contrast pastel look in the style of Kenney's colormap assets: no text
 
 - **Palette texture** (`palette.png`, 128×64). Each column is one swatch, a vertical gradient from a light top to a deeper, bluer bottom. `make_palette.py` writes it; edit the table there or paint the PNG by hand.
 - **One shader** (`gradient_palette.gdshader`) for every surface. A material picks a `swatch` (column) and a `v_range` (which rows of it to use). The ground uses a narrow range, so it is nearly flat; the subjects use the whole range, so they fade from light at the top to deep at the bottom.
-- The gradient comes from the mesh's UV.y, like Kenney's models, with one exception: the base's rounded cube has UVs that run in a different direction on every face, so `gradient_from_height` takes the gradient from the object's height instead. A mesh with authored UVs doesn't need it.
+- The gradient comes from the mesh's UV.y, like Kenney's models. The sphere's UVs do that. The base's building is a Kenney model whose UVs already point into Kenney's own colormap (`styles/models/Textures/colormap.png`, the same layout as `palette.png`), so its material turns on `uv_lookup` and reads the colormap at the mesh's UV: every face keeps the colour the artist gave it. `gradient_from_height` stays as an option for a mesh without usable UVs, such as the rounded box.
 - **Soft light**: a custom `light()` with wrapped Lambert (`wrap` 0.5), so the dark side stays well lit instead of going black. It does the same job as Toon diffuse would, without the hard ramp.
 - **Environment**: flat lilac background, near-neutral lilac ambient at energy 0.56, sun at 0.12, shadow blur 1.5. No fog, glow, SSAO or tonemap. The background colour is set to equal the lit ground, so the 400 m ground plane melts into it at the horizon.
 
@@ -20,4 +20,4 @@ Soft, low-contrast pastel look in the style of Kenney's colormap assets: no text
 
 ## What the base scene can't show
 
-The reference's charm comes mostly from its models: chunky bevelled props with big flat faces, each assigned its own swatch. A rounded cube and a sphere show the lighting and the palette lookup, but not that. Judge the style on the colours, the soft shading and the cast shadow, and expect the real effect once authored models share this shader.
+The base's building is a real Kenney prop, so the chunky bevelled faces with a swatch each are here. The sphere is still a single swatch, and the building's small details (window frames, roof clutter) are what MSAA and the soft light have to carry.

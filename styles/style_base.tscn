@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dfaqlwxibh3nw"]
 
-[ext_resource type="Script" uid="uid://cjtvabl02wu8d" path="res://styles/rounded_box_mesh.gd" id="1_box"]
+[ext_resource type="PackedScene" uid="uid://dv14qvdp7v26b" path="res://styles/models/building-small-b.glb" id="1_building"]
 [ext_resource type="Script" uid="uid://siogrg3fc83y" path="res://styles/style_base.gd" id="2_base"]
 
 [sub_resource type="Environment" id="Environment_base"]
@@ -20,14 +20,9 @@ diffuse_mode = 1
 metallic_specular = 0.0
 roughness = 1.0
 
-[sub_resource type="PrimitiveMesh" id="RoundedBoxMesh_cube"]
-script = ExtResource("1_box")
-size = Vector3(1, 1, 1)
-radius = 0.15
-
 [sub_resource type="SphereMesh" id="SphereMesh_subject"]
-radius = 0.5
-height = 1.0
+radius = 0.35
+height = 0.7
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(40, 40)
@@ -57,14 +52,12 @@ surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
 [node name="Subjects" type="Node3D" parent="."]
 
-[node name="Cube" type="MeshInstance3D" parent="Subjects"]
+[node name="Cube" parent="Subjects" instance=ExtResource("1_building")]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.5, 0)
-mesh = SubResource("RoundedBoxMesh_cube")
-surface_material_override/0 = SubResource("StandardMaterial3D_subject")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0, 0)
 
 [node name="Sphere" type="MeshInstance3D" parent="Subjects"]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0.35, 0)
 mesh = SubResource("SphereMesh_subject")
 surface_material_override/0 = SubResource("StandardMaterial3D_subject")

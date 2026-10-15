@@ -24,3 +24,18 @@ func test_zero_speed_holds_the_camera_still() -> void:
 	runner.set_property("orbit_speed", 0.0)
 	await runner.simulate_frames(10, 100)
 	assert_vector(camera.global_position).is_equal_approx(start, Vector3.ONE * 0.001)
+
+
+func test_subjects_are_mesh_nodes_a_style_can_give_a_material() -> void:
+	var runner := scene_runner(SCENE)
+	for subject_name: String in ["Cube", "Sphere"]:
+		var subject := runner.find_child(subject_name) as MeshInstance3D
+		assert_object(subject).is_not_null()
+		assert_int(subject.mesh.get_surface_count()).is_equal(1)
+
+
+func test_the_building_sits_on_the_ground() -> void:
+	var runner := scene_runner(SCENE)
+	var building := runner.find_child("Cube") as MeshInstance3D
+	var bounds := building.global_transform * building.mesh.get_aabb()
+	assert_float(bounds.position.y).is_equal_approx(0.0, 0.001)

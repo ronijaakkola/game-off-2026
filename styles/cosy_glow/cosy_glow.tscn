@@ -10,6 +10,7 @@
 [ext_resource type="Shader" uid="uid://7ma7rconr507" path="res://styles/cosy_glow/cosy_pool.gdshader" id="8_pool"]
 [ext_resource type="Shader" uid="uid://dbq861op7h5sb" path="res://styles/cosy_glow/cosy_halo.gdshader" id="9_halo"]
 [ext_resource type="Shader" uid="uid://b0fe7ekwhotgu" path="res://styles/cosy_glow/cosy_vignette.gdshader" id="10_vignette"]
+[ext_resource type="Texture2D" uid="uid://cpcnftn8s1xls" path="res://styles/models/Textures/colormap.png" id="99_colormap"]
 
 [sub_resource type="Environment" id="Environment_cosy"]
 background_mode = 1
@@ -34,6 +35,8 @@ adjustment_saturation = 1.2
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cube"]
 shader = ExtResource("5_surface")
 shader_parameter/base_color = Color(0.95, 0.45, 0.35, 1)
+shader_parameter/use_albedo_tex = true
+shader_parameter/albedo_tex = ExtResource("99_colormap")
 shader_parameter/gradient_strength = 0.25
 shader_parameter/gradient_height = 1.0
 shader_parameter/grain_tex = ExtResource("4_grain")

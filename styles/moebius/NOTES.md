@@ -20,7 +20,7 @@ Checked in Chromium with SwiftShader against the preview export: the hatching, s
 - The ink shader **ignores the sun's colour and energy** and only reads its direction and shadow. It also needs **ambient at 0**, because ambient is added as fill colour and would lighten the ink. With one shadowed light and no ambient, the sRGB-add clipping in `docs/web-constraints.md` doesn't apply.
 - The hatch lines are shader work, not geometry, and edges inside the shader (line edges, the tone thresholds) are not covered by MSAA. They are antialiased with `fwidth`. Outline silhouettes do get MSAA when it is on.
 - Screen-space lines are in framebuffer pixels, so on a HiDPI canvas or a stretched window they get finer. Scale `line_spacing` by the canvas scale if that matters.
-- The outline needs smooth, connected meshes. The rounded cube and sphere are. A hard-edged cube would break into separate hulls at the corners.
+- The outline needs smooth, connected meshes. The sphere is. A hard-edged cube would break into separate hulls at the corners. The base's Kenney building has bevelled edges and the outline holds up well on it (checked in a capture): the silhouette is closed, the hatching follows the bevels, and only a few short gaps show at the sharpest corners. The model's colours are ignored; the ink shader paints one fill.
 
 ## Cost
 

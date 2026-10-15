@@ -1,5 +1,5 @@
 extends Node3D
-## The style base: a rounded cube and a sphere under a shadowed sun. The camera circles
+## The style base: a Kenney building and a sphere under a shadowed sun. The camera circles
 ## them at [member orbit_speed] while the sun stays put, so every angle of the lighting,
 ## the shadow and the edges shows up in the rendering style under test.
 

@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
 [ext_resource type="Shader" uid="uid://580bc4ga3aup" path="res://styles/flat_shadows/flat_shadow.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://cpcnftn8s1xls" path="res://styles/models/Textures/colormap.png" id="99_colormap"]
 
 [sub_resource type="Environment" id="Environment_flat"]
 background_mode = 1
@@ -15,8 +16,10 @@ shader = ExtResource("2_shader")
 shader_parameter/lit_color = Color(0.93, 0.5, 0.45, 1)
 shader_parameter/shadow_color = Color(0.58, 0.28, 0.45, 1)
 shader_parameter/top_value = 1.0
-shader_parameter/x_value = 0.88
-shader_parameter/z_value = 0.94
+shader_parameter/x_value = 1.0
+shader_parameter/z_value = 1.0
+shader_parameter/use_albedo_tex = true
+shader_parameter/albedo_tex = ExtResource("99_colormap")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sphere"]
 shader = ExtResource("2_shader")

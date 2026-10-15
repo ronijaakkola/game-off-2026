@@ -9,7 +9,7 @@ Near-white faces, thin dark ink on every edge, bright background, an isometric c
 | `sharp_lines_hull.tscn` | Orthographic, but with inverted-hull outlines instead of the post pass. |
 | `sharp_lines_geometry.tscn` | Orthographic, creases drawn as real ribbon geometry, hull only for the smooth subjects. The crispest of the three. |
 
-All three inherit `styles/style_base.tscn` and add a small `Town` of hard-edged boxes and a roof. The base's rounded cube and sphere have no creases, so on their own they can't show this style.
+All three inherit `styles/style_base.tscn` and add a small `Town` of hard-edged boxes and a roof. The base's sphere has no creases, so on its own it can't show this style; the base's Kenney building has plenty, and the town adds hard-edged boxes.
 
 ## Technique
 
@@ -19,7 +19,7 @@ All three inherit `styles/style_base.tscn` and add a small `Town` of hard-edged 
 
 **Lines, inverted hull** (`outline_hull.gdshader`): the `next_pass` of the face material, back faces pushed out along the normal by a fixed number of pixels.
 
-**Lines, geometry** (`crease_lines.gd`, `crease_lines.gdshader`): at load, `CreaseLines` finds every edge whose two faces meet at more than about 35 degrees (or that has only one face) and builds a screen-space ribbon along it: four vertices per edge, a constant `line_px` wide in the vertex shader, nudged toward the camera so the faces don't hide it. These are real triangles, so MSAA smooths them. The sphere and rounded cube have no such edges and keep the hull. `sharp_lines_geometry.gd` adds the ribbons to every mesh under `Town`.
+**Lines, geometry** (`crease_lines.gd`, `crease_lines.gdshader`): at load, `CreaseLines` finds every edge whose two faces meet at more than about 35 degrees (or that has only one face) and builds a screen-space ribbon along it: four vertices per edge, a constant `line_px` wide in the vertex shader, nudged toward the camera so the faces don't hide it. These are real triangles, so MSAA smooths them. The sphere has no such edges and keeps the hull. The building from the base is lined too (`sharp_lines_geometry.gd` adds ribbons to `%Cube` as well as the town) and uses the plain face material. `sharp_lines_geometry.gd` adds the ribbons to every mesh under `Town`.
 
 ## Anti-aliasing
 
@@ -31,8 +31,8 @@ The post pass is stair-stepped and uneven in width (1 px on some edges, 2 px on 
 |---|---|---|
 | Silhouette | yes | yes |
 | Crease lines inside an object | yes, the point of it | no |
-| Hard-edged meshes (box, prism) | clean | gaps at every corner, because box normals are split |
-| Smooth meshes (sphere, rounded cube) | a line where the curve is steep, plus noise from depth steps | clean silhouette |
+| Hard-edged meshes (box, prism, Kenney building) | clean | gaps at every corner, because box normals are split; on the building the lines are broken and missing along whole edges |
+| Smooth meshes (sphere) | a line where the curve is steep, plus noise from depth steps | clean silhouette |
 | Line width | `line_px`, same everywhere | `line_px`, same everywhere |
 | Antialiasing | none; MSAA can't reach it | MSAA smooths the hull |
 | Extra cost | one full-screen pass with 5 depth reads, and a depth copy | one more draw of every outlined mesh |

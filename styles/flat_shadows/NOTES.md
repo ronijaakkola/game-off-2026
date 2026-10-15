@@ -35,4 +35,4 @@ One shadow map and, per mesh, two draw passes (base + sun). That is the same as 
 
 ## Honest read
 
-The shader is a small part of this style. The reference gets its depth from authored geometry: every face is its own colour, buildings are cut into slabs, and the shadow tint is the one thing the light adds. A cube and a sphere show only the shadow rule, and a sphere reads as a flat disc. To judge the style, test it on modelled props with per-face colours.
+The shader is a small part of this style. The reference gets its depth from authored geometry: every face is its own colour, buildings are cut into slabs, and the shadow tint is the one thing the light adds. The base's building is a Kenney model, and its material turns on `use_albedo_tex`: the lit colour is the model's colormap at its UV and the shadow colour is that times `shadow_tint`, so each face keeps its colour and every shadow shares one tint. The sphere is still a flat disc.
