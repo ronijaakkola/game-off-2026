@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://styles/style_base.tscn" id="1_base"]
+[ext_resource type="Shader" path="res://styles/moebius/moebius_ink.gdshader" id="2_ink"]
+[ext_resource type="Shader" path="res://styles/moebius/moebius_outline.gdshader" id="3_outline"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_moebius"]
+sky_top_color = Color(0.58, 0.82, 0.88, 1)
+sky_horizon_color = Color(0.58, 0.82, 0.88, 1)
+ground_bottom_color = Color(0.6, 0.62, 0.86, 1)
+ground_horizon_color = Color(0.6, 0.62, 0.86, 1)
+
+[sub_resource type="Sky" id="Sky_resource"]
+sky_material = SubResource("Sky_moebius")
+
+[sub_resource type="Environment" id="Environment_moebius"]
+background_mode = 2
+sky = SubResource("Sky_resource")
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.0
+reflected_light_source = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+shader = ExtResource("3_outline")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cube"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_outline")
+shader = ExtResource("2_ink")
+shader_parameter/fill = Color(0.93, 0.48, 0.44, 1)
+shader_parameter/screen_space_hatching = true
+shader_parameter/line_spacing = 5.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sphere"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_outline")
+shader = ExtResource("2_ink")
+shader_parameter/fill = Color(0.33, 0.45, 0.8, 1)
+shader_parameter/highlight = true
+shader_parameter/screen_space_hatching = true
+shader_parameter/line_spacing = 5.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
+shader = ExtResource("2_ink")
+shader_parameter/fill = Color(0.97, 0.84, 0.76, 1)
+shader_parameter/screen_space_hatching = true
+shader_parameter/line_spacing = 7.0
+shader_parameter/line_width = 0.42
+
+[node name="Moebius" instance=ExtResource("1_base")]
+
+[node name="WorldEnvironment" parent="." index="0"]
+environment = SubResource("Environment_moebius")
+
+[node name="Ground" parent="." index="3"]
+surface_material_override/0 = SubResource("ShaderMaterial_ground")
+
+[node name="Cube" parent="Subjects" index="0"]
+surface_material_override/0 = SubResource("ShaderMaterial_cube")
+
+[node name="Sphere" parent="Subjects" index="1"]
+surface_material_override/0 = SubResource("ShaderMaterial_sphere")
