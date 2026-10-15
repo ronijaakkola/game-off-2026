@@ -29,7 +29,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Fog and gradients band, because there is no debanding. Add dither or noise in materials.
 - Shaders compile the first time they're seen, which stutters. Show every material for one frame while the screen is black after a scene change.
 - `vertex_color_is_srgb` does nothing in Compatibility. Check vertex-coloured models in the engine.
-- Shadowed lights render in sRGB, so they can look brighter or darker than unshadowed ones. Adjust energy by eye.
+- **A shadowed light is added in sRGB, so ambient plus a shadowed sun blows out to white.** Compatibility draws unshadowed lights and ambient in one pass and converts the result to sRGB. Each shadowed directional light, and each omni and spot light, gets its own additive pass that is converted to sRGB too, then added on top ([`scene.glsl`](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/shaders/scene.glsl#L3065-L3072), [`rasterizer_scene_gles3.cpp`](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/rasterizer_scene_gles3.cpp#L3321-L3322)). Two encoded values add up far faster than two linear ones: the defaults (sun energy 1, a sky or an ambient colour at energy 1) clip a light surface to white. It is the renderer, not `check.py capture`: a plain viewport read and the Web build show the same frame. With no ambient there is nothing to clip, which is why a scene without a `WorldEnvironment` looked fine. Start a shadowed scene at sun energy about 0.35 and ambient energy about 0.5 and adjust by eye (`styles/style_base.tscn`). An unshadowed light and a shadowed one with the same energy do not match.
 
 **Particles:**
 

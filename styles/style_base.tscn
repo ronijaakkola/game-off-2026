@@ -1,0 +1,64 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://styles/rounded_box_mesh.gd" id="1_box"]
+
+[sub_resource type="Environment" id="Environment_base"]
+background_mode = 1
+background_color = Color(0.89, 0.9, 0.97, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.8, 0.82, 0.9, 1)
+ambient_light_energy = 0.5
+reflected_light_source = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_subject"]
+albedo_color = Color(0.9, 0.55, 0.35, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.8, 0.8, 0.82, 1)
+diffuse_mode = 1
+metallic_specular = 0.0
+roughness = 1.0
+
+[sub_resource type="PrimitiveMesh" id="RoundedBoxMesh_cube"]
+script = ExtResource("1_box")
+size = Vector3(1, 1, 1)
+radius = 0.15
+
+[sub_resource type="SphereMesh" id="SphereMesh_subject"]
+radius = 0.5
+height = 1.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(40, 40)
+
+[node name="StyleBase" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_base")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 4, 0)
+light_energy = 0.35
+shadow_enabled = true
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 2.2, 4.5)
+fov = 40.0
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_ground")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="Subjects" type="Node3D" parent="."]
+
+[node name="Cube" type="MeshInstance3D" parent="Subjects"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.5, 0)
+mesh = SubResource("RoundedBoxMesh_cube")
+surface_material_override/0 = SubResource("StandardMaterial3D_subject")
+
+[node name="Sphere" type="MeshInstance3D" parent="Subjects"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.5, 0)
+mesh = SubResource("SphereMesh_subject")
+surface_material_override/0 = SubResource("StandardMaterial3D_subject")
