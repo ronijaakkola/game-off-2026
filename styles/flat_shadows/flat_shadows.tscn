@@ -36,10 +36,6 @@ shader_parameter/shadow_color = Color(0.6, 0.52, 0.75, 1)
 [node name="WorldEnvironment" parent="." index="0"]
 environment = SubResource("Environment_flat")
 
-[node name="Sun" parent="." index="1"]
-directional_shadow_mode = 0
-directional_shadow_max_distance = 14.0
-
 [node name="Ground" parent="." index="3"]
 surface_material_override/0 = SubResource("ShaderMaterial_ground")
 
