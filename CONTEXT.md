@@ -45,7 +45,7 @@ The one Blender file that holds every 3D model in the game, each as its own coll
 _Avoid_: blend file, source file, master file
 
 **Style base**:
-The test scene every rendering style starts from: one rounded cube and one sphere, a ground, a shadowed sun and a fixed camera, so styles compare on equal terms. A style scene inherits it and changes only materials, environment and post-processing. `styles/style_base.tscn`.
+The test scene every rendering style starts from: one rounded cube and one sphere, a ground, a shadowed sun and a camera that circles them, so styles compare on equal terms and show every angle. A style scene inherits it and changes only materials, environment and post-processing. `styles/style_base.tscn`.
 _Avoid_: test level, sandbox
 
 **Visual check**:
