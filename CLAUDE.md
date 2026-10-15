@@ -53,3 +53,18 @@ Working on a PR:
 - Never close, reopen or merge a PR. A human merges.
 
 The hooks in `.githooks/` (`commit-msg`, `pre-commit`) enforce the commit message and lint what you commit. Enable them once per clone with `git config core.hooksPath .githooks`.
+
+## Cloud sessions
+
+When `CLAUDE_CODE_REMOTE` is `true`, GitHub's GraphQL API is blocked, so `gh issue`, `gh pr` and `gh project` fail with HTTP 403. Use the REST API through `gh api` instead (it fills in `{owner}/{repo}` from the remote), or the GitHub MCP tools:
+
+| Instead of | Use |
+|---|---|
+| `gh issue view <n>` | `gh api 'repos/{owner}/{repo}/issues/<n>'`, and `.../issues/<n>/comments` for the comments |
+| `gh pr view <n> --json state` | `gh api 'repos/{owner}/{repo}/pulls/<n>' --jq .state` |
+| `gh pr checks <n> --watch` | Subscribe to the PR's activity; CI results arrive as events |
+| `gh pr create` | `gh api 'repos/{owner}/{repo}/pulls' -f base=main -f head=<branch> -f title=<title> -F body=@<file>` |
+
+For a one-off look at CI: `gh api 'repos/{owner}/{repo}/commits/<sha>/check-runs' --jq '.check_runs[] | "\(.name): \(.conclusion)"'`.
+
+Only repository-scoped endpoints are reachable, so the team's GitHub Project isn't. Ask the human when an issue's place on the board matters.
