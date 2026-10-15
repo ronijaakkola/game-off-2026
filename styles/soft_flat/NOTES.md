@@ -16,7 +16,7 @@ Checked in Chromium with software WebGL 2 on the Web Preview export: it renders 
 
 - Works: custom `light()`, `#include` of a `.gdshaderinc`, `POSITION` override in the outline shader, `VIEWPORT_SIZE`, `next_pass`, shadow `ATTENUATION`.
 - The light ramp is tuned for the Compatibility sRGB add of the shadowed sun (ambient 0.36, sun 0.35, `light_strength` 0.7). More ambient or sun clips the white cube to flat white and the bands vanish. See `docs/web-constraints.md`.
-- The outline is not antialiased unless MSAA 3D is on. That is a project setting, so this scene doesn't turn it on; at 1.5 px the edge can show stair-stepping without it.
+- The outline is only antialiased by MSAA 3D, a project setting that is now 4x. At 1.5 px the edge stair-stepped with it off; with it on the hull outline is smooth.
 - The ground's view distance is computed in `fragment()`. A varying set in `vertex()` on the base's two-triangle ground plane interpolates the four far corners and is wrong almost everywhere.
 
 ## Cost

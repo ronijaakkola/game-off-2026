@@ -18,7 +18,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - One shadowed DirectionalLight with soft PCF filtering, plus a few unshadowed omni lights. The limit is 8 omni and 8 spot lights per mesh.
 - **Toon** diffuse in StandardMaterial3D, or a custom `light()` ramp in a spatial shader.
 - Outlines with **Grow** on an unshaded next-pass material (Cull Front), or the Outline stencil mode. Both need smooth-shaded, connected meshes.
-- **MSAA 3D**, the only edge antialiasing on the web.
+- **MSAA 3D**, the only edge antialiasing on the web. The project runs it at 4x (`rendering/anti_aliasing/quality/msaa_3d`). It smooths geometry edges and inverted-hull outlines, but not edges drawn inside a shader (hatching, a hard-thresholded shadow edge, a depth-edge line), which need their own `fwidth` softening. It costs fill rate and memory; not measured on an iGPU.
 - Baked **LightmapGI** renders, but baking needs a Vulkan, D3D12 or Metal GPU: bake in the editor on a dev machine. CI can't bake.
 
 **Missing on the web:** volumetric fog and FogVolume (fake local mist with quad sprites), SSR, SSIL, SDFGI, VoxelGI, DOF, auto exposure, decals, debanding, FXAA/SMAA/TAA, textured area lights, the normal-roughness buffer (so no normal-based screen-space edges), compute shaders and CompositorEffects.
@@ -91,7 +91,7 @@ What carried across styles:
 
 ## Still unverified in a browser
 
-Check these before relying on them: stencil outlines on WebGL 2, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI laptops. Also open: whether to turn on MSAA 3D (off project-wide, so every shader-drawn edge and outline aliases; undecided), glow and the full-screen depth-edge pass on a real iGPU, and every style scene in Safari.
+Check these before relying on them: stencil outlines on WebGL 2, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI laptops. Also open: what MSAA 4x (now on project-wide) costs on a real iGPU, glow and the full-screen depth-edge pass on the same, and every style scene in Safari.
 
 ## Sources
 

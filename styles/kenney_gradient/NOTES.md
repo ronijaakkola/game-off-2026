@@ -15,7 +15,7 @@ Soft, low-contrast pastel look in the style of Kenney's colormap assets: no text
 - Everything used works in Compatibility: a spatial shader, a texture read, `light()`, one shadowed directional light, a flat environment. No post-processing, so the cost is one texture read per fragment plus the shadow pass. It should be as cheap as the base.
 - **Light energies are tuned by the sRGB-add rule** (see `docs/web-constraints.md`): the shadowed sun is added on top of ambient after sRGB conversion. Ambient 0.6 with sun 0.12 already clips the ground's blue channel to 255, hence 0.56. Raise either and the lilac washes out.
 - **Fog doesn't work with this setup.** Depth fog fades the ambient pass but not the shadowed sun pass, so the ground turned into a bright band halfway to the horizon. Fading in the shader had the same problem (a dark band). Hence the huge ground plane and a background colour matched by eye. If you change the ground colour or the light energies, re-match `background_color` to the lit ground (read a pixel from a `capture`).
-- No MSAA here (`rendering/anti_aliasing/quality/msaa_3d` is a project setting, off now), so edges alias. Worth turning on for this style, since the look depends on clean silhouettes.
+- MSAA 3D is a project setting (`rendering/anti_aliasing/quality/msaa_3d`), now 4x, which this style needs because its look depends on clean silhouettes. It was off when this style was built.
 - The shadow terminator on the sphere shows some noise at the default shadow quality.
 
 ## What the base scene can't show
