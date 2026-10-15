@@ -2,7 +2,7 @@
 
 What the game is. Read this before gameplay work and update it when the design changes. On jam day the content under each heading is replaced by the real game; the headings stay.
 
-Right now it describes the **example game scene**: the small scene that shows the patterns to copy. It is still to build, and an open GitHub Issue tracks it; until then Play goes to a stub at `game/game.tscn`.
+Right now it describes the **example game scene**: the small scene that shows the patterns to copy. It is still to build; until then Play goes to a stub at `game/game.tscn`.
 
 ## Pitch
 
