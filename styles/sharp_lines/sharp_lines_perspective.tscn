@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://styles/sharp_lines/sharp_lines.tscn" id="1_sharp"]
+[ext_resource type="Material" path="res://styles/sharp_lines/edge_pass_perspective.tres" id="2_edge"]
+
+[node name="SharpLinesPerspective" unique_id=1 instance=ExtResource("1_sharp")]
+
+[node name="Camera" parent="CameraPivot" index="0"]
+transform = Transform3D(1, 0, 0, 0, 0.8165, 0.5774, 0, -0.5774, 0.8165, 0, 4.2, 5.9)
+projection = 0
+fov = 40.0
+
+[node name="EdgePass" parent="CameraPivot/Camera" index="0"]
+surface_material_override/0 = ExtResource("2_edge")

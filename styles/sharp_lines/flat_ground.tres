@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://styles/sharp_lines/flat_face.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/albedo = Color(0.96, 0.97, 0.99, 1)
+shader_parameter/grid_strength = 0.35
+shader_parameter/lit_strength = 1.0
