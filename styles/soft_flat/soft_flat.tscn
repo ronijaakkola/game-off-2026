@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://styles/style_base.tscn" id="1_base"]
+[ext_resource type="Shader" path="res://styles/soft_flat/soft_flat_subject.gdshader" id="2_subject"]
+[ext_resource type="Shader" path="res://styles/soft_flat/soft_flat_ground.gdshader" id="3_ground"]
+[ext_resource type="Shader" path="res://styles/soft_flat/soft_flat_outline.gdshader" id="4_outline"]
+
+[sub_resource type="Environment" id="Environment_soft"]
+background_mode = 1
+background_color = Color(0.52, 0.65, 0.69, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.78, 0.84, 0.88, 1)
+ambient_light_energy = 0.36
+reflected_light_source = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+render_priority = 0
+shader = ExtResource("4_outline")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cube"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_outline")
+shader = ExtResource("2_subject")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sphere"]
+render_priority = 0
+next_pass = SubResource("ShaderMaterial_outline")
+shader = ExtResource("2_subject")
+shader_parameter/base_color = Color(0.45, 0.66, 0.52, 1)
+shader_parameter/bottom_color = Color(0.3, 0.5, 0.38, 1)
+shader_parameter/gradient_height = 1.0
+shader_parameter/gradient_amount = 0.9
+shader_parameter/top_amount = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
+shader = ExtResource("3_ground")
+
+[node name="SoftFlat" instance=ExtResource("1_base")]
+
+[node name="WorldEnvironment" parent="." index="0"]
+environment = SubResource("Environment_soft")
+
+[node name="Ground" parent="." index="3"]
+surface_material_override/0 = SubResource("ShaderMaterial_ground")
+
+[node name="Cube" parent="Subjects" index="0"]
+surface_material_override/0 = SubResource("ShaderMaterial_cube")
+
+[node name="Sphere" parent="Subjects" index="1"]
+surface_material_override/0 = SubResource("ShaderMaterial_sphere")
