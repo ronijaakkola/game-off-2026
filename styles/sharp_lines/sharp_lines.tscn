@@ -27,6 +27,8 @@ environment = SubResource("Environment_sharp")
 
 [node name="Sun" parent="." index="1"]
 light_energy = 0.012
+directional_shadow_mode = 2
+directional_shadow_max_distance = 16.0
 
 [node name="Camera" parent="CameraPivot" index="0"]
 transform = Transform3D(1, 0, 0, 0, 0.8165, 0.5774, 0, -0.5774, 0.8165, 0, 6.93, 9.8)
