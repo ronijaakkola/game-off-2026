@@ -13,6 +13,23 @@ Godot 4.7.2 GDScript project, web (itch.io) first, Compatibility renderer.
 5. Enable the git hooks once per clone: `git config core.hooksPath .githooks`.
 6. Run `uv run tools/check.py all`. It imports the project and should end with `PASS all`.
 
+### Cloud sessions
+
+A Claude Code cloud session starts without Godot. `tools/cloud_setup.sh` installs Godot 4.7.2, its Web export templates, uv, and a `godot` wrapper that runs windowed commands such as `capture` under Xvfb. It checks each download's hash, resumes a download the proxy cuts off, and skips what is already installed. Run it from the cloud environment's setup script:
+
+1. Open the cloud environment menu in the session's title bar, then **Edit**.
+2. Add these lines to **Setup script**, with this repo's owner and name:
+
+   ```bash
+   curl -fsSL -o /tmp/cloud_setup.sh https://raw.githubusercontent.com/<owner>/<repo>/main/tools/cloud_setup.sh
+   bash /tmp/cloud_setup.sh
+   ```
+
+   The setup script can't count on the repo being cloned yet, so it downloads the script from `main`. For a private repo, paste the contents of `tools/cloud_setup.sh` instead.
+3. Start a new session. The first one downloads 1.4 GB, about a minute.
+
+In cloud sessions only, a SessionStart hook (`tools/cloud_session_start.sh`) enables the git hooks and tells the agent when Godot or the templates are missing.
+
 ## Layout
 
 | Folder | What goes there |

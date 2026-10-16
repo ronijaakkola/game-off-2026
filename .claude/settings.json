@@ -7,10 +7,18 @@
   "permissions": {
     "allow": [
       "Bash(uv run tools/check.py:*)",
-      "Bash(uv run tools/blender.py:*)"
+      "Bash(uv run tools/blender.py:*)",
+      "Bash(bash tools/cloud_setup.sh)"
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/tools/cloud_session_start.sh\"" }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|Bash",

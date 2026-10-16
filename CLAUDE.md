@@ -70,3 +70,5 @@ When `CLAUDE_CODE_REMOTE` is `true`, GitHub's GraphQL API is blocked, so `gh iss
 For a one-off look at CI: `gh api 'repos/{owner}/{repo}/commits/<sha>/check-runs' --jq '.check_runs[] | "\(.name): \(.conclusion)"'`.
 
 Only repository-scoped endpoints are reachable, so the team's GitHub Project isn't. Ask the human when an issue's place on the board matters.
+
+When the SessionStart hook reports that Godot or the Web templates are missing, run `bash tools/cloud_setup.sh` and tell the human to add it to the environment's setup script (README.md, Setup › Cloud sessions).
