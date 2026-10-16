@@ -12,7 +12,7 @@ Folders are by feature:
 | `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/dev_console/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
-| `shared/` | Assets used by more than one feature: soft-look environment, toon shader, fonts, `shared/audio/`. |
+| `shared/` | Assets used by more than one feature, such as `shared/audio/`. |
 | `test/` | gdUnit4 tests. |
 | `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
 | `art/` | The **model library**, `art/models.blend`. Ignored by git and Godot. |
@@ -117,6 +117,7 @@ func fade_in() -> void:
 
 - The project runs Jolt Physics (`physics/3d/physics_engine` in `project.godot`). It works in the single-threaded web build.
 - Pick with the mouse by casting a ray: `Camera3D.project_ray_origin()` and `project_ray_normal()` into `PhysicsDirectSpaceState3D.intersect_ray()`. For a one-off "does it fit here?" check, use `intersect_shape()` instead of an `Area3D`.
+- Cast from `_physics_process()`. The space may be locked during `_input()` ([Ray-casting](https://docs.godotengine.org/en/4.7/tutorials/physics/ray-casting.html)), so keep the click's position and cast in the next physics frame. `game/game.gd` shows it.
 - Under Jolt, the Debugger's physics monitors (active objects, collision pairs, islands) always read 0. Don't use them to debug.
 
 ## Editing `.tscn` and `.tres`
