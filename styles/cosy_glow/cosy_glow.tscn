@@ -1,0 +1,264 @@
+[gd_scene format=3 uid="uid://b5206awc2r7lj"]
+
+[ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://l5ytfbiqnswl" path="res://styles/cosy_glow/cosy_glow.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://cjtvabl02wu8d" path="res://styles/rounded_box_mesh.gd" id="3_box"]
+[ext_resource type="Texture2D" uid="uid://bu5i37wewt870" path="res://styles/cosy_glow/grain.png" id="4_grain"]
+[ext_resource type="Shader" uid="uid://v2pgsciqlk7w" path="res://styles/cosy_glow/cosy_surface.gdshader" id="5_surface"]
+[ext_resource type="Shader" uid="uid://mnqcw85j1vrs" path="res://styles/cosy_glow/cosy_emissive.gdshader" id="6_emissive"]
+[ext_resource type="Shader" uid="uid://iiw6totyjkmu" path="res://styles/cosy_glow/cosy_light_cone.gdshader" id="7_cone"]
+[ext_resource type="Shader" uid="uid://7ma7rconr507" path="res://styles/cosy_glow/cosy_pool.gdshader" id="8_pool"]
+[ext_resource type="Shader" uid="uid://dbq861op7h5sb" path="res://styles/cosy_glow/cosy_halo.gdshader" id="9_halo"]
+[ext_resource type="Shader" uid="uid://b0fe7ekwhotgu" path="res://styles/cosy_glow/cosy_vignette.gdshader" id="10_vignette"]
+[ext_resource type="Texture2D" uid="uid://cpcnftn8s1xls" path="res://styles/models/Textures/colormap.png" id="99_colormap"]
+
+[sub_resource type="Environment" id="Environment_cosy"]
+background_mode = 1
+background_color = Color(0.4, 0.6, 0.6, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.72, 0.78, 1)
+ambient_light_energy = 0.42
+reflected_light_source = 1
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 1.3
+glow_strength = 1.2
+glow_bloom = 0.15
+glow_blend_mode = 1
+glow_hdr_threshold = 0.7
+fog_enabled = true
+fog_light_color = Color(0.4, 0.6, 0.6, 1)
+fog_density = 0.025
+adjustment_enabled = true
+adjustment_saturation = 1.2
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cube"]
+shader = ExtResource("5_surface")
+shader_parameter/base_color = Color(0.95, 0.45, 0.35, 1)
+shader_parameter/use_albedo_tex = true
+shader_parameter/albedo_tex = ExtResource("99_colormap")
+shader_parameter/gradient_strength = 0.25
+shader_parameter/gradient_height = 1.0
+shader_parameter/grain_tex = ExtResource("4_grain")
+shader_parameter/grain_scale = 1.2
+shader_parameter/grain_strength = 0.18
+shader_parameter/ramp_low = 0.3
+shader_parameter/ramp_high = 0.85
+shader_parameter/rim_color = Color(1, 0.8, 0.6, 1)
+shader_parameter/rim_power = 3.0
+shader_parameter/rim_strength = 0.25
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sphere"]
+shader = ExtResource("5_surface")
+shader_parameter/base_color = Color(0.96, 0.78, 0.35, 1)
+shader_parameter/gradient_strength = 0.25
+shader_parameter/gradient_height = 1.0
+shader_parameter/grain_tex = ExtResource("4_grain")
+shader_parameter/grain_scale = 1.2
+shader_parameter/grain_strength = 0.18
+shader_parameter/ramp_low = 0.3
+shader_parameter/ramp_high = 0.85
+shader_parameter/rim_color = Color(1, 0.8, 0.6, 1)
+shader_parameter/rim_power = 3.0
+shader_parameter/rim_strength = 0.25
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
+shader = ExtResource("5_surface")
+shader_parameter/base_color = Color(0.42, 0.45, 0.43, 1)
+shader_parameter/gradient_strength = 0.0
+shader_parameter/gradient_height = 1.0
+shader_parameter/grain_tex = ExtResource("4_grain")
+shader_parameter/grain_scale = 0.35
+shader_parameter/grain_strength = 0.15
+shader_parameter/ramp_low = 0.1
+shader_parameter/ramp_high = 0.7
+shader_parameter/rim_strength = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_body"]
+shader = ExtResource("5_surface")
+shader_parameter/base_color = Color(0.07, 0.1, 0.22, 1)
+shader_parameter/gradient_strength = 0.3
+shader_parameter/gradient_height = 2.0
+shader_parameter/grain_tex = ExtResource("4_grain")
+shader_parameter/grain_scale = 0.9
+shader_parameter/grain_strength = 0.25
+shader_parameter/ramp_low = 0.3
+shader_parameter/ramp_high = 0.85
+shader_parameter/rim_color = Color(0.5, 0.75, 0.9, 1)
+shader_parameter/rim_power = 2.5
+shader_parameter/rim_strength = 0.3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bottle"]
+shader = ExtResource("5_surface")
+shader_parameter/base_color = Color(0.55, 0.85, 0.75, 1)
+shader_parameter/gradient_strength = 0.3
+shader_parameter/gradient_height = 0.4
+shader_parameter/grain_tex = ExtResource("4_grain")
+shader_parameter/grain_scale = 1.5
+shader_parameter/grain_strength = 0.12
+shader_parameter/ramp_low = 0.3
+shader_parameter/ramp_high = 0.85
+shader_parameter/rim_color = Color(1, 0.8, 0.6, 1)
+shader_parameter/rim_power = 2.5
+shader_parameter/rim_strength = 0.5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_panel"]
+shader = ExtResource("6_emissive")
+shader_parameter/color_top = Color(1, 0.62, 0.35, 1)
+shader_parameter/color_bottom = Color(0.95, 0.32, 0.16, 1)
+shader_parameter/energy = 1.25
+shader_parameter/edge_darken = 0.35
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cone"]
+shader = ExtResource("7_cone")
+shader_parameter/color = Color(1, 0.55, 0.3, 1)
+shader_parameter/intensity = 0.55
+shader_parameter/top_y = 2.0
+shader_parameter/fall_power = 1.5
+shader_parameter/edge_power = 1.5
+shader_parameter/clip_z = -1.58
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pool"]
+shader = ExtResource("8_pool")
+shader_parameter/color = Color(1, 0.5, 0.3, 1)
+shader_parameter/intensity = 0.5
+shader_parameter/falloff = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_halo"]
+shader = ExtResource("9_halo")
+shader_parameter/color = Color(1, 0.55, 0.3, 1)
+shader_parameter/intensity = 0.3
+shader_parameter/falloff = 2.5
+shader_parameter/facing = Vector3(0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vignette"]
+shader = ExtResource("10_vignette")
+shader_parameter/color = Color(0.08, 0.2, 0.25, 1)
+shader_parameter/strength = 0.5
+shader_parameter/inner = 0.35
+shader_parameter/outer = 0.95
+
+[sub_resource type="PrimitiveMesh" id="RoundedBoxMesh_body"]
+script = ExtResource("3_box")
+size = Vector3(1.1, 2, 0.8)
+radius = 0.18
+
+[sub_resource type="QuadMesh" id="QuadMesh_panel"]
+size = Vector2(0.84, 1.4)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_cone"]
+top_radius = 0.1
+bottom_radius = 1.8
+height = 2.0
+radial_segments = 32
+rings = 1
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_pool"]
+size = Vector2(5, 6)
+
+[sub_resource type="QuadMesh" id="QuadMesh_halo"]
+size = Vector2(4, 4)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bottle_tall"]
+top_radius = 0.06
+bottom_radius = 0.09
+height = 0.36
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bottle_short"]
+top_radius = 0.05
+bottom_radius = 0.08
+height = 0.26
+
+[node name="CosyGlow" unique_id=1 instance=ExtResource("1_base")]
+script = ExtResource("2_script")
+
+[node name="WorldEnvironment" parent="." index="0"]
+unique_name_in_owner = true
+environment = SubResource("Environment_cosy")
+
+[node name="Sun" parent="." index="1"]
+light_color = Color(0.72, 0.85, 1, 1)
+light_energy = 0.25
+shadow_blur = 2.0
+
+[node name="Ground" parent="." index="4"]
+surface_material_override/0 = SubResource("ShaderMaterial_ground")
+
+[node name="Cube" parent="Subjects" index="0"]
+surface_material_override/0 = SubResource("ShaderMaterial_cube")
+
+[node name="Sphere" parent="Subjects" index="1"]
+surface_material_override/0 = SubResource("ShaderMaterial_sphere")
+
+[node name="Machine" type="Node3D" parent="." index="6"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+
+[node name="Body" type="MeshInstance3D" parent="Machine" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("RoundedBoxMesh_body")
+surface_material_override/0 = SubResource("ShaderMaterial_body")
+
+[node name="Panel" type="MeshInstance3D" parent="Machine" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.405)
+mesh = SubResource("QuadMesh_panel")
+surface_material_override/0 = SubResource("ShaderMaterial_panel")
+
+[node name="Lamp" type="OmniLight3D" parent="Machine" index="2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0.6)
+light_color = Color(1, 0.62, 0.35, 1)
+light_energy = 1.8
+omni_range = 6.0
+omni_attenuation = 1.4
+
+[node name="Bottles" type="Node3D" parent="." index="7"]
+
+[node name="Tall" type="MeshInstance3D" parent="Bottles" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0.18, -1.35)
+mesh = SubResource("CylinderMesh_bottle_tall")
+surface_material_override/0 = SubResource("ShaderMaterial_bottle")
+
+[node name="Short" type="MeshInstance3D" parent="Bottles" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, 0.13, -1.15)
+mesh = SubResource("CylinderMesh_bottle_short")
+surface_material_override/0 = SubResource("ShaderMaterial_bottle")
+
+[node name="Fakes" type="Node3D" parent="." index="8"]
+unique_name_in_owner = true
+
+[node name="Cone" type="MeshInstance3D" parent="Fakes" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1.5)
+mesh = SubResource("CylinderMesh_cone")
+surface_material_override/0 = SubResource("ShaderMaterial_cone")
+
+[node name="Pool" type="MeshInstance3D" parent="Fakes" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, -0.3)
+mesh = SubResource("PlaneMesh_pool")
+surface_material_override/0 = SubResource("ShaderMaterial_pool")
+
+[node name="Halo" type="MeshInstance3D" parent="Fakes" index="2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, -1.3)
+mesh = SubResource("QuadMesh_halo")
+surface_material_override/0 = SubResource("ShaderMaterial_halo")
+
+[node name="Vignette" type="CanvasLayer" parent="." index="9"]
+unique_name_in_owner = true
+
+[node name="Tint" type="ColorRect" parent="Vignette" index="0"]
+material = SubResource("ShaderMaterial_vignette")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HudLayer" type="CanvasLayer" parent="." index="10"]
+
+[node name="Hud" type="Label" parent="HudLayer" index="0"]
+unique_name_in_owner = true
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 12.0
+offset_bottom = 8.0

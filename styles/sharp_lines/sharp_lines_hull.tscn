@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://cyr1l7ce2cv74"]
+
+[ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
+[ext_resource type="Material" uid="uid://gdwm6k4mq7ew" path="res://styles/sharp_lines/flat_face_hull.tres" id="2_face"]
+[ext_resource type="Material" uid="uid://c33kpkh3cramj" path="res://styles/sharp_lines/flat_ground.tres" id="3_ground"]
+
+[sub_resource type="Environment" id="Environment_sharp"]
+background_mode = 1
+background_color = Color(0.98, 0.98, 0.99, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.72
+reflected_light_source = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_edge"]
+size = Vector2(2, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_block"]
+
+[sub_resource type="PrismMesh" id="PrismMesh_roof"]
+
+[node name="SharpLinesHull" unique_id=1 instance=ExtResource("1_base")]
+
+[node name="WorldEnvironment" parent="." index="0"]
+environment = SubResource("Environment_sharp")
+
+[node name="Sun" parent="." index="1"]
+light_energy = 0.012
+directional_shadow_mode = 2
+directional_shadow_max_distance = 16.0
+
+[node name="Camera" parent="CameraPivot" index="0"]
+transform = Transform3D(1, 0, 0, 0, 0.8165, 0.5774, 0, -0.5774, 0.8165, 0, 6.93, 9.8)
+projection = 1
+size = 6.0
+
+[node name="Ground" parent="." index="3"]
+surface_material_override/0 = ExtResource("3_ground")
+
+[node name="Cube" parent="Subjects" index="0"]
+surface_material_override/0 = ExtResource("2_face")
+
+[node name="Sphere" parent="Subjects" index="1"]
+surface_material_override/0 = ExtResource("2_face")
+
+[node name="Town" type="Node3D" parent="." index="5"]
+
+[node name="TallBlock" type="MeshInstance3D" parent="Town" index="0"]
+transform = Transform3D(1.2, 0, 0, 0, 2.4, 0, 0, 0, 1.2, -2.6, 1.2, -1.8)
+mesh = SubResource("BoxMesh_block")
+surface_material_override/0 = ExtResource("2_face")
+
+[node name="HouseWalls" type="MeshInstance3D" parent="Town" index="1"]
+transform = Transform3D(1.6, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 2.8, 0.6, -1.6)
+mesh = SubResource("BoxMesh_block")
+surface_material_override/0 = ExtResource("2_face")
+
+[node name="HouseRoof" type="MeshInstance3D" parent="Town" index="2"]
+transform = Transform3D(1.6, 0, 0, 0, 0.8, 0, 0, 0, 1.3, 2.8, 1.6, -1.6)
+mesh = SubResource("PrismMesh_roof")
+surface_material_override/0 = ExtResource("2_face")
+
+[node name="LongBlock" type="MeshInstance3D" parent="Town" index="3"]
+transform = Transform3D(2.4, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0.2, 0.45, 2.8)
+mesh = SubResource("BoxMesh_block")
+surface_material_override/0 = ExtResource("2_face")

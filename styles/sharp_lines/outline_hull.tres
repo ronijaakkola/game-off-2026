@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bsl6mrc5ryetd"]
+
+[ext_resource type="Shader" uid="uid://craftj0cgwny0" path="res://styles/sharp_lines/outline_hull.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")

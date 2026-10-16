@@ -18,7 +18,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - One shadowed DirectionalLight with soft PCF filtering, plus a few unshadowed omni lights. The limit is 8 omni and 8 spot lights per mesh.
 - **Toon** diffuse in StandardMaterial3D, or a custom `light()` ramp in a spatial shader.
 - Outlines with **Grow** on an unshaded next-pass material (Cull Front), or the Outline stencil mode. Both need smooth-shaded, connected meshes.
-- **MSAA 3D**, the only edge antialiasing on the web.
+- **MSAA 3D**, the only edge antialiasing on the web. The project runs it at 4x (`rendering/anti_aliasing/quality/msaa_3d`). It smooths geometry edges and inverted-hull outlines, but not edges drawn inside a shader (hatching, a hard-thresholded shadow edge, a depth-edge line), which need their own `fwidth` softening. It costs fill rate and memory; not measured on an iGPU.
 - Baked **LightmapGI** renders, but baking needs a Vulkan, D3D12 or Metal GPU: bake in the editor on a dev machine. CI can't bake.
 
 **Missing on the web:** volumetric fog and FogVolume (fake local mist with quad sprites), SSR, SSIL, SDFGI, VoxelGI, DOF, auto exposure, decals, debanding, FXAA/SMAA/TAA, textured area lights, the normal-roughness buffer (so no normal-based screen-space edges), compute shaders and CompositorEffects.
@@ -29,7 +29,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Fog and gradients band, because there is no debanding. Add dither or noise in materials.
 - Shaders compile the first time they're seen, which stutters. Show every material for one frame while the screen is black after a scene change.
 - `vertex_color_is_srgb` does nothing in Compatibility. Check vertex-coloured models in the engine.
-- Shadowed lights render in sRGB, so they can look brighter or darker than unshadowed ones. Adjust energy by eye.
+- **A shadowed light is added in sRGB, so ambient plus a shadowed sun blows out to white.** Compatibility draws ambient and every unshadowed light (directional, omni, spot) in one pass and converts the result to sRGB. Each shadowed light gets its own additive pass that is converted to sRGB too, then added on top ([`scene.glsl`](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/shaders/scene.glsl#L3065-L3072), [`rasterizer_scene_gles3.cpp`](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/rasterizer_scene_gles3.cpp#L1346-L1398)). Two encoded values add up far faster than two linear ones, so the defaults (sun energy 1, ambient energy 1) clip a light surface to white. It is the renderer, not `check.py capture`: a plain viewport read and the Web build show the same frame. With no ambient there is nothing to clip, which is why a scene without a `WorldEnvironment` looked fine. Start a shadowed scene at sun energy about 0.35 and ambient about 0.5 and adjust by eye (`styles/style_base.tscn`); the style scenes below needed anything from 0.012 to 0.35. A shadowed and an unshadowed light of the same energy do not match.
 
 **Particles:**
 
@@ -65,9 +65,35 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Fullscreen and mouse capture work only when requested inside an input event, such as a `Button` press.
 - The stretch mode is `canvas_items` with `expand` at 1152×648, so UI scales in fullscreen and mouse-motion `relative` stays in content units.
 
+## Style test findings
+
+Eight style scenes inherit `styles/style_base.tscn`, and each has a `NOTES.md` with its technique, web status and cost. They were checked in a Chromium web export on software WebGL 2 (SwiftShader), not on a real GPU or in Safari, so the frame rates there only show how much each piece costs relative to the others.
+
+| Style | Scene | Needs on the web | Light energies (sun / ambient) |
+|---|---|---|---|
+| Kenney gradient | [`kenney_gradient`](../styles/kenney_gradient/NOTES.md) | Palette texture, wrapped-Lambert `light()`. No post effects. | 0.12 / 0.56 |
+| Moebius hatching | [`moebius`](../styles/moebius/NOTES.md) | Hatching in `light()`, inverted-hull outline. No post effects. | sun colour ignored / 0 |
+| Soft flat | [`soft_flat`](../styles/soft_flat/NOTES.md) | Banded `light()`, inverted-hull outline, procedural ground. A faceted variant (`soft_flat_faceted`) uses flat normals and colour bands. | 0.35 / 0.36 |
+| Sharp lines, flat city | [`sharp_lines`](../styles/sharp_lines/NOTES.md) | Banded `light()`, then one of: a full-screen depth-edge pass (`hint_depth_texture`), inverted hulls, or crease lines built as real ribbon geometry (the only one MSAA smooths on hard-edged models). | 0.012 / 0.72 |
+| Cosy glow | [`cosy_glow`](../styles/cosy_glow/NOTES.md) | Glow, fog, filmic tonemap, fake light quads, a vignette. | 0.25 / 0.42 |
+| Flat shadows | [`flat_shadows`](../styles/flat_shadows/NOTES.md) | One `light()` that turns the shadow term into a flat tint. | 0.35, colour ignored / white at 1 |
+| Cross stitch | [`cross_stitch`](../styles/cross_stitch/NOTES.md) | One full-screen pass using `hint_screen_texture` and `hint_depth_texture`: a screen-fixed cloth grid (80 rows) with a stitch per cell. | 0.35 / 0.5 |
+| Hazy edges | [`hazy_edges`](../styles/hazy_edges/NOTES.md) | Flat-tint `light()` plus one full-screen pass using `hint_screen_texture` and `hint_depth_texture`: a world-anchored noise warp that roughs up silhouettes and shadow borders. | sun energy ignored / white at 1 |
+
+What carried across styles:
+
+- **The sRGB-add rule decides the light setup.** A custom `light()` that ignores the light's colour and energy (moebius, flat shadows) avoids tuning altogether, but it needs the ambient to match: 0 for moebius so ink isn't lightened, white at 1 for flat shadows so the base pass leaves the albedo alone. Flat shadows can only brighten a surface, so each channel of the shadow colour must be at most the lit colour's.
+- **Glow is the costly piece.** It added a full-screen buffer and a blur chain and took about a quarter of the frame time in cosy glow's test, against about 14% for fog and about 2% for a vignette pass. Check it on a laptop iGPU before keeping it.
+- **Depth fog and the shadowed sun disagree.** Kenney gradient saw a bright band halfway to the horizon when fog was on, so it matches the background colour to the ground by hand. Cosy glow's fog worked with a dim sun. If fog is part of a style, check the ground at the horizon with your own light energies.
+- **Additive fakes** (light cones, pools, halos): add `fog_disabled` to their `render_mode`, or fog colour paints the whole quad. Keep dither small: `1/255` added to a dark linear value is clearly visible after the sRGB conversion, so cosy glow uses `1/1024` in its opaque shaders and none in the additive ones. Quads with noise alpha did not work as mist, so use depth fog for haze.
+- **Outlines.** Inverted hulls need smooth, connected normals: clean on the sphere, gaps at the corners of a hard-edged box, and no creases inside a mesh. On the base's bevelled Kenney building they are mixed: good in the Moebius ink, almost invisible in soft flat, broken in sharp lines. A depth-edge post pass draws creases and silhouettes in one pass and works on the web (`hint_depth_texture` is available), but in perspective it also fires on curved surfaces. Normal-based edges are not possible, because there is no normal-roughness buffer.
+- **Shadow edges.** With the default 100 m PSSM shadow distance an edge stair-steps. The base Sun uses the orthogonal shadow mode with `directional_shadow_max_distance` 10, and the project sets `soft_shadow_filter_quality` 3. Keep the range as tight as the scene allows. An 8192 atlas costs 4x the memory and 16384 failed in the test browser, so neither is recommended for the web. MSAA doesn't smooth shadow edges. Orthogonal shadow mode doesn't work with an Orthographic camera; use a PSSM split mode there (the sharp-lines scenes do).
+- **Screen-space lines** (hatching) are in framebuffer pixels, so they get finer on a HiDPI canvas. World-space lines stick to the objects but change weight with distance and clump where a surface runs parallel to them.
+- **Models matter more than the renderer for most of these looks.** Flat shadows, soft flat, Kenney gradient and cosy glow depend on authored faces, colours or painted textures that a cube and a sphere don't show, which is why the base now uses a Kenney building. Kenney gradient, flat shadows and cosy glow read the model's colormap at its UV (`use_albedo_tex` / `uv_lookup`); Moebius, soft flat and sharp lines replace the colours on purpose.
+
 ## Still unverified in a browser
 
-Check these before relying on them: stencil outlines on WebGL 2, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI laptops.
+Check these before relying on them: stencil outlines on WebGL 2, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI laptops. Also open: what MSAA 4x (now on project-wide) costs on a real iGPU, glow and the full-screen depth-edge pass on the same, and every style scene in Safari.
 
 ## Sources
 

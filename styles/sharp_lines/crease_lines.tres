@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://c6fdq62b41g3g"]
+
+[ext_resource type="Shader" uid="uid://ddcaol77hash8" path="res://styles/sharp_lines/crease_lines.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")

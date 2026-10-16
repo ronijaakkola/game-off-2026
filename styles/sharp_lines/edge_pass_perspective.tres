@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dsiahfbpu2x35"]
+
+[ext_resource type="Shader" uid="uid://dsdb7x18n30vu" path="res://styles/sharp_lines/edge_pass.gdshader" id="1_shader"]
+
+[resource]
+render_priority = 100
+shader = ExtResource("1_shader")
+shader_parameter/threshold = 0.3

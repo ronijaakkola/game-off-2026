@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://ctu6kuhykwvxm"]
+
+[ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
+[ext_resource type="Shader" uid="uid://bprg7vdkp8gyr" path="res://styles/hazy_edges/hazy_surface.gdshader" id="2_surface"]
+[ext_resource type="Shader" uid="uid://qsg7h7lu33y5" path="res://styles/hazy_edges/hazy_edges.gdshader" id="3_haze"]
+[ext_resource type="Texture2D" uid="uid://cpcnftn8s1xls" path="res://styles/models/Textures/colormap.png" id="4_colormap"]
+
+[sub_resource type="Environment" id="Environment_hazy"]
+background_mode = 1
+background_color = Color(0.62, 0.76, 0.72, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+reflected_light_source = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cube"]
+shader = ExtResource("2_surface")
+shader_parameter/use_albedo_tex = true
+shader_parameter/albedo_tex = ExtResource("4_colormap")
+shader_parameter/shadow_tint = Vector3(0.7, 0.76, 0.86)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sphere"]
+shader = ExtResource("2_surface")
+shader_parameter/lit_color = Color(0.86, 0.6, 0.38, 1)
+shader_parameter/shadow_color = Color(0.58, 0.42, 0.34, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
+shader = ExtResource("2_surface")
+shader_parameter/lit_color = Color(0.66, 0.76, 0.62, 1)
+shader_parameter/shadow_color = Color(0.4, 0.56, 0.54, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_haze"]
+render_priority = 100
+shader = ExtResource("3_haze")
+
+[sub_resource type="QuadMesh" id="QuadMesh_haze"]
+size = Vector2(2, 2)
+
+[node name="HazyEdges" instance=ExtResource("1_base")]
+
+[node name="WorldEnvironment" parent="." index="0"]
+environment = SubResource("Environment_hazy")
+
+[node name="HazePass" type="MeshInstance3D" parent="CameraPivot/Camera" index="0"]
+mesh = SubResource("QuadMesh_haze")
+surface_material_override/0 = SubResource("ShaderMaterial_haze")
+extra_cull_margin = 16384.0
+
+[node name="Ground" parent="." index="3"]
+surface_material_override/0 = SubResource("ShaderMaterial_ground")
+
+[node name="Cube" parent="Subjects" index="0"]
+surface_material_override/0 = SubResource("ShaderMaterial_cube")
+
+[node name="Sphere" parent="Subjects" index="1"]
+surface_material_override/0 = SubResource("ShaderMaterial_sphere")
