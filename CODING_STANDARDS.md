@@ -45,7 +45,13 @@ for piece: Node3D in pieces:
 
 ## Checking an API
 
-APIs change between Godot versions. Before writing code against a class, method or property you aren't sure exists in 4.7.2, look it up in the engine itself: run `godot --headless --dump-extension-api` (with the binary in `GODOT`, if set) from a scratch folder outside the repo. It writes a 7 MB `extension_api.json` there with every class, method, property and signal.
+APIs change between Godot versions. Before writing code against a class, method, property, signal or annotation you aren't sure exists in 4.7.2, look it up in the engine's own class reference:
+
+- `uv run tools/check.py api Tween`: the class, its parents, and its own members, one line each.
+- `uv run tools/check.py api Tween.kill`: one member in full, with its description. Inherited members work too.
+- `uv run tools/check.py api volume_linear`: a search, when you don't know the class. It also finds `@GlobalScope` functions such as `lerpf` and `@GDScript` annotations such as `@export_range`.
+
+The first run builds the reference into `build/api/` in a few seconds. A name that doesn't exist fails with close matches.
 
 ## Autoloads (core systems)
 

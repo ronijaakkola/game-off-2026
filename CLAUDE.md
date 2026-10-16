@@ -20,6 +20,7 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 | `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
 | `smoke [scenes]` | After changes to anything that runs at startup. Runs the main scene and `game/game.tscn`, or the ones given. |
 | `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |
+| `api <query>` | Before using a Godot API you aren't sure exists in 4.7.2. `Class`, `Class.member`, or a word to search for. |
 | `all` | Before every handoff. |
 | `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. Not part of `all`. |
 

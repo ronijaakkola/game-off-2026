@@ -70,6 +70,7 @@ Every check is a `tools/check.py` subcommand, and works the same on Windows, Mac
 | `uv run tools/check.py test` | Runs the gdUnit4 tests in `test/`. Reports go to `build/reports/`. | The gdUnit panel's run button |
 | `uv run tools/check.py smoke [scenes]` | Runs the main scene and `game/game.tscn` (or the given ones) headless for 300 frames each and fails if any error is logged. | F5 or F6, then the Output panel |
 | `uv run tools/check.py capture <scene>` | Renders a second of the scene in a window and saves the frames to `build/capture/`. | Run the scene and look |
+| `uv run tools/check.py api <query>` | Looks up the Godot 4.7.2 class reference: a class (`api Tween`), one member (`api Tween.kill`) or a search (`api volume_linear`). Not a check: it prints the reference, or `FAIL api` when nothing matches. The first run builds it into `build/api/`. | The Help search (F1) in the script editor |
 | `uv run tools/check.py all` | `lint`, `load`, `test` and `smoke`. | All of the above |
 | `uv run tools/check.py export` | Exports the web build to `build/web/` (needs the Web templates, step 2), prints the `.pck` size and boots it headless. Fails on any logged error except LimboConsole's missing autoload. The deploy runs it too. | Project → Export… → Web |
 | `uv run tools/check.py export --preview` | Exports the preview build (below) to `build/web-preview/` and boots it headless. Fails on any logged error. | Project → Export… → Web Preview, with Export With Debug on |

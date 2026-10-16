@@ -17,6 +17,10 @@
   all              lint, load, test, smoke
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
   export --preview export Web Preview (dev console, debug template) to build/web-preview/
+  api <query>      look up the Godot 4.7.2 class reference: `api Tween` (a class),
+                   `api Tween.kill` (one member), `api volume` (a search)
+  api --search <text>  search class and member names even when <text> is a class
+  api <Class> --full   also print the class description
 """
 
 import argparse
@@ -26,6 +30,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from importlib.metadata import version as pkg_version
 from pathlib import Path
@@ -77,6 +82,10 @@ def main() -> int:
     commands.add_parser("capture").add_argument("scene")
     commands.add_parser("all")
     commands.add_parser("export").add_argument("--preview", action="store_true")
+    api = commands.add_parser("api")
+    api.add_argument("query")
+    api.add_argument("--search", action="store_true")
+    api.add_argument("--full", action="store_true")
     args = parser.parse_args()
     os.chdir(ROOT)
     # Windows pipes default to cp1252, which mangles non-ASCII paths (C:\Users\Mäkinen).
@@ -85,6 +94,8 @@ def main() -> int:
 
     if args.command == "lint" and args.hook:
         return lint_hook()
+    if args.command == "api":
+        return run_api(args.query, args.search, args.full)
     steps = {
         "lint": lambda: run_lint(getattr(args, "files", [])),
         "format": lambda: run_format(args.files),
@@ -491,6 +502,7 @@ def run_format(files: list[str]):
 # --- Godot ------------------------------------------------------------------
 
 _godot: str | None = None
+_binary: tuple[str, str] | None = None
 
 
 def godot() -> str:
@@ -499,6 +511,22 @@ def godot() -> str:
     global _godot
     if _godot:
         return _godot
+    binary, _ = godot_binary()
+    # The import's exit code can't be trusted (it sometimes crashes on exit
+    # after finishing), so check for its output instead.
+    run([binary, "--headless", "--path", ".", "--import"])
+    if not Path(".godot/global_script_class_cache.cfg").exists():
+        raise CheckFailed("godot --import did not write .godot/global_script_class_cache.cfg")
+    _godot = binary
+    return binary
+
+
+def godot_binary() -> tuple[str, str]:
+    """Finds Godot 4.7.2 without importing the project. Returns its path and its
+    full version, such as 4.7.2.stable.official.ed1daf0bf."""
+    global _binary
+    if _binary:
+        return _binary
     binary = os.environ.get("GODOT") or shutil.which("godot")
     found = ""
     if binary:
@@ -518,13 +546,8 @@ def godot() -> str:
     # build/ holds exports, reports and captures. A .gdignore keeps Godot from importing it.
     Path("build").mkdir(exist_ok=True)
     Path("build/.gdignore").touch()
-    # The import's exit code can't be trusted (it sometimes crashes on exit
-    # after finishing), so check for its output instead.
-    run([binary, "--headless", "--path", ".", "--import"])
-    if not Path(".godot/global_script_class_cache.cfg").exists():
-        raise CheckFailed("godot --import did not write .godot/global_script_class_cache.cfg")
-    _godot = binary
-    return binary
+    _binary = (binary, found)
+    return _binary
 
 
 def run_godot(args: list[str]) -> subprocess.CompletedProcess:
@@ -533,12 +556,15 @@ def run_godot(args: list[str]) -> subprocess.CompletedProcess:
     return run([godot(), *args])
 
 
-def run(command: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
+def run(
+    command: list[str], cwd: Path | None = None, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess:
     """Runs a command with stdout and stderr merged and colour codes stripped."""
     try:
         result = subprocess.run(
             command,
             cwd=cwd,
+            env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -678,6 +704,68 @@ def run_capture(scene: str, user_args: tuple[str, ...] = ()):
     if errors:
         print(result.stdout, end="")
     return f"{len(frames)} frames, look at {frames[-1].as_posix()}{errors}"
+
+
+# --- api --------------------------------------------------------------------
+
+
+def run_api(query: str, search: bool, full: bool) -> int:
+    """Prints the reference itself, not a PASS line. Failures print FAIL api."""
+    import api_lookup
+
+    try:
+        print(api_lookup.lookup(api_reference(), query, search, full), end="")
+    except (CheckFailed, api_lookup.NotFound) as failure:
+        print(f"FAIL api: {failure}")
+        return 1
+    return 0
+
+
+def api_reference() -> Path:
+    """The engine's class reference as JSON, built once per Godot version. --doctool
+    writes it without descriptions, so this runs the editor headless on an empty project,
+    which writes its own class reference cache, and tools/api_dump.gd converts that.
+    The environment sends the editor's settings and caches to a scratch folder (HOME and
+    XDG_* on Linux and Mac, APPDATA and LOCALAPPDATA on Windows), so the human's own
+    editor settings are never touched."""
+    binary, version = godot_binary()
+    reference = ensure_build_dir("build/api") / f"{version}.json"
+    if reference.exists():
+        return reference
+    print(f"Building the Godot {version} class reference in build/api/ (once)...", flush=True)
+    scratch = Path(tempfile.mkdtemp(prefix="tmp-", dir="build/api")).resolve()
+    try:
+        project = scratch / "project"
+        project.mkdir()
+        (project / "project.godot").write_text("config_version=5\n")
+        folders = {
+            "HOME": "home", "XDG_CONFIG_HOME": "config", "XDG_DATA_HOME": "data",
+            "XDG_CACHE_HOME": "cache", "APPDATA": "appdata", "LOCALAPPDATA": "localappdata",
+        }  # fmt: skip
+        env = {**os.environ, **{name: str(scratch / folder) for name, folder in folders.items()}}
+        editor = run(
+            [binary, "--headless", "--editor", "--path", project.as_posix(), "--quit"], env=env
+        )
+        cache = next(scratch.rglob("editor_doc_cache-*.res"), None)
+        if not cache:
+            print(editor.stdout, end="")
+            raise CheckFailed("the editor wrote no class reference cache")
+        dump = scratch / "reference.json"
+        script = ROOT / "tools" / "api_dump.gd"
+        result = run(
+            [
+                binary, "--headless", "--path", project.as_posix(),
+                "-s", script.as_posix(), "--", cache.as_posix(), dump.as_posix(),
+            ],
+            env=env,
+        )  # fmt: skip
+        if result.returncode != 0 or not dump.exists():
+            print(result.stdout, end="")
+            raise CheckFailed("tools/api_dump.gd could not convert the class reference")
+        os.replace(dump, reference)
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
+    return reference
 
 
 if __name__ == "__main__":
