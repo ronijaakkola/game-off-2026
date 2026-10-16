@@ -17,6 +17,7 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 |---|---|
 | `lint [files]` | Runs by itself after every edit to a `.gd`, `.tscn` or `.gdshader` file; fix what it reports. `format [files]` fixes what it reports as formatting. |
 | `load` | After editing scripts, scenes or resources. |
+| `ids [files]` | After writing a `.tscn` or `.tres` as text. Saves every one missing a `uid` or `unique_id` the way the editor does, so Godot assigns them; commit the result. Not part of `all`, whose `lint` fails until it runs. |
 | `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
 | `smoke [scenes]` | After changes to anything that runs at startup. Runs the main scene and `game/game.tscn`, or the ones given. |
 | `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |

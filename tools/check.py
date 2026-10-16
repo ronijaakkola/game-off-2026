@@ -10,6 +10,8 @@
                    command the files changed since the last one, exit 2 on problems
   format [files]   gdformat the given .gd files, or every script outside addons/
   load             compile every script outside addons/ (the load check)
+  ids [files]      save the given scenes and resources, or every one outside addons/, that
+                   lack a uid or unique_id, the way the editor does, so Godot assigns them
   test             run the gdUnit4 tests in test/
   smoke [scenes]   run the main scene and the game scene (or the given ones) headless,
                    fail on any logged error
@@ -79,6 +81,7 @@ def main() -> int:
     lint.add_argument("--hook", action="store_true")
     commands.add_parser("format").add_argument("files", nargs="*")
     commands.add_parser("load")
+    commands.add_parser("ids").add_argument("files", nargs="*")
     commands.add_parser("test")
     commands.add_parser("smoke").add_argument("scenes", nargs="*")
     commands.add_parser("capture").add_argument("scene")
@@ -103,6 +106,7 @@ def main() -> int:
         "lint": lambda: run_lint(getattr(args, "files", [])),
         "format": lambda: run_format(args.files),
         "load": run_load,
+        "ids": lambda: run_ids(args.files),
         "test": run_test,
         "smoke": lambda: run_smoke(getattr(args, "scenes", [])),
         "capture": lambda: run_capture(args.scene),
@@ -137,7 +141,7 @@ TESTS = "CODING_STANDARDS.md, Tests"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
-UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, unique_id"
+UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
 EVENTS_SCRIPT = "core/events/events.gd"
 DEV_COMMANDS = "core/dev_console/dev_commands.gd"
 LINTED = (".gd", ".tscn", ".gdshader")
@@ -270,6 +274,10 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
             rules += scene_problems(path)
         elif path.endswith(".gdshader"):
             rules += shader_problems(path)
+        # The hook leaves this out: a scene is missing its ids for as long as it is being
+        # written, and check.py ids fills them in once. The commit hook and CI catch it.
+        if path.endswith((".tscn", ".tres")) and not hook:
+            rules += missing_id_problems(path)
     problems = []
     if linter and formatter:
         lint_output = linter.communicate()[1]
@@ -440,6 +448,40 @@ def scene_problems(path: str) -> list[str]:
     return problems
 
 
+def missing_ids(path: str) -> list[tuple[int, str]]:
+    """The lines where Godot's next save would add an id: a header without a uid, a node
+    without a unique_id, or an ext_resource without its target's uid. Agents writing a
+    file as text leave these out, and check.py ids fills them in."""
+    gaps = []
+    lines = Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
+    for number, line in enumerate(lines, 1):
+        if re.match(r"\[gd_(scene|resource)\b", line) and not re.search(r"\buid=", line):
+            gaps.append((number, "header"))
+        elif line.startswith("[node ") and not re.search(r"\bunique_id=", line):
+            gaps.append((number, "node"))
+        elif line.startswith("[ext_resource ") and not re.search(r"\buid=", line):
+            gaps.append((number, "ext_resource"))
+    return gaps
+
+
+def missing_id_problems(path: str) -> list[str]:
+    gaps = missing_ids(path)
+    if not gaps:
+        return []
+    kinds = [kind for _, kind in gaps]
+    missing = ["the uid in its header"] if "header" in kinds else []
+    missing += [
+        f"the {name} on {count} {kind}{'s' if count > 1 else ''}"
+        for kind, name in (("node", "unique_id"), ("ext_resource", "uid"))
+        if (count := kinds.count(kind))
+    ]
+    message = (
+        f"is missing {', '.join(missing)}. Run: uv run tools/check.py ids {path}, which "
+        "saves it the way the editor does, and commit the result."
+    )
+    return [problem(path, gaps[0][0], "missing-ids", message, UNIQUE_IDS)]
+
+
 def shader_problems(path: str) -> list[str]:
     """In a shader, # starts a preprocessor directive. A # comment line before
     shader_type makes Godot drop the shader_type without an error (seen on 4.7.2)."""
@@ -603,6 +645,59 @@ def run_load():
         print(result.stdout, end="")
         raise CheckFailed("errors logged while loading")
     return f"{summary.group(1)} files"
+
+
+def run_ids(files: list[str]):
+    """Saves the scenes and resources missing a uid or unique_id with Godot's own saver,
+    in editor mode: outside it, the saver drops every uid. Dependencies are saved first,
+    so a scene's ext_resource picks up the uid its new sub-scene was just given."""
+    paths = [path for path in given_or_all(files) if path.endswith((".tscn", ".tres"))]
+    gaps = [path for path in paths if missing_ids(path)]
+    if not gaps:
+        return "no scene or resource is missing an id"
+    order = dependency_order(gaps)
+    result = run_godot(
+        [
+            "--headless", "--editor", "--path", ".",
+            "-s", "res://tools/resave.gd", "--", *(f"res://{path}" for path in order),
+        ]
+    )  # fmt: skip
+    summary = re.search(r"^saved (\d+), failures: (\d+)$", result.stdout, re.MULTILINE)
+    if not summary or result.returncode != 0 or summary.group(2) != "0":
+        print(result.stdout, end="")
+        raise CheckFailed("Godot could not save the files above")
+    left = [path for path in order if missing_ids(path)]
+    if left:
+        for path in left:
+            print("\n".join(missing_id_problems(path)))
+        # A reference keeps no uid while its target has none, as when the target is
+        # missing ids too but wasn't among the given files.
+        raise CheckFailed(
+            "saved, but these still miss ids. Run uv run tools/check.py ids with no files, "
+            "so the files they reference are saved first"
+        )
+    return "saved " + ", ".join(order) + "; commit the result"
+
+
+def dependency_order(paths: list[str]) -> list[str]:
+    """The paths with each one after the paths it references by ext_resource."""
+    pending = set(paths)
+    order: list[str] = []
+
+    def visit(path: str, seen: set[str]) -> None:
+        if path not in pending or path in seen:
+            return
+        seen.add(path)
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+        references = re.findall(r'^\[ext_resource .*\bpath="res://([^"]+)"', text, re.MULTILINE)
+        for target in references:
+            visit(target, seen)
+        pending.discard(path)
+        order.append(path)
+
+    for path in paths:
+        visit(path, set())
+    return order
 
 
 def run_test():
