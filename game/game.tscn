@@ -1,28 +1,68 @@
 [gd_scene format=3 uid="uid://djv310h8cbg3m"]
 
-[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
-[ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="3_pause"]
+[ext_resource type="Script" uid="uid://cem01majmkaiu" path="res://game/game.gd" id="1_game"]
+[ext_resource type="PackedScene" uid="uid://bgfjpfuhgj5t6" path="res://game/models/piece.glb" id="2_piece"]
+[ext_resource type="AudioStream" uid="uid://c6fwkw8gqyask" path="res://shared/audio/piece_placed.ogg" id="3_sound"]
+[ext_resource type="PackedScene" uid="uid://dt327q84py2ie" path="res://game/hud.tscn" id="4_hud"]
+[ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="5_pause"]
 
-[node name="Game" type="Control" unique_id=1262963748]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("2_theme")
+[sub_resource type="Environment" id="Environment_soft"]
+background_mode = 1
+background_color = Color(0.5, 0.64, 0.92, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 0.96, 0.92, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 4
+ssao_enabled = true
+ssao_radius = 0.6
+ssao_intensity = 1.5
 
-[node name="Center" type="CenterContainer" parent="." unique_id=1995540751]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[sub_resource type="BoxMesh" id="BoxMesh_board"]
+size = Vector3(7.2, 0.3, 7.2)
 
-[node name="Label" type="Label" parent="Center" unique_id=1392484506]
-layout_mode = 2
-text = "The game goes here. Esc pauses."
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_board"]
+albedo_color = Color(0.62, 0.8, 0.62, 1)
+roughness = 0.9
 
-[node name="PauseMenu" parent="." unique_id=976055618 instance=ExtResource("3_pause")]
+[sub_resource type="BoxShape3D" id="BoxShape3D_board"]
+size = Vector3(7.2, 0.3, 7.2)
+
+[node name="Game" type="Node3D" unique_id=1262963748]
+script = ExtResource("1_game")
+piece_scene = ExtResource("2_piece")
+placed_sound = ExtResource("3_sound")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=827868056]
+environment = SubResource("Environment_soft")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1084557856]
+transform = Transform3D(0.819152, 0.469846, -0.32899, 0, 0.573576, 0.819152, 0.573576, -0.67101, 0.469846, 0, 0, 0)
+light_color = Color(1, 0.95, 0.85, 1)
+light_energy = 0.6
+shadow_enabled = true
+directional_shadow_mode = 0
+directional_shadow_max_distance = 30.0
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1963326870]
+unique_name_in_owner = true
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 5.3033, 10.6066, 9.1856)
+fov = 35.0
+
+[node name="Board" type="StaticBody3D" parent="." unique_id=2144523380]
+
+[node name="Mesh" type="MeshInstance3D" parent="Board" unique_id=294033602]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
+mesh = SubResource("BoxMesh_board")
+surface_material_override/0 = SubResource("StandardMaterial3D_board")
+
+[node name="Shape" type="CollisionShape3D" parent="Board" unique_id=1667168065]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
+shape = SubResource("BoxShape3D_board")
+
+[node name="Pieces" type="Node3D" parent="." unique_id=1772250915]
+unique_name_in_owner = true
+
+[node name="Hud" parent="." unique_id=1538029644 instance=ExtResource("4_hud")]
+
+[node name="PauseMenu" parent="." unique_id=976055618 instance=ExtResource("5_pause")]
 visible = false

@@ -9,7 +9,8 @@
                    command the .gd files changed since the last one, exit 2 on problems
   load             compile every script outside addons/ (the load check)
   test             run the gdUnit4 tests in test/
-  smoke [scene]    run the main scene (or the given one) headless, fail on any logged error
+  smoke [scenes]   run the main scene and the game scene (or the given ones) headless,
+                   fail on any logged error
   capture <scene>  render ~1 s of a scene in a window, save the frames to build/capture/
   all              lint, load, test, smoke
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
@@ -31,6 +32,8 @@ ROOT = Path(__file__).resolve().parent.parent
 GODOT_VERSION = "4.7.2"
 TIMEOUT = 300
 SMOKE_FRAMES = "300"
+# The main menu reaches it only after a click, so smoke runs it on its own as well.
+GAME_SCENE = "res://game/game.tscn"
 CAPTURE_FRAMES = "60"
 ERROR_LINE = re.compile(r"^(SCRIPT )?ERROR", re.MULTILINE)
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
@@ -67,7 +70,7 @@ def main() -> int:
     lint.add_argument("--hook", action="store_true")
     commands.add_parser("load")
     commands.add_parser("test")
-    commands.add_parser("smoke").add_argument("scene", nargs="?")
+    commands.add_parser("smoke").add_argument("scenes", nargs="*")
     commands.add_parser("capture").add_argument("scene")
     commands.add_parser("all")
     commands.add_parser("export").add_argument("--preview", action="store_true")
@@ -83,7 +86,7 @@ def main() -> int:
         "lint": lambda: run_lint(getattr(args, "files", [])),
         "load": run_load,
         "test": run_test,
-        "smoke": lambda: run_smoke(getattr(args, "scene", None)),
+        "smoke": lambda: run_smoke(getattr(args, "scenes", [])),
         "capture": lambda: run_capture(args.scene),
         "export": lambda: run_export(args.preview),
     }
@@ -301,17 +304,20 @@ def logged_error(output: str) -> bool:
     return bool(ERROR_LINE.search(EXIT_LEAK.sub("", output)))
 
 
-def run_smoke(scene: str | None):
-    scene = scene or main_scene()
-    if not scene:
-        return "SKIPPED, no main scene set in project.godot"
-    result = run_godot(
-        ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]
-    )
-    if logged_error(result.stdout):
-        print(result.stdout, end="")
-        raise CheckFailed(f"errors logged while running {scene}")
-    return scene
+def run_smoke(scenes: list[str]):
+    if not scenes:
+        main = main_scene()
+        if not main:
+            return "SKIPPED, no main scene set in project.godot"
+        scenes = [main, GAME_SCENE]
+    for scene in scenes:
+        result = run_godot(
+            ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]
+        )
+        if logged_error(result.stdout):
+            print(result.stdout, end="")
+            raise CheckFailed(f"errors logged while running {scene}")
+    return ", ".join(scenes)
 
 
 def run_export(preview: bool):

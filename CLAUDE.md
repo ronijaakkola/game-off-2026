@@ -18,7 +18,7 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 | `lint [files]` | Runs by itself after every edit to a `.gd` file; fix what it reports. |
 | `load` | After editing scripts, scenes or resources. |
 | `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
-| `smoke [scene]` | After changes to anything that runs at startup. Runs the main scene, or the one given. |
+| `smoke [scenes]` | After changes to anything that runs at startup. Runs the main scene and `game/game.tscn`, or the ones given. |
 | `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |
 | `all` | Before every handoff. |
 | `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. Not part of `all`. |
