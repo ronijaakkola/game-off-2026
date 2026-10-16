@@ -2,6 +2,8 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` is named, test file names, two nodes sharing a `unique_id`, and asset size (a warning only). Each message names its rule and section.
+
 ## Layout
 
 Folders are by feature:
@@ -28,7 +30,7 @@ Follow the [Godot GDScript style guide](https://docs.godotengine.org/en/4.7/tuto
 - A scene and its script share a base name and sit side by side: `main_menu.tscn` + `main_menu.gd`.
 - Add `class_name` only when another script refers to the type by name: a custom Resource, a component, an `is` check, a typed variable.
 
-`gdlint` enforces most of this. `uv run tools/check.py lint` runs it.
+`gdlint` enforces most of this, and `gdformat` sets the layout of every script. `uv run tools/check.py lint` runs both. `uv run tools/check.py format [files]` applies `gdformat`.
 
 ## Static typing
 
