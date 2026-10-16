@@ -4,6 +4,8 @@ extends Control
 
 const GAME_SCENE := "res://game/game.tscn"
 const MUSIC := preload("res://shared/audio/menu_music.ogg")
+# Written into exports by `check.py export`, so the editor has none.
+const BUILD_COMMIT := "res://ui/main_menu/build_commit.txt"
 
 # Survives scene changes, so coming back to the menu doesn't ask for the click again.
 static var _music_started := false
@@ -11,6 +13,9 @@ static var _music_started := false
 
 func _ready() -> void:
 	%QuitButton.visible = not OS.has_feature("web")
+	if FileAccess.file_exists(BUILD_COMMIT):
+		%BuildLabel.text = "Commit %s" % FileAccess.get_file_as_string(BUILD_COMMIT).strip_edges()
+		%BuildLabel.show()
 	if OS.has_feature("web") and not _music_started:
 		%StartOverlay.show()
 	else:
