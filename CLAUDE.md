@@ -20,6 +20,7 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 | `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
 | `smoke [scene]` | After changes to anything that runs at startup. Runs the main scene, or the one given. |
 | `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |
+| `evidence [frame]` | When a PR body needs a frame. Pushes the last capture frame, or the one given, to the `pr-evidence` branch and prints the image line to paste under Evidence. Not part of `all`. |
 | `all` | Before every handoff. |
 | `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. Not part of `all`. |
 
