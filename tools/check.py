@@ -44,6 +44,8 @@ SMOKE_FRAMES = "300"
 # The main menu reaches it only after a click, so smoke runs it on its own as well.
 GAME_SCENE = "res://game/game.tscn"
 CAPTURE_FRAMES = "60"
+# Written by run_export and read by the main menu; ignored by git.
+BUILD_COMMIT_FILE = "ui/main_menu/build_commit.txt"
 ERROR_LINE = re.compile(r"^(SCRIPT )?ERROR", re.MULTILINE)
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 # Godot 4.7.2 leaks an Ogg stream that is still playing when it quits, so any scene
@@ -663,7 +665,13 @@ def run_export(preview: bool):
     pck = directory / "index.pck"
     pck.unlink(missing_ok=True)
     mode = "--export-debug" if preview else "--export-release"
-    result = run_godot(["--headless", "--path", ".", mode, preset, f"{folder}/index.html"])
+    # Only the export sees the file, so the editor never shows a stale commit.
+    commit = Path(BUILD_COMMIT_FILE)
+    commit.write_text(build_commit() + "\n", encoding="utf-8")
+    try:
+        result = run_godot(["--headless", "--path", ".", mode, preset, f"{folder}/index.html"])
+    finally:
+        commit.unlink(missing_ok=True)
     if "No export template found" in result.stdout:
         raise CheckFailed(
             f"the Godot {GODOT_VERSION} Web export templates aren't installed. In the editor: "
@@ -673,6 +681,11 @@ def run_export(preview: bool):
     if result.returncode != 0 or not pck.exists():
         print(result.stdout, end="")
         raise CheckFailed(f"the {preset} export failed")
+    if BUILD_COMMIT_FILE.encode() not in pck.read_bytes():
+        raise CheckFailed(
+            f"{BUILD_COMMIT_FILE} isn't in the pack, so the menu shows no commit. "
+            f"Add it to the {preset} preset's include_filter in export_presets.cfg"
+        )
     # From the repo root, --main-pack would load the project instead of the pack.
     boot = run(
         [godot(), "--headless", "--main-pack", "index.pck", "--quit-after", SMOKE_FRAMES],
@@ -683,6 +696,16 @@ def run_export(preview: bool):
         print(boot.stdout, end="")
         raise CheckFailed("errors logged while booting the exported pack")
     return f"{pck.as_posix()} {pck.stat().st_size / 1e6:.1f} MB, boots clean"
+
+
+def build_commit() -> str:
+    """The short commit the main menu shows. CI sets BUILD_COMMIT where HEAD isn't the
+    commit people know: a pull_request checkout is GitHub's merge commit, not the PR head."""
+    commit = os.environ.get("BUILD_COMMIT") or git("rev-parse", "HEAD")
+    commit = commit[:7]
+    if not os.environ.get("BUILD_COMMIT") and git("status", "--porcelain", "--untracked-files=no"):
+        commit += "-dirty"
+    return commit
 
 
 def run_capture(scene: str, user_args: tuple[str, ...] = ()):

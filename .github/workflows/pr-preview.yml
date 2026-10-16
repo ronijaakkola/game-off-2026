@@ -27,6 +27,9 @@ jobs:
           include-templates: true
       - name: Export the preview build
         if: github.event.action != 'closed'
+        # The checkout is GitHub's merge commit; the menu shows the PR head instead.
+        env:
+          BUILD_COMMIT: ${{ github.event.pull_request.head.sha }}
         run: uv run tools/check.py export --preview
       # Deploys to gh-pages under pr-preview/pr-<N>/ and comments the link, or removes it on close.
       # No waiting for Pages: a second push within ~30 s cancels the older Pages build, which the

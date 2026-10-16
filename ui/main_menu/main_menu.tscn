@@ -87,6 +87,25 @@ layout_mode = 2
 text = "Click to start"
 horizontal_alignment = 1
 
+[node name="BuildMargin" type="MarginContainer" parent="." unique_id=1616412392]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="BuildLabel" type="Label" parent="BuildMargin" unique_id=1974554180]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_type_variation = &"FaintLabel"
+
 [connection signal="pressed" from="Center/Items/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="Center/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="Center/Items/QuitButton" to="." method="_on_quit_button_pressed"]
