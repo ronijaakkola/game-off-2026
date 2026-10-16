@@ -52,7 +52,7 @@ Working on a PR:
 - The body follows `.github/pull_request_template.md`: what changed, the evidence it works, what it can reach.
 - Check the PR is still open before pushing to its branch: `gh pr view <n> --json state`.
 - Wait for CI with `gh pr checks <n> --watch`. Never write a polling loop.
-- Never close, reopen or merge a PR. A human merges.
+- Never close or reopen a PR. Merge only when the human asks for it in the conversation, with Squash and merge, once CI is green on the current head.
 
 The hooks in `.githooks/` (`commit-msg`, `pre-commit`) enforce the commit message and lint what you commit. Enable them once per clone with `git config core.hooksPath .githooks`.
 
