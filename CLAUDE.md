@@ -15,7 +15,7 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 
 | Command | When |
 |---|---|
-| `lint [files]` | Runs by itself after every edit to a `.gd` file; fix what it reports. |
+| `lint [files]` | Runs by itself after every edit to a `.gd`, `.tscn` or `.gdshader` file; fix what it reports. `format [files]` fixes what it reports as formatting. |
 | `load` | After editing scripts, scenes or resources. |
 | `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
 | `smoke [scene]` | After changes to anything that runs at startup. Runs the main scene, or the one given. |

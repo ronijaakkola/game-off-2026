@@ -4,9 +4,11 @@
 # ///
 """Project checks. Run from anywhere: `uv run tools/check.py <command>`.
 
-  lint [files]     gdlint the given .gd files, or the whole project (no Godot needed)
+  lint [files]     gdlint, gdformat --check and the project rules on the given files, or
+                   the whole project (no Godot needed)
   lint --hook      Claude Code PostToolUse hook: lint the edited file, or after a shell
-                   command the .gd files changed since the last one, exit 2 on problems
+                   command the files changed since the last one, exit 2 on problems
+  format [files]   gdformat the given .gd files, or every script outside addons/
   load             compile every script outside addons/ (the load check)
   test             run the gdUnit4 tests in test/
   smoke [scene]    run the main scene (or the given one) headless, fail on any logged error
@@ -65,6 +67,7 @@ def main() -> int:
     lint = commands.add_parser("lint")
     lint.add_argument("files", nargs="*")
     lint.add_argument("--hook", action="store_true")
+    commands.add_parser("format").add_argument("files", nargs="*")
     commands.add_parser("load")
     commands.add_parser("test")
     commands.add_parser("smoke").add_argument("scene", nargs="?")
@@ -81,6 +84,7 @@ def main() -> int:
         return lint_hook()
     steps = {
         "lint": lambda: run_lint(getattr(args, "files", [])),
+        "format": lambda: run_format(args.files),
         "load": run_load,
         "test": run_test,
         "smoke": lambda: run_smoke(getattr(args, "scene", None)),
@@ -106,78 +110,379 @@ def run_step(name, step) -> bool:
 
 # --- lint -------------------------------------------------------------------
 
+# Written rules that a regex can check without Godot. Each message names its rule and
+# the doc section behind it, so it can be fixed without reading the doc.
+SCENE_COMPOSITION = "CODING_STANDARDS.md, Scene composition"
+SIGNALS = "CODING_STANDARDS.md, Signals: local or bus"
+DEV_CONSOLE = "CODING_STANDARDS.md, Dev console"
+TESTS = "CODING_STANDARDS.md, Tests"
+ASSETS = "CODING_STANDARDS.md, Assets"
+FORMATTING = "CODING_STANDARDS.md, Naming"
+SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
+UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, unique_id"
+EVENTS_SCRIPT = "core/events/events.gd"
+DEV_COMMANDS = "core/dev_console/dev_commands.gd"
+LINTED = (".gd", ".tscn", ".gdshader")
+# Vendored, generated or ignored by git: nothing in these folders is ours to lint.
+# Hidden folders (.godot, .claude) are skipped too, as Godot skips them.
+NOT_OURS_AT_ROOT = {"addons", "android", "art"}
+NOT_OURS_ANYWHERE = {"build", "reports", "__pycache__"}
+ASSET_LIMIT_MB = 10
+# A comment, or a string literal (group 2). One pattern, so a # inside a string isn't
+# a comment and a quote inside a comment doesn't start a string.
+GD_COMMENT_OR_STRING = re.compile(
+    r"""(#[^\n]*)|("{3}[\s\S]*?"{3}|'{3}[\s\S]*?'{3}|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')"""
+)
+OWN_GET_PARENT = re.compile(r"(?<![\w.])get_parent\s*\(|\bself\s*\.\s*get_parent\s*\(")
+SHADER_DIRECTIVE = re.compile(
+    r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
+)
+WOULD_REFORMAT = re.compile(r"^would reformat (.+)$", re.MULTILINE)
 
-def lintable(path: str) -> bool:
-    """A .gd file outside addons/. gdlint ignores its excluded_directories for
-    explicit file paths (gdtoolkit#395), so explicit paths are filtered here."""
-    relative = Path(os.path.relpath(Path(path).resolve(), ROOT))
-    return relative.suffix == ".gd" and relative.parts[0] not in ("addons", "..")
+
+def project_path(path: str) -> str:
+    """The path from the project root, with forward slashes."""
+    return Path(os.path.relpath(Path(path).resolve(), ROOT)).as_posix()
 
 
-def gdlint(paths: list[str]) -> subprocess.CompletedProcess:
+def ours(path: str) -> bool:
+    """A project path outside addons/ and the ignored folders. gdlint ignores its
+    excluded_directories for explicit file paths (gdtoolkit#395), so they're filtered here."""
+    folders = path.split("/")[:-1]
+    return not (
+        (folders and folders[0] in NOT_OURS_AT_ROOT)
+        or NOT_OURS_ANYWHERE.intersection(folders)
+        or any(folder.startswith(".") for folder in folders)
+    )
+
+
+def project_files() -> list[str]:
+    files = []
+    for directory, subdirectories, names in os.walk("."):
+        subdirectories[:] = [
+            d for d in subdirectories if ours(Path(directory, d, "file").as_posix())
+        ]
+        files += [Path(directory, name).as_posix() for name in names]
+    return files
+
+
+def gdtoolkit(tool: str, args: list[str]) -> subprocess.Popen:
     # gdtoolkit creates its grammar cache folder racily (gdtoolkit#428): parallel
-    # hook runs on a cold cache crash. Creating it first avoids that.
+    # runs on a cold cache crash. Creating it first avoids that.
     from gdtoolkit.parser.parser import get_cache_directory
 
     cache = Path(get_cache_directory(), "gdtoolkit", pkg_version("gdtoolkit"))
     cache.mkdir(parents=True, exist_ok=True)
-    return subprocess.run(
-        [sys.executable, "-m", "gdtoolkit.linter", *paths],
+    return subprocess.Popen(
+        [sys.executable, "-m", f"gdtoolkit.{tool}", *args],
         env={**os.environ, "PYTHONUTF8": "1"},
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
         encoding="utf-8",
         errors="replace",
     )
 
 
+def given_or_all(files: list[str]) -> list[str]:
+    """The given files that exist, or every file in the project, outside addons/."""
+    paths = [project_path(f) for f in files if Path(f).is_file()] if files else project_files()
+    return [path for path in paths if ours(path)]
+
+
 def run_lint(files: list[str]):
-    paths = [f for f in files if lintable(f)] if files else ["."]
+    paths = given_or_all(files)
     if not paths:
-        return "no .gd files outside addons/"
-    result = gdlint(paths)
-    if result.returncode != 0:
-        print(result.stderr, end="")
-        raise CheckFailed("gdlint found problems")
-    return None
+        return "no files outside addons/"
+    problems, warnings = lint_problems(paths, hook=False)
+    for line in problems + warnings:
+        print(line)
+    if problems:
+        raise CheckFailed("fix the problems above")
+    return f"{len(warnings)} warnings above" if warnings else None
 
 
 def lint_hook() -> int:
     # Claude Code sends UTF-8. Read bytes, since sys.stdin decodes as cp1252 on Windows.
     event = json.load(sys.stdin.buffer)
     if event.get("tool_name") == "Bash":
-        paths = scripts_changed_since_last_bash()
+        paths = files_changed_since_last_bash()
     else:
         file_path = event.get("tool_input", {}).get("file_path", "")
-        paths = [file_path] if file_path and lintable(file_path) else []
+        paths = given_or_all([file_path]) if file_path else []
+    paths = [path for path in paths if path.endswith(LINTED)]
     if not paths:
         return 0
-    result = gdlint(paths)
-    if result.returncode != 0:
-        print(result.stderr, end="", file=sys.stderr)
+    problems, _ = lint_problems(paths, hook=True)
+    if problems:
+        print("\n".join(problems), file=sys.stderr)
         return 2
     return 0
 
 
-def scripts_changed_since_last_bash() -> list[str]:
+def files_changed_since_last_bash() -> list[str]:
     """Shell commands (sed -i, heredocs) can edit any file, so after each one lint
-    every .gd file modified since the previous one. The stamp keeps the start time,
+    every file modified since the previous one. The stamp keeps the start time,
     so a file edited while this runs is linted next time."""
     started = time.time()
     since = LINT_STAMP.stat().st_mtime if LINT_STAMP.exists() else 0.0
-    changed = []
-    for directory, subdirectories, files in os.walk("."):
-        subdirectories[:] = [
-            d for d in subdirectories if d not in (".git", ".godot", "addons", "build")
-        ]
-        for name in files:
-            path = os.path.join(directory, name)
-            if name.endswith(".gd") and os.path.getmtime(path) > since:
-                changed.append(path)
+    changed = [
+        path
+        for path in project_files()
+        if path.endswith(LINTED) and os.path.getmtime(path) > since
+    ]
     LINT_STAMP.parent.mkdir(exist_ok=True)
     LINT_STAMP.touch()
     os.utime(LINT_STAMP, (started, started))
     return changed
+
+
+def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
+    """Problems and warnings in the given project paths. The hook leaves out warnings,
+    since Claude Code shows a hook's output only when it fails."""
+    scripts = [path for path in paths if path.endswith(".gd")]
+    # gdlint and gdformat each parse every script, so they run side by side.
+    linter = gdtoolkit("linter", scripts) if scripts else None
+    formatter = gdtoolkit("formatter", ["--check", *scripts]) if scripts else None
+    rules = []
+    for path in paths:
+        if path.endswith(".gd"):
+            rules += script_problems(path, hook)
+        elif path.endswith(".tscn"):
+            rules += scene_problems(path)
+        elif path.endswith(".gdshader"):
+            rules += shader_problems(path)
+    problems = []
+    if linter and formatter:
+        lint_output = linter.communicate()[1]
+        if linter.returncode != 0:
+            problems.append(lint_output.rstrip())
+        problems += formatting_problems(formatter, gdlint_failed=linter.returncode != 0)
+    warnings = [] if hook else asset_size_warnings(paths)
+    return problems + rules, warnings
+
+
+def problem(path: str, line: int | None, rule: str, message: str, doc: str) -> str:
+    where = f"{path}:{line}:" if line else f"{path}:"
+    return f"{where} Error: {message} ({rule}; {doc})"
+
+
+def line_at(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+def split_gdscript(source: str) -> tuple[str, list[tuple[int, str]]]:
+    """Blanks comments and string literals out of a script, keeping every newline so an
+    offset still maps to its line. Returns that code, and each string's line and text."""
+    strings = []
+
+    def blank(match: re.Match) -> str:
+        if literal := match.group(2):
+            quotes = 3 if literal[:3] in ('"""', "'''") else 1
+            strings.append((line_at(source, match.start()), literal[quotes:-quotes]))
+        return re.sub(r"[^\n]", " ", match.group(0))
+
+    return GD_COMMENT_OR_STRING.sub(blank, source), strings
+
+
+def script_problems(path: str, hook: bool) -> list[str]:
+    source = Path(path).read_text(encoding="utf-8", errors="replace")
+    code, strings = split_gdscript(source)
+    problems = test_file_problems(path, check_target=not hook)
+    # Tests and tools drive scenes from outside, so they may reach anywhere.
+    if path.split("/")[0] not in ("test", "tools"):
+        problems += surroundings_problems(path, code, strings)
+    if path == EVENTS_SCRIPT:
+        problems += bus_event_problems(path, code, source)
+    elif path.startswith("core/"):
+        problems += core_signal_problems(path, code)
+    if path != DEV_COMMANDS:
+        problems += limbo_console_problems(path, code)
+    return problems
+
+
+def surroundings_problems(path: str, code: str, strings: list[tuple[int, str]]) -> list[str]:
+    """Scenes stay unaware of their surroundings. Only the node's own get_parent() is
+    flagged: body.get_parent() (on a body that entered an Area3D, say) looks into
+    another scene, not out of this one."""
+    out = (
+        "out of the scene. Signal up to the parent instead, or take the node in with an "
+        "@export var or a setter the parent calls."
+    )
+    absolute = (
+        "is an absolute node path. Reach an autoload by its name (Events, Audio), "
+        "and anything else with an @export var or a setter the parent calls."
+    )
+    found = [
+        (line_at(code, m.start()), "no-get-parent", f"get_parent() reaches {out}")
+        for m in OWN_GET_PARENT.finditer(code)
+    ]
+    found += [
+        (line_at(code, m.start()), "no-root-path", f"$/root {absolute}")
+        for m in re.finditer(r"\$\s*/root\b", code)
+    ]
+    for line, text in strings:
+        if re.match(r"\.\.(/|$)", text):
+            found.append((line, "no-parent-path", f'"{text}" is a node path {out}'))
+        elif re.match(r"/root(/|$)", text):
+            found.append((line, "no-root-path", f'"{text}" {absolute}'))
+    return [
+        problem(path, line, rule, message, SCENE_COMPOSITION)
+        for line, rule, message in sorted(found)
+    ]
+
+
+def bus_event_problems(path: str, code: str, source: str) -> list[str]:
+    """Bus events are documented with ##, and commands are never bus events."""
+    lines = source.splitlines()
+    problems = []
+    for m in re.finditer(r"^signal\s+(\w+)", code, re.MULTILINE):
+        name, line = m.group(1), line_at(code, m.start())
+        if name.endswith("_requested"):
+            message = (
+                f"{name} is a command, and commands are never bus events. Call the core "
+                "system directly instead, e.g. SceneFlow.go_to(path) or Audio.play_sfx(stream)."
+            )
+            problems.append(problem(path, line, "no-request-signal", message, SIGNALS))
+        above = line - 2
+        while above >= 0 and lines[above].lstrip().startswith("@"):
+            above -= 1
+        if above < 0 or not lines[above].lstrip().startswith("##"):
+            message = (
+                f"bus event {name} has no ## comment right above it. "
+                "Say what happened, and what each parameter is."
+            )
+            problems.append(problem(path, line, "bus-event-doc", message, SIGNALS))
+    return problems
+
+
+def core_signal_problems(path: str, code: str) -> list[str]:
+    """Core systems emit on Events and declare no public signals of their own."""
+    problems = []
+    for m in re.finditer(r"^signal\s+(\w+)", code, re.MULTILINE):
+        message = (
+            f"core systems declare no public signals. Make {m.group(1)} a bus event "
+            f"in {EVENTS_SCRIPT}, and emit it on Events."
+        )
+        problems.append(problem(path, line_at(code, m.start()), "no-core-signal", message, SIGNALS))
+    return problems
+
+
+def limbo_console_problems(path: str, code: str) -> list[str]:
+    """The release web build leaves LimboConsole out, so a script that names it compiles
+    in the editor and in CI, and breaks only the export that runs after a merge."""
+    message = (
+        f"only {DEV_COMMANDS} may name LimboConsole: the web build leaves it out, so this "
+        f"script would fail to compile there. Put console commands in {DEV_COMMANDS}, or "
+        'reach the node by path: get_tree().root.get_node_or_null(^"LimboConsole").'
+    )
+    return [
+        problem(path, line_at(code, m.start()), "limbo-console", message, DEV_CONSOLE)
+        for m in re.finditer(r"\bLimboConsole\b", code)
+    ]
+
+
+def test_file_problems(path: str, check_target: bool) -> list[str]:
+    """Tests sit under test/ (check.py test runs only that folder, and the web build
+    leaves only that folder out), named after the file they test. The hook skips the
+    target check: a test written before its code would fail until the code exists."""
+    if not path.endswith("_test.gd"):
+        return []
+    if not path.startswith("test/"):
+        message = f"tests live under test/, mirroring what they test. Move it to test/{path}."
+        return [problem(path, None, "test-outside-test-folder", message, TESTS)]
+    target = path[len("test/") : -len("_test.gd")]
+    if not check_target or any(Path(target + ext).is_file() for ext in (".gd", ".tscn", ".tres")):
+        return []
+    message = (
+        f"there is no res://{target}.gd or .tscn for it to test. A test mirrors the res:// "
+        "path of what it tests: core/audio/audio.gd -> test/core/audio/audio_test.gd."
+    )
+    return [problem(path, None, "test-mirror", message, TESTS)]
+
+
+def scene_problems(path: str) -> list[str]:
+    """A copied node block keeps its unique_id, and two nodes sharing one confuse the
+    editor."""
+    first: dict[str, int] = {}
+    problems = []
+    lines = Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
+    for number, line in enumerate(lines, 1):
+        m = re.match(r"\[node .*\bunique_id=(\d+)", line)
+        if not m:
+            continue
+        if m.group(1) not in first:
+            first[m.group(1)] = number
+            continue
+        message = (
+            f"unique_id={m.group(1)} is also on line {first[m.group(1)]}. Delete it from "
+            "the copied node; the editor gives the node a new one on its next save."
+        )
+        problems.append(problem(path, number, "duplicate-unique-id", message, UNIQUE_IDS))
+    return problems
+
+
+def shader_problems(path: str) -> list[str]:
+    """In a shader, # starts a preprocessor directive. A # comment line before
+    shader_type makes Godot drop the shader_type without an error (seen on 4.7.2)."""
+    message = (
+        "a # comment before shader_type makes Godot ignore the shader_type, so the "
+        "shader loads as spatial. Start the comment with // instead."
+    )
+    problems = []
+    lines = Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
+    for number, line in enumerate(lines, 1):
+        text = line.strip()
+        if re.match(r"shader_type\b", text):
+            break
+        if text.startswith("#") and not SHADER_DIRECTIVE.match(text):
+            problems.append(problem(path, number, "shader-hash-comment", message, SHADER_COMMENTS))
+    return problems
+
+
+def formatting_problems(formatter: subprocess.Popen, gdlint_failed: bool) -> list[str]:
+    output = formatter.communicate()[1]
+    unformatted = WOULD_REFORMAT.findall(output)
+    fix = "not laid out as gdformat would. Run: uv run tools/check.py format"
+    problems = [
+        problem(path, None, "gdformat", f"{fix} {path}", FORMATTING) for path in unformatted
+    ]
+    # A script gdformat can't parse fails gdlint too, and gdlint says where.
+    if formatter.returncode != 0 and not unformatted and not gdlint_failed:
+        problems.append(output.rstrip())
+    return problems
+
+
+def asset_size_warnings(paths: list[str]) -> list[str]:
+    """A warning, not a failure: "about 10 MB" is a judgment call (a long music track
+    can be worth it), and a failure would block every later commit and CI run."""
+    warnings = []
+    for path in paths:
+        size = Path(path).stat().st_size / 1e6
+        if size > ASSET_LIMIT_MB:
+            warnings.append(
+                f"{path}: Warning: {size:.1f} MB, over the {ASSET_LIMIT_MB} MB a single asset "
+                "should take (no Git LFS). Compress it, or check with the team before "
+                f"committing it. (asset-size; {ASSETS})"
+            )
+    return warnings
+
+
+def run_format(files: list[str]):
+    """Applies gdformat. The hooks only report, so a file never changes under an editor
+    or an agent that has it open."""
+    scripts = [path for path in given_or_all(files) if path.endswith(".gd")]
+    if not scripts:
+        return "no .gd files outside addons/"
+    formatter = gdtoolkit("formatter", scripts)
+    output, errors = formatter.communicate()
+    *reformatted, summary = output.strip().splitlines() or [""]
+    for line in reformatted:
+        print(line)
+    if formatter.returncode != 0:
+        print(errors, end="")
+        raise CheckFailed("gdformat could not parse the files above")
+    return summary
 
 
 # --- Godot ------------------------------------------------------------------
