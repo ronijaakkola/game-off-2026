@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ctu6kuhykwvxm"]
 
-[ext_resource type="PackedScene" path="res://styles/style_base.tscn" id="1_base"]
-[ext_resource type="Shader" path="res://styles/hazy_edges/hazy_surface.gdshader" id="2_surface"]
-[ext_resource type="Shader" path="res://styles/hazy_edges/hazy_edges.gdshader" id="3_haze"]
+[ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
+[ext_resource type="Shader" uid="uid://bprg7vdkp8gyr" path="res://styles/hazy_edges/hazy_surface.gdshader" id="2_surface"]
+[ext_resource type="Shader" uid="uid://qsg7h7lu33y5" path="res://styles/hazy_edges/hazy_edges.gdshader" id="3_haze"]
 [ext_resource type="Texture2D" uid="uid://cpcnftn8s1xls" path="res://styles/models/Textures/colormap.png" id="4_colormap"]
 
 [sub_resource type="Environment" id="Environment_hazy"]

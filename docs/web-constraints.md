@@ -67,17 +67,18 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 
 ## Style test findings
 
-Seven style scenes inherit `styles/style_base.tscn`, and each has a `NOTES.md` with its technique, web status and cost. They were checked in a Chromium web export on software WebGL 2 (SwiftShader), not on a real GPU or in Safari, so the frame rates there only show how much each piece costs relative to the others.
+Eight style scenes inherit `styles/style_base.tscn`, and each has a `NOTES.md` with its technique, web status and cost. They were checked in a Chromium web export on software WebGL 2 (SwiftShader), not on a real GPU or in Safari, so the frame rates there only show how much each piece costs relative to the others.
 
 | Style | Scene | Needs on the web | Light energies (sun / ambient) |
 |---|---|---|---|
 | Kenney gradient | [`kenney_gradient`](../styles/kenney_gradient/NOTES.md) | Palette texture, wrapped-Lambert `light()`. No post effects. | 0.12 / 0.56 |
 | Moebius hatching | [`moebius`](../styles/moebius/NOTES.md) | Hatching in `light()`, inverted-hull outline. No post effects. | sun colour ignored / 0 |
-| Soft flat | [`soft_flat`](../styles/soft_flat/NOTES.md) | Banded `light()`, inverted-hull outline, procedural ground. | 0.35 / 0.36 |
+| Soft flat | [`soft_flat`](../styles/soft_flat/NOTES.md) | Banded `light()`, inverted-hull outline, procedural ground. A faceted variant (`soft_flat_faceted`) uses flat normals and colour bands. | 0.35 / 0.36 |
 | Sharp lines, flat city | [`sharp_lines`](../styles/sharp_lines/NOTES.md) | Banded `light()`, then one of: a full-screen depth-edge pass (`hint_depth_texture`), inverted hulls, or crease lines built as real ribbon geometry (the only one MSAA smooths on hard-edged models). | 0.012 / 0.72 |
 | Cosy glow | [`cosy_glow`](../styles/cosy_glow/NOTES.md) | Glow, fog, filmic tonemap, fake light quads, a vignette. | 0.25 / 0.42 |
 | Flat shadows | [`flat_shadows`](../styles/flat_shadows/NOTES.md) | One `light()` that turns the shadow term into a flat tint. | 0.35, colour ignored / white at 1 |
 | Cross stitch | [`cross_stitch`](../styles/cross_stitch/NOTES.md) | One full-screen pass using `hint_screen_texture` and `hint_depth_texture`: a screen-fixed cloth grid (80 rows) with a stitch per cell. | 0.35 / 0.5 |
+| Hazy edges | [`hazy_edges`](../styles/hazy_edges/NOTES.md) | Flat-tint `light()` plus one full-screen pass using `hint_screen_texture` and `hint_depth_texture`: a world-anchored noise warp that roughs up silhouettes and shadow borders. | sun energy ignored / white at 1 |
 
 What carried across styles:
 

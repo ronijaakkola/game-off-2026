@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bk50espo5fmxs"]
 
 [ext_resource type="PackedScene" uid="uid://dfaqlwxibh3nw" path="res://styles/style_base.tscn" id="1_base"]
-[ext_resource type="Shader" path="res://styles/soft_flat/soft_flat_subject.gdshader" id="2_subject"]
+[ext_resource type="Shader" uid="uid://wby0a3ponu4f" path="res://styles/soft_flat/soft_flat_subject.gdshader" id="2_subject"]
 
 [sub_resource type="Environment" id="Environment_faceted"]
 background_mode = 1
