@@ -29,3 +29,14 @@ Checked in Chromium with software WebGL 2 on the Web Preview export: it renders 
 - The reference has painted, vertically streaked grass blades. This has ragged edges in every direction, since a streak direction in world space would rotate against the orbiting camera.
 - The reference's thin outlines also cover the ground edge and cliffs; the base has a flat plane, so those aren't shown.
 - The ground and subjects share one ramp, so a cast shadow can disappear into a dark patch. The patches are fixed in world space; change `patch_scale` or the noise offsets to move them.
+
+## Faceted variant (`soft_flat_faceted.tscn`)
+
+A second scene from a second reference: red, white and dark grey low-poly spaceships, every face lit by its own normal, bold colour blocking, no outlines, a neutral dark background. It reuses the subject shader with new uniforms (all off by default, so `soft_flat.tscn` is unchanged).
+
+- **Flat normals**: `flat_normals` rebuilds the normal from `dFdx`/`dFdy` of the view position, so any mesh is lit per triangle. The sign comes from the interpolated vertex normal because the derivative sign depends on the render target's flip. The base sphere is replaced by a 10 x 5 low-poly one, because the stock 64 x 32 sphere is too fine to show facets.
+- **Colour blocking**: `stripe_*` paints bands of a second colour along an object-space axis, anti-aliased with `fwidth`. `top_*` turns upward-facing faces dark grey, now with a threshold and a hard edge.
+- **Lighting**: the same three-band ramp with a 0.03 edge softness, so the bands read as steps between facets. Ambient is 0.34 so the white doesn't clip.
+- **Web**: only derivatives and `fwidth`, which WebGL 2 has. Checked in Chromium (software WebGL 2) on the Web Preview export: same look as the desktop capture.
+
+What this does not get: the reference's look is mostly in the models (chamfered hulls, panel breaks, decal stripes). A shader can only imitate it with bands and flat lighting; the stripes here follow object-space height, not the model's panels.
