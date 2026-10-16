@@ -81,11 +81,13 @@ Every check is a `tools/check.py` subcommand, and works the same on Windows, Mac
 
 | Command | What it does | In the editor |
 |---|---|---|
-| `uv run tools/check.py lint [files]` | `gdlint` on the given files or the whole project, skipping `addons/`. Runs on every commit and after every Claude Code edit. No Godot needed. | The pre-commit hook does it for you |
+| `uv run tools/check.py lint [files]` | `gdlint`, `gdformat --check` and the rules in `CODING_STANDARDS.md` that need no Godot, on the given files or the whole project, skipping `addons/`. Runs on every commit and after every Claude Code edit. No Godot needed. | The pre-commit hook does it for you |
+| `uv run tools/check.py format [files]` | Applies `gdformat` to the given scripts or every script outside `addons/`. Fixes what `lint` reports as formatting. | The same command |
 | `uv run tools/check.py load` | Loads every script, scene and resource. Fails on parse and type errors and missing dependencies. | Errors in the Output panel, or F5 |
 | `uv run tools/check.py test` | Runs the gdUnit4 tests in `test/`. Reports go to `build/reports/`. | The gdUnit panel's run button |
-| `uv run tools/check.py smoke [scene]` | Runs the main scene (or the given one) headless for 300 frames and fails if any error is logged. | F5 or F6, then the Output panel |
+| `uv run tools/check.py smoke [scenes]` | Runs the main scene and `game/game.tscn` (or the given ones) headless for 300 frames each and fails if any error is logged. | F5 or F6, then the Output panel |
 | `uv run tools/check.py capture <scene>` | Renders a second of the scene in a window and saves the frames to `build/capture/`. | Run the scene and look |
+| `uv run tools/check.py api <query>` | Looks up the Godot 4.7.2 class reference: a class (`api Tween`), one member (`api Tween.kill`) or a search (`api volume_linear`). Not a check: it prints the reference, or `FAIL api` when nothing matches. The first run builds it into `build/api/`. | The Help search (F1) in the script editor |
 | `uv run tools/check.py all` | `lint`, `load`, `test` and `smoke`. | All of the above |
 | `uv run tools/check.py export` | Exports the web build to `build/web/` (needs the Web templates, step 2), prints the `.pck` size and boots it headless. Fails on any logged error except LimboConsole's missing autoload. The deploy runs it too. | Project → Export… → Web |
 | `uv run tools/check.py export --preview` | Exports the preview build (below) to `build/web-preview/` and boots it headless. Fails on any logged error. | Project → Export… → Web Preview, with Export With Debug on |

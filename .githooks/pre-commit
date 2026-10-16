@@ -1,8 +1,13 @@
 #!/bin/sh
-# Lint staged GDScript (check.py skips addons/). Needs uv, not Godot.
-staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.gd')
+# Lint the staged files: scripts, scenes and shaders by the project rules, any file
+# by size (check.py skips addons/). Needs uv, not Godot.
+staged=$(git -c core.quotePath=false diff --cached --name-only --diff-filter=ACMR)
 if [ -n "$staged" ]; then
-  # shellcheck disable=SC2086 # file names are snake_case, no spaces
+  # One file name per line, so names with spaces stay whole.
+  IFS='
+'
+  set -f
+  # shellcheck disable=SC2086 # split on newlines only (IFS above)
   uv run tools/check.py lint $staged || {
     echo "pre-commit: fix the lint problems above, then commit again." >&2
     exit 1
