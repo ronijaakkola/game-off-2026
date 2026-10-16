@@ -44,3 +44,7 @@ Scene changes go through `SceneFlow.go_to`, which fades to black and back.
 
 - **In:** the scenes above, ambient menu music, UI and placement SFX, settings saved across sessions.
 - **Out:** levels, goals, scoring, saving progress, dialogue, positional or adaptive audio. These depend on the game idea and are built during the jam.
+
+## Online
+
+Online services run on Talo (`docs/online.md`), picked over Firestore in issue #5: analytics events, stats and play sessions now, leaderboards once there's a score. The example tracks one event, `piece_placed`. Uploaded replays (ghosts of other players' runs) don't fit Talo; a player's own ghost can stay in `user://`.

@@ -43,4 +43,5 @@ func _on_settings_button_pressed() -> void:
 
 
 func _on_quit_button_pressed() -> void:
-	get_tree().quit()
+	# Quits the way the window's close button does, so Talo sends its queued events first.
+	get_tree().root.propagate_notification(NOTIFICATION_WM_CLOSE_REQUEST)

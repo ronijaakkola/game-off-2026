@@ -6,6 +6,7 @@ Godot 4.7.2, GDScript only, Compatibility renderer, played on the web (itch.io) 
 - `DESIGN.md`: what the game is. Read it before gameplay work, and update it when the design changes.
 - `CONTEXT.md`: the glossary. Use its terms in code and handoffs.
 - `docs/web-constraints.md`: read it before touching shaders, environment, lighting, loading or audio.
+- `docs/online.md`: read it before wiring analytics, stats or leaderboards.
 
 Ask the human before changing anything outside the repo, such as export templates, editor settings or global git config.
 
