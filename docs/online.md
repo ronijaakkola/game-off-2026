@@ -70,7 +70,7 @@ func _on_player_died(level: int) -> void:
 
 Events and stat changes queue up and go out every 15 seconds, when the window loses focus (Godot's `NOTIFICATION_APPLICATION_FOCUS_OUT`), and on `Online.flush()`. Event props are strings by the time they reach Talo; the dashboard breaks events down by them, and builds funnels (how many reach level 3 after level 1) and retention from them.
 
-Anything else Talo does (saves, live config, feedback, player props, channels) is reachable through `Talo.*` directly; check `Online.is_identified()` first, as `Online` does. The [Godot docs](https://docs.trytalo.com/1.x/godot/install) cover each one. Before changing anything live after the jam's deadline, such as live config, check the jam's rules.
+For anything else Talo does (saves, live config, feedback, player props, channels), add a method to `core/online/online.gd` that checks `Online.is_identified()` first, as the others do. Only `core/online/` may name the `Talo` autoload: `check.py lint` fails anywhere else (rule `talo-through-online`), except in tests, `tools/` and `dev_commands.gd`. The [Godot docs](https://docs.trytalo.com/1.x/godot/install) cover each one. Before changing anything live after the jam's deadline, such as live config, check the jam's rules.
 
 ## Trying it out
 

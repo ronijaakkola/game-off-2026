@@ -133,6 +133,7 @@ def run_step(name, step) -> bool:
 SCENE_COMPOSITION = "CODING_STANDARDS.md, Scene composition"
 SIGNALS = "CODING_STANDARDS.md, Signals: local or bus"
 DEV_CONSOLE = "CODING_STANDARDS.md, Dev console"
+ONLINE = "CODING_STANDARDS.md, Online"
 TESTS = "CODING_STANDARDS.md, Tests"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
@@ -140,6 +141,7 @@ SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, unique_id"
 EVENTS_SCRIPT = "core/events/events.gd"
 DEV_COMMANDS = "core/dev_console/dev_commands.gd"
+ONLINE_FOLDER = "core/online/"
 LINTED = (".gd", ".tscn", ".gdshader")
 # Vendored, generated or ignored by git: nothing in these folders is ours to lint.
 # Hidden folders (.godot, .claude) are skipped too, as Godot skips them.
@@ -308,7 +310,8 @@ def script_problems(path: str, hook: bool) -> list[str]:
     code, strings = split_gdscript(source)
     problems = test_file_problems(path, check_target=not hook)
     # Tests and tools drive scenes from outside, so they may reach anywhere.
-    if path.split("/")[0] not in ("test", "tools"):
+    outside = path.split("/")[0] in ("test", "tools")
+    if not outside:
         problems += surroundings_problems(path, code, strings)
     if path == EVENTS_SCRIPT:
         problems += bus_event_problems(path, code, source)
@@ -316,6 +319,8 @@ def script_problems(path: str, hook: bool) -> list[str]:
         problems += core_signal_problems(path, code)
     if path != DEV_COMMANDS:
         problems += limbo_console_problems(path, code)
+    if not (outside or path == DEV_COMMANDS or path.startswith(ONLINE_FOLDER)):
+        problems += talo_problems(path, code)
     return problems
 
 
@@ -397,6 +402,21 @@ def limbo_console_problems(path: str, code: str) -> list[str]:
     return [
         problem(path, line_at(code, m.start()), "limbo-console", message, DEV_CONSOLE)
         for m in re.finditer(r"\bLimboConsole\b", code)
+    ]
+
+
+def talo_problems(path: str, code: str) -> list[str]:
+    """Online keeps Talo offline without a key and in headless runs, and batches what it
+    sends. A direct Talo call skips both, and errors when no player is identified. Talo's
+    classes (TaloLeaderboardEntry) are other words, so they stay usable as types."""
+    message = (
+        f"only {ONLINE_FOLDER} may name the Talo autoload, so every call gets Online's "
+        "offline guard and batching. Call Online instead, or add the method you need to "
+        f"{ONLINE_FOLDER}online.gd. Bus events become analytics in {ONLINE_FOLDER}tracking.gd."
+    )
+    return [
+        problem(path, line_at(code, m.start()), "talo-through-online", message, ONLINE)
+        for m in re.finditer(r"\bTalo\b", code)
     ]
 
 

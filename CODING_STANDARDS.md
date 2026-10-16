@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` is named, test file names, two nodes sharing a `unique_id`, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, test file names, two nodes sharing a `unique_id`, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 
@@ -62,7 +62,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `SceneFlow` | `core/scene_flow/` | Moves between top-level scenes with a fade: `await SceneFlow.go_to(path)`. |
 | `Settings` | `core/settings/` | The player's **settings**, saved to `user://settings.cfg` on every change. |
 | `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
-| `Talo` | `addons/talo/` | The Talo plugin's autoload. Game code calls `Online` instead; see `docs/online.md`. |
+| `Talo` | `addons/talo/` | The Talo plugin's autoload. Only `core/online/` names it; see Online. |
 | `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. Offline without an access key and in headless runs. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
@@ -178,3 +178,7 @@ Godot scenes merge badly, so prevent conflicts:
 `LimboConsole` is left out of the web build, so any script that names it fails to compile there. All console code lives in `core/dev_console/dev_commands.gd`, which is also left out of the web build. The `DevConsole` autoload loads it only when `get_tree().root.get_node_or_null(^"LimboConsole")` exists. Add new console commands there; open the console with F1 in an editor run. F1 is the same key on every keyboard layout; a backtick toggle can't be typed on Nordic layouts.
 
 The web build logs one `Failed to instantiate an autoload` error at startup, for the missing `LimboConsole`. That line is expected.
+
+## Online
+
+Game code reaches Talo only through `Online`, which stays offline without an access key and in headless runs, and batches what it sends. A direct `Talo` call skips both, and errors when no player is identified. So only `core/online/` names the `Talo` autoload; tests, `tools/` and `dev_commands.gd` may too. Talo's classes, such as `TaloLeaderboardEntry`, are fine as types anywhere. When a game needs a Talo feature `Online` doesn't wrap, add a method to `core/online/online.gd`. `docs/online.md` has the setup and the wiring.
