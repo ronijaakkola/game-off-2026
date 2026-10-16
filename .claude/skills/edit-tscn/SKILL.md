@@ -52,9 +52,11 @@ visible = false
 - **Sub-scene:** a node with `instance=ExtResource(...)` and no `type`. Its own nodes stay in its own file.
 - **Unique names:** `unique_name_in_owner = true` on a node lets its scene's script write `%PlayButton`.
 
-## unique_id
+## uid and unique_id
 
-Godot 4.7 writes `unique_id=<number>` on every node it saves. Leave it out of every node you write: Godot assigns one on the next save. When you copy or duplicate a node block, delete its `unique_id=` so two nodes never share one. Keep the ones already in the file unchanged.
+Godot 4.7 writes `uid="uid://..."` in every header and `unique_id=<number>` on every node it saves. Leave both out of what you write, and delete `unique_id=` from a node block you copy, so two nodes never share one. Keep the ones already in the file unchanged.
+
+Once the files are written, `uv run tools/check.py ids` saves each one missing an id the way the editor does, so Godot assigns them. Commit what it saves with the change.
 
 ## References
 
@@ -66,7 +68,7 @@ The `uid://` is authoritative and the `path` is the fallback: a valid uid finds 
 | Imported asset (`.png`, `.glb`, `.ogg`, …) | `uid=` under `[remap]` in `<file>.import` |
 | Scene or resource (`.tscn`, `.tres`) | `uid=` in its header line |
 
-If the target has no uid yet (a scene saved without one, or a script before its first import), write `path` alone. `check.py` imports the project first, which creates the missing sidecars; commit them.
+If the target has no uid yet (a new scene, or a script before its first import), write `path` alone. `check.py ids` fills in the uid; for a script, `check.py` imports the project first, which creates the missing sidecar. Commit both.
 
 ## UI scenes
 
@@ -79,7 +81,7 @@ Build UI from Containers styled by the shared Theme in `ui/`:
 
 ## Generating many nodes
 
-For bulk generation (dozens of nodes, a grid of tiles), write a `-s` SceneTree script that builds the nodes, sets each one's `owner` to the root, and saves with `PackedScene.pack()` + `ResourceSaver.save()`. This rewrites every `id` and adds `unique_id`s, so the diff touches the whole file. Use text edits for everything smaller.
+For bulk generation (dozens of nodes, a grid of tiles), write a `-s` SceneTree script that builds the nodes, sets each one's `owner` to the root, and saves with `PackedScene.pack()` + `ResourceSaver.save()`. Run it with `--editor` (`godot --headless --editor --path . -s <script>`): outside editor mode the saver writes no uids, and `check.py ids` would then have to restore them. This rewrites every `id` and adds `unique_id`s, so the diff touches the whole file. Use text edits for everything smaller.
 
 ## Merge conflicts
 
