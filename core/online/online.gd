@@ -2,9 +2,9 @@ extends Node
 ## The online services, through Talo (https://trytalo.com): the player's identity, analytics
 ## events and stats, leaderboards and play sessions. Game code calls this, not Talo.
 ##
-## Online stays offline without an access key in core/online/talo_settings.cfg, and in headless
-## runs (CI and check.py), so tests and checks never reach the network. Every call is safe when
-## offline: it does nothing, or returns an empty result. docs/online.md has the setup.
+## Online is on only in web builds with an access key in core/online/talo_settings.cfg. Editor
+## runs, desktop builds and headless runs (CI, check.py, tests) send nothing. Every call is safe
+## when offline: it does nothing, or returns an empty result. docs/online.md has the setup.
 
 ## Keeps the player's anonymous identifier between sessions.
 const PLAYER_PATH := "user://online.cfg"
@@ -47,9 +47,9 @@ func _notification(what: int) -> void:
 		flush()
 
 
-## True when Online talks to Talo: an access key is set and the game has a window.
+## True when Online talks to Talo: a web build with an access key.
 func is_enabled() -> bool:
-	return not Talo.settings.access_key.is_empty() and DisplayServer.get_name() != "headless"
+	return OS.has_feature("web") and not Talo.settings.access_key.is_empty()
 
 
 ## True once Talo knows who the player is. Calls before then wait (events) or do nothing.

@@ -15,20 +15,22 @@ Once, by a human:
    - `gameStats`
    - `leaderboards`
    - `continuityRequests` (write): replays requests that failed while offline.
-3. Paste the key into `access_key` in `core/online/talo_settings.cfg` and commit it. It isn't a secret: the file ships in the web build as plain text, so anyone who downloads the game can read it, and committing it only spares the team a setup step. Until then, `Online` is offline and a web build logs one error at boot (`Unable to create key file`, from Talo's crypto manager).
+3. Paste the key into `access_key` in `core/online/talo_settings.cfg` and commit it. It isn't a secret: the file ships in every build as plain text, so anyone who downloads the game can read it, and committing it spares the team a setup step. Until then, `Online` is offline and a web build logs one error at boot (`Unable to create key file`, from Talo's crypto manager).
 4. **Game settings** page: set **Display name prop key** to `name`. Leaderboards then show the name a player picks with `Online.set_player_name()` instead of their random identifier.
-5. **Game settings › Data retention**: turn on **Purge dev players**. Every editor run on a new machine and every preview-build browser makes a dev player, and this deletes the ones inactive for 60 days. Leave **Purge live players** off: it deletes real players who stop playing, with their leaderboard entries.
-6. Check it: run the game from the editor (F5), open the console (F1) and type `online`. It answers `Online as <identifier>, name not set, session open`, and the player appears on the dashboard's **Players** page.
+5. **Game settings › Data retention**: turn on **Purge dev players**. Every browser that opens a preview build makes a dev player, and this deletes the ones inactive for 60 days. Leave **Purge live players** off: it deletes real players who stop playing, with their leaderboard entries.
+6. Check it in a preview build (Trying it out): click into the game, open the console (F1) and type `online`. It answers `Online as <identifier>, name not set, session open`, and the player appears on the dashboard's **Players** page.
 
 ## When it's on
 
 | Run | Online | Data |
 |---|---|---|
-| Editor (F5, F6) | On | Dev |
-| Preview build (debug template) | On | Dev |
-| itch.io build (release template) | On | Live |
-| Headless: CI, `check.py`, gdUnit4 | Off | None |
+| Preview build (web, debug template) | On | Dev |
+| itch.io build (web, release template) | On | Live |
+| Editor (F5, F6) and desktop builds | Off | None |
+| Headless: CI, `check.py`, gdUnit4, agents | Off | None |
 | No `access_key` | Off | None |
+
+Only web builds send anything, so nobody's local runs reach Talo. The one local run that does is serving an exported web build (`check.py export --preview`, then a local web server) and opening it in a browser; that sends dev data.
 
 Dev data is marked in the dashboard and kept apart from live data; dev players stay dev. Talo decides it from the build's `debug` feature tag ([Exporting](https://docs.trytalo.com/1.x/godot/exporting)).
 
@@ -75,7 +77,7 @@ For anything else Talo does (saves, live config, feedback, player props, channel
 
 ## Trying it out
 
-The dev console (F1) has commands for each part. It runs in editor runs and preview builds, so the same commands check the web build in Chrome and Safari.
+The dev console (F1) has commands for each part. Online is on only in web builds, so try them in a pull request's preview build, in Chrome and Safari. In an editor run they report that Online is offline.
 
 | Command | Does |
 |---|---|
@@ -84,7 +86,7 @@ The dev console (F1) has commands for each part. It runs in editor runs and prev
 | `online_score <leaderboard> <score>` | Submits a score and prints its rank |
 | `online_scores <leaderboard>` | Prints the top 10 |
 
-To see every request and response in the Output panel, add this to `talo_settings.cfg` without committing it. Talo logs them in debug builds only.
+To see every request and response in the browser's devtools console, add this to `talo_settings.cfg` and export a preview build, without committing it. Talo logs them in debug builds only.
 
 ```ini
 [logging]

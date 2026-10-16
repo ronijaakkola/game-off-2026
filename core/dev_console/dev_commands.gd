@@ -26,7 +26,7 @@ func _goto(path: String) -> void:
 
 func _online() -> void:
 	if not Online.is_enabled():
-		LimboConsole.info("Offline: no Talo access key, or a headless run (docs/online.md)")
+		LimboConsole.info("Offline: not a web build, or no Talo access key (docs/online.md)")
 		return
 	if not Online.is_identified():
 		LimboConsole.info("Identifying the player with Talo…")

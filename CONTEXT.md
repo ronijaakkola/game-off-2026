@@ -37,7 +37,7 @@ The player's progress in the game itself. It depends on the game idea, so the bo
 _Avoid_: settings, save file (ambiguous)
 
 **Online**:
-The core system for the game's online services (analytics events, stats, play sessions and leaderboards) through Talo. It stays offline without an access key and in headless runs. Named `Online` in code.
+The core system for the game's online services (analytics events, stats, play sessions and leaderboards) through Talo. It is on only in web builds with an access key. Named `Online` in code.
 _Avoid_: backend, network manager, Talo (the service, not our code)
 
 **Tracking**:

@@ -63,7 +63,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `Settings` | `core/settings/` | The player's **settings**, saved to `user://settings.cfg` on every change. |
 | `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
 | `Talo` | `addons/talo/` | The Talo plugin's autoload. Only `core/online/` names it; see Online. |
-| `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. Offline without an access key and in headless runs. `core/online/tracking.gd` turns bus events into analytics. |
+| `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
 
@@ -181,4 +181,4 @@ The web build logs one `Failed to instantiate an autoload` error at startup, for
 
 ## Online
 
-Game code reaches Talo only through `Online`, which stays offline without an access key and in headless runs, and batches what it sends. A direct `Talo` call skips both, and errors when no player is identified. So only `core/online/` names the `Talo` autoload; tests, `tools/` and `dev_commands.gd` may too. Talo's classes, such as `TaloLeaderboardEntry`, are fine as types anywhere. When a game needs a Talo feature `Online` doesn't wrap, add a method to `core/online/online.gd`. `docs/online.md` has the setup and the wiring.
+Game code reaches Talo only through `Online`, which is on only in web builds with an access key, and batches what it sends. A direct `Talo` call skips both, and errors when no player is identified. So only `core/online/` names the `Talo` autoload; tests, `tools/` and `dev_commands.gd` may too. Talo's classes, such as `TaloLeaderboardEntry`, are fine as types anywhere. When a game needs a Talo feature `Online` doesn't wrap, add a method to `core/online/online.gd`. `docs/online.md` has the setup and the wiring.

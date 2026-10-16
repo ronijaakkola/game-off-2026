@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 
-# Tests run headless, where Online must stay offline: these pin that CI and check.py never
-# reach Talo, and that every call is safe offline. The online path needs a key and a window,
-# so it's checked by hand (docs/online.md, Trying it out).
+# Tests run on desktop, where Online must stay offline: these pin that local runs, CI and
+# check.py never reach Talo, and that every call is safe offline. The online path needs a web
+# build, so it's checked by hand (docs/online.md, Trying it out).
 
 var _access_key: String
 
@@ -20,7 +20,7 @@ func test_offline_without_an_access_key() -> void:
 	assert_bool(Online.is_enabled()).is_false()
 
 
-func test_offline_in_headless_runs_even_with_a_key() -> void:
+func test_offline_outside_web_builds_even_with_a_key() -> void:
 	Talo.settings.access_key = "a-key"
 	assert_bool(Online.is_enabled()).is_false()
 	assert_bool(Online.is_identified()).is_false()
