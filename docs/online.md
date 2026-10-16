@@ -17,7 +17,8 @@ Once, by a human:
    - `continuityRequests` (write): replays requests that failed while offline.
 3. Paste the key into `access_key` in `core/online/talo_settings.cfg` and commit it. It isn't a secret: the file ships in the web build as plain text, so anyone who downloads the game can read it, and committing it only spares the team a setup step. Until then, `Online` is offline and a web build logs one error at boot (`Unable to create key file`, from Talo's crypto manager).
 4. **Game settings** page: set **Display name prop key** to `name`. Leaderboards then show the name a player picks with `Online.set_player_name()` instead of their random identifier.
-5. Check it: run the game from the editor (F5), open the console (F1) and type `online`. It answers `Online as <identifier>, name not set, session open`, and the player appears on the dashboard's **Players** page.
+5. **Game settings › Data retention**: turn on **Purge dev players**. Every editor run on a new machine and every preview-build browser makes a dev player, and this deletes the ones inactive for 60 days. Leave **Purge live players** off: it deletes real players who stop playing, with their leaderboard entries.
+6. Check it: run the game from the editor (F5), open the console (F1) and type `online`. It answers `Online as <identifier>, name not set, session open`, and the player appears on the dashboard's **Players** page.
 
 ## When it's on
 
