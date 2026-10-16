@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, test file names, two nodes sharing a `unique_id`, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 
@@ -134,7 +134,7 @@ func fade_in() -> void:
 
 Agents may hand-edit any `.tscn` or `.tres` as text, visual properties included. Use the `edit-tscn` skill, which covers `uid://` references and `unique_id`, and run `uv run tools/check.py load` after every edit.
 
-A scene or resource an agent creates has no `uid` in its header and no `unique_id` on its nodes. The first editor save adds random ones. If two people save the same file before that's committed, they get different numbers and every line conflicts. So when an agent creates a `.tscn` or `.tres`, its handoff asks the human to open it in the editor, save it, and commit the result. Save new sub-scenes and resources before the scenes that use them, so the references pick up their uids. Agents don't invent these ids.
+A scene or resource written as text has no `uid` in its header and no `unique_id` on its new nodes, and agents don't invent them. Godot's save assigns random ones, so they're committed once, by whoever saves first: two people saving the same file before that commit get different numbers, and every line conflicts. After writing a `.tscn` or `.tres`, run `uv run tools/check.py ids` and commit what it saves with the change. It saves each file missing an id through Godot's editor-mode saver, sub-scenes and resources before the scenes that use them, so every reference picks up its uid. Lint fails on a file still missing one.
 
 Plugins have the same gap: enabling one from a script misses the settings the editor writes. An agent vendors the plugin's files into `addons/` at a pinned version, then its handoff asks the human to enable `<plugin>` in Project Settings › Plugins and commit the `project.godot` diff.
 
