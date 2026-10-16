@@ -11,7 +11,7 @@ Folders are by feature:
 | Folder | What goes there |
 |---|---|
 | `addons/` | Vendored plugins at pinned versions. Left exactly as vendored. |
-| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/dev_console/`. |
+| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
 | `shared/` | Assets used by more than one feature, such as `shared/audio/`. |
@@ -62,6 +62,8 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `SceneFlow` | `core/scene_flow/` | Moves between top-level scenes with a fade: `await SceneFlow.go_to(path)`. |
 | `Settings` | `core/settings/` | The player's **settings**, saved to `user://settings.cfg` on every change. |
 | `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
+| `Talo` | `addons/talo/` | The Talo plugin's autoload. Game code calls `Online` instead; see `docs/online.md`. |
+| `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. Offline without an access key and in headless runs. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
 

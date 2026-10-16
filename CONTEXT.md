@@ -5,7 +5,7 @@ The starting project the team clones on jam day: core systems, a main menu and t
 ## Language
 
 **Core system**:
-A game-wide service that outlives scene changes and has one instance: the signal bus, audio, scene flow, settings and feedback.
+A game-wide service that outlives scene changes and has one instance: the signal bus, audio, scene flow, settings, feedback and online.
 _Avoid_: manager, singleton, global
 
 **Signal bus**:
@@ -35,6 +35,14 @@ _Avoid_: options, config, preferences file
 **Save game**:
 The player's progress in the game itself. It depends on the game idea, so the boilerplate doesn't have one.
 _Avoid_: settings, save file (ambiguous)
+
+**Online**:
+The core system for the game's online services (analytics events, stats, play sessions and leaderboards) through Talo. It stays offline without an access key and in headless runs. Named `Online` in code.
+_Avoid_: backend, network manager, Talo (the service, not our code)
+
+**Tracking**:
+Turning bus events into analytics events and stats, all in `core/online/tracking.gd`.
+_Avoid_: telemetry, logging, metrics
 
 **Example game scene**:
 The small playable scene that shows the patterns to copy; it is replaced by the real game on jam day.

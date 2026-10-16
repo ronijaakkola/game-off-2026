@@ -58,6 +58,11 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Save on every change, never on quit: write with `ConfigFile.save()` or a `FileAccess` you close.
 - Saves are best effort. Incognito mode, blocked third-party storage (itch runs the game in an iframe) or a change of hosting domain loses them. When `OS.is_userfs_persistent()` is false, keep going for the session.
 
+## Online
+
+- Talo's API takes requests from any origin, so the itch iframe can reach it (unverified in a browser until the access key is in). `docs/online.md` has the rest.
+- A closed tab sends nothing: queued analytics go out every 15 seconds and when the window loses focus.
+
 ## Fullscreen and pointer
 
 - itch's embed fullscreen button handles fullscreen.

@@ -1,0 +1,216 @@
+@tool
+class_name TaloSettings extends RefCounted
+## Talo's configuration options.
+##
+## @tutorial: https://docs.trytalo.com/docs/godot/settings-reference
+
+var _config_file: ConfigFile
+
+const SETTINGS_PATH_SETTING := "talo/settings/settings_path"
+const DEFAULT_SETTINGS_PATH := "res://addons/talo/settings.cfg"
+const DEFAULT_API_URL := "https://api.trytalo.com"
+
+const DEV_FEATURE_TAG := "talo_dev"
+const LIVE_FEATURE_TAG := "talo_live"
+
+static var settings_path: String:
+	get:
+		return ProjectSettings.get_setting(SETTINGS_PATH_SETTING, DEFAULT_SETTINGS_PATH)
+	set(value):
+		ProjectSettings.set_setting(SETTINGS_PATH_SETTING, value)
+
+## Your Talo access key, allowing you to connect to the Talo API and access data based on its scopes
+var access_key: String:
+	get:
+		return _config_file.get_value("", "access_key", "")
+	set(value):
+		_config_file.set_value("", "access_key", value)
+
+## The location of the Talo API
+var api_url: String:
+	get:
+		return _config_file.get_value("", "api_url", DEFAULT_API_URL)
+	set(value):
+		_config_file.set_value("", "api_url", value)
+
+## The location of the Talo Socket, starting with ws:// or wss://
+var socket_url: String:
+	get:
+		return _config_file.get_value("", "socket_url", TaloSocket.DEFAULT_SOCKET_URL)
+	set(value):
+		_config_file.set_value("", "socket_url", value)
+
+## If enabled, Talo will automatically connect to the Talo Socket when the game starts
+var auto_connect_socket: bool:
+	get:
+		return _config_file.get_value("", "auto_connect_socket", true)
+	set(value):
+		_config_file.set_value("", "auto_connect_socket", value)
+
+## Whether Talo should handle the tree quit request
+var handle_tree_quit: bool:
+	get:
+		return _config_file.get_value("", "handle_tree_quit", true)
+	set(value):
+		_config_file.set_value("", "handle_tree_quit", value)
+
+## If enabled, Talo will try to automatically replay failed network requests
+var continuity_enabled: bool:
+	get:
+		return _config_file.get_value("continuity", "enabled", true)
+	set(value):
+		_config_file.set_value("continuity", "enabled", value)
+
+## If enabled, requests to the Talo API will be logged to the console
+var log_requests: bool:
+	get:
+		return _config_file.get_value("logging", "requests", false) and is_debug_build()
+	set(value):
+		_config_file.set_value("logging", "requests", value)
+
+## If enabled, responses from the Talo API will be logged to the console
+var log_responses: bool:
+	get:
+		return _config_file.get_value("logging", "responses", false) and is_debug_build()
+	set(value):
+		_config_file.set_value("logging", "responses", value)
+
+## If enabled, Talo will simulate the player not having an internet connection
+var offline_mode: bool:
+	get:
+		return _config_file.get_value("debug", "offline_mode", false)
+	set(value):
+		_config_file.set_value("debug", "offline_mode", value)
+
+## If enabled and a valid session token is found, automatically authenticate the player
+var auto_start_session: bool:
+	get:
+		return _config_file.get_value("player_auth", "auto_start_session", true)
+	set(value):
+		_config_file.set_value("player_auth", "auto_start_session", value)
+
+## If enabled, Talo will automatically cache the player after a successful online identification
+## If the player is offline and tries to identify in later sessions, Talo will attempt to use the
+## cached the player data
+var cache_player_on_identify: bool:
+	get:
+		return _config_file.get_value("", "cache_player_on_identify", true)
+	set(value):
+		_config_file.set_value("", "cache_player_on_identify", value)
+
+## Number of seconds to wait before sending debounced requests (e.g. player updates, save updates
+## and health checks)
+var debounce_timer_seconds: float:
+	get:
+		return _config_file.get_value("", "debounce_timer_seconds", 0.5)
+	set(value):
+		_config_file.set_value("", "debounce_timer_seconds", value)
+
+## When making requests via HTTPRequest set use_threads to this value
+var requests_use_threads: bool:
+	get:
+		return _config_file.get_value("", "requests_use_threads", false)
+	set(value):
+		_config_file.set_value("", "requests_use_threads", value)
+
+## Enable request verification to prevent replay attacks and tampering - this must also be enabled
+## in the dashboard
+var verification_enabled: bool:
+	get:
+		return _config_file.get_value("verification", "enabled", false)
+	set(value):
+		_config_file.set_value("verification", "enabled", value)
+
+## The version of the verification key being used
+var verification_key_version: String:
+	get:
+		return _config_file.get_value("verification", "key_version", "")
+	set(value):
+		_config_file.set_value("verification", "key_version", value)
+
+## The value for the verification key version
+var verification_key_value: String:
+	get:
+		return _config_file.get_value("verification", "key_value", "")
+	set(value):
+		_config_file.set_value("verification", "key_value", value)
+
+## If enabled, large request bodies will be gzipped before being sent
+var compress_requests: bool:
+	get:
+		return _config_file.get_value("", "compress_requests", true)
+	set(value):
+		_config_file.set_value("", "compress_requests", value)
+
+
+func _init() -> void:
+	_config_file = ConfigFile.new()
+
+	if not FileAccess.file_exists(settings_path):
+		# set each setting to their default value
+		access_key = access_key
+		api_url = api_url
+		socket_url = socket_url
+		auto_connect_socket = auto_connect_socket
+		handle_tree_quit = handle_tree_quit
+		continuity_enabled = continuity_enabled
+		auto_start_session = auto_start_session
+		cache_player_on_identify = cache_player_on_identify
+		debounce_timer_seconds = debounce_timer_seconds
+		requests_use_threads = requests_use_threads
+		verification_enabled = verification_enabled
+		verification_key_version = verification_key_version
+		verification_key_value = verification_key_value
+		compress_requests = compress_requests
+		save_config()
+
+		print_rich(
+			"[color=green]%s created! Please close the game and fill in your access_key.[/color]"
+			% settings_path
+		)
+	else:
+		_config_file.load(settings_path)
+
+		if access_key.is_empty() and is_debug_build():
+			print_rich(
+				"[color=yellow]Warning: Talo access_key in %s is empty[/color]" % settings_path
+			)
+
+
+func is_debug_build() -> bool:
+	if OS.has_feature(LIVE_FEATURE_TAG):
+		return false
+	if OS.has_feature(DEV_FEATURE_TAG):
+		return true
+	return OS.is_debug_build()
+
+
+## Save the Talo settings to the config file
+func save_config():
+	if _config_file == null:
+		return
+	_config_file.save(settings_path)
+
+
+static func init_project_settings() -> void:
+	_define_project_setting(
+		SETTINGS_PATH_SETTING,
+		DEFAULT_SETTINGS_PATH,
+		"The path to the Talo settings file.",
+	)
+
+
+static func _define_project_setting(name: String, default: Variant, help := "") -> void:
+	if not ProjectSettings.has_setting(name):
+		ProjectSettings.set_setting(name, default)
+
+	ProjectSettings.set_initial_value(name, default)
+
+	ProjectSettings.add_property_info(
+		{
+			"name": name,
+			"type": typeof(default),
+			"hint": PROPERTY_HINT_TYPE_STRING,
+			"hint_string": help,
+		}
+	)

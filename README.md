@@ -72,6 +72,7 @@ Save in Blender before `preview` or `export`: both read the file on disk.
 | Godot | 4.7.2 |
 | gdUnit4 | 6.2.2 (`addons/gdUnit4/`) |
 | LimboConsole | 0.8.0 (`addons/limbo_console/`) |
+| Talo | 1.2.0 (`addons/talo/`) |
 | gdtoolkit | 4.5.0 (pinned in `tools/check.py`) |
 | Blender | 5.2 (checked by `tools/blender.py`), only for making models |
 
