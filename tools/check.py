@@ -17,6 +17,8 @@
   all              lint, load, test, smoke
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
   export --preview export Web Preview (dev console, debug template) to build/web-preview/
+  evidence [frame] push a capture frame (default: the last one) to the pr-evidence branch
+                   and print the markdown image line that shows it in a PR body
   api <query>      look up the Godot 4.7.2 class reference: `api Tween` (a class),
                    `api Tween.kill` (one member), `api volume` (a search)
   api --search <text>  search class and member names even when <text> is a class
@@ -82,6 +84,7 @@ def main() -> int:
     commands.add_parser("capture").add_argument("scene")
     commands.add_parser("all")
     commands.add_parser("export").add_argument("--preview", action="store_true")
+    commands.add_parser("evidence").add_argument("frame", nargs="?")
     api = commands.add_parser("api")
     api.add_argument("query")
     api.add_argument("--search", action="store_true")
@@ -104,6 +107,7 @@ def main() -> int:
         "smoke": lambda: run_smoke(getattr(args, "scenes", [])),
         "capture": lambda: run_capture(args.scene),
         "export": lambda: run_export(args.preview),
+        "evidence": lambda: run_evidence(args.frame),
     }
     names = ["lint", "load", "test", "smoke"] if args.command == "all" else [args.command]
     failed = [name for name in names if not run_step(name, steps[name])]
@@ -706,6 +710,56 @@ def run_capture(scene: str, user_args: tuple[str, ...] = ()):
     return f"{len(frames)} frames, look at {frames[-1].as_posix()}{errors}"
 
 
+# --- evidence ---------------------------------------------------------------
+
+EVIDENCE_BRANCH = "pr-evidence"
+# owner/repo: the last two parts of the URL, which also holds for a proxy's URL.
+REMOTE_REPO = re.compile(r"[:/]([^/:]+/[^/]+?)(\.git)?/?$")
+
+
+def git(*args: str, stdin: str | None = None) -> str:
+    result = subprocess.run(
+        ["git", *args], input=stdin, capture_output=True, text=True, encoding="utf-8"
+    )
+    if result.returncode != 0:
+        raise CheckFailed(f"git {args[0]} failed: {result.stderr.strip()}")
+    return result.stdout.strip()
+
+
+def run_evidence(frame: str | None):
+    """A PR body can't link a gitignored file, and GitHub's API can't attach an image.
+    So the frame goes into a commit of its own on the pr-evidence branch, and the URL
+    pins that commit, so later pushes never change it. Plumbing only: the working tree,
+    the index and the current branch are left alone. Parallel publishes race for the
+    branch, so a rejected push rebuilds the commit on the new tip and tries again."""
+    frames = sorted(Path("build/capture").glob("frame*.png"))
+    path = Path(frame) if frame else (frames[-1] if frames else None)
+    if path is None:
+        raise CheckFailed("no frames in build/capture/, run capture <scene> first")
+    if path.suffix != ".png" or not path.is_file():
+        raise CheckFailed(f"no .png file at {path.as_posix()} (paths are from the repo root)")
+    repo = REMOTE_REPO.search(git("remote", "get-url", "origin"))
+    if not repo:
+        raise CheckFailed("can't read owner/repo from the origin remote's URL")
+    blob = git("hash-object", "-w", "--", str(path))
+    tree = git("mktree", stdin=f"100644 blob {blob}\t{path.name}\n")
+    message = f"Evidence for {git('branch', '--show-current') or 'a detached HEAD'}: {path.name}"
+    for attempt in range(5):
+        try:
+            tip = git("ls-remote", "origin", f"refs/heads/{EVIDENCE_BRANCH}").split("\t")[0]
+            if tip:
+                git("fetch", "--quiet", "origin", tip)
+            parent = ["-p", tip] if tip else []
+            # Unsigned, so a signing setup that prompts or fails can't block it.
+            commit = git("commit-tree", "--no-gpg-sign", *parent, tree, "-m", message)
+            git("push", "--quiet", "origin", f"{commit}:refs/heads/{EVIDENCE_BRANCH}")
+            break
+        except CheckFailed:
+            if attempt == 4:
+                raise
+            time.sleep(2**attempt)
+    print(f"![{path.stem}](https://raw.githubusercontent.com/{repo.group(1)}/{commit}/{path.name})")
+    return f"{path.as_posix()} pushed to the {EVIDENCE_BRANCH} branch as {commit[:7]}"
 # --- api --------------------------------------------------------------------
 
 
