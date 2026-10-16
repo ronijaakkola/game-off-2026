@@ -2,6 +2,8 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` is named, test file names, two nodes sharing a `unique_id`, and asset size (a warning only). Each message names its rule and section.
+
 ## Layout
 
 Folders are by feature:
@@ -12,7 +14,7 @@ Folders are by feature:
 | `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/dev_console/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
-| `shared/` | Assets used by more than one feature: soft-look environment, toon shader, fonts, `shared/audio/`. |
+| `shared/` | Assets used by more than one feature, such as `shared/audio/`. |
 | `test/` | gdUnit4 tests. |
 | `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
 | `art/` | The **model library**, `art/models.blend`. Ignored by git and Godot. |
@@ -28,7 +30,7 @@ Follow the [Godot GDScript style guide](https://docs.godotengine.org/en/4.7/tuto
 - A scene and its script share a base name and sit side by side: `main_menu.tscn` + `main_menu.gd`.
 - Add `class_name` only when another script refers to the type by name: a custom Resource, a component, an `is` check, a typed variable.
 
-`gdlint` enforces most of this. `uv run tools/check.py lint` runs it.
+`gdlint` enforces most of this, and `gdformat` sets the layout of every script. `uv run tools/check.py lint` runs both. `uv run tools/check.py format [files]` applies `gdformat`.
 
 ## Static typing
 
@@ -43,7 +45,13 @@ for piece: Node3D in pieces:
 
 ## Checking an API
 
-APIs change between Godot versions. Before writing code against a class, method or property you aren't sure exists in 4.7.2, look it up in the engine itself: run `godot --headless --dump-extension-api` (with the binary in `GODOT`, if set) from a scratch folder outside the repo. It writes a 7 MB `extension_api.json` there with every class, method, property and signal.
+APIs change between Godot versions. Before writing code against a class, method, property, signal or annotation you aren't sure exists in 4.7.2, look it up in the engine's own class reference:
+
+- `uv run tools/check.py api Tween`: the class, its parents, and its own members, one line each.
+- `uv run tools/check.py api Tween.kill`: one member in full, with its description. Inherited members work too.
+- `uv run tools/check.py api volume_linear`: a search, when you don't know the class. It also finds `@GlobalScope` functions such as `lerpf` and `@GDScript` annotations such as `@export_range`.
+
+The first run builds the reference into `build/api/` in a few seconds. A name that doesn't exist fails with close matches.
 
 ## Autoloads (core systems)
 
@@ -117,6 +125,7 @@ func fade_in() -> void:
 
 - The project runs Jolt Physics (`physics/3d/physics_engine` in `project.godot`). It works in the single-threaded web build.
 - Pick with the mouse by casting a ray: `Camera3D.project_ray_origin()` and `project_ray_normal()` into `PhysicsDirectSpaceState3D.intersect_ray()`. For a one-off "does it fit here?" check, use `intersect_shape()` instead of an `Area3D`.
+- Cast from `_physics_process()`. The space may be locked during `_input()` ([Ray-casting](https://docs.godotengine.org/en/4.7/tutorials/physics/ray-casting.html)), so keep the click's position and cast in the next physics frame. `game/game.gd` shows it.
 - Under Jolt, the Debugger's physics monitors (active objects, collision pairs, islands) always read 0. Don't use them to debug.
 
 ## Editing `.tscn` and `.tres`

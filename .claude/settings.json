@@ -7,8 +7,7 @@
   "permissions": {
     "allow": [
       "Bash(uv run tools/check.py:*)",
-      "Bash(uv run tools/blender.py:*)",
-      "Bash(uvx --from gdtoolkit==4.5.0:*)"
+      "Bash(uv run tools/blender.py:*)"
     ]
   },
   "hooks": {
