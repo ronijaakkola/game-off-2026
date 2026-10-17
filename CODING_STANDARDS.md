@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). For agents it also checks the comments they add (see Comments). Each message names its rule and section.
 
 ## Layout
 
@@ -42,6 +42,21 @@ var target: Node3D
 func place(at: Vector3) -> void:
 for piece: Node3D in pieces:
 ```
+
+## Comments
+
+Write for the **next reader**: someone, usually an agent, with this code in front of them and nothing else. They don't have the diff, the issue, the docs page you read, or the conversation that produced the code. A comment carries what they'd miss without it, and most lines need none. The code and its names say what happens; when a line needs a comment to say *what* it does, rename or extract first.
+
+What a comment carries:
+
+- **Why**, when the obvious way was wrong: `# Quits the way the window's close button does, so Talo sends its queued events first.` A why is also a guardrail: it keeps the next agent from "fixing" code that looks odd on purpose.
+- **A constraint or gotcha** the code can't show, with its source when there is one: `# Clicks wait here for the next physics frame: the physics space may be locked during input, so the docs cast rays from _physics_process().`
+- **Units, spaces and ranges** a type can't hold: `(viewport coordinates)`, `in metres, at full trauma`, `(0.1 is ±10%)`.
+- **The contract** of a `##` doc comment: what a caller can't read off the name and types, such as an edge case or a side effect. `## Crossfades to [param stream] over [param fade] seconds. Asking for the track that's already playing does nothing.`
+
+A comment describes the code as it is now, in the present tense. How it got there (what changed, what it replaced, which review asked for it) goes in the commit message and the PR body, which `git blame` leads to. When you change code, fix or delete the comments beside it in the same edit: an agent trusts a stale comment over the code. Old code lives in git, so delete it rather than commenting it out.
+
+Agents get the plainest misses back from `uv run tools/check.py lint` on the lines they added since `HEAD`, in the PostToolUse hook and in any run from Claude Code's shell: a comment whose words are all in the line under it, Godot's script template comments, comments about the change or the conversation, and commented-out code (`.gd` and `.py`). The checks are narrow, so passing them isn't the bar; reread what you added as the next reader. Humans' commits and CI skip these checks.
 
 ## Checking an API
 

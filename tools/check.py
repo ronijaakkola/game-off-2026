@@ -5,7 +5,8 @@
 """Project checks. Run from anywhere: `uv run tools/check.py <command>`.
 
   lint [files]     gdlint, gdformat --check and the project rules on the given files, or
-                   the whole project (no Godot needed)
+                   the whole project (no Godot needed). In an agent session, also the
+                   comment rules on the lines added since HEAD
   lint --hook      Claude Code PostToolUse hook: lint the edited file, or after a shell
                    command the files changed since the last one, exit 2 on problems
   format [files]   gdformat the given .gd files, or every script outside addons/
@@ -144,11 +145,15 @@ TESTS = "CODING_STANDARDS.md, Tests"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
+COMMENTS = "CODING_STANDARDS.md, Comments"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
 EVENTS_SCRIPT = "core/events/events.gd"
 DEV_COMMANDS = "core/dev_console/dev_commands.gd"
 ONLINE_FOLDER = "core/online/"
 LINTED = (".gd", ".tscn", ".gdshader")
+# The comment rules also read agents' Python.
+COMMENT_CHECKED = (".gd", ".py")
+HOOKED = (*LINTED, ".py")
 # Vendored, generated or ignored by git: nothing in these folders is ours to lint.
 # Hidden folders (.godot, .claude) are skipped too, as Godot skips them.
 NOT_OURS_AT_ROOT = {"addons", "android", "art"}
@@ -164,6 +169,47 @@ SHADER_DIRECTIVE = re.compile(
     r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
 )
 WOULD_REFORMAT = re.compile(r"^would reformat (.+)$", re.MULTILINE)
+# The comment rules (comment_problems). Each pattern is narrow on purpose: a hit sends the
+# agent to rewrite the comment, so a false one costs more than a miss.
+NARRATION = re.compile(
+    r"\b(as (requested|discussed|asked)|per (your|the user'?s?) \w+|the user (asked|wants|"
+    r"requested)|this (PR|pull request|commit|diff|change)\b|the PR\b|in this (change|commit)|"
+    r"I (think|believe|assume|added|changed|updated|moved|removed|fixed)|"
+    r"(should|might|hopefully) (work|fix)|\b(added|changed|moved|updated) (this|it|here)\b|"
+    r"to fix (the )?(issue|bug|#)|^now\b(?! that)|^(refactored|reverted)\b)",
+    re.IGNORECASE,
+)
+COMMENT_DIRECTIVE = re.compile(
+    r"(gdlint|gdformat|fmt|noqa|type|pragma|shellcheck|region|endregion)\b|!|warning_"
+)
+BANNER = re.compile(r"-{3}|={3}|\*{3}")
+GODOT_TEMPLATE_COMMENT = re.compile(
+    r"Called (when the node enters the scene tree for the first time|every frame)\."
+)
+CODE_SHAPE = re.compile(
+    r"[(\[=]|:$|\w\.\w|^(var|const|func|signal|extends|class_name|return|await|def|import)\b"
+    r"|^@\w+(\(|$)"
+)
+# Words a restating comment adds around the code's own words.
+FILLER = set(
+    """a an the this that these those it its is are was were be been being to of for in on at
+    by with from and or but as so then than if when whenever while into out up down here
+    there just also each every all any some our we you your them they their do does did call
+    called calls set sets get gets check checks create creates make makes init initialize
+    update updates handle handles handler function method func variable var value values
+    store stores define defines declare declares return returns use uses using now new one
+    which whether not no true false null none default given current""".split()
+)
+# Words a line of code says without spelling them out.
+CODE_IMPLIES = [
+    (r"\bawait\b", "wait"),
+    (r"\bfor\b.*\bin\b", "loop iterate through over"),
+    (r"\+=", "increment add increase"),
+    (r"-=", "decrement subtract decrease"),
+    (r"\.(connect|emit)\(", "signal"),
+    (r"\breturn\b", "early"),
+    (r"\b0\b", "zero"),
+]
 
 
 def project_path(path: str) -> str:
@@ -236,7 +282,7 @@ def lint_hook() -> int:
     else:
         file_path = event.get("tool_input", {}).get("file_path", "")
         paths = given_or_all([file_path]) if file_path else []
-    paths = [path for path in paths if path.endswith(LINTED)]
+    paths = [path for path in paths if path.endswith(HOOKED)]
     if not paths:
         return 0
     problems, _ = lint_problems(paths, hook=True)
@@ -255,7 +301,7 @@ def files_changed_since_last_bash() -> list[str]:
     changed = [
         path
         for path in project_files()
-        if path.endswith(LINTED) and os.path.getmtime(path) > since
+        if path.endswith(HOOKED) and os.path.getmtime(path) > since
     ]
     LINT_STAMP.parent.mkdir(exist_ok=True)
     LINT_STAMP.touch()
@@ -282,6 +328,8 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
         # written, and check.py ids fills them in once. The commit hook and CI catch it.
         if path.endswith((".tscn", ".tres")) and not hook:
             rules += missing_id_problems(path)
+    if hook or agent_session():
+        rules += comment_problems([path for path in paths if path.endswith(COMMENT_CHECKED)])
     problems = []
     if linter and formatter:
         lint_output = linter.communicate()[1]
@@ -520,6 +568,140 @@ def shader_problems(path: str) -> list[str]:
         if text.startswith("#") and not SHADER_DIRECTIVE.match(text):
             problems.append(problem(path, number, "shader-hash-comment", message, SHADER_COMMENTS))
     return problems
+
+
+def agent_session() -> bool:
+    """Claude Code sets CLAUDECODE=1 in its shell, so its check.py and git commit runs
+    get the agent-only rules. CI and a human's terminal don't."""
+    return os.environ.get("CLAUDECODE") == "1"
+
+
+def added_lines(paths: list[str]) -> dict[str, set[int] | None]:
+    """The lines each path adds since HEAD, or None for a file git doesn't track yet
+    (all of it is new). Paths with nothing added are left out."""
+    if not paths:
+        return {}
+    untracked = set(git("ls-files", "--others", "--exclude-standard", "--", *paths).split("\n"))
+    added: dict[str, set[int] | None] = {path: None for path in paths if path in untracked}
+    current = None
+    for line in git("diff", "--unified=0", "--no-color", "HEAD", "--", *paths).splitlines():
+        if line.startswith("+++ "):
+            current = line[len("+++ b/") :] if line.startswith("+++ b/") else None
+        elif current and (hunk := re.match(r"@@ -\S+ \+(\d+)(?:,(\d+))? @@", line)):
+            start, count = int(hunk.group(1)), int(hunk.group(2) or "1")
+            if count:
+                added.setdefault(current, set()).update(range(start, start + count))
+    return added
+
+
+def comment_problems(paths: list[str]) -> list[str]:
+    """The comment rules, for agents only: on the lines added since HEAD, so an agent is
+    never sent to reword a comment someone else wrote. A regex can't judge a comment, so
+    these catch only the plainest cases; the rest is the agent's own reread."""
+    problems = []
+    for path, lines in added_lines(paths).items():
+        source = Path(path).read_text(encoding="utf-8", errors="replace")
+        for line, rule, message in comment_findings(path, source):
+            if lines is None or line in lines:
+                problems.append(problem(path, line, rule, message, COMMENTS))
+    return problems
+
+
+def comment_findings(path: str, source: str) -> list[tuple[int, str, str]]:
+    restates = (
+        "says only what the code under it already says. Delete it, or say what the code "
+        "can't: why it's done this way, a constraint, a unit, a gotcha."
+    )
+    narrates = (
+        "talks about the change or the conversation, which the next reader never sees. Say "
+        "what the code does or why; the story of the change goes in the commit and PR."
+    )
+    commented_out = "is commented-out code. Delete it; git keeps the old version."
+    code_lines = split_gdscript(source)[0].splitlines()
+    found = []
+    # Each run of whole-line comments is one block, compared with the code line after it.
+    blocks: list[tuple[int, int, str, bool]] = []
+    in_script_metadata = False
+    for line, text in comments(source):
+        body = text.lstrip("#").strip()
+        # PEP 723 metadata (uv's `# /// script` block) is TOML, not commented-out code.
+        if path.endswith(".py") and body in ("/// script", "///"):
+            in_script_metadata = body == "/// script"
+            continue
+        if not body or in_script_metadata or COMMENT_DIRECTIVE.match(body):
+            continue
+        trailing = bool(code_lines[line - 1].strip())
+        if NARRATION.search(body):
+            found.append((line, "comment-narrates-change", f"'{body}' {narrates}"))
+        if not text.startswith("##") and commented_out_code(path, body):
+            found.append((line, "commented-out-code", f"'{body}' {commented_out}"))
+            continue
+        if BANNER.search(body):
+            continue
+        if blocks and not trailing and not blocks[-1][3] and blocks[-1][1] == line - 1:
+            first, _, joined, _ = blocks[-1]
+            blocks[-1] = (first, line, f"{joined} {body}", False)
+        else:
+            blocks.append((line, line, body, trailing))
+    for first, last, text, trailing in blocks:
+        if trailing:
+            code = code_lines[last - 1]
+        else:
+            code = next((c for c in code_lines[last:] if c.strip()), "")
+        if GODOT_TEMPLATE_COMMENT.match(text) or restates_code(text, code):
+            found.append((first, "comment-restates-code", f"'{text}' {restates}"))
+    return sorted(found)
+
+
+def comments(source: str) -> list[tuple[int, str]]:
+    return [
+        (line_at(source, m.start()), m.group(1))
+        for m in GD_COMMENT_OR_STRING.finditer(source)
+        if m.group(1)
+    ]
+
+
+def restates_code(comment: str, code: str) -> bool:
+    """Every word of the comment, past the filler, is already a word of the code."""
+    code_words = {stem(word) for word in words(code)}
+    for pattern, implied in CODE_IMPLIES:
+        if re.search(pattern, code):
+            code_words.update(implied.split())
+    content = [stem(word) for word in words(comment) if word not in FILLER and len(word) > 1]
+    return bool(content) and all(word in code_words for word in content)
+
+
+def words(text: str) -> list[str]:
+    """Lowercase words, with snake_case, PascalCase and camelCase split apart."""
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    return [word for word in re.split(r"[^A-Za-z0-9]+", text.lower()) if word]
+
+
+def stem(word: str) -> str:
+    for suffix in ("ing", "ed", "es", "s"):
+        if word.endswith(suffix) and not word.endswith("ss") and len(word) - len(suffix) >= 3:
+            return word[: -len(suffix)]
+    return word
+
+
+def commented_out_code(path: str, body: str) -> bool:
+    """Code-shaped, and it parses: prose with a bracket in it doesn't."""
+    if body.endswith(".") or not CODE_SHAPE.search(body):
+        return False
+    block = body.endswith(":")
+    if path.endswith(".py"):
+        try:
+            compile(body + ("\n pass" if block else ""), "<comment>", "exec")
+        except (SyntaxError, ValueError):
+            return False
+        return True
+    from gdtoolkit.parser import parser
+
+    try:
+        parser.parse(f"func _f():\n\t{body}" + ("\n\t\tpass" if block else "") + "\n")
+    except Exception:  # Lark raises several error types, all meaning "not code".
+        return False
+    return True
 
 
 def formatting_problems(formatter: subprocess.Popen, gdlint_failed: bool) -> list[str]:

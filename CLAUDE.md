@@ -2,7 +2,7 @@
 
 Godot 4.7.2, GDScript only, Compatibility renderer, played on the web (itch.io) first.
 
-- `CODING_STANDARDS.md`: layout, naming, typing, autoloads, scene composition, signals, merges. Read it before adding or moving any file.
+- `CODING_STANDARDS.md`: layout, naming, typing, comments, autoloads, scene composition, signals, merges. Read it before adding or moving any file, and its Comments section before writing comments.
 - `DESIGN.md`: what the game is. Read it before gameplay work, and update it when the design changes.
 - `CONTEXT.md`: the glossary. Use its terms in code and handoffs.
 - `docs/web-constraints.md`: read it before touching shaders, environment, lighting, loading or audio.
@@ -29,6 +29,7 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 
 ## Handoff
 
+- Reread every comment your diff adds as the next reader, who has the code and nothing else: keep the ones they'd miss (`CODING_STANDARDS.md`, Comments).
 - Paste the result lines of `uv run tools/check.py all` exactly as printed, failing step included.
 - When a change is about feel (the soft look, lighting, camera, motion, sound), end with "Needs a visual check: `<scene>`".
 - When a check can't run (Godot not found, no window for `capture`), say which ones didn't run and name the editor equivalent for the human:
