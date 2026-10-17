@@ -7,6 +7,7 @@ const FADE := 0.25
 
 var _black: ColorRect
 var _busy := false
+var _fade: Tween
 
 
 func _ready() -> void:
@@ -40,4 +41,7 @@ func go_to(path: String) -> void:
 
 
 func _fade_to(alpha: float) -> void:
-	await create_tween().tween_property(_black, "color:a", alpha, FADE).finished
+	if _fade:
+		_fade.kill()
+	_fade = create_tween()
+	await _fade.tween_property(_black, "color:a", alpha, FADE).finished
