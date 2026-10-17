@@ -51,6 +51,7 @@ What a comment carries:
 
 - **Why**, when the obvious way was wrong: `# Quits the way the window's close button does, so Talo sends its queued events first.` A why is also a guardrail: it keeps the next agent from "fixing" code that looks odd on purpose.
 - **A constraint or gotcha** the code can't show, with its source when there is one: `# Clicks wait here for the next physics frame: the physics space may be locked during input, so the docs cast rays from _physics_process().`
+- **A coupling** to code elsewhere that must change with this: `` # Written into exports by `check.py export`, so the editor has none. ``
 - **Units, spaces and ranges** a type can't hold: `(viewport coordinates)`, `in metres, at full trauma`, `(0.1 is ±10%)`.
 - **The contract** of a `##` doc comment: what a caller can't read off the name and types, such as an edge case or a side effect. `## Crossfades to [param stream] over [param fade] seconds. Asking for the track that's already playing does nothing.`
 
