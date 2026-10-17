@@ -10,7 +10,7 @@ Folders are by feature:
 
 | Folder | What goes there |
 |---|---|
-| `addons/` | Vendored plugins at pinned versions. Left exactly as vendored. |
+| `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config. |
 | `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
@@ -137,6 +137,8 @@ Agents may hand-edit any `.tscn` or `.tres` as text, visual properties included.
 A scene or resource written as text has no `uid` in its header and no `unique_id` on its new nodes, and agents don't invent them. Godot's save assigns random ones, so they're committed once, by whoever saves first: two people saving the same file before that commit get different numbers, and every line conflicts. After writing a `.tscn` or `.tres`, run `uv run tools/check.py ids` and commit what it saves with the change. It saves each file missing an id through Godot's editor-mode saver, sub-scenes and resources before the scenes that use them, so every reference picks up its uid. Lint fails on a file still missing one.
 
 Plugins have the same gap: enabling one from a script misses the settings the editor writes. An agent vendors the plugin's files into `addons/` at a pinned version, then its handoff asks the human to enable `<plugin>` in Project Settings › Plugins and commit the `project.godot` diff.
+
+Each vendored plugin folder has a deny rule in `.claude/settings.json`, such as `Edit(/addons/talo/**)`, so agents can read it but not edit it. Vendoring a new plugin adds its rule in the same change. Upgrading a plugin is the human's job.
 
 After a visual change, capture the scene (`uv run tools/check.py capture <scene>`) and look at the frame. When the change is about feel (the soft look, lighting, camera, motion), end the handoff with "Needs a visual check: `<scene>`". Tuning by eye in the editor is recommended, never required.
 
