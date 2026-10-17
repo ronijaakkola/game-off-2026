@@ -1,4 +1,4 @@
-extends Control
+extends PanelContainer
 ## The settings panel: volume sliders and Reduce motion, bound to [code]Settings[/code].
 ## The main menu and the pause menu each instance it hidden and call [method open].
 ## Back hides it again.

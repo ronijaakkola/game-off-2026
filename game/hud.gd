@@ -1,4 +1,4 @@
-extends Control
+extends MarginContainer
 ## The game's HUD: how many pieces have been placed. It counts
 ## [signal Events.piece_placed], so it doesn't need to know who places them.
 

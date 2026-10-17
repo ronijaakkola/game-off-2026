@@ -9,7 +9,7 @@ process_mode = 3
 layer = 10
 script = ExtResource("1_pause")
 
-[node name="Root" type="Control" parent="." unique_id=1212393202]
+[node name="Root" type="PanelContainer" parent="." unique_id=1212393202]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -17,23 +17,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_theme")
-
-[node name="Dim" type="ColorRect" parent="Root" unique_id=1385886911]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
+theme_type_variation = &"DimPanel"
 
 [node name="Center" type="CenterContainer" parent="Root" unique_id=818951029]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 
 [node name="Items" type="VBoxContainer" parent="Root/Center" unique_id=1638955660]
 custom_minimum_size = Vector2(280, 0)
@@ -63,7 +50,7 @@ text = "Main menu"
 [node name="SettingsMenu" parent="Root" unique_id=1862376984 instance=ExtResource("3_settings")]
 unique_name_in_owner = true
 visible = false
-layout_mode = 1
+layout_mode = 2
 
 [connection signal="pressed" from="Root/Center/Items/ResumeButton" to="." method="_on_resume_button_pressed"]
 [connection signal="pressed" from="Root/Center/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
