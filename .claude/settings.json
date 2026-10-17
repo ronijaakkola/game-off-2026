@@ -9,6 +9,11 @@
       "Bash(uv run tools/check.py:*)",
       "Bash(uv run tools/blender.py:*)",
       "Bash(bash tools/cloud_setup.sh)"
+    ],
+    "deny": [
+      "Edit(/addons/gdUnit4/**)",
+      "Edit(/addons/limbo_console/**)",
+      "Edit(/addons/talo/**)"
     ]
   },
   "hooks": {
