@@ -6,6 +6,9 @@
 reports/
 build/
 
+# Written by check.py export for the duration of an export
+/ui/main_menu/build_commit.txt
+
 # Python bytecode from tools/blender.py importing check.py
 __pycache__/
 

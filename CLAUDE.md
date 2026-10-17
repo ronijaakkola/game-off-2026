@@ -6,6 +6,7 @@ Godot 4.7.2, GDScript only, Compatibility renderer, played on the web (itch.io) 
 - `DESIGN.md`: what the game is. Read it before gameplay work, and update it when the design changes.
 - `CONTEXT.md`: the glossary. Use its terms in code and handoffs.
 - `docs/web-constraints.md`: read it before touching shaders, environment, lighting, loading or audio.
+- `docs/online.md`: read it before wiring analytics, stats or leaderboards.
 
 Ask the human before changing anything outside the repo, such as export templates, editor settings or global git config.
 
@@ -15,11 +16,14 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 
 | Command | When |
 |---|---|
-| `lint [files]` | Runs by itself after every edit to a `.gd` file; fix what it reports. |
+| `lint [files]` | Runs by itself after every edit to a `.gd`, `.tscn` or `.gdshader` file; fix what it reports. `format [files]` fixes what it reports as formatting. |
 | `load` | After editing scripts, scenes or resources. |
+| `ids [files]` | After writing a `.tscn` or `.tres` as text. Saves every one missing a `uid` or `unique_id` the way the editor does, so Godot assigns them; commit the result. Not part of `all`, whose `lint` fails until it runs. |
 | `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
-| `smoke [scene]` | After changes to anything that runs at startup. Runs the main scene, or the one given. |
+| `smoke [scenes]` | After changes to anything that runs at startup. Runs the main scene and `game/game.tscn`, or the ones given. |
 | `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |
+| `evidence [frame]` | When a PR body needs a frame. Pushes the last capture frame, or the one given, to the `pr-evidence` branch and prints the image line to paste under Evidence. Not part of `all`. |
+| `api <query>` | Before using a Godot API you aren't sure exists in 4.7.2. `Class`, `Class.member`, or a word to search for. |
 | `all` | Before every handoff. |
 | `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. Not part of `all`. |
 
@@ -50,7 +54,7 @@ Working on a PR:
 - The body follows `.github/pull_request_template.md`: what changed, the evidence it works, what it can reach.
 - Check the PR is still open before pushing to its branch: `gh pr view <n> --json state`.
 - Wait for CI with `gh pr checks <n> --watch`. Never write a polling loop.
-- Never close, reopen or merge a PR. A human merges.
+- Never close or reopen a PR. Merge only when the human asks for it in the conversation, with Squash and merge, once CI is green on the current head.
 
 The hooks in `.githooks/` (`commit-msg`, `pre-commit`) enforce the commit message and lint what you commit. Enable them once per clone with `git config core.hooksPath .githooks`.
 
@@ -68,3 +72,5 @@ When `CLAUDE_CODE_REMOTE` is `true`, GitHub's GraphQL API is blocked, so `gh iss
 For a one-off look at CI: `gh api 'repos/{owner}/{repo}/commits/<sha>/check-runs' --jq '.check_runs[] | "\(.name): \(.conclusion)"'`.
 
 Only repository-scoped endpoints are reachable, so the team's GitHub Project isn't. Ask the human when an issue's place on the board matters.
+
+When the SessionStart hook reports that Godot or the Web templates are missing, run `bash tools/cloud_setup.sh` and tell the human to add it to the environment's setup script (README.md, Setup › Cloud sessions).

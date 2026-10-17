@@ -4,7 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="PackedScene" uid="uid://du1swv634nyif" path="res://ui/settings/settings_menu.tscn" id="3_settings"]
 
-[node name="MainMenu" type="Control" unique_id=1815156436]
+[node name="MainMenu" type="MarginContainer" unique_id=1815156436]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -15,12 +15,7 @@ theme = ExtResource("2_theme")
 script = ExtResource("1_menu")
 
 [node name="Center" type="CenterContainer" parent="." unique_id=463875649]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 
 [node name="Items" type="VBoxContainer" parent="Center" unique_id=579640886]
 custom_minimum_size = Vector2(280, 0)
@@ -50,26 +45,16 @@ text = "Quit"
 [node name="SettingsMenu" parent="." unique_id=959905961 instance=ExtResource("3_settings")]
 unique_name_in_owner = true
 visible = false
-layout_mode = 1
+layout_mode = 2
 
-[node name="StartOverlay" type="ColorRect" parent="." unique_id=298445105]
+[node name="StartOverlay" type="PanelContainer" parent="." unique_id=298445105]
 unique_name_in_owner = true
 visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 1)
+layout_mode = 2
+theme_type_variation = &"BlackPanel"
 
 [node name="Center" type="CenterContainer" parent="StartOverlay" unique_id=2123297052]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 mouse_filter = 2
 
 [node name="Items" type="VBoxContainer" parent="StartOverlay/Center" unique_id=2015960449]
@@ -86,6 +71,20 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "Click to start"
 horizontal_alignment = 1
+
+[node name="BuildMargin" type="MarginContainer" parent="." unique_id=1616412392]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="BuildLabel" type="Label" parent="BuildMargin" unique_id=1974554180]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_type_variation = &"FaintLabel"
 
 [connection signal="pressed" from="Center/Items/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="Center/Items/SettingsButton" to="." method="_on_settings_button_pressed"]

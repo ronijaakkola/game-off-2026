@@ -2,17 +2,19 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
+
 ## Layout
 
 Folders are by feature:
 
 | Folder | What goes there |
 |---|---|
-| `addons/` | Vendored plugins at pinned versions. Left exactly as vendored. |
-| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/dev_console/`. |
+| `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config. |
+| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
-| `shared/` | Assets used by more than one feature: soft-look environment, toon shader, fonts, `shared/audio/`. |
+| `shared/` | Assets used by more than one feature, such as `shared/audio/`. |
 | `test/` | gdUnit4 tests. |
 | `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
 | `art/` | The **model library**, `art/models.blend`. Ignored by git and Godot. |
@@ -28,7 +30,7 @@ Follow the [Godot GDScript style guide](https://docs.godotengine.org/en/4.7/tuto
 - A scene and its script share a base name and sit side by side: `main_menu.tscn` + `main_menu.gd`.
 - Add `class_name` only when another script refers to the type by name: a custom Resource, a component, an `is` check, a typed variable.
 
-`gdlint` enforces most of this. `uv run tools/check.py lint` runs it.
+`gdlint` enforces most of this, and `gdformat` sets the layout of every script. `uv run tools/check.py lint` runs both. `uv run tools/check.py format [files]` applies `gdformat`.
 
 ## Static typing
 
@@ -43,7 +45,13 @@ for piece: Node3D in pieces:
 
 ## Checking an API
 
-APIs change between Godot versions. Before writing code against a class, method or property you aren't sure exists in 4.7.2, look it up in the engine itself: run `godot --headless --dump-extension-api` (with the binary in `GODOT`, if set) from a scratch folder outside the repo. It writes a 7 MB `extension_api.json` there with every class, method, property and signal.
+APIs change between Godot versions. Before writing code against a class, method, property, signal or annotation you aren't sure exists in 4.7.2, look it up in the engine's own class reference:
+
+- `uv run tools/check.py api Tween`: the class, its parents, and its own members, one line each.
+- `uv run tools/check.py api Tween.kill`: one member in full, with its description. Inherited members work too.
+- `uv run tools/check.py api volume_linear`: a search, when you don't know the class. It also finds `@GlobalScope` functions such as `lerpf` and `@GDScript` annotations such as `@export_range`.
+
+The first run builds the reference into `build/api/` in a few seconds. A name that doesn't exist fails with close matches.
 
 ## Autoloads (core systems)
 
@@ -54,6 +62,8 @@ APIs change between Godot versions. Before writing code against a class, method 
 | `SceneFlow` | `core/scene_flow/` | Moves between top-level scenes with a fade: `await SceneFlow.go_to(path)`. |
 | `Settings` | `core/settings/` | The player's **settings**, saved to `user://settings.cfg` on every change. |
 | `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
+| `Talo` | `addons/talo/` | The Talo plugin's autoload. Only `core/online/` names it; see Online. |
+| `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
 
@@ -117,15 +127,18 @@ func fade_in() -> void:
 
 - The project runs Jolt Physics (`physics/3d/physics_engine` in `project.godot`). It works in the single-threaded web build.
 - Pick with the mouse by casting a ray: `Camera3D.project_ray_origin()` and `project_ray_normal()` into `PhysicsDirectSpaceState3D.intersect_ray()`. For a one-off "does it fit here?" check, use `intersect_shape()` instead of an `Area3D`.
+- Cast from `_physics_process()`. The space may be locked during `_input()` ([Ray-casting](https://docs.godotengine.org/en/4.7/tutorials/physics/ray-casting.html)), so keep the click's position and cast in the next physics frame. `game/game.gd` shows it.
 - Under Jolt, the Debugger's physics monitors (active objects, collision pairs, islands) always read 0. Don't use them to debug.
 
 ## Editing `.tscn` and `.tres`
 
 Agents may hand-edit any `.tscn` or `.tres` as text, visual properties included. Use the `edit-tscn` skill, which covers `uid://` references and `unique_id`, and run `uv run tools/check.py load` after every edit.
 
-A scene or resource an agent creates has no `uid` in its header and no `unique_id` on its nodes. The first editor save adds random ones. If two people save the same file before that's committed, they get different numbers and every line conflicts. So when an agent creates a `.tscn` or `.tres`, its handoff asks the human to open it in the editor, save it, and commit the result. Save new sub-scenes and resources before the scenes that use them, so the references pick up their uids. Agents don't invent these ids.
+A scene or resource written as text has no `uid` in its header and no `unique_id` on its new nodes, and agents don't invent them. Godot's save assigns random ones, so they're committed once, by whoever saves first: two people saving the same file before that commit get different numbers, and every line conflicts. After writing a `.tscn` or `.tres`, run `uv run tools/check.py ids` and commit what it saves with the change. It saves each file missing an id through Godot's editor-mode saver, sub-scenes and resources before the scenes that use them, so every reference picks up its uid. Lint fails on a file still missing one.
 
 Plugins have the same gap: enabling one from a script misses the settings the editor writes. An agent vendors the plugin's files into `addons/` at a pinned version, then its handoff asks the human to enable `<plugin>` in Project Settings › Plugins and commit the `project.godot` diff.
+
+Each vendored plugin folder has a deny rule in `.claude/settings.json`, such as `Edit(/addons/talo/**)`, so agents can read it but not edit it. Vendoring a new plugin adds its rule in the same change. Upgrading a plugin is the human's job.
 
 After a visual change, capture the scene (`uv run tools/check.py capture <scene>`) and look at the frame. When the change is about feel (the soft look, lighting, camera, motion), end the handoff with "Needs a visual check: `<scene>`". Tuning by eye in the editor is recommended, never required.
 
@@ -167,3 +180,7 @@ Godot scenes merge badly, so prevent conflicts:
 `LimboConsole` is left out of the web build, so any script that names it fails to compile there. All console code lives in `core/dev_console/dev_commands.gd`, which is also left out of the web build. The `DevConsole` autoload loads it only when `get_tree().root.get_node_or_null(^"LimboConsole")` exists. Add new console commands there; open the console with F1 in an editor run. F1 is the same key on every keyboard layout; a backtick toggle can't be typed on Nordic layouts.
 
 The web build logs one `Failed to instantiate an autoload` error at startup, for the missing `LimboConsole`. That line is expected.
+
+## Online
+
+Game code reaches Talo only through `Online`, which is on only in web builds with an access key, and batches what it sends. A direct `Talo` call skips both, and errors when no player is identified. So only `core/online/` names the `Talo` autoload; tests, `tools/` and `dev_commands.gd` may too. Talo's classes, such as `TaloLeaderboardEntry`, are fine as types anywhere. When a game needs a Talo feature `Online` doesn't wrap, add a method to `core/online/online.gd`. `docs/online.md` has the setup and the wiring.

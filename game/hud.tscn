@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://dt327q84py2ie"]
+
+[ext_resource type="Script" uid="uid://5hskdu7ji322" path="res://game/hud.gd" id="1_hud"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="Hud" type="MarginContainer" unique_id=2137223409]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+script = ExtResource("1_hud")
+
+[node name="Items" type="VBoxContainer" parent="." unique_id=1208116363]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PlacedLabel" type="Label" parent="Items" unique_id=444988065]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Placed: 0"
+
+[node name="HintLabel" type="Label" parent="Items" unique_id=1174961186]
+layout_mode = 2
+text = "Click the board to place a piece. Esc pauses."

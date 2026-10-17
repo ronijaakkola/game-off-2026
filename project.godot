@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Godot Jam Boilerplate"
+config/version="0.1.0"
 run/main_scene="res://ui/main_menu/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
@@ -26,6 +27,8 @@ Audio="*res://core/audio/audio.gd"
 Settings="*res://core/settings/settings.gd"
 SceneFlow="*res://core/scene_flow/scene_flow.gd"
 Feedback="*res://core/feedback/feedback.gd"
+Talo="*uid://bpmdn8oc34pg7"
+Online="*res://core/online/online.gd"
 DevConsole="*res://core/dev_console/dev_console.gd"
 
 [debug]
@@ -39,7 +42,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg", "res://addons/limbo_console/plugin.cfg")
+enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg", "res://addons/limbo_console/plugin.cfg", "res://addons/talo/plugin.cfg")
 
 [gdunit4]
 
@@ -77,3 +80,8 @@ limbo_console_search_history={
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/quality/msaa_3d=2
+
+[talo]
+
+settings/settings_path="res://core/online/talo_settings.cfg"

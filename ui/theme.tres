@@ -1,7 +1,20 @@
 [gd_resource type="Theme" format=3 uid="uid://67yr7b2dkwjh"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
+bg_color = Color(0, 0, 0, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
+bg_color = Color(0, 0, 0, 1)
+
 [resource]
 default_font_size = 24
+BlackPanel/base_type = &"PanelContainer"
+BlackPanel/styles/panel = SubResource("StyleBoxFlat_black")
+DimPanel/base_type = &"PanelContainer"
+DimPanel/styles/panel = SubResource("StyleBoxFlat_dim")
 TitleLabel/base_type = &"Label"
 TitleLabel/font_sizes/font_size = 64
+FaintLabel/base_type = &"Label"
+FaintLabel/colors/font_color = Color(1, 1, 1, 0.35)
+FaintLabel/font_sizes/font_size = 14
 VBoxContainer/constants/separation = 12

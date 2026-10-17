@@ -1,9 +1,9 @@
-extends Control
+extends PanelContainer
 ## The settings panel: volume sliders and Reduce motion, bound to [code]Settings[/code].
 ## The main menu and the pause menu each instance it hidden and call [method open].
 ## Back hides it again.
 
-const DEMO_SFX := preload("res://shared/audio/ui_click.ogg")
+const DEMO_SFX := preload("res://ui/audio/ui_click.ogg")
 
 @onready var _volumes: Dictionary[HSlider, StringName] = {
 	%MasterSlider: &"master_volume",
