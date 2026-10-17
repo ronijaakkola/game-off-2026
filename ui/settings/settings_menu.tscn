@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dmlvqmysra4tp" path="res://ui/settings/settings_menu.gd" id="1_settings"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 
-[node name="SettingsMenu" type="Control" unique_id=432771015]
+[node name="SettingsMenu" type="PanelContainer" unique_id=432771015]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,24 +11,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_theme")
+theme_type_variation = &"DimPanel"
 script = ExtResource("1_settings")
 
-[node name="Dim" type="ColorRect" parent="." unique_id=475601026]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
-
 [node name="Center" type="CenterContainer" parent="." unique_id=1592326828]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 
 [node name="Panel" type="PanelContainer" parent="Center" unique_id=1243128876]
 layout_mode = 2

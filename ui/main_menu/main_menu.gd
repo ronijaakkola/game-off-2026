@@ -1,4 +1,4 @@
-extends Control
+extends MarginContainer
 ## The main scene: title, Play, Settings and Quit. On the web, a "Click to start"
 ## title card comes first, because Safari starts audio only after a click in the game.
 
