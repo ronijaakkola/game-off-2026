@@ -18,7 +18,8 @@
   capture <scene>  render ~1 s of a scene in a window, save the frames to build/capture/
   all              lint, load, test, smoke
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
-  export --preview export Web Preview (dev console, debug template) to build/web-preview/
+  export --preview export Web Preview (dev console, debug template) to build/web-preview/game/,
+                   framed by tools/preview_frame.html
   evidence [frame] push a capture frame (default: the last one) to the pr-evidence branch
                    and print the markdown image line that shows it in a PR body
   api <query>      look up the Godot 4.7.2 class reference: `api Tween` (a class),
@@ -48,6 +49,8 @@ GAME_SCENE = "res://game/game.tscn"
 CAPTURE_FRAMES = "60"
 # Written by run_export and read by the main menu; ignored by git.
 BUILD_COMMIT_FILE = "ui/main_menu/build_commit.txt"
+# The preview build's front page: itch's embed, with the game in an iframe under game/.
+PREVIEW_FRAME = "tools/preview_frame.html"
 ERROR_LINE = re.compile(r"^(SCRIPT )?ERROR", re.MULTILINE)
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 # Godot 4.7.2 leaks an Ogg stream that is still playing when it quits, so any scene
@@ -775,8 +778,10 @@ def run_smoke(scenes: list[str]):
 def run_export(preview: bool):
     """Web is the itch.io build. Web Preview is the preview build: it keeps LimboConsole
     and uses the debug template, so its pack boots with no errors at all."""
-    preset, folder = ("Web Preview", "build/web-preview") if preview else ("Web", "build/web")
+    preset, folder = ("Web Preview", "build/web-preview/game") if preview else ("Web", "build/web")
     directory = ensure_build_dir(folder)
+    if preview:
+        shutil.copyfile(PREVIEW_FRAME, directory.parent / "index.html")
     pck = directory / "index.pck"
     pck.unlink(missing_ok=True)
     mode = "--export-debug" if preview else "--export-release"
