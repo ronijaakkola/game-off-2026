@@ -38,7 +38,7 @@ Offline, every `Online` call is safe: it does nothing, or returns null or an emp
 
 ## What happens on its own
 
-- **Identity.** On first run `Online` makes a random identifier, keeps it in `user://online.cfg`, and identifies the player as an `anonymous` alias. Each browser is one player for as long as it keeps `user://`; incognito or blocked storage makes a new player each visit.
+- **Identity.** On first run `Online` makes a random identifier, keeps it in `user://online.cfg`, and identifies the player as an `anonymous` alias. If that fails (no network, or Talo is down), it tries again after 5 seconds, doubling the wait up to a minute; events tracked meanwhile wait for it (up to 50), and stat changes go out with the first batch after. Each browser is one player for as long as it keeps `user://`; incognito or blocked storage makes a new player each visit.
 - **Sessions.** Talo counts a session while the player is identified on its socket, which `Online` opens. The dashboard shows sessions and average session length. Closing the tab ends the session.
 - **Meta props.** Every event carries the OS, `application/config/version` from `project.godot`, the window mode and the window size.
 
