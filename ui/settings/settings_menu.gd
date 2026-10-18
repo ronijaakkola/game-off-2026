@@ -14,8 +14,7 @@ const DEMO_SFX := preload("res://ui/audio/ui_click.ogg")
 
 func _ready() -> void:
 	for slider: HSlider in _volumes:
-		# Every step of a drag is heard at once, and saved. On the web the saves reach
-		# the browser's storage at most once a frame.
+		# Every step of a drag is heard at once. Settings saves once the steps stop.
 		slider.value_changed.connect(_on_volume_value_changed.bind(slider))
 	_read_settings()
 

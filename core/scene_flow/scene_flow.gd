@@ -29,10 +29,18 @@ func go_to(path: String) -> void:
 	_busy = true
 	get_tree().root.set_disable_input(true)
 	await _fade_to(1.0)
+	# The fade reached black in this step, so the screen still shows the frame before.
+	# Draw a black one first: load() blocks, and the web build freezes on the last frame.
+	await get_tree().process_frame
 	get_tree().paused = false
 	var error := get_tree().change_scene_to_packed(load(path))
 	if error == OK:
 		await get_tree().scene_changed
+		# This step's delta spans the load, and the next one's the new scene's first frame,
+		# which compiles its shaders. Either can skip most of the fade, so draw that frame
+		# under the black and fade in after it.
+		await get_tree().process_frame
+		await get_tree().process_frame
 	else:
 		push_error("SceneFlow can't change to %s: %s" % [path, error_string(error)])
 	await _fade_to(0.0)

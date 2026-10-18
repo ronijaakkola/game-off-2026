@@ -25,7 +25,9 @@ func after() -> void:
 
 
 func after_test() -> void:
-	# A failed transition must not leave input off for the rest of the suite.
+	# Let SceneFlow finish first: its scene change would land after the unload, and it
+	# ignores go_to calls until it ends, so the next suite would fail instead of this one.
+	await assert_func(get_tree().root, "is_input_disabled").wait_until(5000).is_false()
 	get_tree().root.set_disable_input(false)
 	get_tree().unload_current_scene()
 	Audio.stop_music(0.0)

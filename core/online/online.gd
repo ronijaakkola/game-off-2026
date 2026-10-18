@@ -17,10 +17,16 @@ const NAME_PROP := "name"
 const FLUSH_SECONDS := 15.0
 ## Events tracked before the player is identified wait for it, up to this many.
 const MAX_WAITING_EVENTS := 50
+## How long to wait before identifying again after it fails. Each failure doubles the wait, up to
+## IDENTIFY_RETRY_MAX_SECONDS.
+const IDENTIFY_RETRY_SECONDS := 5.0
+const IDENTIFY_RETRY_MAX_SECONDS := 60.0
 const TRACKING := preload("res://core/online/tracking.gd")
 
 var _waiting_events: Array[Dictionary] = []
 var _stat_changes: Dictionary[String, float] = {}
+var _identify_retry_seconds := IDENTIFY_RETRY_SECONDS
+var _identify_retry: Timer
 
 
 func _ready() -> void:
@@ -33,12 +39,19 @@ func _ready() -> void:
 	timer.timeout.connect(flush)
 	add_child(timer)
 	timer.start(FLUSH_SECONDS)
+	_identify_retry = Timer.new()
+	_identify_retry.one_shot = true
+	_identify_retry.timeout.connect(_identify)
+	add_child(_identify_retry)
 	Talo.players.identified.connect(_on_identified)
+	# Talo tries once. Without this, a failed identify (no network at boot and no cached player, or
+	# Talo failing the request) leaves Online unidentified for the rest of the visit.
+	Talo.players.identification_failed.connect(_on_identification_failed)
 	# Sessions come from the socket. Turned on here rather than in the settings file, so the
 	# socket also reconnects after a dropped connection.
 	Talo.settings.auto_connect_socket = true
 	Talo.socket.open_connection()
-	Talo.players.identify(SERVICE, _identifier())
+	_identify()
 
 
 func _notification(what: int) -> void:
@@ -134,6 +147,15 @@ func _on_identified(_alias: TaloPlayerAlias) -> void:
 	for event: Dictionary in _waiting_events:
 		Talo.events.track(event.name, event.props)
 	_waiting_events.clear()
+
+
+func _on_identification_failed(_error: TaloIdentifyError) -> void:
+	_identify_retry.start(_identify_retry_seconds)
+	_identify_retry_seconds = minf(_identify_retry_seconds * 2.0, IDENTIFY_RETRY_MAX_SECONDS)
+
+
+func _identify() -> void:
+	Talo.players.identify(SERVICE, _identifier())
 
 
 # Made on first run and kept in PLAYER_PATH, so the player stays the same player while the
