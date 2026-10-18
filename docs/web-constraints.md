@@ -55,7 +55,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 ## Saving
 
 - `user://` is stored in the browser's IndexedDB, written in the frame after a file is **closed**. Closing the tab triggers no save.
-- Save on every change, never on quit: write with `ConfigFile.save()` or a `FileAccess` you close.
+- Save soon after every change, never only on quit: write with `ConfigFile.save()` or a `FileAccess` you close. For a burst of changes, like a slider drag, save once the burst stops, as `Settings` does.
 - Saves are best effort. Incognito mode, blocked third-party storage (itch runs the game in an iframe) or a change of hosting domain loses them. When `OS.is_userfs_persistent()` is false, keep going for the session.
 
 ## Online

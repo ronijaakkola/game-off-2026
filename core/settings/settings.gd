@@ -1,36 +1,47 @@
 extends Node
 ## The player's settings: preferences only, never game progress.
-## Every change is applied and saved to [constant PATH] at once. On the web, saves are
-## best effort: without persistent storage, settings last for the session only.
+## Every change is applied at once, and saved to [constant PATH] once changes stop for
+## [constant SAVE_DELAY] seconds, so dragging a slider writes the file once. On the web,
+## saves are best effort: without persistent storage, settings last for the session only.
 
 const PATH := "user://settings.cfg"
 const SECTION := "settings"
 const KEYS: Array[String] = ["master_volume", "music_volume", "sfx_volume", "reduce_motion"]
+const SAVE_DELAY := 0.4
 
 var master_volume := 0.8:
 	set(value):
 		master_volume = value
 		_set_bus_volume("Master", value)
-		_save()
+		_queue_save()
 var music_volume := 0.6:
 	set(value):
 		music_volume = value
 		_set_bus_volume("Music", value)
-		_save()
+		_queue_save()
 var sfx_volume := 0.8:
 	set(value):
 		sfx_volume = value
 		_set_bus_volume("SFX", value)
-		_save()
+		_queue_save()
 var reduce_motion := false:
 	set(value):
 		reduce_motion = value
-		_save()
+		_queue_save()
 
 var _loaded := false
+var _save_timer := Timer.new()
 
 
 func _ready() -> void:
+	_save_timer.one_shot = true
+	_save_timer.wait_time = SAVE_DELAY
+	# Settings change in the pause menu, and a hit-stop may slow time.
+	_save_timer.process_mode = Node.PROCESS_MODE_ALWAYS
+	_save_timer.ignore_time_scale = true
+	_save_timer.timeout.connect(_save)
+	add_child(_save_timer)
+
 	var file := ConfigFile.new()
 	file.load(PATH)  # A missing file leaves the defaults.
 	# Assigning every key, defaults included, runs the setters, which apply the values.
@@ -39,13 +50,25 @@ func _ready() -> void:
 	_loaded = true
 
 
+# Quitting from the game, the web build included, writes a change still waiting.
+# Closing the browser tab doesn't.
+func _exit_tree() -> void:
+	if not _save_timer.is_stopped():
+		_save_timer.stop()
+		_save()
+
+
 func _set_bus_volume(bus: String, linear: float) -> void:
 	AudioServer.set_bus_volume_linear(AudioServer.get_bus_index(bus), linear)
 
 
+# Each change restarts the wait, so a burst of changes saves once.
+func _queue_save() -> void:
+	if _loaded:
+		_save_timer.start()
+
+
 func _save() -> void:
-	if not _loaded:
-		return
 	var file := ConfigFile.new()
 	for key: String in KEYS:
 		file.set_value(SECTION, key, get(key))
