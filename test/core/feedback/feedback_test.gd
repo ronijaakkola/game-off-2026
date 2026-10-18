@@ -30,6 +30,8 @@ func test_a_huge_shake_settles_as_fast_as_a_full_one() -> void:
 	var camera := _add_camera()
 	_feedback.shake(100.0)
 	await await_idle_frame()
+	await await_idle_frame()
+	assert_vector(_offset(camera)).is_not_equal(Vector2.ZERO)
 	await assert_func(self, "_offset", [camera]).wait_until(1000).is_equal(Vector2.ZERO)
 
 
