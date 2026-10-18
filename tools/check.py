@@ -816,15 +816,21 @@ def run_export(preview: bool):
             f"{BUILD_COMMIT_FILE} isn't in the pack, so the menu shows no commit. "
             f"Add it to the {preset} preset's include_filter in export_presets.cfg"
         )
-    # From the repo root, --main-pack would load the project instead of the pack.
-    boot = run(
-        [godot(), "--headless", "--main-pack", "index.pck", "--quit-after", SMOKE_FRAMES],
-        cwd=directory,
-    )
-    log = boot.stdout if preview else WEB_CONSOLE_MISSING.sub("", boot.stdout)
-    if boot.returncode != 0 or logged_error(log):
-        print(boot.stdout, end="")
-        raise CheckFailed("errors logged while booting the exported pack")
+    # From the repo root, --main-pack would load the project instead of the pack. The main
+    # menu reaches the game scene only after a click, so the pack boots that one as well.
+    for scene in [None, GAME_SCENE]:
+        scene_args = ["--scene", scene] if scene else []
+        boot = run(
+            [godot(), "--headless", "--main-pack", "index.pck", *scene_args]
+            + ["--quit-after", SMOKE_FRAMES],
+            cwd=directory,
+        )
+        log = boot.stdout if preview else WEB_CONSOLE_MISSING.sub("", boot.stdout)
+        if boot.returncode != 0 or logged_error(log):
+            print(boot.stdout, end="")
+            raise CheckFailed(
+                f"errors logged while booting the exported pack ({scene or 'main scene'})"
+            )
     return f"{pck.as_posix()} {pck.stat().st_size / 1e6:.1f} MB, boots clean"
 
 

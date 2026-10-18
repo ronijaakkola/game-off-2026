@@ -5,6 +5,9 @@ on:
 concurrency:
   group: deploy-web
   cancel-in-progress: true
+# Pushing to itch.io uses BUTLER_API_KEY, not the token.
+permissions:
+  contents: read
 jobs:
   deploy:
     runs-on: ubuntu-24.04
@@ -17,6 +20,10 @@ jobs:
           version: 4.7.2
           use-dotnet: false
           include-templates: true
+      # Two PRs green on their own can still break main together, so check the merge before
+      # anything goes live. A failure keeps the last good build on itch.io.
+      - name: Lint, load check, tests, smoke run
+        run: uv run tools/check.py all
       - name: Export web
         run: uv run tools/check.py export
       - name: Install butler 15.32.0
