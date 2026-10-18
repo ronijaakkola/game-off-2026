@@ -8,6 +8,10 @@ func before_test() -> void:
 	DirAccess.remove_absolute(PATH)
 
 
+func after_test() -> void:
+	get_tree().paused = false
+
+
 func after() -> void:
 	# Fresh instances overwrote the buses and the developer's own settings file.
 	# The live Settings still holds what it loaded at boot, so write that back.
@@ -36,6 +40,7 @@ func test_changes_last_into_the_next_session() -> void:
 	settings.music_volume = 0.25
 	settings.sfx_volume = 0.0
 	settings.reduce_motion = true
+	await _wait_for_save()
 
 	var next := _new_session()
 	assert_float(next.master_volume).is_equal_approx(0.5, 0.001)
@@ -50,8 +55,39 @@ func test_volume_change_reaches_its_bus() -> void:
 	assert_float(_bus_volume("Music")).is_equal_approx(0.3, 0.001)
 
 
+func test_a_burst_of_changes_saves_once_it_stops() -> void:
+	var settings := _new_session()
+	settings.master_volume = 0.5
+	await get_tree().create_timer(SettingsScript.SAVE_DELAY / 2).timeout
+	settings.master_volume = 0.4
+	await get_tree().create_timer(SettingsScript.SAVE_DELAY / 2).timeout
+	assert_bool(FileAccess.file_exists(PATH)).is_false()
+
+	await _wait_for_save()
+	assert_float(_new_session().master_volume).is_equal_approx(0.4, 0.001)
+
+
+func test_a_waiting_change_is_saved_on_quit() -> void:
+	var settings := _new_session()
+	settings.music_volume = 0.25
+	remove_child(settings)
+	assert_float(_new_session().music_volume).is_equal_approx(0.25, 0.001)
+
+
+func test_a_change_while_paused_is_saved() -> void:
+	var settings := _new_session()
+	get_tree().paused = true
+	settings.sfx_volume = 0.1
+	await _wait_for_save()
+	assert_float(_new_session().sfx_volume).is_equal_approx(0.1, 0.001)
+
+
 func _bus_volume(bus: String) -> float:
 	return AudioServer.get_bus_volume_linear(AudioServer.get_bus_index(bus))
+
+
+func _wait_for_save() -> void:
+	await get_tree().create_timer(SettingsScript.SAVE_DELAY + 0.1).timeout
 
 
 func _new_session() -> SettingsScript:
