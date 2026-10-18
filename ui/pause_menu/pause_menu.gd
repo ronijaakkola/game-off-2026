@@ -6,14 +6,14 @@ extends CanvasLayer
 
 const MAIN_MENU_SCENE := "res://ui/main_menu/main_menu.tscn"
 
-var _was_fullscreen := false
+var _window_size := Vector2i.ZERO
 
 
 func _ready() -> void:
 	# In browser fullscreen, Esc only leaves fullscreen and the game never receives it. So
 	# leaving fullscreen opens the menu, as that Esc would have.
 	if OS.has_feature("web"):
-		_was_fullscreen = _is_fullscreen()
+		_window_size = DisplayServer.window_get_size()
 		get_window().size_changed.connect(_on_window_size_changed)
 
 
@@ -26,19 +26,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			open()
 
 
+# Leaving fullscreen shows as the window shrinking. itch fullscreens the game's iframe from
+# outside, so the window mode never changes, and a fullscreen window can be smaller than the
+# screen (a notch, display scaling), so neither tells. Shrinking the browser window pauses too.
 func _on_window_size_changed() -> void:
-	var fullscreen := _is_fullscreen()
-	if _was_fullscreen and not fullscreen and not visible:
+	var size := DisplayServer.window_get_size()
+	var shrank := size != _window_size and size.x <= _window_size.x and size.y <= _window_size.y
+	_window_size = size
+	if shrank and not visible:
 		open()
-	_was_fullscreen = fullscreen
-
-
-# itch's fullscreen button makes the game's iframe fullscreen from outside, so the window
-# mode never changes. A window as large as the screen is fullscreen.
-func _is_fullscreen() -> bool:
-	var window := DisplayServer.window_get_size()
-	var screen := DisplayServer.screen_get_size()
-	return window.x >= screen.x and window.y >= screen.y
 
 
 ## Shows the menu and pauses the game.
