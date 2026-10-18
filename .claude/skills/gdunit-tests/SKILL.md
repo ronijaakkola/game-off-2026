@@ -128,12 +128,24 @@ func after() -> void:
 
 `after_test()` can then call `get_tree().unload_current_scene()` without touching the runner. `test/core/scene_flow/scene_flow_test.gd` shows the pattern.
 
-`SceneFlow.go_to` disables the root's input until its fade back in ends, and ignores calls made before then. After a scene change, wait out the fade before the next click or scene change, and re-enable input in `after_test()` so a failed transition doesn't leave it off. `test/ui/main_menu/main_menu_test.gd` does both:
+`SceneFlow.go_to` disables the root's input until its fade back in ends, and ignores calls made before then. After a scene change, wait out the fade before the next click or scene change:
 
 ```gdscript
 await await_signal_on(get_tree(), "scene_changed", [], 2000)
 await assert_func(get_tree().root, "is_input_disabled").wait_until(2000).is_false()
 ```
+
+A test that fails or times out mid-transition leaves SceneFlow running. Its scene change then lands after `after_test()` unloads, and it ignores the next suite's `go_to` until it ends, so a later suite fails instead. So `after_test()` waits for the fade to end before it re-enables input and unloads. Unpause first: gdUnit's timeouts stall while the tree is paused. `test/ui/main_menu/main_menu_test.gd` and `test/ui/pause_menu/pause_menu_test.gd` show it:
+
+```gdscript
+func after_test() -> void:
+	get_tree().paused = false
+	await assert_func(get_tree().root, "is_input_disabled").wait_until(5000).is_false()
+	get_tree().root.set_disable_input(false)
+	get_tree().unload_current_scene()
+```
+
+Re-enable input only after the wait: input is SceneFlow's done flag, and setting it first makes the wait pass at once.
 
 ## Reading a failure
 
