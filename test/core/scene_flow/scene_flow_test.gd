@@ -29,6 +29,7 @@ func after_test() -> void:
 	if get_tree().process_frame.is_connected(_record_shown_alpha):
 		get_tree().process_frame.disconnect(_record_shown_alpha)
 	_shown_alphas.clear()
+	RenderingServer.render_loop_enabled = true
 	# A failed transition must not leave input off for the rest of the suite.
 	get_tree().root.set_disable_input(false)
 	get_tree().paused = false
@@ -76,6 +77,9 @@ func test_loads_only_after_a_black_frame_is_shown() -> void:
 func test_fades_in_smoothly_after_a_slow_first_frame() -> void:
 	# Setting up the new scene and compiling its shaders can take longer than the whole
 	# fade. The step after has a long delta, which must not skip most of the fade in.
+	# Drawing stays off: CI draws on a software renderer, where each frame of the game
+	# scene alone is a step of about 0.25. The slow setup here is simulated anyway.
+	RenderingServer.render_loop_enabled = false
 	var set_up_slowly := func(_node: Node) -> void: OS.delay_msec(400)
 	get_tree().node_added.connect(set_up_slowly, CONNECT_ONE_SHOT)
 	get_tree().process_frame.connect(_record_shown_alpha)
