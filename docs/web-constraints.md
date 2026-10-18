@@ -65,7 +65,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 
 ## Fullscreen and pointer
 
-- itch's embed fullscreen button handles fullscreen.
+- itch's embed fullscreen button handles fullscreen. It fullscreens the game's iframe; the preview build's frame page has the same button.
 - In browser fullscreen, Esc only leaves fullscreen. The game never receives it, so Esc can't open the pause menu there.
 - Fullscreen and mouse capture work only when requested inside an input event, such as a `Button` press.
 - The stretch mode is `canvas_items` with `expand` at 1152×648, so UI scales in fullscreen and mouse-motion `relative` stays in content units.
