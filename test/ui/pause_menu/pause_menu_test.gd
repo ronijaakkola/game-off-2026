@@ -46,6 +46,25 @@ func test_esc_in_settings_goes_back_to_the_paused_menu() -> void:
 	assert_bool(get_tree().paused).is_true()
 
 
+func test_keyboard_focus_follows_the_open_panel() -> void:
+	var runner := scene_runner(SCENE)
+	_press_pause()
+	assert_object(_focused()).is_same(runner.find_child("ResumeButton"))
+
+	(runner.find_child("SettingsButton") as Button).pressed.emit()
+	assert_object(_focused()).is_same(runner.find_child("MasterSlider"))
+	# Tab from the panel's last control wraps inside the panel, not to the buttons under it.
+	var back := runner.find_child("BackButton") as Button
+	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterSlider"))
+
+	back.pressed.emit()
+	assert_object(_focused()).is_same(runner.find_child("SettingsButton"))
+
+
+func _focused() -> Control:
+	return get_viewport().gui_get_focus_owner()
+
+
 func _press_pause() -> void:
 	# The runner's simulate_key_pressed also calls the root's _unhandled_input
 	# directly, so the menu would toggle twice. Send Esc through Input alone.
