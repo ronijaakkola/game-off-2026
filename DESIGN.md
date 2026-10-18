@@ -21,7 +21,7 @@ There is no goal and no failure state.
 | Input | Action |
 |---|---|
 | Left click on the board or a piece's top | Place a piece |
-| Esc | Open or close the pause menu |
+| Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
 
 Mouse only, apart from Esc. Open question: whether right-drag orbits the camera.
 
@@ -35,7 +35,7 @@ main menu ──Play──▶ game ──Esc──▶ pause menu ──Main menu
 
 - **Main menu** (`ui/main_menu/`): the main scene. Title, Play, Settings, Quit (Quit hidden on web). On web, a title card (game title, "Click to start") comes first, and that click starts the menu music.
 - **Game** (`game/`): camera, one shadowed sun, the soft-look environment, the board, and the HUD (`game/hud.tscn`) with the placed count. Placing a piece emits `Events.piece_placed`, and the HUD listens. Placing a piece calls `Feedback.shake`, which does nothing when Reduce motion is on. It instances the pause menu.
-- **Pause menu** (`ui/pause_menu/`): Resume, Settings, Main menu. Pauses the tree; music keeps playing.
+- **Pause menu** (`ui/pause_menu/`): Resume, Settings, Main menu. Pauses the tree; music keeps playing. Also opens when the player leaves browser fullscreen.
 - **Settings panel** (`ui/settings/`): Master, Music and SFX volume, and Reduce motion. Shared by the main menu and the pause menu.
 
 Scene changes go through `SceneFlow.go_to`, which fades to black and back.
