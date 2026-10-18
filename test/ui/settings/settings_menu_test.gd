@@ -18,9 +18,12 @@ func after() -> void:
 
 
 func test_open_shows_the_current_settings() -> void:
+	Settings.music_volume = 1.0
+	Settings.reduce_motion = false
+	var runner := scene_runner(SCENE)
+	# Changed after the panel's _ready, so only open() can show them.
 	Settings.music_volume = 0.25
 	Settings.reduce_motion = true
-	var runner := scene_runner(SCENE)
 	runner.invoke("open")
 	assert_bool(runner.scene().visible).is_true()
 	assert_float((runner.find_child("MusicSlider") as HSlider).value).is_equal_approx(0.25, 0.001)
