@@ -66,3 +66,5 @@ unique_name_in_owner = true
 
 [node name="PauseMenu" parent="." unique_id=976055618 instance=ExtResource("5_pause")]
 visible = false
+
+[connection signal="pause_pressed" from="Hud" to="PauseMenu" method="open"]
