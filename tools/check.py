@@ -737,9 +737,9 @@ def run_test():
     )  # fmt: skip
     output = DEBUGGER_NOISE.sub("", result.stdout)
     # gdUnit4 exits 0 when it finds nothing, so a wrong path or deleted suites would pass.
-    if "No test cases found" in output:
-        raise CheckFailed("no test cases found in test/")
     summary = re.search(r"^Overall Summary: (\d+) test cases.*$", output, re.MULTILINE)
+    if "No test cases found" in output or (summary and summary.group(1) == "0"):
+        raise CheckFailed("no test cases found in test/")
     # A runner that stops before the suites run can still exit 0, with no summary.
     if not summary:
         print(output, end="")

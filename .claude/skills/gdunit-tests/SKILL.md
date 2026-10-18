@@ -160,7 +160,7 @@ Re-enable input only after the wait: input is SceneFlow's done flag, and setting
 
 ## Frame timing
 
-`check.py test` runs headless, where a frame takes a few milliseconds. CI's gdUnit4 action draws every frame on llvmpipe, a software renderer, where a frame of the game scene takes 40–70 ms. A test whose result depends on frame time, such as a tween's step per frame, turns drawing off with `RenderingServer.render_loop_enabled = false` and turns it back on in `after_test()`. `test_fades_in_smoothly_after_a_slow_first_frame` in `test/core/scene_flow/scene_flow_test.gd` shows it.
+`check.py test` runs headless, locally and in CI, so neither draws a frame and a frame takes a few milliseconds. A run that draws, such as the editor's gdUnit panel, can take far longer per frame: on llvmpipe, a software renderer, a frame of the game scene takes 40–70 ms. A test whose result depends on frame time, such as a tween's step per frame, turns drawing off with `RenderingServer.render_loop_enabled = false` and turns it back on in `after_test()`. `test_fades_in_smoothly_after_a_slow_first_frame` in `test/core/scene_flow/scene_flow_test.gd` shows it.
 
 ## Reading a failure
 

@@ -94,7 +94,7 @@ Every check is a `tools/check.py` subcommand, and works the same on Windows, Mac
 | `uv run tools/check.py export` | Exports the web build to `build/web/` (needs the Web templates, step 2), prints the `.pck` size and boots it headless, on the main scene and on `game/game.tscn`. Fails on any logged error except LimboConsole's missing autoload. The deploy runs it too. | Project → Export… → Web |
 | `uv run tools/check.py export --preview` | Exports the preview build (below) to `build/web-preview/game/`, puts the itch-style frame page at `build/web-preview/index.html` and boots the build headless. Fails on any logged error. | Project → Export… → Web Preview, with Export With Debug on |
 
-Pull requests run two CI checks: `gdUnit4 tests` and `Lint, load check, smoke run`. Both must pass to merge into `main`. Every push to `main` runs `uv run tools/check.py all` on the merged commit and, if it passes, deploys the web build to itch.io. A failure leaves the last good build there.
+Pull requests run two CI checks: `gdUnit4 tests` (`uv run tools/check.py test`) and `Lint, load check, smoke run`. Both must pass to merge into `main`. Every push to `main` runs `uv run tools/check.py all` on the merged commit and, if it passes, deploys the web build to itch.io. A failure leaves the last good build there.
 
 ## Preview builds
 
