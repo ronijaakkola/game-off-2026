@@ -24,8 +24,10 @@ func after() -> void:
 
 
 func after_test() -> void:
-	# A failed test must not leave the rest of the suite paused, or input off.
+	# A failed test must not leave the rest of the suite paused, or input off. Unpause
+	# before waiting for SceneFlow: gdUnit's timeouts stall while the tree is paused.
 	get_tree().paused = false
+	await assert_func(get_tree().root, "is_input_disabled").wait_until(5000).is_false()
 	get_tree().root.set_disable_input(false)
 	get_tree().unload_current_scene()
 	Audio.stop_music(0.0)
