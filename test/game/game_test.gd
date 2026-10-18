@@ -28,8 +28,6 @@ func before_test() -> void:
 
 func after_test() -> void:
 	Events.piece_placed.disconnect(_on_piece_placed)
-	# A failed test must not leave the rest of the suite paused.
-	get_tree().paused = false
 
 
 func test_click_on_the_board_places_a_piece_in_that_cell() -> void:
@@ -56,15 +54,6 @@ func test_click_off_the_board_places_nothing() -> void:
 	for i: int in 3:
 		await get_tree().physics_frame
 	assert_int(_placed_count()).is_equal(0)
-
-
-func test_pause_button_opens_the_pause_menu() -> void:
-	# Browser fullscreen swallows Esc, so a click is the only way to pause there.
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(1)
-	_press_at((runner.find_child("PauseButton") as Control).get_global_rect().get_center())
-	assert_bool((runner.find_child("PauseMenu") as CanvasLayer).visible).is_true()
-	assert_bool(get_tree().paused).is_true()
 
 
 func _click(runner: GdUnitSceneRunner, at: Vector3) -> void:

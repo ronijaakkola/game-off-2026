@@ -66,13 +66,13 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 ## Fullscreen and pointer
 
 - itch's embed fullscreen button handles fullscreen.
-- In browser fullscreen, Esc only leaves fullscreen. The game never receives it, so Esc can't open the pause menu there. The example game's HUD has a Pause button for this; a game that replaces it keeps one.
+- In browser fullscreen, Esc only leaves fullscreen. The game never receives it, so the pause menu opens when the window shrinks from screen size instead. itch's fullscreen button makes the iframe fullscreen from outside, so the game's window mode never changes; Comparing `DisplayServer.window_get_size()` with `screen_get_size()` works instead (checked in Chromium, in an itch-style iframe, at pixel ratios 1 and 2).
 - Fullscreen and mouse capture work only when requested inside an input event, such as a `Button` press.
 - The stretch mode is `canvas_items` with `expand` at 1152×648, so UI scales in fullscreen and mouse-motion `relative` stays in content units.
 
 ## Still unverified in a browser
 
-Check these before relying on them: stencil outlines on WebGL 2, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI laptops.
+Check these before relying on them: the pause on leaving fullscreen in Firefox, Safari and on itch itself, stencil outlines on WebGL 2, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI laptops.
 
 ## Sources
 

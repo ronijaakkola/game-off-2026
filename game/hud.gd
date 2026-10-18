@@ -1,10 +1,6 @@
 extends MarginContainer
-## The game's HUD: how many pieces have been placed, and a Pause button. It counts
+## The game's HUD: how many pieces have been placed. It counts
 ## [signal Events.piece_placed], so it doesn't need to know who places them.
-
-## The Pause button was pressed. Browser fullscreen swallows Esc, so there it's the only
-## way to pause.
-signal pause_pressed
 
 var _placed := 0
 
@@ -21,7 +17,3 @@ func _on_piece_placed(_position: Vector3) -> void:
 
 func _show_count() -> void:
 	%PlacedLabel.text = "Placed: %d" % _placed
-
-
-func _on_pause_button_pressed() -> void:
-	pause_pressed.emit()

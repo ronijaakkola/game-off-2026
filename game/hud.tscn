@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 
 [node name="Hud" type="MarginContainer" unique_id=2137223409]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -29,13 +30,3 @@ text = "Placed: 0"
 [node name="HintLabel" type="Label" parent="Items" unique_id=1174961186]
 layout_mode = 2
 text = "Click the board to place a piece. Esc pauses."
-
-[node name="PauseButton" type="Button" parent="." unique_id=182266088]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 0
-focus_mode = 0
-text = "Pause"
-
-[connection signal="pressed" from="PauseButton" to="." method="_on_pause_button_pressed"]
