@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 
 const SceneFlowScript := preload("res://core/scene_flow/scene_flow.gd")
 const GAME := "res://game/game.tscn"
+const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 
 var _flow: SceneFlowScript
 var _runner_scene: Node
@@ -50,5 +51,12 @@ func test_ignores_a_call_during_a_transition() -> void:
 
 func test_the_next_scene_starts_unpaused() -> void:
 	get_tree().paused = true
-	await _flow.go_to(GAME)
+	_flow.go_to(GAME)
+	var changed := await PauseProofWait.for_signal(get_tree().scene_changed, 2000)
+	assert_bool(changed).override_failure_message("SceneFlow never left the paused scene").is_true()
+	if is_failure():
+		return
 	assert_bool(get_tree().paused).is_false()
+	if is_failure():
+		return
+	await assert_func(get_tree().root, "is_input_disabled").wait_until(2000).is_false()

@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 
 const SCENE := "res://ui/pause_menu/pause_menu.tscn"
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
+const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 
 var _window_size: Vector2i
 var _runner_scene: Node
@@ -96,15 +97,14 @@ func test_main_menu_leaves_the_paused_game() -> void:
 	runner.set_mouse_position(button.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	await runner.await_input_processed()
-	# SceneFlow turns input off as soon as it starts. Check that before any timed wait:
-	# gdUnit's timeouts stall while the tree stays paused, so a dead button would hang.
-	assert_bool(get_tree().root.is_input_disabled()).is_true()
+	var changed := await PauseProofWait.for_signal(get_tree().scene_changed, 2000)
+	assert_bool(changed).override_failure_message("SceneFlow never left the paused game").is_true()
 	if is_failure():
 		return
-
-	await await_signal_on(get_tree(), "scene_changed", [], 2000)
 	assert_str(get_tree().current_scene.scene_file_path).is_equal(MAIN_MENU)
 	assert_bool(get_tree().paused).is_false()
+	if is_failure():
+		return
 	await assert_func(get_tree().root, "is_input_disabled").wait_until(2000).is_false()
 
 
