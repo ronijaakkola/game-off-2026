@@ -53,6 +53,21 @@ func test_settings_button_opens_the_settings_panel() -> void:
 	assert_bool((runner.find_child("SettingsMenu") as Control).visible).is_true()
 
 
+func test_keyboard_focus_follows_the_open_panel() -> void:
+	var runner := scene_runner(MENU)
+	await runner.simulate_frames(1)
+	assert_object(_focused()).is_same(runner.find_child("PlayButton"))
+
+	(runner.find_child("SettingsButton") as Button).pressed.emit()
+	assert_object(_focused()).is_same(runner.find_child("MasterSlider"))
+	# Tab from the panel's last control wraps inside the panel, not to the buttons under it.
+	var back := runner.find_child("BackButton") as Button
+	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterSlider"))
+
+	back.pressed.emit()
+	assert_object(_focused()).is_same(runner.find_child("SettingsButton"))
+
+
 func test_start_overlay_click_starts_the_music() -> void:
 	# Outside the web build the menu starts the music itself, so stop it first.
 	var runner := scene_runner(MENU)
@@ -65,6 +80,7 @@ func test_start_overlay_click_starts_the_music() -> void:
 	await _click(runner, overlay)
 	assert_bool(overlay.visible).is_false()
 	assert_bool(_music_playing()).is_true()
+	assert_object(_focused()).is_same(runner.find_child("PlayButton"))
 
 
 func _click(runner: GdUnitSceneRunner, control: Control) -> void:
@@ -73,6 +89,10 @@ func _click(runner: GdUnitSceneRunner, control: Control) -> void:
 	runner.set_mouse_position(control.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	await runner.await_input_processed()
+
+
+func _focused() -> Control:
+	return get_viewport().gui_get_focus_owner()
 
 
 func _music_playing() -> bool:

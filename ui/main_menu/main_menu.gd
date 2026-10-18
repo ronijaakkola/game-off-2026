@@ -20,6 +20,8 @@ func _ready() -> void:
 		%StartOverlay.show()
 	else:
 		_start_music()
+		# Deferred, as the grab_focus docs advise for a call from _ready().
+		%PlayButton.grab_focus.call_deferred()
 
 
 func _start_music() -> void:
@@ -32,6 +34,7 @@ func _on_start_overlay_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		%StartOverlay.hide()
 		_start_music()
+		%PlayButton.grab_focus()
 
 
 func _on_play_button_pressed() -> void:
@@ -40,6 +43,17 @@ func _on_play_button_pressed() -> void:
 
 func _on_settings_button_pressed() -> void:
 	%SettingsMenu.open()
+
+
+# The menu's buttons stay under the open settings panel, so they take no keyboard focus
+# until it closes. Then focus goes back to the Settings button.
+func _on_settings_menu_visibility_changed() -> void:
+	var settings_open: bool = %SettingsMenu.visible
+	%Items.focus_behavior_recursive = (
+		Control.FOCUS_BEHAVIOR_DISABLED if settings_open else Control.FOCUS_BEHAVIOR_INHERITED
+	)
+	if not settings_open:
+		%SettingsButton.grab_focus()
 
 
 func _on_quit_button_pressed() -> void:
