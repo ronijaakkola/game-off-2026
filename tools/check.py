@@ -141,6 +141,7 @@ SIGNALS = "CODING_STANDARDS.md, Signals: local or bus"
 DEV_CONSOLE = "CODING_STANDARDS.md, Dev console"
 ONLINE = "CODING_STANDARDS.md, Online"
 TESTS = "CODING_STANDARDS.md, Tests"
+AUTOLOADS = "CODING_STANDARDS.md, Autoloads (core systems)"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
@@ -148,6 +149,10 @@ UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
 EVENTS_SCRIPT = "core/events/events.gd"
 DEV_COMMANDS = "core/dev_console/dev_commands.gd"
 ONLINE_FOLDER = "core/online/"
+# Core systems and their tests outlive the features replaced on jam day, so they name
+# files only in these top-level folders.
+CORE_REACH = {"core/": ("core", "addons"), "test/core/": ("core", "addons", "test")}
+RES_PATH = re.compile(r"res://([\w.-]+)/[^\s\"']*")
 LINTED = (".gd", ".tscn", ".gdshader")
 # Vendored, generated or ignored by git: nothing in these folders is ours to lint.
 # Hidden folders (.godot, .claude) are skipped too, as Godot skips them.
@@ -276,6 +281,9 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
             rules += script_problems(path, hook)
         elif path.endswith(".tscn"):
             rules += scene_problems(path)
+        if path.endswith((".tscn", ".tres")):
+            text = Path(path).read_text(encoding="utf-8", errors="replace")
+            rules += core_reach_problems(path, list(enumerate(text.splitlines(), 1)))
         elif path.endswith(".gdshader"):
             rules += shader_problems(path)
         # The hook leaves this out: a scene is missing its ids for as long as it is being
@@ -331,6 +339,8 @@ def script_problems(path: str, hook: bool) -> list[str]:
         problems += limbo_console_problems(path, code)
     if not (outside or path == DEV_COMMANDS or path.startswith(ONLINE_FOLDER)):
         problems += talo_problems(path, code)
+    # Comments may name a feature's file; only strings load one.
+    problems += core_reach_problems(path, strings)
     return problems
 
 
@@ -428,6 +438,32 @@ def talo_problems(path: str, code: str) -> list[str]:
         problem(path, line_at(code, m.start()), "talo-through-online", message, ONLINE)
         for m in re.finditer(r"\bTalo\b", code)
     ]
+
+
+def core_reach_problems(path: str, texts: list[tuple[int, str]]) -> list[str]:
+    """Core systems work without knowing what the current scene is, and game/ and ui/
+    are replaced on jam day. A core script, scene or test that names a file there breaks
+    when the feature does. A folder that doesn't exist (a test's missing path) isn't a
+    feature, so it passes."""
+    scope = next((prefix for prefix in CORE_REACH if path.startswith(prefix)), None)
+    if scope is None:
+        return []
+    allowed = CORE_REACH[scope]
+    problems = []
+    for line, text in texts:
+        for m in RES_PATH.finditer(text):
+            folder = m.group(1)
+            if folder in allowed or not Path(folder).is_dir():
+                continue
+            message = (
+                f"{m.group(0)} is in {folder}/, which a core system must not know about: "
+                f"files in {scope} name only {', '.join(f'{t}/' for t in allowed)}. "
+                "Take the resource in as a parameter or @export var, or for a test, make it in "
+                "code or add a fixture under test/core/ (test/core/blank_scene.tscn is a scene "
+                "to go to)."
+            )
+            problems.append(problem(path, line, "core-reach", message, AUTOLOADS))
+    return problems
 
 
 def test_file_problems(path: str, check_target: bool) -> list[str]:

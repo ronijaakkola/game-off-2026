@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, which files `core/` names, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 
@@ -68,6 +68,8 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
 
 Add an autoload only for a service that must outlive a scene change, or that has exactly one instance game-wide. It lives in `core/<name>/`, works without knowing what the current scene is, and gets a row in this table.
+
+`core/` outlives jam day, when `game/` and `ui/` are replaced, so a core script, scene or resource names `res://` files only in `core/` and `addons/`, and a test under `test/core/` only in those and `test/`. A sound or scene a core system plays comes in as a parameter. A core test makes its own: a stream built in code, or a fixture under `test/core/`, such as `test/core/blank_scene.tscn` to change scenes to.
 
 ## Scene composition
 
