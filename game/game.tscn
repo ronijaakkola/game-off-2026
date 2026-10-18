@@ -65,4 +65,3 @@ unique_name_in_owner = true
 [node name="Hud" parent="." unique_id=1538029644 instance=ExtResource("4_hud")]
 
 [node name="PauseMenu" parent="." unique_id=976055618 instance=ExtResource("5_pause")]
-visible = false

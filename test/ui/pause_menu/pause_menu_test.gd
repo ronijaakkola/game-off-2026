@@ -10,7 +10,8 @@ func after_test() -> void:
 
 func test_esc_opens_and_closes_the_menu() -> void:
 	var runner := scene_runner(SCENE)
-	runner.scene().hide()
+	assert_bool(runner.scene().visible).is_false()
+	assert_bool(get_tree().paused).is_false()
 
 	_press_pause()
 	assert_bool(runner.scene().visible).is_true()
