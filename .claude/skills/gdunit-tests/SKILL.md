@@ -103,6 +103,17 @@ Bus events work the same way: `monitor_signals(Events)` then `await assert_signa
 
 A signal that fires **later** (after a timer or a tween) can be awaited directly: `await runner.await_signal("faded_in")`, or `await await_signal_on(node, "finished", [], 2000)` for any object. Both time out after 2 s by default and fail the test.
 
+gdUnit's timeouts (`await_signal_on`, `wait_until`, the per-test timeout) are pausable Timers, so they stop while the tree is paused, and a stalled await hangs the whole run. While a test keeps the tree paused, await with `test/support/pause_proof_wait.gd`, whose deadline is wall-clock time, and return on failure before any gdUnit wait. `test/ui/pause_menu/pause_menu_test.gd` shows it:
+
+```gdscript
+const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
+
+var changed := await PauseProofWait.for_signal(get_tree().scene_changed, 2000)
+assert_bool(changed).override_failure_message("SceneFlow never left the paused game").is_true()
+if is_failure():
+	return
+```
+
 ## Core systems and user://
 
 Autoloads (`Events`, `Audio`, `Settings`, `SceneFlow`) are live during tests and keep their state between tests. Reset what you change in `after_test()`.
