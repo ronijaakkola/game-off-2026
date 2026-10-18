@@ -33,7 +33,8 @@ func after_test() -> void:
 
 func test_esc_opens_and_closes_the_menu() -> void:
 	var runner := scene_runner(SCENE)
-	runner.scene().hide()
+	assert_bool(runner.scene().visible).is_false()
+	assert_bool(get_tree().paused).is_false()
 
 	_press_pause()
 	assert_bool(runner.scene().visible).is_true()
@@ -55,6 +56,17 @@ func test_resume_closes_the_settings_panel_too() -> void:
 	assert_bool(settings.visible).is_false()
 	assert_bool(runner.scene().visible).is_false()
 	assert_bool(get_tree().paused).is_false()
+
+
+func test_esc_in_settings_goes_back_to_the_paused_menu() -> void:
+	var runner := scene_runner(SCENE)
+	runner.invoke("open")
+	(runner.find_child("SettingsButton") as Button).pressed.emit()
+
+	_press_pause()
+	assert_bool((runner.find_child("SettingsMenu") as Control).visible).is_false()
+	assert_bool(runner.scene().visible).is_true()
+	assert_bool(get_tree().paused).is_true()
 
 
 func test_main_menu_leaves_the_paused_game() -> void:
