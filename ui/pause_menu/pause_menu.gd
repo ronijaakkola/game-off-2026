@@ -1,8 +1,8 @@
 extends CanvasLayer
 ## Pauses the game scene that instances it. The pause action (Esc) opens and closes it, and
 ## on the web, leaving browser fullscreen opens it.
-## A game scene instances it hidden. It processes always, so it still takes input while
-## the game is paused, and its layer draws it over the game's own UI.
+## It starts hidden, so a game scene only instances it. It processes always, so it still
+## takes input while the game is paused, and its layer draws it over the game's own UI.
 
 const MAIN_MENU_SCENE := "res://ui/main_menu/main_menu.tscn"
 
