@@ -92,13 +92,15 @@ Every check is a `tools/check.py` subcommand, and works the same on Windows, Mac
 | `uv run tools/check.py api <query>` | Looks up the Godot 4.7.2 class reference: a class (`api Tween`), one member (`api Tween.kill`) or a search (`api volume_linear`). Not a check: it prints the reference, or `FAIL api` when nothing matches. The first run builds it into `build/api/`. | The Help search (F1) in the script editor |
 | `uv run tools/check.py all` | `lint`, `load`, `test` and `smoke`. | All of the above |
 | `uv run tools/check.py export` | Exports the web build to `build/web/` (needs the Web templates, step 2), prints the `.pck` size and boots it headless. Fails on any logged error except LimboConsole's missing autoload. The deploy runs it too. | Project → Export… → Web |
-| `uv run tools/check.py export --preview` | Exports the preview build (below) to `build/web-preview/` and boots it headless. Fails on any logged error. | Project → Export… → Web Preview, with Export With Debug on |
+| `uv run tools/check.py export --preview` | Exports the preview build (below) to `build/web-preview/game/`, puts the itch-style frame page at `build/web-preview/index.html` and boots the build headless. Fails on any logged error. | Project → Export… → Web Preview, with Export With Debug on |
 
 Pull requests run two CI checks: `gdUnit4 tests` and `Lint, load check, smoke run`. Both must pass to merge into `main`. Every push to `main` deploys the web build to itch.io.
 
 ## Preview builds
 
 Every pull request gets a playable web build at `https://<owner>.github.io/<repo>/pr-preview/pr-<number>/`. A comment on the PR links it, and the link works about a minute later, once GitHub Pages has deployed. It updates on each push and is removed when the PR closes. The `pr-preview` workflow builds it with `uv run tools/check.py export --preview` and publishes it to the `gh-pages` branch. It isn't a required check and doesn't wait for the tests. PRs from forks get no preview.
+
+The page frames the game like itch.io's embed: the game runs in an iframe at the project's 1152×648, and the **Fullscreen** button under it fullscreens that iframe, as itch's button does. Use it to test fullscreen. **Open without the frame** runs the game on its own page.
 
 A preview build differs from the itch.io build in two ways:
 
