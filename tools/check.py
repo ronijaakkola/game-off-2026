@@ -740,12 +740,18 @@ def run_test():
     if "No test cases found" in output:
         raise CheckFailed("no test cases found in test/")
     summary = re.search(r"^Overall Summary: (\d+) test cases.*$", output, re.MULTILINE)
+    # A runner that stops before the suites run can still exit 0, with no summary.
+    if not summary:
+        print(output, end="")
+        raise CheckFailed(
+            f"gdUnit4 printed no summary, so no tests ran (exit code {result.returncode})"
+        )
     if result.returncode not in (0, 101):
         failures = FAILED_TEST.findall(output)
         # A failing before() or after() has no FAILED test block, so print everything.
-        print("".join(failures) + summary.group(0) if failures and summary else output)
+        print("".join(failures) + summary.group(0) if failures else output)
         raise CheckFailed(f"gdUnit4 exit code {result.returncode} (report in build/reports/)")
-    return f"{summary.group(1)} tests" if summary else None
+    return f"{summary.group(1)} tests"
 
 
 def main_scene() -> str | None:
@@ -769,6 +775,10 @@ def run_smoke(scenes: list[str]):
         result = run_godot(
             ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]
         )
+        # A crash logs a backtrace but no ERROR line, so only the exit code shows it.
+        if result.returncode != 0:
+            print(result.stdout, end="")
+            raise CheckFailed(f"Godot exited with code {result.returncode} while running {scene}")
         if logged_error(result.stdout):
             print(result.stdout, end="")
             raise CheckFailed(f"errors logged while running {scene}")
