@@ -20,10 +20,11 @@ func _ready() -> void:
 	_read_settings()
 
 
-## Shows the panel with the current settings.
+## Shows the panel with the current settings, and the first slider focused.
 func open() -> void:
 	_read_settings()
 	show()
+	%MasterSlider.grab_focus()
 
 
 func _read_settings() -> void:

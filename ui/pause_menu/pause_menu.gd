@@ -15,9 +15,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			open()
 
 
-## Shows the menu and pauses the game.
+## Shows the menu with Resume focused, and pauses the game.
 func open() -> void:
 	show()
+	%ResumeButton.grab_focus()
 	get_tree().paused = true
 
 
@@ -34,6 +35,17 @@ func _on_resume_button_pressed() -> void:
 
 func _on_settings_button_pressed() -> void:
 	%SettingsMenu.open()
+
+
+# The menu's buttons stay under the open settings panel, so they take no keyboard focus
+# until it closes. Then focus goes back to the Settings button.
+func _on_settings_menu_visibility_changed() -> void:
+	var settings_open: bool = %SettingsMenu.visible
+	%Items.focus_behavior_recursive = (
+		Control.FOCUS_BEHAVIOR_DISABLED if settings_open else Control.FOCUS_BEHAVIOR_INHERITED
+	)
+	if not settings_open:
+		%SettingsButton.grab_focus()
 
 
 func _on_main_menu_button_pressed() -> void:
