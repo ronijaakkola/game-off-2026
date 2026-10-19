@@ -3,10 +3,12 @@ extends Node
 ## Every change is applied at once, and saved to [constant PATH] once changes stop for
 ## [constant SAVE_DELAY] seconds, so dragging a slider writes the file once. On the web,
 ## saves are best effort: without persistent storage, settings last for the session only.
+## Every public var is a setting: loaded at start and saved with the rest. Its setter applies
+## the value and calls [method _queue_save]. A var that isn't a setting starts with [code]_[/code],
+## the only way to keep it out of the file.
 
 const PATH := "user://settings.cfg"
 const SECTION := "settings"
-const KEYS: Array[String] = ["master_volume", "music_volume", "sfx_volume", "reduce_motion"]
 const SAVE_DELAY := 0.4
 
 var master_volume := 0.8:
@@ -45,9 +47,19 @@ func _ready() -> void:
 	var file := ConfigFile.new()
 	file.load(PATH)  # A missing file leaves the defaults.
 	# Assigning every key, defaults included, runs the setters, which apply the values.
-	for key: String in KEYS:
+	for key: String in get_names():
 		set(key, file.get_value(SECTION, key, get(key)))
 	_loaded = true
+
+
+## The name of every setting, read from this script's public vars so no list can miss one.
+func get_names() -> Array[String]:
+	var names: Array[String] = []
+	for property: Dictionary in (get_script() as Script).get_script_property_list():
+		var property_name: String = property.name
+		if property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE and not property_name.begins_with("_"):
+			names.append(property_name)
+	return names
 
 
 # Quitting from the game, the web build included, writes a change still waiting.
@@ -70,6 +82,6 @@ func _queue_save() -> void:
 
 func _save() -> void:
 	var file := ConfigFile.new()
-	for key: String in KEYS:
+	for key: String in get_names():
 		file.set_value(SECTION, key, get(key))
 	file.save(PATH)
