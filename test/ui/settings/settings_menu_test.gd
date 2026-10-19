@@ -1,19 +1,18 @@
 extends GdUnitTestSuite
 
 const SCENE := "res://ui/settings/settings_menu.tscn"
-const KEYS: Array[String] = ["master_volume", "music_volume", "sfx_volume", "reduce_motion"]
 
 # The panel binds to the live Settings, which saves the developer's own settings file.
 var _saved: Dictionary[String, Variant] = {}
 
 
 func before() -> void:
-	for key: String in KEYS:
+	for key: String in Settings.get_names():
 		_saved[key] = Settings.get(key)
 
 
 func after() -> void:
-	for key: String in KEYS:
+	for key: String in Settings.get_names():
 		Settings.set(key, _saved[key])
 
 
