@@ -79,6 +79,16 @@ Call down, signal up.
 - Scenes stay unaware of their surroundings: no `get_parent()`, no `../` paths, no `/root/...` paths.
 - Every scene instantiates on its own without errors, so it runs with F6 in the editor, `uv run tools/check.py smoke <scene>`, and a gdUnit4 `scene_runner`.
 
+## Script size
+
+A script is at most 600 lines; `gdlint` fails a longer one (`max-file-lines`). Past that, a script usually does more than one job. GDScript has no partial classes, so split it by job, not by line count:
+
+- **A component node.** Behaviour with its own state and lifecycle, such as health, a cooldown or an input buffer, moves to a child node with its own script and `class_name`. The parent calls down to it, and it signals up (Scene composition).
+- **A static helper.** Pure logic that reads no node, such as scoring rules or grid maths, moves to a `class_name` script of `static func`s next to the script that uses it. It tests without a scene.
+- **A Resource.** Tuning values and data tables move to a custom `Resource` with `@export` vars, saved as a `.tres` and set on the scene through an `@export`.
+
+Each new file follows Layout and Naming. Never split into numbered parts or a `*_helpers.gd` grab-bag: each new script is named after the one job it does.
+
 ## Signals: local or bus
 
 Use a local signal by default.
