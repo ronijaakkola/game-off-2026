@@ -4,7 +4,8 @@ extends Node
 ## [constant SAVE_DELAY] seconds, so dragging a slider writes the file once. On the web,
 ## saves are best effort: without persistent storage, settings last for the session only.
 ## Every public var is a setting: loaded at start and saved with the rest. Its setter applies
-## the value and calls [method _queue_save].
+## the value and calls [method _queue_save]. A var that isn't a setting starts with [code]_[/code],
+## the only way to keep it out of the file.
 
 const PATH := "user://settings.cfg"
 const SECTION := "settings"
