@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole` and `Talo` are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 
@@ -58,7 +58,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | Autoload | Folder | What it does |
 |---|---|---|
 | `Events` | `core/events/` | The **signal bus**: every **bus event**, declared in `events.gd`. |
-| `Audio` | `core/audio/` | Music crossfade and pooled SFX: `play_music(stream)`, `stop_music()`, `play_sfx(stream)`. |
+| `Audio` | `core/audio/` | Music crossfade and pooled SFX: `play_music(stream)`, `stop_music()`, `play_sfx(stream)`. It owns the buses: code names one as an `Audio.Bus`, so `set_volume(Audio.Bus.MUSIC, linear)`, and a player's bus is `Audio.BUS_NAMES[Audio.Bus.SFX]`. A wrong bus name plays on Master without an error. |
 | `SceneFlow` | `core/scene_flow/` | Moves between top-level scenes with a fade: `await SceneFlow.go_to(path)`. |
 | `Settings` | `core/settings/` | The player's **settings**, applied on every change and saved to `user://settings.cfg` once changes stop for a moment. |
 | `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |

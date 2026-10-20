@@ -29,9 +29,9 @@ func test_defaults_without_a_saved_file() -> void:
 
 func test_defaults_reach_the_buses() -> void:
 	_new_session()
-	assert_float(_bus_volume("Master")).is_equal_approx(0.8, 0.001)
-	assert_float(_bus_volume("Music")).is_equal_approx(0.6, 0.001)
-	assert_float(_bus_volume("SFX")).is_equal_approx(0.8, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.MASTER)).is_equal_approx(0.8, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.MUSIC)).is_equal_approx(0.6, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.SFX)).is_equal_approx(0.8, 0.001)
 
 
 func test_every_public_var_is_a_setting() -> void:
@@ -55,7 +55,7 @@ func test_each_setting_lasts_into_the_next_session() -> void:
 func test_volume_change_reaches_its_bus() -> void:
 	var settings := _new_session()
 	settings.music_volume = 0.3
-	assert_float(_bus_volume("Music")).is_equal_approx(0.3, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.MUSIC)).is_equal_approx(0.3, 0.001)
 
 
 func test_a_burst_of_changes_saves_once_it_stops() -> void:
@@ -94,10 +94,6 @@ func _other_value(value: Variant) -> Variant:
 			return 0.25 if value != 0.25 else 0.5
 	fail("No other value for a setting of type %s. Add one here." % type_string(typeof(value)))
 	return value
-
-
-func _bus_volume(bus: String) -> float:
-	return AudioServer.get_bus_volume_linear(AudioServer.get_bus_index(bus))
 
 
 func _wait_for_save() -> void:

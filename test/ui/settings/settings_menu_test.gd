@@ -38,7 +38,7 @@ func test_moving_a_slider_is_heard_at_once() -> void:
 	slider.drag_started.emit()
 	slider.value = 0.3
 	assert_float(Settings.sfx_volume).is_equal_approx(0.3, 0.001)
-	assert_float(_bus_volume("SFX")).is_equal_approx(0.3, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.SFX)).is_equal_approx(0.3, 0.001)
 
 
 func test_reduce_motion_toggles_the_setting() -> void:
@@ -54,7 +54,3 @@ func test_back_hides_the_panel() -> void:
 	runner.invoke("open")
 	(runner.find_child("BackButton") as Button).pressed.emit()
 	assert_bool(runner.scene().visible).is_false()
-
-
-func _bus_volume(bus: String) -> float:
-	return AudioServer.get_bus_volume_linear(AudioServer.get_bus_index(bus))

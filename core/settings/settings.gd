@@ -14,17 +14,17 @@ const SAVE_DELAY := 0.4
 var master_volume := 0.8:
 	set(value):
 		master_volume = value
-		_set_bus_volume("Master", value)
+		Audio.set_volume(Audio.Bus.MASTER, value)
 		_queue_save()
 var music_volume := 0.6:
 	set(value):
 		music_volume = value
-		_set_bus_volume("Music", value)
+		Audio.set_volume(Audio.Bus.MUSIC, value)
 		_queue_save()
 var sfx_volume := 0.8:
 	set(value):
 		sfx_volume = value
-		_set_bus_volume("SFX", value)
+		Audio.set_volume(Audio.Bus.SFX, value)
 		_queue_save()
 var reduce_motion := false:
 	set(value):
@@ -68,10 +68,6 @@ func _exit_tree() -> void:
 	if not _save_timer.is_stopped():
 		_save_timer.stop()
 		_save()
-
-
-func _set_bus_volume(bus: String, linear: float) -> void:
-	AudioServer.set_bus_volume_linear(AudioServer.get_bus_index(bus), linear)
 
 
 # Each change restarts the wait, so a burst of changes saves once.

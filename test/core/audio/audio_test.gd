@@ -34,3 +34,24 @@ func _players_playing(stream: AudioStream) -> Array[AudioStreamPlayer]:
 		if player.playing and player.stream == stream:
 			playing.append(player)
 	return playing
+
+
+# A name that isn't in the layout sends a player to Master and makes set_volume do nothing,
+# both silently.
+func test_every_bus_is_in_the_bus_layout() -> void:
+	for bus: AudioScript.Bus in AudioScript.Bus.values():
+		var bus_name: StringName = AudioScript.BUS_NAMES.get(bus, &"")
+		var message := "%s has no bus in default_bus_layout.tres" % AudioScript.Bus.find_key(bus)
+		(
+			assert_int(AudioServer.get_bus_index(bus_name))
+			. override_failure_message(message)
+			. is_not_equal(-1)
+		)
+
+
+func test_set_volume_reaches_the_bus() -> void:
+	var before := _audio.get_volume(AudioScript.Bus.MUSIC)
+	_audio.set_volume(AudioScript.Bus.MUSIC, 0.3)
+	var music := AudioServer.get_bus_index(&"Music")
+	assert_float(AudioServer.get_bus_volume_linear(music)).is_equal_approx(0.3, 0.001)
+	_audio.set_volume(AudioScript.Bus.MUSIC, before)
