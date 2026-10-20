@@ -1,9 +1,20 @@
 extends Node
 ## Music and sound effects. Music crossfades between two players, one track at a time.
 ## Sound effects take turns on a pool of players. It processes always, so music keeps
-## playing while the game is paused.
+## playing while the game is paused. It owns the mixer's buses: code names a bus as an
+## [enum Bus], never by its name.
+
+## The buses in core/audio/default_bus_layout.tres.
+enum Bus { MASTER, MUSIC, SFX }
 
 const SFX_PLAYERS := 8
+## Each [enum Bus]'s name in default_bus_layout.tres. Set an AudioStreamPlayer's bus from it:
+## [code]player.bus = Audio.BUS_NAMES[Audio.Bus.SFX][/code].
+const BUS_NAMES: Dictionary[Bus, StringName] = {
+	Bus.MASTER: &"Master",
+	Bus.MUSIC: &"Music",
+	Bus.SFX: &"SFX",
+}
 
 var _music_players: Array[AudioStreamPlayer] = []
 var _music_tweens: Array[Tween] = [null, null]
@@ -16,9 +27,9 @@ var _next_sfx := 0
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	for i: int in 2:
-		_music_players.append(_add_player(&"Music"))
+		_music_players.append(_add_player(Bus.MUSIC))
 	for i: int in SFX_PLAYERS:
-		_sfx_players.append(_add_player(&"SFX"))
+		_sfx_players.append(_add_player(Bus.SFX))
 
 
 ## Crossfades to [param stream] over [param fade] seconds. Asking for the track
@@ -52,9 +63,23 @@ func play_sfx(stream: AudioStream, pitch_jitter := 0.0) -> void:
 	player.play()
 
 
-func _add_player(bus: StringName) -> AudioStreamPlayer:
+## Sets [param bus]'s volume, from 0.0 (silent) to 1.0 (as mixed).
+func set_volume(bus: Bus, linear: float) -> void:
+	AudioServer.set_bus_volume_linear(_index(bus), linear)
+
+
+## [param bus]'s volume, from 0.0 (silent) to 1.0 (as mixed).
+func get_volume(bus: Bus) -> float:
+	return AudioServer.get_bus_volume_linear(_index(bus))
+
+
+func _index(bus: Bus) -> int:
+	return AudioServer.get_bus_index(BUS_NAMES[bus])
+
+
+func _add_player(bus: Bus) -> AudioStreamPlayer:
 	var player := AudioStreamPlayer.new()
-	player.bus = bus
+	player.bus = BUS_NAMES[bus]
 	add_child(player)
 	return player
 

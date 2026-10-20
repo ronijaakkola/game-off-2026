@@ -143,6 +143,7 @@ SCENE_COMPOSITION = "CODING_STANDARDS.md, Scene composition"
 SIGNALS = "CODING_STANDARDS.md, Signals: local or bus"
 DEV_CONSOLE = "CODING_STANDARDS.md, Dev console"
 ONLINE = "CODING_STANDARDS.md, Online"
+AUTOLOADS = "CODING_STANDARDS.md, Autoloads (core systems)"
 TESTS = "CODING_STANDARDS.md, Tests"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
@@ -151,6 +152,8 @@ UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
 EVENTS_SCRIPT = "core/events/events.gd"
 DEV_COMMANDS = "core/dev_console/dev_commands.gd"
 ONLINE_FOLDER = "core/online/"
+AUDIO_FOLDER = "core/audio/"
+BUS_LAYOUT = "core/audio/default_bus_layout.tres"
 LINTED = (".gd", ".tscn", ".gdshader")
 # Vendored, generated or ignored by git: nothing in these folders is ours to lint.
 # Hidden folders (.godot, .claude) are skipped too, as Godot skips them.
@@ -166,6 +169,9 @@ OWN_GET_PARENT = re.compile(r"(?<![\w.])get_parent\s*\(|\bself\s*\.\s*get_parent
 SHADER_DIRECTIVE = re.compile(
     r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
 )
+# A bus looked up or set by name. Audio.BUS_NAMES[...] on the right is the supported way.
+AUDIO_SERVER_BUS = re.compile(r"\bAudioServer\s*\.\s*\w*bus\w*")
+BUS_ASSIGNMENT = re.compile(r"\.\s*bus\s*=(?!=)(?!\s*Audio\s*\.\s*BUS_NAMES\b)")
 WOULD_REFORMAT = re.compile(r"^would reformat (.+)$", re.MULTILINE)
 
 
@@ -334,6 +340,8 @@ def script_problems(path: str, hook: bool) -> list[str]:
         problems += limbo_console_problems(path, code)
     if not (outside or path == DEV_COMMANDS or path.startswith(ONLINE_FOLDER)):
         problems += talo_problems(path, code)
+    if not (outside or path.startswith(AUDIO_FOLDER)):
+        problems += bus_name_problems(path, code)
     return problems
 
 
@@ -433,6 +441,25 @@ def talo_problems(path: str, code: str) -> list[str]:
     ]
 
 
+def bus_name_problems(path: str, code: str) -> list[str]:
+    """A bus name that isn't in the layout sends a player to Master, and makes a volume
+    change do nothing, both silently. So only Audio names buses."""
+    message = (
+        f"only {AUDIO_FOLDER} names audio buses: a wrong name fails silently. Use "
+        "Audio.set_volume(Audio.Bus.MUSIC, linear) or Audio.get_volume(bus), and set a "
+        "player's bus to Audio.BUS_NAMES[Audio.Bus.SFX]."
+    )
+    matches = [*AUDIO_SERVER_BUS.finditer(code), *BUS_ASSIGNMENT.finditer(code)]
+    lines = sorted({line_at(code, m.start()) for m in matches})
+    return [problem(path, line, "bus-through-audio", message, AUTOLOADS) for line in lines]
+
+
+def bus_names() -> list[str]:
+    """The buses in the bus layout. Master is bus 0, which the layout file leaves out."""
+    layout = Path(BUS_LAYOUT).read_text(encoding="utf-8", errors="replace")
+    return ["Master", *re.findall(r'^bus/\d+/name = &"([^"]*)"', layout, re.MULTILINE)]
+
+
 def test_file_problems(path: str, check_target: bool) -> list[str]:
     """Tests sit under test/ (check.py test runs only that folder, and the web build
     leaves only that folder out), named after the file they test. The hook skips the
@@ -470,6 +497,21 @@ def scene_problems(path: str) -> list[str]:
             "the copied node; the editor gives the node a new one on its next save."
         )
         problems.append(problem(path, number, "duplicate-unique-id", message, UNIQUE_IDS))
+    return problems + scene_bus_problems(path, lines)
+
+
+def scene_bus_problems(path: str, lines: list[str]) -> list[str]:
+    """A player's bus set in the scene file is a name too, and a wrong one plays on Master."""
+    buses = bus_names()
+    problems = []
+    for number, line in enumerate(lines, 1):
+        m = re.match(r'bus = &"([^"]*)"', line)
+        if m and m.group(1) not in buses:
+            message = (
+                f'there is no bus "{m.group(1)}" in {BUS_LAYOUT}, so this player plays on '
+                f"Master. The buses are {', '.join(buses)} (Audio.Bus)."
+            )
+            problems.append(problem(path, number, "unknown-bus", message, AUTOLOADS))
     return problems
 
 
