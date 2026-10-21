@@ -2,7 +2,7 @@
 
 Godot 4.7.2, GDScript only, Compatibility renderer, played on the web (itch.io) first.
 
-- `CODING_STANDARDS.md`: layout, naming, typing, autoloads, scene composition, signals, merges. Read it before adding or moving any file.
+- `CODING_STANDARDS.md`: layout, naming, typing, autoloads, scene composition, signals, merges. Read it before writing code or adding or moving any file.
 - `DESIGN.md`: what the game is. Read it before gameplay work, and update it when the design changes.
 - `CONTEXT.md`: the glossary. Use its terms in code and handoffs.
 - `docs/web-constraints.md`: read it before touching shaders, environment, lighting, loading or audio.
@@ -18,14 +18,14 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 |---|---|
 | `lint [files]` | Runs by itself after every edit to a `.gd`, `.tscn` or `.gdshader` file; fix what it reports. `format [files]` fixes what it reports as formatting. |
 | `load` | After editing scripts, scenes or resources. |
-| `ids [files]` | After writing a `.tscn` or `.tres` as text. Saves every one missing a `uid` or `unique_id` the way the editor does, so Godot assigns them; commit the result. Not part of `all`, whose `lint` fails until it runs. |
+| `ids [files]` | After writing a `.tscn` or `.tres` as text (the `edit-tscn` skill). Saves every one missing a `uid` or `unique_id` the way the editor does, so Godot assigns them; commit the result. `lint` fails until it runs. |
 | `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
 | `smoke [scenes]` | After changes to anything that runs at startup. Runs the main scene and `game/game.tscn`, or the ones given. |
 | `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |
-| `evidence [frame]` | When a PR body needs a frame. Pushes the last capture frame, or the one given, to the `pr-evidence` branch and prints the image line to paste under Evidence. Not part of `all`. |
+| `evidence [frame]` | When a PR body needs a frame. Pushes the last capture frame, or the one given, to the `pr-evidence` branch and prints the image line to paste under Evidence. |
 | `api <query>` | Before using a Godot API you aren't sure exists in 4.7.2. `Class`, `Class.member`, or a word to search for. |
-| `all` | Before every handoff. |
-| `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. Not part of `all`. |
+| `all` | Before every handoff. Runs `lint`, `load`, `test` and `smoke`. |
+| `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. |
 
 ## Handoff
 
@@ -56,7 +56,7 @@ Working on a PR:
 - Wait for CI with `gh pr checks <n> --watch`. Never write a polling loop.
 - Never close or reopen a PR. Merge only when the human asks for it in the conversation, with Squash and merge, once CI is green on the current head.
 
-The hooks in `.githooks/` (`commit-msg`, `pre-commit`) enforce the commit message and lint what you commit. Enable them once per clone with `git config core.hooksPath .githooks`.
+The hooks in `.githooks/` (`commit-msg`, `pre-commit`) enforce the commit message and lint what you commit. Enable them once per clone with `git config core.hooksPath .githooks` (cloud sessions do it for you).
 
 ## Cloud sessions
 
