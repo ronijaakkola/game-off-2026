@@ -93,7 +93,7 @@ func test_fades_in_smoothly_after_a_slow_first_frame() -> void:
 	get_tree().process_frame.connect(_record_shown_alpha)
 	await _flow.go_to(GAME)
 	var largest_step := 0.0
-	for i in range(1, _shown_alphas.size()):
+	for i: int in range(1, _shown_alphas.size()):
 		largest_step = maxf(largest_step, _shown_alphas[i - 1] - _shown_alphas[i])
 	assert_float(largest_step).is_less(0.25)
 
