@@ -147,6 +147,7 @@ AUTOLOADS = "CODING_STANDARDS.md, Autoloads (core systems)"
 TESTS = "CODING_STANDARDS.md, Tests"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
+STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
 EVENTS_SCRIPT = "core/events/events.gd"
@@ -165,6 +166,8 @@ ASSET_LIMIT_MB = 10
 GD_COMMENT_OR_STRING = re.compile(
     r"""(#[^\n]*)|("{3}[\s\S]*?"{3}|'{3}[\s\S]*?'{3}|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')"""
 )
+# Godot's untyped_declaration warning skips loop variables, so `for i in 3:` loads.
+UNTYPED_LOOP_VARIABLE = re.compile(r"^[ \t]*for[ \t]+(\w+)[ \t]+in\b", re.MULTILINE)
 OWN_GET_PARENT = re.compile(r"(?<![\w.])get_parent\s*\(|\bself\s*\.\s*get_parent\s*\(")
 SHADER_DIRECTIVE = re.compile(
     r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
@@ -328,6 +331,7 @@ def script_problems(path: str, hook: bool) -> list[str]:
     source = Path(path).read_text(encoding="utf-8", errors="replace")
     code, strings = split_gdscript(source)
     problems = test_file_problems(path, check_target=not hook)
+    problems += untyped_loop_problems(path, code)
     # Tests and tools drive scenes from outside, so they may reach anywhere.
     outside = path.split("/")[0] in ("test", "tools")
     if not outside:
@@ -342,6 +346,21 @@ def script_problems(path: str, hook: bool) -> list[str]:
         problems += talo_problems(path, code)
     if not (outside or path.startswith(AUDIO_FOLDER)):
         problems += bus_name_problems(path, code)
+    return problems
+
+
+def untyped_loop_problems(path: str, code: str) -> list[str]:
+    """Every declaration is typed, and the untyped_declaration error in project.godot
+    covers all of them except loop variables, which load untyped without a word."""
+    problems = []
+    for m in UNTYPED_LOOP_VARIABLE.finditer(code):
+        message = (
+            f"loop variable {m.group(1)} has no type, and Godot doesn't flag it. "
+            f"Write it typed: for {m.group(1)}: int in ..., or the element type of the array."
+        )
+        problems.append(
+            problem(path, line_at(code, m.start()), "typed-loop-variable", message, STATIC_TYPING)
+        )
     return problems
 
 

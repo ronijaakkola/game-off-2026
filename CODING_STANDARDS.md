@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 
@@ -34,7 +34,7 @@ Follow the [Godot GDScript style guide](https://docs.godotengine.org/en/4.7/tuto
 
 ## Static typing
 
-Every declaration is typed: variables, parameters, return types, loop variables. The `untyped_declaration` warning is an **Error** in `project.godot`, so an untyped script fails to load. Inferred types (`:=`) count as typed.
+Every declaration is typed: variables, parameters, return types, loop variables. The `untyped_declaration` warning is an **Error** in `project.godot`, so an untyped script fails to load. It misses loop variables (`for i in 3:` loads), so `check.py lint` fails on those. Inferred types (`:=`) count as typed.
 
 ```gdscript
 var speed := 4.0
