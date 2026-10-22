@@ -91,4 +91,3 @@ theme_type_variation = &"FaintLabel"
 [connection signal="pressed" from="Center/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="Center/Items/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]
-[connection signal="visibility_changed" from="SettingsMenu" to="." method="_on_settings_menu_visibility_changed"]

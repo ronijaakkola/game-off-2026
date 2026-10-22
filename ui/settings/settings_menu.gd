@@ -1,9 +1,13 @@
 extends PanelContainer
 ## The settings panel: volume sliders and Reduce motion, bound to [code]Settings[/code].
-## The main menu and the pause menu each instance it hidden and call [method open].
-## Back or Esc hides it again.
+## A menu instances it hidden and calls [method open]. Back or Esc hides it again. While
+## it's open, the menu's own controls under it take no keyboard focus, so Tab stays in the
+## panel, and when it hides, focus goes back to the control that opened it.
 
 const DEMO_SFX := preload("res://ui/audio/ui_click.ogg")
+
+var _covered: Control
+var _opener: Control
 
 @onready var _volumes: Dictionary[HSlider, StringName] = {
 	%MasterSlider: &"master_volume",
@@ -13,14 +17,22 @@ const DEMO_SFX := preload("res://ui/audio/ui_click.ogg")
 
 
 func _ready() -> void:
+	visibility_changed.connect(_on_visibility_changed)
 	for slider: HSlider in _volumes:
 		# Every step of a drag is heard at once. Settings saves once the steps stop.
 		slider.value_changed.connect(_on_volume_value_changed.bind(slider))
 	_read_settings()
 
 
-## Shows the panel with the current settings, and the first slider focused.
-func open() -> void:
+## Shows the panel with the current settings, and the first slider focused. [param covered]
+## holds the opening menu's controls, which take no keyboard focus until the panel hides.
+## Does nothing while it's already open, so the focus it hands back stays the opener's.
+func open(covered: Control) -> void:
+	if _covered != null:
+		return
+	_covered = covered
+	_opener = get_viewport().gui_get_focus_owner()
+	_covered.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_DISABLED
 	_read_settings()
 	show()
 	%MasterSlider.grab_focus()
@@ -42,6 +54,16 @@ func _on_sfx_slider_drag_ended(_value_changed: bool) -> void:
 
 func _on_reduce_motion_button_toggled(toggled_on: bool) -> void:
 	Settings.reduce_motion = toggled_on
+
+
+# Hidden by Back, Esc or the menu that opened it, so it hands focus back here.
+func _on_visibility_changed() -> void:
+	if visible or _covered == null:
+		return
+	_covered.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_INHERITED
+	_covered = null
+	if is_instance_valid(_opener):
+		_opener.grab_focus()
 
 
 func _on_back_button_pressed() -> void:

@@ -60,14 +60,17 @@ func test_keyboard_focus_follows_the_open_panel() -> void:
 	await runner.simulate_frames(1)
 	assert_object(_focused()).is_same(runner.find_child("PlayButton"))
 
-	(runner.find_child("SettingsButton") as Button).pressed.emit()
+	# A player presses Settings with focus on it, by keyboard or by a click.
+	var settings_button := runner.find_child("SettingsButton") as Button
+	settings_button.grab_focus()
+	settings_button.pressed.emit()
 	assert_object(_focused()).is_same(runner.find_child("MasterSlider"))
 	# Tab from the panel's last control wraps inside the panel, not to the buttons under it.
 	var back := runner.find_child("BackButton") as Button
 	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterSlider"))
 
 	back.pressed.emit()
-	assert_object(_focused()).is_same(runner.find_child("SettingsButton"))
+	assert_object(_focused()).is_same(settings_button)
 
 
 func test_start_overlay_click_starts_the_music() -> void:
