@@ -70,6 +70,17 @@ func test_focus_stays_in_the_panel_and_goes_back_to_its_opener() -> void:
 	assert_object(get_viewport().gui_get_focus_owner()).is_same(opener)
 
 
+func test_opening_it_again_still_gives_focus_back_to_the_opener() -> void:
+	var runner := scene_runner(SCENE)
+	var covered := _covered(runner)
+	var opener := covered.get_child(0) as Button
+	opener.grab_focus()
+	runner.invoke("open", covered)
+	runner.invoke("open", covered)
+	(runner.find_child("BackButton") as Button).pressed.emit()
+	assert_object(get_viewport().gui_get_focus_owner()).is_same(opener)
+
+
 # The pause menu's Resume hides the panel from outside. The menu under it must not stay
 # unfocusable.
 func test_hidden_by_its_menu_gives_focus_back_too() -> void:

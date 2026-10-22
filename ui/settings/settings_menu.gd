@@ -26,7 +26,10 @@ func _ready() -> void:
 
 ## Shows the panel with the current settings, and the first slider focused. [param covered]
 ## holds the opening menu's controls, which take no keyboard focus until the panel hides.
+## Does nothing while it's already open, so the focus it hands back stays the opener's.
 func open(covered: Control) -> void:
+	if _covered != null:
+		return
 	_covered = covered
 	_opener = get_viewport().gui_get_focus_owner()
 	_covered.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_DISABLED
