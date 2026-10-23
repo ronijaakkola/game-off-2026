@@ -81,10 +81,10 @@ func test_keyboard_focus_follows_the_open_panel() -> void:
 	var settings_button := runner.find_child("SettingsButton") as Button
 	settings_button.grab_focus()
 	settings_button.pressed.emit()
-	assert_object(_focused()).is_same(runner.find_child("MasterSlider"))
+	assert_object(_focused()).is_same(runner.find_child("MasterVolume"))
 	# Tab from the panel's last control wraps inside the panel, not to the buttons under it.
 	var back := runner.find_child("BackButton") as Button
-	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterSlider"))
+	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterVolume"))
 
 	back.pressed.emit()
 	assert_object(_focused()).is_same(settings_button)

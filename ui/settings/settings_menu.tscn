@@ -43,7 +43,7 @@ columns = 2
 layout_mode = 2
 text = "Master"
 
-[node name="MasterSlider" type="HSlider" parent="Center/Panel/Margin/Items/Volumes" unique_id=641526796]
+[node name="MasterVolume" type="HSlider" parent="Center/Panel/Margin/Items/Volumes" unique_id=641526796]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
@@ -55,7 +55,7 @@ step = 0.01
 layout_mode = 2
 text = "Music"
 
-[node name="MusicSlider" type="HSlider" parent="Center/Panel/Margin/Items/Volumes" unique_id=974600151]
+[node name="MusicVolume" type="HSlider" parent="Center/Panel/Margin/Items/Volumes" unique_id=974600151]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
@@ -67,7 +67,7 @@ step = 0.01
 layout_mode = 2
 text = "Sound effects"
 
-[node name="SfxSlider" type="HSlider" parent="Center/Panel/Margin/Items/Volumes" unique_id=1456820036]
+[node name="SfxVolume" type="HSlider" parent="Center/Panel/Margin/Items/Volumes" unique_id=1456820036]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
@@ -75,7 +75,7 @@ size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
 
-[node name="ReduceMotionButton" type="CheckButton" parent="Center/Panel/Margin/Items" unique_id=20705547]
+[node name="ReduceMotion" type="CheckButton" parent="Center/Panel/Margin/Items" unique_id=20705547]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reduce motion"
@@ -85,6 +85,5 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Back"
 
-[connection signal="drag_ended" from="Center/Panel/Margin/Items/Volumes/SfxSlider" to="." method="_on_sfx_slider_drag_ended"]
-[connection signal="toggled" from="Center/Panel/Margin/Items/ReduceMotionButton" to="." method="_on_reduce_motion_button_toggled"]
+[connection signal="drag_ended" from="Center/Panel/Margin/Items/Volumes/SfxVolume" to="." method="_on_sfx_volume_drag_ended"]
 [connection signal="pressed" from="Center/Panel/Margin/Items/BackButton" to="." method="_on_back_button_pressed"]
