@@ -37,6 +37,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from functools import cache
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
@@ -175,6 +176,12 @@ SHADER_DIRECTIVE = re.compile(
 # A bus looked up or set by name. Audio.BUS_NAMES[...] on the right is the supported way.
 AUDIO_SERVER_BUS = re.compile(r"\bAudioServer\s*\.\s*\w*bus\w*")
 BUS_ASSIGNMENT = re.compile(r"\.\s*bus\s*=(?!=)(?!\s*Audio\s*\.\s*BUS_NAMES\b)")
+# An ext_resource's uid and path, in either order. Godot looks the uid up first and uses
+# the path only when no file has that uid.
+EXT_RESOURCE_UID = re.compile(
+    r'^\[ext_resource (?=[^\n]*?\buid="([^"]+)")(?=[^\n]*?\bpath="res://([^"]+)")'
+)
+SCENE_HEADER_UID = re.compile(r'\[gd_(?:scene|resource)\b[^\n]*?\buid="([^"]+)"')
 WOULD_REFORMAT = re.compile(r"^would reformat (.+)$", re.MULTILINE)
 
 
@@ -290,6 +297,8 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
             rules += scene_problems(path)
         elif path.endswith(".gdshader"):
             rules += shader_problems(path)
+        if path.endswith((".tscn", ".tres")):
+            rules += wrong_uid_problems(path)
         # The hook leaves this out: a scene is missing its ids for as long as it is being
         # written, and check.py ids fills them in once. The commit hook and CI catch it.
         if path.endswith((".tscn", ".tres")) and not hook:
@@ -566,6 +575,62 @@ def missing_id_problems(path: str) -> list[str]:
         "saves it the way the editor does, and commit the result."
     )
     return [problem(path, gaps[0][0], "missing-ids", message, UNIQUE_IDS)]
+
+
+def wrong_uid_problems(path: str) -> list[str]:
+    """The uid wins over the path, so another file's uid loads that file instead, and an
+    unknown one falls back to the path with only a warning. Load, smoke and tests all
+    pass either way. Writing the path alone and running check.py ids gets it right."""
+    uids = project_uids()
+    owners = {uid: target for target, uid in uids.items()}
+    fix = f"Delete uid=\"...\" from the line and run: uv run tools/check.py ids {path}"
+    problems = []
+    lines = Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
+    for number, line in enumerate(lines, 1):
+        m = EXT_RESOURCE_UID.match(line)
+        if not m or not Path(m.group(2)).is_file():
+            continue  # A missing target fails the load check, naming it.
+        uid, target = m.groups()
+        if uids.get(target) == uid:
+            continue
+        if uid in owners:
+            message = (
+                f"{uid} is res://{owners[uid]}'s uid, so Godot loads that file instead of "
+                f"res://{target}, without an error. {fix}"
+            )
+        else:
+            message = (
+                f"no file has {uid}, so Godot falls back to res://{target} with a warning, "
+                f"and the editor rewrites the line on its next save. {fix}"
+            )
+        problems.append(problem(path, number, "uid-matches-path", message, UNIQUE_IDS))
+    return problems
+
+
+@cache
+def project_uids() -> dict[str, str]:
+    """Each file's uid, by its path from the project root, from where Godot keeps it: a
+    script's .uid sidecar, an imported asset's .import file, or a scene's or resource's
+    header. addons/ included, since a scene may reference a plugin's files."""
+    uids = {}
+    for directory, subdirectories, names in os.walk("."):
+        subdirectories[:] = [
+            d for d in subdirectories if not d.startswith(".") and d not in NOT_OURS_ANYWHERE
+        ]
+        for name in names:
+            path = Path(directory, name).as_posix().removeprefix("./")
+            if name.endswith(".uid"):
+                uids[path.removesuffix(".uid")] = Path(path).read_text().strip()
+            elif name.endswith(".import"):
+                m = re.search(r'^uid="([^"]+)"', Path(path).read_text(errors="replace"), re.M)
+                if m:
+                    uids[path.removesuffix(".import")] = m.group(1)
+            elif name.endswith((".tscn", ".tres")):
+                with open(path, encoding="utf-8", errors="replace") as file:
+                    m = SCENE_HEADER_UID.match(file.readline())
+                if m:
+                    uids[path] = m.group(1)
+    return uids
 
 
 def shader_problems(path: str) -> list[str]:
