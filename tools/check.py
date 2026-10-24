@@ -176,10 +176,10 @@ SHADER_DIRECTIVE = re.compile(
 # A bus looked up or set by name. Audio.BUS_NAMES[...] on the right is the supported way.
 AUDIO_SERVER_BUS = re.compile(r"\bAudioServer\s*\.\s*\w*bus\w*")
 BUS_ASSIGNMENT = re.compile(r"\.\s*bus\s*=(?!=)(?!\s*Audio\s*\.\s*BUS_NAMES\b)")
-# An ext_resource's uid and path. Godot looks the uid up first and uses the path only
-# when no file has that uid.
+# An ext_resource's uid and path, in either order. Godot looks the uid up first and uses
+# the path only when no file has that uid.
 EXT_RESOURCE_UID = re.compile(
-    r'^\[ext_resource [^\n]*?\buid="([^"]+)"[^\n]*?\bpath="res://([^"]+)"'
+    r'^\[ext_resource (?=[^\n]*?\buid="([^"]+)")(?=[^\n]*?\bpath="res://([^"]+)")'
 )
 SCENE_HEADER_UID = re.compile(r'\[gd_(?:scene|resource)\b[^\n]*?\buid="([^"]+)"')
 WOULD_REFORMAT = re.compile(r"^would reformat (.+)$", re.MULTILINE)
