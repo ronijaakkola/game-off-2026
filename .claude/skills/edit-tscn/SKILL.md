@@ -16,8 +16,8 @@ Sections come in this order: header, `ext_resource`s, `sub_resource`s, nodes, co
 ```
 [gd_scene format=3 uid="uid://cmx3l2s0kq7ab"]
 
-[ext_resource type="Script" uid="uid://f5jcsgy0san3" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
-[ext_resource type="PackedScene" uid="uid://b8w4hd0vq1n2c" path="res://ui/settings/settings_menu.tscn" id="2_sett"]
+[ext_resource type="Script" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://ui/settings/settings_menu.tscn" id="2_sett"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_title"]
 font_size = 32
@@ -54,21 +54,19 @@ visible = false
 
 ## uid and unique_id
 
-Godot 4.7 writes `uid="uid://..."` in every header and `unique_id=<number>` on every node it saves. Leave both out of what you write, and delete `unique_id=` from a node block you copy, so two nodes never share one. Keep the ones already in the file unchanged.
+Godot 4.7 writes `uid="uid://..."` in every header and `ext_resource`, and `unique_id=<number>` on every node it saves. Leave them out of what you write, and delete `unique_id=` from a node block you copy, so two nodes never share one. Keep the ones already in the file unchanged.
 
 Once the files are written, `uv run tools/check.py ids` saves each one missing an id the way the editor does, so Godot assigns them. Commit what it saves with the change.
 
 ## References
 
-The `uid://` is authoritative and the `path` is the fallback: a valid uid finds the file even after a move, and an unknown uid falls back to the path with an `invalid UID` warning. Copy the uid from where Godot stores it rather than inventing one:
+Write an `ext_resource` with `path` alone, and let `uv run tools/check.py ids` add its `uid`, as it does for headers and nodes:
 
-| Target | Where its uid is |
-|---|---|
-| Script or shader (`.gd`, `.gdshader`) | The `<file>.uid` sidecar next to it |
-| Imported asset (`.png`, `.glb`, `.ogg`, …) | `uid=` under `[remap]` in `<file>.import` |
-| Scene or resource (`.tscn`, `.tres`) | `uid=` in its header line |
+```
+[ext_resource type="PackedScene" path="res://ui/settings/settings_menu.tscn" id="2_sett"]
+```
 
-If the target has no uid yet (a new scene, or a script before its first import), write `path` alone. `check.py ids` fills in the uid; for a script, `check.py` imports the project first, which creates the missing sidecar. Commit both.
+Never type or copy a uid into one. The uid wins over the path: another file's uid loads that file instead, with no error, and an unknown one falls back to the path with only a warning. The load check, the smoke run and the tests all pass either way, so `check.py lint` fails on a uid that isn't its path's (rule `uid-matches-path`). Keep the uids already in the file unchanged.
 
 ## UI scenes
 
