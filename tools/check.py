@@ -13,8 +13,8 @@
   ids [files]      save the given scenes and resources, or every one outside addons/, that
                    lack a uid or unique_id, the way the editor does, so Godot assigns them
   test             run the gdUnit4 tests in test/
-  smoke [scenes]   run every scene outside addons/ on its own (or the given ones) headless,
-                   fail on any logged error
+  smoke [scenes]   run every scene the game reaches from the main scene and the autoloads,
+                   each on its own (or the given ones) headless, fail on any logged error
   capture <scene>  render ~1 s of a scene in a window, save the frames to build/capture/
   all              lint, load, test, smoke
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
@@ -891,22 +891,42 @@ def logged_error(output: str) -> bool:
     return bool(ERROR_LINE.search(EXIT_LEAK.sub("", output)))
 
 
-def all_scenes() -> list[str]:
-    """Every scene outside addons/, the main scene first. Every scene instantiates on its
-    own (CODING_STANDARDS.md, Scene composition), and a sub-scene that only works inside
-    its parent, or a level the menus reach only after a click, shows it only when run."""
+def game_scenes() -> list[str]:
+    """The scenes the game can reach, the main scene first: everything a scene, resource or
+    script references by res:// or uid:// path, followed from the main scene and the
+    autoloads. A scene nothing references yet, such as one still being built, is left out
+    until something does. Every scene in the game instantiates on its own
+    (CODING_STANDARDS.md, Scene composition), and a sub-scene that only works inside its
+    parent, or a level the menus reach only after a click, shows it only when run."""
     main = main_scene()
-    others = sorted(
-        "res://" + project_path(path) for path in project_files() if path.endswith(".tscn")
-    )
-    return ([main] if main else []) + [scene for scene in others if scene != main]
+    settings = Path("project.godot").read_text(encoding="utf-8", errors="replace")
+    autoloads = re.findall(r'^\w+="\*?((?:res|uid)://[^"]+)"', settings, re.MULTILINE)
+    by_uid = {uid: path for path, uid in project_uids().items()}
+    seen: set[str] = set()
+    pending = [main, *autoloads] if main else autoloads
+    while pending:
+        reference = pending.pop()
+        path = by_uid.get(reference, "") if reference.startswith("uid://") else reference
+        path = path.removeprefix("res://")
+        if path in seen or not ours(path) or not Path(path).is_file():
+            continue
+        seen.add(path)
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+        if path.endswith(".gd"):
+            # Strings only, so a path in a comment doesn't count as a reference.
+            text = "\n".join(string for _, string in split_gdscript(text)[1])
+        elif not path.endswith((".tscn", ".tres")):
+            continue
+        pending += re.findall(r'(?:res|uid)://[^"\s]+', text)
+    scenes = sorted("res://" + path for path in seen if path.endswith(".tscn"))
+    return ([main] if main in scenes else []) + [scene for scene in scenes if scene != main]
 
 
 def run_smoke(scenes: list[str]):
     if not scenes:
-        scenes = all_scenes()
+        scenes = game_scenes()
         if not scenes:
-            return "SKIPPED, no scenes outside addons/"
+            return "SKIPPED, no main scene set in project.godot"
     for scene in scenes:
         result = run_godot(
             ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]

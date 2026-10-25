@@ -20,7 +20,7 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 | `load` | After editing scripts, scenes or resources. |
 | `ids [files]` | After writing a `.tscn` or `.tres` as text (the `edit-tscn` skill). Saves every one missing a `uid` or `unique_id` the way the editor does, so Godot assigns them; commit the result. `lint` fails until it runs. |
 | `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
-| `smoke [scenes]` | After changes to anything that runs at startup. Runs every scene on its own, the main scene first, or the ones given. |
+| `smoke [scenes]` | After changes to anything that runs at startup. Runs every scene the game reaches, each on its own, the main scene first, or the ones given. |
 | `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |
 | `evidence [frame]` | When a PR body needs a frame. Pushes the last capture frame, or the one given, to the `pr-evidence` branch and prints the image line to paste under Evidence. |
 | `api <query>` | Before using a Godot API you aren't sure exists in 4.7.2. `Class`, `Class.member`, or a word to search for. |
