@@ -901,10 +901,12 @@ def game_scenes() -> list[str]:
     instantiates on its own (CODING_STANDARDS.md, Scene composition), and a sub-scene that
     only works inside its parent, or a level the menus reach only after a click, shows it
     only when run."""
+    by_uid = {uid: "res://" + path for path, uid in project_uids().items()}
+    # The editor may write run/main_scene as a uid://, and the order below compares paths.
     main = main_scene()
+    main = by_uid.get(main, main) if main else None
     settings = Path("project.godot").read_text(encoding="utf-8", errors="replace")
     autoloads = re.findall(r'^\w+="\*?((?:res|uid)://[^"]+)"', settings, re.MULTILINE)
-    by_uid = {uid: path for path, uid in project_uids().items()}
     seen: set[str] = set()
     pending = [main, *autoloads] if main else autoloads
     while pending:
