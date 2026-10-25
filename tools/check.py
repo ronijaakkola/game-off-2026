@@ -48,6 +48,8 @@ SMOKE_FRAMES = "300"
 # The main menu reaches it only after a click, so the exported pack boots it on its own too.
 GAME_SCENE = "res://game/game.tscn"
 CAPTURE_FRAMES = "60"
+# Not part of the game, and not exported: smoke never runs a scene in these.
+NOT_GAME = ("tools/", "test/")
 # Written by run_export and read by the main menu; ignored by git.
 BUILD_COMMIT_FILE = "ui/main_menu/build_commit.txt"
 # The preview build's front page: itch's embed, with the game in an iframe under game/.
@@ -895,9 +897,10 @@ def game_scenes() -> list[str]:
     """The scenes the game can reach, the main scene first: everything a scene, resource or
     script references by res:// or uid:// path, followed from the main scene and the
     autoloads. A scene nothing references yet, such as one still being built, is left out
-    until something does. Every scene in the game instantiates on its own
-    (CODING_STANDARDS.md, Scene composition), and a sub-scene that only works inside its
-    parent, or a level the menus reach only after a click, shows it only when run."""
+    until something does, and tools/ and test/ are never followed. Every scene in the game
+    instantiates on its own (CODING_STANDARDS.md, Scene composition), and a sub-scene that
+    only works inside its parent, or a level the menus reach only after a click, shows it
+    only when run."""
     main = main_scene()
     settings = Path("project.godot").read_text(encoding="utf-8", errors="replace")
     autoloads = re.findall(r'^\w+="\*?((?:res|uid)://[^"]+)"', settings, re.MULTILINE)
@@ -908,7 +911,8 @@ def game_scenes() -> list[str]:
         reference = pending.pop()
         path = by_uid.get(reference, "") if reference.startswith("uid://") else reference
         path = path.removeprefix("res://")
-        if path in seen or not ours(path) or not Path(path).is_file():
+        game_file = ours(path) and not path.startswith(NOT_GAME) and Path(path).is_file()
+        if path in seen or not game_file:
             continue
         seen.add(path)
         text = Path(path).read_text(encoding="utf-8", errors="replace")
