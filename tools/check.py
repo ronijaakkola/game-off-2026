@@ -13,7 +13,7 @@
   ids [files]      save the given scenes and resources, or every one outside addons/, that
                    lack a uid or unique_id, the way the editor does, so Godot assigns them
   test             run the gdUnit4 tests in test/
-  smoke [scenes]   run the main scene and the game scene (or the given ones) headless,
+  smoke [scenes]   run every scene outside addons/ on its own (or the given ones) headless,
                    fail on any logged error
   capture <scene>  render ~1 s of a scene in a window, save the frames to build/capture/
   all              lint, load, test, smoke
@@ -45,7 +45,7 @@ ROOT = Path(__file__).resolve().parent.parent
 GODOT_VERSION = "4.7.2"
 TIMEOUT = 300
 SMOKE_FRAMES = "300"
-# The main menu reaches it only after a click, so smoke runs it on its own as well.
+# The main menu reaches it only after a click, so the exported pack boots it on its own too.
 GAME_SCENE = "res://game/game.tscn"
 CAPTURE_FRAMES = "60"
 # Written by run_export and read by the main menu; ignored by git.
@@ -891,12 +891,22 @@ def logged_error(output: str) -> bool:
     return bool(ERROR_LINE.search(EXIT_LEAK.sub("", output)))
 
 
+def all_scenes() -> list[str]:
+    """Every scene outside addons/, the main scene first. Every scene instantiates on its
+    own (CODING_STANDARDS.md, Scene composition), and a sub-scene that only works inside
+    its parent, or a level the menus reach only after a click, shows it only when run."""
+    main = main_scene()
+    others = sorted(
+        "res://" + project_path(path) for path in project_files() if path.endswith(".tscn")
+    )
+    return ([main] if main else []) + [scene for scene in others if scene != main]
+
+
 def run_smoke(scenes: list[str]):
     if not scenes:
-        main = main_scene()
-        if not main:
-            return "SKIPPED, no main scene set in project.godot"
-        scenes = [main, GAME_SCENE]
+        scenes = all_scenes()
+        if not scenes:
+            return "SKIPPED, no scenes outside addons/"
     for scene in scenes:
         result = run_godot(
             ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]
