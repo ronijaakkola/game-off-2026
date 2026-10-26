@@ -32,16 +32,7 @@ In cloud sessions only, a SessionStart hook (`tools/cloud_session_start.sh`) ena
 
 ## Layout
 
-| Folder | What goes there |
-|---|---|
-| `addons/` | Vendored plugins at pinned versions. Never hand-edited. |
-| `core/<system>/` | One folder per autoload. |
-| `ui/` | Main menu, settings screen, Theme, shared widgets. |
-| `game/` | The example game scene, replaced on jam day. |
-| `shared/` | Assets used by more than one feature. |
-| `test/` | gdUnit4 tests, mirroring the `res://` path of what they test. |
-| `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
-| `art/` | The model library, `art/models.blend`. Not committed. |
+Folders are by feature. The table of what goes where is in `CODING_STANDARDS.md`, Layout, the one copy agents and people both follow.
 
 ## Making models
 
