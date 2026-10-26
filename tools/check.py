@@ -13,8 +13,8 @@
   ids [files]      save the given scenes and resources, or every one outside addons/, that
                    lack a uid or unique_id, the way the editor does, so Godot assigns them
   test             run the gdUnit4 tests in test/
-  smoke [scenes]   run the main scene and the game scene (or the given ones) headless,
-                   fail on any logged error
+  smoke [scenes]   run every scene the game reaches from the main scene and the autoloads,
+                   each on its own (or the given ones) headless, fail on any logged error
   capture <scene>  render ~1 s of a scene in a window, save the frames to build/capture/
   all              lint, load, test, smoke
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
@@ -45,9 +45,11 @@ ROOT = Path(__file__).resolve().parent.parent
 GODOT_VERSION = "4.7.2"
 TIMEOUT = 300
 SMOKE_FRAMES = "300"
-# The main menu reaches it only after a click, so smoke runs it on its own as well.
+# The main menu reaches it only after a click, so the exported pack boots it on its own too.
 GAME_SCENE = "res://game/game.tscn"
 CAPTURE_FRAMES = "60"
+# Not part of the game, and not exported: smoke never runs a scene in these.
+NOT_GAME = ("tools/", "test/")
 # Written by run_export and read by the main menu; ignored by git.
 BUILD_COMMIT_FILE = "ui/main_menu/build_commit.txt"
 # The preview build's front page: itch's embed, with the game in an iframe under game/.
@@ -891,12 +893,46 @@ def logged_error(output: str) -> bool:
     return bool(ERROR_LINE.search(EXIT_LEAK.sub("", output)))
 
 
+def game_scenes() -> list[str]:
+    """The scenes the game can reach, the main scene first: everything a scene, resource or
+    script references by res:// or uid:// path, followed from the main scene and the
+    autoloads. A scene nothing references yet, such as one still being built, is left out
+    until something does, and tools/ and test/ are never followed. Every scene in the game
+    instantiates on its own (CODING_STANDARDS.md, Scene composition), and a sub-scene that
+    only works inside its parent, or a level the menus reach only after a click, shows it
+    only when run."""
+    by_uid = {uid: "res://" + path for path, uid in project_uids().items()}
+    # The editor may write run/main_scene as a uid://, and the order below compares paths.
+    main = main_scene()
+    main = by_uid.get(main, main) if main else None
+    settings = Path("project.godot").read_text(encoding="utf-8", errors="replace")
+    autoloads = re.findall(r'^\w+="\*?((?:res|uid)://[^"]+)"', settings, re.MULTILINE)
+    seen: set[str] = set()
+    pending = [main, *autoloads] if main else autoloads
+    while pending:
+        reference = pending.pop()
+        path = by_uid.get(reference, "") if reference.startswith("uid://") else reference
+        path = path.removeprefix("res://")
+        game_file = ours(path) and not path.startswith(NOT_GAME) and Path(path).is_file()
+        if path in seen or not game_file:
+            continue
+        seen.add(path)
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+        if path.endswith(".gd"):
+            # Strings only, so a path in a comment doesn't count as a reference.
+            text = "\n".join(string for _, string in split_gdscript(text)[1])
+        elif not path.endswith((".tscn", ".tres")):
+            continue
+        pending += re.findall(r'(?:res|uid)://[^"\s]+', text)
+    scenes = sorted("res://" + path for path in seen if path.endswith(".tscn"))
+    return ([main] if main in scenes else []) + [scene for scene in scenes if scene != main]
+
+
 def run_smoke(scenes: list[str]):
     if not scenes:
-        main = main_scene()
-        if not main:
+        scenes = game_scenes()
+        if not scenes:
             return "SKIPPED, no main scene set in project.godot"
-        scenes = [main, GAME_SCENE]
     for scene in scenes:
         result = run_godot(
             ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]
