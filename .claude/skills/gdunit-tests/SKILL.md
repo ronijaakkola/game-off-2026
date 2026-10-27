@@ -177,6 +177,7 @@ When tests fail, `check.py test` prints each failing test's block, then the summ
 Overall Summary: 27 test cases | 0 errors | 1 failures | 0 flaky | 0 skipped | 0 orphans |
 ```
 
+- `Godot Runtime Error !` with a stack means the code under test logged an error or warning (`push_error`, `push_warning` or the engine's own). Any logged one fails the test, as in `smoke`. Fix its cause; a test that expects one wraps the call in `assert_error(func() -> void: ...).is_push_error(message)`.
 - A failure with no test block (a failing `before()` or `after()`) prints the full run instead.
 - A run that finds no tests fails with `no test cases found in test/`.
 - `await_signal_on(...) timed out` means the signal fired before the await, or never. See Signals.
