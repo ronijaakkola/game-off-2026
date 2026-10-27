@@ -156,6 +156,7 @@ After a visual change, capture the scene (`uv run tools/check.py capture <scene>
 
 - `test/` mirrors the `res://` path of what it tests, and files are named `<name>_test.gd`: `core/audio/audio.gd` → `test/core/audio/audio_test.gd`.
 - The Web export drops `test/`.
+- A test that logs an error or warning fails, naming the line that logged it, as `smoke` does (`report/godot/push_error` in `project.godot`). A test that checks for an error uses `assert_error(callable).is_push_error(message)`.
 - A test may load any project file, the example game's scene and sounds included. When the file moves, the test fails naming it, and the fix is to update the path.
 - The `gdunit-tests` skill has the gdUnit4 patterns.
 

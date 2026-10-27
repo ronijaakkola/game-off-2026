@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
 
 # Tests run on desktop, where Online must stay offline: these pin that local runs, CI and
-# check.py never reach Talo, and that every call is safe offline. The online path needs a web
-# build, so it's checked by hand (docs/online.md, Trying it out).
+# check.py never reach Talo, and that every call is safe offline: Talo logs an error for a call
+# before the player is identified, and a logged error fails the test. The online path needs a
+# web build, so it's checked by hand (docs/online.md, Trying it out).
 
 var _access_key: String
 
