@@ -148,6 +148,7 @@ DEV_CONSOLE = "CODING_STANDARDS.md, Dev console"
 ONLINE = "CODING_STANDARDS.md, Online"
 AUTOLOADS = "CODING_STANDARDS.md, Autoloads (core systems)"
 TESTS = "CODING_STANDARDS.md, Tests"
+USER_FILES = "CODING_STANDARDS.md, Saved files"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
@@ -357,6 +358,7 @@ def script_problems(path: str, hook: bool) -> list[str]:
         problems += talo_problems(path, code)
     if not (outside or path.startswith(AUDIO_FOLDER)):
         problems += bus_name_problems(path, code)
+    problems += user_path_problems(path, strings, outside)
     return problems
 
 
@@ -469,6 +471,58 @@ def talo_problems(path: str, code: str) -> list[str]:
         problem(path, line_at(code, m.start()), "talo-through-online", message, ONLINE)
         for m in re.finditer(r"\bTalo\b", code)
     ]
+
+
+def user_path_problems(path: str, strings: list[tuple[int, str]], outside: bool) -> list[str]:
+    """A user:// path names a file no load check sees, so a copy left behind when the
+    owner's path changes reads or deletes nothing, without an error: a test then checks a
+    file nothing writes and passes. So one script writes each path, as a const. A copy in
+    a test or tool is flagged against the owner; two game scripts are flagged both ways."""
+    problems = []
+    for line, text in strings:
+        if not text.startswith("user://") or text == "user://":
+            continue
+        others = [
+            other
+            for other in user_path_writers().get(text, [])
+            if other != path and (outside or other.split("/")[0] not in ("test", "tools"))
+        ]
+        if not others:
+            continue
+        owner = others[0]
+        const = user_path_const(owner, text) or "PATH"
+        message = (
+            f'"{text}" is also written in {", ".join(others)}. One script owns each user:// '
+            f"file and writes its path once, as a const: name {owner}'s {const} instead "
+            f'(a test preloads it: preload("res://{owner}").{const}), so a moved file '
+            "can't leave a copy pointing where nothing writes."
+        )
+        problems.append(problem(path, line, "user-path-owner", message, USER_FILES))
+    return problems
+
+
+@cache
+def user_path_writers() -> dict[str, list[str]]:
+    """Each user:// path written as a string in a project script, with the scripts that
+    write it, game scripts before tests and tools so the first one is the owner."""
+    writers: dict[str, list[str]] = {}
+    for file in project_files():
+        if not file.endswith(".gd"):
+            continue
+        path = file.removeprefix("./")
+        source = Path(path).read_text(encoding="utf-8", errors="replace")
+        for _, text in split_gdscript(source)[1]:
+            if text.startswith("user://") and path not in writers.setdefault(text, []):
+                writers[text].append(path)
+    for paths in writers.values():
+        paths.sort(key=lambda p: (p.split("/")[0] in ("test", "tools"), p))
+    return writers
+
+
+def user_path_const(path: str, text: str) -> str | None:
+    source = Path(path).read_text(encoding="utf-8", errors="replace")
+    m = re.search(rf'^const\s+(\w+)\s*:?[^=\n]*=\s*"{re.escape(text)}"', source, re.M)
+    return m.group(1) if m else None
 
 
 def bus_name_problems(path: str, code: str) -> list[str]:

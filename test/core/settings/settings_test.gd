@@ -1,11 +1,10 @@
 extends GdUnitTestSuite
 
 const SettingsScript := preload("res://core/settings/settings.gd")
-const PATH := "user://settings.cfg"
 
 
 func before_test() -> void:
-	DirAccess.remove_absolute(PATH)
+	DirAccess.remove_absolute(SettingsScript.PATH)
 
 
 func after_test() -> void:
@@ -64,7 +63,7 @@ func test_a_burst_of_changes_saves_once_it_stops() -> void:
 	await get_tree().create_timer(SettingsScript.SAVE_DELAY / 2).timeout
 	settings.master_volume = 0.4
 	await get_tree().create_timer(SettingsScript.SAVE_DELAY / 2).timeout
-	assert_bool(FileAccess.file_exists(PATH)).is_false()
+	assert_bool(FileAccess.file_exists(SettingsScript.PATH)).is_false()
 
 	await _wait_for_save()
 	assert_float(_new_session().master_volume).is_equal_approx(0.4, 0.001)

@@ -118,7 +118,7 @@ if is_failure():
 
 Autoloads (`Events`, `Audio`, `Settings`, `SceneFlow`) are live during tests and keep their state between tests. Reset what you change in `after_test()`.
 
-To test a core system from a clean start, add a fresh instance of its script instead of using the live autoload: `add_child(auto_free(preload("res://core/settings/settings.gd").new()))` runs its `_ready()`. `user://settings.cfg` is the developer's own settings file, so never just delete it. `test/core/settings/settings_test.gd` shows the pattern: delete the file in `before_test()`, then in `after()` assign each live `Settings` value back to itself, which re-saves the file and restores the bus volumes.
+To test a core system from a clean start, add a fresh instance of its script instead of using the live autoload: `add_child(auto_free(preload("res://core/settings/settings.gd").new()))` runs its `_ready()`. `user://settings.cfg` is the developer's own settings file, so never just delete it. `test/core/settings/settings_test.gd` shows the pattern: delete the file in `before_test()`, naming it by the script's own const (`SettingsScript.PATH`), never a copied `user://` path, then in `after()` assign each live `Settings` value back to itself, which re-saves the file and restores the bus volumes.
 
 ## Tests that change scenes
 
