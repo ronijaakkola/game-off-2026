@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids or naming a uid that isn't its path's, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, a `user://` path written in two scripts, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids or naming a uid that isn't its path's, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 
@@ -151,6 +151,10 @@ Plugins have the same gap: enabling one from a script misses the settings the ed
 Each vendored plugin folder has a deny rule in `.claude/settings.json`, such as `Edit(/addons/talo/**)`, so agents can read it but not edit it. Vendoring a new plugin adds its rule in the same change. Upgrading a plugin is the human's job.
 
 After a visual change, capture the scene (`uv run tools/check.py capture <scene>`) and look at the frame. When the change is about feel (the soft look, lighting, camera, motion), end the handoff with "Needs a visual check: `<scene>`". Tuning by eye in the editor is recommended, never required.
+
+## Saved files
+
+A file in `user://` belongs to one script, which writes its path once, as a `const`: `Settings.PATH`, `Online.PLAYER_PATH`. Everything else, tests included, names that const (`preload("res://core/settings/settings.gd").PATH` in a test). No check sees `user://`, so a copy left behind when the path changes reads or deletes a file nothing writes, and a test of it passes without testing anything. `check.py lint` fails on a second script that writes the same path (`user-path-owner`).
 
 ## Tests
 
