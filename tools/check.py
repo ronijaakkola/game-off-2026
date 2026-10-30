@@ -45,8 +45,6 @@ ROOT = Path(__file__).resolve().parent.parent
 GODOT_VERSION = "4.7.2"
 TIMEOUT = 300
 SMOKE_FRAMES = "300"
-# The main menu reaches it only after a click, so the exported pack boots it on its own too.
-GAME_SCENE = "res://game/game.tscn"
 CAPTURE_FRAMES = "60"
 # Not part of the game, and not exported: smoke never runs a scene in these.
 NOT_GAME = ("tools/", "test/")
@@ -943,6 +941,15 @@ def main_scene() -> str | None:
     return match.group(1) if match else None
 
 
+def main_scene_path() -> str | None:
+    """The main scene as a res:// path. The editor may write run/main_scene as a uid://."""
+    main = main_scene()
+    if not main or not main.startswith("uid://"):
+        return main
+    by_uid = {uid: "res://" + path for path, uid in project_uids().items()}
+    return by_uid.get(main, main)
+
+
 def logged_error(output: str) -> bool:
     return bool(ERROR_LINE.search(EXIT_LEAK.sub("", output)))
 
@@ -956,9 +963,7 @@ def game_scenes() -> list[str]:
     only works inside its parent, or a level the menus reach only after a click, shows it
     only when run."""
     by_uid = {uid: "res://" + path for path, uid in project_uids().items()}
-    # The editor may write run/main_scene as a uid://, and the order below compares paths.
-    main = main_scene()
-    main = by_uid.get(main, main) if main else None
+    main = main_scene_path()
     settings = Path("project.godot").read_text(encoding="utf-8", errors="replace")
     autoloads = re.findall(r'^\w+="\*?((?:res|uid)://[^"]+)"', settings, re.MULTILINE)
     seen: set[str] = set()
@@ -1032,9 +1037,12 @@ def run_export(preview: bool):
             f"{BUILD_COMMIT_FILE} isn't in the pack, so the menu shows no commit. "
             f"Add it to the {preset} preset's include_filter in export_presets.cfg"
         )
-    # From the repo root, --main-pack would load the project instead of the pack. The main
-    # menu reaches the game scene only after a click, so the pack boots that one as well.
-    for scene in [None, GAME_SCENE]:
+    # From the repo root, --main-pack would load the project instead of the pack. The pack
+    # leaves files out (test/, tools/, the dev console, files that aren't resources), so
+    # every scene smoke runs boots from it too: the main scene as a browser starts it, with
+    # no --scene, and each other scene on its own.
+    main = main_scene_path()
+    for scene in [None, *(scene for scene in game_scenes() if scene != main)]:
         scene_args = ["--scene", scene] if scene else []
         boot = run(
             [godot(), "--headless", "--main-pack", "index.pck", *scene_args]

@@ -77,7 +77,7 @@ Call down, signal up.
 - A scene reaches its own nodes through unique names: mark the node `unique_name_in_owner` and write `%Button`.
 - Dependencies from outside the scene come in through `@export` vars or a setter the parent calls.
 - Scenes stay unaware of their surroundings: no `get_parent()`, no `../` paths, no `/root/...` paths.
-- Every scene instantiates on its own without errors, so it runs with F6 in the editor, `uv run tools/check.py smoke <scene>`, and a gdUnit4 `scene_runner`. `smoke` with no scenes runs every scene the game reaches: the main scene, and every scene a reached scene instances or a reached script names by path, such as a `SceneFlow.go_to` target. A sub-scene that errors outside its parent fails it; a scene nothing references yet is left out until something does, and so is every scene in `tools/` and `test/`.
+- Every scene instantiates on its own without errors, so it runs with F6 in the editor, `uv run tools/check.py smoke <scene>`, and a gdUnit4 `scene_runner`. `smoke` with no scenes runs every scene the game reaches: the main scene, and every scene a reached scene instances or a reached script names by path, such as a `SceneFlow.go_to` target. A sub-scene that errors outside its parent fails it; a scene nothing references yet is left out until something does, and so is every scene in `tools/` and `test/`. `export` boots the same scenes from the exported pack, which leaves out `test/`, `tools/`, the dev console and any file that isn't a resource.
 
 ## Script size
 
