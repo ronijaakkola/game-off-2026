@@ -95,7 +95,7 @@ func test_keyboard_focus_follows_the_open_panel() -> void:
 
 
 # Leaving browser fullscreen shows only as the window shrinking. The menu opens on that only
-# on the web, so each test turns it on.
+# on the web, so each test sets it.
 func test_leaving_fullscreen_opens_the_menu() -> void:
 	var runner := scene_runner(SCENE)
 	runner.set_property("opens_when_window_shrinks", true)
@@ -116,6 +116,7 @@ func test_a_window_growing_or_changing_shape_keeps_playing() -> void:
 
 func test_the_window_shrinking_off_the_web_keeps_playing() -> void:
 	var runner := scene_runner(SCENE)
+	runner.set_property("opens_when_window_shrinks", false)
 	get_tree().root.size = BASE_SIZE - Vector2i(200, 100)
 	assert_bool(runner.scene().visible).is_false()
 	assert_bool(get_tree().paused).is_false()
