@@ -89,6 +89,8 @@ Input.parse_input_event(event)
 Input.flush_buffered_events()
 ```
 
+**Web-only behaviour** runs in no check: tests, `smoke` and the `export` boot all run desktop Godot, so a branch behind `OS.has_feature("web")` can break without a word. When the behaviour happens after `_ready()`, keep the web check to the default of a public var it reads when it happens, and have the test turn that var on: `opens_when_window_shrinks` in `ui/pause_menu/pause_menu.gd`, tested in `test/ui/pause_menu/pause_menu_test.gd`. Read what the test drives from nodes, such as `get_window().size`, not from `DisplayServer`, which a test can't change.
+
 ## Signals
 
 A signal emitted **during** the call you make (a click, an `invoke`) has already fired before any `await` starts. Start monitoring first, then assert:
