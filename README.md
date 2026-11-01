@@ -69,7 +69,7 @@ Save in Blender before `preview` or `export`: both read the file on disk.
 
 ## Checks
 
-Every check is a `tools/check.py` subcommand, and works the same on Windows, Mac and Linux. Each one prints `PASS` or `FAIL` and exits non-zero on failure. Agents run them; humans working in the editor have an equivalent for each.
+Every check is a `tools/check.py` subcommand, and works the same on Windows, Mac and Linux. Each one prints `PASS` or `FAIL` and exits non-zero on failure. Agents run them; humans working in the editor have an equivalent for each. `docs/dev-flow.md` shows when each one runs, for an agent and for a human, from the first edit to itch.io.
 
 | Command | What it does | In the editor |
 |---|---|---|

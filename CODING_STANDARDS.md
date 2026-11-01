@@ -18,6 +18,7 @@ Folders are by feature:
 | `test/` | gdUnit4 tests. |
 | `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
 | `art/` | The **model library**, `art/models.blend`. Ignored by git and Godot. |
+| `docs/` | Docs for people and agents, and their figures in `docs/figures/`. Ignored by Godot. |
 
 A file lives in the folder of the only feature that uses it. Move it to `shared/` when a second feature needs it.
 
