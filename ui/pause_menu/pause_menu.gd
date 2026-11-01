@@ -6,15 +6,17 @@ extends CanvasLayer
 
 const MAIN_MENU_SCENE := "res://ui/main_menu/main_menu.tscn"
 
+## Whether the window shrinking opens the menu. In browser fullscreen, Esc only leaves
+## fullscreen and the game never receives it, so leaving fullscreen opens the menu, as that Esc
+## would have. On only on the web; a test turns it on to reach it.
+var opens_when_window_shrinks := OS.has_feature("web")
+
 var _window_size := Vector2i.ZERO
 
 
 func _ready() -> void:
-	# In browser fullscreen, Esc only leaves fullscreen and the game never receives it. So
-	# leaving fullscreen opens the menu, as that Esc would have.
-	if OS.has_feature("web"):
-		_window_size = DisplayServer.window_get_size()
-		get_window().size_changed.connect(_on_window_size_changed)
+	_window_size = get_window().size
+	get_window().size_changed.connect(_on_window_size_changed)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -29,11 +31,13 @@ func _unhandled_input(event: InputEvent) -> void:
 # Leaving fullscreen shows as the window shrinking. itch fullscreens the game's iframe from
 # outside, so the window mode never changes, and a fullscreen window can be smaller than the
 # screen (a notch, display scaling), so neither tells. Shrinking the browser window pauses too.
+# The root window's size is the browser's: Godot sets it from the display server just before
+# emitting size_changed.
 func _on_window_size_changed() -> void:
-	var size := DisplayServer.window_get_size()
+	var size := get_window().size
 	var shrank := size != _window_size and size.x <= _window_size.x and size.y <= _window_size.y
 	_window_size = size
-	if shrank and not visible:
+	if opens_when_window_shrinks and shrank and not visible:
 		open()
 
 

@@ -3,6 +3,9 @@ extends GdUnitTestSuite
 const SCENE := "res://ui/pause_menu/pause_menu.tscn"
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
+# Headless, the window is 64×64, and the canvas_items stretch would scale every
+# simulated click by 18. At the base size it scales by 1.
+const BASE_SIZE := Vector2i(1152, 648)
 
 var _window_size: Vector2i
 var _runner_scene: Node
@@ -13,10 +16,8 @@ func before() -> void:
 	# it mid-run. Headless, there is no current scene.
 	_runner_scene = get_tree().current_scene
 	get_tree().current_scene = null
-	# Headless, the window is 64×64, and the canvas_items stretch would scale every
-	# simulated click by 18. At the base size it scales by 1.
 	_window_size = get_tree().root.size
-	get_tree().root.size = Vector2i(1152, 648)
+	get_tree().root.size = BASE_SIZE
 
 
 func after() -> void:
@@ -25,6 +26,9 @@ func after() -> void:
 
 
 func after_test() -> void:
+	# Back to the base size first: from a larger window that's a shrink, which pauses
+	# through a menu still in the tree.
+	get_tree().root.size = BASE_SIZE
 	# A failed test must not leave the rest of the suite paused, or input off. Unpause
 	# before waiting for SceneFlow: gdUnit's timeouts stall while the tree is paused.
 	get_tree().paused = false
@@ -88,6 +92,34 @@ func test_keyboard_focus_follows_the_open_panel() -> void:
 
 	back.pressed.emit()
 	assert_object(_focused()).is_same(settings_button)
+
+
+# Leaving browser fullscreen shows only as the window shrinking. The menu opens on that only
+# on the web, so each test sets it.
+func test_leaving_fullscreen_opens_the_menu() -> void:
+	var runner := scene_runner(SCENE)
+	runner.set_property("opens_when_window_shrinks", true)
+	get_tree().root.size = BASE_SIZE - Vector2i(0, 40)
+	assert_bool(runner.scene().visible).is_true()
+	assert_bool(get_tree().paused).is_true()
+	assert_object(_focused()).is_same(runner.find_child("ResumeButton"))
+
+
+func test_a_window_growing_or_changing_shape_keeps_playing() -> void:
+	var runner := scene_runner(SCENE)
+	runner.set_property("opens_when_window_shrinks", true)
+	get_tree().root.size = BASE_SIZE + Vector2i(200, 100)
+	get_tree().root.size = Vector2i(BASE_SIZE.x + 300, BASE_SIZE.y)
+	assert_bool(runner.scene().visible).is_false()
+	assert_bool(get_tree().paused).is_false()
+
+
+func test_the_window_shrinking_off_the_web_keeps_playing() -> void:
+	var runner := scene_runner(SCENE)
+	runner.set_property("opens_when_window_shrinks", false)
+	get_tree().root.size = BASE_SIZE - Vector2i(200, 100)
+	assert_bool(runner.scene().visible).is_false()
+	assert_bool(get_tree().paused).is_false()
 
 
 func _focused() -> Control:
