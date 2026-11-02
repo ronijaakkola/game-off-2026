@@ -50,6 +50,8 @@ CAPTURE_FRAMES = "60"
 NOT_GAME = ("tools/", "test/")
 # Written by run_export and read by the main menu; ignored by git.
 BUILD_COMMIT_FILE = "ui/main_menu/build_commit.txt"
+# Files check.py writes, which a script may name although the repo doesn't have them.
+GENERATED_FILES = (BUILD_COMMIT_FILE,)
 # The preview build's front page: itch's embed, with the game in an iframe under game/.
 PREVIEW_FRAME = "tools/preview_frame.html"
 ERROR_LINE = re.compile(r"^(SCRIPT )?ERROR", re.MULTILINE)
@@ -357,6 +359,9 @@ def script_problems(path: str, hook: bool) -> list[str]:
     if not (outside or path.startswith(AUDIO_FOLDER)):
         problems += bus_name_problems(path, code)
     problems += user_path_problems(path, strings, outside)
+    # The hook leaves this out: a script may name a scene before it is written.
+    if not (outside or hook):
+        problems += missing_path_problems(path, strings)
     return problems
 
 
@@ -496,6 +501,34 @@ def user_path_problems(path: str, strings: list[tuple[int, str]], outside: bool)
             "can't leave a copy pointing where nothing writes."
         )
         problems.append(problem(path, line, "user-path-owner", message, USER_FILES))
+    return problems
+
+
+def missing_path_problems(path: str, strings: list[tuple[int, str]]) -> list[str]:
+    """A res:// or uid:// string that names no file fails only when its line runs: a
+    SceneFlow.go_to target logs an error on the click that reaches it. Load and smoke both
+    pass, and smoke drops the missing scene and every scene only it leads to. A string with
+    % or { is a template, filled in at run time, so it's left alone."""
+    uids = set(project_uids().values())
+    problems = []
+    for line, text in strings:
+        if "%" in text or "{" in text or text in ("res://", "uid://"):
+            continue
+        if text.startswith("uid://"):
+            found = text in uids
+        elif text.startswith("res://"):
+            target = text.removeprefix("res://").split("::")[0]
+            found = Path(target or ".").exists() or target in GENERATED_FILES
+        else:
+            continue
+        if found:
+            continue
+        message = (
+            f"no file is at {text}. A load() or SceneFlow.go_to() of it fails only when "
+            "this line runs, and smoke skips that scene and every scene only it leads to. "
+            "Fix the path, or write the file first."
+        )
+        problems.append(problem(path, line, "path-exists", message, SCENE_COMPOSITION))
     return problems
 
 
