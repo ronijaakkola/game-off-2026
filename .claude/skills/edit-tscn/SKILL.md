@@ -17,36 +17,44 @@ Sections come in this order: header, `ext_resource`s, `sub_resource`s, nodes, co
 [gd_scene format=3 uid="uid://cmx3l2s0kq7ab"]
 
 [ext_resource type="Script" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
-[ext_resource type="PackedScene" path="res://ui/settings/settings_menu.tscn" id="2_sett"]
+[ext_resource type="Theme" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://ui/settings/settings_menu.tscn" id="3_sett"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_title"]
-font_size = 32
-
-[node name="MainMenu" type="Control" unique_id=1296613593]
+[node name="MainMenu" type="MarginContainer" unique_id=1296613593]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_menu")
 
-[node name="Buttons" type="VBoxContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="."]
 layout_mode = 2
 
-[node name="PlayButton" type="Button" parent="Buttons"]
+[node name="Buttons" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Center/Buttons"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "Jam Game"
+
+[node name="PlayButton" type="Button" parent="Center/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Play"
 
-[node name="SettingsMenu" parent="." instance=ExtResource("2_sett")]
+[node name="SettingsMenu" parent="." instance=ExtResource("3_sett")]
 visible = false
+layout_mode = 2
 
-[connection signal="pressed" from="Buttons/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="Center/Buttons/PlayButton" to="." method="_on_play_button_pressed"]
 ```
 
 - **Header:** `[gd_scene format=3]`, plus `uid="..."` when the file already has one. Leave out `load_steps`; 4.7 doesn't write it.
-- **`parent`:** the root node has none. Its children use `parent="."`, deeper nodes the path from the root (`parent="Buttons"`, `parent="Buttons/Row"`). A node's block comes after its parent's.
+- **`parent`:** the root node has none. Its children use `parent="."`, deeper nodes the path from the root (`parent="Center"`, `parent="Center/Buttons"`). A node's block comes after its parent's.
 - **`id`:** any string unique within the file. Godot writes `1_abcde` for ext_resources and `Type_abcde` for sub_resources; a readable suffix (`1_menu`) works too.
 - **Properties:** only values that differ from the default are written. Leave a default out instead of writing it.
 - **Sub-scene:** a node with `instance=ExtResource(...)` and no `type`. Its own nodes stay in its own file.
@@ -63,7 +71,7 @@ Once the files are written, `uv run tools/check.py ids` saves each one missing a
 Write an `ext_resource` with `path` alone, and let `uv run tools/check.py ids` add its `uid`, as it does for headers and nodes:
 
 ```
-[ext_resource type="PackedScene" path="res://ui/settings/settings_menu.tscn" id="2_sett"]
+[ext_resource type="PackedScene" path="res://ui/settings/settings_menu.tscn" id="3_sett"]
 ```
 
 Never type or copy a uid into one. The uid wins over the path: another file's uid loads that file instead, with no error, and an unknown one falls back to the path with only a warning. The load check, the smoke run and the tests all pass either way, so `check.py lint` fails on a uid that isn't its path's (rule `uid-matches-path`). Keep the uids already in the file unchanged.
@@ -73,7 +81,7 @@ Never type or copy a uid into one. The uid wins over the path: another file's ui
 Build UI from Containers styled by the shared Theme in `ui/`:
 
 - The root Control fills the screen with the full-rect block shown above (`layout_mode = 3`, `anchors_preset = 15`, anchors 1.0, grow 2) and carries `theme = ExtResource(...)`.
-- A child of a Container gets `layout_mode = 2` and no anchors or offsets: the Container places it.
+- A child of a Container gets `layout_mode = 2` and no anchors or offsets: the Container places it. Every other Control is a Container's child too. Under a plain `Control` or a `CanvasLayer`, nothing places it, and it sits at the top-left at its minimum size; `check.py lint` fails on one (rule `container-child`).
 - Spacing comes from `MarginContainer` and the Theme's separations, never from per-node offsets.
 - A variant of a control (a title label, a danger button) is a type variation in `ui/theme.tres`, which the node names with `theme_type_variation = &"TitleLabel"`. Add new variants to the Theme as `<Name>/base_type = &"Label"` plus their items, rather than as per-node overrides or a new scene ([Theme type variations](https://docs.godotengine.org/en/4.7/tutorials/ui/gui_theme_type_variations.html)).
 

@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, a `user://` path written in two scripts, a `res://` or `uid://` path in a script that names no file, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids or naming a uid that isn't its path's, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, a `user://` path written in two scripts, a `res://` or `uid://` path in a script that names no file, test file names, two nodes sharing a `unique_id`, a node left to a Container (`layout_mode = 2`) under a parent that isn't one, a scene or resource missing its ids or naming a uid that isn't its path's, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 
@@ -111,7 +111,7 @@ Core systems emit on `Events` and declare no public signals of their own. Consum
 
 ## UI
 
-Build UI from Containers (`VBoxContainer`, `MarginContainer`, `CenterContainer`, …) styled by the shared Theme in `ui/`. Containers keep text edits to `.tscn` predictable and scale with the `canvas_items` stretch mode. Set anchors only on the root Control of a scene.
+Build UI from Containers (`VBoxContainer`, `MarginContainer`, `CenterContainer`, …) styled by the shared Theme in `ui/`. Containers keep text edits to `.tscn` predictable and scale with the `canvas_items` stretch mode. Set anchors only on the root Control of a scene; every other Control is a Container's child.
 
 - A Control that covers the 3D view, such as a HUD's root and its full-size Containers, sets `mouse_filter` to `IGNORE` (`mouse_filter = 2` in a `.tscn`). It is the only filter the docs say "will not block other controls" from getting the click; `PASS` takes the click and bubbles it up to the parent ([MouseFilter](https://docs.godotengine.org/en/4.7/classes/class_control.html#enum-control-mousefilter)).
 - To change a Theme StyleBox at runtime, `duplicate()` it and apply the copy with `add_theme_stylebox_override()`. The StyleBox is shared, so editing it in place changes every control that uses it ([add_theme_stylebox_override](https://docs.godotengine.org/en/4.7/classes/class_control.html#class-control-method-add-theme-stylebox-override)).

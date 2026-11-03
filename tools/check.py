@@ -154,6 +154,7 @@ FORMATTING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
+UI = "CODING_STANDARDS.md, UI"
 EVENTS_SCRIPT = "core/events/events.gd"
 DEV_COMMANDS = "core/dev_console/dev_commands.gd"
 ONLINE_FOLDER = "core/online/"
@@ -184,6 +185,11 @@ BUS_ASSIGNMENT = re.compile(r"\.\s*bus\s*=(?!=)(?!\s*Audio\s*\.\s*BUS_NAMES\b)")
 EXT_RESOURCE_UID = re.compile(
     r'^\[ext_resource (?=[^\n]*?\buid="([^"]+)")(?=[^\n]*?\bpath="res://([^"]+)")'
 )
+# A node's header: its name, and its type and parent when it has them. An instanced
+# sub-scene has no type.
+NODE_HEADER = re.compile(r'^\[node name="([^"]+)"(?: type="(\w+)")?(?: parent="([^"]*)")?')
+# Containers whose class name doesn't end in Container.
+OTHER_CONTAINERS = {"GraphNode", "GraphFrame"}
 SCENE_HEADER_UID = re.compile(r'\[gd_(?:scene|resource)\b[^\n]*?\buid="([^"]+)"')
 WOULD_REFORMAT = re.compile(r"^would reformat (.+)$", re.MULTILINE)
 
@@ -612,7 +618,7 @@ def scene_problems(path: str) -> list[str]:
             "the copied node; the editor gives the node a new one on its next save."
         )
         problems.append(problem(path, number, "duplicate-unique-id", message, UNIQUE_IDS))
-    return problems + scene_bus_problems(path, lines)
+    return problems + scene_bus_problems(path, lines) + container_child_problems(path, lines)
 
 
 def scene_bus_problems(path: str, lines: list[str]) -> list[str]:
@@ -627,6 +633,44 @@ def scene_bus_problems(path: str, lines: list[str]) -> list[str]:
                 f"Master. The buses are {', '.join(buses)} (Audio.Bus)."
             )
             problems.append(problem(path, number, "unknown-bus", message, AUTOLOADS))
+    return problems
+
+
+def container_child_problems(path: str, lines: list[str]) -> list[str]:
+    """layout_mode = 2 says a Container places the node. Under a node that isn't one,
+    nothing does: Godot keeps it at the top-left at its minimum size, and load, smoke and
+    tests all pass. The editor never writes it there, so it comes from a hand edit."""
+    types: dict[str, str | None] = {}
+    problems = []
+    node = parent = None
+    for number, line in enumerate(lines, 1):
+        if line.startswith("["):
+            node = parent = None
+            m = NODE_HEADER.match(line)
+            if not m:
+                continue
+            name, kind, parent = m.groups()
+            node_path = "." if parent is None else name if parent == "." else f"{parent}/{name}"
+            types[node_path] = kind
+            node = name
+            continue
+        if node is None or parent is None or line.strip() != "layout_mode = 2":
+            continue
+        # An instanced sub-scene's type is in its own file, so it isn't checked here.
+        parent_type = types.get(parent)
+        if parent_type is None or parent_type.endswith("Container"):
+            continue
+        if parent_type in OTHER_CONTAINERS:
+            continue
+        parent_name = "the root" if parent == "." else parent.split("/")[-1]
+        message = (
+            f"{node} has layout_mode = 2, which leaves it to a Container, but its parent, "
+            f"{parent_name}, is a {parent_type}, so nothing places it: it sits at the top-left at its "
+            "minimum size. Make the parent a Container (MarginContainer, CenterContainer, "
+            "VBoxContainer); a scene's root Control fills the screen with the full-rect block "
+            "(layout_mode = 3, anchors_preset = 15) instead."
+        )
+        problems.append(problem(path, number, "container-child", message, UI))
     return problems
 
 
