@@ -182,6 +182,7 @@ Overall Summary: 27 test cases | 0 errors | 1 failures | 0 flaky | 0 skipped | 0
 - `Godot Runtime Error !` with a stack means the code under test logged an error or warning (`push_error`, `push_warning` or the engine's own). Any logged one fails the test, as in `smoke`. Fix its cause; a test that expects one wraps the call in `assert_error(func() -> void: ...).is_push_error(message)`.
 - A failure with no test block (a failing `before()` or `after()`) prints the full run instead.
 - A run that finds no tests fails with `no test cases found in test/`.
+- `Godot timed out after 300 s` names the suite and test where the run stopped. That's almost always a tree left paused, there or in an earlier suite. See Signals.
 - `await_signal_on(...) timed out` means the signal fired before the await, or never. See Signals.
 - A test file that fails to parse aborts the whole run with exit code 105 and prints the parse error.
 - Exit code 100 means failures. 101 means warnings only, which `check.py` counts as a pass.
