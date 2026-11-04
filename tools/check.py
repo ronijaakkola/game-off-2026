@@ -989,9 +989,13 @@ def stalled_test_message(timeout: TimedOut) -> str:
     output = DEBUGGER_NOISE.sub("", timeout.output)
     suites = re.findall(r"^Run Test Suite: (\S+)", output, re.MULTILINE)
     tests = re.findall(r"^  \S+ > (\w+)", output, re.MULTILINE)
-    where = suites[-1] if suites else "before the first suite"
-    if suites and tests:
-        where += f" > {tests[-1]}"
+    if suites:
+        where = suites[-1] + (f" > {tests[-1]}" if tests else "")
+    else:
+        # No suite line: the run stopped before the first suite, or gdUnit's console
+        # format changed. Show the output so the failure still says where it stopped.
+        tail = "\n".join(output.splitlines()[-20:]) or "(no output)"
+        where = f"no test suite (the last output follows)\n{tail}\n"
     return (
         f"{timeout}\nThe run stopped in {where}. gdUnit's timeouts (await_signal_on, wait_until, "
         "the per-test timeout) are Timers that stop while the tree is paused, so a test that "

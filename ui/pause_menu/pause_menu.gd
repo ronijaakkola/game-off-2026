@@ -20,7 +20,9 @@ func _ready() -> void:
 
 
 # The pause is the menu's, so it goes with the menu: a game scene freed while paused (a
-# restart, a test's scene runner) leaves the next one running.
+# restart, a test's scene runner) leaves the next one running. This assumes the open menu
+# is the only thing pausing the tree. A second pauser, such as a game-over screen, needs
+# its own release, or a count of who holds the pause.
 func _exit_tree() -> void:
 	if visible:
 		get_tree().paused = false
