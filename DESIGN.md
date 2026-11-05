@@ -52,7 +52,7 @@ A 3D take on the board scene of the Phase Miner 2D prototype (the "Phase Miner" 
 - A rock costs 1 hull, ore gives 3 fuel, a crystal 50 points, scrap 20. Phases in a row that destroy items and hit no rock, with no slide between, build a **combo** worth 10 points per step from the second one.
 - The run ends at 0 hull or 0 fuel; R starts a new one. A field with only rocks left is replaced by a fresh one.
 - There is no board: the field floats in open space under the shared space sky (`shared/space_sky/`). A smoke grid shader (`phase_miner/smoke_grid.gdshader`) draws soft, drifting lines on the cell edges that fade out past the field's edge, and glows faintly over the ship's row and column and over a dragged line.
-- The camera looks down at the field from about 42°, like a player across a chessboard. Rocks, ore and scrap rest on the grid and crystals hover just above, so pieces overlap the cell behind them, while the grid stays readable.
+- The camera looks down at the field from about 52°, like a player across a chessboard, high enough that the back rows stay readable. Rocks, ore and scrap rest on the grid and crystals hover just above, so pieces overlap the cell behind them, while the grid stays readable.
 
 The rules live in `phase_miner/phase_field.gd` (`PhaseField`), with no nodes, so they test without a scene. Open questions: whether slides should show a fuel-cost preview while dragging, and whether a phase should preview its path, as the 2D prototype does on hover.
 

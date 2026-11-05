@@ -59,14 +59,14 @@ directional_shadow_max_distance = 30.0
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1815493354]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 0.743145, 0.669131, 0, -0.669131, 0.743145, 0, 9.36783, 11.304)
-fov = 36.0
+transform = Transform3D(1, 0, -0, -0, 0.615661, 0.788011, 0, -0.788011, 0.615661, 0, 11.505, 9.53866)
+fov = 36
 
 [node name="PhantomCameraHost" type="Node" parent="Camera" unique_id=14678127]
 script = ExtResource("4_pcam_host")
 
 [node name="BoardShot" type="Node3D" parent="." unique_id=719384474]
-transform = Transform3D(1, 0, 0, 0, 0.743145, 0.669131, 0, -0.669131, 0.743145, 0, 9.36783, 11.304)
+transform = Transform3D(1, 0, -0, -0, 0.615661, 0.788011, 0, -0.788011, 0.615661, 0, 11.505, 9.53866)
 script = ExtResource("6_pcam")
 tween_resource = SubResource("Resource_tween")
 tween_on_load = false
