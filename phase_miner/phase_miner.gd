@@ -29,9 +29,13 @@ const KEY_DIRECTIONS := {
 	KEY_RIGHT: Vector2i.RIGHT,
 	KEY_D: Vector2i.RIGHT,
 }
-## Glow for emissive items: the space sky's environment has none of its own.
-const GLOW_INTENSITY := 0.6
-const GLOW_THRESHOLD := 0.6
+## Flat, per-face colour for every piece. See the shader for how faces pick their shade.
+const FLAT_FACE := preload("res://phase_miner/flat_face.gdshader")
+## Piece colours: saturated, and far enough apart in hue to tell at a glance.
+const ROCK_COLOR := Color(0.6, 0.56, 0.74)
+const FUEL_COLOR := Color(1.0, 0.8, 0.28)
+const CRYSTAL_COLOR := Color(0.92, 0.42, 1.0)
+const SCRAP_COLOR := Color(1.0, 0.48, 0.36)
 
 var field := PhaseField.new()
 
@@ -53,7 +57,7 @@ var _drag_offset := 0.0
 
 func _ready() -> void:
 	_make_meshes()
-	_set_up_glow()
+	_set_up_environment()
 	field.reset(_rng)
 	_rebuild_items()
 	_place_ship()
@@ -293,12 +297,10 @@ func _paint_grid() -> void:
 	)
 
 
-func _set_up_glow() -> void:
+# The flat colours are picked to show as written, so no tonemapper may bend them.
+func _set_up_environment() -> void:
 	var environment := (%SpaceSky as WorldEnvironment).environment
-	environment.glow_enabled = true
-	environment.glow_intensity = GLOW_INTENSITY
-	environment.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
-	environment.glow_hdr_threshold = GLOW_THRESHOLD
+	environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 
 
 func _make_meshes() -> void:
@@ -307,7 +309,7 @@ func _make_meshes() -> void:
 	rock.height = 0.78
 	rock.radial_segments = 7
 	rock.rings = 4
-	rock.material = _material(Color(0.42, 0.44, 0.52), 0.0)
+	rock.material = _material(ROCK_COLOR)
 	_meshes[PhaseField.Item.ROCK] = rock
 
 	# A squat canister.
@@ -316,7 +318,7 @@ func _make_meshes() -> void:
 	fuel.bottom_radius = 0.17
 	fuel.height = 0.52
 	fuel.radial_segments = 12
-	fuel.material = _material(Color(0.95, 0.69, 0.26), 0.6)
+	fuel.material = _material(FUEL_COLOR)
 	_meshes[PhaseField.Item.FUEL] = fuel
 
 	# Four segments and one ring make an octahedron: a cut gem.
@@ -325,23 +327,19 @@ func _make_meshes() -> void:
 	crystal.height = 0.95
 	crystal.radial_segments = 4
 	crystal.rings = 1
-	crystal.material = _material(Color(0.72, 0.57, 1.0), 0.9)
+	crystal.material = _material(CRYSTAL_COLOR)
 	_meshes[PhaseField.Item.CRYSTAL] = crystal
 
 	var scrap := BoxMesh.new()
 	scrap.size = Vector3(0.42, 0.24, 0.3)
-	scrap.material = _material(Color(0.88, 0.57, 0.37), 0.0)
+	scrap.material = _material(SCRAP_COLOR)
 	_meshes[PhaseField.Item.SCRAP] = scrap
 
 
-func _material(color: Color, glow: float) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.roughness = 0.7
-	if glow > 0.0:
-		material.emission_enabled = true
-		material.emission = color
-		material.emission_energy_multiplier = glow
+func _material(color: Color) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = FLAT_FACE
+	material.set_shader_parameter(&"color", color)
 	return material
 
 
