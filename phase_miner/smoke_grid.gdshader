@@ -10,13 +10,19 @@ render_mode unshaded, blend_add, depth_draw_never, cull_disabled;
 uniform float cells = 8.0;
 uniform float cell_size = 1.0;
 uniform vec3 line_color : source_color = vec3(0.42, 0.66, 1.0);
-uniform float line_strength : hint_range(0.0, 2.0) = 0.24;
+uniform float line_strength : hint_range(0.0, 2.0) = 0.3;
 // Half-width of a line, in cells, before the smoke thickens or thins it.
 uniform float line_width : hint_range(0.005, 0.2) = 0.026;
 // How far the smoke bends a line off its cell edge, in cells.
 uniform float wobble : hint_range(0.0, 0.3) = 0.045;
 uniform float smoke_scale = 0.9;
-uniform float smoke_speed = 0.06;
+// How fast the large swirls that bend the lines drift, in grid units per second.
+uniform float smoke_speed = 0.1;
+// How fast the dense and thin stretches flow along the lines.
+uniform float wisp_speed = 0.35;
+// A slow ripple along each line, in cells, so the lines breathe even where the smoke is still.
+uniform float sway : hint_range(0.0, 0.05) = 0.012;
+uniform float sway_speed = 0.7;
 uniform vec3 lane_color : source_color = vec3(0.3, 0.5, 0.9);
 uniform float lane_strength : hint_range(0.0, 1.0) = 0.1;
 uniform float drag_strength : hint_range(0.0, 1.0) = 0.16;
@@ -65,10 +71,14 @@ void fragment() {
 	// Slow, large swirls bend the lines and set their thickness; finer wisps break them up.
 	float smoke = fbm(grid * smoke_scale + drift);
 	float swirl = fbm(grid * smoke_scale + drift * 0.8 + 3.1);
-	float wisps = fbm(grid * smoke_scale * 1.8 - drift * 1.4 + 7.3);
+	vec2 flow = vec2(-TIME * wisp_speed, TIME * wisp_speed * 0.8);
+	float wisps = fbm(grid * smoke_scale * 1.8 + flow + 7.3);
 
-	// Distance to the nearest cell edge, after the smoke bends it.
+	// Distance to the nearest cell edge, after the smoke bends it and the ripple sways it.
 	vec2 bent = grid + (vec2(smoke, swirl) - 0.5) * 2.0 * wobble;
+	bent += sway * vec2(
+			sin(grid.y * 2.1 + TIME * sway_speed),
+			sin(grid.x * 2.3 - TIME * sway_speed * 1.1));
 	vec2 to_edge = abs(fract(bent + 0.5) - 0.5);
 	float distance_to_line = min(to_edge.x, to_edge.y);
 	float width = line_width * (0.5 + smoke);
