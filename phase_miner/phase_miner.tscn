@@ -42,8 +42,7 @@ size = Vector3(0.62, 0.85, 0.26)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ship"]
 render_priority = 0
 shader = ExtResource("9_flat")
-shader_parameter/color = Color(0.62, 0.92, 1, 1)
-shader_parameter/shadow_tint = Color(0.45, 0.5, 0.8, 1)
+shader_parameter/color = Color(0.95, 0.94, 0.9, 1)
 shader_parameter/sun_direction = null
 shader_parameter/side_value = null
 shader_parameter/rim_band = null
@@ -54,6 +53,7 @@ script = ExtResource("1_miner")
 [node name="SpaceSky" type="WorldEnvironment" parent="." unique_id=688198131]
 unique_name_in_owner = true
 script = ExtResource("7_sky")
+fog_strength = 0.35
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1815493354]
 unique_name_in_owner = true

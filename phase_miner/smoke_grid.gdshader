@@ -9,8 +9,8 @@ render_mode unshaded, blend_add, depth_draw_never, cull_disabled;
 
 uniform float cells = 8.0;
 uniform float cell_size = 1.0;
-uniform vec3 line_color : source_color = vec3(0.42, 0.66, 1.0);
-uniform float line_strength : hint_range(0.0, 2.0) = 0.42;
+uniform vec3 line_color : source_color = vec3(0.72, 0.8, 0.95);
+uniform float line_strength : hint_range(0.0, 2.0) = 0.34;
 // Half-width of a line, in cells, before the smoke thickens or thins it.
 uniform float line_width : hint_range(0.005, 0.2) = 0.026;
 // How far the smoke bends a line off its cell edge, in cells.
@@ -23,7 +23,7 @@ uniform float wisp_speed = 0.35;
 // A slow ripple along each line, in cells, so the lines breathe even where the smoke is still.
 uniform float sway : hint_range(0.0, 0.05) = 0.012;
 uniform float sway_speed = 0.7;
-uniform vec3 lane_color : source_color = vec3(0.3, 0.5, 0.9);
+uniform vec3 lane_color : source_color = vec3(0.55, 0.65, 0.85);
 uniform float lane_strength : hint_range(0.0, 1.0) = 0.14;
 uniform float drag_strength : hint_range(0.0, 1.0) = 0.22;
 // The ship's cell (column, row). Its row and column glow.

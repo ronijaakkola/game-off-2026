@@ -31,11 +31,11 @@ const KEY_DIRECTIONS := {
 }
 ## Flat, per-face colour for every piece. See the shader for how faces pick their shade.
 const FLAT_FACE := preload("res://phase_miner/flat_face.gdshader")
-## Piece colours: saturated, and far enough apart in hue to tell at a glance.
-const ROCK_COLOR := Color(0.6, 0.56, 0.74)
-const FUEL_COLOR := Color(1.0, 0.8, 0.28)
-const CRYSTAL_COLOR := Color(0.92, 0.42, 1.0)
-const SCRAP_COLOR := Color(1.0, 0.48, 0.36)
+## Piece colours: muted, matte tones, far enough apart in hue to tell at a glance.
+const ROCK_COLOR := Color(0.55, 0.56, 0.6)
+const FUEL_COLOR := Color(0.94, 0.78, 0.33)
+const CRYSTAL_COLOR := Color(0.82, 0.58, 0.88)
+const SCRAP_COLOR := Color(0.88, 0.47, 0.44)
 
 var field := PhaseField.new()
 

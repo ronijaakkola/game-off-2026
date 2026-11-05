@@ -56,10 +56,10 @@ text = "Combo"
 [node name="Legend" type="Label" parent="Columns/Stats" unique_id=2025848227]
 layout_mode = 2
 theme_type_variation = &"FaintLabel"
-text = "Lavender rock: -1 hull, breaks the combo
+text = "Grey rock: -1 hull, breaks the combo
 Yellow ore: +3 fuel
-Magenta crystal: 50 points
-Coral scrap: 20 points"
+Pink crystal: 50 points
+Red scrap: 20 points"
 
 [node name="Spacer" type="Control" parent="Columns" unique_id=223253251]
 layout_mode = 2
