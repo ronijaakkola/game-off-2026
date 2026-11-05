@@ -39,7 +39,7 @@ func test_dragging_a_row_slides_it_and_carries_the_ship() -> void:
 
 	# Drag the ship's row two cells right, from the ship's cell.
 	var camera := runner.scene().get_viewport().get_camera_3d()
-	var from := Vector3(-3.5, 0.4, 0.5)
+	var from := Vector3(-3.5, 0.0, 0.5)
 	_mouse(camera.unproject_position(from), true)
 	_move(camera.unproject_position(from + Vector3(1.0, 0.0, 0.0)))
 	_move(camera.unproject_position(from + Vector3(2.0, 0.0, 0.0)))
@@ -52,7 +52,7 @@ func test_dragging_a_row_slides_it_and_carries_the_ship() -> void:
 
 
 # Clears the scene's field to an empty board with the ship at column 0, row 4: the board point
-# (-3.5, 0.4, 0.5). One scrap is left out of the way, at column 6, row 0, so the field isn't
+# (-3.5, 0.0, 0.5). One scrap is left out of the way, at column 6, row 0, so the field isn't
 # mined out after a move and replaced.
 func _empty_field(runner: GdUnitSceneRunner) -> PhaseField:
 	var field := runner.get_property("field") as PhaseField

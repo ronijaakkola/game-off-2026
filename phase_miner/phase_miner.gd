@@ -6,8 +6,14 @@ extends Node3D
 
 ## Width of one board cell, in metres. The board is centred on the origin.
 const CELL := 1.0
-## Height items and the ship float at above the board's tiles.
-const FLOAT_HEIGHT := 0.4
+## How high each item's centre sits above the tile tops: rocks, ore and scrap stand on their
+## tiles like chess pieces, and crystals hover a little above theirs.
+const REST_HEIGHTS := {
+	PhaseField.Item.ROCK: 0.34,
+	PhaseField.Item.FUEL: 0.26,
+	PhaseField.Item.CRYSTAL: 0.58,
+	PhaseField.Item.SCRAP: 0.12,
+}
 ## Seconds the ship takes to cross one cell in a phase.
 const STEP_TIME := 0.07
 ## How far the pointer moves on the board, in metres, before a drag picks its axis.
@@ -248,18 +254,27 @@ func _rebuild_items() -> void:
 				_item_nodes[cell] = _make_item(cell, item)
 
 
+# An item is a node on the tile top, turned about its upright axis, with its mesh lifted to
+# its rest height. Sliding and popping it then only touch the root.
 func _make_item(cell: Vector2i, item: PhaseField.Item) -> Node3D:
-	var node := MeshInstance3D.new()
-	node.mesh = _meshes[item]
+	# The same cell always gets the same turn, so items don't change shape after a slide.
+	var look := RandomNumberGenerator.new()
+	look.seed = hash(cell) + item
+	var node := Node3D.new()
 	node.position = _cell_position(cell)
-	# The same cell always gets the same tilt, so rocks don't jitter when a line slides.
-	var tilt := RandomNumberGenerator.new()
-	tilt.seed = hash(cell) + item
-	node.rotation = Vector3(tilt.randf() * TAU, tilt.randf() * TAU, tilt.randf() * TAU)
-	if item == PhaseField.Item.CRYSTAL:
-		node.rotation = Vector3(0.0, tilt.randf() * TAU, 0.0)
-	if item == PhaseField.Item.ROCK:
-		node.scale = Vector3(tilt.randf_range(0.85, 1.15), tilt.randf_range(0.7, 1.0), 1.0)
+	node.rotation.y = look.randf() * TAU
+	var body := MeshInstance3D.new()
+	body.mesh = _meshes[item]
+	body.position.y = REST_HEIGHTS[item]
+	match item:
+		PhaseField.Item.ROCK:
+			body.rotation = Vector3(look.randf_range(-0.4, 0.4), 0.0, look.randf_range(-0.4, 0.4))
+			body.scale = Vector3(
+				look.randf_range(0.8, 1.1), look.randf_range(0.8, 1.2), look.randf_range(0.8, 1.1)
+			)
+		PhaseField.Item.SCRAP:
+			body.rotation = Vector3(look.randf_range(-0.3, 0.3), 0.0, look.randf_range(-0.3, 0.3))
+	node.add_child(body)
 	%Items.add_child(node)
 	return node
 
@@ -302,30 +317,33 @@ func _paint_tiles() -> void:
 
 func _make_meshes() -> void:
 	var rock := SphereMesh.new()
-	rock.radius = 0.36
-	rock.height = 0.6
+	rock.radius = 0.37
+	rock.height = 0.78
 	rock.radial_segments = 7
 	rock.rings = 4
 	rock.material = _material(Color(0.42, 0.44, 0.52), 0.0)
 	_meshes[PhaseField.Item.ROCK] = rock
 
-	var fuel := SphereMesh.new()
-	fuel.radius = 0.2
-	fuel.height = 0.4
+	# A squat canister.
+	var fuel := CylinderMesh.new()
+	fuel.top_radius = 0.17
+	fuel.bottom_radius = 0.17
+	fuel.height = 0.52
+	fuel.radial_segments = 12
 	fuel.material = _material(Color(0.95, 0.69, 0.26), 0.6)
 	_meshes[PhaseField.Item.FUEL] = fuel
 
 	# Four segments and one ring make an octahedron: a cut gem.
 	var crystal := SphereMesh.new()
-	crystal.radius = 0.22
-	crystal.height = 0.7
+	crystal.radius = 0.2
+	crystal.height = 0.95
 	crystal.radial_segments = 4
 	crystal.rings = 1
 	crystal.material = _material(Color(0.72, 0.57, 1.0), 0.9)
 	_meshes[PhaseField.Item.CRYSTAL] = crystal
 
 	var scrap := BoxMesh.new()
-	scrap.size = Vector3(0.36, 0.12, 0.26)
+	scrap.size = Vector3(0.42, 0.24, 0.3)
 	scrap.material = _material(Color(0.88, 0.57, 0.37), 0.0)
 	_meshes[PhaseField.Item.SCRAP] = scrap
 
@@ -347,7 +365,7 @@ func _material(color: Color, glow: float) -> StandardMaterial3D:
 # The board point under screen_position, or null when the pointer is off the board's plane.
 func _board_point(screen_position: Vector2) -> Variant:
 	var camera := %Camera as Camera3D
-	var plane := Plane(Vector3.UP, FLOAT_HEIGHT)
+	var plane := Plane(Vector3.UP, 0.0)
 	return plane.intersects_ray(
 		camera.project_ray_origin(screen_position), camera.project_ray_normal(screen_position)
 	)
@@ -362,10 +380,10 @@ func _cell_position(cell: Vector2i) -> Vector3:
 	return _grid_position(Vector2(cell))
 
 
-# A cell's centre at float grid coordinates (column, row), at item height.
+# A cell's centre on the tile tops, at float grid coordinates (column, row).
 func _grid_position(at: Vector2) -> Vector3:
 	var half := (PhaseField.SIZE - 1) * 0.5
-	return Vector3((at.x - half) * CELL, FLOAT_HEIGHT, (at.y - half) * CELL)
+	return Vector3((at.x - half) * CELL, 0.0, (at.y - half) * CELL)
 
 
 # The ship's model points along −Z, which is up the board (row 0 is the far edge).
