@@ -7,7 +7,7 @@ extends WorldEnvironment
 ## [code]space_sky.fade_to(Color(0.08, 0.02, 0.03), Color(0.1, 0.05, 0.0), 2.0)[/code].
 ## It builds its own [Environment] and doesn't save it into the scene.
 
-const SHADER := preload("res://game/space_sky/space_sky.gdshader")
+const SHADER := preload("res://shared/space_sky/space_sky.gdshader")
 
 ## The empty space between the fog.
 @export var background_color := Color(0.004, 0.005, 0.011):

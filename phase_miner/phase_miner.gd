@@ -29,19 +29,15 @@ const KEY_DIRECTIONS := {
 	KEY_RIGHT: Vector2i.RIGHT,
 	KEY_D: Vector2i.RIGHT,
 }
-const TILE_COLOR := Color(0.13, 0.16, 0.26)
-const LANE_COLOR := Color(0.18, 0.24, 0.4)
-const DRAG_COLOR := Color(0.24, 0.3, 0.5)
+## Glow for emissive items: the space sky's environment has none of its own.
+const GLOW_INTENSITY := 0.6
+const GLOW_THRESHOLD := 0.6
 
 var field := PhaseField.new()
 
 var _rng := RandomNumberGenerator.new()
 var _item_nodes: Dictionary[Vector2i, Node3D] = {}
-var _tiles: Dictionary[Vector2i, MeshInstance3D] = {}
 var _meshes: Dictionary[PhaseField.Item, Mesh] = {}
-var _tile_material := StandardMaterial3D.new()
-var _lane_material := StandardMaterial3D.new()
-var _drag_material := StandardMaterial3D.new()
 var _busy := false
 var _ship_move: Tween
 
@@ -57,11 +53,11 @@ var _drag_offset := 0.0
 
 func _ready() -> void:
 	_make_meshes()
-	_make_tiles()
+	_set_up_glow()
 	field.reset(_rng)
 	_rebuild_items()
 	_place_ship()
-	_paint_tiles()
+	_paint_grid()
 	%Hud.show_run(field)
 	%Hud.show_message("Phase with the arrow keys or WASD. Drag a row or column to slide it.")
 
@@ -165,7 +161,7 @@ func _move_drag(screen_position: Vector2) -> void:
 			return
 		_drag_axis_chosen = true
 		_drag_is_row = absf(moved.x) >= absf(moved.z)
-		_paint_tiles()
+		_paint_grid()
 	_drag_offset = (moved.x if _drag_is_row else moved.z) / CELL
 	_show_drag()
 
@@ -210,7 +206,7 @@ func _dragged_position(cell: Vector2i) -> Vector3:
 
 
 func _after_move() -> void:
-	_paint_tiles()
+	_paint_grid()
 	%Hud.show_run(field)
 	if field.hull <= 0:
 		%Hud.show_message("Hull breached. Press R for a new run.")
@@ -219,7 +215,7 @@ func _after_move() -> void:
 	elif not field.has_loot():
 		field.generate(_rng)
 		_rebuild_items()
-		_paint_tiles()
+		_paint_grid()
 		%Hud.show_message("Field mined out. A fresh one drifts in.")
 	elif field.combo >= 2:
 		%Hud.show_message("Combo x%d!" % field.combo)
@@ -234,7 +230,7 @@ func _new_run() -> void:
 	field.reset(_rng)
 	_rebuild_items()
 	_place_ship()
-	_paint_tiles()
+	_paint_grid()
 	%Hud.show_run(field)
 	%Hud.show_message("New run.")
 
@@ -286,33 +282,23 @@ func _place_ship() -> void:
 	%Ship.rotation.y = _heading_angle(field.heading)
 
 
-func _make_tiles() -> void:
-	_tile_material.albedo_color = TILE_COLOR
-	_tile_material.roughness = 0.85
-	_lane_material.albedo_color = LANE_COLOR
-	_lane_material.roughness = 0.85
-	_drag_material.albedo_color = DRAG_COLOR
-	_drag_material.roughness = 0.85
-	var tile_mesh := BoxMesh.new()
-	tile_mesh.size = Vector3(CELL * 0.92, 0.12, CELL * 0.92)
-	for row: int in PhaseField.SIZE:
-		for column: int in PhaseField.SIZE:
-			var tile := MeshInstance3D.new()
-			tile.mesh = tile_mesh
-			tile.position = _grid_position(Vector2(column, row)) + Vector3(0.0, -0.06, 0.0)
-			%Tiles.add_child(tile)
-			_tiles[Vector2i(column, row)] = tile
+# Lights the ship's row and column, the lines it can phase along, or the dragged line.
+func _paint_grid() -> void:
+	var grid := %Grid.material_override as ShaderMaterial
+	grid.set_shader_parameter(&"ship_cell", Vector2(field.ship))
+	var dragged := _dragging and _drag_axis_chosen
+	var line := _drag_cell.y if _drag_is_row else _drag_cell.x
+	grid.set_shader_parameter(
+		&"drag_line", Vector3(1.0 if dragged else 0.0, 1.0 if _drag_is_row else 0.0, line)
+	)
 
 
-# Lights up the ship's row and column, the lines it can phase along, or the dragged line.
-func _paint_tiles() -> void:
-	for cell: Vector2i in _tiles:
-		var material := _tile_material
-		if _dragging and _drag_axis_chosen and _in_drag_line(cell):
-			material = _drag_material
-		elif cell.x == field.ship.x or cell.y == field.ship.y:
-			material = _lane_material
-		_tiles[cell].material_override = material
+func _set_up_glow() -> void:
+	var environment := (%SpaceSky as WorldEnvironment).environment
+	environment.glow_enabled = true
+	environment.glow_intensity = GLOW_INTENSITY
+	environment.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
+	environment.glow_hdr_threshold = GLOW_THRESHOLD
 
 
 func _make_meshes() -> void:
