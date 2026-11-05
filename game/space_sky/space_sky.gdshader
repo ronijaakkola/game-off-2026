@@ -9,7 +9,8 @@ uniform float fog_strength : hint_range(0.0, 2.0) = 1.0;
 uniform vec3 star_color : source_color = vec3(0.9, 0.95, 1.0);
 uniform float star_density = 70.0;
 uniform float star_chance : hint_range(0.0, 1.0) = 0.12;
-uniform float star_size : hint_range(0.01, 0.5) = 0.12;
+// Star centres sit 0.2–0.8 into their cell, so a radius above 0.2 clips at the cell edge.
+uniform float star_size : hint_range(0.01, 0.2) = 0.12;
 uniform float star_brightness : hint_range(0.0, 4.0) = 2.0;
 
 float hash13(vec3 p) {

@@ -72,9 +72,14 @@ func _init() -> void:
 
 
 ## Blends the fog to new colours over [param duration] seconds.
+## Outside the tree, or with no duration, it sets them at once.
 func fade_to(new_fog_color: Color, new_accent_color: Color, duration := 1.0) -> void:
 	if _fade:
 		_fade.kill()
+	if not is_inside_tree() or duration <= 0.0:
+		fog_color = new_fog_color
+		fog_accent_color = new_accent_color
+		return
 	_fade = create_tween().set_parallel().set_trans(Tween.TRANS_SINE)
 	_fade.tween_property(self, ^"fog_color", new_fog_color, duration)
 	_fade.tween_property(self, ^"fog_accent_color", new_accent_color, duration)
