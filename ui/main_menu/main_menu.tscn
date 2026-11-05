@@ -5,7 +5,6 @@
 [ext_resource type="PackedScene" uid="uid://du1swv634nyif" path="res://ui/settings/settings_menu.tscn" id="3_settings"]
 
 [node name="MainMenu" type="MarginContainer" unique_id=1815156436]
-layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -32,6 +31,11 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 text = "Play"
+
+[node name="PhaseMinerButton" type="Button" parent="Center/Items" unique_id=1256260283]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Phase Miner"
 
 [node name="SettingsButton" type="Button" parent="Center/Items" unique_id=1148331793]
 unique_name_in_owner = true
@@ -88,6 +92,7 @@ size_flags_vertical = 8
 theme_type_variation = &"FaintLabel"
 
 [connection signal="pressed" from="Center/Items/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="Center/Items/PhaseMinerButton" to="." method="_on_phase_miner_button_pressed"]
 [connection signal="pressed" from="Center/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="Center/Items/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]

@@ -1,0 +1,91 @@
+[gd_scene format=3 uid="uid://3yubd5p7730s"]
+
+[ext_resource type="Script" uid="uid://dubw6fw5com37" path="res://phase_miner/phase_miner.gd" id="1_miner"]
+[ext_resource type="PackedScene" uid="uid://cbervq4p4g2nb" path="res://phase_miner/phase_hud.tscn" id="2_hud"]
+[ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="3_pause"]
+[ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="4_pcam_host"]
+[ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="5_tween"]
+[ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="6_pcam"]
+
+[sub_resource type="Environment" id="Environment_space"]
+background_mode = 1
+background_color = Color(0.008, 0.01, 0.022, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.75, 0.8, 1, 1)
+ambient_light_energy = 0.5
+tonemap_mode = 4
+glow_enabled = true
+glow_intensity = 0.6
+glow_hdr_threshold = 0.6
+
+[sub_resource type="Resource" id="Resource_tween"]
+script = ExtResource("5_tween")
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+size = Vector3(8.4, 0.3, 8.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
+albedo_color = Color(0.07, 0.09, 0.15, 1)
+roughness = 0.9
+
+[sub_resource type="PrismMesh" id="PrismMesh_ship"]
+size = Vector3(0.6, 0.8, 0.18)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ship"]
+albedo_color = Color(0.53, 0.84, 1, 1)
+roughness = 0.4
+emission_enabled = true
+emission = Color(0.53, 0.84, 1, 1)
+emission_energy_multiplier = 1.2
+
+[node name="PhaseMiner" type="Node3D" unique_id=264751337]
+script = ExtResource("1_miner")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=612335214]
+environment = SubResource("Environment_space")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1494025545]
+transform = Transform3D(0.819152, 0.469846, -0.32899, 0, 0.573576, 0.819152, 0.573576, -0.67101, 0.469846, 0, 0, 0)
+light_color = Color(1, 0.95, 0.9, 1)
+light_energy = 0.9
+shadow_enabled = true
+directional_shadow_mode = 0
+directional_shadow_max_distance = 30.0
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1815493354]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.402739, 0.915315, 0, -0.915315, 0.402739, 0, 12.5, 6)
+fov = 40.0
+
+[node name="PhantomCameraHost" type="Node" parent="Camera" unique_id=14678127]
+script = ExtResource("4_pcam_host")
+
+[node name="BoardShot" type="Node3D" parent="." unique_id=719384474]
+transform = Transform3D(1, 0, 0, 0, 0.402739, 0.915315, 0, -0.915315, 0.402739, 0, 12.5, 6)
+script = ExtResource("6_pcam")
+tween_resource = SubResource("Resource_tween")
+tween_on_load = false
+
+[node name="Base" type="MeshInstance3D" parent="." unique_id=1553363712]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.27, 0)
+mesh = SubResource("BoxMesh_base")
+surface_material_override/0 = SubResource("StandardMaterial3D_base")
+
+[node name="Tiles" type="Node3D" parent="." unique_id=2081123082]
+unique_name_in_owner = true
+
+[node name="Items" type="Node3D" parent="." unique_id=2082878480]
+unique_name_in_owner = true
+
+[node name="Ship" type="Node3D" parent="." unique_id=715421418]
+unique_name_in_owner = true
+
+[node name="Body" type="MeshInstance3D" parent="Ship" unique_id=1334210920]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
+mesh = SubResource("PrismMesh_ship")
+surface_material_override/0 = SubResource("StandardMaterial3D_ship")
+
+[node name="Hud" parent="." unique_id=397421518 instance=ExtResource("2_hud")]
+unique_name_in_owner = true
+
+[node name="PauseMenu" parent="." unique_id=1035343778 instance=ExtResource("3_pause")]

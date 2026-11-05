@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 
 const MENU := "res://ui/main_menu/main_menu.tscn"
 const GAME := "res://game/game.tscn"
+const PHASE_MINER := "res://phase_miner/phase_miner.tscn"
 const MUSIC := preload("res://ui/audio/menu_music.ogg")
 
 var _window_size: Vector2i
@@ -47,6 +48,13 @@ func test_play_goes_to_the_game_and_back() -> void:
 	await await_signal_on(get_tree(), "scene_changed", [], 2000)
 	assert_str(get_tree().current_scene.scene_file_path).is_equal(MENU)
 	await assert_func(get_tree().root, "is_input_disabled").wait_until(2000).is_false()
+
+
+func test_phase_miner_button_goes_to_the_phase_miner() -> void:
+	var runner := scene_runner(MENU)
+	await _click(runner, runner.find_child("PhaseMinerButton"))
+	await await_signal_on(get_tree(), "scene_changed", [], 2000)
+	assert_str(get_tree().current_scene.scene_file_path).is_equal(PHASE_MINER)
 
 
 func test_settings_button_opens_the_settings_panel() -> void:

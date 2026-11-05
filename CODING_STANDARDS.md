@@ -14,6 +14,7 @@ Folders are by feature:
 | `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
+| `phase_miner/` | The **Phase Miner prototype**, a second demo scene reached from the main menu. |
 | `shared/` | Assets used by more than one feature, such as `shared/audio/`. |
 | `test/` | gdUnit4 tests. |
 | `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |

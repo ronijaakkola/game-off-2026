@@ -3,6 +3,7 @@ extends MarginContainer
 ## title card comes first, because Safari starts audio only after a click in the game.
 
 const GAME_SCENE := "res://game/game.tscn"
+const PHASE_MINER_SCENE := "res://phase_miner/phase_miner.tscn"
 const MUSIC := preload("res://ui/audio/menu_music.ogg")
 # Written into exports by `check.py export`, so the editor has none.
 const BUILD_COMMIT := "res://ui/main_menu/build_commit.txt"
@@ -39,6 +40,10 @@ func _on_start_overlay_gui_input(event: InputEvent) -> void:
 
 func _on_play_button_pressed() -> void:
 	SceneFlow.go_to(GAME_SCENE)
+
+
+func _on_phase_miner_button_pressed() -> void:
+	SceneFlow.go_to(PHASE_MINER_SCENE)
 
 
 func _on_settings_button_pressed() -> void:

@@ -48,6 +48,18 @@ _Avoid_: telemetry, logging, metrics
 The small playable scene that shows the patterns to copy; it is replaced by the real game on jam day.
 _Avoid_: demo, sample level
 
+**Phase Miner prototype**:
+The second demo scene, in `phase_miner/`: a ship on a wrapping 8×8 asteroid field that it mines by phasing and sliding.
+_Avoid_: puzzle scene, mining demo
+
+**Phase**:
+In the Phase Miner prototype, the ship's straight-line move along its row or column that destroys the run of items it passes through.
+_Avoid_: dash, shoot, move
+
+**Slide**:
+In the Phase Miner prototype, moving a whole row or column of the field by whole cells, wrapping round the edge.
+_Avoid_: shift, scroll, rotate
+
 **Shot**:
 One place and behaviour for the game camera, as a Phantom Camera `PhantomCamera3D` node: fixed, following or looking at a target. The camera shows the active shot, the one with the highest priority, and blends between shots.
 _Avoid_: virtual camera, pcam, camera (the `Camera3D` that renders)

@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://cbervq4p4g2nb"]
+
+[ext_resource type="Script" uid="uid://cesm1r7b84cad" path="res://phase_miner/phase_hud.gd" id="1_hud"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="PhaseHud" type="MarginContainer" unique_id=148147925]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+script = ExtResource("1_hud")
+
+[node name="Columns" type="VBoxContainer" parent="." unique_id=1560281010]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Stats" type="VBoxContainer" parent="Columns" unique_id=1743175017]
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Columns/Stats" unique_id=1770167258]
+layout_mode = 2
+text = "Phase Miner"
+
+[node name="FuelLabel" type="Label" parent="Columns/Stats" unique_id=1281227189]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.69, 0.26, 1)
+text = "Fuel"
+
+[node name="HullLabel" type="Label" parent="Columns/Stats" unique_id=606492882]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.31, 0.82, 0.71, 1)
+text = "Hull"
+
+[node name="ScoreLabel" type="Label" parent="Columns/Stats" unique_id=924290332]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Score"
+
+[node name="ComboLabel" type="Label" parent="Columns/Stats" unique_id=430589747]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.53, 0.84, 1, 1)
+text = "Combo"
+
+[node name="Legend" type="Label" parent="Columns/Stats" unique_id=2025848227]
+layout_mode = 2
+theme_type_variation = &"FaintLabel"
+text = "Grey rock: -1 hull, breaks the combo
+Orange ore: +3 fuel
+Purple crystal: 50 points
+Copper scrap: 20 points"
+
+[node name="Spacer" type="Control" parent="Columns" unique_id=223253251]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="MessageLabel" type="Label" parent="Columns" unique_id=902803982]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="Columns" unique_id=2129890332]
+layout_mode = 2
+theme_type_variation = &"FaintLabel"
+text = "Arrows or WASD: phase (1 fuel). Drag a row or column: slide (1 fuel per cell). R: new run. Esc: pause."
+horizontal_alignment = 1
