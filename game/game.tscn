@@ -5,6 +5,9 @@
 [ext_resource type="AudioStream" uid="uid://c6fwkw8gqyask" path="res://game/audio/piece_placed.ogg" id="3_sound"]
 [ext_resource type="PackedScene" uid="uid://dt327q84py2ie" path="res://game/hud.tscn" id="4_hud"]
 [ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="5_pause"]
+[ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_pcam_host"]
+[ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="6_y36n6"]
+[ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_pcam"]
 
 [sub_resource type="Environment" id="Environment_soft"]
 background_mode = 1
@@ -16,6 +19,9 @@ tonemap_mode = 4
 ssao_enabled = true
 ssao_radius = 0.6
 ssao_intensity = 1.5
+
+[sub_resource type="Resource" id="Resource_l8g03"]
+script = ExtResource("6_y36n6")
 
 [sub_resource type="BoxMesh" id="BoxMesh_board"]
 size = Vector3(7.2, 0.3, 7.2)
@@ -47,6 +53,15 @@ directional_shadow_max_distance = 30.0
 unique_name_in_owner = true
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 5.3033, 10.6066, 9.1856)
 fov = 35.0
+
+[node name="PhantomCameraHost" type="Node" parent="Camera" unique_id=1244520940]
+script = ExtResource("6_pcam_host")
+
+[node name="BoardShot" type="Node3D" parent="." unique_id=1160223851]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 5.3033, 10.6066, 9.1856)
+script = ExtResource("7_pcam")
+tween_on_load = false
+tween_resource = SubResource("Resource_l8g03")
 
 [node name="Board" type="StaticBody3D" parent="." unique_id=2144523380]
 

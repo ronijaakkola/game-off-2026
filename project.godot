@@ -30,6 +30,7 @@ Feedback="*res://core/feedback/feedback.gd"
 Talo="*uid://bpmdn8oc34pg7"
 Online="*res://core/online/online.gd"
 DevConsole="*res://core/dev_console/dev_console.gd"
+PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 
 [debug]
 
@@ -42,7 +43,7 @@ window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg", "res://addons/limbo_console/plugin.cfg", "res://addons/talo/plugin.cfg")
+enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg", "res://addons/limbo_console/plugin.cfg", "res://addons/phantom_camera/plugin.cfg", "res://addons/talo/plugin.cfg")
 
 [gdunit4]
 
@@ -72,6 +73,10 @@ limbo_console_search_history={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":true,"meta_pressed":false,"pressed":false,"keycode":82,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
 }
+
+[phantom_camera]
+
+updater/updater_mode=0
 
 [physics]
 

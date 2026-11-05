@@ -8,6 +8,7 @@ const TOP := Vector3(0.0, 0.4, 0.0)
 
 var _window_size: Vector2i
 var _placed: Array[Vector3] = []
+var _reduce_motion: bool
 
 
 func before() -> void:
@@ -23,11 +24,15 @@ func after() -> void:
 
 func before_test() -> void:
 	_placed.clear()
+	_reduce_motion = Settings.reduce_motion
+	Settings.reduce_motion = false
 	Events.piece_placed.connect(_on_piece_placed)
 
 
 func after_test() -> void:
 	Events.piece_placed.disconnect(_on_piece_placed)
+	# Assigning re-saves the developer's own settings file with their value.
+	Settings.reduce_motion = _reduce_motion
 
 
 func test_click_on_the_board_places_a_piece_in_that_cell() -> void:
@@ -56,6 +61,23 @@ func test_click_off_the_board_places_nothing() -> void:
 	assert_int(_placed_count()).is_equal(0)
 
 
+# Phantom Camera's host drives the camera every frame, and Feedback's shake rides on top
+# of it through the camera's offsets.
+func test_a_placement_shakes_the_camera_and_it_settles_on_the_shot() -> void:
+	var runner := scene_runner(SCENE)
+	var camera := runner.scene().get_viewport().get_camera_3d()
+	var shot := runner.find_child("BoardShot") as Node3D
+	# Moved off the camera's own place in the scene, so only the host can take it there.
+	shot.global_position += Vector3(1.0, 0.0, 0.0)
+	await runner.simulate_frames(2)
+	await _click(runner, CELL)
+	await assert_func(self, "_placed_count").wait_until(2000).is_equal(1)
+	await runner.simulate_frames(2)
+	assert_vector(_offset(camera)).is_not_equal(Vector2.ZERO)
+	await assert_func(self, "_offset", [camera]).wait_until(1000).is_equal(Vector2.ZERO)
+	assert_vector(camera.global_position).is_equal_approx(shot.global_position, Vector3.ONE * 0.001)
+
+
 func _click(runner: GdUnitSceneRunner, at: Vector3) -> void:
 	await runner.simulate_frames(1)
 	_press_at(runner.scene().get_viewport().get_camera_3d().unproject_position(at))
@@ -72,6 +94,10 @@ func _press_at(position: Vector2) -> void:
 		event.pressed = pressed
 		Input.parse_input_event(event)
 	Input.flush_buffered_events()
+
+
+func _offset(camera: Camera3D) -> Vector2:
+	return Vector2(camera.h_offset, camera.v_offset)
 
 
 func _placed_count() -> int:

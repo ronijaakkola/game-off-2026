@@ -13,7 +13,8 @@
     "deny": [
       "Edit(/addons/gdUnit4/**)",
       "Edit(/addons/limbo_console/**)",
-      "Edit(/addons/talo/**)"
+      "Edit(/addons/talo/**)",
+      "Edit(/addons/phantom_camera/**)"
     ]
   },
   "hooks": {

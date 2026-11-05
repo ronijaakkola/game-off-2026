@@ -10,7 +10,7 @@ Folders are by feature:
 
 | Folder | What goes there |
 |---|---|
-| `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config. |
+| `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config, and Phantom Camera, vendored without its `examples/` folder. |
 | `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
@@ -67,6 +67,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
+| `PhantomCameraManager` | `addons/phantom_camera/` | The Phantom Camera plugin's autoload. Game code never calls it; see Cameras. |
 
 Add an autoload only for a service that must outlive a scene change, or that has exactly one instance game-wide. It lives in `core/<name>/`, works without knowing what the current scene is, and gets a row in this table.
 
@@ -133,6 +134,17 @@ func fade_in() -> void:
 - `create_tween()` already binds the tween to the node ([Node.create_tween](https://docs.godotengine.org/en/4.7/classes/class_node.html#class-node-method-create-tween)). `bind_node()` is only for `get_tree().create_tween()`.
 - A bound tween runs whenever its node can process ([TweenPauseMode](https://docs.godotengine.org/en/4.7/classes/class_tween.html#enum-tween-tweenpausemode)). The game pauses with `get_tree().paused`, so motion that plays while paused belongs to a node with `process_mode = PROCESS_MODE_ALWAYS`, like the pause menu and `SceneFlow`.
 - Start a tween from the event that begins the motion: a signal, an input, a setter. When it must start from `_process`, guard it so it starts once, not every frame.
+
+## Cameras
+
+Game cameras run on [Phantom Camera](https://phantom-camera.dev) (`addons/phantom_camera/`). The scene's one `Camera3D` renders, and a `PhantomCameraHost` child moves it every frame to the active **shot**: a `PhantomCamera3D` node placed where the camera should be. `game/game.tscn` shows it with one shot, `BoardShot`.
+
+- Put camera behaviour on the shot, in the inspector: follow a target with damping (Follow Mode), look at one (Look At Mode), orbit a target and stay out of walls (Third Person follow, a spring arm), frame several targets (Group follow). Don't move the `Camera3D` from a script; the host overwrites it the next frame.
+- Change shots by raising one shot's `priority` above the others, or with `set_priority()` from a script. The host blends to it with that shot's `tween_resource`.
+- Set `tween_on_load` off on a scene's first shot. `SceneFlow`'s fade already hides the cut, and the load blend starts from wherever the camera happened to be.
+- Shake through `Feedback.shake`, never the plugin's noise (`noise` on a shot or a `PhantomCameraNoiseEmitter3D`): Feedback honours Reduce motion and the plugin's noise doesn't. Feedback owns the camera's `h_offset` and `v_offset`, so leave them at 0 on every shot and its `Camera3DResource`; the host only writes them when they differ between shots.
+- Cast picking rays from the `Camera3D` (`%Camera`), not the shot: the camera is where the player looks from, including mid-blend.
+- The plugin's updater is off (`phantom_camera/updater/updater_mode=0`) so the pinned version stays pinned.
 
 ## Physics
 
