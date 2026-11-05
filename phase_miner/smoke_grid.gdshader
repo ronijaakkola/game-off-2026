@@ -10,11 +10,11 @@ render_mode unshaded, blend_add, depth_draw_never, cull_disabled;
 uniform float cells = 8.0;
 uniform float cell_size = 1.0;
 uniform vec3 line_color : source_color = vec3(0.42, 0.66, 1.0);
-uniform float line_strength : hint_range(0.0, 2.0) = 0.32;
+uniform float line_strength : hint_range(0.0, 2.0) = 0.24;
 // Half-width of a line, in cells, before the smoke thickens or thins it.
-uniform float line_width : hint_range(0.005, 0.2) = 0.05;
+uniform float line_width : hint_range(0.005, 0.2) = 0.026;
 // How far the smoke bends a line off its cell edge, in cells.
-uniform float wobble : hint_range(0.0, 0.3) = 0.06;
+uniform float wobble : hint_range(0.0, 0.3) = 0.045;
 uniform float smoke_scale = 0.9;
 uniform float smoke_speed = 0.06;
 uniform vec3 lane_color : source_color = vec3(0.3, 0.5, 0.9);
@@ -76,7 +76,7 @@ void fragment() {
 	// Patchy: some stretches of line are dense smoke, others nearly gone.
 	line *= 0.25 + 0.75 * smoothstep(0.25, 0.7, wisps);
 	// A wide, faint haze around each line, so it reads as smoke rather than a stroke.
-	line += 0.35 * exp(-pow(distance_to_line / (width * 5.0), 2.0)) * smoothstep(0.3, 0.8, smoke);
+	line += 0.12 * exp(-pow(distance_to_line / (width * 5.0), 2.0)) * smoothstep(0.3, 0.8, smoke);
 
 	// Fade out past the field's edge, into open space.
 	vec2 from_centre = abs(grid - cells * 0.5);
