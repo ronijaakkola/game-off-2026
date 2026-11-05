@@ -48,6 +48,10 @@ _Avoid_: telemetry, logging, metrics
 The small playable scene that shows the patterns to copy; it is replaced by the real game on jam day.
 _Avoid_: demo, sample level
 
+**Shot**:
+One place and behaviour for the game camera, as a Phantom Camera `PhantomCamera3D` node: fixed, following or looking at a target. The camera shows the active shot, the one with the highest priority, and blends between shots.
+_Avoid_: virtual camera, pcam, camera (the `Camera3D` that renders)
+
 **Model library**:
 The one Blender file that holds every 3D model in the game, each as its own collection, kept by whoever makes models and never committed. Only the models exported from it are shared.
 _Avoid_: blend file, source file, master file
