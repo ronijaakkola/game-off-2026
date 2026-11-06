@@ -209,8 +209,8 @@ tilt = 18.0
 surface_material = SubResource("ShaderMaterial_giant")
 orbit_material = SubResource("StandardMaterial3D_orbit")
 ring_material = SubResource("ShaderMaterial_giant_rings")
-ring_inner = 2.7
-ring_outer = 4.4
+ring_inner = 1.35
+ring_outer = 2.2
 
 [node name="Frost" type="Node3D" parent="." unique_id=2128267833]
 script = ExtResource("2_planet")
