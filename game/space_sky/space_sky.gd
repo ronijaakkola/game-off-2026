@@ -6,6 +6,8 @@ extends WorldEnvironment
 ## inspector or from code, such as a red mood over two seconds:
 ## [code]space_sky.fade_to(Color(0.08, 0.02, 0.03), Color(0.1, 0.05, 0.0), 2.0)[/code].
 ## It builds its own [Environment] and doesn't save it into the scene.
+## Each export but [member ambient_color] sets the shader uniform of the same name, and
+## holds the only default for it.
 
 const SHADER := preload("res://game/space_sky/space_sky.gdshader")
 
@@ -59,16 +61,12 @@ func _init() -> void:
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
 	env.tonemap_mode = Environment.TONE_MAPPER_AGX
 	environment = env
-	for property: StringName in [
-		&"background_color",
-		&"fog_color",
-		&"fog_accent_color",
-		&"fog_strength",
-		&"star_color",
-		&"star_brightness",
-		&"ambient_color",
-	]:
-		set(property, get(property))
+	# Runs every export's setter, so each default reaches the shader or the Environment.
+	# Read from the script, so a new export can't be left out of a list.
+	for property: Dictionary in (get_script() as Script).get_script_property_list():
+		var usage: int = property.usage
+		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE and usage & PROPERTY_USAGE_EDITOR:
+			set(property.name, get(property.name))
 
 
 ## Blends the fog to new colours over [param duration] seconds.
