@@ -6,12 +6,8 @@
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
 [ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
 [ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_pcam_host"]
-[ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_pcam"]
-[ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_tween"]
 [ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="9_pause"]
-
-[sub_resource type="Resource" id="Resource_tween"]
-script = ExtResource("8_tween")
+[ext_resource type="PackedScene" uid="uid://dn06wx2ui5uuu" path="res://game/solar_system/camera_rig.tscn" id="10_rig"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -149,11 +145,11 @@ fov = 30.0
 [node name="PhantomCameraHost" type="Node" parent="Camera" unique_id=583792244]
 script = ExtResource("6_pcam_host")
 
-[node name="OverviewShot" type="Node3D" parent="." unique_id=1554304797]
-transform = Transform3D(0.939693, -0.210569, 0.269516, 0, 0.788011, 0.615661, -0.34202, -0.578533, 0.740488, 11.5892, 26.4734, 31.841)
-script = ExtResource("7_pcam")
-tween_resource = SubResource("Resource_tween")
-tween_on_load = false
+[node name="CameraRig" parent="." unique_id=1977612620 instance=ExtResource("10_rig")]
+bounds_radius = 18.0
+min_distance = 8.0
+max_distance = 55.0
+distance = 43.0
 
 [node name="Star" type="Node3D" parent="." unique_id=1616161291]
 
@@ -195,7 +191,6 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 script = ExtResource("2_planet")
 radius = 0.3
 orbit_radius = 2.0
-orbit_period = 30.0
 start_angle = 40.0
 spin_period = 0.0
 surface_material = SubResource("ShaderMaterial_moon")
