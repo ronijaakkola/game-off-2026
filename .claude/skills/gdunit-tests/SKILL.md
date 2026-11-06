@@ -91,6 +91,10 @@ Input.flush_buffered_events()
 
 **Web-only behaviour** runs in no check: tests, `smoke` and the `export` boot all run desktop Godot, so a branch behind `OS.has_feature("web")` can break without a word. When the behaviour happens after `_ready()`, put the `OS.has_feature("web")` check only in the default value of a public var, which the code reads when the behaviour happens, and have the test set that var: `opens_when_window_shrinks` in `ui/pause_menu/pause_menu.gd`, tested in `test/ui/pause_menu/pause_menu_test.gd`. Read what the test drives from nodes, such as `get_window().size`, not from `DisplayServer`, which a test can't change.
 
+## Logic that plays out over time
+
+For a state machine that moves on its own frames (charging, flying, docking), step it with a fixed delta instead of waiting real frames. Add the node with `set_process(false)`, then call `node._process(STEP)` in a loop until the state you expect, with a cap on the steps. The result is the same on any machine, and seconds of game time run in milliseconds. `_process` is a frame driver here, not the behaviour under test: assert only through public state and methods. Build the world with fixed values (a planet with `orbit_period = 0`), so nothing else moves. `test/game/bus/bus_test.gd` shows it.
+
 ## Signals
 
 A signal emitted **during** the call you make (a click, an `invoke`) has already fired before any `await` starts. Start monitoring first, then assert:
@@ -182,6 +186,7 @@ Overall Summary: 27 test cases | 0 errors | 1 failures | 0 flaky | 0 skipped | 0
 - `Godot Runtime Error !` with a stack means the code under test logged an error or warning (`push_error`, `push_warning` or the engine's own). Any logged one fails the test, as in `smoke`. Fix its cause; a test that expects one wraps the call in `assert_error(func() -> void: ...).is_push_error(message)`.
 - A failure with no test block (a failing `before()` or `after()`) prints the full run instead.
 - A run that finds no tests fails with `no test cases found in test/`.
+- `Godot timed out after 300 s` names the suite and test where the run stopped. That's almost always a tree left paused, there or in an earlier suite. See Signals.
 - `await_signal_on(...) timed out` means the signal fired before the await, or never. See Signals.
 - A test file that fails to parse aborts the whole run with exit code 105 and prints the parse error.
 - Exit code 100 means failures. 101 means warnings only, which `check.py` counts as a pass.

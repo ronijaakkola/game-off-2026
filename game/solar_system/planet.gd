@@ -8,10 +8,29 @@ extends Node3D
 ## It builds its meshes in code as internal nodes, so the scene saves only its exports.
 ## The editor shows each body at its [member start_angle]; it moves only when the game runs.
 
+enum Border { NONE, HOVER, ROUTE }
+
 const SEGMENTS := 128
+## The name's colour: an off-white with the sky's lilac, a little see-through.
+const LABEL_COLOR := Color(0.93, 0.92, 1.0, 0.85)
+## A thin outline in the sky's navy, so the name still reads over orbit lines and rings.
+const LABEL_OUTLINE_COLOR := Color(0.08, 0.07, 0.18, 0.7)
+const LABEL_FONT_SIZE := 32
+const LABEL_OUTLINE_SIZE := 8
+const BORDER_COLORS: Dictionary[Border, Color] = {
+	Border.HOVER: Color.WHITE,
+	Border.ROUTE: Color(1.0, 0.6, 0.22),
+}
 
 static var _sphere: SphereMesh
+static var _border_materials: Dictionary[Border, StandardMaterial3D] = {}
 
+## The name shown under the body. Empty shows none.
+@export var display_name := "":
+	set(value):
+		display_name = value
+		_label.text = value
+		_label.visible = value != ""
 ## The body's radius.
 @export_range(0.05, 10.0, 0.01, "or_greater") var radius := 1.0:
 	set(value):
@@ -73,6 +92,32 @@ static var _sphere: SphereMesh
 		ring_outer = value
 		_rebuild()
 
+## The border round the body: none, white under the pointer, or orange on the bus's route.
+var border := Border.NONE:
+	set(value):
+		border = value
+		_outline.visible = value != Border.NONE
+		if _outline.visible:
+			_outline.material_override = _get_border_material(value)
+## How far the border reaches past the body's edge.
+var outline_width := 0.05:
+	set(value):
+		outline_width = value
+		_outline.scale = Vector3.ONE * (get_body_radius() + value) / _get_sphere().radius
+## Where the name hangs from, in global space, from the body's centre. The solar system
+## sets it each frame to just past the body's lower edge as the camera sees it.
+var label_offset := Vector3.ZERO:
+	set(value):
+		label_offset = value
+		if _label.is_inside_tree():
+			_label.global_position = _body.global_position + value
+## How big the name is: its font's pixel size in world units at one unit from the camera,
+## since the name keeps its size on screen at any distance.
+var label_pixel_size := 0.001:
+	set(value):
+		label_pixel_size = value
+		_label.pixel_size = value
+
 var _time := 0.0
 # Internal nodes: the scene doesn't own them, so the editor never saves them.
 var _pivot := Node3D.new()
@@ -81,6 +126,8 @@ var _body := Node3D.new()
 var _tilt := Node3D.new()
 var _surface := MeshInstance3D.new()
 var _rings := MeshInstance3D.new()
+var _outline := MeshInstance3D.new()
+var _label := Label3D.new()
 
 
 func _init() -> void:
@@ -90,9 +137,15 @@ func _init() -> void:
 	_body.add_child(_tilt)
 	_tilt.add_child(_surface)
 	_tilt.add_child(_rings)
+	_body.add_child(_outline)
+	_body.add_child(_label)
 	_surface.mesh = _get_sphere()
+	_outline.mesh = _get_sphere()
+	_outline.visible = false
+	_outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_orbit_line.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_rings.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_init_label()
 
 
 func _ready() -> void:
@@ -116,6 +169,17 @@ func set_orbit_center(center: Vector3) -> void:
 ## Where the body is now, relative to this node.
 func get_body_position() -> Vector3:
 	return _pivot.position + _body.position
+
+
+## The body's radius as drawn. The sphere mesh's own radius is 0.5, so it is half of
+## [member radius].
+func get_body_radius() -> float:
+	return radius * _get_sphere().radius
+
+
+## Where the body is now, in global space.
+func get_body_global_position() -> Vector3:
+	return to_global(get_body_position())
 
 
 ## A flat ring in the XZ plane, facing up, from [param inner] to [param outer]. UV.x runs
@@ -145,6 +209,7 @@ func _rebuild() -> void:
 	if not is_inside_tree():
 		return
 	_surface.scale = Vector3.ONE * radius
+	outline_width = outline_width
 	_surface.material_override = surface_material
 	_tilt.rotation.z = deg_to_rad(tilt)
 	_orbit_line.visible = show_orbit and orbit_radius > 0.0
@@ -171,9 +236,41 @@ func _place_body() -> void:
 			moon.set_orbit_center(get_body_position())
 
 
+# Faces the camera at a fixed size on screen, hanging down from its position. It draws
+# after the orbit lines, so they never cross it, but the bus still passes in front.
+func _init_label() -> void:
+	_label.visible = false
+	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_label.fixed_size = true
+	_label.shaded = false
+	_label.double_sided = false
+	_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_label.font_size = LABEL_FONT_SIZE
+	_label.pixel_size = label_pixel_size
+	_label.outline_size = LABEL_OUTLINE_SIZE
+	_label.modulate = LABEL_COLOR
+	_label.outline_modulate = LABEL_OUTLINE_COLOR
+	_label.render_priority = 2
+	_label.outline_render_priority = 1
+	_label.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
 static func _get_sphere() -> SphereMesh:
 	if not _sphere:
 		_sphere = SphereMesh.new()
+		_sphere.radius = 1.0
+		_sphere.height = 2.0
 		_sphere.radial_segments = 64
 		_sphere.rings = 32
 	return _sphere
+
+
+# A shell drawn from behind, so only its rim past the body shows.
+static func _get_border_material(kind: Border) -> StandardMaterial3D:
+	if not _border_materials.has(kind):
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.cull_mode = BaseMaterial3D.CULL_FRONT
+		material.albedo_color = BORDER_COLORS[kind]
+		_border_materials[kind] = material
+	return _border_materials[kind]
