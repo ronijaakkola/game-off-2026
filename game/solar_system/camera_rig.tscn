@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://dn06wx2ui5uuu"]
+
+[ext_resource type="Script" uid="uid://btgs266mq0r5q" path="res://game/solar_system/camera_rig.gd" id="1_rig"]
+[ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="2_pcam"]
+[ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="3_tween"]
+
+[sub_resource type="Resource" id="Resource_tween"]
+script = ExtResource("3_tween")
+
+[node name="CameraRig" type="Node3D" unique_id=906935748]
+transform = Transform3D(0.939693, -0.210569, 0.269516, 0, 0.788011, 0.615661, -0.34202, -0.578533, 0.740488, 0, 0, 0)
+script = ExtResource("1_rig")
+
+[node name="Shot" type="Node3D" parent="." unique_id=1519314615]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
+script = ExtResource("2_pcam")
+tween_resource = SubResource("Resource_tween")
+tween_on_load = false
