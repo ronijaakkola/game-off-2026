@@ -8,6 +8,18 @@ The starting project the team clones on jam day: core systems, a main menu and t
 A game-wide service that outlives scene changes and has one instance: the signal bus, audio, scene flow, settings, feedback and online.
 _Avoid_: manager, singleton, global
 
+**Frameshift Bus**:
+The player's vehicle, which flies between planets. `FrameshiftBus` in code, in `game/bus/`; "bus" in prose and node names when the context is the game.
+_Avoid_: `Bus` as a class name (it shadows `Audio.Bus`), ship, vehicle
+
+**Route**:
+The ordered stops the bus flies through, each a planet or a point in space. A **course** is the route the player sets with a click.
+_Avoid_: path, waypoints list
+
+**Docked**:
+The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first.
+_Avoid_: landed, parked
+
 **Signal bus**:
 The core system that carries bus events between parts of the game that don't know each other. Named `Events` in code.
 _Avoid_: event bus, SignalBus, global signals
