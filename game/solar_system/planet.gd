@@ -174,6 +174,8 @@ func _place_body() -> void:
 static func _get_sphere() -> SphereMesh:
 	if not _sphere:
 		_sphere = SphereMesh.new()
+		_sphere.radius = 1.0
+		_sphere.height = 2.0
 		_sphere.radial_segments = 64
 		_sphere.rings = 32
 	return _sphere
