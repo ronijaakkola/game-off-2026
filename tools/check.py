@@ -14,7 +14,8 @@
                    lack a uid or unique_id, the way the editor does, so Godot assigns them
   test             run the gdUnit4 tests in test/
   smoke [scenes]   run every scene the game reaches from the main scene and the autoloads,
-                   each on its own (or the given ones) headless, fail on any logged error
+                   then every preview in test/previews/, each on its own (or the given
+                   ones) headless, fail on any logged error
   capture <scene>  render ~1 s of a scene in a window, save the frames to build/capture/
   all              lint, load, test, smoke
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
@@ -47,8 +48,11 @@ GODOT_VERSION = "4.7.2"
 TIMEOUT = 300
 SMOKE_FRAMES = "300"
 CAPTURE_FRAMES = "60"
-# Not part of the game, and not exported: smoke never runs a scene in these.
+# Not part of the game, and not exported: smoke never follows a reference into these.
 NOT_GAME = ("tools/", "test/")
+# Scenes that fill a game scene with made-up state to capture it, such as a full cabin.
+# Not exported, but smoke runs each one after the game scenes, so none rots unseen.
+PREVIEWS = "test/previews"
 # Written by run_export and read by the main menu; ignored by git.
 BUILD_COMMIT_FILE = "ui/main_menu/build_commit.txt"
 # Files check.py writes, which a script may name although the repo doesn't have them.
@@ -1191,6 +1195,7 @@ def run_smoke(scenes: list[str]):
         scenes = game_scenes()
         if not scenes:
             return "SKIPPED, no main scene set in project.godot"
+        scenes += sorted("res://" + scene.as_posix() for scene in Path(PREVIEWS).glob("*.tscn"))
     for scene in scenes:
         result = run_godot(
             ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]

@@ -15,7 +15,7 @@ Folders are by feature:
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
 | `shared/` | Assets used by more than one feature, such as `shared/audio/`. |
-| `test/` | gdUnit4 tests. |
+| `test/` | gdUnit4 tests, and preview scenes in `test/previews/` (Editing `.tscn` and `.tres`). |
 | `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
 | `art/` | The **model library**, `art/models.blend`. Ignored by git and Godot. |
 | `docs/` | Docs for people and agents, and their figures in `docs/figures/`. Ignored by Godot. |
@@ -79,7 +79,7 @@ Call down, signal up.
 - A scene reaches its own nodes through unique names: mark the node `unique_name_in_owner` and write `%Button`.
 - Dependencies from outside the scene come in through `@export` vars or a setter the parent calls.
 - Scenes stay unaware of their surroundings: no `get_parent()`, no `../` paths, no `/root/...` paths.
-- Every scene instantiates on its own without errors, so it runs with F6 in the editor, `uv run tools/check.py smoke <scene>`, and a gdUnit4 `scene_runner`. `smoke` with no scenes runs every scene the game reaches: the main scene, and every scene a reached scene instances or a reached script names by path, such as a `SceneFlow.go_to` target. A sub-scene that errors outside its parent fails it; a scene nothing references yet is left out until something does, and so is every scene in `tools/` and `test/`. A path that names no file would drop its scene, and every scene only it leads to, so `check.py lint` fails on one in a game script (`path-exists`); a string with `%` or `{` is a template and is left alone. `export` boots the same scenes from the exported pack, which leaves out `test/`, `tools/`, the dev console and any file that isn't a resource.
+- Every scene instantiates on its own without errors, so it runs with F6 in the editor, `uv run tools/check.py smoke <scene>`, and a gdUnit4 `scene_runner`. `smoke` with no scenes runs every scene the game reaches: the main scene, and every scene a reached scene instances or a reached script names by path, such as a `SceneFlow.go_to` target. A sub-scene that errors outside its parent fails it; a scene nothing references yet is left out until something does, and so is every scene in `tools/` and `test/`, except the previews in `test/previews/`, which run after the game's scenes. A path that names no file would drop its scene, and every scene only it leads to, so `check.py lint` fails on one in a game script (`path-exists`); a string with `%` or `{` is a template and is left alone. `export` boots the same scenes from the exported pack, which leaves out `test/`, `tools/`, the dev console and any file that isn't a resource.
 
 ## Script size
 
@@ -163,7 +163,7 @@ Plugins have the same gap: enabling one from a script misses the settings the ed
 
 Each vendored plugin folder has a deny rule in `.claude/settings.json`, such as `Edit(/addons/talo/**)`, so agents can read it but not edit it. Vendoring a new plugin adds its rule in the same change. Upgrading a plugin is the human's job.
 
-After a visual change, capture the scene (`uv run tools/check.py capture <scene>`) and look at the frame. When the change is about feel (the soft look, lighting, camera, motion), end the handoff with "Needs a visual check: `<scene>`". Tuning by eye in the editor is recommended, never required.
+After a visual change, capture the scene (`uv run tools/check.py capture <scene>`) and look at the frame. When a scene shows its look only with made-up state, such as the passenger cards with a full cabin, capture its preview: `test/previews/<scene>_preview.tscn` sets that state up and instances the real scene. Add one when a scene has none, and keep it to setup, so the frame shows the real scene. When the change is about feel (the soft look, lighting, camera, motion), end the handoff with "Needs a visual check: `<scene>`". Tuning by eye in the editor is recommended, never required.
 
 ## Saved files
 
