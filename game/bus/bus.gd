@@ -8,6 +8,10 @@ extends Node3D
 ## with no charge.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
+## The bus docked at [param planet] after flying there: the end of its route, or a
+## planet stop on it. Not emitted for [member start_planet].
+signal docked(planet: Planet)
+
 enum State { DOCKED, CHARGING, FLYING, HOLDING }
 
 # How close the bus gets to a planet, and to a point in space, to arrive.
@@ -104,6 +108,11 @@ func get_docked_planet() -> Planet:
 	return _dock_planet
 
 
+## Whether the bus waits at a planet: docked, or charging to leave it.
+func is_at_planet() -> bool:
+	return state == State.DOCKED or state == State.CHARGING
+
+
 ## Every planet on the route still ahead.
 func get_route_planets() -> Array[Planet]:
 	var planets: Array[Planet] = []
@@ -182,6 +191,7 @@ func _arrive(stop: RouteStop) -> void:
 	_dock(stop.planet, global_position - stop.planet.get_body_global_position())
 	if not _route.is_empty():
 		_start_charge()
+	docked.emit(stop.planet)
 
 
 func _dock(planet: Planet, direction: Vector3) -> void:
