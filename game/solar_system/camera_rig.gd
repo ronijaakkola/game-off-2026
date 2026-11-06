@@ -99,30 +99,35 @@ func _edge_pan_input() -> Vector2:
 	return direction
 
 
-# Scales the target view about the point under screen_point, so that point stays under it:
-# the camera's position and look-at point move toward it, or away, by the same factor.
+# Keeps what the player sees under screen_point under it once the zoom settles. Seen from
+# this rig's angle, the plane point under a screen point sits at the look-at point plus
+# distance × an offset that depends only on the screen point. The point under it now comes
+# from where the camera is, mid-ease or not; the new target puts it back under it.
 func _zoom(factor: float, screen_point: Vector2) -> void:
-	var old_distance := _target_distance
-	_target_distance = clampf(old_distance * factor, min_distance, max_distance)
-	var anchor: Variant = _point_on_plane(screen_point)
-	if anchor == null:
+	_target_distance = clampf(_target_distance * factor, min_distance, max_distance)
+	var offset: Variant = _plane_offset(screen_point)
+	if offset == null:
 		return
-	var scale_by := _target_distance / old_distance
-	var anchor_point: Vector3 = anchor
-	_target_position = _clamp_to_bounds(anchor_point + (_target_position - anchor_point) * scale_by)
+	var per_distance: Vector3 = offset
+	var under_pointer := position + per_distance * distance
+	_target_position = _clamp_to_bounds(under_pointer - per_distance * _target_distance)
 
 
-# Where the ray through screen_point meets the orbit plane, in the parent's space, or null
-# when there's no camera or the ray misses.
-func _point_on_plane(screen_point: Vector2) -> Variant:
+# From the look-at point to the plane point under screen_point, per unit of distance, in
+# the parent's space. Null with no camera, or when the ray doesn't head down to the plane.
+func _plane_offset(screen_point: Vector2) -> Variant:
 	var camera := get_viewport().get_camera_3d()
 	if not camera:
 		return null
-	# Global to the parent's space, without naming the parent.
-	var to_parent := transform * global_transform.affine_inverse()
-	var origin := to_parent * camera.project_ray_origin(screen_point)
-	var normal := to_parent.basis * camera.project_ray_normal(screen_point)
-	return Plane(Vector3.UP, _target_position.y).intersects_ray(origin, normal)
+	# The ray as seen from the camera, turned to this rig's angle, which is the shot's.
+	var camera_ray := camera.global_basis.inverse() * camera.project_ray_normal(screen_point)
+	var ray := basis * camera_ray
+	if ray.y > -0.001:
+		return null
+	# The camera sits at basis.z per unit of distance above the look-at point; walk the ray
+	# down from there to the plane.
+	var back := basis.z
+	return back - ray * (back.y / ray.y)
 
 
 func _on_pointer_lost() -> void:

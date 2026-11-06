@@ -62,24 +62,27 @@ func test_wheel_zooms_between_the_limits() -> void:
 	assert_float(rig.global_position.distance_to(shot.global_position)).is_equal_approx(50.0, 0.01)
 
 
-func test_wheel_zooms_toward_the_point_under_the_pointer() -> void:
+func test_wheel_zooms_toward_what_is_under_the_pointer_even_mid_zoom() -> void:
 	var runner := scene_runner(SOLAR_SYSTEM)
 	var rig := runner.find_child("CameraRig") as Node3D
-	rig.set(&"smoothing", 1000.0)
+	# Eased, so the second burst lands while the camera is still on its way.
+	rig.set(&"smoothing", 20.0)
 	var camera := runner.find_child("Camera") as Camera3D
 	await runner.simulate_frames(2, FRAME_MS)
 	var start_distance := camera.global_position.distance_to(rig.global_position)
-	var pointer := Vector2(900, 180)
-	var under_pointer: Vector3 = Plane(Vector3.UP, 0.0).intersects_ray(
-		camera.project_ray_origin(pointer), camera.project_ray_normal(pointer)
-	)
 
 	for i: int in 3:
+		_send_wheel(MOUSE_BUTTON_WHEEL_UP, Vector2(900, 180))
+	await runner.simulate_frames(1, FRAME_MS)
+	# The pointer has moved; what the player sees under it now is what must stay there.
+	var pointer := Vector2(300, 450)
+	var under_pointer := _plane_point(camera, pointer)
+	for i: int in 3:
 		_send_wheel(MOUSE_BUTTON_WHEEL_UP, pointer)
-	await runner.simulate_frames(3, FRAME_MS)
+	await runner.simulate_frames(20, FRAME_MS)
 
 	assert_float(camera.global_position.distance_to(rig.global_position)).is_less(
-		start_distance - 5.0
+		start_distance - 10.0
 	)
 	assert_float(camera.unproject_position(under_pointer).distance_to(pointer)).is_less(1.0)
 
@@ -134,3 +137,9 @@ func _send_motion(at: Vector2) -> void:
 	event.global_position = at
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
+
+
+func _plane_point(camera: Camera3D, screen_point: Vector2) -> Vector3:
+	return Plane(Vector3.UP, 0.0).intersects_ray(
+		camera.project_ray_origin(screen_point), camera.project_ray_normal(screen_point)
+	)
