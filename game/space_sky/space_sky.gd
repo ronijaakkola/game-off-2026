@@ -43,8 +43,9 @@ const SHADER := preload("res://game/space_sky/space_sky.gdshader")
 		_set_param(&"star_brightness", value)
 ## Lays the fog and stars on flat layers far behind the scene, facing the camera, so a
 ## camera that pans or zooms slides them, the farthest the slowest. Off, they sit on the sky
-## sphere and move only when the camera turns. The layers face the current camera's angle,
-## so a camera that turns with it on sees them swing with it.
+## sphere and move only when the camera turns. Reduce motion holds the layers still.
+## The layers face the current camera's angle, so a camera that turns with it on sees
+## them swing with it.
 @export var parallax := false:
 	set(value):
 		parallax = value
@@ -64,6 +65,10 @@ const SHADER := preload("res://game/space_sky/space_sky.gdshader")
 
 var _material := ShaderMaterial.new()
 var _fade: Tween
+# How far the camera moved while Reduce motion held the parallax layers still.
+var _held_back := Vector3.ZERO
+var _last_camera_position := Vector3.ZERO
+var _has_last_camera_position := false
 
 
 func _init() -> void:
@@ -92,9 +97,18 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var camera := get_viewport().get_camera_3d()
-	if camera:
-		_set_param(&"camera_position", camera.global_position)
-		_set_param(&"camera_basis", camera.global_basis.orthonormalized())
+	if not camera:
+		return
+	var camera_position := camera.global_position
+	# Under Reduce motion the layers move with the camera, so they hold still on screen.
+	# Keeping the camera's movement since then, rather than freezing its position, stops
+	# the layers jumping when the setting changes.
+	if _has_last_camera_position and _motion_reduced():
+		_held_back += camera_position - _last_camera_position
+	_last_camera_position = camera_position
+	_has_last_camera_position = true
+	_set_param(&"camera_position", camera_position - _held_back)
+	_set_param(&"camera_basis", camera.global_basis.orthonormalized())
 
 
 ## Blends the fog to new colours over [param duration] seconds.
@@ -125,6 +139,11 @@ func _validate_property(property: Dictionary) -> void:
 	# The Environment is rebuilt in _init, so saving it would only add noise to the scene.
 	if property.name == "environment":
 		property.usage &= ~PROPERTY_USAGE_STORAGE
+
+
+# The Settings autoload doesn't run in the editor.
+func _motion_reduced() -> bool:
+	return not Engine.is_editor_hint() and Settings.reduce_motion
 
 
 func _set_param(param: StringName, value: Variant) -> void:
