@@ -1,0 +1,223 @@
+[gd_scene format=3 uid="uid://dl44qfykqfvcv"]
+
+[ext_resource type="Script" uid="uid://cg1xeqno6p0ek" path="res://game/space_sky/space_sky.gd" id="1_sky"]
+[ext_resource type="Script" uid="uid://bcxthsqtxqd30" path="res://game/solar_system/planet.gd" id="2_planet"]
+[ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
+[ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
+[ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
+[ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_pcam_host"]
+[ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_pcam"]
+[ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_tween"]
+
+[sub_resource type="Resource" id="Resource_tween"]
+script = ExtResource("8_tween")
+
+[sub_resource type="SphereMesh" id="SphereMesh_star"]
+radius = 2.4
+height = 4.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_star"]
+shading_mode = 0
+albedo_color = Color(1, 0.82, 0.25, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_halo"]
+size = Vector2(7.7, 7.7)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_halo"]
+render_priority = -1
+shader = ExtResource("5_halo")
+shader_parameter/halo_color = Color(1, 0.7, 0.25, 0.22)
+shader_parameter/ring_count = null
+shader_parameter/inner_radius = 0.78
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ember"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/base_color = Color(0.96, 0.5, 0.36, 1)
+shader_parameter/mid_color = Color(0.84, 0.36, 0.3, 1)
+shader_parameter/top_color = Color(0.7, 0.27, 0.28, 1)
+shader_parameter/mid_threshold = 0.55
+shader_parameter/top_threshold = 0.68
+shader_parameter/noise_scale = 2.6
+shader_parameter/stripes = null
+shader_parameter/stripe_count = null
+shader_parameter/cap_color = null
+shader_parameter/cap_size = null
+shader_parameter/seed = 3.0
+shader_parameter/shadow_color = null
+shader_parameter/terminator_softness = null
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orbit"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_terra"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/base_color = Color(0.3, 0.6, 0.9, 1)
+shader_parameter/mid_color = Color(0.94, 0.86, 0.6, 1)
+shader_parameter/top_color = Color(0.45, 0.78, 0.42, 1)
+shader_parameter/mid_threshold = 0.5
+shader_parameter/top_threshold = 0.54
+shader_parameter/noise_scale = 1.8
+shader_parameter/stripes = null
+shader_parameter/stripe_count = null
+shader_parameter/cap_color = null
+shader_parameter/cap_size = 0.14
+shader_parameter/seed = 11.0
+shader_parameter/shadow_color = null
+shader_parameter/terminator_softness = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_moon"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/base_color = Color(0.82, 0.8, 0.9, 1)
+shader_parameter/mid_color = Color(0.68, 0.66, 0.8, 1)
+shader_parameter/top_color = Color(0.68, 0.66, 0.8, 1)
+shader_parameter/mid_threshold = 0.6
+shader_parameter/top_threshold = 1.0
+shader_parameter/noise_scale = 3.0
+shader_parameter/stripes = null
+shader_parameter/stripe_count = null
+shader_parameter/cap_color = null
+shader_parameter/cap_size = null
+shader_parameter/seed = 5.0
+shader_parameter/shadow_color = null
+shader_parameter/terminator_softness = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_giant"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/base_color = Color(1, 0.72, 0.46, 1)
+shader_parameter/mid_color = Color(0.95, 0.52, 0.38, 1)
+shader_parameter/top_color = Color(1, 0.88, 0.7, 1)
+shader_parameter/mid_threshold = 0.45
+shader_parameter/top_threshold = 0.8
+shader_parameter/noise_scale = 1.4
+shader_parameter/stripes = 1.0
+shader_parameter/stripe_count = 5.0
+shader_parameter/cap_color = null
+shader_parameter/cap_size = null
+shader_parameter/seed = 21.0
+shader_parameter/shadow_color = null
+shader_parameter/terminator_softness = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_giant_rings"]
+render_priority = 0
+shader = ExtResource("4_rings")
+shader_parameter/color_a = Color(1, 0.86, 0.66, 1)
+shader_parameter/color_b = Color(0.93, 0.66, 0.5, 1)
+shader_parameter/band_count = null
+shader_parameter/gap = null
+shader_parameter/opacity = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_frost"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/base_color = Color(0.36, 0.85, 0.78, 1)
+shader_parameter/mid_color = Color(0.6, 0.94, 0.88, 1)
+shader_parameter/top_color = Color(0.92, 1, 0.98, 1)
+shader_parameter/mid_threshold = 0.5
+shader_parameter/top_threshold = 0.66
+shader_parameter/noise_scale = 2.2
+shader_parameter/stripes = null
+shader_parameter/stripe_count = null
+shader_parameter/cap_color = null
+shader_parameter/cap_size = 0.22
+shader_parameter/seed = 37.0
+shader_parameter/shadow_color = null
+shader_parameter/terminator_softness = null
+
+[node name="SolarSystem" type="Node3D" unique_id=1939531791]
+
+[node name="SpaceSky" type="WorldEnvironment" parent="." unique_id=293765800]
+script = ExtResource("1_sky")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1555607591]
+unique_name_in_owner = true
+transform = Transform3D(0.939693, -0.210569, 0.269516, 0, 0.788011, 0.615661, -0.34202, -0.578533, 0.740488, 11.5892, 26.4734, 31.841)
+fov = 30.0
+
+[node name="PhantomCameraHost" type="Node" parent="Camera" unique_id=583792244]
+script = ExtResource("6_pcam_host")
+
+[node name="OverviewShot" type="Node3D" parent="." unique_id=1554304797]
+transform = Transform3D(0.939693, -0.210569, 0.269516, 0, 0.788011, 0.615661, -0.34202, -0.578533, 0.740488, 11.5892, 26.4734, 31.841)
+script = ExtResource("7_pcam")
+tween_resource = SubResource("Resource_tween")
+tween_on_load = false
+
+[node name="Star" type="Node3D" parent="." unique_id=1616161291]
+
+[node name="Surface" type="MeshInstance3D" parent="Star" unique_id=600828084]
+cast_shadow = 0
+mesh = SubResource("SphereMesh_star")
+surface_material_override/0 = SubResource("StandardMaterial3D_star")
+
+[node name="Halo" type="MeshInstance3D" parent="Star" unique_id=209002715]
+cast_shadow = 0
+mesh = SubResource("QuadMesh_halo")
+surface_material_override/0 = SubResource("ShaderMaterial_halo")
+
+[node name="Light" type="OmniLight3D" parent="Star" unique_id=1336476973]
+omni_range = 200.0
+omni_attenuation = 0.0
+
+[node name="Ember" type="Node3D" parent="." unique_id=1760760661]
+script = ExtResource("2_planet")
+radius = 0.6
+orbit_period = 14.0
+start_angle = 200.0
+spin_period = 9.0
+surface_material = SubResource("ShaderMaterial_ember")
+orbit_material = SubResource("StandardMaterial3D_orbit")
+orbit_radius = 5.2
+
+[node name="Terra" type="Node3D" parent="." unique_id=310922244]
+script = ExtResource("2_planet")
+radius = 1.0
+orbit_radius = 8.6
+orbit_period = 24.0
+start_angle = 300.0
+spin_period = 12.0
+tilt = 15.0
+surface_material = SubResource("ShaderMaterial_terra")
+orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="Moon" type="Node3D" parent="Terra" unique_id=247044122]
+script = ExtResource("2_planet")
+radius = 0.3
+orbit_radius = 2.0
+orbit_period = 6.0
+start_angle = 40.0
+spin_period = 0.0
+surface_material = SubResource("ShaderMaterial_moon")
+orbit_width = 0.03
+orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="Giant" type="Node3D" parent="." unique_id=1488920163]
+script = ExtResource("2_planet")
+radius = 2.0
+orbit_radius = 13.2
+orbit_period = 44.0
+start_angle = 140.0
+spin_period = 16.0
+tilt = 18.0
+surface_material = SubResource("ShaderMaterial_giant")
+orbit_material = SubResource("StandardMaterial3D_orbit")
+ring_material = SubResource("ShaderMaterial_giant_rings")
+ring_inner = 1.35
+ring_outer = 2.2
+
+[node name="Frost" type="Node3D" parent="." unique_id=2128267833]
+script = ExtResource("2_planet")
+radius = 0.85
+orbit_radius = 17.5
+orbit_period = 64.0
+start_angle = 20.0
+spin_period = 14.0
+tilt = -10.0
+surface_material = SubResource("ShaderMaterial_frost")
+orbit_material = SubResource("StandardMaterial3D_orbit")

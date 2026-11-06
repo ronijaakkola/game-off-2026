@@ -59,7 +59,9 @@ func _init() -> void:
 	# Sky-based light would re-render the radiance map whenever the fog changes.
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
-	env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	# Linear shows a flat colour as picked; AgX desaturates bright ones, which dulls the
+	# cartoon palette.
+	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	environment = env
 	# Runs every export's setter, so each default reaches the shader or the Environment.
 	for property: String in get_export_names():
