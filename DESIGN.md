@@ -28,16 +28,16 @@ Mouse only, apart from Esc. Open question: whether right-drag orbits the camera.
 ## Scenes and flow
 
 ```
-main menu ──Play──▶ game ──Esc──▶ pause menu ──Main menu──▶ main menu
-    │                                  │
-    └──Settings──▶ settings panel ◀──Settings
+main menu ──Play──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
+    │                                          │
+    └──Settings──▶ settings panel ◀──────────Settings
 ```
 
 - **Main menu** (`ui/main_menu/`): the main scene. Title, Play, Settings, Quit (Quit hidden on web). On web, a title card (game title, "Click to start") comes first, and that click starts the menu music.
-- **Game** (`game/`): the camera with one Phantom Camera shot (`BoardShot`), one shadowed sun, the soft-look environment, the board, and the HUD (`game/hud.tscn`) with the placed count. Placing a piece emits `Events.piece_placed`, and the HUD listens. Placing a piece calls `Feedback.shake`, which does nothing when Reduce motion is on. It instances the pause menu.
+- **Example game** (`game/game.tscn`): no longer reached from the menu; its tests still load it. The camera with one Phantom Camera shot (`BoardShot`), one shadowed sun, the soft-look environment, the board, and the HUD (`game/hud.tscn`) with the placed count. Placing a piece emits `Events.piece_placed`, and the HUD listens. Placing a piece calls `Feedback.shake`, which does nothing when Reduce motion is on. It instances the pause menu.
 - **Pause menu** (`ui/pause_menu/`): Resume, Settings, Main menu. Pauses the tree; music keeps playing. Also opens when the player leaves browser fullscreen.
 - **Settings panel** (`ui/settings/`): Master, Music and SFX volume, and Reduce motion. Shared by the main menu and the pause menu.
-- **Solar system** (`game/solar_system/`): a look prototype for the space game, not reached from the menu yet. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky`, seen from one fixed shot. Colours and camera controls are still open.
+- **Solar system** (`game/solar_system/`): what Play opens: a look prototype for the space game. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky`, seen from one fixed shot. It instances the pause menu. Camera controls are still open.
 
 Scene changes go through `SceneFlow.go_to`, which fades to black and back.
 

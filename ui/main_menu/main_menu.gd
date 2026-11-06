@@ -2,7 +2,7 @@ extends MarginContainer
 ## The main scene: title, Play, Settings and Quit. On the web, a "Click to start"
 ## title card comes first, because Safari starts audio only after a click in the game.
 
-const GAME_SCENE := "res://game/game.tscn"
+const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
 const MUSIC := preload("res://ui/audio/menu_music.ogg")
 # Written into exports by `check.py export`, so the editor has none.
 const BUILD_COMMIT := "res://ui/main_menu/build_commit.txt"

@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_pcam_host"]
 [ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_pcam"]
 [ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_tween"]
+[ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="9_pause"]
 
 [sub_resource type="Resource" id="Resource_tween"]
 script = ExtResource("8_tween")
@@ -137,8 +138,8 @@ script = ExtResource("1_sky")
 background_color = Color(0.11, 0.1, 0.24, 1)
 fog_color = Color(0.13, 0.12, 0.3, 1)
 fog_accent_color = Color(0.17, 0.1, 0.26, 1)
-star_color = Color(0.9, 0.88, 1, 1)
 fog_strength = 0.5
+star_color = Color(0.9, 0.88, 1, 1)
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1555607591]
 unique_name_in_owner = true
@@ -173,16 +174,15 @@ omni_attenuation = 0.0
 [node name="Ember" type="Node3D" parent="." unique_id=1760760661]
 script = ExtResource("2_planet")
 radius = 0.78
+orbit_radius = 5.2
 orbit_period = 14.0
 start_angle = 200.0
 spin_period = 9.0
 surface_material = SubResource("ShaderMaterial_ember")
 orbit_material = SubResource("StandardMaterial3D_orbit")
-orbit_radius = 5.2
 
 [node name="Terra" type="Node3D" parent="." unique_id=310922244]
 script = ExtResource("2_planet")
-radius = 1.0
 orbit_radius = 8.6
 orbit_period = 24.0
 start_angle = 300.0
@@ -226,3 +226,5 @@ spin_period = 14.0
 tilt = -10.0
 surface_material = SubResource("ShaderMaterial_frost")
 orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]
