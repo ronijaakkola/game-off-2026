@@ -20,8 +20,8 @@ uniform float cap_size : hint_range(0.0, 0.5) = 0.0;
 uniform float seed = 0.0;
 // The night side is the surface colour multiplied by this.
 uniform vec3 shadow_color : source_color = vec3(0.5, 0.45, 0.78);
-// How wide the day-night edge blends. Small keeps it a crisp line.
-uniform float terminator_softness : hint_range(0.0, 0.5) = 0.04;
+// Extra blur on the day-night edge. 0 keeps it a crisp line about a pixel wide at any zoom.
+uniform float terminator_softness : hint_range(0.0, 0.5) = 0.0;
 
 varying vec3 local_position;
 
@@ -82,6 +82,9 @@ void fragment() {
 
 void light() {
 	// Two tones only: the star's colour, energy and distance are left out on purpose.
-	float lit = smoothstep(-terminator_softness, terminator_softness, dot(NORMAL, LIGHT));
+	float ndl = dot(NORMAL, LIGHT);
+	// Blend over one screen pixel, so the edge is as sharp up close as from afar.
+	float width = max(fwidth(ndl), terminator_softness) + 1e-4;
+	float lit = smoothstep(-width, width, ndl);
 	DIFFUSE_LIGHT += mix(shadow_color, vec3(1.0), lit);
 }
