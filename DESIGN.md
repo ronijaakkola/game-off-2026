@@ -22,11 +22,11 @@ In the solar system, which Play opens:
 
 | Input | Action |
 |---|---|
-| W A S D or the arrow keys | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit |
-| Mouse wheel | Zoom in and out, between a closest and a farthest distance |
+| W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit |
+| Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
 | Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
 
-WASD reads physical key positions, so it sits in the same place on every keyboard layout. In the example game scene, a left click on the board or a piece's top places a piece.
+WASD reads physical key positions, so it sits in the same place on every keyboard layout. Edge pan starts only once the pointer has moved inside the game, and stops when it leaves the window or the window loses focus, so a pointer that left through an edge doesn't keep the camera moving. In the example game scene, a left click on the board or a piece's top places a piece.
 
 ## Scenes and flow
 
