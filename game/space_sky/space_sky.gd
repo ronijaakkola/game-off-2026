@@ -62,11 +62,8 @@ func _init() -> void:
 	env.tonemap_mode = Environment.TONE_MAPPER_AGX
 	environment = env
 	# Runs every export's setter, so each default reaches the shader or the Environment.
-	# Read from the script, so a new export can't be left out of a list.
-	for property: Dictionary in (get_script() as Script).get_script_property_list():
-		var usage: int = property.usage
-		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE and usage & PROPERTY_USAGE_EDITOR:
-			set(property.name, get(property.name))
+	for property: String in get_export_names():
+		set(property, get(property))
 
 
 ## Blends the fog to new colours over [param duration] seconds.
@@ -81,6 +78,16 @@ func fade_to(new_fog_color: Color, new_accent_color: Color, duration := 1.0) -> 
 	_fade = create_tween().set_parallel().set_trans(Tween.TRANS_SINE)
 	_fade.tween_property(self, ^"fog_color", new_fog_color, duration)
 	_fade.tween_property(self, ^"fog_accent_color", new_accent_color, duration)
+
+
+## The name of every export, read from this script so no list can miss one.
+func get_export_names() -> Array[String]:
+	var names: Array[String] = []
+	for property: Dictionary in (get_script() as Script).get_script_property_list():
+		var usage: int = property.usage
+		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE and usage & PROPERTY_USAGE_EDITOR:
+			names.append(property.name)
+	return names
 
 
 func _validate_property(property: Dictionary) -> void:

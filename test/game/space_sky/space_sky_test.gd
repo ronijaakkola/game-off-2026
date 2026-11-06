@@ -12,7 +12,7 @@ func test_every_export_reaches_its_shader_uniform() -> void:
 	var uniforms: Array[String] = []
 	for uniform: Dictionary in material.shader.get_shader_uniform_list():
 		uniforms.append(uniform.name)
-	for setting: String in _exports(sky):
+	for setting: String in sky.get_export_names():
 		if setting in ENVIRONMENT_EXPORTS:
 			continue
 		var message := "SpaceSky.%s names no uniform in space_sky.gdshader" % setting
@@ -26,12 +26,3 @@ func test_fade_to_outside_the_tree_sets_the_fog_at_once() -> void:
 	var material := sky.environment.sky.sky_material as ShaderMaterial
 	assert_that(material.get_shader_parameter(&"fog_color")).is_equal(Color.RED)
 	assert_that(material.get_shader_parameter(&"fog_accent_color")).is_equal(Color.BLUE)
-
-
-func _exports(sky: SpaceSky) -> Array[String]:
-	var names: Array[String] = []
-	for property: Dictionary in (sky.get_script() as Script).get_script_property_list():
-		var usage: int = property.usage
-		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE and usage & PROPERTY_USAGE_EDITOR:
-			names.append(property.name)
-	return names
