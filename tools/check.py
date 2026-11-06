@@ -29,6 +29,7 @@
 """
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -905,16 +906,16 @@ def run_ids(files: list[str]):
     if not gaps:
         return "no scene or resource is missing an id"
     order = dependency_order(gaps)
-    result = run_godot(
-        [
-            "--headless", "--editor", "--path", ".",
-            "-s", "res://tools/resave.gd", "--", *(f"res://{path}" for path in order),
-        ]
-    )  # fmt: skip
-    summary = re.search(r"^saved (\d+), failures: (\d+)$", result.stdout, re.MULTILINE)
-    if not summary or result.returncode != 0 or summary.group(2) != "0":
-        print(result.stdout, end="")
-        raise CheckFailed("Godot could not save the files above")
+    originals = {path: Path(path).read_bytes() for path in order}
+    before = resource_dump(order)
+    try:
+        verify_resave(order, before)
+    except CheckFailed:
+        # A save that wasn't verified never stays, whatever stopped the check: a failed
+        # save, a changed value, a timeout, or a dump that can't read the saved files.
+        restore(originals)
+        print("The files are as they were before check.py ids.")
+        raise
     left = [path for path in order if missing_ids(path)]
     if left:
         for path in left:
@@ -926,6 +927,56 @@ def run_ids(files: list[str]):
             "so the files they reference are saved first"
         )
     return "saved " + ", ".join(order) + "; commit the result"
+
+
+def verify_resave(order: list[str], before: list[str]) -> None:
+    """Resaves the files through tools/resave.gd and fails if Godot couldn't, or if the
+    saved files load with anything but ids changed from the dump taken before."""
+    result = run_godot(
+        [
+            "--headless", "--editor", "--path", ".",
+            "-s", "res://tools/resave.gd", "--", *(f"res://{path}" for path in order),
+        ]
+    )  # fmt: skip
+    summary = re.search(r"^saved (\d+), failures: (\d+)$", result.stdout, re.MULTILINE)
+    if not summary or result.returncode != 0 or summary.group(2) != "0":
+        print(result.stdout, end="")
+        raise CheckFailed("Godot could not save the files above")
+    changes = dump_changes(before, resource_dump(order))
+    if changes:
+        print("\n".join(changes))
+        raise CheckFailed(
+            "the resave changed more than ids (above: - before, + after). "
+            "tools/resave.gd explains the case it already handles"
+        )
+
+
+def resource_dump(paths: list[str]) -> list[str]:
+    """What the files hold as the game loads them, one line per stored property, ids left
+    out: tools/resource_dump.gd's output."""
+    args = ["--headless", "--path", ".", "-s", "res://tools/resource_dump.gd", "--"]
+    result = run_godot([*args, *(f"res://{path}" for path in paths)])
+    prefixes = tuple(f"res://{path} " for path in paths)
+    lines = [line for line in result.stdout.splitlines() if line.startswith(prefixes)]
+    if result.returncode != 0 or logged_error(result.stdout) or not lines:
+        print(result.stdout, end="")
+        raise CheckFailed("tools/resource_dump.gd could not read the files above")
+    return lines
+
+
+def dump_changes(before: list[str], after: list[str]) -> list[str]:
+    """The lines of two resource dumps that differ, - before and + after. Files are dumped
+    in the same order both times, so a plain line diff reads as a property diff."""
+    return [
+        line
+        for line in difflib.unified_diff(before, after, lineterm="", n=0)
+        if line.startswith(("-", "+")) and not line.startswith(("---", "+++"))
+    ]
+
+
+def restore(originals: dict[str, bytes]) -> None:
+    for path, content in originals.items():
+        Path(path).write_bytes(content)
 
 
 def dependency_order(paths: list[str]) -> list[str]:
