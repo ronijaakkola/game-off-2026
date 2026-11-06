@@ -39,7 +39,7 @@ Flat and cartoony, like a picture book of the solar system: solid colours with c
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is drawn as a thin, faint lilac line, so the player can see where each planet is going.
 - **Sky** (`SpaceSky`). A deep navy-violet background with faint coloured fog and two layers of small stars. It is dim on purpose, so the planets stand out. It doesn't light the planets.
 
-Anything new (the bus, passengers, route line, UI) follows the same rules: flat colour, hard edges, a two-tone shade at most, no textures. It keeps the scene cheap on the web too: no post-processing pass so far, which each cost a full-screen pass (`docs/web-constraints.md`).
+Anything new (the bus, passengers, route line, UI) follows the same rules: flat colour, hard edges, a two-tone shade at most, no textures. It keeps the scene cheap on the web too: no post-processing so far, since each effect adds a full-screen pass (`docs/web-constraints.md`).
 
 ## Controls
 
