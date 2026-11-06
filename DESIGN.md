@@ -37,6 +37,7 @@ Flat and cartoony, like a picture book of the solar system: solid colours with c
 - **Colours.** Soft, warm and saturated, never dark: sandy orange, leaf green, a pale lilac moon, an orange-striped gas giant with lilac rings, a pink ice planet with white caps. Planets are told apart by colour first, so each new one needs its own hue.
 - **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom or glow pass.
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is drawn as a thin, faint lilac line, so the player can see where each planet is going.
+- **Names.** Each planet and moon has its name just under it: small off-white text with the sky's lilac, a little see-through, with a thin navy outline so it still reads where it crosses an orbit line. The text faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
 - **Sky** (`SpaceSky`). A deep navy-violet background with faint coloured fog and two layers of small stars. It is dim on purpose, so the planets stand out. It doesn't light the planets.
 
 - **Bus** (placeholder, built in code). A rounded yellow body with a dark lilac window band that wraps round both ends, and a pale cyan thruster at the back, lit with the planets' two tones.

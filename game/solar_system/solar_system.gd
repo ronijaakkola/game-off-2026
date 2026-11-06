@@ -9,6 +9,10 @@ extends Node3D
 const PICK_MARGIN := 6.0
 ## The border's width on screen, in pixels at the base window height.
 const OUTLINE_PIXELS := 3.0
+## How tall a planet's name is on screen, in pixels at the base window height.
+const LABEL_PIXELS := 13.0
+## The gap between a planet's lower edge on screen and its name, in pixels.
+const LABEL_GAP_PIXELS := 0.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 
 var _planets: Array[Planet] = []
@@ -23,6 +27,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_place_labels()
 	var under := _planet_at(get_viewport().get_mouse_position())
 	var on_route := (%Bus as FrameshiftBus).get_route_planets()
 	for planet: Planet in _planets:
@@ -88,6 +93,20 @@ func _planet_at(screen_point: Vector2) -> Planet:
 			best = planet
 			best_depth = depth
 	return best
+
+
+# Hangs each planet's name just under its body on screen, at the same size at any zoom.
+func _place_labels() -> void:
+	var camera := %Camera as Camera3D
+	var height := get_viewport().get_visible_rect().size.y
+	var pixel_size := (
+		LABEL_PIXELS / height * 2.0 * tan(deg_to_rad(camera.fov) * 0.5) / Planet.LABEL_FONT_SIZE
+	)
+	var down := -camera.global_basis.y
+	for planet: Planet in _planets:
+		var gap := _pixels_to_world(LABEL_GAP_PIXELS, planet.get_body_global_position())
+		planet.label_pixel_size = pixel_size
+		planet.label_offset = down * (planet.get_body_radius() + gap)
 
 
 # How wide [param pixels] are in world units at [param point], seen through the camera.
