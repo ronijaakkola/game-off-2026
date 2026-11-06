@@ -16,11 +16,11 @@ extends Node3D
 @export_range(1.0, 400.0, 0.1, "or_greater") var distance := 40.0
 ## Pan speed, in multiples of the zoom distance per second, so a pan crosses the same share
 ## of the screen at any zoom.
-@export_range(0.0, 5.0, 0.01) var pan_speed := 0.9
+@export_range(0.0, 5.0, 0.01) var pan_speed := 0.6
 ## How much one wheel notch changes the zoom distance, as a share of it.
 @export_range(0.0, 0.5, 0.01) var zoom_step := 0.12
 ## How fast pan and zoom catch up with their target. Higher is snappier.
-@export_range(0.1, 100.0, 0.1, "or_greater") var smoothing := 10.0
+@export_range(0.1, 100.0, 0.1, "or_greater") var smoothing := 5.0
 
 var _target_position := Vector3.ZERO
 var _target_distance := 0.0
