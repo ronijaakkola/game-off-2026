@@ -1,10 +1,11 @@
 class_name FrameshiftBus
 extends Node3D
-## The Frameshift Bus. Docked, it floats beside its planet and moves with it. A course from
-## a planet first charges the frameshift drive for [member charge_time], then the bus turns
-## toward its first stop and flies the route stop by stop. It docks at a planet that ends
-## the route, and holds still at a point in space that ends it. A new course in flight or
-## in space starts at once, with no charge.
+## The Frameshift Bus. Docked, it floats beside its planet and moves with it. Leaving a
+## planet first charges the frameshift drive for [member charge_time], then the bus turns
+## toward its next stop and flies there. It passes through points in space and docks at
+## every planet on its route, charging again before it leaves each one, and holds still at
+## a point in space that ends the route. A new course in flight or in space starts at once,
+## with no charge.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 enum State { DOCKED, CHARGING, FLYING, HOLDING }
@@ -21,25 +22,26 @@ const BANK := 0.12
 @export var start_planet: Planet
 ## Seconds the frameshift drive charges before the bus leaves a planet.
 @export_range(0.0, 10.0, 0.1) var charge_time := 3.0
-@export_range(0.1, 20.0, 0.1) var max_speed := 4.0
+## Top speed. 0.75 matches the mockup's trip times.
+@export_range(0.1, 20.0, 0.05) var max_speed := 0.75
 ## Speed gained or lost per second.
-@export_range(0.1, 20.0, 0.1) var acceleration := 3.0
+@export_range(0.1, 20.0, 0.05) var acceleration := 1.0
 ## Radians per second.
-@export_range(0.1, 20.0, 0.1) var turn_speed := 3.0
+@export_range(0.1, 20.0, 0.1) var turn_speed := 2.0
 ## From a planet's surface to the bus's centre, docked.
 @export_range(0.0, 5.0, 0.01) var dock_gap := 0.6
 ## How close the bus passes a stop before it heads for the next one.
-@export_range(0.05, 5.0, 0.01) var waypoint_radius := 0.5
+@export_range(0.05, 5.0, 0.01) var waypoint_radius := 0.3
 
 @export_group("Float")
 ## How far the bus bobs up and down while still.
-@export_range(0.0, 1.0, 0.01) var bob_height := 0.08
+@export_range(0.0, 1.0, 0.01) var bob_height := 0.02
 @export_range(0.1, 20.0, 0.1) var bob_period := 2.6
 ## How far the bus sways side to side while still.
-@export_range(0.0, 1.0, 0.01) var sway := 0.04
+@export_range(0.0, 1.0, 0.01) var sway := 0.01
 @export_range(0.1, 20.0, 0.1) var sway_period := 4.3
 ## How far the bus shakes when the drive is fully charged. Reduce motion turns it off.
-@export_range(0.0, 0.5, 0.005) var charge_shake := 0.025
+@export_range(0.0, 0.5, 0.005) var charge_shake := 0.012
 
 var state := State.HOLDING
 
@@ -60,10 +62,14 @@ func _ready() -> void:
 	if start_planet:
 		_dock(start_planet, Vector3.BACK)
 		global_position = _dock_point()
-	# Draws the route line's material once while SceneFlow's fade covers the screen, so it
-	# compiles now and not on the first click.
-	%RouteLine.draw_route(PackedVector3Array([global_position, global_position + Vector3.LEFT]))
+	# Draws the route line and charge ring once while SceneFlow's fade covers the screen,
+	# so their materials compile now and not on the first click.
+	%RouteLine.draw_route(
+		PackedVector3Array([global_position, global_position + Vector3.LEFT]), PackedVector3Array()
+	)
+	%ChargeRing.show_progress(global_position, 1.0)
 	await get_tree().process_frame
+	%ChargeRing.show_progress(global_position, 0.0)
 	_draw_route()
 
 
@@ -79,8 +85,7 @@ func plot_course(stop: RouteStop, append := false) -> void:
 		return
 	match state:
 		State.DOCKED:
-			state = State.CHARGING
-			_charge_left = charge_time
+			_start_charge()
 		State.HOLDING:
 			state = State.FLYING
 
@@ -91,11 +96,21 @@ func cancel_course() -> void:
 	_route.clear()
 	if state == State.CHARGING:
 		state = State.DOCKED
+		%ChargeRing.show_progress(global_position, 0.0)
 
 
 ## The planet the bus is docked at, or null.
 func get_docked_planet() -> Planet:
 	return _dock_planet
+
+
+## Every planet on the route still ahead.
+func get_route_planets() -> Array[Planet]:
+	var planets: Array[Planet] = []
+	for stop: RouteStop in _route:
+		if stop.planet:
+			planets.append(stop.planet)
+	return planets
 
 
 func _process(delta: float) -> void:
@@ -108,6 +123,8 @@ func _process(delta: float) -> void:
 			_charge_left -= delta
 			if _charge_left <= 0.0:
 				_undock()
+			else:
+				%ChargeRing.show_progress(global_position, 1.0 - _charge_left / charge_time)
 		State.FLYING:
 			_fly(delta)
 		State.HOLDING:
@@ -131,7 +148,7 @@ func _fly(delta: float) -> void:
 	var distance := to_target.length()
 	if _reached(stop, distance, last):
 		_route.pop_front()
-		if last:
+		if stop.planet or last:
 			_arrive(stop)
 		return
 	var previous := rotation.y
@@ -141,28 +158,30 @@ func _fly(delta: float) -> void:
 	# than circling it.
 	var facing := maxf(_forward().dot(to_target / distance), 0.0)
 	var limit := max_speed
-	if last:
-		# Brakes so it comes to rest on the last stop.
+	if last or stop.planet:
+		# Brakes so it comes to rest where it stops: a planet, or the end of the route.
 		limit = minf(limit, sqrt(2.0 * acceleration * distance))
 	_speed = move_toward(_speed, limit * facing * facing, acceleration * delta)
 	global_position += _forward() * minf(_speed * delta, distance)
 
 
 func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
-	if not last:
-		return distance < waypoint_radius
 	if stop.planet:
 		return distance < DOCK_DISTANCE
-	return distance < STOP_DISTANCE
+	if last:
+		return distance < STOP_DISTANCE
+	return distance < waypoint_radius
 
 
 func _arrive(stop: RouteStop) -> void:
 	_speed = 0.0
 	_turn_rate = 0.0
-	if stop.planet:
-		_dock(stop.planet, global_position - stop.planet.get_body_global_position())
-	else:
+	if not stop.planet:
 		state = State.HOLDING
+		return
+	_dock(stop.planet, global_position - stop.planet.get_body_global_position())
+	if not _route.is_empty():
+		_start_charge()
 
 
 func _dock(planet: Planet, direction: Vector3) -> void:
@@ -172,7 +191,13 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 	state = State.DOCKED
 
 
+func _start_charge() -> void:
+	state = State.CHARGING
+	_charge_left = charge_time
+
+
 func _undock() -> void:
+	%ChargeRing.show_progress(global_position, 0.0)
 	_dock_planet = null
 	state = State.FLYING if not _route.is_empty() else State.HOLDING
 
@@ -222,13 +247,35 @@ func _animate_model(delta: float) -> void:
 	model.rotation.z = lerp_angle(model.rotation.z, lean, 1.0 - exp(-8.0 * delta))
 
 
+# The line through the route still ahead. It runs to a planet's surface rather than to
+# where the bus docks, so the planet reads as part of the route, and leaves it from the
+# side facing the next stop. Points in space get a marker.
 func _draw_route() -> void:
-	var points := PackedVector3Array([_flat(global_position)])
-	var from := global_position
+	var legs := PackedVector3Array()
+	var markers := PackedVector3Array()
+	var from := _flat(global_position)
+	var from_planet: Planet
 	for stop: RouteStop in _route:
-		from = _stop_position(stop, from)
-		points.append(from)
-	%RouteLine.draw_route(points)
+		var end := _flat(stop.point)
+		if stop.planet:
+			end = _flat(stop.planet.get_body_global_position())
+		var start := _surface_point(from_planet, end) if from_planet else from
+		if stop.planet:
+			legs.append_array([start, _surface_point(stop.planet, start)])
+		else:
+			legs.append_array([start, end])
+			markers.append(end)
+		from = end
+		from_planet = stop.planet
+	%RouteLine.draw_route(legs, markers)
+
+
+# The point on planet's surface, on the orbit plane, that faces toward.
+func _surface_point(planet: Planet, toward: Vector3) -> Vector3:
+	var center := _flat(planet.get_body_global_position())
+	var flat := _flat(toward - center)
+	var direction := flat.normalized() if flat.length_squared() > 1e-6 else Vector3.BACK
+	return center + direction * planet.get_body_radius()
 
 
 func _forward() -> Vector3:

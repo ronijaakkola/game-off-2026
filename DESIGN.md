@@ -2,7 +2,7 @@
 
 What the game is. Read this before gameplay work and update it when the design changes.
 
-**Frameshift Bus.** The core loop below is the design. Built so far: the bus docks, charges and flies routes in the solar system (steps 1 to 4, without passengers, fuel or the planets' cost and time labels). What Play opens today is that solar system (Scenes and flow). The example game scene is still in the repo and shows the patterns to copy.
+**Frameshift Bus.** The core loop below is the design. Built so far: the bus docks, charges and flies routes in the solar system (steps 1 to 4: docking, charging, flying and rerouting, without passengers, fuel or the planets' cost and time labels). What Play opens today is that solar system (Scenes and flow). The example game scene is still in the repo and shows the patterns to copy.
 
 ## Pitch
 
@@ -55,7 +55,7 @@ Built, in the solar system, which Play opens:
 
 | Input | Action |
 |---|---|
-| Pointer over a planet | Shows a white border round it |
+| Pointer over a planet | Shows a white border round it (over its orange route border) |
 | Left click a planet | Set course straight to it |
 | Left click empty space | Set course to that point on the orbit plane |
 | Shift + left click | Add a planet or point to the end of the route |
@@ -64,7 +64,7 @@ Built, in the solar system, which Play opens:
 | Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
 | Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
 
-The bus flies on the orbit plane. Docked, it floats beside its planet (a slow bob and sway) and moves with it. A course from a planet charges the drive first; the bus shakes a little harder as it charges, unless Reduce motion is on. Then it turns toward its first stop, speeding up as it comes to face it, and flies the route stop by stop. It passes through each stop but the last, docks at a planet that ends the route, and holds still at a point in space that ends it. A planet stop is the planet's near side, so the bus chases a moving planet. Clicking the planet it is docked at cancels the course. The route is a flat, pale yellow line from the bus through each stop, with a diamond at each stop.
+The bus flies on the orbit plane at 0.75 units a second, about the mockup's trip times: a planet's orbit speed is around half the bus's, so chasing one takes a while. Docked, it floats beside its planet (a barely visible bob and sway) and moves with it. Leaving a planet charges the drive first: a white ring round the bus fills clockwise (temporary), and the bus shakes slightly, unless Reduce motion is on. Then it turns toward its next stop, speeding up as it comes to face it. It passes through points in space, docks at every planet on the route and charges again before leaving each one, and holds still at a point in space that ends the route. A planet stop is the planet's near side, so the bus chases a moving planet. Clicking the planet it is docked at cancels the course. The route is a flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border, so planets read as part of the route.
 
 WASD reads physical key positions, so it sits in the same place on every keyboard layout. Edge pan starts only once the pointer has moved inside the game, and stops when it leaves the window or the window loses focus, so a pointer that left through an edge doesn't keep the camera moving. In the example game scene, a left click on the board or a piece's top places a piece.
 

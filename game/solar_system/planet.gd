@@ -8,10 +8,16 @@ extends Node3D
 ## It builds its meshes in code as internal nodes, so the scene saves only its exports.
 ## The editor shows each body at its [member start_angle]; it moves only when the game runs.
 
+enum Border { NONE, HOVER, ROUTE }
+
 const SEGMENTS := 128
+const BORDER_COLORS: Dictionary[Border, Color] = {
+	Border.HOVER: Color.WHITE,
+	Border.ROUTE: Color(1.0, 0.6, 0.22),
+}
 
 static var _sphere: SphereMesh
-static var _outline_material: StandardMaterial3D
+static var _border_materials: Dictionary[Border, StandardMaterial3D] = {}
 
 ## The body's radius.
 @export_range(0.05, 10.0, 0.01, "or_greater") var radius := 1.0:
@@ -74,11 +80,13 @@ static var _outline_material: StandardMaterial3D
 		ring_outer = value
 		_rebuild()
 
-## Shows a white border round the body, as when the pointer is over it.
-var highlighted := false:
+## The border round the body: none, white under the pointer, or orange on the bus's route.
+var border := Border.NONE:
 	set(value):
-		highlighted = value
-		_outline.visible = value
+		border = value
+		_outline.visible = value != Border.NONE
+		if _outline.visible:
+			_outline.material_override = _get_border_material(value)
 ## How far the border reaches past the body's edge.
 var outline_width := 0.05:
 	set(value):
@@ -106,7 +114,6 @@ func _init() -> void:
 	_body.add_child(_outline)
 	_surface.mesh = _get_sphere()
 	_outline.mesh = _get_sphere()
-	_outline.material_override = _get_outline_material()
 	_outline.visible = false
 	_outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_orbit_line.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -210,10 +217,11 @@ static func _get_sphere() -> SphereMesh:
 
 
 # A shell drawn from behind, so only its rim past the body shows.
-static func _get_outline_material() -> StandardMaterial3D:
-	if not _outline_material:
-		_outline_material = StandardMaterial3D.new()
-		_outline_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_outline_material.cull_mode = BaseMaterial3D.CULL_FRONT
-		_outline_material.albedo_color = Color.WHITE
-	return _outline_material
+static func _get_border_material(kind: Border) -> StandardMaterial3D:
+	if not _border_materials.has(kind):
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.cull_mode = BaseMaterial3D.CULL_FRONT
+		material.albedo_color = BORDER_COLORS[kind]
+		_border_materials[kind] = material
+	return _border_materials[kind]

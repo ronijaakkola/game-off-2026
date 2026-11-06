@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dd4pdoap5rwvi" path="res://game/bus/bus.gd" id="1_bus"]
 [ext_resource type="Script" uid="uid://ddvccqtdkw6wu" path="res://game/bus/bus_model.gd" id="2_model"]
 [ext_resource type="Script" uid="uid://didki7xhd18nw" path="res://game/bus/route_line.gd" id="3_line"]
+[ext_resource type="Script" uid="uid://cuoggoqvxa5ln" path="res://game/bus/charge_ring.gd" id="4_ring"]
 
 [node name="Bus" type="Node3D" unique_id=845724280]
 script = ExtResource("1_bus")
@@ -14,3 +15,7 @@ script = ExtResource("2_model")
 [node name="RouteLine" type="MeshInstance3D" parent="." unique_id=341742303]
 unique_name_in_owner = true
 script = ExtResource("3_line")
+
+[node name="ChargeRing" type="MeshInstance3D" parent="." unique_id=104318103]
+unique_name_in_owner = true
+script = ExtResource("4_ring")

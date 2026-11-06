@@ -1,12 +1,13 @@
 extends Node3D
-## The solar system. The pointer picks a planet, which shows its border, and a click plots
-## the bus's course: to the planet under the pointer, or to the point on the orbit plane
-## under it. Shift adds the stop to the end of the route; a right click cancels the course.
+## The solar system. The pointer picks a planet, which shows a white border, and a click
+## plots the bus's course: to the planet under the pointer, or to the point on the orbit
+## plane under it. Shift adds the stop to the end of the route; a right click cancels the
+## course. Planets on the route show an orange border.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
 const PICK_MARGIN := 6.0
-## The hover border's width on screen, in pixels at the base window height.
+## The border's width on screen, in pixels at the base window height.
 const OUTLINE_PIXELS := 3.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 
@@ -18,15 +19,23 @@ func _ready() -> void:
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
 	for planet: Planet in _planets:
-		planet.highlighted = true
+		planet.border = Planet.Border.HOVER
 
 
 func _process(_delta: float) -> void:
 	var under := _planet_at(get_viewport().get_mouse_position())
+	var on_route := (%Bus as FrameshiftBus).get_route_planets()
 	for planet: Planet in _planets:
-		planet.highlighted = planet == under
-	if under:
-		under.outline_width = _pixels_to_world(OUTLINE_PIXELS, under.get_body_global_position())
+		if planet == under:
+			planet.border = Planet.Border.HOVER
+		elif planet in on_route:
+			planet.border = Planet.Border.ROUTE
+		else:
+			planet.border = Planet.Border.NONE
+		if planet.border != Planet.Border.NONE:
+			planet.outline_width = _pixels_to_world(
+				OUTLINE_PIXELS, planet.get_body_global_position()
+			)
 
 
 func _unhandled_input(event: InputEvent) -> void:

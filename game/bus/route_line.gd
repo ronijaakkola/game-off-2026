@@ -1,12 +1,13 @@
 extends MeshInstance3D
-## The bus's route, drawn as a flat ribbon on the orbit plane through each point, with a
-## small diamond at each point after the first. It draws in global space.
+## The bus's route, drawn as flat ribbons on the orbit plane, with a small diamond at each
+## marked point. It draws in global space.
 
 ## The ribbon's width.
 @export_range(0.01, 1.0, 0.01) var width := 0.1
 ## How far a diamond reaches from its point.
 @export_range(0.01, 1.0, 0.01) var marker_size := 0.22
-@export var color := Color(1.0, 0.93, 0.62, 0.85)
+## Matches the border of the planets on the route.
+@export var color := Color(1.0, 0.6, 0.22, 0.9)
 
 var _mesh := ImmediateMesh.new()
 
@@ -24,22 +25,23 @@ func _ready() -> void:
 	material_override = material
 
 
-## Draws a ribbon through [param points], or nothing with fewer than two.
-func draw_route(points: PackedVector3Array) -> void:
+## Draws a ribbon for each pair of points in [param legs] (start, end, start, end, ...) and
+## a diamond at each of [param markers].
+func draw_route(legs: PackedVector3Array, markers: PackedVector3Array) -> void:
 	_mesh.clear_surfaces()
-	if points.size() < 2:
+	if legs.size() < 2 and markers.is_empty():
 		return
 	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i: int in points.size() - 1:
-		var from := _flat(points[i])
-		var to := _flat(points[i + 1])
+	for i: int in range(0, legs.size() - 1, 2):
+		var from := _flat(legs[i])
+		var to := _flat(legs[i + 1])
 		var along := to - from
 		if along.length_squared() < 1e-6:
 			continue
 		var side := along.cross(Vector3.UP).normalized() * width * 0.5
 		_quad(from - side, from + side, to + side, to - side)
-	for i: int in range(1, points.size()):
-		var at := _flat(points[i])
+	for point: Vector3 in markers:
+		var at := _flat(point)
 		var x := Vector3(marker_size, 0.0, 0.0)
 		var z := Vector3(0.0, 0.0, marker_size)
 		_quad(at - x, at - z, at + x, at + z)
