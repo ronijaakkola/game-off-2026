@@ -172,6 +172,7 @@ omni_attenuation = 0.0
 
 [node name="Ember" type="Node3D" parent="." unique_id=1760760661]
 script = ExtResource("2_planet")
+display_name = "Ember"
 radius = 0.39
 orbit_radius = 5.2
 orbit_period = 70.0
@@ -182,6 +183,7 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Terra" type="Node3D" parent="." unique_id=310922244]
 script = ExtResource("2_planet")
+display_name = "Terra"
 radius = 0.5
 orbit_radius = 8.6
 orbit_period = 120.0
@@ -193,6 +195,7 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Moon" type="Node3D" parent="Terra" unique_id=247044122]
 script = ExtResource("2_planet")
+display_name = "Moon"
 radius = 0.15
 orbit_radius = 2.0
 start_angle = 40.0
@@ -203,6 +206,7 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Giant" type="Node3D" parent="." unique_id=1488920163]
 script = ExtResource("2_planet")
+display_name = "Giant"
 radius = 1.0
 orbit_radius = 13.2
 orbit_period = 220.0
@@ -217,6 +221,7 @@ ring_outer = 2.2
 
 [node name="Frost" type="Node3D" parent="." unique_id=2128267833]
 script = ExtResource("2_planet")
+display_name = "Frost"
 radius = 0.425
 orbit_radius = 17.5
 orbit_period = 320.0
