@@ -22,10 +22,10 @@ const BANK := 0.12
 @export var start_planet: Planet
 ## Seconds the frameshift drive charges before the bus leaves a planet.
 @export_range(0.0, 10.0, 0.1) var charge_time := 3.0
-## Top speed. 0.75 matches the mockup's trip times.
-@export_range(0.1, 20.0, 0.05) var max_speed := 0.75
+## Top speed. Planets orbit at under 0.5, so the bus can catch one.
+@export_range(0.1, 20.0, 0.05) var max_speed := 1.2
 ## Speed gained or lost per second.
-@export_range(0.1, 20.0, 0.05) var acceleration := 1.0
+@export_range(0.1, 20.0, 0.05) var acceleration := 1.6
 ## Radians per second.
 @export_range(0.1, 20.0, 0.1) var turn_speed := 2.0
 ## From a planet's surface to the bus's centre, docked.
