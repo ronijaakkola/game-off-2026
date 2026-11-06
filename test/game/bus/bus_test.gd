@@ -48,6 +48,8 @@ func test_a_course_from_a_planet_charges_then_flies_and_docks() -> void:
 
 
 func test_each_planet_on_the_route_docks_and_charges_again() -> void:
+	var docked_at: Array[Planet] = []
+	_bus.docked.connect(func(planet: Planet) -> void: docked_at.append(planet))
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_planet(_far), true)
 	assert_array(_bus.get_route_planets()).contains_exactly([_near, _far])
@@ -57,6 +59,7 @@ func test_each_planet_on_the_route_docks_and_charges_again() -> void:
 	assert_array(_bus.get_route_planets()).contains_exactly([_far])
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_far)
+	assert_array(docked_at).contains_exactly([_near, _far])
 
 
 func test_a_point_in_space_ends_the_route_holding_there() -> void:

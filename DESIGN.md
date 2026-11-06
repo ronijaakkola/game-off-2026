@@ -21,7 +21,11 @@ A passenger's patience runs down while they ride, at half speed while the bus is
 
 ### On board
 
-Each passenger on board has a card down the left edge of the screen: name, type, destination, a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"). Built in `game/passengers/` (the cabin and the cards), not yet reached from Play: picking up at planets and getting off at the destination come once the bus is in.
+Each passenger on board has a card down the left edge of the screen: name, type, destination, a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"). Built in `game/passengers/`, and running in the solar system:
+
+- **Waiting and boarding (first phase).** Each planet, the Moon included, gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random. They are hidden for now and lose no patience while they wait. Whenever the bus docks at a planet, the passengers going there get off and pay, then those waiting board, longest waiting first, while any of the 4 seats are free. The game starts with one passenger on board at Ember.
+- **Trip time and fare** come from the straight distance at boarding: the trip time is the charge plus that distance at the bus's top speed, and the fare is 3 credits per unit times the type's multiplier. Planets move, so it is only an estimate.
+- **Credits** show in the top right.
 
 - **Needs.** Each passenger type has a few needs, such as a snack or a drink. Each need asks again a random while after the last one was served. While a request is open, the card says so ("Hungry. Wants a snack") and shows a button to serve it, and patience runs down several times faster. One request at a time; a served need shows its own line ("Munching a snack") for a few seconds.
 - **Amenities.** Something on the bus that serves one need by itself, the moment it is asked for, with its own line ("Getting a drink from the dispenser"). This is what upgrades buy: each one takes a chore off the player. None exist yet.
@@ -88,7 +92,7 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 - **Example game** (`game/game.tscn`): no longer reached from the menu; its tests still load it. The camera with one Phantom Camera shot (`BoardShot`), one shadowed sun, the soft-look environment, the board, and the HUD (`game/hud.tscn`) with the placed count. Placing a piece emits `Events.piece_placed`, and the HUD listens. Placing a piece calls `Feedback.shake`, which does nothing when Reduce motion is on. It instances the pause menu.
 - **Pause menu** (`ui/pause_menu/`): Resume, Settings, Main menu. Pauses the tree; music keeps playing. Also opens when the player leaves browser fullscreen.
 - **Settings panel** (`ui/settings/`): Master, Music and SFX volume, and Reduce motion. Shared by the main menu and the pause menu.
-- **Solar system** (`game/solar_system/`): what Play opens. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky`, seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. The scene's script turns the pointer into planet hover and course clicks for the bus (`game/bus/bus.tscn`), which starts docked at Ember. It instances the pause menu.
+- **Solar system** (`game/solar_system/`): what Play opens. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky`, seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. The scene's script turns the pointer into planet hover and course clicks for the bus (`game/bus/bus.tscn`), which starts docked at Ember. It also runs the passengers (a `Cabin`, `WaitingPassengers`, and the HUD with the passenger cards and credits). It instances the pause menu.
 
 Scene changes go through `SceneFlow.go_to`, which fades to black and back.
 

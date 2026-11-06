@@ -10,6 +10,12 @@
 [ext_resource type="PackedScene" uid="uid://dn06wx2ui5uuu" path="res://game/solar_system/camera_rig.tscn" id="10_rig"]
 [ext_resource type="Script" uid="uid://dsnxgxaghvte7" path="res://game/solar_system/solar_system.gd" id="11_system"]
 [ext_resource type="PackedScene" uid="uid://ct4to1se3fvep" path="res://game/bus/bus.tscn" id="12_bus"]
+[ext_resource type="Script" uid="uid://ddec1r5comhsp" path="res://game/passengers/cabin.gd" id="13_cabin"]
+[ext_resource type="Script" uid="uid://oe3t6qyh76h4" path="res://game/passengers/waiting_passengers.gd" id="14_waiting"]
+[ext_resource type="Resource" uid="uid://bbro62vlymeqe" path="res://game/passengers/types/commuter.tres" id="15_commuter"]
+[ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="16_type"]
+[ext_resource type="PackedScene" uid="uid://lhx0mmtinvdx" path="res://game/passengers/passenger_panel.tscn" id="17_panel"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="18_theme"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -203,7 +209,6 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Giant" type="Node3D" parent="." unique_id=1488920163]
 script = ExtResource("2_planet")
-radius = 1.0
 orbit_radius = 13.2
 orbit_period = 220.0
 start_angle = 140.0
@@ -229,5 +234,37 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
 unique_name_in_owner = true
 start_planet = NodePath("../Ember")
+
+[node name="Cabin" type="Node" parent="." unique_id=1517490635]
+unique_name_in_owner = true
+script = ExtResource("13_cabin")
+
+[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus")]
+unique_name_in_owner = true
+script = ExtResource("14_waiting")
+types = Array[ExtResource("16_type")]([ExtResource("15_commuter")])
+bus = NodePath("../Bus")
+
+[node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
+
+[node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
+unique_name_in_owner = true
+
+[node name="CreditsBox" type="MarginContainer" parent="Hud" unique_id=517520806]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 40.0
+grow_horizontal = 0
+mouse_filter = 2
+theme = ExtResource("18_theme")
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+
+[node name="CreditsLabel" type="Label" parent="Hud/CreditsBox" unique_id=346367877]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 credits"
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]
