@@ -6,6 +6,8 @@ extends WorldEnvironment
 ## inspector or from code, such as a red mood over two seconds:
 ## [code]space_sky.fade_to(Color(0.08, 0.02, 0.03), Color(0.1, 0.05, 0.0), 2.0)[/code].
 ## It builds its own [Environment] and doesn't save it into the scene.
+## A camera that pans or zooms without turning wants [member parallax] on; one that turns
+## wants it off.
 ## Each export but [member ambient_color] sets the shader uniform of the same name, and
 ## holds the only default for it.
 
@@ -39,6 +41,21 @@ const SHADER := preload("res://game/space_sky/space_sky.gdshader")
 	set(value):
 		star_brightness = value
 		_set_param(&"star_brightness", value)
+## Lays the fog and stars on flat layers far behind the scene, facing the camera, so a
+## camera that pans or zooms slides them, the farthest the slowest. Off, they sit on the sky
+## sphere and move only when the camera turns. The layers face the current camera's angle,
+## so a camera that turns with it on sees them swing with it.
+@export var parallax := false:
+	set(value):
+		parallax = value
+		_set_param(&"parallax", value)
+		set_process(value)
+## How far past the world origin, in world units, the nearest star layer sits; the farther
+## stars sit at twice that and the fog at four times. Nearer layers slide faster.
+@export_range(10.0, 2000.0, 1.0, "or_greater") var parallax_depth := 150.0:
+	set(value):
+		parallax_depth = value
+		_set_param(&"parallax_depth", value)
 ## The light on 3D objects. The sky doesn't light them, so changing the fog is cheap.
 @export var ambient_color := Color(0.35, 0.37, 0.45):
 	set(value):
@@ -66,6 +83,18 @@ func _init() -> void:
 	# Runs every export's setter, so each default reaches the shader or the Environment.
 	for property: String in get_export_names():
 		set(property, get(property))
+
+
+func _ready() -> void:
+	# Godot turns processing on at ready for any script with _process.
+	set_process(parallax)
+
+
+func _process(_delta: float) -> void:
+	var camera := get_viewport().get_camera_3d()
+	if camera:
+		_set_param(&"camera_position", camera.global_position)
+		_set_param(&"camera_basis", camera.global_basis.orthonormalized())
 
 
 ## Blends the fog to new colours over [param duration] seconds.
