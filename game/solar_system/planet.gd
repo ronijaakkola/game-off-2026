@@ -11,6 +11,12 @@ extends Node3D
 enum Border { NONE, HOVER, ROUTE }
 
 const SEGMENTS := 128
+## The name's colour: an off-white with the sky's lilac, a little see-through.
+const LABEL_COLOR := Color(0.93, 0.92, 1.0, 0.85)
+## A thin outline in the sky's navy, so the name still reads over orbit lines and rings.
+const LABEL_OUTLINE_COLOR := Color(0.08, 0.07, 0.18, 0.7)
+const LABEL_FONT_SIZE := 32
+const LABEL_OUTLINE_SIZE := 8
 const BORDER_COLORS: Dictionary[Border, Color] = {
 	Border.HOVER: Color.WHITE,
 	Border.ROUTE: Color(1.0, 0.6, 0.22),
@@ -19,6 +25,12 @@ const BORDER_COLORS: Dictionary[Border, Color] = {
 static var _sphere: SphereMesh
 static var _border_materials: Dictionary[Border, StandardMaterial3D] = {}
 
+## The name shown under the body. Empty shows none.
+@export var display_name := "":
+	set(value):
+		display_name = value
+		_label.text = value
+		_label.visible = value != ""
 ## The body's radius.
 @export_range(0.05, 10.0, 0.01, "or_greater") var radius := 1.0:
 	set(value):
@@ -92,6 +104,19 @@ var outline_width := 0.05:
 	set(value):
 		outline_width = value
 		_outline.scale = Vector3.ONE * (get_body_radius() + value) / _get_sphere().radius
+## Where the name hangs from, in global space, from the body's centre. The solar system
+## sets it each frame to just past the body's lower edge as the camera sees it.
+var label_offset := Vector3.ZERO:
+	set(value):
+		label_offset = value
+		if _label.is_inside_tree():
+			_label.global_position = _body.global_position + value
+## How big the name is: its font's pixel size in world units at one unit from the camera,
+## since the name keeps its size on screen at any distance.
+var label_pixel_size := 0.001:
+	set(value):
+		label_pixel_size = value
+		_label.pixel_size = value
 
 var _time := 0.0
 # Internal nodes: the scene doesn't own them, so the editor never saves them.
@@ -102,6 +127,7 @@ var _tilt := Node3D.new()
 var _surface := MeshInstance3D.new()
 var _rings := MeshInstance3D.new()
 var _outline := MeshInstance3D.new()
+var _label := Label3D.new()
 
 
 func _init() -> void:
@@ -112,12 +138,14 @@ func _init() -> void:
 	_tilt.add_child(_surface)
 	_tilt.add_child(_rings)
 	_body.add_child(_outline)
+	_body.add_child(_label)
 	_surface.mesh = _get_sphere()
 	_outline.mesh = _get_sphere()
 	_outline.visible = false
 	_outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_orbit_line.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_rings.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_init_label()
 
 
 func _ready() -> void:
@@ -206,6 +234,25 @@ func _place_body() -> void:
 		var moon := child as Planet
 		if moon:
 			moon.set_orbit_center(get_body_position())
+
+
+# Faces the camera at a fixed size on screen, hanging down from its position. It draws
+# after the orbit lines, so they never cross it, but the bus still passes in front.
+func _init_label() -> void:
+	_label.visible = false
+	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_label.fixed_size = true
+	_label.shaded = false
+	_label.double_sided = false
+	_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_label.font_size = LABEL_FONT_SIZE
+	_label.pixel_size = label_pixel_size
+	_label.outline_size = LABEL_OUTLINE_SIZE
+	_label.modulate = LABEL_COLOR
+	_label.outline_modulate = LABEL_OUTLINE_COLOR
+	_label.render_priority = 2
+	_label.outline_render_priority = 1
+	_label.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
 static func _get_sphere() -> SphereMesh:

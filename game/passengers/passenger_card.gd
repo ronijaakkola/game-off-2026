@@ -64,7 +64,11 @@ func _show() -> void:
 
 
 func _destination_name() -> String:
-	return passenger.destination.name if passenger.destination else "?"
+	if not passenger.destination:
+		return "?"
+	if passenger.destination.display_name:
+		return passenger.destination.display_name
+	return passenger.destination.name
 
 
 # Sets text only when it changes, since this runs every frame.

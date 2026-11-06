@@ -29,6 +29,7 @@
 """
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -165,6 +166,7 @@ FORMATTING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
+NODE_EXPORTS = ".claude/skills/edit-tscn/SKILL.md, References"
 EVENTS_SCRIPT = "core/events/events.gd"
 DEV_COMMANDS = "core/dev_console/dev_commands.gd"
 ONLINE_FOLDER = "core/online/"
@@ -623,7 +625,7 @@ def scene_problems(path: str) -> list[str]:
             "the copied node; the editor gives the node a new one on its next save."
         )
         problems.append(problem(path, number, "duplicate-unique-id", message, UNIQUE_IDS))
-    return problems + scene_bus_problems(path, lines)
+    return problems + scene_bus_problems(path, lines) + node_export_problems(path, lines)
 
 
 def scene_bus_problems(path: str, lines: list[str]) -> list[str]:
@@ -639,6 +641,82 @@ def scene_bus_problems(path: str, lines: list[str]) -> list[str]:
             )
             problems.append(problem(path, number, "unknown-bus", message, AUTOLOADS))
     return problems
+
+
+def node_export_problems(path: str, lines: list[str]) -> list[str]:
+    """A script's exported Node (say `@export var target: Planet`) is set from a NodePath
+    in the scene only when the node's header lists it in node_paths. Without that, Godot
+    leaves the export null with no error, and load, smoke and tests all pass."""
+    resources = ext_resource_paths(lines)
+    problems = []
+    blocks = [n for n, line in enumerate(lines) if line.startswith("[")] + [len(lines)]
+    for start, end in zip(blocks, blocks[1:]):
+        header = lines[start]
+        if not header.startswith("[node "):
+            continue
+        listed = re.search(r"\bnode_paths=PackedStringArray\(([^)]*)\)", header)
+        node_paths = re.findall(r'"([^"]+)"', listed.group(1)) if listed else []
+        script = node_script(header, lines[start + 1 : end], resources)
+        exports = exported_types(script) if script else {}
+        for offset, line in enumerate(lines[start + 1 : end], start + 2):
+            m = re.match(r'(\w+) = NodePath\("([^"]*)"\)', line)
+            if not m or m.group(1) in node_paths:
+                continue
+            kind = exports.get(m.group(1))
+            if not kind or kind == "NodePath":
+                continue
+            name = m.group(1)
+            message = (
+                f"{name} is an exported {kind} in res://{script}, so Godot sets it from "
+                f'this path only when the [node] line has node_paths=PackedStringArray("{name}"). '
+                f"Without that the export is null at runtime, with no error. Add it to the "
+                f"[node] line on line {start + 1}."
+            )
+            problems.append(problem(path, offset, "node-export-path", message, NODE_EXPORTS))
+    return problems
+
+
+def ext_resource_paths(lines: list[str]) -> dict[str, str]:
+    """Each ext_resource's id, mapped to its path from the project root."""
+    paths = {}
+    for line in lines:
+        if line.startswith("[ext_resource "):
+            path = re.search(r'\bpath="res://([^"]+)"', line)
+            ident = re.search(r'\bid="([^"]+)"', line)
+            if path and ident:
+                paths[ident.group(1)] = path.group(1)
+    return paths
+
+
+def node_script(header: str, body: list[str], resources: dict[str, str]) -> str | None:
+    """The script on a node: its own, else the root script of the scene it instances."""
+    for line in body:
+        m = re.match(r'script = ExtResource\("([^"]+)"\)', line)
+        if m:
+            return resources.get(m.group(1))
+    m = re.search(r'\binstance=ExtResource\("([^"]+)"\)', header)
+    scene = resources.get(m.group(1)) if m else None
+    if not scene or not Path(scene).is_file():
+        return None
+    lines = Path(scene).read_text(encoding="utf-8", errors="replace").splitlines()
+    starts = [n for n, line in enumerate(lines) if line.startswith("[node ")]
+    if not starts:
+        return None
+    root = starts[0]
+    ends = [n for n, line in enumerate(lines) if n > root and line.startswith("[")]
+    body = lines[root + 1 : ends[0] if ends else len(lines)]
+    return node_script(lines[root], body, ext_resource_paths(lines))
+
+
+@cache
+def exported_types(script: str) -> dict[str, str]:
+    """The declared type of each @export var in a script, by name. Untyped exports and
+    scripts that aren't there are left out."""
+    if not script.endswith(".gd") or not Path(script).is_file():
+        return {}
+    code, _ = split_gdscript(Path(script).read_text(encoding="utf-8", errors="replace"))
+    found = re.findall(r"@export\w*(?:\([^)]*\))?\s+var\s+(\w+)\s*:\s*(\w+)", code)
+    return dict(found)
 
 
 def missing_ids(path: str) -> list[tuple[int, str]]:
@@ -905,16 +983,16 @@ def run_ids(files: list[str]):
     if not gaps:
         return "no scene or resource is missing an id"
     order = dependency_order(gaps)
-    result = run_godot(
-        [
-            "--headless", "--editor", "--path", ".",
-            "-s", "res://tools/resave.gd", "--", *(f"res://{path}" for path in order),
-        ]
-    )  # fmt: skip
-    summary = re.search(r"^saved (\d+), failures: (\d+)$", result.stdout, re.MULTILINE)
-    if not summary or result.returncode != 0 or summary.group(2) != "0":
-        print(result.stdout, end="")
-        raise CheckFailed("Godot could not save the files above")
+    originals = {path: Path(path).read_bytes() for path in order}
+    before = resource_dump(order)
+    try:
+        verify_resave(order, before)
+    except CheckFailed:
+        # A save that wasn't verified never stays, whatever stopped the check: a failed
+        # save, a changed value, a timeout, or a dump that can't read the saved files.
+        restore(originals)
+        print("The files are as they were before check.py ids.")
+        raise
     left = [path for path in order if missing_ids(path)]
     if left:
         for path in left:
@@ -926,6 +1004,56 @@ def run_ids(files: list[str]):
             "so the files they reference are saved first"
         )
     return "saved " + ", ".join(order) + "; commit the result"
+
+
+def verify_resave(order: list[str], before: list[str]) -> None:
+    """Resaves the files through tools/resave.gd and fails if Godot couldn't, or if the
+    saved files load with anything but ids changed from the dump taken before."""
+    result = run_godot(
+        [
+            "--headless", "--editor", "--path", ".",
+            "-s", "res://tools/resave.gd", "--", *(f"res://{path}" for path in order),
+        ]
+    )  # fmt: skip
+    summary = re.search(r"^saved (\d+), failures: (\d+)$", result.stdout, re.MULTILINE)
+    if not summary or result.returncode != 0 or summary.group(2) != "0":
+        print(result.stdout, end="")
+        raise CheckFailed("Godot could not save the files above")
+    changes = dump_changes(before, resource_dump(order))
+    if changes:
+        print("\n".join(changes))
+        raise CheckFailed(
+            "the resave changed more than ids (above: - before, + after). "
+            "tools/resave.gd explains the case it already handles"
+        )
+
+
+def resource_dump(paths: list[str]) -> list[str]:
+    """What the files hold as the game loads them, one line per stored property, ids left
+    out: tools/resource_dump.gd's output."""
+    args = ["--headless", "--path", ".", "-s", "res://tools/resource_dump.gd", "--"]
+    result = run_godot([*args, *(f"res://{path}" for path in paths)])
+    prefixes = tuple(f"res://{path} " for path in paths)
+    lines = [line for line in result.stdout.splitlines() if line.startswith(prefixes)]
+    if result.returncode != 0 or logged_error(result.stdout) or not lines:
+        print(result.stdout, end="")
+        raise CheckFailed("tools/resource_dump.gd could not read the files above")
+    return lines
+
+
+def dump_changes(before: list[str], after: list[str]) -> list[str]:
+    """The lines of two resource dumps that differ, - before and + after. Files are dumped
+    in the same order both times, so a plain line diff reads as a property diff."""
+    return [
+        line
+        for line in difflib.unified_diff(before, after, lineterm="", n=0)
+        if line.startswith(("-", "+")) and not line.startswith(("---", "+++"))
+    ]
+
+
+def restore(originals: dict[str, bytes]) -> None:
+    for path, content in originals.items():
+        Path(path).write_bytes(content)
 
 
 def dependency_order(paths: list[str]) -> list[str]:

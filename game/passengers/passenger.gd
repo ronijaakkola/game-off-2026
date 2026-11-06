@@ -132,8 +132,11 @@ func _open(need: Need) -> void:
 
 
 func _close(line: String, seconds: float) -> void:
-	# The next request waits its interval from when this activity ends.
-	_need_timers[type.needs.find(request)] = seconds + _interval(request)
+	# The next request waits its interval from when this activity ends. A request that
+	# isn't one of the type's needs has no timer to reset.
+	var index := type.needs.find(request)
+	if index >= 0:
+		_need_timers[index] = seconds + _interval(request)
 	request = null
 	activity = line
 	_activity_left = seconds
