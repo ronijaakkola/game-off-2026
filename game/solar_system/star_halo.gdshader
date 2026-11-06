@@ -1,7 +1,8 @@
 shader_type spatial;
 // Flat rings around the star: a quad that always faces the camera, drawn as a few
-// concentric translucent discs with crisp edges. No glow pass, so it costs one quad.
-render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
+// concentric discs with crisp edges, added on top so they lighten what is behind them.
+// No glow pass, so it costs one quad.
+render_mode unshaded, blend_add, depth_draw_never, cull_disabled, shadows_disabled;
 
 uniform vec4 halo_color : source_color = vec4(1.0, 0.85, 0.3, 0.18);
 // The number of discs, each a step smaller and stacked on the one behind it.

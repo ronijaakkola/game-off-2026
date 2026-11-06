@@ -26,16 +26,16 @@ size = Vector2(7.7, 7.7)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_halo"]
 render_priority = -1
 shader = ExtResource("5_halo")
-shader_parameter/halo_color = Color(1, 0.7, 0.25, 0.22)
+shader_parameter/halo_color = Color(1, 0.7, 0.3, 0.4)
 shader_parameter/ring_count = null
 shader_parameter/inner_radius = 0.78
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ember"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/base_color = Color(0.96, 0.5, 0.36, 1)
-shader_parameter/mid_color = Color(0.84, 0.36, 0.3, 1)
-shader_parameter/top_color = Color(0.7, 0.27, 0.28, 1)
+shader_parameter/base_color = Color(0.82, 0.58, 0.4, 1)
+shader_parameter/mid_color = Color(0.66, 0.43, 0.3, 1)
+shader_parameter/top_color = Color(0.94, 0.78, 0.58, 1)
 shader_parameter/mid_threshold = 0.55
 shader_parameter/top_threshold = 0.68
 shader_parameter/noise_scale = 2.6
@@ -51,14 +51,14 @@ shader_parameter/terminator_softness = null
 transparency = 1
 cull_mode = 2
 shading_mode = 0
-albedo_color = Color(1, 1, 1, 0.22)
+albedo_color = Color(0.8, 0.8, 1, 0.3)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_terra"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/base_color = Color(0.3, 0.6, 0.9, 1)
-shader_parameter/mid_color = Color(0.94, 0.86, 0.6, 1)
-shader_parameter/top_color = Color(0.45, 0.78, 0.42, 1)
+shader_parameter/base_color = Color(0.25, 0.72, 0.6, 1)
+shader_parameter/mid_color = Color(0.85, 0.97, 0.7, 1)
+shader_parameter/top_color = Color(0.55, 0.87, 0.4, 1)
 shader_parameter/mid_threshold = 0.5
 shader_parameter/top_threshold = 0.54
 shader_parameter/noise_scale = 1.8
@@ -73,9 +73,9 @@ shader_parameter/terminator_softness = null
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_moon"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/base_color = Color(0.82, 0.8, 0.9, 1)
-shader_parameter/mid_color = Color(0.68, 0.66, 0.8, 1)
-shader_parameter/top_color = Color(0.68, 0.66, 0.8, 1)
+shader_parameter/base_color = Color(0.95, 0.93, 1, 1)
+shader_parameter/mid_color = Color(0.8, 0.78, 0.95, 1)
+shader_parameter/top_color = Color(0.8, 0.78, 0.95, 1)
 shader_parameter/mid_threshold = 0.6
 shader_parameter/top_threshold = 1.0
 shader_parameter/noise_scale = 3.0
@@ -90,9 +90,9 @@ shader_parameter/terminator_softness = null
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_giant"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/base_color = Color(1, 0.72, 0.46, 1)
-shader_parameter/mid_color = Color(0.95, 0.52, 0.38, 1)
-shader_parameter/top_color = Color(1, 0.88, 0.7, 1)
+shader_parameter/base_color = Color(1, 0.6, 0.25, 1)
+shader_parameter/mid_color = Color(0.95, 0.42, 0.22, 1)
+shader_parameter/top_color = Color(1, 0.8, 0.5, 1)
 shader_parameter/mid_threshold = 0.45
 shader_parameter/top_threshold = 0.8
 shader_parameter/noise_scale = 1.4
@@ -107,8 +107,8 @@ shader_parameter/terminator_softness = null
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_giant_rings"]
 render_priority = 0
 shader = ExtResource("4_rings")
-shader_parameter/color_a = Color(1, 0.86, 0.66, 1)
-shader_parameter/color_b = Color(0.93, 0.66, 0.5, 1)
+shader_parameter/color_a = Color(0.72, 0.72, 1, 1)
+shader_parameter/color_b = Color(0.56, 0.56, 0.92, 1)
 shader_parameter/band_count = null
 shader_parameter/gap = null
 shader_parameter/opacity = null
@@ -116,9 +116,9 @@ shader_parameter/opacity = null
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_frost"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/base_color = Color(0.36, 0.85, 0.78, 1)
-shader_parameter/mid_color = Color(0.6, 0.94, 0.88, 1)
-shader_parameter/top_color = Color(0.92, 1, 0.98, 1)
+shader_parameter/base_color = Color(1, 0.62, 0.74, 1)
+shader_parameter/mid_color = Color(1, 0.76, 0.84, 1)
+shader_parameter/top_color = Color(1, 0.92, 0.95, 1)
 shader_parameter/mid_threshold = 0.5
 shader_parameter/top_threshold = 0.66
 shader_parameter/noise_scale = 2.2
@@ -134,6 +134,11 @@ shader_parameter/terminator_softness = null
 
 [node name="SpaceSky" type="WorldEnvironment" parent="." unique_id=293765800]
 script = ExtResource("1_sky")
+background_color = Color(0.11, 0.1, 0.24, 1)
+fog_color = Color(0.13, 0.12, 0.3, 1)
+fog_accent_color = Color(0.17, 0.1, 0.26, 1)
+star_color = Color(0.9, 0.88, 1, 1)
+fog_strength = 0.5
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1555607591]
 unique_name_in_owner = true
@@ -167,7 +172,7 @@ omni_attenuation = 0.0
 
 [node name="Ember" type="Node3D" parent="." unique_id=1760760661]
 script = ExtResource("2_planet")
-radius = 0.6
+radius = 0.78
 orbit_period = 14.0
 start_angle = 200.0
 spin_period = 9.0
