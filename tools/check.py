@@ -908,25 +908,14 @@ def run_ids(files: list[str]):
     order = dependency_order(gaps)
     originals = {path: Path(path).read_bytes() for path in order}
     before = resource_dump(order)
-    result = run_godot(
-        [
-            "--headless", "--editor", "--path", ".",
-            "-s", "res://tools/resave.gd", "--", *(f"res://{path}" for path in order),
-        ]
-    )  # fmt: skip
-    summary = re.search(r"^saved (\d+), failures: (\d+)$", result.stdout, re.MULTILINE)
-    if not summary or result.returncode != 0 or summary.group(2) != "0":
-        print(result.stdout, end="")
+    try:
+        verify_resave(order, before)
+    except CheckFailed:
+        # A save that wasn't verified never stays, whatever stopped the check: a failed
+        # save, a changed value, a timeout, or a dump that can't read the saved files.
         restore(originals)
-        raise CheckFailed("Godot could not save the files above; they are as they were")
-    changes = dump_changes(before, resource_dump(order))
-    if changes:
-        print("\n".join(changes))
-        restore(originals)
-        raise CheckFailed(
-            "the resave changed more than ids (above: - before, + after), so the files are "
-            "as they were. tools/resave.gd explains the case it already handles"
-        )
+        print("The files are as they were before check.py ids.")
+        raise
     left = [path for path in order if missing_ids(path)]
     if left:
         for path in left:
@@ -938,6 +927,28 @@ def run_ids(files: list[str]):
             "so the files they reference are saved first"
         )
     return "saved " + ", ".join(order) + "; commit the result"
+
+
+def verify_resave(order: list[str], before: list[str]) -> None:
+    """Resaves the files through tools/resave.gd and fails if Godot couldn't, or if the
+    saved files load with anything but ids changed from the dump taken before."""
+    result = run_godot(
+        [
+            "--headless", "--editor", "--path", ".",
+            "-s", "res://tools/resave.gd", "--", *(f"res://{path}" for path in order),
+        ]
+    )  # fmt: skip
+    summary = re.search(r"^saved (\d+), failures: (\d+)$", result.stdout, re.MULTILINE)
+    if not summary or result.returncode != 0 or summary.group(2) != "0":
+        print(result.stdout, end="")
+        raise CheckFailed("Godot could not save the files above")
+    changes = dump_changes(before, resource_dump(order))
+    if changes:
+        print("\n".join(changes))
+        raise CheckFailed(
+            "the resave changed more than ids (above: - before, + after). "
+            "tools/resave.gd explains the case it already handles"
+        )
 
 
 def resource_dump(paths: list[str]) -> list[str]:
