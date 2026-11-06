@@ -10,9 +10,9 @@ const PICK_MARGIN := 6.0
 ## The border's width on screen, in pixels at the base window height.
 const OUTLINE_PIXELS := 3.0
 ## How tall a planet's name is on screen, in pixels at the base window height.
-const LABEL_PIXELS := 15.0
+const LABEL_PIXELS := 13.0
 ## The gap between a planet's lower edge on screen and its name, in pixels.
-const LABEL_GAP_PIXELS := 4.0
+const LABEL_GAP_PIXELS := 0.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 
 var _planets: Array[Planet] = []
