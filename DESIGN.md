@@ -15,7 +15,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 3. **Charge.** The frameshift drive charges for 3 s before the bus leaves a planet. While it charges, the player can cancel, or change the route.
 4. **Fly.** The bus flies the route point by point. The player can reroute at any time from wherever the bus is, the same way as setting a course, with no charge-up and no extra fuel cost: fuel burns by distance flown, so a reroute costs only the distance it adds.
 5. **Arrive.** At a planet, passengers going there get off and pay by their mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing.
-6. **Refuel.** Three of the six planets have a fuel depot. Docked at one, the player can refuel; it takes a few seconds.
+6. **Refuel.** Three of the six planets have a fuel depot. Docked at one, the player can refuel; it takes a few seconds. If the bus runs out of fuel in space, the player pays for a tow to the nearest depot planet. The tow costs money, and the time it takes costs passengers' patience.
 
 A passenger's patience runs down while they ride, at half speed while the bus is docked. It starts at the direct trip time with some slack, so a straight trip keeps them happy and detours cost mood. Mood comes from patience left: happy at 60 % or more, okay at 30 % or more, annoyed above 0, furious at 0. The fare grows with the distance to the destination.
 
@@ -23,10 +23,23 @@ A passenger's patience runs down while they ride, at half speed while the bus is
 
 A temporary goal while the loop is tuned:
 
-- **Win:** deliver 50 passengers.
+- **Win:** deliver 30 passengers.
 - **Lose:** the happiness score stays at 0 for 20 s.
 
 The happiness score isn't defined yet (see Open questions).
+
+## Look
+
+Flat and cartoony, like a picture book of the solar system: solid colours with crisp edges, no textures, no realistic light. Everything is generated from shaders and meshes in code, so there are no image assets to make.
+
+- **Camera.** Looks down at the orbit plane at an angle, with a narrow field of view (30°), so the system reads almost like a map but the planets still look round.
+- **Planets** (`planet.gdshader`). Each is a sphere with up to three colour bands with hard edges: noise blobs for rocky planets (continents, craters), wobbly horizontal stripes for gas giants, and optional polar caps. The pattern turns with the planet's spin. Light is two tones only: a lit side in the planet's own colours, and a night side tinted by the same purple multiply on every planet, split by a line about a pixel wide at any zoom. The star's distance and the ambient light don't change a planet's colours.
+- **Colours.** Soft, warm and saturated, never dark: sandy orange, leaf green, a pale lilac moon, an orange-striped gas giant with lilac rings, a pink ice planet with white caps. Planets are told apart by colour first, so each new one needs its own hue.
+- **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom or glow pass.
+- **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is drawn as a thin, faint lilac line, so the player can see where each planet is going.
+- **Sky** (`SpaceSky`). A deep navy-violet background with faint coloured fog and two layers of small stars. It is dim on purpose, so the planets stand out. It doesn't light the planets.
+
+Anything new (the bus, passengers, route line, UI) follows the same rules: flat colour, hard edges, a two-tone shade at most, no textures. It keeps the scene cheap on the web too: no post-processing pass so far, which each cost a full-screen pass (`docs/web-constraints.md`).
 
 ## Controls
 
@@ -81,7 +94,7 @@ Features we will very probably build, but that need more design work first.
 ### Open questions
 
 - **Happiness score.** What it measures. One option: the average mood of the passengers on board, with the 20 s countdown paused when the bus is empty, so a bus full of furious passengers is the losing state.
-- **Out of fuel in space.** Fuel burns as the bus flies, so it can run dry between planets. Does it drift, get towed for a fee, or end the run?
+- **Tow.** What it costs, how fast it is, and what happens when the player can't afford it.
 - **Fuel shown for a free point and for waypoints.** Whether the route line shows the total fuel and time like a planet does.
 - **Seats and waiting passengers.** The prototype had 4 seats and up to 3 waiting per planet; keep them until playtests say otherwise.
 
