@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Need" format=3 uid="uid://luqs0adq8oj6"]
+
+[ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="1_need"]
+
+[resource]
+script = ExtResource("1_need")
+id = &"snack"
+request_line = "Hungry. Wants a snack"
+serve_label = "Hand a snack"
+served_line = "Munching a snack"
+served_seconds = 6.0
+min_interval = 15.0
