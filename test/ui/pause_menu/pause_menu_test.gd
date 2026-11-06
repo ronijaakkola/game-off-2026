@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 
 const SCENE := "res://ui/pause_menu/pause_menu.tscn"
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
+const PauseMenuScript := preload("res://ui/pause_menu/pause_menu.gd")
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 # Headless, the window is 64×64, and the canvas_items stretch would scale every
 # simulated click by 18. At the base size it scales by 1.
@@ -143,6 +144,16 @@ func test_main_menu_leaves_the_paused_game() -> void:
 	if is_failure():
 		return
 	await assert_func(get_tree().root, "is_input_disabled").wait_until(2000).is_false()
+
+
+# A game scene can be freed with its menu open: a restart, or a test's scene runner at the
+# end of a test that opened it. The next scene must not start paused.
+func test_freeing_the_open_menu_resumes_the_game() -> void:
+	var menu: PauseMenuScript = load(SCENE).instantiate()
+	add_child(menu)
+	menu.open()
+	menu.free()
+	assert_bool(get_tree().paused).is_false()
 
 
 func _press_pause() -> void:
