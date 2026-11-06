@@ -52,7 +52,7 @@ const SHADER := preload("res://game/space_sky/space_sky.gdshader")
 		set_process(value)
 ## How far past the world origin, in world units, the nearest star layer sits; the farther
 ## stars sit at twice that and the fog at four times. Nearer layers slide faster.
-@export_range(10.0, 2000.0, 1.0, "or_greater") var parallax_depth := 150.0:
+@export_range(10.0, 5000.0, 1.0, "or_greater") var parallax_depth := 1000.0:
 	set(value):
 		parallax_depth = value
 		_set_param(&"parallax_depth", value)
