@@ -79,6 +79,17 @@ class CheckFailed(Exception):
     pass
 
 
+class TimedOut(CheckFailed):
+    """A command that ran past TIMEOUT. It keeps the output printed until then, so the
+    failure shows where the run stopped."""
+
+    def __init__(self, command: list[str], output: str | bytes | None):
+        if isinstance(output, bytes):
+            output = output.decode("utf-8", errors="replace")
+        self.output = ANSI.sub("", output or "")
+        super().__init__(f"Godot timed out after {TIMEOUT} s: {' '.join(command)}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -857,7 +868,7 @@ def run(
             timeout=TIMEOUT,
         )
     except subprocess.TimeoutExpired as timeout:
-        raise CheckFailed(f"Godot timed out after {TIMEOUT} s: {' '.join(command)}") from timeout
+        raise TimedOut(command, timeout.stdout) from timeout
     result.stdout = ANSI.sub("", result.stdout)
     return result
 
@@ -940,14 +951,17 @@ def dependency_order(paths: list[str]) -> list[str]:
 
 def run_test():
     ensure_build_dir("build/reports")
-    result = run_godot(
-        [
-            "--headless", "--path", ".",
-            "-s", "-d", "--remote-debug", "tcp://127.0.0.1:0",
-            "res://addons/gdUnit4/bin/GdUnitCmdTool.gd",
-            "-a", "res://test", "-c", "-rd", "res://build/reports", "--ignoreHeadlessMode",
-        ]
-    )  # fmt: skip
+    try:
+        result = run_godot(
+            [
+                "--headless", "--path", ".",
+                "-s", "-d", "--remote-debug", "tcp://127.0.0.1:0",
+                "res://addons/gdUnit4/bin/GdUnitCmdTool.gd",
+                "-a", "res://test", "-c", "-rd", "res://build/reports", "--ignoreHeadlessMode",
+            ]
+        )  # fmt: skip
+    except TimedOut as timeout:
+        raise CheckFailed(stalled_test_message(timeout)) from timeout
     output = DEBUGGER_NOISE.sub("", result.stdout)
     # gdUnit4 exits 0 when it finds nothing, so a wrong path or deleted suites would pass.
     summary = re.search(r"^Overall Summary: (\d+) test cases.*$", output, re.MULTILINE)
@@ -965,6 +979,30 @@ def run_test():
         print("".join(failures) + summary.group(0) if failures else output)
         raise CheckFailed(f"gdUnit4 exit code {result.returncode} (report in build/reports/)")
     return f"{summary.group(1)} tests"
+
+
+def stalled_test_message(timeout: TimedOut) -> str:
+    """A test run that stops making progress is almost always a gdUnit timeout that can't
+    fire: its Timers pause with the tree, so a test that leaves the tree paused hangs on
+    the next await, its own or a later suite's, instead of failing. Name where it stopped,
+    since the bare timeout names nothing."""
+    output = DEBUGGER_NOISE.sub("", timeout.output)
+    suites = re.findall(r"^Run Test Suite: (\S+)", output, re.MULTILINE)
+    tests = re.findall(r"^  \S+ > (\w+)", output, re.MULTILINE)
+    if suites:
+        where = suites[-1] + (f" > {tests[-1]}" if tests else "")
+    else:
+        # No suite line: the run stopped before the first suite, or gdUnit's console
+        # format changed. Show the output so the failure still says where it stopped.
+        tail = "\n".join(output.splitlines()[-20:]) or "(no output)"
+        where = f"no test suite (the last output follows)\n{tail}\n"
+    return (
+        f"{timeout}\nThe run stopped in {where}. gdUnit's timeouts (await_signal_on, wait_until, "
+        "the per-test timeout) are Timers that stop while the tree is paused, so a test that "
+        "leaves get_tree().paused on, here or in an earlier suite, hangs instead of failing. "
+        "Unpause in after_test(), and wait with test/support/pause_proof_wait.gd while paused "
+        "(gdunit-tests skill, Signals)."
+    )
 
 
 def main_scene() -> str | None:
