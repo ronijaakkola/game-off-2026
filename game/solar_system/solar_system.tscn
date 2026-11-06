@@ -8,6 +8,8 @@
 [ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_pcam_host"]
 [ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="9_pause"]
 [ext_resource type="PackedScene" uid="uid://dn06wx2ui5uuu" path="res://game/solar_system/camera_rig.tscn" id="10_rig"]
+[ext_resource type="Script" uid="uid://dsnxgxaghvte7" path="res://game/solar_system/solar_system.gd" id="11_system"]
+[ext_resource type="PackedScene" uid="uid://ct4to1se3fvep" path="res://game/bus/bus.tscn" id="12_bus"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -128,6 +130,7 @@ shader_parameter/shadow_color = null
 shader_parameter/terminator_softness = null
 
 [node name="SolarSystem" type="Node3D" unique_id=1939531791]
+script = ExtResource("11_system")
 
 [node name="SpaceSky" type="WorldEnvironment" parent="." unique_id=293765800]
 script = ExtResource("1_sky")
@@ -221,5 +224,9 @@ spin_period = 42.0
 tilt = -10.0
 surface_material = SubResource("ShaderMaterial_frost")
 orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
+unique_name_in_owner = true
+start_planet = NodePath("../Ember")
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]

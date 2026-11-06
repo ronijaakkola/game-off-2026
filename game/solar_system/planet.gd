@@ -11,6 +11,7 @@ extends Node3D
 const SEGMENTS := 128
 
 static var _sphere: SphereMesh
+static var _outline_material: StandardMaterial3D
 
 ## The body's radius.
 @export_range(0.05, 10.0, 0.01, "or_greater") var radius := 1.0:
@@ -73,6 +74,17 @@ static var _sphere: SphereMesh
 		ring_outer = value
 		_rebuild()
 
+## Shows a white border round the body, as when the pointer is over it.
+var highlighted := false:
+	set(value):
+		highlighted = value
+		_outline.visible = value
+## How far the border reaches past the body's edge.
+var outline_width := 0.05:
+	set(value):
+		outline_width = value
+		_outline.scale = Vector3.ONE * (get_body_radius() + value) / _get_sphere().radius
+
 var _time := 0.0
 # Internal nodes: the scene doesn't own them, so the editor never saves them.
 var _pivot := Node3D.new()
@@ -81,6 +93,7 @@ var _body := Node3D.new()
 var _tilt := Node3D.new()
 var _surface := MeshInstance3D.new()
 var _rings := MeshInstance3D.new()
+var _outline := MeshInstance3D.new()
 
 
 func _init() -> void:
@@ -90,7 +103,12 @@ func _init() -> void:
 	_body.add_child(_tilt)
 	_tilt.add_child(_surface)
 	_tilt.add_child(_rings)
+	_body.add_child(_outline)
 	_surface.mesh = _get_sphere()
+	_outline.mesh = _get_sphere()
+	_outline.material_override = _get_outline_material()
+	_outline.visible = false
+	_outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_orbit_line.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_rings.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
@@ -116,6 +134,17 @@ func set_orbit_center(center: Vector3) -> void:
 ## Where the body is now, relative to this node.
 func get_body_position() -> Vector3:
 	return _pivot.position + _body.position
+
+
+## The body's radius as drawn. The sphere mesh's own radius is 0.5, so it is half of
+## [member radius].
+func get_body_radius() -> float:
+	return radius * _get_sphere().radius
+
+
+## Where the body is now, in global space.
+func get_body_global_position() -> Vector3:
+	return to_global(get_body_position())
 
 
 ## A flat ring in the XZ plane, facing up, from [param inner] to [param outer]. UV.x runs
@@ -145,6 +174,7 @@ func _rebuild() -> void:
 	if not is_inside_tree():
 		return
 	_surface.scale = Vector3.ONE * radius
+	outline_width = outline_width
 	_surface.material_override = surface_material
 	_tilt.rotation.z = deg_to_rad(tilt)
 	_orbit_line.visible = show_orbit and orbit_radius > 0.0
@@ -177,3 +207,13 @@ static func _get_sphere() -> SphereMesh:
 		_sphere.radial_segments = 64
 		_sphere.rings = 32
 	return _sphere
+
+
+# A shell drawn from behind, so only its rim past the body shows.
+static func _get_outline_material() -> StandardMaterial3D:
+	if not _outline_material:
+		_outline_material = StandardMaterial3D.new()
+		_outline_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_outline_material.cull_mode = BaseMaterial3D.CULL_FRONT
+		_outline_material.albedo_color = Color.WHITE
+	return _outline_material

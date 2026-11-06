@@ -2,7 +2,7 @@
 
 What the game is. Read this before gameplay work and update it when the design changes.
 
-**Frameshift Bus.** The core loop below is the design; it isn't built yet. What Play opens today is the solar system look prototype (Scenes and flow). The example game scene is still in the repo and shows the patterns to copy.
+**Frameshift Bus.** The core loop below is the design. Built so far: the bus docks, charges and flies routes in the solar system (steps 1 to 4, without passengers, fuel or the planets' cost and time labels). What Play opens today is that solar system (Scenes and flow). The example game scene is still in the repo and shows the patterns to copy.
 
 ## Pitch
 
@@ -39,7 +39,9 @@ Flat and cartoony, like a picture book of the solar system: solid colours with c
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is drawn as a thin, faint lilac line, so the player can see where each planet is going.
 - **Sky** (`SpaceSky`). A deep navy-violet background with faint coloured fog and two layers of small stars. It is dim on purpose, so the planets stand out. It doesn't light the planets.
 
-Anything new (the bus, passengers, route line, UI) follows the same rules: flat colour, hard edges, a two-tone shade at most, no textures. It keeps the scene cheap on the web too: no post-processing so far, since each effect adds a full-screen pass (`docs/web-constraints.md`).
+- **Bus** (placeholder, built in code). A rounded yellow body with a dark lilac window band that wraps round both ends, and a pale cyan thruster at the back, lit with the planets' two tones.
+
+Anything new (passengers, UI) follows the same rules: flat colour, hard edges, a two-tone shade at most, no textures. It keeps the scene cheap on the web too: no post-processing so far, since each effect adds a full-screen pass (`docs/web-constraints.md`).
 
 ## Controls
 
@@ -47,18 +49,22 @@ Planned for the core loop, not built yet:
 
 | Input | Action |
 |---|---|
-| Left click a planet | Set course to it |
-| Left click empty space | Set course to that point |
-| Shift + left click | Add a waypoint to the end of the route |
 | Left click a waiting passenger | Pick them up |
 
 Built, in the solar system, which Play opens:
 
 | Input | Action |
 |---|---|
+| Pointer over a planet | Shows a white border round it |
+| Left click a planet | Set course straight to it |
+| Left click empty space | Set course to that point on the orbit plane |
+| Shift + left click | Add a planet or point to the end of the route |
+| Right click | Cancel the course: a charging drive stops, a flying bus slows to a stop in space |
 | W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit |
 | Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
 | Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
+
+The bus flies on the orbit plane. Docked, it floats beside its planet (a slow bob and sway) and moves with it. A course from a planet charges the drive first; the bus shakes a little harder as it charges, unless Reduce motion is on. Then it turns toward its first stop, speeding up as it comes to face it, and flies the route stop by stop. It passes through each stop but the last, docks at a planet that ends the route, and holds still at a point in space that ends it. A planet stop is the planet's near side, so the bus chases a moving planet. Clicking the planet it is docked at cancels the course. The route is a flat, pale yellow line from the bus through each stop, with a diamond at each stop.
 
 WASD reads physical key positions, so it sits in the same place on every keyboard layout. Edge pan starts only once the pointer has moved inside the game, and stops when it leaves the window or the window loses focus, so a pointer that left through an edge doesn't keep the camera moving. In the example game scene, a left click on the board or a piece's top places a piece.
 
@@ -74,7 +80,7 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 - **Example game** (`game/game.tscn`): no longer reached from the menu; its tests still load it. The camera with one Phantom Camera shot (`BoardShot`), one shadowed sun, the soft-look environment, the board, and the HUD (`game/hud.tscn`) with the placed count. Placing a piece emits `Events.piece_placed`, and the HUD listens. Placing a piece calls `Feedback.shake`, which does nothing when Reduce motion is on. It instances the pause menu.
 - **Pause menu** (`ui/pause_menu/`): Resume, Settings, Main menu. Pauses the tree; music keeps playing. Also opens when the player leaves browser fullscreen.
 - **Settings panel** (`ui/settings/`): Master, Music and SFX volume, and Reduce motion. Shared by the main menu and the pause menu.
-- **Solar system** (`game/solar_system/`): what Play opens: a look prototype for the space game. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky`, seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. It instances the pause menu.
+- **Solar system** (`game/solar_system/`): what Play opens. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky`, seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. The scene's script turns the pointer into planet hover and course clicks for the bus (`game/bus/bus.tscn`), which starts docked at Ember. It instances the pause menu.
 
 Scene changes go through `SceneFlow.go_to`, which fades to black and back.
 
