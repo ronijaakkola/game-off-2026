@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PassengerType" format=3 uid="uid://bbro62vlymeqe"]
+
+[ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="1_type"]
+[ext_resource type="Resource" uid="uid://luqs0adq8oj6" path="res://game/passengers/needs/snack.tres" id="2_snack"]
+[ext_resource type="Resource" uid="uid://be5jdsgim3cu2" path="res://game/passengers/needs/drink.tres" id="3_drink"]
+[ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="4_need"]
+
+[resource]
+script = ExtResource("1_type")
+display_name = "Commuter"
+needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink")])
+idle_lines = PackedStringArray("Sleeping...", "Looking at empty space", "Counting stars", "Reading a pamphlet", "Humming quietly", "Drumming on the armrest")
+names = PackedStringArray("Ada", "Bo", "Cyra", "Dex", "Esko", "Fen", "Gil", "Hana", "Ilo", "Juno", "Kai", "Lumi", "Milo", "Nia", "Oona", "Pip")

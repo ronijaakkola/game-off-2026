@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Need" format=3 uid="uid://be5jdsgim3cu2"]
+
+[ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="1_need"]
+
+[resource]
+script = ExtResource("1_need")
+id = &"drink"
+request_line = "Thirsty. Wants a drink"
+serve_label = "Pour a drink"
+served_line = "Sipping a drink"
+max_interval = 50.0

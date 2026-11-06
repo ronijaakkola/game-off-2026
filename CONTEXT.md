@@ -44,6 +44,30 @@ _Avoid_: backend, network manager, Talo (the service, not our code)
 Turning bus events into analytics events and stats, all in `core/online/tracking.gd`.
 _Avoid_: telemetry, logging, metrics
 
+**Passenger**:
+Someone riding the bus to a destination planet, with a fare, a patience that runs down during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
+_Avoid_: customer, rider, NPC
+
+**Patience**:
+How much more riding a passenger will take, in seconds, starting at the direct trip time with some slack.
+_Avoid_: frustration, timer, budget
+
+**Need**:
+Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves.
+_Avoid_: want, demand, task
+
+**Amenity**:
+Something on the bus that serves one need by itself. Upgrades add them.
+_Avoid_: facility, station, upgrade (the purchase, not the thing)
+
+**Cabin**:
+The inside of the bus: the passengers on board and the amenities, run as a small simulation. `Cabin` in code.
+_Avoid_: interior, passenger manager
+
+**Activity**:
+The short line on a passenger's card saying what they are doing now.
+_Avoid_: status, action
+
 **Example game scene**:
 The small playable scene that shows the patterns to copy; it is replaced by the real game on jam day.
 _Avoid_: demo, sample level
