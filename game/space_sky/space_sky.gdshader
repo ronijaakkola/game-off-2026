@@ -1,17 +1,18 @@
 shader_type sky;
 
 // Procedural space: a dark base, two faint fog tints and two star layers.
-// SpaceSky (space_sky.gd) sets every uniform; its exports are where to change them.
+// SpaceSky (space_sky.gd) sets the uniforms named after its exports, and its exports
+// hold their defaults, so those have none here. The star layout below is fixed here.
 uniform vec3 background_color : source_color;
 uniform vec3 fog_color : source_color;
 uniform vec3 fog_accent_color : source_color;
-uniform float fog_strength : hint_range(0.0, 2.0) = 1.0;
-uniform vec3 star_color : source_color = vec3(0.9, 0.95, 1.0);
+uniform float fog_strength : hint_range(0.0, 2.0);
+uniform vec3 star_color : source_color;
+uniform float star_brightness : hint_range(0.0, 4.0);
 uniform float star_density = 70.0;
 uniform float star_chance : hint_range(0.0, 1.0) = 0.12;
 // Star centres sit 0.2–0.8 into their cell, so a radius above 0.2 clips at the cell edge.
 uniform float star_size : hint_range(0.01, 0.2) = 0.12;
-uniform float star_brightness : hint_range(0.0, 4.0) = 2.0;
 
 float hash13(vec3 p) {
 	p = fract(p * 0.1031);
