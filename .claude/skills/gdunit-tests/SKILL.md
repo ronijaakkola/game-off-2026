@@ -91,6 +91,10 @@ Input.flush_buffered_events()
 
 **Web-only behaviour** runs in no check: tests, `smoke` and the `export` boot all run desktop Godot, so a branch behind `OS.has_feature("web")` can break without a word. When the behaviour happens after `_ready()`, put the `OS.has_feature("web")` check only in the default value of a public var, which the code reads when the behaviour happens, and have the test set that var: `opens_when_window_shrinks` in `ui/pause_menu/pause_menu.gd`, tested in `test/ui/pause_menu/pause_menu_test.gd`. Read what the test drives from nodes, such as `get_window().size`, not from `DisplayServer`, which a test can't change.
 
+## Logic that plays out over time
+
+For a state machine that moves on its own frames (charging, flying, docking), step it with a fixed delta instead of waiting real frames. Add the node with `set_process(false)`, then call `node._process(STEP)` in a loop until the state you expect, with a cap on the steps. The result is the same on any machine, and seconds of game time run in milliseconds. `_process` is a frame driver here, not the behaviour under test: assert only through public state and methods. Build the world with fixed values (a planet with `orbit_period = 0`), so nothing else moves. `test/game/bus/bus_test.gd` shows it.
+
 ## Signals
 
 A signal emitted **during** the call you make (a click, an `invoke`) has already fired before any `await` starts. Start monitoring first, then assert:

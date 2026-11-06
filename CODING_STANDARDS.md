@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, a `user://` path written in two scripts, a `res://` or `uid://` path in a script that names no file, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids or naming a uid that isn't its path's, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, a `user://` path written in two scripts, a `res://` or `uid://` path in a script that names no file, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids or naming a uid that isn't its path's, an exported Node set from a path its `[node]` line doesn't list in `node_paths`, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 

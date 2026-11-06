@@ -68,6 +68,15 @@ Write an `ext_resource` with `path` alone, and let `uv run tools/check.py ids` a
 
 Never type or copy a uid into one. The uid wins over the path: another file's uid loads that file instead, with no error, and an unknown one falls back to the path with only a warning. The load check, the smoke run and the tests all pass either way, so `check.py lint` fails on a uid that isn't its path's (rule `uid-matches-path`). Keep the uids already in the file unchanged.
 
+A script's exported Node, such as `@export var start_planet: Planet`, is set from a path only when the `[node]` line lists it in `node_paths`. That includes the line of an instanced sub-scene:
+
+```
+[node name="Bus" parent="." node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
+start_planet = NodePath("../Ember")
+```
+
+Without `node_paths`, Godot leaves the export null at runtime with no error, so `check.py lint` fails on it (rule `node-export-path`). A `NodePath`-typed export and a built-in property such as `remote_path` need no `node_paths`.
+
 ## UI scenes
 
 Build UI from Containers styled by the shared Theme in `ui/`:
