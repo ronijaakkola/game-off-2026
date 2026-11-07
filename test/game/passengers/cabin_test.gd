@@ -11,6 +11,9 @@ func before_test() -> void:
 	add_child(_cabin)
 	_home = auto_free(Planet.new())
 	_away = auto_free(Planet.new())
+	# In the tree, so a WaitingPassengers can measure the distance between them.
+	add_child(_home)
+	add_child(_away)
 
 
 func test_boards_until_the_seats_are_full() -> void:
@@ -26,13 +29,52 @@ func test_only_passengers_going_there_get_off_and_pay() -> void:
 	var staying := _passenger(_home)
 	_cabin.board(going)
 	_cabin.board(staying)
+	var payout := going.get_payout()
 	monitor_signals(_cabin)
 
-	var paid := _cabin.arrive_at(_away)
+	_cabin.stop_at(_away)
 
-	assert_int(paid).is_equal(going.get_payout())
 	assert_array(_cabin.get_passengers()).contains_exactly([staying])
-	await assert_signal(_cabin).is_emitted("delivered", [going, paid])
+	await assert_signal(_cabin).is_emitted("delivered", [going, payout])
+
+
+func test_a_stop_lets_off_then_boards_one_at_a_time() -> void:
+	_cabin.step_seconds = 0.2
+	_cabin.seats = 3
+	var first := _passenger(_away)
+	var second := _passenger(_away)
+	_cabin.board(first)
+	_cabin.board(second)
+	_cabin.board(_passenger(_home))
+	var waiting := _waiting_at(_away, 3)
+	var events: Array[String] = []
+	_cabin.delivered.connect(func(_p: Passenger, _paid: int) -> void: events.append("off"))
+	_cabin.boarded.connect(func(_p: Passenger) -> void: events.append("on"))
+
+	_cabin.stop_at(_away, waiting)
+
+	# The first gets off at once, the rest one step apart.
+	assert_array(events).contains_exactly(["off"])
+	assert_bool(_cabin.is_stopping()).is_true()
+	await await_millis(300)
+	assert_array(events).contains_exactly(["off", "off"])
+	await assert_signal(_cabin).wait_until(2000).is_emitted("stop_finished")
+	# Two seats came free, so two of the three waiting boarded.
+	assert_array(events).contains_exactly(["off", "off", "on", "on"])
+	assert_int(_cabin.get_passengers().size()).is_equal(3)
+	assert_int(waiting.count_at(_away)).is_equal(1)
+	assert_bool(_cabin.is_stopping()).is_false()
+
+
+func test_a_stop_with_nobody_getting_off_or_on_is_over_at_once() -> void:
+	_cabin.board(_passenger(_home))
+	var finished := [false]
+	_cabin.stop_finished.connect(func() -> void: finished[0] = true)
+
+	_cabin.stop_at(_away, _waiting_at(_away, 0))
+
+	assert_bool(finished[0]).is_true()
+	assert_bool(_cabin.is_stopping()).is_false()
 
 
 func test_an_amenity_serves_its_need_as_soon_as_it_is_asked_for() -> void:
@@ -47,6 +89,17 @@ func test_an_amenity_serves_its_need_as_soon_as_it_is_asked_for() -> void:
 
 	assert_object(passenger.request).is_null()
 	assert_str(passenger.activity).is_equal(dispenser.line)
+
+
+# A WaitingPassengers with [param count] waiting at [param planet], going to _home.
+func _waiting_at(planet: Planet, count: int) -> WaitingPassengers:
+	var waiting: WaitingPassengers = auto_free(WaitingPassengers.new())
+	waiting.types = [PassengerType.new()]
+	waiting.set_planets([planet, _home])
+	waiting.set_process(false)
+	for i: int in count:
+		waiting.add(planet)
+	return waiting
 
 
 # A passenger to [param to] whose one need, a snack, asks after [param need_after] seconds.

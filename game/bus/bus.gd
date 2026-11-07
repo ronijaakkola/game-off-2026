@@ -9,7 +9,8 @@ extends Node3D
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 ## The bus docked at [param planet] after flying there: the end of its route, or a
-## planet stop on it. Not emitted for [member start_planet].
+## planet stop on it. Not emitted for [member start_planet]. Emitted before the drive
+## charges for the next stop, so a listener can set [member boarding] first.
 signal docked(planet: Planet)
 
 enum State { DOCKED, CHARGING, FLYING, HOLDING }
@@ -50,6 +51,14 @@ const BANK := 0.12
 @export_range(0.0, 0.5, 0.005) var charge_shake := 0.012
 
 var state := State.HOLDING
+## Whether passengers are getting off or on. While they are, a docked bus doesn't charge:
+## a course set meanwhile charges once they are done. The scene that runs the passengers
+## sets it.
+var boarding := false:
+	set(value):
+		boarding = value
+		if not boarding and state == State.DOCKED and not _route.is_empty():
+			_start_charge()
 
 var _route: Array[RouteStop] = []
 var _dock_planet: Planet
@@ -209,11 +218,12 @@ func _arrive(stop: RouteStop) -> void:
 		state = State.HOLDING
 		return
 	_dock(stop.planet, global_position - stop.planet.get_body_global_position())
-	if not _route.is_empty():
-		_start_charge()
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
+	# Before charging, so a listener can set boarding and hold the charge.
 	docked.emit(stop.planet)
+	if state == State.DOCKED and not _route.is_empty():
+		_start_charge()
 
 
 func _dock(planet: Planet, direction: Vector3) -> void:
@@ -223,7 +233,10 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 	state = State.DOCKED
 
 
+# Charges, unless passengers are boarding: then the bus stays docked until they are done.
 func _start_charge() -> void:
+	if boarding:
+		return
 	state = State.CHARGING
 	_charge_left = charge_time
 
