@@ -176,14 +176,6 @@ func test_cancel_while_charging_stays_docked() -> void:
 	assert_object(_bus.get_docked_planet()).is_same(_home)
 
 
-func test_cancel_while_flying_slows_to_a_stop_in_space() -> void:
-	_bus.plot_course(RouteStop.at_planet(_near))
-	_step_for(_bus.charge_time + 2.0)
-	_bus.cancel_course()
-	assert_bool(_step_until(FrameshiftBus.State.HOLDING)).is_true()
-	assert_object(_bus.get_docked_planet()).is_null()
-
-
 func test_a_course_to_the_docked_planet_cancels() -> void:
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_planet(_home))
@@ -245,7 +237,7 @@ func test_docking_brakes_then_parks_with_the_door_toward_the_planet_then_docks()
 	assert_float(_door_facing(_near)).is_greater(0.99)
 
 
-func test_a_cancelled_flight_is_stopping_until_it_holds() -> void:
+func test_cancel_while_flying_is_stopping_until_it_holds_in_space() -> void:
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_step_for(_bus.charge_time + 2.0)
 	assert_bool(_bus.is_stopping()).is_false()
@@ -253,6 +245,31 @@ func test_a_cancelled_flight_is_stopping_until_it_holds() -> void:
 	assert_bool(_bus.is_stopping()).is_true()
 	assert_bool(_step_until(FrameshiftBus.State.HOLDING)).is_true()
 	assert_bool(_bus.is_stopping()).is_false()
+	assert_object(_bus.get_docked_planet()).is_null()
+
+
+func test_on_board_speeding_up_pushes_back_a_turn_pushes_out_and_braking_forward() -> void:
+	# The bus leaves Home toward +X, then turns left, toward -Z, for Side.
+	var side := _planet(_home.get_parent() as Node3D, Vector3(5.0, 0.0, -6.0))
+	_bus.plot_course(RouteStop.at_point(Vector3(4.0, 0.0, 0.0)))
+	_bus.plot_course(RouteStop.at_planet(side), true)
+	_step_for(_bus.charge_time)
+	assert_vector(_bus.get_felt_acceleration()).is_equal(Vector2.ZERO)
+	var least := Vector2.ZERO
+	var most := Vector2.ZERO
+	for i: int in MAX_STEPS:
+		_bus._process(STEP)
+		least = least.min(_bus.get_felt_acceleration())
+		most = most.max(_bus.get_felt_acceleration())
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			break
+	assert_object(_bus.get_docked_planet()).is_same(side)
+	assert_float(least.y).is_less(-1.0)
+	assert_float(most.x).is_greater(0.5)
+	# Braking at its rate, then the glide easing off, capped.
+	assert_float(most.y).is_between(_bus.acceleration, FrameshiftBus.FELT_MAX)
+	_step_for(2.0)
+	assert_vector(_bus.get_felt_acceleration()).is_equal_approx(Vector2.ZERO, Vector2.ONE * 0.01)
 
 
 # A planet that stays where it is put.

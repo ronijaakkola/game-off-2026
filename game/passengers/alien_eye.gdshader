@@ -1,7 +1,7 @@
 shader_type spatial;
 // A flat cartoon eye drawn on a quad: an eyeball with an optional outline, an optional
 // iris, a pupil that looks around, shines, and an upper lid in the skin colour that
-// closes over it. Every edge blends over one screen pixel, so it stays crisp and smooth
+// closes over it, showing a curved line once shut. Every edge blends over one screen pixel, so it stays crisp and smooth
 // at any size. An AlienEyeStyle sets everything but look, open and lid_color.
 render_mode unshaded, cull_back, shadows_disabled, blend_mix;
 
@@ -66,6 +66,11 @@ void fragment() {
 	float lid_line = disc(abs(p.y - edge), 0.05, px) * step(open, 0.98);
 	col = mix(col, lid_color, lid);
 	col = mix(col, outline_color, lid_line);
+	// Shut, the lid's edge shows as a curved line across the eye, sagging in the middle.
+	float shut = 1.0 - smoothstep(0.0, 0.15, open);
+	float crease = -0.05 - 0.3 * (1.0 - p.x * p.x);
+	float crease_line = disc(abs(p.y - crease), 0.12, px) * disc(abs(p.x), 0.75, px);
+	col = mix(col, outline_color, crease_line * shut);
 
 	col = mix(col, outline_color, (1.0 - disc(r, 1.0 - outline_width, px)) * step(0.001, outline_width));
 	ALBEDO = col;

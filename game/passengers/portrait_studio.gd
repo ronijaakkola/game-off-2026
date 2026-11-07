@@ -30,6 +30,11 @@ const MAX_HEAD := 0.5
 ## How far below the tile's bottom a short bust's cut base sits, so it never floats.
 const SINK := 0.06
 
+## The push felt on the bus, for the portraits of passengers riding it, as
+## [member AlienPortrait.felt_acceleration]: +x toward the passenger's right, +y forward.
+## The scene that holds the bus sets it every frame.
+var felt_acceleration := Vector2.ZERO
+
 # The portrait in each slot, or null.
 var _slots: Array[AlienPortrait] = []
 var _photos: Dictionary[AtlasTexture, AlienPortrait] = {}
@@ -82,6 +87,11 @@ func remove(photo: AtlasTexture) -> void:
 	portrait.queue_free()
 	_update_rendering()
 	slot_freed.emit()
+
+
+## The portrait behind [param photo], or null when it holds none for it.
+func get_portrait(photo: AtlasTexture) -> AlienPortrait:
+	return _photos.get(photo)
 
 
 ## How many portraits it holds.

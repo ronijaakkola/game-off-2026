@@ -77,6 +77,7 @@ func _ready() -> void:
 	_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate()
 	bar.add_theme_stylebox_override(&"fill", _fill)
 	var photo := %PassengerPhoto as PassengerPhoto
+	photo.riding = true
 	photo.studio = portrait_studio
 	photo.passenger = passenger
 	_show()

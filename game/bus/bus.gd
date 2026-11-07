@@ -35,6 +35,12 @@ const BANK := 0.12
 const THRUST_FADE := 2.0
 # Where the thrusters leave their trail, from the bus: at the nozzles, behind it.
 const TRAIL_START := Vector3(0.0, -0.035, -0.45)
+# How fast the felt push follows the bus's acceleration, per second, so a sudden change,
+# such as cancelling a course mid-turn, comes on over a moment.
+const FELT_SMOOTHING := 12.0
+# The strongest push felt on board, in units per second squared, so nothing throws the
+# passengers. Braking and turning at full rate stay under it.
+const FELT_MAX := 3.5
 
 ## Where the bus starts docked. None starts it holding where it stands.
 @export var start_planet: Planet
@@ -89,6 +95,11 @@ var _charge_left := 0.0
 var _time := 0.0
 # How much of the float shows: 1 while still, 0 in flight.
 var _float := 1.0
+# The bus's velocity last frame, on the orbit plane, and the push felt on board.
+var _velocity := Vector3.ZERO
+var _felt := Vector2.ZERO
+# How fast the bus glides toward its dock point, measured from the planet.
+var _glide_velocity := Vector3.ZERO
 
 
 func _ready() -> void:
@@ -213,6 +224,14 @@ func is_stopping() -> bool:
 	return state == State.FLYING and _route.is_empty()
 
 
+## The push someone on board feels as the bus speeds up, brakes and turns, in units per
+## second squared: +x toward the bus's right, +y forward. Braking pushes forward, turning
+## left pushes right, and parking eases off a forward push as the bus glides to a stop.
+## Following a planet while docked pushes nothing.
+func get_felt_acceleration() -> Vector2:
+	return _felt
+
+
 ## Seconds until the bus docks at [method get_next_planet], from where everything is now:
 ## the charge left, then the route's straight legs at top speed, with the speeding up and
 ## braking, then parking. Planets move and the bus turns, so it is an estimate. -1 with no
@@ -262,6 +281,7 @@ func _process(delta: float) -> void:
 			_fly(delta)
 		State.HOLDING:
 			_turn_rate = 0.0
+	_feel(delta)
 	_animate_model(delta)
 	var burn := (%Model as BusModel).thrust if state == State.FLYING else 0.0
 	(%ThrusterTrail as ThrusterTrail).advance(global_transform * TRAIL_START, burn, delta)
@@ -407,7 +427,9 @@ func _follow_dock(delta: float) -> void:
 	var center := _flat(_dock_planet.get_body_global_position())
 	var offset := _flat(global_position) - center
 	var weight := 1.0 - exp(-DOCK_SMOOTHING * delta)
-	global_position = center + offset.lerp(_dock_point() - center, weight)
+	var glided := offset.lerp(_dock_point() - center, weight)
+	_glide_velocity = (glided - offset) / delta if delta > 0.0 else Vector3.ZERO
+	global_position = center + glided
 
 
 func _dock_point() -> Vector3:
@@ -428,6 +450,21 @@ func _stop_position(stop: RouteStop, from: Vector3) -> Vector3:
 func _approach_point(planet: Planet, direction: Vector3, gap: float) -> Vector3:
 	var center := _flat(planet.get_body_global_position())
 	return center + direction * (planet.get_body_radius() + gap)
+
+
+# The push felt on board is the opposite of the bus's acceleration, in the bus's frame.
+# Parking, the bus moves by its glide, measured from the planet.
+func _feel(delta: float) -> void:
+	var velocity := _forward() * _speed
+	if state == State.PARKING:
+		velocity = _glide_velocity
+	var push := Vector3.ZERO
+	if delta > 0.0:
+		push = (_velocity - velocity) / delta
+	_velocity = velocity
+	var forward := _forward()
+	var felt := Vector2(push.dot(forward.cross(Vector3.UP)), push.dot(forward))
+	_felt = _felt.lerp(felt, 1.0 - exp(-FELT_SMOOTHING * delta)).limit_length(FELT_MAX)
 
 
 # The float while still, the shake while charging, a lean into turns in flight, and the

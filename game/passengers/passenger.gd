@@ -35,6 +35,9 @@ var patience: float
 var activity := ""
 ## The need they are asking for, or null.
 var request: Need
+## Whether they are asleep: their activity is one of the type's sleep lines. A request
+## wakes them.
+var asleep := false
 ## What they look like in their portrait.
 var look: AlienLook
 
@@ -146,6 +149,7 @@ func serve_with(amenity: Amenity) -> void:
 
 func _open(need: Need) -> void:
 	request = need
+	asleep = false
 	activity = need.request_line
 
 
@@ -156,13 +160,17 @@ func _close(line: String, seconds: float) -> void:
 	if index >= 0:
 		_need_timers[index] = seconds + _interval(request)
 	request = null
+	asleep = false
 	activity = line
 	_activity_left = seconds
 	_busy = true
 
 
 func _idle() -> void:
-	activity = _pick(type.idle_lines)
+	var lines := type.idle_lines + type.sleep_lines
+	var index := _rng.randi_range(0, lines.size() - 1) if not lines.is_empty() else -1
+	activity = lines[index] if index >= 0 else ""
+	asleep = index >= type.idle_lines.size()
 	_activity_left = _rng.randf_range(IDLE_MIN, IDLE_MAX)
 
 
