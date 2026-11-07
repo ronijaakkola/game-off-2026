@@ -24,8 +24,15 @@ const LURCH_GAIN := 0.07
 ## swing dies down. A sudden push overshoots a little and sways back.
 const LURCH_STIFFNESS := 60.0
 const LURCH_DAMPING := 5.0
+## How much more a forward or backward push leans the head than a sideways one. The
+## camera faces them, so a lean toward it barely shows unless it is bigger.
+const FORWARD_LURCH := 2.0
+## A forward lean also dips the head and brings it closer, which shows head on: how far
+## it drops, in the model's units, and how much bigger it looks, per radian of lean.
+const FORWARD_DIP := 0.12
+const FORWARD_GROW := 0.25
 ## The furthest the head leans, in radians.
-const LURCH_MAX := 0.45
+const LURCH_MAX := 0.6
 ## How much of the lean the whole bust takes; the head takes all of it.
 const BODY_LURCH := 0.35
 
@@ -62,6 +69,7 @@ var eyes: Array[MeshInstance3D] = []
 var _materials: Dictionary[String, ShaderMaterial] = {}
 var _eye_material := ShaderMaterial.new()
 var _model: Node3D
+var _model_rest := Vector3.ZERO
 var _head: Node3D
 var _head_rest := Vector3.ZERO
 var _stalks: Array[Node3D] = []
@@ -92,6 +100,7 @@ func _ready() -> void:
 	var model := head_model.instantiate() as Node3D
 	add_child(model)
 	_model = model
+	_model_rest = model.rotation
 	for node: Node in model.find_children("*", "Node3D", true, false):
 		var part := node as Node3D
 		if part is MeshInstance3D:
@@ -139,12 +148,13 @@ func _process(delta: float) -> void:
 	var t := _time + _phase
 	var lurch := _lurch * motion
 	if _model:
-		_model.rotation = Vector3(lurch.y, 0.0, lurch.x) * BODY_LURCH
+		_model.rotation = _model_rest + Vector3(lurch.y, 0.0, lurch.x) * BODY_LURCH
 	if _head:
 		# Asleep, they breathe slower and deeper.
 		_breath += delta * lerpf(1.6, 1.0, _sleep)
 		var breath := sin(_breath + _phase) * lerpf(0.018, 0.03, _sleep) * motion
-		_head.scale = Vector3(1.0 - breath * 0.5, 1.0 + breath, 1.0 - breath * 0.5)
+		var grow := 1.0 + lurch.y * FORWARD_GROW
+		_head.scale = Vector3(1.0 - breath * 0.5, 1.0 + breath, 1.0 - breath * 0.5) * grow
 		# The head turns a little toward where the eyes look, nods forward asleep, and leans
 		# with the push the bust doesn't take.
 		var nod := Vector2(_sleep_side * 0.1, 0.16) * _sleep * motion
@@ -154,7 +164,8 @@ func _process(delta: float) -> void:
 			_look.x * 0.18,
 			sin(t * 0.9 + 1.3) * 0.05 * motion + lean.x,
 		)
-		_head.position = _head_rest + Vector3.UP * (_startle * 0.02 * motion)
+		var lift := _startle * 0.02 * motion - lurch.y * FORWARD_DIP
+		_head.position = _head_rest + Vector3.UP * lift
 	for i: int in _stalks.size():
 		# Stalks trail behind a swing of the head.
 		var wobble := Vector3(
@@ -224,7 +235,7 @@ func startle() -> void:
 # The lean follows the push on a spring: the push holds it at a lean, and when the push
 # stops it swings back past upright and settles.
 func _sway_with_push(delta: float) -> void:
-	var rest := felt_acceleration * LURCH_GAIN
+	var rest := felt_acceleration * LURCH_GAIN * Vector2(1.0, FORWARD_LURCH)
 	var pull := (rest - _lurch) * LURCH_STIFFNESS - _lurch_velocity * LURCH_DAMPING
 	_lurch_velocity += pull * delta
 	_lurch += _lurch_velocity * delta

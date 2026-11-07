@@ -27,8 +27,9 @@ const THRUST_FADE := 2.0
 # Where the thrusters leave their trail, from the bus: at the nozzles, behind it.
 const TRAIL_START := Vector3(0.0, -0.035, -0.45)
 # How fast the felt push follows the bus's acceleration, per second. It spreads the jolt
-# of docking, where the bus stops from a crawl in one frame, over a moment, so it doesn't
-# depend on the frame rate.
+# of docking, where the bus stops from a crawl in one frame, over a moment. The cap below
+# still clips that spike harder on a short frame, so the jolt varies a little with the
+# frame rate.
 const FELT_SMOOTHING := 12.0
 # The strongest push felt on board, in units per second squared, so docking jolts rather
 # than throws. Braking and turning at full rate stay under it.
