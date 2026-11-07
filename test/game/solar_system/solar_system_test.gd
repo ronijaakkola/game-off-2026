@@ -99,7 +99,7 @@ func test_the_popup_closes_a_moment_after_the_pointer_leaves() -> void:
 	await assert_func(popup, "is_visible").wait_until(2000).is_false()
 
 
-func test_the_popup_keeps_beside_its_planet_on_the_frame_it_moves() -> void:
+func test_the_popup_keeps_beside_its_planet_while_the_camera_pans() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
@@ -108,9 +108,13 @@ func test_the_popup_keeps_beside_its_planet_on_the_frame_it_moves() -> void:
 	waiting.add(ember)
 	await runner.simulate_frames(3)
 	_send_motion(_screen_point(runner, ember))
-	await runner.simulate_frames(5)
+	await runner.simulate_frames(2)
 
-	# Placed after the planets and camera moved this frame, not from the frame before.
+	Input.action_press(&"camera_pan_right")
+	await runner.simulate_frames(5)
+	Input.action_release(&"camera_pan_right")
+
+	# Placed after the planets and the camera moved this frame, not from the frame before.
 	var camera := runner.find_child("Camera") as Camera3D
 	var edge := camera.unproject_position(
 		ember.get_body_global_position() + camera.global_basis.x * ember.get_body_radius()

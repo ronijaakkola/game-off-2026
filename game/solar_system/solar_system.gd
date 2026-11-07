@@ -34,6 +34,9 @@ const LABEL_GAP_PIXELS := 0.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
+## The process priority Phantom Camera's host sets on itself to move the camera, after
+## everything it follows.
+const CAMERA_HOST_PRIORITY := 300
 ## Pixels between a planet's name and the marker for who waits there.
 const MARKER_GAP_PIXELS := 4.0
 ## Seconds the boarding popup stays open after the pointer leaves the planet and the
@@ -52,8 +55,9 @@ var _popup_linger := 0.0
 
 func _ready() -> void:
 	# After the planets, the bus and the camera have moved this frame, so the names, the
-	# popup and the waiting icons follow where they are now, not where they were a frame ago.
-	process_priority = 1
+	# popup and the waiting markers follow where they are now, not where they were a frame
+	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
+	process_priority = CAMERA_HOST_PRIORITY + 1
 	_collect_planets(self)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
