@@ -138,6 +138,8 @@ func _fit_slot() -> void:
 func _show() -> void:
 	if not passenger:
 		return
+	# A new passenger's lines appear at once; later changes morph.
+	var first := _mood == -1
 	_set_text(%NameLabel, passenger.name)
 	var icon := %DestinationIcon as PlanetIcon
 	if icon.planet != passenger.destination:
@@ -152,7 +154,7 @@ func _show() -> void:
 		mood_label.text = _mood_text(mood)
 		mood_label.add_theme_color_override(&"default_color", MOOD_COLORS[mood])
 		_fill.bg_color = MOOD_COLORS[mood]
-	_set_text(%ActivityLabel, passenger.activity)
+	_morph_text(%ActivityLabel, passenger.activity, first)
 	var button := %ServeButton as Button
 	button.visible = passenger.request != null
 	if passenger.request and button.text != passenger.request.serve_label:
@@ -179,6 +181,14 @@ func _destination_name() -> String:
 func _set_text(label: Label, text: String) -> void:
 	if label.text != text:
 		label.text = text
+
+
+# Morphs to the text, or sets it at once when [param at_once].
+func _morph_text(label: MorphLabel, text: String, at_once: bool) -> void:
+	if at_once:
+		label.text = text
+	else:
+		label.morph_to(text)
 
 
 func _on_serve_button_pressed() -> void:
