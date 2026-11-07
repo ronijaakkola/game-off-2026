@@ -43,7 +43,7 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	assert_str(total).is_equal("%d credits" % payout)
 
 
-func test_board_in_the_popup_picks_up_a_passenger_waiting_where_the_bus_is_docked() -> void:
+func test_hovering_the_docked_planet_opens_the_popup_and_board_picks_up() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
@@ -53,11 +53,21 @@ func test_board_in_the_popup_picks_up_a_passenger_waiting_where_the_bus_is_docke
 	var picked := waiting.get_waiting(ember)[0]
 	await runner.simulate_frames(3)
 	var popup := runner.find_child("BoardingPopup") as BoardingPopup
-	assert_bool(popup.visible).is_true()
 	var markers := runner.find_child("WaitingMarkers") as WaitingMarkers
+	assert_bool(popup.visible).is_false()
+	assert_bool(markers.is_shown(ember)).is_true()
 	assert_int(markers.count_at(ember)).is_equal(1)
-	var button := popup.find_child("BoardButton", true, false) as Button
+
+	_send_motion(_screen_point(runner, ember))
+	await runner.simulate_frames(2)
+	assert_bool(popup.visible).is_true()
+	assert_bool(markers.is_shown(ember)).is_false()
+	# It stays while the pointer is on it.
 	var camera := runner.find_child("Camera") as Camera3D
+	var button := popup.find_child("BoardButton", true, false) as Button
+	_send_motion(_to_window(camera, button.get_global_rect().get_center()))
+	await await_millis(500)
+	assert_bool(popup.visible).is_true()
 	var cabin := runner.find_child("Cabin") as Cabin
 	monitor_signals(cabin)
 
@@ -71,6 +81,24 @@ func test_board_in_the_popup_picks_up_a_passenger_waiting_where_the_bus_is_docke
 	assert_bool(popup.visible).is_false()
 
 
+func test_the_popup_closes_a_moment_after_the_pointer_leaves() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	var ember := (runner.find_child("Bus") as FrameshiftBus).get_docked_planet()
+	waiting.add(ember)
+	await runner.simulate_frames(3)
+	_send_motion(_screen_point(runner, ember))
+	await runner.simulate_frames(2)
+	var popup := runner.find_child("BoardingPopup") as BoardingPopup
+	assert_bool(popup.visible).is_true()
+
+	var camera := runner.find_child("Camera") as Camera3D
+	_send_motion(_to_window(camera, _between_screen_point(runner)))
+
+	await assert_func(popup, "is_visible").wait_until(2000).is_false()
+
+
 func test_the_popup_keeps_beside_its_planet_on_the_frame_it_moves() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
@@ -78,6 +106,8 @@ func test_the_popup_keeps_beside_its_planet_on_the_frame_it_moves() -> void:
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var ember := bus.get_docked_planet()
 	waiting.add(ember)
+	await runner.simulate_frames(3)
+	_send_motion(_screen_point(runner, ember))
 	await runner.simulate_frames(5)
 
 	# Placed after the planets and camera moved this frame, not from the frame before.
@@ -86,6 +116,7 @@ func test_the_popup_keeps_beside_its_planet_on_the_frame_it_moves() -> void:
 		ember.get_body_global_position() + camera.global_basis.x * ember.get_body_radius()
 	)
 	var popup := runner.find_child("BoardingPopup") as BoardingPopup
+	assert_bool(popup.visible).is_true()
 	assert_float(popup.position.x).is_equal_approx(edge.x + BoardingPopup.GAP, 0.001)
 
 

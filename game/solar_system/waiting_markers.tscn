@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c4va8x2cf4kps"]
 
 [ext_resource type="Script" uid="uid://y7h63v3ynr4s" path="res://game/solar_system/waiting_markers.gd" id="1_markers"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 
 [node name="WaitingMarkers" type="Control" unique_id=1435935207]
 layout_mode = 3
@@ -10,4 +11,5 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_markers")

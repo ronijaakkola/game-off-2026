@@ -15,10 +15,12 @@ extends Node3D
 ## fades out and stays off; both fade back in when it closes.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one and pay. Under each planet
-## a row of icons shows where those waiting there are going. While the bus is docked or
-## charging, a popup beside its planet lists who waits there, and the player picks them up
-## one by one while seats are free. The bus can't charge, and a charge under way holds,
-## until the stop is over. The game starts with one passenger on board.
+## where someone waits, a small person and a number say how many. While the bus is docked
+## or charging, the pointer over its planet opens a popup beside it that lists who waits
+## there, and the player picks them up one by one while seats are free. The popup stays
+## while the pointer is on it, and closes a moment after the pointer leaves both. The bus
+## can't charge, and a charge under way holds, until the stop is over. The game starts
+## with one passenger on board.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -32,8 +34,11 @@ const LABEL_GAP_PIXELS := 0.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
-## Pixels between a planet's name and the row of icons for who waits there.
+## Pixels between a planet's name and the marker for who waits there.
 const MARKER_GAP_PIXELS := 4.0
+## Seconds the boarding popup stays open after the pointer leaves the planet and the
+## popup, so it can cross the gap between them.
+const POPUP_LINGER_SECONDS := 0.3
 
 var _planets: Array[Planet] = []
 # 1 with no planet open, 0 once one is open and the fade is done.
@@ -41,6 +46,8 @@ var _fade := 1.0
 # The planet whose hover border fades: the open one, and after it closes, until the fade
 # is back to 1.
 var _faded_planet: Planet
+# Seconds the boarding popup stays open without the pointer on the planet or the popup.
+var _popup_linger := 0.0
 
 
 func _ready() -> void:
@@ -70,7 +77,6 @@ func _process(delta: float) -> void:
 	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
 	_place_labels()
 	_update_fade(delta)
-	_place_waiting()
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
@@ -79,6 +85,7 @@ func _process(delta: float) -> void:
 	var mouse := get_viewport().get_mouse_position()
 	var over_hud := get_viewport().gui_get_hovered_control() != null
 	var under: Planet = null if over_hud else _planet_at(mouse)
+	_place_waiting(delta, under, mouse)
 	var bus := %Bus as FrameshiftBus
 	var marker: RouteStop = null if under or over_hud else _marker_at(mouse)
 	# Only the last stop, the one a right click removes.
@@ -294,15 +301,20 @@ func _planet_at(screen_point: Vector2) -> Planet:
 	return best
 
 
-# Puts the boarding popup beside the planet the bus waits at, and each planet's row of
-# waiting icons under its name. The rows fade with the names, and the docked planet's row
-# hides while the popup lists the same passengers.
-func _place_waiting() -> void:
+# Opens the boarding popup beside the planet the bus waits at while the pointer is on
+# that planet or the popup, and puts each planet's waiting marker under its name. The
+# markers fade with the names, and the docked planet's hides while the popup is open.
+func _place_waiting(delta: float, under: Planet, mouse: Vector2) -> void:
 	var bus := %Bus as FrameshiftBus
 	var camera := %Camera as Camera3D
 	var popup := %BoardingPopup as BoardingPopup
 	var docked_at := bus.get_docked_planet() if bus.is_at_planet() else null
-	popup.planet = docked_at
+	var on_popup := popup.visible and popup.get_global_rect().has_point(mouse)
+	if docked_at and (under == docked_at or on_popup):
+		_popup_linger = POPUP_LINGER_SECONDS
+	else:
+		_popup_linger = maxf(_popup_linger - delta, 0.0)
+	popup.planet = docked_at if _popup_linger > 0.0 else null
 	if docked_at and not camera.is_position_behind(docked_at.get_body_global_position()):
 		var center := docked_at.get_body_global_position()
 		var edge := camera.unproject_position(

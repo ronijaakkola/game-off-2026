@@ -2,8 +2,9 @@ class_name BoardingPopup
 extends PanelContainer
 ## A small popup beside the planet the bus is docked at, listing who waits there, longest
 ## waiting first, each with a button to pick them up. It is shown while [member planet] is
-## set and someone waits there, and kept up to date as they arrive and board. The buttons
-## are off while every seat is taken. It only asks; the parent picks the passenger up.
+## set and someone waits there, and kept up to date as they arrive and board; the parent
+## sets [member planet] while the pointer is on the planet. The buttons are off while every
+## seat is taken. It only asks; the parent picks the passenger up.
 
 ## The player pressed the button to pick up [param passenger].
 signal board_pressed(passenger: Passenger)
@@ -27,7 +28,7 @@ const MARGIN := 8.0
 ## The seats the buttons check.
 @export var cabin: Cabin
 
-## The planet the bus is docked at, or null while it isn't at one.
+## The planet whose line it lists, or null to close it.
 var planet: Planet:
 	set(value):
 		if value == planet:
