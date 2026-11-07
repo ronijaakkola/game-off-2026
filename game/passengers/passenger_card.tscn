@@ -60,13 +60,18 @@ theme_type_variation = &"TinyLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 text = "Type"
 
-[node name="MoodLabel" type="Label" parent="Panel/Rows/Header" unique_id=1260888406]
+[node name="MoodLabel" type="RichTextLabel" parent="Panel/Rows/Header" unique_id=1260888406]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"TinyLabel"
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"TinyRichTextLabel"
+bbcode_enabled = true
 text = "Happy"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
 horizontal_alignment = 2
-script = ExtResource("4_morph")
 
 [node name="Patience" type="HBoxContainer" parent="Panel/Rows" unique_id=1965568126]
 layout_mode = 2
