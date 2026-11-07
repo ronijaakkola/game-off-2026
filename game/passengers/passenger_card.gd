@@ -1,9 +1,9 @@
 class_name PassengerCard
 extends PanelContainer
 ## One passenger's card: their name and type, where they are going (an icon of the
-## planet and its name), their patience as a
-## bar in their mood's colour, and what they are doing. While they ask for something, a
-## button serves it. It only reads the passenger; the [Cabin] runs the ride.
+## planet and its name), their patience as a bar in their mood's colour, and what they
+## are doing. While they ask for something, a button serves it. It only reads the
+## passenger; the [Cabin] runs the ride.
 
 ## The serve button was pressed for [member passenger]'s open request.
 signal serve_pressed

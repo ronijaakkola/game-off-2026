@@ -5,7 +5,8 @@ extends Node
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const DESTINATIONS: Array[String] = ["Ember", "Terra", "Moon", "Giant", "Frost"]
-# Each destination's icon colour, as in the solar system. Giant has rings.
+# Each destination's icon colour, copied by hand from game/solar_system/solar_system.tscn,
+# so update both when a planet's colour changes. Giant has rings, also as copied.
 const ICON_COLORS: Array[Color] = [
 	Color(0.82, 0.58, 0.4),
 	Color(0.5, 0.82, 0.34),
