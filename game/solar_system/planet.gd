@@ -60,6 +60,9 @@ static var _border_materials: Dictionary[Border, StandardMaterial3D] = {}
 	set(value):
 		surface_material = value
 		_rebuild()
+## The one colour that stands for this body in the UI, such as a passenger card's
+## destination icon. Pick the colour the body reads as from the camera.
+@export var icon_color := Color.WHITE
 
 @export_group("Orbit line")
 @export var show_orbit := true:
@@ -91,6 +94,8 @@ static var _border_materials: Dictionary[Border, StandardMaterial3D] = {}
 	set(value):
 		ring_outer = value
 		_rebuild()
+## The rings' one colour in the UI, as [member icon_color] is the body's.
+@export var icon_ring_color := Color.WHITE
 
 ## The border round the body: none, white under the pointer, or orange on the bus's route.
 var border := Border.NONE:
@@ -175,6 +180,11 @@ func get_body_position() -> Vector3:
 ## [member radius].
 func get_body_radius() -> float:
 	return radius * _get_sphere().radius
+
+
+## Whether the body has rings: it does when it has a [member ring_material].
+func has_rings() -> bool:
+	return ring_material != null
 
 
 ## Where the body is now, in global space.
