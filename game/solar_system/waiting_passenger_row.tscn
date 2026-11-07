@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="4_icon_shader"]
+[ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="5_photo"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_icon"]
 resource_local_to_scene = true
@@ -25,9 +26,14 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
+[node name="PassengerPhoto" parent="Columns" unique_id=1326485709 instance=ExtResource("5_photo")]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="Who" type="VBoxContainer" parent="Columns" unique_id=997211040]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/separation = 0
 
@@ -36,13 +42,8 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
 text = "Name"
-
-[node name="TypeLabel" type="Label" parent="Columns/Who" unique_id=1523474764]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.5)
-text = "Type"
+clip_text = true
+text_overrun_behavior = 3
 
 [node name="DestinationIcon" type="ColorRect" parent="Columns" unique_id=1310667037]
 unique_name_in_owner = true

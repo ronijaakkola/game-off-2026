@@ -23,6 +23,9 @@ const SLIDE_OUT_SECONDS := 0.2
 		if is_node_ready():
 			_show_waiting()
 
+## Where the rows' portraits are rendered. Without one, their photos stay empty.
+var portrait_studio: PortraitStudio
+
 ## Seconds to slide in. It eases in and out, as the camera's blend does.
 var slide_in_seconds := 0.7
 
@@ -103,6 +106,7 @@ func _show_waiting() -> void:
 		line = waiting.get_waiting(_planet)
 	for passenger: Passenger in line:
 		var row := ROW.instantiate() as WaitingPassengerRow
+		row.portrait_studio = portrait_studio
 		row.passenger = passenger
 		rows.add_child(row)
 	(%EmptyLabel as Label).visible = line.is_empty()

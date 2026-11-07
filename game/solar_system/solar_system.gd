@@ -45,6 +45,9 @@ func _ready() -> void:
 	# compiles now and not on the first hover. The first _process() clears it.
 	for planet: Planet in _planets:
 		planet.border = Planet.Border.HOVER
+	var studio := %PortraitStudio as PortraitStudio
+	(%PassengerPanel as PassengerPanel).portrait_studio = studio
+	(%PlanetPanel as PlanetPanel).portrait_studio = studio
 	_start_passengers()
 	var panel := %PlanetPanel as PlanetPanel
 	panel.waiting = %WaitingPassengers as WaitingPassengers

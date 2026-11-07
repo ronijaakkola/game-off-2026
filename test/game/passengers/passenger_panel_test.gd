@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 
 const SCENE := "res://game/passengers/passenger_panel.tscn"
 const PREVIEW := "res://test/previews/passenger_panel_preview.tscn"
+const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
 
 var _window_size: Vector2i
 
@@ -47,13 +48,15 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 func test_a_card_shows_a_portrait_and_gives_it_back_when_the_passenger_gets_off() -> void:
 	var runner := scene_runner(SCENE)
 	var cabin := _cabin(runner)
-	var studio := runner.find_child("PortraitStudio") as PortraitStudio
+	var studio := STUDIO.instantiate() as PortraitStudio
+	runner.scene().add_child(studio)
+	(runner.scene() as PassengerPanel).portrait_studio = studio
 	var planet: Planet = auto_free(Planet.new())
 	cabin.board(_passenger(planet, 1000.0))
 	await runner.simulate_frames(2)
 
-	var photo := runner.find_child("Photo") as TextureRect
-	assert_object(photo.texture).is_not_null()
+	var photo := runner.find_child("PassengerPhoto") as PassengerPhoto
+	assert_object(photo.get_photo()).is_not_null()
 	assert_int(studio.get_portrait_count()).is_equal(1)
 
 	cabin.stop_at(planet)

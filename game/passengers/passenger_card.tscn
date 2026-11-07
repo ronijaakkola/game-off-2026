@@ -4,27 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="3_n65mv"]
-[ext_resource type="Shader" uid="uid://jsmh20iu8g0q" path="res://game/passengers/photo_backdrop.gdshader" id="4_backdrop"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_frame"]
-bg_color = Color(0.97, 0.96, 0.93, 1)
-corner_radius_top_left = 1
-corner_radius_top_right = 1
-corner_radius_bottom_right = 1
-corner_radius_bottom_left = 1
-shadow_color = Color(0, 0, 0, 0.35)
-shadow_size = 2
-shadow_offset = Vector2(1, 2)
-
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_photo"]
-blend_mode = 4
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
-resource_local_to_scene = true
-shader = ExtResource("4_backdrop")
-shader_parameter/planet_color = null
-shader_parameter/shadow_color = null
-shader_parameter/seed = null
+[ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="4_photo"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tocvp"]
 resource_local_to_scene = true
@@ -67,42 +47,9 @@ theme_type_variation = &"CardPanel"
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="PhotoSlot" type="Control" parent="Panel/Layout" unique_id=314419021]
-custom_minimum_size = Vector2(50, 50)
+[node name="PassengerPhoto" parent="Panel/Layout" unique_id=384567202 instance=ExtResource("4_photo")]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-
-[node name="Frame" type="Panel" parent="Panel/Layout/PhotoSlot" unique_id=1030883583]
-unique_name_in_owner = true
-layout_mode = 0
-offset_right = 50.0
-offset_bottom = 50.0
-pivot_offset = Vector2(25, 25)
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_frame")
-
-[node name="Backdrop" type="ColorRect" parent="Panel/Layout/PhotoSlot/Frame" unique_id=697291316]
-unique_name_in_owner = true
-material = SubResource("ShaderMaterial_backdrop")
-layout_mode = 0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = 47.0
-offset_bottom = 47.0
-mouse_filter = 2
-
-[node name="Photo" type="TextureRect" parent="Panel/Layout/PhotoSlot/Frame" unique_id=1375556420]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = 47.0
-offset_bottom = 47.0
-mouse_filter = 2
-material = SubResource("CanvasItemMaterial_photo")
-expand_mode = 1
-stretch_mode = 5
 
 [node name="Rows" type="VBoxContainer" parent="Panel/Layout" unique_id=1669341052]
 layout_mode = 2
