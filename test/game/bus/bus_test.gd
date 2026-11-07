@@ -56,6 +56,41 @@ func test_the_bus_turns_toward_its_next_stop_while_charging() -> void:
 	assert_float(_bus._forward().dot(to_stop.normalized())).is_greater(0.99)
 
 
+func test_the_thrusters_light_up_while_charging_burn_in_flight_and_go_dark_docked() -> void:
+	var model := _bus.get_node(^"%Model") as BusModel
+	var glow := model.find_child("ThrusterGlow", true, false) as MeshInstance3D
+	var glow_material := glow.material_override as StandardMaterial3D
+	assert_float(model.thrust).is_equal(0.0)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(_bus.charge_time * 0.5)
+	assert_float(model.thrust).is_between(0.2, 0.8)
+	assert_bool(_step_until(FrameshiftBus.State.FLYING)).is_true()
+	_step_for(0.5)
+	assert_float(model.thrust).is_equal(1.0)
+	assert_that(glow_material.albedo_color).is_equal(model.thruster_color)
+	assert_float(glow.scale.z).is_equal(1.0)
+	assert_bool(_step_until_docked()).is_true()
+	_step_for(1.0)
+	assert_float(model.thrust).is_equal(0.0)
+	assert_that(glow_material.albedo_color).is_equal(model.thruster_off_color)
+	assert_float(glow.scale.z).is_less(0.2)
+
+
+func test_a_flight_leaves_a_trail_that_fades_after_docking() -> void:
+	var trail := _bus.get_node(^"%ThrusterTrail") as ThrusterTrail
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(_bus.charge_time - 0.5)
+	assert_bool(trail.is_empty()).is_true()
+	assert_bool(_step_until(FrameshiftBus.State.FLYING)).is_true()
+	_step_for(1.0)
+	assert_bool(trail.is_empty()).is_false()
+	assert_bool(_step_until_docked()).is_true()
+	_step_for(trail.lifetime * 0.5)
+	assert_bool(trail.is_empty()).is_false()
+	_step_for(trail.lifetime)
+	assert_bool(trail.is_empty()).is_true()
+
+
 func test_each_planet_on_the_route_docks_and_charges_again() -> void:
 	var docked_at: Array[Planet] = []
 	_bus.docked.connect(func(planet: Planet) -> void: docked_at.append(planet))

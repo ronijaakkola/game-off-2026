@@ -22,6 +22,10 @@ const STOP_DISTANCE := 0.05
 const DOCK_SMOOTHING := 6.0
 # How far the model leans per radian per second of turn.
 const BANK := 0.12
+# How fast the thrusters' glow fades, per second.
+const THRUST_FADE := 2.0
+# Where the thrusters leave their trail, from the bus: at the nozzles, behind it.
+const TRAIL_START := Vector3(0.0, -0.035, -0.45)
 
 ## Where the bus starts docked. None starts it holding where it stands.
 @export var start_planet: Planet
@@ -228,6 +232,8 @@ func _process(delta: float) -> void:
 		State.HOLDING:
 			_turn_rate = 0.0
 	_animate_model(delta)
+	var burn := (%Model as BusModel).thrust if state == State.FLYING else 0.0
+	(%ThrusterTrail as ThrusterTrail).advance(global_transform * TRAIL_START, burn, delta)
 	_draw_route()
 
 
@@ -347,12 +353,12 @@ func _approach_point(planet: Planet, direction: Vector3) -> Vector3:
 	return center + direction * (planet.get_body_radius() + dock_gap)
 
 
-# The float while still, the shake while charging, and a lean into turns in flight. All of
-# it moves the model, so the bus itself stays on its route.
+# The float while still, the shake while charging, a lean into turns in flight, and the
+# thrusters' glow. All of it is on the model, so the bus itself stays on its route.
 func _animate_model(delta: float) -> void:
 	var still := state != State.FLYING
 	_float = move_toward(_float, 1.0 if still else 0.0, delta)
-	var model := %Model as Node3D
+	var model := %Model as BusModel
 	var offset := Vector3(
 		sin(TAU * _time / sway_period) * sway, sin(TAU * _time / bob_period) * bob_height, 0.0
 	)
@@ -363,6 +369,9 @@ func _animate_model(delta: float) -> void:
 		model.position += shake * charge_shake * charged
 	var lean := clampf(-_turn_rate * BANK, -0.5, 0.5)
 	model.rotation.z = lerp_angle(model.rotation.z, lean, 1.0 - exp(-8.0 * delta))
+	# The thrusters light up as the drive charges, burn in flight and fade after.
+	var thrust := 1.0 if state == State.FLYING else get_charge_progress()
+	model.thrust = move_toward(model.thrust, thrust, delta * THRUST_FADE)
 
 
 # The line through the route still ahead. It runs to a planet's surface rather than to
