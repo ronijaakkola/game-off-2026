@@ -22,7 +22,7 @@ for other in scene.collection.children:
     other.hide_render = other != collection
 shown = [o for o in collection.all_objects if o.type == "MESH" and not o.name.endswith("-colonly")]
 assert shown, f"{name!r} has no visible meshes"
-for obj in collection.all_objects:
+for obj in list(collection.all_objects):
     obj.hide_render = obj not in shown
 # Workbench shows a material's viewport colour, so copy the Principled base colour there.
 # The library isn't saved after a preview.

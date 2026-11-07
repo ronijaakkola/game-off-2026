@@ -54,7 +54,7 @@ Flat and cartoony, like a picture book of the solar system: solid colours with c
 - **Names.** Each planet and moon has its name just under it: small off-white text with the sky's lilac, a little see-through, with a thin navy outline so it still reads where it crosses an orbit line. The text faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
 - **Sky** (`SpaceSky`). A deep navy-violet background with faint coloured fog and two layers of small stars. It is dim on purpose, so the planets stand out. It doesn't light the planets.
 
-- **Bus** (placeholder, built in code). A rounded yellow body with a dark lilac window band that wraps round both ends, and a pale cyan thruster at the back, lit with the planets' two tones.
+- **Bus** (`game/bus/models/bus.glb`, from the model library). A flat yellow space bus with rounded, faceted edges: a sloped windscreen, a row of dark lilac side windows over a white stripe, a door, a white roof with two vents, a dark hull underneath (no wheels) and two thrusters at the back. It is lit with the planets' two tones in the colours it was made with. The thrusters are dark while it is docked. As the drive charges, a pale cyan exhaust cone grows out of each one, full length in flight, and shrinks back after it docks. In flight the bus leaves a flat pale cyan trail on the orbit plane that narrows and fades out over 2.5 s.
 
 Anything new (passengers, UI) follows the same rules: flat colour, hard edges, a two-tone shade at most, no textures. It keeps the scene cheap on the web too: no post-processing so far, since each effect adds a full-screen pass (`docs/web-constraints.md`).
 
