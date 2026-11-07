@@ -5,6 +5,16 @@ extends Node
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const DESTINATIONS: Array[String] = ["Ember", "Terra", "Moon", "Giant", "Frost"]
+# Each destination's icon colour, copied by hand from game/solar_system/solar_system.tscn,
+# so update both when a planet's colour changes. Giant has rings, also as copied.
+const ICON_COLORS: Array[Color] = [
+	Color(0.82, 0.58, 0.4),
+	Color(0.5, 0.82, 0.34),
+	Color(0.95, 0.93, 1.0),
+	Color(1.0, 0.6, 0.25),
+	Color(1.0, 0.62, 0.74),
+]
+const RINGED := 3
 # Patience left, as a fraction of the full amount, one per seat.
 const PATIENCE: Array[float] = [0.9, 0.5, 0.2, 0.0, 0.75, 0.62, 0.35, 0.1]
 # The seats whose passenger has a request open.
@@ -19,7 +29,13 @@ func _ready() -> void:
 	rng.seed = 7
 	for seat: int in PATIENCE.size():
 		var destination := Planet.new()
-		destination.display_name = DESTINATIONS[seat % DESTINATIONS.size()]
+		var planet := seat % DESTINATIONS.size()
+		destination.display_name = DESTINATIONS[planet]
+		destination.icon_color = ICON_COLORS[planet]
+		if planet == RINGED:
+			destination.ring_material = ShaderMaterial.new()
+			destination.icon_ring_color = Color(0.72, 0.72, 1.0)
+			destination.tilt = 18.0
 		add_child(destination)
 		var passenger := Passenger.new(COMMUTER, destination, 60.0, 40.0, rng)
 		passenger.patience = passenger.patience_max * PATIENCE[seat]

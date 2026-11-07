@@ -21,7 +21,7 @@ A passenger's patience runs down while they ride, at half speed while the bus is
 
 ### On board
 
-Each passenger on board has a card down the left edge of the screen: name, type, destination, a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"). Built in `game/passengers/`, and running in the solar system:
+Each passenger on board has a card down the left edge of the screen: name, type, destination (a small flat icon of the planet and its name), a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"). Built in `game/passengers/`, and running in the solar system:
 
 - **Waiting and boarding (first phase).** Each planet, the Moon included, gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random. They are hidden for now and lose no patience while they wait. Whenever the bus docks at a planet, the passengers going there get off and pay, then those waiting board, longest waiting first, while any of the 4 seats are free. The game starts with one passenger on board at Ember.
 - **Trip time and fare** come from the straight distance at boarding: the trip time is the charge plus that distance at the bus's top speed, and the fare is 3 credits per unit times the type's multiplier. Planets move, so it is only an estimate.
@@ -50,6 +50,7 @@ Flat and cartoony, like a picture book of the solar system: solid colours with c
 - **Colours.** Soft, warm and saturated, never dark: sandy orange, leaf green, a pale lilac moon, an orange-striped gas giant with lilac rings, a pink ice planet with white caps. Planets are told apart by colour first, so each new one needs its own hue.
 - **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom or glow pass.
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is drawn as a thin, faint lilac line, so the player can see where each planet is going.
+- **Planet icons** (`planet_icon.gdshader`). The UI shows a planet as a flat disc in its one icon colour, with the same purple night side as in the world, lit from the upper left. A planet with rings shows them as a line at its tilt, passing behind the disc at the top and in front at the bottom; its disc is smaller, so the rings fit at any tilt. Each planet's icon colour is set by hand to the colour it reads as from the camera.
 - **Names.** Each planet and moon has its name just under it: small off-white text with the sky's lilac, a little see-through, with a thin navy outline so it still reads where it crosses an orbit line. The text faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
 - **Sky** (`SpaceSky`). A deep navy-violet background with faint coloured fog and two layers of small stars. It is dim on purpose, so the planets stand out. It doesn't light the planets.
 
