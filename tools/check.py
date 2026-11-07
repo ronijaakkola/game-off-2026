@@ -207,12 +207,8 @@ SHADER_DIRECTIVE = re.compile(
 # A bus looked up or set by name. Audio.BUS_NAMES[...] on the right is the supported way.
 AUDIO_SERVER_BUS = re.compile(r"\bAudioServer\s*\.\s*\w*bus\w*")
 BUS_ASSIGNMENT = re.compile(r"\.\s*bus\s*=(?!=)(?!\s*Audio\s*\.\s*BUS_NAMES\b)")
-# What a player's bus is set to: a name, as a string, a StringName, a conversion to one,
-# or a variable named for one. Other `.bus =` lines set a property that isn't an audio
-# bus, like a panel's FrameshiftBus, and pass.
-BUS_NAME_VALUE = re.compile(
-    r"""\s*(["'&]|(StringName|String|str)\s*\(|AudioServer\b|\w*name\b)""", re.IGNORECASE
-)
+# A `.bus =` value that is one bare variable, read to find the variable's declared type.
+BARE_VALUE = re.compile(r"[ \t]*([A-Za-z_]\w*)[ \t]*(#.*)?$", re.MULTILINE)
 # An ext_resource's uid and path, in either order. Godot looks the uid up first and uses
 # the path only when no file has that uid.
 EXT_RESOURCE_UID = re.compile(
@@ -649,14 +645,21 @@ def bus_name_problems(path: str, code: str, source: str) -> list[str]:
         "Audio.set_volume(Audio.Bus.MUSIC, linear) or Audio.get_volume(bus), and set a "
         "player's bus to Audio.BUS_NAMES[Audio.Bus.SFX]."
     )
-    # The code has its strings blanked out, at the same offsets, so the value is read
-    # from the source.
-    assignments = [
-        m for m in BUS_ASSIGNMENT.finditer(code) if BUS_NAME_VALUE.match(source, m.end())
-    ]
+    assignments = [m for m in BUS_ASSIGNMENT.finditer(code) if not object_value(code, m.end())]
     matches = [*AUDIO_SERVER_BUS.finditer(code), *assignments]
     lines = sorted({line_at(code, m.start()) for m in matches})
     return [problem(path, line, "bus-through-audio", message, AUTOLOADS) for line in lines]
+
+
+def object_value(code: str, offset: int) -> bool:
+    """Whether the value at offset is a variable the script declares as an object, like a
+    panel's `bus: FrameshiftBus`: that `.bus` isn't an audio bus. Any other value may be a
+    bus name, from a constant, a call or an untyped variable, so the rule checks it."""
+    value = BARE_VALUE.match(code, offset)
+    if not value:
+        return False
+    declared = re.findall(rf"\b{value.group(1)}\s*:\s*([A-Za-z_]\w*)", code)
+    return any(kind[0].isupper() and kind not in ("String", "StringName") for kind in declared)
 
 
 def bus_names() -> list[str]:
@@ -1435,17 +1438,24 @@ def run_capture(
     return f"{len(frames)} frames, look at {frames[-1].as_posix()}{errors}"
 
 
+OVERRIDE_MARK = "; Written by check.py capture --size for one capture; safe to delete."
+
+
 @contextmanager
 def window_size_override(size: str):
     """Movie Maker records at the project's window size and ignores --resolution, so a
     capture at another size needs the window size override. Godot reads it from
     override.cfg beside project.godot, which this writes for the one run (git ignores it)."""
     override = Path("override.cfg")
-    if override.exists():
-        raise CheckFailed("override.cfg already exists; capture --size would overwrite it")
+    # A capture killed before its finally leaves its file behind, which is safe to replace.
+    if override.exists() and not override.read_text(encoding="utf-8").startswith(OVERRIDE_MARK):
+        raise CheckFailed(
+            "override.cfg exists and capture --size didn't write it. It overrides project "
+            "settings in every run of the project: move it aside, then capture again"
+        )
     width, height = size.split("x")
     override.write_text(
-        "[display]\n\n"
+        OVERRIDE_MARK + "\n[display]\n\n"
         f"window/size/window_width_override={width}\n"
         f"window/size/window_height_override={height}\n",
         encoding="utf-8",
