@@ -4,7 +4,8 @@ extends Control
 ## over a blurred background in the colours of the planet they boarded at (or, when that
 ## isn't known, the one they are going to). It takes its portrait from [member studio]
 ## while it is in the tree and gives it back when it leaves, so a freed photo frees its
-## slot. Without a studio or a passenger the frame stays empty.
+## slot. When the studio is full it waits for the next free slot. Without a studio or a
+## passenger the frame stays empty.
 
 ## The photo's tilt, in degrees either way.
 const TILT_MIN := 0.5
@@ -52,10 +53,14 @@ func _show() -> void:
 		_backdrop().set_shader_parameter(&"planet_color", home.icon_color)
 	if studio and not _photo and is_inside_tree():
 		_photo = studio.add(passenger.look)
+		if not _photo and not studio.slot_freed.is_connected(_show):
+			studio.slot_freed.connect(_show, CONNECT_ONE_SHOT)
 	(%Photo as TextureRect).texture = _photo
 
 
 func _give_back() -> void:
+	if studio and studio.slot_freed.is_connected(_show):
+		studio.slot_freed.disconnect(_show)
 	if _photo and studio:
 		studio.remove(_photo)
 	_photo = null

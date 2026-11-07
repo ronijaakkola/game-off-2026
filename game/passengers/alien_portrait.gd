@@ -72,6 +72,13 @@ func _ready() -> void:
 		elif part.name.contains(STALK_PART):
 			_stalks.append(part)
 			_stalk_rest.append(part.rotation)
+	if not _head:
+		push_error(
+			(
+				"%s has no part named *%s: it won't sway, and is framed whole"
+				% [head_model.resource_path, HEAD_SUFFIX]
+			)
+		)
 	skin_color = skin_color
 	outfit_color = outfit_color
 	eye_style = eye_style
@@ -115,11 +122,18 @@ func _process(delta: float) -> void:
 
 
 ## The bounds of the head and what is on it, such as stalks and eyes, in this node's
-## space. A shape that is all one piece, such as the Bean, gives its whole body.
+## space. A shape that is all one piece, such as the Bean, gives its whole body, and so
+## does a model with no head part.
 func get_head_bounds() -> AABB:
+	var parts: Array[Node] = []
+	if _head:
+		parts = _head.find_children("*", "MeshInstance3D", true, false)
+		parts.append(_head)
+	else:
+		parts = find_children("*", "MeshInstance3D", true, false)
 	var bounds := AABB()
 	var first := true
-	for node: Node in _head.find_children("*", "MeshInstance3D", true, false) + [_head]:
+	for node: Node in parts:
 		var mesh := node as MeshInstance3D
 		var local := global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
 		bounds = local if first else bounds.merge(local)
@@ -167,6 +181,9 @@ func _wander_gaze(delta: float) -> void:
 func _recolour(mesh: MeshInstance3D) -> void:
 	for surface: int in mesh.mesh.get_surface_count():
 		var imported := mesh.mesh.surface_get_material(surface) as BaseMaterial3D
+		if not imported:
+			# Nothing to recolour from: the surface keeps Godot's default material.
+			continue
 		var material := _body_material(imported.resource_name)
 		if imported.resource_name not in [SKIN_MATERIAL, OUTFIT_MATERIAL]:
 			material.set_shader_parameter(&"color", imported.albedo_color)

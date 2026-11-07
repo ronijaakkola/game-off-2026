@@ -7,6 +7,9 @@ extends SubViewport
 ## than in a neighbour's tile. One pass for all of them is cheaper on the web than a viewport
 ## per card. It renders only while it holds a portrait.
 
+## A slot was freed, so a photo that found the studio full can try again.
+signal slot_freed
+
 const PORTRAIT := preload("res://game/passengers/alien_portrait.tscn")
 const SLOTS := 12
 ## Pixels per tile: about twice the size a card shows it at, so it stays sharp when the
@@ -78,6 +81,7 @@ func remove(photo: AtlasTexture) -> void:
 	_slots[_slots.find(portrait)] = null
 	portrait.queue_free()
 	_update_rendering()
+	slot_freed.emit()
 
 
 ## How many portraits it holds.
