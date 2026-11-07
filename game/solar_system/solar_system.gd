@@ -1,10 +1,11 @@
 extends Node3D
-## The solar system. The pointer picks a planet, which shows a white border, and a right
-## click plots the bus's course: to the planet under the pointer, or to the point on the
-## orbit plane under it. Shift adds the stop to the end of the route, or removes the last
-## stop when the click is on it. Left click is left
-## free for selecting things. Planets on the route show an orange border. A hint at the
-## bottom says how to set a course until the player first sets one.
+## The solar system. The pointer picks a planet, which shows a white border, or else the
+## diamond of the route's last stop when that is a point in space, which turns white. A
+## right click plots the bus's course: to the planet under the pointer, or to the point on
+## the orbit plane under it, and Shift adds the stop to the end of the route instead. A
+## right click on the route's last stop, with or without Shift, removes it. Left click is
+## left free for selecting things. Planets on the route show an orange border. A hint at
+## the bottom says how to set a course until the player first sets one.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one and pay, and those waiting
 ## there board one by one while seats are free. The bus can't charge until the stop is
@@ -36,8 +37,13 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
 	_place_labels()
-	var under := _planet_at(get_viewport().get_mouse_position())
-	var on_route := (%Bus as FrameshiftBus).get_route_planets()
+	var mouse := get_viewport().get_mouse_position()
+	var under := _planet_at(mouse)
+	var bus := %Bus as FrameshiftBus
+	var marker: RouteStop = null if under else _marker_at(mouse)
+	# Only the last stop, the one a right click removes.
+	bus.hovered_stop = marker if marker and marker == bus.get_last_stop() else null
+	var on_route := bus.get_route_planets()
 	for planet: Planet in _planets:
 		if planet == under:
 			planet.border = Planet.Border.HOVER
@@ -58,7 +64,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
 	var bus := %Bus as FrameshiftBus
-	if click.shift_pressed and _is_last_stop_at(click.position):
+	if _is_last_stop_at(click.position):
 		bus.remove_last_stop()
 	else:
 		var stop := _stop_at(click.position)
@@ -116,22 +122,36 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 
 
 # Whether the route's last stop is under screen_point: its planet, or the diamond at its
-# point in space, give or take PICK_MARGIN.
+# point in space when no planet is. The same pick as the hover, so what turns white is
+# what a click removes.
 func _is_last_stop_at(screen_point: Vector2) -> bool:
-	var bus := %Bus as FrameshiftBus
-	var last := bus.get_last_stop()
+	var last := (%Bus as FrameshiftBus).get_last_stop()
 	if not last:
 		return false
-	if last.planet:
-		return _planet_at(screen_point) == last.planet
+	var planet := _planet_at(screen_point)
+	if planet or last.planet:
+		return planet != null and planet == last.planet
+	return _marker_at(screen_point) == last
+
+
+# The point in space on the route whose diamond covers screen_point on screen, give or take
+# PICK_MARGIN. Where diamonds overlap, the one latest on the route, so the last stop can
+# always be removed. Null when there is none.
+func _marker_at(screen_point: Vector2) -> RouteStop:
+	var bus := %Bus as FrameshiftBus
 	var camera := %Camera as Camera3D
-	if camera.is_position_behind(last.point):
-		return false
-	var on_screen := camera.unproject_position(last.point)
-	var edge := camera.unproject_position(
-		last.point + camera.global_basis.x * bus.get_marker_size()
-	)
-	return on_screen.distance_to(screen_point) <= on_screen.distance_to(edge) + PICK_MARGIN
+	var stops := bus.get_route_stops()
+	stops.reverse()
+	for stop: RouteStop in stops:
+		if stop.planet or camera.is_position_behind(stop.point):
+			continue
+		var on_screen := camera.unproject_position(stop.point)
+		var edge := camera.unproject_position(
+			stop.point + camera.global_basis.x * bus.get_marker_size()
+		)
+		if on_screen.distance_to(screen_point) <= on_screen.distance_to(edge) + PICK_MARGIN:
+			return stop
+	return null
 
 
 # The nearest planet whose body covers screen_point on screen, give or take PICK_MARGIN.

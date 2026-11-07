@@ -67,7 +67,21 @@ func test_left_click_on_a_planet_sets_no_course() -> void:
 	assert_bool((runner.find_child("CourseHint") as Label).visible).is_true()
 
 
-func test_shift_right_click_on_the_last_planet_removes_it() -> void:
+func test_right_click_on_the_last_planet_removes_it() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var giant := runner.find_child("Giant") as Planet
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant), true)
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_array(bus.get_route_planets()).contains_exactly([terra])
+
+
+func test_shift_right_click_on_the_last_planet_also_removes_it() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
@@ -81,25 +95,77 @@ func test_shift_right_click_on_the_last_planet_removes_it() -> void:
 	assert_array(bus.get_route_planets()).contains_exactly([terra])
 
 
-func test_shift_right_click_on_the_last_point_in_space_removes_it() -> void:
+func test_right_click_on_the_only_planet_cancels_the_course() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
-	var giant := runner.find_child("Giant") as Planet
-	var camera := runner.find_child("Camera") as Camera3D
-	# Halfway from Terra to Giant, clear of every planet.
-	var between := terra.get_body_global_position().lerp(giant.get_body_global_position(), 0.5)
-	var on_screen := camera.unproject_position(between)
-	var point := _to_window(camera, on_screen)
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, point, true)
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_object(bus.get_last_stop()).is_null()
+	assert_float(bus.get_charge_progress()).is_equal(0.0)
+
+
+func test_right_click_on_the_last_point_in_space_removes_it() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	var on_screen := _between_screen_point(runner)
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen), true)
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_object(bus.get_last_stop().planet).is_null()
 
 	# A few pixels off the point still hits its diamond.
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(4, 4)), true)
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(4, 4)))
 
 	assert_object(bus.get_last_stop().planet).is_same(terra)
+
+
+func test_hovering_the_last_point_in_space_picks_it() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var camera := runner.find_child("Camera") as Camera3D
+	var on_screen := _between_screen_point(runner)
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var point := bus.get_last_stop()
+
+	_send_motion(_to_window(camera, on_screen + Vector2(4, 4)))
+	await runner.simulate_frames(1)
+	assert_object(bus.hovered_stop).is_same(point)
+
+	_send_motion(_to_window(camera, on_screen + Vector2(200, 0)))
+	await runner.simulate_frames(1)
+	assert_object(bus.hovered_stop).is_null()
+
+
+func test_hovering_a_point_in_space_before_the_last_stop_picks_nothing() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	var on_screen := _between_screen_point(runner)
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra), true)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+
+	_send_motion(_to_window(camera, on_screen))
+	await runner.simulate_frames(1)
+
+	assert_object(bus.hovered_stop).is_null()
+
+
+# Halfway from Terra to Giant on screen, in viewport pixels: clear of every planet.
+func _between_screen_point(runner: GdUnitSceneRunner) -> Vector2:
+	var terra := runner.find_child("Terra") as Planet
+	var giant := runner.find_child("Giant") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	var between := terra.get_body_global_position().lerp(giant.get_body_global_position(), 0.5)
+	return camera.unproject_position(between)
 
 
 func _screen_point(runner: GdUnitSceneRunner, planet: Planet) -> Vector2:
@@ -121,5 +187,13 @@ func _send_click(button: MouseButton, at: Vector2, shift := false) -> void:
 	event.position = at
 	event.global_position = at
 	event.pressed = true
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
+func _send_motion(to: Vector2) -> void:
+	var event := InputEventMouseMotion.new()
+	event.position = to
+	event.global_position = to
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
