@@ -214,7 +214,6 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 [node name="Giant" type="Node3D" parent="." unique_id=1488920163]
 script = ExtResource("2_planet")
 display_name = "Giant"
-radius = 1.0
 orbit_radius = 13.2
 orbit_period = 220.0
 start_angle = 140.0
@@ -273,5 +272,23 @@ theme_override_constants/margin_right = 16
 unique_name_in_owner = true
 layout_mode = 2
 text = "0 credits"
+
+[node name="HintBox" type="MarginContainer" parent="Hud" unique_id=299227585]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme = ExtResource("18_theme")
+theme_override_constants/margin_bottom = 20
+
+[node name="CourseHint" type="Label" parent="Hud/HintBox" unique_id=1805317662]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Right-click a planet or space to set course. Shift + right-click adds a stop."
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]

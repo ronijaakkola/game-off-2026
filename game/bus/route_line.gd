@@ -1,3 +1,4 @@
+class_name RouteLine
 extends MeshInstance3D
 ## The bus's route, drawn as flat ribbons on the orbit plane, with a small diamond at each
 ## marked point. It draws in global space.

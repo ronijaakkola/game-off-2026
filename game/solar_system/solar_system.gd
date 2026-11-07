@@ -1,8 +1,10 @@
 extends Node3D
-## The solar system. The pointer picks a planet, which shows a white border, and a click
-## plots the bus's course: to the planet under the pointer, or to the point on the orbit
-## plane under it. Shift adds the stop to the end of the route; a right click cancels the
-## course. Planets on the route show an orange border.
+## The solar system. The pointer picks a planet, which shows a white border, and a right
+## click plots the bus's course: to the planet under the pointer, or to the point on the
+## orbit plane under it. Shift adds the stop to the end of the route, or removes the last
+## stop when the click is on it. Left click is left
+## free for selecting things. Planets on the route show an orange border. A hint at the
+## bottom says how to set a course until the player first sets one.
 ## It also runs the passengers: every time the bus docks, the passengers going to that
 ## planet get off and pay, and those waiting there board while seats are free. The game
 ## starts with one passenger on board.
@@ -53,15 +55,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if not click or not click.pressed:
 		return
-	if click.button_index == MOUSE_BUTTON_LEFT:
+	if click.button_index != MOUSE_BUTTON_RIGHT:
+		return
+	var bus := %Bus as FrameshiftBus
+	if click.shift_pressed and _is_last_stop_at(click.position):
+		bus.remove_last_stop()
+	else:
 		var stop := _stop_at(click.position)
 		if not stop:
 			return
-		(%Bus as FrameshiftBus).plot_course(stop, click.shift_pressed)
-	elif click.button_index == MOUSE_BUTTON_RIGHT:
-		(%Bus as FrameshiftBus).cancel_course()
-	else:
-		return
+		bus.plot_course(stop, click.shift_pressed)
+		(%CourseHint as Label).hide()
 	get_viewport().set_input_as_handled()
 
 
@@ -106,6 +110,25 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 	if hit == null:
 		return null
 	return RouteStop.at_point(hit)
+
+
+# Whether the route's last stop is under screen_point: its planet, or the diamond at its
+# point in space, give or take PICK_MARGIN.
+func _is_last_stop_at(screen_point: Vector2) -> bool:
+	var bus := %Bus as FrameshiftBus
+	var last := bus.get_last_stop()
+	if not last:
+		return false
+	if last.planet:
+		return _planet_at(screen_point) == last.planet
+	var camera := %Camera as Camera3D
+	if camera.is_position_behind(last.point):
+		return false
+	var on_screen := camera.unproject_position(last.point)
+	var edge := camera.unproject_position(
+		last.point + camera.global_basis.x * bus.get_marker_size()
+	)
+	return on_screen.distance_to(screen_point) <= on_screen.distance_to(edge) + PICK_MARGIN
 
 
 # The nearest planet whose body covers screen_point on screen, give or take PICK_MARGIN.

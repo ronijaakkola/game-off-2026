@@ -11,7 +11,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 ## Core loop
 
 1. **Docked.** The bus starts docked at a planet. Passengers wait at planets, each with a destination planet, a fare and a patience timer. While docked (or charging), the player picks passengers up into the bus's seats.
-2. **Set course.** Clicking a planet sets it as the destination. Each planet shows the fuel cost and travel time to it, both from the distance right now. Clicking empty space sets a point in space as the destination instead. Shift-click adds a waypoint to the end of the route, so a route can have several points. The route is drawn as a line from the bus through each point.
+2. **Set course.** Right-clicking a planet sets it as the destination. Each planet shows the fuel cost and travel time to it, both from the distance right now. Right-clicking empty space sets a point in space as the destination instead. Shift + right-click adds a waypoint to the end of the route, so a route can have several points. Left click is for selecting things, such as opening a planet. The route is drawn as a line from the bus through each point.
 3. **Charge.** The frameshift drive charges for 3 s before the bus leaves a planet. While it charges, the player can cancel, or change the route.
 4. **Fly.** The bus flies the route point by point. The player can reroute at any time from wherever the bus is, the same way as setting a course, with no charge-up and no extra fuel cost: fuel burns by distance flown, so a reroute costs only the distance it adds.
 5. **Arrive.** At a planet, passengers going there get off and pay by their mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing.
@@ -62,22 +62,28 @@ Planned for the core loop, not built yet:
 
 | Input | Action |
 |---|---|
+| Left click a planet | Open its panel: the fuel cost and time to get there, and who is waiting |
+| Left click empty space | Close the open panel |
 | Left click a waiting passenger | Pick them up |
+| A cancel-route button | Cancel the course from anywhere. Until it exists, the bus stops by right-clicking its own planet, or a point just ahead of it in flight |
+
+Esc stays pause only. In browser fullscreen the browser takes Esc to leave fullscreen and the game never sees it, so Esc can't close a panel the same way in a window and in fullscreen.
 
 Built, in the solar system, which Play opens:
 
 | Input | Action |
 |---|---|
 | Pointer over a planet | Shows a white border round it (over its orange route border) |
-| Left click a planet | Set course straight to it |
-| Left click empty space | Set course to that point on the orbit plane |
-| Shift + left click | Add a planet or point to the end of the route |
-| Right click | Cancel the course: a charging drive stops, a flying bus slows to a stop in space |
+| Right click a planet | Set course straight to it |
+| Right click empty space | Set course to that point on the orbit plane |
+| Shift + right click | Add a planet or point to the end of the route |
+| Shift + right click the last stop | Remove it from the route. Only the last one: a stop in the middle is added again, so a route can come back to a planet. With no stop left, the course is cancelled |
+| Right click the planet the bus is docked at | Cancel the course: a charging drive stops |
 | W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit |
 | Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
 | Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
 
-The bus flies on the orbit plane at 1.2 units a second, a little faster than the mockup's trip times: a planet orbits at under 40 % of the bus's speed, so the bus catches one without a long chase. Docked, it floats beside its planet (a barely visible bob and sway) and moves with it. Leaving a planet charges the drive first: a white ring round the bus fills clockwise (temporary), and the bus shakes slightly, unless Reduce motion is on. Then it turns toward its next stop, speeding up as it comes to face it. It passes through points in space, docks at every planet on the route and charges again before leaving each one, and holds still at a point in space that ends the route. A planet stop is the planet's near side, so the bus chases a moving planet. Clicking the planet it is docked at cancels the course. The route is a flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border, so planets read as part of the route.
+The bus flies on the orbit plane at 1.2 units a second, a little faster than the mockup's trip times: a planet orbits at under 40 % of the bus's speed, so the bus catches one without a long chase. Docked, it floats beside its planet (a barely visible bob and sway) and moves with it. Leaving a planet charges the drive first: a white ring round the bus fills clockwise (temporary), and the bus shakes slightly, unless Reduce motion is on. Then it turns toward its next stop, speeding up as it comes to face it. It passes through points in space, docks at every planet on the route and charges again before leaving each one, and holds still at a point in space that ends the route. A planet stop is the planet's near side, so the bus chases a moving planet. Right-clicking the planet it is docked at cancels the course. Until the player first sets a course, a hint at the bottom of the screen says how: "Right-click a planet or space to set course. Shift + right-click adds a stop." The route is a flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border, so planets read as part of the route.
 
 WASD reads physical key positions, so it sits in the same place on every keyboard layout. Edge pan starts only once the pointer has moved inside the game, and stops when it leaves the window or the window loses focus, so a pointer that left through an edge doesn't keep the camera moving. In the example game scene, a left click on the board or a piece's top places a piece.
 

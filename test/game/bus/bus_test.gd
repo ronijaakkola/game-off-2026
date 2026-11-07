@@ -62,6 +62,21 @@ func test_each_planet_on_the_route_docks_and_charges_again() -> void:
 	assert_array(docked_at).contains_exactly([_near, _far])
 
 
+func test_removing_the_last_stop_keeps_the_rest() -> void:
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.plot_course(RouteStop.at_planet(_far), true)
+	_bus.remove_last_stop()
+	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+
+
+func test_removing_the_only_stop_stops_the_charge() -> void:
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.remove_last_stop()
+	assert_object(_bus.get_last_stop()).is_null()
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+
+
 func test_a_point_in_space_ends_the_route_holding_there() -> void:
 	var point := Vector3(-4.0, 0.0, 3.0)
 	_bus.plot_course(RouteStop.at_point(Vector3(-2.0, 0.0, 4.0)))
