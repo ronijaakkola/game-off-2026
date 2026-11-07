@@ -5,11 +5,16 @@ extends Control
 ## isn't known, the one they are going to). It takes its portrait from [member studio]
 ## while it is in the tree and gives it back when it leaves, so a freed photo frees its
 ## slot. When the studio is full it waits for the next free slot. Without a studio or a
-## passenger the frame stays empty.
+## passenger the frame stays empty. Every frame it shows on the portrait whether the
+## passenger is asleep, and, while they ride, the push they feel on the bus.
 
 ## The photo's tilt, in degrees either way.
 const TILT_MIN := 0.5
 const TILT_MAX := 2.0
+
+## Whether the passenger rides the bus, so their portrait leans with its pushes. Their
+## card sets it; while they wait at a planet it stays off.
+var riding := false
 
 ## Where the portrait is rendered.
 var studio: PortraitStudio:
@@ -34,6 +39,14 @@ func _ready() -> void:
 	(%Frame as Control).rotation = deg_to_rad(tilt)
 	_backdrop().set_shader_parameter(&"seed", randf() * 100.0)
 	_show()
+
+
+func _process(_delta: float) -> void:
+	var portrait := studio.get_portrait(_photo) if studio and _photo else null
+	if not portrait:
+		return
+	portrait.asleep = passenger.asleep
+	portrait.felt_acceleration = studio.felt_acceleration if riding else Vector2.ZERO
 
 
 func _exit_tree() -> void:

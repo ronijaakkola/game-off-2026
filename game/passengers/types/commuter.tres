@@ -9,5 +9,6 @@
 script = ExtResource("1_type")
 display_name = "Commuter"
 needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink")])
-idle_lines = Array[String](["Sleeping...", "Looking at empty space", "Counting stars", "Reading a pamphlet", "Humming quietly", "Drumming on the armrest"])
+idle_lines = Array[String](["Looking at empty space", "Counting stars", "Reading a pamphlet", "Humming quietly", "Drumming on the armrest"])
+sleep_lines = Array[String](["Sleeping..."])
 names = Array[String](["Vontti", "Tuomazus", "Ev'elinis", "Rasmusar", "Jen'na", "Auron", "Ar'tturi", "Aenna-marek", "Taepani", "Fil'ip", "Sufoi", "Vinkent", "Monno", "Iveel", "Isabelix", "Lenon", "Meoje", "Tommus", "Neeleth", "Zhen'nifer", "Reizhis", "Lileth", "Thajoni", "Zhoanna", "Evelinus", "Sisus", "Veisa", "Han'nes", "Viljanenus", "Autar"])
