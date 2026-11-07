@@ -15,29 +15,36 @@ shader_parameter/has_rings = null
 shader_parameter/ring_color = null
 shader_parameter/ring_tilt = null
 
-[node name="WaitingPassengerRow" type="PanelContainer" unique_id=1646157411]
+[node name="WaitingPassengerRow" type="Control" unique_id=1646157411]
+layout_mode = 3
+anchors_preset = 0
 mouse_filter = 2
 theme = ExtResource("2_theme")
-theme_type_variation = &"RowPanel"
 script = ExtResource("1_row")
 
-[node name="Columns" type="HBoxContainer" parent="." unique_id=1091505411]
+[node name="Panel" type="PanelContainer" parent="." unique_id=573339893]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+theme_type_variation = &"RowPanel"
+
+[node name="Columns" type="HBoxContainer" parent="Panel" unique_id=1091505411]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="PassengerPhoto" parent="Columns" unique_id=1326485709 instance=ExtResource("5_photo")]
+[node name="PassengerPhoto" parent="Panel/Columns" unique_id=1326485709 instance=ExtResource("5_photo")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Who" type="VBoxContainer" parent="Columns" unique_id=997211040]
+[node name="Who" type="VBoxContainer" parent="Panel/Columns" unique_id=997211040]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/separation = 2
 
-[node name="NameLabel" type="Label" parent="Columns/Who" unique_id=1537369398]
+[node name="NameLabel" type="Label" parent="Panel/Columns/Who" unique_id=1537369398]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
@@ -45,12 +52,12 @@ text = "Name"
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="Destination" type="HBoxContainer" parent="Columns/Who" unique_id=477762177]
+[node name="Destination" type="HBoxContainer" parent="Panel/Columns/Who" unique_id=477762177]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 6
 
-[node name="DestinationIcon" type="ColorRect" parent="Columns/Who/Destination" unique_id=1310667037]
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination" unique_id=1310667037]
 unique_name_in_owner = true
 visible = false
 material = SubResource("ShaderMaterial_icon")
@@ -60,13 +67,13 @@ size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
 
-[node name="DestinationLabel" type="Label" parent="Columns/Who/Destination" unique_id=1605523246]
+[node name="DestinationLabel" type="Label" parent="Panel/Columns/Who/Destination" unique_id=1605523246]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 text = "To ?"
 
-[node name="FareLabel" type="Label" parent="Columns" unique_id=343032844]
+[node name="FareLabel" type="Label" parent="Panel/Columns" unique_id=343032844]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
