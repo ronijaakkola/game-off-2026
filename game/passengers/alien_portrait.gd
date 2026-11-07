@@ -2,7 +2,9 @@ class_name AlienPortrait
 extends Node3D
 ## A passenger's bust: one of the alien head models, redrawn with the planets' two-tone
 ## light in a skin and an outfit colour, with eyes drawn on its Eye markers that blink
-## and look around, and a slow idle sway. Stalk parts wobble behind the head.
+## and look around, and a slow idle sway. Stalk parts wobble behind the head. Asleep, the
+## eyes shut and the head nods forward; on a moving bus, the bust leans with the push it
+## feels and sways back.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
@@ -13,6 +15,26 @@ const OUTFIT_MATERIAL := "AlienOutfit"
 const HEAD_SUFFIX := "Head"
 const EYE_PART := "Eye"
 const STALK_PART := "Stalk"
+## How fast the eyes shut as they fall asleep, and open as they wake, per second.
+const SLEEP_SPEED := 0.8
+const WAKE_SPEED := 4.0
+## How far the head leans, in radians, per unit per second squared of push felt.
+const LURCH_GAIN := 0.07
+## The lean's spring: how hard it pulls back to where the push holds it, and how fast its
+## swing dies down. A sudden push overshoots a little and sways back.
+const LURCH_STIFFNESS := 60.0
+const LURCH_DAMPING := 5.0
+## How much more a forward or backward push leans the head than a sideways one. The
+## camera faces them, so a lean toward it barely shows unless it is bigger.
+const FORWARD_LURCH := 2.0
+## A forward lean also dips the head and brings it closer, which shows head on: how far
+## it drops, in the model's units, and how much bigger it looks, per radian of lean.
+const FORWARD_DIP := 0.12
+const FORWARD_GROW := 0.25
+## The furthest the head leans, in radians.
+const LURCH_MAX := 0.6
+## How much of the lean the whole bust takes; the head takes all of it.
+const BODY_LURCH := 0.35
 
 ## One of the head models in `models/`.
 @export var head_model: PackedScene
@@ -33,12 +55,21 @@ const STALK_PART := "Stalk"
 			value.apply(_eye_material)
 ## How far the eyes open at rest: 1 wide awake, lower for a drowsy or sullen look.
 @export_range(0.0, 1.0) var eye_openness := 1.0
+## Whether they are asleep: the eyes drift shut and stop blinking and wandering, and the
+## head nods forward and breathes slower. A startle still opens the eyes for a moment.
+@export var asleep := false
+## The push they feel on the bus, in units per second squared: +x toward their own right
+## (the camera's left, since they face it) and +y forward, toward the camera. The bust
+## leans with it on a spring, so a jolt makes it sway.
+var felt_acceleration := Vector2.ZERO
 
 ## The eyes, made on the model's Eye markers.
 var eyes: Array[MeshInstance3D] = []
 
 var _materials: Dictionary[String, ShaderMaterial] = {}
 var _eye_material := ShaderMaterial.new()
+var _model: Node3D
+var _model_rest := Vector3.ZERO
 var _head: Node3D
 var _head_rest := Vector3.ZERO
 var _stalks: Array[Node3D] = []
@@ -54,12 +85,22 @@ var _blink := 0.0
 var _blinking: Tween
 var _startle := 0.0
 var _startling: Tween
+# How far asleep, from 0 awake to 1 eyes shut, and which way the head tilts as it nods.
+var _sleep := 0.0
+var _sleep_side := 1.0 if randf() < 0.5 else -1.0
+var _breath := 0.0
+# The lean from the push felt, in radians (+x toward their right, +y forward), and how
+# fast it swings.
+var _lurch := Vector2.ZERO
+var _lurch_velocity := Vector2.ZERO
 
 
 func _ready() -> void:
 	_eye_material.shader = EYE_SHADER
 	var model := head_model.instantiate() as Node3D
 	add_child(model)
+	_model = model
+	_model_rest = model.rotation
 	for node: Node in model.find_children("*", "Node3D", true, false):
 		var part := node as Node3D
 		if part is MeshInstance3D:
@@ -88,33 +129,57 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_time += delta
 	var motion := 0.0 if Settings.reduce_motion else 1.0
+	_sleep = move_toward(
+		_sleep, 1.0 if asleep else 0.0, delta * (SLEEP_SPEED if asleep else WAKE_SPEED)
+	)
+	if asleep:
+		# Closed eyes rest looking a little down, and don't blink.
+		_look_target = Vector2(0.0, -0.4)
+		_look_hold = 0.5
+		_blink_in = maxf(_blink_in, 0.5)
 	_wander_gaze(delta)
 	_look = _look.lerp(_look_target, 1.0 - exp(-12.0 * delta))
 	_blink_in -= delta
 	if _blink_in <= 0.0:
 		blink()
 		_blink_in = randf_range(2.0, 5.5)
+	_sway_with_push(delta)
 
 	var t := _time + _phase
+	var lurch := _lurch * motion
+	if _model:
+		_model.rotation = _model_rest + Vector3(lurch.y, 0.0, lurch.x) * BODY_LURCH
 	if _head:
-		var breath := sin(t * 1.6) * 0.018 * motion
-		_head.scale = Vector3(1.0 - breath * 0.5, 1.0 + breath, 1.0 - breath * 0.5)
-		# The head turns a little toward where the eyes look.
+		# Asleep, they breathe slower and deeper.
+		_breath += delta * lerpf(1.6, 1.0, _sleep)
+		var breath := sin(_breath + _phase) * lerpf(0.018, 0.03, _sleep) * motion
+		var grow := 1.0 + lurch.y * FORWARD_GROW
+		_head.scale = Vector3(1.0 - breath * 0.5, 1.0 + breath, 1.0 - breath * 0.5) * grow
+		# The head turns a little toward where the eyes look, nods forward asleep, and leans
+		# with the push the bust doesn't take.
+		var nod := Vector2(_sleep_side * 0.1, 0.16) * _sleep * motion
+		var lean := nod + lurch * (1.0 - BODY_LURCH)
 		_head.rotation = Vector3(
-			sin(t * 0.7) * 0.04 * motion - _look.y * 0.08 - _startle * 0.12 * motion,
+			sin(t * 0.7) * 0.04 * motion - _look.y * 0.08 - _startle * 0.12 * motion + lean.y,
 			_look.x * 0.18,
-			sin(t * 0.9 + 1.3) * 0.05 * motion,
+			sin(t * 0.9 + 1.3) * 0.05 * motion + lean.x,
 		)
-		_head.position = _head_rest + Vector3.UP * (_startle * 0.02 * motion)
+		var lift := _startle * 0.02 * motion - lurch.y * FORWARD_DIP
+		_head.position = _head_rest + Vector3.UP * lift
 	for i: int in _stalks.size():
+		# Stalks trail behind a swing of the head.
 		var wobble := Vector3(
-			sin(t * 2.1 + i * 2.0) * 0.07,
+			sin(t * 2.1 + i * 2.0) * 0.07 + _lurch_velocity.y * 0.06,
 			0.0,
-			sin(t * 1.7 + i * 1.3) * 0.09 + sin(_time * 22.0 + i) * _startle * 0.3,
+			(
+				sin(t * 1.7 + i * 1.3) * 0.09
+				+ sin(_time * 22.0 + i) * _startle * 0.3
+				+ _lurch_velocity.x * 0.06
+			),
 		)
 		_stalks[i].rotation = _stalk_rest[i] + wobble * motion
 
-	var open := eye_openness * (1.0 - _blink)
+	var open := lerpf(eye_openness, 0.0, _sleep) * (1.0 - _blink)
 	_eye_material.set_shader_parameter(&"open", lerpf(open, 1.0, _startle))
 	_eye_material.set_shader_parameter(&"look", _look)
 	for eye: MeshInstance3D in eyes:
@@ -165,6 +230,18 @@ func startle() -> void:
 	_startling.tween_property(self, "_startle", 1.0, 0.06)
 	_startling.tween_property(self, "_startle", 0.0, 0.8).set_trans(Tween.TRANS_ELASTIC)
 	_blink_in = maxf(_blink_in, 1.0)
+
+
+# The lean follows the push on a spring: the push holds it at a lean, and when the push
+# stops it swings back past upright and settles.
+func _sway_with_push(delta: float) -> void:
+	var rest := felt_acceleration * LURCH_GAIN * Vector2(1.0, FORWARD_LURCH)
+	var pull := (rest - _lurch) * LURCH_STIFFNESS - _lurch_velocity * LURCH_DAMPING
+	_lurch_velocity += pull * delta
+	_lurch += _lurch_velocity * delta
+	if _lurch.length() > LURCH_MAX:
+		_lurch = _lurch.limit_length(LURCH_MAX)
+		_lurch_velocity = _lurch_velocity.slide(_lurch.normalized())
 
 
 func _wander_gaze(delta: float) -> void:

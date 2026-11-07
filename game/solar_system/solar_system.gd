@@ -57,6 +57,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
+	var felt := (%Bus as FrameshiftBus).get_felt_acceleration()
+	(%PortraitStudio as PortraitStudio).felt_acceleration = felt
 	_place_labels()
 	_update_fade(delta)
 	var rig := %CameraRig as CameraRig
