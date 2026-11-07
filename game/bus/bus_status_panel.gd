@@ -10,9 +10,7 @@ const ROUTE_COLOR := Color(1.0, 0.6, 0.22, 1.0)
 const BUS_COLOR := Color(0.96, 0.78, 0.29, 1.0)
 const END_FILL := Color(0.2, 0.16, 0.32, 1.0)
 const SEAT_EMPTY := Color(1.0, 1.0, 1.0, 0.18)
-# A person, in pixels: head radius, body width and height, and the gap between people.
-const HEAD_RADIUS := 2.7
-const BODY_SIZE := Vector2(9.0, 7.0)
+# The gap between people, in pixels.
 const SEAT_GAP := 2.0
 
 ## The bus whose status it shows.
@@ -63,7 +61,7 @@ func _show() -> void:
 func _state_text(next: Planet) -> String:
 	match bus.state:
 		FrameshiftBus.State.DOCKED:
-			return "Docked at %s" % _planet_name(bus.get_docked_planet())
+			return "Docked"
 		FrameshiftBus.State.CHARGING:
 			return "Charging frameshift"
 		FrameshiftBus.State.FLYING, FrameshiftBus.State.PARKING:
@@ -112,7 +110,7 @@ func _show_seats() -> void:
 	_set_text(%SeatLabel, "%d/%d seats" % [shown.x, shown.y])
 	var seats := %Seats as Control
 	seats.custom_minimum_size = Vector2(
-		shown.y * BODY_SIZE.x + maxi(shown.y - 1, 0) * SEAT_GAP, HEAD_RADIUS * 2.0 + BODY_SIZE.y
+		shown.y * PersonIcon.SIZE.x + maxi(shown.y - 1, 0) * SEAT_GAP, PersonIcon.SIZE.y
 	)
 	seats.queue_redraw()
 
@@ -135,26 +133,12 @@ func _draw_track() -> void:
 	track.draw_rect(Rect2(at - bus_size * 0.5, bus_size), BUS_COLOR)
 
 
-# A person for each seat, a head over rounded shoulders, filled while the seat is taken.
+# A person for each seat, filled while the seat is taken.
 func _draw_seats() -> void:
 	var seats := %Seats as Control
-	var head_y := HEAD_RADIUS
-	var shoulders_y := HEAD_RADIUS * 2.0 + BODY_SIZE.x * 0.5 + 0.5
 	for seat: int in _seats_shown.y:
 		var color := BUS_COLOR if seat < _seats_shown.x else SEAT_EMPTY
-		var x := seat * (BODY_SIZE.x + SEAT_GAP)
-		var middle := x + BODY_SIZE.x * 0.5
-		seats.draw_circle(Vector2(middle, head_y), HEAD_RADIUS, color)
-		var bottom := HEAD_RADIUS * 2.0 + BODY_SIZE.y
-		var body := PackedVector2Array()
-		for step: int in 9:
-			var angle := PI + PI * step / 8.0
-			body.append(
-				Vector2(middle, shoulders_y) + Vector2.from_angle(angle) * BODY_SIZE.x * 0.5
-			)
-		body.append(Vector2(x + BODY_SIZE.x, bottom))
-		body.append(Vector2(x, bottom))
-		seats.draw_colored_polygon(body, color)
+		PersonIcon.draw_person(seats, Vector2(seat * (PersonIcon.SIZE.x + SEAT_GAP), 0.0), color)
 
 
 func _planet_name(planet: Planet) -> String:

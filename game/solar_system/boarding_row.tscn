@@ -1,0 +1,97 @@
+[gd_scene format=3 uid="uid://cnqx1y78580u8"]
+
+[ext_resource type="Script" uid="uid://cuwy8ggn45uni" path="res://game/solar_system/boarding_row.gd" id="1_row"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
+[ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="4_icon_shader"]
+[ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="5_photo"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_icon"]
+resource_local_to_scene = true
+shader = ExtResource("4_icon_shader")
+shader_parameter/color = null
+shader_parameter/night_tint = null
+shader_parameter/has_rings = null
+shader_parameter/ring_color = null
+shader_parameter/ring_tilt = null
+
+[node name="BoardingRow" type="Control" unique_id=2017478593]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_row")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1369016766]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+theme_type_variation = &"RowPanel"
+
+[node name="Columns" type="HBoxContainer" parent="Panel" unique_id=1226437029]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="PassengerPhoto" parent="Panel/Columns" unique_id=432194477 instance=ExtResource("5_photo")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Who" type="VBoxContainer" parent="Panel/Columns" unique_id=2035152658]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Panel/Columns/Who" unique_id=1068321505]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Name"
+clip_text = true
+text_overrun_behavior = 3
+
+[node name="Destination" type="HBoxContainer" parent="Panel/Columns/Who" unique_id=1992867181]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination" unique_id=746353628]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_icon")
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3_icon")
+
+[node name="DestinationLabel" type="Label" parent="Panel/Columns/Who/Destination" unique_id=802791631]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+text = "To ?"
+
+[node name="Deal" type="VBoxContainer" parent="Panel/Columns" unique_id=604143323]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="FareLabel" type="Label" parent="Panel/Columns/Deal" unique_id=1301313441]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.6)
+text = "0 cr"
+horizontal_alignment = 2
+
+[node name="BoardButton" type="Button" parent="Panel/Columns/Deal" unique_id=998031172]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Board"
+
+[connection signal="pressed" from="Panel/Columns/Deal/BoardButton" to="." method="_on_board_button_pressed"]

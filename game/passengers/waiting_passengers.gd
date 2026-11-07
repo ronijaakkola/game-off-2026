@@ -2,7 +2,8 @@ class_name WaitingPassengers
 extends Node
 ## The passengers waiting at each planet, shown in the open planet's panel. Each planet gets
 ## a new one every so often, up to [member max_per_planet], going to another planet at
-## random. Their patience and fare come from the distance to their destination when they
+## random, except the one the bus waits at: its clock holds until the bus leaves. Their
+## patience and fare come from the distance to their destination when they
 ## board.
 
 ## The line at [param planet] changed: someone joined it or was taken from it.
@@ -26,7 +27,10 @@ var _until_next: Dictionary[Planet, float] = {}
 
 
 func _process(delta: float) -> void:
+	var held: Planet = bus.get_docked_planet() if bus and bus.is_at_planet() else null
 	for planet: Planet in _planets:
+		if planet == held:
+			continue
 		_until_next[planet] -= delta
 		if _until_next[planet] > 0.0:
 			continue
@@ -67,15 +71,15 @@ func get_waiting(planet: Planet) -> Array[Passenger]:
 	return line
 
 
-## Takes up to [param count] passengers waiting at [param planet], longest waiting first.
-func take(planet: Planet, count: int) -> Array[Passenger]:
-	var taken: Array[Passenger] = []
+## Takes [param passenger] out of the line at [param planet], as they are picked up. False
+## when they don't wait there.
+func take(planet: Planet, passenger: Passenger) -> bool:
 	var queue: Array = _waiting.get(planet, [])
-	while taken.size() < count and not queue.is_empty():
-		taken.append(queue.pop_front())
-	if not taken.is_empty():
-		changed.emit(planet)
-	return taken
+	if passenger not in queue:
+		return false
+	queue.erase(passenger)
+	changed.emit(planet)
+	return true
 
 
 ## A new passenger at [param origin], going to another planet at random. Null when there is

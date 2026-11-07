@@ -28,14 +28,29 @@ func test_passengers_turn_up_over_time_up_to_the_limit() -> void:
 	assert_int(_waiting.count_at(_home)).is_equal(2)
 
 
-func test_take_hands_over_at_most_the_count_asked_for() -> void:
-	_waiting.add(_home)
-	_waiting.add(_home)
-	var taken := _waiting.take(_home, 1)
-	assert_int(taken.size()).is_equal(1)
-	assert_int(_waiting.count_at(_home)).is_equal(1)
-	assert_int(_waiting.take(_home, 4).size()).is_equal(1)
+func test_nobody_new_turns_up_where_the_bus_waits() -> void:
+	var bus := (load("res://game/bus/bus.tscn") as PackedScene).instantiate() as FrameshiftBus
+	bus.start_planet = _home
+	(_home.get_parent() as Node).add_child(bus)
+	bus.set_process(false)
+	_waiting.bus = bus
+
+	await await_millis(300)
+
 	assert_int(_waiting.count_at(_home)).is_equal(0)
+	assert_int(_waiting.count_at(_away)).is_equal(2)
+
+
+func test_take_removes_only_that_passenger_from_the_line() -> void:
+	_waiting.add(_home)
+	_waiting.add(_home)
+	var line := _waiting.get_waiting(_home)
+
+	assert_bool(_waiting.take(_home, line[1])).is_true()
+
+	assert_array(_waiting.get_waiting(_home)).contains_exactly([line[0]])
+	assert_bool(_waiting.take(_home, line[1])).is_false()
+	assert_bool(_waiting.take(_away, line[0])).is_false()
 
 
 func test_a_passenger_goes_to_another_planet() -> void:

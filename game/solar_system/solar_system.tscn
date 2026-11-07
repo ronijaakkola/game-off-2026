@@ -19,7 +19,9 @@
 [ext_resource type="PackedScene" uid="uid://ciwv4teguvu2s" path="res://game/bus/bus_status_panel.tscn" id="19_status"]
 [ext_resource type="PackedScene" uid="uid://dbexovw5obyax" path="res://game/solar_system/credits_counter.tscn" id="20_credits"]
 [ext_resource type="PackedScene" uid="uid://bnqjjd4k8w4nn" path="res://game/solar_system/planet_panel.tscn" id="21_planet_panel"]
+[ext_resource type="PackedScene" uid="uid://c4va8x2cf4kps" path="res://game/solar_system/waiting_markers.tscn" id="22_markers"]
 [ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="22_studio"]
+[ext_resource type="PackedScene" uid="uid://70b0mq875ago" path="res://game/solar_system/dock_panel.tscn" id="23_dock"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -267,13 +269,40 @@ unique_name_in_owner = true
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
 
+[node name="WaitingMarkers" parent="Hud" unique_id=1789310111 instance=ExtResource("22_markers")]
+unique_name_in_owner = true
+
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
 
-[node name="BusStatusPanel" parent="Hud" unique_id=923292603 node_paths=PackedStringArray("bus", "cabin") instance=ExtResource("19_status")]
+[node name="Corner" type="MarginContainer" parent="Hud" unique_id=1847091064]
 anchors_preset = 3
-bus = NodePath("../../Bus")
-cabin = NodePath("../../Cabin")
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Stack" type="VBoxContainer" parent="Hud/Corner" unique_id=737879991]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="DockPanel" parent="Hud/Corner/Stack" unique_id=609881460 instance=ExtResource("23_dock")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BusStatusPanel" parent="Hud/Corner/Stack" unique_id=923292603 node_paths=PackedStringArray("bus", "cabin") instance=ExtResource("19_status")]
+layout_mode = 2
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
+bus = NodePath("../../../../Bus")
+cabin = NodePath("../../../../Cabin")
 
 [node name="CreditsCounter" parent="Hud" unique_id=517520806 instance=ExtResource("20_credits")]
 unique_name_in_owner = true

@@ -14,9 +14,11 @@ extends Node3D
 ## planet is open, the planets' names fade out, and the open planet's white hover border
 ## fades out and stays off; both fade back in when it closes.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
-## where the passengers going to that planet get off one by one and pay, and those waiting
-## there board one by one while seats are free. The bus can't charge until the stop is
-## over. The game starts with one passenger on board.
+## where the passengers going to that planet get off one by one and pay. Under each planet
+## where someone waits, a small person and a number say how many. While the bus is docked
+## or charging, the dock panel above the bus status lists who waits there, and the player
+## picks them up one by one while seats are free. The bus can't charge, and a charge under
+## way holds, until the stop is over. The game starts with one passenger on board.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -30,6 +32,11 @@ const LABEL_GAP_PIXELS := 0.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
+## The process priority Phantom Camera's host sets on itself to move the camera, after
+## everything it follows.
+const CAMERA_HOST_PRIORITY := 300
+## Pixels between a planet's name and the marker for who waits there.
+const MARKER_GAP_PIXELS := 4.0
 
 var _planets: Array[Planet] = []
 # 1 with no planet open, 0 once one is open and the fade is done.
@@ -40,6 +47,10 @@ var _faded_planet: Planet
 
 
 func _ready() -> void:
+	# After the planets, the bus and the camera have moved this frame, so the names and
+	# the waiting markers follow where they are now, not where they were a frame
+	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
+	process_priority = CAMERA_HOST_PRIORITY + 1
 	_collect_planets(self)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
@@ -48,11 +59,19 @@ func _ready() -> void:
 	var studio := %PortraitStudio as PortraitStudio
 	(%PassengerPanel as PassengerPanel).portrait_studio = studio
 	(%PlanetPanel as PlanetPanel).portrait_studio = studio
+	(%DockPanel as DockPanel).portrait_studio = studio
 	_start_passengers()
 	var panel := %PlanetPanel as PlanetPanel
 	panel.waiting = %WaitingPassengers as WaitingPassengers
 	panel.close_pressed.connect(close_planet)
 	panel.slide_in_seconds = (%CameraRig as CameraRig).get_focus_seconds()
+	var markers := %WaitingMarkers as WaitingMarkers
+	markers.waiting = %WaitingPassengers as WaitingPassengers
+	markers.set_planets(_planets)
+	var dock_panel := %DockPanel as DockPanel
+	dock_panel.waiting = %WaitingPassengers as WaitingPassengers
+	dock_panel.cabin = %Cabin as Cabin
+	dock_panel.board_pressed.connect(_on_board_pressed)
 
 
 func _process(delta: float) -> void:
@@ -70,6 +89,7 @@ func _process(delta: float) -> void:
 	var mouse := get_viewport().get_mouse_position()
 	var over_hud := get_viewport().gui_get_hovered_control() != null
 	var under: Planet = null if over_hud else _planet_at(mouse)
+	_place_waiting()
 	var bus := %Bus as FrameshiftBus
 	var marker: RouteStop = null if under or over_hud else _marker_at(mouse)
 	# Only the last stop, the one a right click removes.
@@ -190,7 +210,22 @@ func _start_passengers() -> void:
 
 func _on_bus_docked(planet: Planet) -> void:
 	(%Bus as FrameshiftBus).boarding = true
-	(%Cabin as Cabin).stop_at(planet, %WaitingPassengers as WaitingPassengers)
+	(%Cabin as Cabin).stop_at(planet)
+
+
+# The player picked up a passenger in the dock panel: they leave the line and board after
+# whoever is getting off or on before them. Only at the planet the bus waits at, while a
+# seat is free.
+func _on_board_pressed(passenger: Passenger) -> void:
+	var bus := %Bus as FrameshiftBus
+	var cabin := %Cabin as Cabin
+	var planet := bus.get_docked_planet()
+	if not planet or not bus.is_at_planet() or cabin.get_free_seats() <= 0:
+		return
+	if not (%WaitingPassengers as WaitingPassengers).take(planet, passenger):
+		return
+	bus.boarding = true
+	cabin.pick_up(passenger)
 
 
 func _on_delivered(_passenger: Passenger, payout: int) -> void:
@@ -268,6 +303,26 @@ func _planet_at(screen_point: Vector2) -> Planet:
 			best = planet
 			best_depth = depth
 	return best
+
+
+# Shows the dock panel for the planet the bus waits at, docked or charging, and puts each
+# planet's waiting marker under its name. The markers fade with the names.
+func _place_waiting() -> void:
+	var bus := %Bus as FrameshiftBus
+	var camera := %Camera as Camera3D
+	(%DockPanel as DockPanel).planet = bus.get_docked_planet() if bus.is_at_planet() else null
+	var markers := %WaitingMarkers as WaitingMarkers
+	markers.modulate.a = _fade
+	var below := LABEL_PIXELS + MARKER_GAP_PIXELS
+	for planet: Planet in _planets:
+		var center := planet.get_body_global_position()
+		if camera.is_position_behind(center):
+			markers.place(planet, Vector2.ZERO, false)
+			continue
+		var bottom := camera.unproject_position(
+			center - camera.global_basis.y * planet.get_body_radius()
+		)
+		markers.place(planet, bottom + Vector2(0.0, below), _fade > 0.0)
 
 
 # Hangs each planet's name just under its body on screen, at the same size at any zoom.
