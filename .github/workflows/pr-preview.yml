@@ -34,7 +34,21 @@ jobs:
       # Deploys to gh-pages under pr-preview/pr-<N>/ and comments the link, or removes it on close.
       # No waiting for Pages: a second push within ~30 s cancels the older Pages build, which the
       # API reports as errored, so the wait would fail the run and drop the comment.
-      - uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1.8.1
+      # Every PR's run pushes to gh-pages, and a close rewrites it (Squash gh-pages below), so a
+      # push can lose the race to another PR's. A shared concurrency group can't serialise them:
+      # GitHub cancels a job still pending in a group when another queues. So retry once instead.
+      - id: deploy
+        uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1.8.1
+        continue-on-error: true
+        with:
+          source-dir: build/web-preview
+          qr-code: false
+          wait-for-pages-deployment: false
+      - name: Wait before retrying the deploy
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 20
+      - if: steps.deploy.outcome == 'failure'
+        uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1.8.1
         with:
           source-dir: build/web-preview
           qr-code: false

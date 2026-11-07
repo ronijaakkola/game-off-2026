@@ -12,10 +12,14 @@
   load             compile every script outside addons/ (the load check)
   ids [files]      save the given scenes and resources, or every one outside addons/, that
                    lack a uid or unique_id, the way the editor does, so Godot assigns them
-  test             run the gdUnit4 tests in test/
+  test [files]     run the gdUnit4 tests in test/, or the given suites or folders
+  test --verbose   also print the run's whole output, the tests' print() lines included
   smoke [scenes]   run every scene the game reaches from the main scene and the autoloads,
                    each on its own (or the given ones) headless, fail on any logged error
-  capture <scene>  render ~1 s of a scene in a window, save the frames to build/capture/
+  capture <scene> [--size WxH] [--frames N] [-- args]
+                   render a scene in a window (default 1152x648, 60 frames: ~1 s), save
+                   the frames to build/capture/; args after -- reach the scene through
+                   OS.get_cmdline_user_args()
   all              lint, load, test, smoke
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
   export --preview export Web Preview (dev console, debug template) to build/web-preview/game/,
@@ -38,6 +42,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from contextlib import contextmanager
 from functools import cache
 from importlib.metadata import version as pkg_version
 from pathlib import Path
@@ -46,7 +51,8 @@ ROOT = Path(__file__).resolve().parent.parent
 GODOT_VERSION = "4.7.2"
 TIMEOUT = 300
 SMOKE_FRAMES = "300"
-CAPTURE_FRAMES = "60"
+CAPTURE_FRAMES = 60
+CAPTURE_SIZE = re.compile(r"^[1-9]\d*x[1-9]\d*$")
 # Not part of the game, and not exported: smoke never runs a scene in these.
 NOT_GAME = ("tools/", "test/")
 # Written by run_export and read by the main menu; ignored by git.
@@ -102,9 +108,15 @@ def main() -> int:
     commands.add_parser("format").add_argument("files", nargs="*")
     commands.add_parser("load")
     commands.add_parser("ids").add_argument("files", nargs="*")
-    commands.add_parser("test")
+    test = commands.add_parser("test")
+    test.add_argument("files", nargs="*")
+    test.add_argument("--verbose", action="store_true")
     commands.add_parser("smoke").add_argument("scenes", nargs="*")
-    commands.add_parser("capture").add_argument("scene")
+    capture = commands.add_parser("capture")
+    capture.add_argument("scene")
+    capture.add_argument("--size")
+    capture.add_argument("--frames", type=int, default=CAPTURE_FRAMES)
+    capture.add_argument("user_args", nargs="*")
     commands.add_parser("all")
     commands.add_parser("export").add_argument("--preview", action="store_true")
     commands.add_parser("evidence").add_argument("frame", nargs="?")
@@ -127,9 +139,9 @@ def main() -> int:
         "format": lambda: run_format(args.files),
         "load": run_load,
         "ids": lambda: run_ids(args.files),
-        "test": run_test,
+        "test": lambda: run_test(getattr(args, "files", []), getattr(args, "verbose", False)),
         "smoke": lambda: run_smoke(getattr(args, "scenes", [])),
-        "capture": lambda: run_capture(args.scene),
+        "capture": lambda: run_capture(args.scene, args.user_args, args.size, args.frames),
         "export": lambda: run_export(args.preview),
         "evidence": lambda: run_evidence(args.frame),
     }
@@ -195,6 +207,12 @@ SHADER_DIRECTIVE = re.compile(
 # A bus looked up or set by name. Audio.BUS_NAMES[...] on the right is the supported way.
 AUDIO_SERVER_BUS = re.compile(r"\bAudioServer\s*\.\s*\w*bus\w*")
 BUS_ASSIGNMENT = re.compile(r"\.\s*bus\s*=(?!=)(?!\s*Audio\s*\.\s*BUS_NAMES\b)")
+# What a player's bus is set to: a name, as a string, a StringName, a conversion to one,
+# or a variable named for one. Other `.bus =` lines set a property that isn't an audio
+# bus, like a panel's FrameshiftBus, and pass.
+BUS_NAME_VALUE = re.compile(
+    r"""\s*(["'&]|(StringName|String|str)\s*\(|AudioServer\b|\w*name\b)""", re.IGNORECASE
+)
 # An ext_resource's uid and path, in either order. Godot looks the uid up first and uses
 # the path only when no file has that uid.
 EXT_RESOURCE_UID = re.compile(
@@ -230,6 +248,28 @@ def project_files() -> list[str]:
     return files
 
 
+# gdlint, with max-public-methods off under test/. A suite has a public method per test,
+# so the cap that keeps game classes small would split a suite away from the one file it
+# mirrors (test-mirror). gdlint reads one gdlintrc for every file, hence the wrapper.
+GDLINT = """
+import sys
+import gdtoolkit.linter.__main__ as gdlint
+
+lint_file = gdlint._lint_file
+
+
+def lint_file_with_test_rules(path, config):
+    if path.replace("\\\\", "/").startswith("test/"):
+        config = {**config, "disable": [*config["disable"], "max-public-methods"]}
+    return lint_file(path, config)
+
+
+gdlint._lint_file = lint_file_with_test_rules
+sys.argv[0] = "gdlint"
+gdlint.main()
+"""
+
+
 def gdtoolkit(tool: str, args: list[str]) -> subprocess.Popen:
     # gdtoolkit creates its grammar cache folder racily (gdtoolkit#428): parallel
     # runs on a cold cache crash. Creating it first avoids that.
@@ -237,8 +277,9 @@ def gdtoolkit(tool: str, args: list[str]) -> subprocess.Popen:
 
     cache = Path(get_cache_directory(), "gdtoolkit", pkg_version("gdtoolkit"))
     cache.mkdir(parents=True, exist_ok=True)
+    entry = ["-c", GDLINT] if tool == "linter" else ["-m", f"gdtoolkit.{tool}"]
     return subprocess.Popen(
-        [sys.executable, "-m", f"gdtoolkit.{tool}", *args],
+        [sys.executable, *entry, *args],
         env={**os.environ, "PYTHONUTF8": "1"},
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -322,6 +363,12 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
         # written, and check.py ids fills them in once. The commit hook and CI catch it.
         if path.endswith((".tscn", ".tres")) and not hook:
             rules += missing_id_problems(path)
+        if path.endswith(".uid") and not Path(path[: -len(".uid")]).is_file():
+            message = (
+                f"there is no {path[: -len('.uid')]} beside it: Godot left it for a file "
+                "that was deleted or moved. Delete it, or git rm it."
+            )
+            rules.append(problem(path, None, "orphan-uid", message, ASSETS))
     problems = []
     if linter and formatter:
         lint_output = linter.communicate()[1]
@@ -374,7 +421,7 @@ def script_problems(path: str, hook: bool) -> list[str]:
     if not (outside or path == DEV_COMMANDS or path.startswith(ONLINE_FOLDER)):
         problems += talo_problems(path, code)
     if not (outside or path.startswith(AUDIO_FOLDER)):
-        problems += bus_name_problems(path, code)
+        problems += bus_name_problems(path, code, source)
     problems += user_path_problems(path, strings, outside)
     # The hook leaves this out: a script may name a scene before it is written.
     if not (outside or hook):
@@ -594,7 +641,7 @@ def user_path_const(path: str, text: str) -> str | None:
     return m.group(1) if m else None
 
 
-def bus_name_problems(path: str, code: str) -> list[str]:
+def bus_name_problems(path: str, code: str, source: str) -> list[str]:
     """A bus name that isn't in the layout sends a player to Master, and makes a volume
     change do nothing, both silently. So only Audio names buses."""
     message = (
@@ -602,7 +649,12 @@ def bus_name_problems(path: str, code: str) -> list[str]:
         "Audio.set_volume(Audio.Bus.MUSIC, linear) or Audio.get_volume(bus), and set a "
         "player's bus to Audio.BUS_NAMES[Audio.Bus.SFX]."
     )
-    matches = [*AUDIO_SERVER_BUS.finditer(code), *BUS_ASSIGNMENT.finditer(code)]
+    # The code has its strings blanked out, at the same offsets, so the value is read
+    # from the source.
+    assignments = [
+        m for m in BUS_ASSIGNMENT.finditer(code) if BUS_NAME_VALUE.match(source, m.end())
+    ]
+    matches = [*AUDIO_SERVER_BUS.finditer(code), *assignments]
     lines = sorted({line_at(code, m.start()) for m in matches})
     return [problem(path, line, "bus-through-audio", message, AUTOLOADS) for line in lines]
 
@@ -1011,7 +1063,7 @@ def run_ids(files: list[str]):
     originals = {path: Path(path).read_bytes() for path in order}
     before = resource_dump(order)
     try:
-        verify_resave(order, before)
+        verify_resave(order, before, originals)
     except CheckFailed:
         # A save that wasn't verified never stays, whatever stopped the check: a failed
         # save, a changed value, a timeout, or a dump that can't read the saved files.
@@ -1031,7 +1083,7 @@ def run_ids(files: list[str]):
     return "saved " + ", ".join(order) + "; commit the result"
 
 
-def verify_resave(order: list[str], before: list[str]) -> None:
+def verify_resave(order: list[str], before: list[str], originals: dict[str, bytes]) -> None:
     """Resaves the files through tools/resave.gd and fails if Godot couldn't, or if the
     saved files load with anything but ids changed from the dump taken before."""
     result = run_godot(
@@ -1051,6 +1103,37 @@ def verify_resave(order: list[str], before: list[str]) -> None:
             "the resave changed more than ids (above: - before, + after). "
             "tools/resave.gd explains the case it already handles"
         )
+    added = {path: lines for path in order if (lines := added_lines(path, originals[path]))}
+    if added:
+        for path, lines in added.items():
+            print(f"{path} gained:\n" + "\n".join(f"+ {line}" for line in lines))
+        raise CheckFailed(
+            "the resave wrote more than ids (above). The dump can't see this: it runs "
+            "scripts, so a value a script's _init() sets loads the same with or without "
+            "the line. Set that value in _ready() instead, or put it in the scene"
+        )
+
+
+# What a resave may change on a line: the ids it adds, the ids it renumbers, and counts.
+RESAVE_IDS = re.compile(r' (uid|unique_id|id|load_steps)=("[^"]*"|\d+)|(?<=Resource\()"[^"]*"')
+
+
+def added_lines(path: str, original: bytes) -> list[str]:
+    """The lines a resave added to a file, ids aside. A resave only adds ids, so any other
+    line is a value that wasn't in the file, such as one a script's _init() set."""
+    def lines(text: str) -> list[str]:
+        return [RESAVE_IDS.sub("", line) for line in text.splitlines() if line.strip()]
+
+    before = lines(original.decode("utf-8", errors="replace"))
+    after = lines(Path(path).read_text(encoding="utf-8", errors="replace"))
+    left = list(before)
+    added = []
+    for line in after:
+        if line in left:
+            left.remove(line)
+        else:
+            added.append(line)
+    return added
 
 
 def resource_dump(paths: list[str]) -> list[str]:
@@ -1102,24 +1185,30 @@ def dependency_order(paths: list[str]) -> list[str]:
     return order
 
 
-def run_test():
+def run_test(files: list[str], verbose: bool):
+    """Runs every suite in test/, or the given suites and folders. --verbose prints the
+    whole run, which is where a test's print() lines go: by default only failures show."""
+    targets = test_targets(files)
     ensure_build_dir("build/reports")
+    adds = [arg for target in targets for arg in ("-a", f"res://{target}")]
     try:
         result = run_godot(
             [
                 "--headless", "--path", ".",
                 "-s", "-d", "--remote-debug", "tcp://127.0.0.1:0",
                 "res://addons/gdUnit4/bin/GdUnitCmdTool.gd",
-                "-a", "res://test", "-c", "-rd", "res://build/reports", "--ignoreHeadlessMode",
+                *adds, "-c", "-rd", "res://build/reports", "--ignoreHeadlessMode",
             ]
         )  # fmt: skip
     except TimedOut as timeout:
         raise CheckFailed(stalled_test_message(timeout)) from timeout
     output = DEBUGGER_NOISE.sub("", result.stdout)
+    if verbose:
+        print(output, end="")
     # gdUnit4 exits 0 when it finds nothing, so a wrong path or deleted suites would pass.
     summary = re.search(r"^Overall Summary: (\d+) test cases.*$", output, re.MULTILINE)
     if "No test cases found" in output or (summary and summary.group(1) == "0"):
-        raise CheckFailed("no test cases found in test/")
+        raise CheckFailed("no test cases found in " + ", ".join(targets))
     # A runner that stops before the suites run can still exit 0, with no summary.
     if not summary:
         print(output, end="")
@@ -1129,9 +1218,25 @@ def run_test():
     if result.returncode not in (0, 101):
         failures = FAILED_TEST.findall(output)
         # A failing before() or after() has no FAILED test block, so print everything.
-        print("".join(failures) + summary.group(0) if failures else output)
+        if not verbose:
+            print("".join(failures) + summary.group(0) if failures else output)
         raise CheckFailed(f"gdUnit4 exit code {result.returncode} (report in build/reports/)")
     return f"{summary.group(1)} tests"
+
+
+def test_targets(files: list[str]) -> list[str]:
+    """The given suites and folders as project paths, or test/ itself."""
+    if not files:
+        return ["test"]
+    targets = [project_path(f) for f in files]
+    wrong = [
+        given
+        for given, target in zip(files, targets)
+        if not (target == "test" or target.startswith("test/")) or not Path(target).exists()
+    ]
+    if wrong:
+        raise CheckFailed("not a suite or folder under test/: " + ", ".join(wrong))
+    return targets
 
 
 def stalled_test_message(timeout: TimedOut) -> str:
@@ -1292,20 +1397,33 @@ def build_commit() -> str:
     return commit
 
 
-def run_capture(scene: str, user_args: tuple[str, ...] = ()):
+def run_capture(
+    scene: str,
+    user_args: list[str] | tuple[str, ...] = (),
+    size: str | None = None,
+    frames: int = CAPTURE_FRAMES,
+):
     """Windowed only: --write-movie crashes under --headless. The scene reads
-    user_args through OS.get_cmdline_user_args()."""
+    user_args through OS.get_cmdline_user_args(). A size other than the project's
+    1152x648 makes the canvas_items stretch scale the game, as a browser window does."""
+    if size and not CAPTURE_SIZE.match(size):
+        raise CheckFailed(f"--size takes WIDTHxHEIGHT, like 1920x1080, not {size}")
+    if frames < 1:
+        raise CheckFailed("--frames takes a number of frames, 1 or more")
     directory = ensure_build_dir("build/capture")
     for old in directory.iterdir():
         old.unlink()
-    result = run_godot(
-        [
-            "--path", ".", "--scene", scene,
-            "--write-movie", str((directory / "frame.png").resolve()),
-            "--quit-after", CAPTURE_FRAMES,
-            "--", *user_args,
-        ]
-    )  # fmt: skip
+    command = [
+        "--path", ".", "--scene", scene,
+        "--write-movie", str((directory / "frame.png").resolve()),
+        "--quit-after", str(frames),
+        "--", *user_args,
+    ]  # fmt: skip
+    if size:
+        with window_size_override(size):
+            result = run_godot(command)
+    else:
+        result = run_godot(command)
     (directory / "frame.wav").unlink(missing_ok=True)
     frames = sorted(directory.glob("frame*.png"))
     if not frames:
@@ -1315,6 +1433,27 @@ def run_capture(scene: str, user_args: tuple[str, ...] = ()):
     if errors:
         print(result.stdout, end="")
     return f"{len(frames)} frames, look at {frames[-1].as_posix()}{errors}"
+
+
+@contextmanager
+def window_size_override(size: str):
+    """Movie Maker records at the project's window size and ignores --resolution, so a
+    capture at another size needs the window size override. Godot reads it from
+    override.cfg beside project.godot, which this writes for the one run (git ignores it)."""
+    override = Path("override.cfg")
+    if override.exists():
+        raise CheckFailed("override.cfg already exists; capture --size would overwrite it")
+    width, height = size.split("x")
+    override.write_text(
+        "[display]\n\n"
+        f"window/size/window_width_override={width}\n"
+        f"window/size/window_height_override={height}\n",
+        encoding="utf-8",
+    )
+    try:
+        yield
+    finally:
+        override.unlink(missing_ok=True)
 
 
 # --- evidence ---------------------------------------------------------------

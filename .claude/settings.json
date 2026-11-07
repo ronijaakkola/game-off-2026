@@ -25,6 +25,13 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/tools/main_moved.sh\"" }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|Bash",
