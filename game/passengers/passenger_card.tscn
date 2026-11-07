@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="3_n65mv"]
+[ext_resource type="Script" uid="uid://dl6jwib3kd3a0" path="res://game/passengers/morph_label.gd" id="4_morph"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tocvp"]
 resource_local_to_scene = true
@@ -65,6 +66,7 @@ layout_mode = 2
 theme_type_variation = &"TinyLabel"
 text = "Happy"
 horizontal_alignment = 2
+script = ExtResource("4_morph")
 
 [node name="Patience" type="HBoxContainer" parent="Panel/Rows" unique_id=1965568126]
 layout_mode = 2
@@ -112,6 +114,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.75)
 text = "Looking at empty space"
 clip_text = true
 text_overrun_behavior = 3
+script = ExtResource("4_morph")
 
 [node name="ServeButton" type="Button" parent="Panel/Rows/Activity" unique_id=818275599]
 unique_name_in_owner = true
