@@ -20,6 +20,9 @@ const SLIDE_IN_SECONDS := 0.4
 const SLIDE_OUT_SECONDS := 0.3
 ## Seconds to fold the slot's height away once the card is out.
 const FOLD_SECONDS := 0.2
+## Seconds the mood name takes to fade out and back in as the new mood, and the bar's
+## colour to blend into the new mood's. A fade is no motion, so Reduce motion keeps it.
+const MOOD_FADE_SECONDS := 0.3
 
 const MOOD_COLORS: Dictionary[Passenger.Mood, Color] = {
 	Passenger.Mood.HAPPY: Color(0.55, 0.85, 0.4),
@@ -64,6 +67,9 @@ var _still := false
 var _fold := 1.0
 # The one tween that moves the panel and folds the slot, in turn.
 var _motion: Tween
+# The mood name's fade out and in, and the bar's blend into the new mood's colour.
+var _mood_fade: Tween
+var _fill_fade: Tween
 
 
 func _ready() -> void:
@@ -71,6 +77,7 @@ func _ready() -> void:
 	_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate()
 	bar.add_theme_stylebox_override(&"fill", _fill)
 	var photo := %PassengerPhoto as PassengerPhoto
+	photo.riding = true
 	photo.studio = portrait_studio
 	photo.passenger = passenger
 	_show()
@@ -138,6 +145,8 @@ func _fit_slot() -> void:
 func _show() -> void:
 	if not passenger:
 		return
+	# A new passenger's lines appear at once; later changes morph.
+	var first := _mood == -1
 	_set_text(%NameLabel, passenger.name)
 	var icon := %DestinationIcon as PlanetIcon
 	if icon.planet != passenger.destination:
@@ -145,18 +154,57 @@ func _show() -> void:
 	_set_text(%DestinationLabel, "To %s" % _destination_name())
 	(%PatienceBar as ProgressBar).value = passenger.get_patience_fraction()
 	var mood := passenger.get_mood()
-	if mood != _mood or Settings.reduce_motion != _still:
+	if mood != _mood:
 		_mood = mood
 		_still = Settings.reduce_motion
-		var mood_label := %MoodLabel as RichTextLabel
-		mood_label.text = _mood_text(mood)
-		mood_label.add_theme_color_override(&"default_color", MOOD_COLORS[mood])
-		_fill.bg_color = MOOD_COLORS[mood]
-	_set_text(%ActivityLabel, passenger.activity)
+		if first:
+			if _mood_fade:
+				_mood_fade.kill()
+			if _fill_fade:
+				_fill_fade.kill()
+			(%MoodLabel as RichTextLabel).modulate.a = 1.0
+			_write_mood()
+			_fill.bg_color = MOOD_COLORS[mood]
+		else:
+			_fade_mood()
+	elif Settings.reduce_motion != _still:
+		_still = Settings.reduce_motion
+		# A fade under way writes the name when it's out of sight, with the setting as it is.
+		if not _is_mood_fading():
+			_write_mood()
+	_morph_text(%ActivityLabel, passenger.activity, first)
 	var button := %ServeButton as Button
 	button.visible = passenger.request != null
 	if passenger.request and button.text != passenger.request.serve_label:
 		button.text = passenger.request.serve_label
+
+
+# Fades the mood name out, writes the new one, and fades it back in, while the bar blends
+# into the new colour. A fade under way carries on from where it is.
+func _fade_mood() -> void:
+	var label := %MoodLabel as RichTextLabel
+	var half := MOOD_FADE_SECONDS * 0.5
+	if _mood_fade:
+		_mood_fade.kill()
+	_mood_fade = create_tween()
+	_mood_fade.tween_property(label, ^"modulate:a", 0.0, half * label.modulate.a)
+	_mood_fade.tween_callback(_write_mood)
+	_mood_fade.tween_property(label, ^"modulate:a", 1.0, half)
+	if _fill_fade:
+		_fill_fade.kill()
+	_fill_fade = create_tween()
+	_fill_fade.tween_property(_fill, ^"bg_color", MOOD_COLORS[_mood], MOOD_FADE_SECONDS)
+
+
+func _is_mood_fading() -> bool:
+	return _mood_fade != null and _mood_fade.is_running()
+
+
+# Writes the shown mood's name and colour.
+func _write_mood() -> void:
+	var label := %MoodLabel as RichTextLabel
+	label.text = _mood_text(_mood as Passenger.Mood)
+	label.add_theme_color_override(&"default_color", MOOD_COLORS[_mood])
 
 
 # The mood's name as BBCode, shaking for the low moods unless Reduce motion is on.
@@ -179,6 +227,14 @@ func _destination_name() -> String:
 func _set_text(label: Label, text: String) -> void:
 	if label.text != text:
 		label.text = text
+
+
+# Morphs to the text, or sets it at once when [param at_once].
+func _morph_text(label: MorphLabel, text: String, at_once: bool) -> void:
+	if at_once:
+		label.text = text
+	else:
+		label.morph_to(text)
 
 
 func _on_serve_button_pressed() -> void:

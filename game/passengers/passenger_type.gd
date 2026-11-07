@@ -12,5 +12,8 @@ extends Resource
 @export var needs: Array[Need] = []
 ## What the card says they are doing while nothing is asked for.
 @export var idle_lines: Array[String] = ["Looking at empty space"]
+## Idle lines they show while asleep, with their eyes shut. Each comes up as often as any
+## one idle line.
+@export var sleep_lines: Array[String] = []
 ## The names a passenger of this type picks from.
 @export var names: Array[String] = ["Passenger"]

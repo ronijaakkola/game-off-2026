@@ -40,6 +40,47 @@ func test_a_blink_shuts_the_eyes_and_opens_them_again() -> void:
 	assert_float(eye.get_shader_parameter(&"open") as float).is_equal_approx(1.0, 0.01)
 
 
+func test_asleep_the_eyes_shut_and_waking_opens_them() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(1)
+	var portrait := runner.scene() as AlienPortrait
+	var eye := portrait.eyes[0].material_override as ShaderMaterial
+
+	portrait.asleep = true
+	await runner.simulate_frames(40, 50)
+	assert_float(eye.get_shader_parameter(&"open") as float).is_equal_approx(0.0, 0.01)
+	portrait.asleep = false
+	# It may blink just after waking, so the widest they get.
+	var widest := 0.0
+	for frame: int in 20:
+		await runner.simulate_frames(1, 50)
+		widest = maxf(widest, eye.get_shader_parameter(&"open") as float)
+	assert_float(widest).is_greater(0.9)
+
+
+func test_a_push_leans_the_head_and_it_sways_back_when_the_push_stops() -> void:
+	var reduce_motion := Settings.reduce_motion
+	Settings.reduce_motion = false
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(1)
+	var portrait := runner.scene() as AlienPortrait
+	var model := portrait.get_child(0) as Node3D
+
+	# Braking: pushed forward, toward the camera.
+	portrait.felt_acceleration = Vector2(0.0, 2.0)
+	await runner.simulate_frames(30, 20)
+	var held := model.rotation.x
+	assert_float(held).is_greater(0.02)
+	portrait.felt_acceleration = Vector2.ZERO
+	var least := held
+	for frame: int in 20:
+		await runner.simulate_frames(1, 20)
+		least = minf(least, model.rotation.x)
+	Settings.reduce_motion = reduce_motion
+	# It swings back past upright before it settles.
+	assert_float(least).is_less(0.0)
+
+
 func test_a_model_with_no_head_or_material_still_builds_framed_whole_and_reports_it() -> void:
 	# One box with no material, and no part named *Head.
 	var body := MeshInstance3D.new()

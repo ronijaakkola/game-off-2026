@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="3_n65mv"]
+[ext_resource type="Script" uid="uid://dl6jwib3kd3a0" path="res://game/passengers/morph_label.gd" id="4_morph"]
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="4_photo"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tocvp"]
@@ -128,6 +129,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.75)
 text = "Looking at empty space"
 clip_text = true
 text_overrun_behavior = 3
+script = ExtResource("4_morph")
 
 [node name="ServeButton" type="Button" parent="Panel/Layout/Rows/Activity" unique_id=818275599]
 unique_name_in_owner = true
