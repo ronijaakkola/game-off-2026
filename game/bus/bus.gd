@@ -56,8 +56,8 @@ const TRAIL_START := Vector3(0.0, -0.035, -0.45)
 
 var state := State.HOLDING
 ## Whether passengers are getting off or on. While they are, a docked bus doesn't charge:
-## a course set meanwhile charges once they are done. The scene that runs the passengers
-## sets it.
+## a course set meanwhile charges once they are done, and a charge under way holds where it
+## is. The scene that runs the passengers sets it.
 var boarding := false:
 	set(value):
 		boarding = value
@@ -222,8 +222,9 @@ func _process(delta: float) -> void:
 		State.CHARGING:
 			_follow_dock(delta)
 			_face_next_stop(delta)
-			_charge_left -= delta
-			if _charge_left <= 0.0:
+			if not boarding:
+				_charge_left -= delta
+			if _charge_left <= 0.0 and not boarding:
 				_undock()
 			else:
 				%ChargeRing.show_progress(global_position, 1.0 - _charge_left / charge_time)

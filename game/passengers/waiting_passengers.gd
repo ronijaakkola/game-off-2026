@@ -67,15 +67,15 @@ func get_waiting(planet: Planet) -> Array[Passenger]:
 	return line
 
 
-## Takes up to [param count] passengers waiting at [param planet], longest waiting first.
-func take(planet: Planet, count: int) -> Array[Passenger]:
-	var taken: Array[Passenger] = []
+## Takes [param passenger] out of the line at [param planet], as they are picked up. False
+## when they don't wait there.
+func take(planet: Planet, passenger: Passenger) -> bool:
 	var queue: Array = _waiting.get(planet, [])
-	while taken.size() < count and not queue.is_empty():
-		taken.append(queue.pop_front())
-	if not taken.is_empty():
-		changed.emit(planet)
-	return taken
+	if passenger not in queue:
+		return false
+	queue.erase(passenger)
+	changed.emit(planet)
+	return true
 
 
 ## A new passenger at [param origin], going to another planet at random. Null when there is

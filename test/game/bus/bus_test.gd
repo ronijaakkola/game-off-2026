@@ -106,7 +106,7 @@ func test_each_planet_on_the_route_docks_and_charges_again() -> void:
 	assert_array(docked_at).contains_exactly([_near, _far])
 
 
-func test_a_course_set_while_boarding_charges_once_boarding_is_done() -> void:
+func test_boarding_holds_a_charge_from_starting_and_a_charge_under_way() -> void:
 	_bus.boarding = true
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_step_for(_bus.charge_time + 1.0)
@@ -116,6 +116,15 @@ func test_a_course_set_while_boarding_charges_once_boarding_is_done() -> void:
 	_bus.boarding = false
 
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	_step_for(_bus.charge_time - 0.5)
+	var progress := _bus.get_charge_progress()
+	_bus.boarding = true
+	_step_for(_bus.charge_time)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	assert_float(_bus.get_charge_progress()).is_equal_approx(progress, 0.001)
+	_bus.boarding = false
+	_step_for(1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 
 
 func test_boarding_set_on_docking_holds_the_charge_to_the_next_stop() -> void:
