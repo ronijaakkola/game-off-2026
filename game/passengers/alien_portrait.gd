@@ -1,0 +1,192 @@
+class_name AlienPortrait
+extends Node3D
+## A passenger's bust: one of the alien head models, redrawn with the planets' two-tone
+## light in a skin and an outfit colour, with eyes drawn on its Eye markers that blink
+## and look around, and a slow idle sway. Stalk parts wobble behind the head.
+
+const BODY_SHADER := preload("res://shared/two_tone.gdshader")
+const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
+# The models' material names, recoloured here.
+const SKIN_MATERIAL := "AlienSkin"
+const OUTFIT_MATERIAL := "AlienOutfit"
+# Model nodes are named after their head shape, such as DomeHead and BlobEye.
+const HEAD_SUFFIX := "Head"
+const EYE_PART := "Eye"
+const STALK_PART := "Stalk"
+
+## One of the head models in `models/`.
+@export var head_model: PackedScene
+@export var skin_color := Color(0.3, 0.8, 0.7):
+	set(value):
+		skin_color = value
+		_body_material(SKIN_MATERIAL).set_shader_parameter(&"color", value)
+		_eye_material.set_shader_parameter(&"lid_color", value)
+@export var outfit_color := Color(0.42, 0.36, 0.7):
+	set(value):
+		outfit_color = value
+		_body_material(OUTFIT_MATERIAL).set_shader_parameter(&"color", value)
+## How the eyes are drawn. Without one, they are the shader's plain cartoon eyes.
+@export var eye_style: AlienEyeStyle:
+	set(value):
+		eye_style = value
+		if value:
+			value.apply(_eye_material)
+## How far the eyes open at rest: 1 wide awake, lower for a drowsy or sullen look.
+@export_range(0.0, 1.0) var eye_openness := 1.0
+
+## The eyes, made on the model's Eye markers.
+var eyes: Array[MeshInstance3D] = []
+
+var _materials: Dictionary[String, ShaderMaterial] = {}
+var _eye_material := ShaderMaterial.new()
+var _head: Node3D
+var _head_rest := Vector3.ZERO
+var _stalks: Array[Node3D] = []
+var _stalk_rest: Array[Vector3] = []
+var _time := 0.0
+# Each portrait moves on its own timing.
+var _phase := randf() * TAU
+var _look := Vector2.ZERO
+var _look_target := Vector2.ZERO
+var _look_hold := 0.0
+var _blink_in := 0.0
+var _blink := 0.0
+var _blinking: Tween
+var _startle := 0.0
+var _startling: Tween
+
+
+func _ready() -> void:
+	_eye_material.shader = EYE_SHADER
+	var model := head_model.instantiate() as Node3D
+	add_child(model)
+	for node: Node in model.find_children("*", "Node3D", true, false):
+		var part := node as Node3D
+		if part is MeshInstance3D:
+			_recolour(part as MeshInstance3D)
+		if part.name.contains(EYE_PART):
+			_add_eye(part)
+		elif part.name.ends_with(HEAD_SUFFIX):
+			_head = part
+			_head_rest = part.position
+		elif part.name.contains(STALK_PART):
+			_stalks.append(part)
+			_stalk_rest.append(part.rotation)
+	skin_color = skin_color
+	outfit_color = outfit_color
+	eye_style = eye_style
+	_blink_in = randf_range(1.0, 4.0)
+
+
+func _process(delta: float) -> void:
+	_time += delta
+	var motion := 0.0 if Settings.reduce_motion else 1.0
+	_wander_gaze(delta)
+	_look = _look.lerp(_look_target, 1.0 - exp(-12.0 * delta))
+	_blink_in -= delta
+	if _blink_in <= 0.0:
+		blink()
+		_blink_in = randf_range(2.0, 5.5)
+
+	var t := _time + _phase
+	if _head:
+		var breath := sin(t * 1.6) * 0.018 * motion
+		_head.scale = Vector3(1.0 - breath * 0.5, 1.0 + breath, 1.0 - breath * 0.5)
+		# The head turns a little toward where the eyes look.
+		_head.rotation = Vector3(
+			sin(t * 0.7) * 0.04 * motion - _look.y * 0.08 - _startle * 0.12 * motion,
+			_look.x * 0.18,
+			sin(t * 0.9 + 1.3) * 0.05 * motion,
+		)
+		_head.position = _head_rest + Vector3.UP * (_startle * 0.02 * motion)
+	for i: int in _stalks.size():
+		var wobble := Vector3(
+			sin(t * 2.1 + i * 2.0) * 0.07,
+			0.0,
+			sin(t * 1.7 + i * 1.3) * 0.09 + sin(_time * 22.0 + i) * _startle * 0.3,
+		)
+		_stalks[i].rotation = _stalk_rest[i] + wobble * motion
+
+	var open := eye_openness * (1.0 - _blink)
+	_eye_material.set_shader_parameter(&"open", lerpf(open, 1.0, _startle))
+	_eye_material.set_shader_parameter(&"look", _look)
+	for eye: MeshInstance3D in eyes:
+		eye.scale = Vector3.ONE * (1.0 + _startle * 0.25)
+
+
+## The bounds of the head and what is on it, such as stalks and eyes, in this node's
+## space. A shape that is all one piece, such as the Bean, gives its whole body.
+func get_head_bounds() -> AABB:
+	var bounds := AABB()
+	var first := true
+	for node: Node in _head.find_children("*", "MeshInstance3D", true, false) + [_head]:
+		var mesh := node as MeshInstance3D
+		var local := global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
+		bounds = local if first else bounds.merge(local)
+		first = false
+	return bounds
+
+
+## Points the eyes toward [param direction], from -1 to 1 on each axis (+y up), and holds
+## them there for a while before they wander again.
+func look_toward(direction: Vector2) -> void:
+	_look_target = direction.limit_length(1.0)
+	_look_hold = 1.5
+
+
+## Shuts the eyes for a moment.
+func blink() -> void:
+	if _blinking:
+		_blinking.kill()
+	_blinking = create_tween()
+	_blinking.tween_property(self, "_blink", 1.0, 0.07)
+	_blinking.tween_property(self, "_blink", 0.0, 0.1)
+
+
+## A start of surprise: the eyes go wide and the head jerks back, then settle.
+func startle() -> void:
+	if _startling:
+		_startling.kill()
+	_startling = create_tween()
+	_startling.tween_property(self, "_startle", 1.0, 0.06)
+	_startling.tween_property(self, "_startle", 0.0, 0.8).set_trans(Tween.TRANS_ELASTIC)
+	_blink_in = maxf(_blink_in, 1.0)
+
+
+func _wander_gaze(delta: float) -> void:
+	_look_hold -= delta
+	if _look_hold > 0.0:
+		return
+	# Mostly glance around near the middle, sometimes far off to one side.
+	_look_target = Vector2(randf_range(-0.6, 0.6), randf_range(-0.3, 0.3))
+	if randf() < 0.2:
+		_look_target.x = signf(_look_target.x) * 0.95
+	_look_hold = randf_range(1.2, 3.5)
+
+
+func _recolour(mesh: MeshInstance3D) -> void:
+	for surface: int in mesh.mesh.get_surface_count():
+		var imported := mesh.mesh.surface_get_material(surface) as BaseMaterial3D
+		var material := _body_material(imported.resource_name)
+		if imported.resource_name not in [SKIN_MATERIAL, OUTFIT_MATERIAL]:
+			material.set_shader_parameter(&"color", imported.albedo_color)
+		mesh.set_surface_override_material(surface, material)
+
+
+func _body_material(material_name: String) -> ShaderMaterial:
+	if not _materials.has(material_name):
+		var material := ShaderMaterial.new()
+		material.shader = BODY_SHADER
+		_materials[material_name] = material
+	return _materials[material_name]
+
+
+func _add_eye(marker: Node3D) -> void:
+	var quad := QuadMesh.new()
+	quad.size = Vector2(2.0, 2.0)
+	var eye := MeshInstance3D.new()
+	eye.name = "EyeDisc"
+	eye.mesh = quad
+	eye.material_override = _eye_material
+	marker.add_child(eye)
+	eyes.append(eye)

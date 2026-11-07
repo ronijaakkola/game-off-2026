@@ -1,9 +1,12 @@
 class_name PassengerCard
 extends Control
-## One passenger's card: their name and type, where they are going (an icon of the
+## One passenger's card: their name, where they are going (an icon of the
 ## planet and its name), their patience as a bar in their mood's colour, and what they
 ## are doing. While they ask for something, a button serves it. It only reads the
 ## passenger; the [Cabin] runs the ride.
+## Their portrait sits on the left in a white photo frame, tilted a little at random,
+## over a blurred background in the colours of the planet they boarded at (or, when that
+## isn't known, the one they are going to).
 ## The card slides in from past the left edge of the screen when the passenger boards, and
 ## back out past it when they get off, then folds its height away so the cards below it
 ## move up. The root is a slot that holds the card's place in the list, and the panel moves
@@ -19,6 +22,9 @@ const SLIDE_IN_SECONDS := 0.4
 const SLIDE_OUT_SECONDS := 0.3
 ## Seconds to fold the slot's height away once the card is out.
 const FOLD_SECONDS := 0.2
+## The photo frame's tilt, in degrees either way.
+const TILT_MIN := 0.5
+const TILT_MAX := 2.0
 
 const MOOD_COLORS: Dictionary[Passenger.Mood, Color] = {
 	Passenger.Mood.HAPPY: Color(0.55, 0.85, 0.4),
@@ -40,6 +46,13 @@ var passenger: Passenger:
 		if is_node_ready():
 			_show()
 
+## The passenger's portrait, from a [PortraitStudio], or null for an empty frame.
+var photo: Texture2D:
+	set(value):
+		photo = value
+		if is_node_ready():
+			(%Photo as TextureRect).texture = value
+
 # The bar's fill, this card's own copy, so its colour changes on this card alone.
 var _fill: StyleBoxFlat
 # The mood shown, so the colours change only when it does. -1 before the first show.
@@ -54,6 +67,10 @@ func _ready() -> void:
 	var bar := %PatienceBar as ProgressBar
 	_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate()
 	bar.add_theme_stylebox_override(&"fill", _fill)
+	var tilt := randf_range(TILT_MIN, TILT_MAX) * (1.0 if randf() < 0.5 else -1.0)
+	(%Frame as Control).rotation = deg_to_rad(tilt)
+	_backdrop().set_shader_parameter(&"seed", randf() * 100.0)
+	photo = photo
 	_show()
 	_fit_slot()
 
@@ -120,10 +137,12 @@ func _show() -> void:
 	if not passenger:
 		return
 	_set_text(%NameLabel, passenger.name)
-	_set_text(%TypeLabel, passenger.type.display_name)
 	var icon := %DestinationIcon as PlanetIcon
 	if icon.planet != passenger.destination:
 		icon.planet = passenger.destination
+		var home := passenger.origin if passenger.origin else passenger.destination
+		if home:
+			_backdrop().set_shader_parameter(&"planet_color", home.icon_color)
 	_set_text(%DestinationLabel, "To %s" % _destination_name())
 	(%PatienceBar as ProgressBar).value = passenger.get_patience_fraction()
 	var mood := passenger.get_mood()
@@ -137,6 +156,10 @@ func _show() -> void:
 	button.visible = passenger.request != null
 	if passenger.request and button.text != passenger.request.serve_label:
 		button.text = passenger.request.serve_label
+
+
+func _backdrop() -> ShaderMaterial:
+	return (%Backdrop as ColorRect).material as ShaderMaterial
 
 
 func _destination_name() -> String:

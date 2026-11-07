@@ -4,7 +4,8 @@ extends MarginContainer
 ## [member cabin], in the order they boarded. A passenger who boards slides in from the
 ## left at the bottom, and one who gets off slides back out to the left, while the cards below
 ## move up to fill the gap.
-## A card's serve button serves that passenger's request through the cabin.
+## A card's serve button serves that passenger's request through the cabin. Each card's
+## portrait comes from the panel's [PortraitStudio], and goes back to it when the card does.
 
 const CARD := preload("res://game/passengers/passenger_card.tscn")
 
@@ -31,6 +32,7 @@ func _ready() -> void:
 
 func _show_all() -> void:
 	for card: PassengerCard in _cards.values():
+		_take_down(card)
 		card.queue_free()
 	_cards.clear()
 	if cabin:
@@ -45,7 +47,9 @@ func _on_boarded(passenger: Passenger) -> void:
 func _add_card(passenger: Passenger) -> PassengerCard:
 	var card := CARD.instantiate() as PassengerCard
 	card.passenger = passenger
+	card.photo = (%PortraitStudio as PortraitStudio).add(passenger.look)
 	card.serve_pressed.connect(func() -> void: cabin.serve(passenger))
+	card.left.connect(_take_down.bind(card))
 	card.left.connect(card.queue_free)
 	_cards[passenger] = card
 	%Cards.add_child(card)
@@ -57,3 +61,9 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 	if card:
 		_cards.erase(passenger)
 		card.leave()
+
+
+func _take_down(card: PassengerCard) -> void:
+	if card.photo:
+		(%PortraitStudio as PortraitStudio).remove(card.photo as AtlasTexture)
+		card.photo = null
