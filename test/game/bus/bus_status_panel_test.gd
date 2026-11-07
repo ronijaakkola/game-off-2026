@@ -21,7 +21,7 @@ func after() -> void:
 func test_shows_the_docked_bus_and_its_seats() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
-	assert_str(_text(runner, "StateLabel")).is_equal("Docked at Ember")
+	assert_str(_text(runner, "StateLabel")).is_equal("Docked")
 	assert_str(_text(runner, "SeatLabel")).is_equal("1/4 seats")
 	assert_bool((runner.find_child("CancelButton") as Button).visible).is_false()
 
@@ -43,7 +43,7 @@ func test_cancel_while_charging_keeps_the_bus_docked() -> void:
 	await runner.simulate_frames(1)
 
 	assert_int(bus.state).is_equal(FrameshiftBus.State.DOCKED)
-	assert_str(_text(runner, "StateLabel")).is_equal("Docked at Ember")
+	assert_str(_text(runner, "StateLabel")).is_equal("Docked")
 	assert_bool(button.visible).is_false()
 
 
