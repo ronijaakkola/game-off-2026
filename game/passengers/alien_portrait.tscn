@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://chqeh2dwb3ume"]
+
+[ext_resource type="Script" uid="uid://cgp3y2po8rseh" path="res://game/passengers/alien_portrait.gd" id="1_portrait"]
+[ext_resource type="PackedScene" uid="uid://cfdsdkr3o66kj" path="res://game/passengers/models/head_dome.glb" id="2_dome"]
+
+[node name="AlienPortrait" type="Node3D" unique_id=245697884]
+script = ExtResource("1_portrait")
+head_model = ExtResource("2_dome")

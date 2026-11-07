@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 
 const SCENE := "res://game/passengers/passenger_panel.tscn"
 const PREVIEW := "res://test/previews/passenger_panel_preview.tscn"
+const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
 
 var _window_size: Vector2i
 
@@ -42,6 +43,25 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	assert_float((card.find_child("Panel") as Control).position.x).is_less(0.0)
 	await runner.simulate_frames(30, 30)
 	assert_int(cards.get_child_count()).is_equal(0)
+
+
+func test_a_card_shows_a_portrait_and_gives_it_back_when_the_passenger_gets_off() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var studio := STUDIO.instantiate() as PortraitStudio
+	runner.scene().add_child(studio)
+	(runner.scene() as PassengerPanel).portrait_studio = studio
+	var planet: Planet = auto_free(Planet.new())
+	cabin.board(_passenger(planet, 1000.0))
+	await runner.simulate_frames(2)
+
+	var photo := runner.find_child("PassengerPhoto") as PassengerPhoto
+	assert_object(photo.get_photo()).is_not_null()
+	assert_int(studio.get_portrait_count()).is_equal(1)
+
+	cabin.stop_at(planet)
+	await runner.simulate_frames(40, 30)
+	assert_int(studio.get_portrait_count()).is_equal(0)
 
 
 func test_a_boarding_card_slides_in_from_the_left() -> void:
@@ -109,6 +129,26 @@ func test_the_preview_shows_a_full_cabin_with_three_requests() -> void:
 		if (button as Button).is_visible_in_tree():
 			serving += 1
 	assert_int(serving).is_equal(3)
+	# Every card is as wide as the others, whatever its name or request.
+	var panels := cards.find_children("Panel", "PanelContainer", true, false)
+	for panel: Node in panels:
+		assert_float((panel as Control).size.x).is_equal((panels[0] as Control).size.x)
+
+
+func test_a_card_s_photo_background_takes_the_colour_of_the_planet_they_boarded_at() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var home: Planet = auto_free(Planet.new())
+	home.icon_color = Color.ORANGE
+	var away: Planet = auto_free(Planet.new())
+	away.icon_color = Color.TEAL
+	var passenger := _passenger(away, 1000.0)
+	passenger.origin = home
+	cabin.board(passenger)
+	await runner.simulate_frames(2)
+
+	var backdrop := (runner.find_child("Backdrop") as ColorRect).material as ShaderMaterial
+	assert_that(backdrop.get_shader_parameter(&"planet_color")).is_equal(Color.ORANGE)
 
 
 func _cabin(runner: GdUnitSceneRunner) -> Cabin:

@@ -22,6 +22,9 @@ const CARD := preload("res://game/passengers/passenger_card.tscn")
 		if is_node_ready():
 			_show_all()
 
+## Where the cards' portraits are rendered. Without one, their photos stay empty.
+var portrait_studio: PortraitStudio
+
 var _cards: Dictionary[Passenger, PassengerCard] = {}
 
 
@@ -44,6 +47,7 @@ func _on_boarded(passenger: Passenger) -> void:
 
 func _add_card(passenger: Passenger) -> PassengerCard:
 	var card := CARD.instantiate() as PassengerCard
+	card.portrait_studio = portrait_studio
 	card.passenger = passenger
 	card.serve_pressed.connect(func() -> void: cabin.serve(passenger))
 	card.left.connect(card.queue_free)

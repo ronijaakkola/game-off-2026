@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://ciwv4teguvu2s" path="res://game/bus/bus_status_panel.tscn" id="19_status"]
 [ext_resource type="PackedScene" uid="uid://dbexovw5obyax" path="res://game/solar_system/credits_counter.tscn" id="20_credits"]
 [ext_resource type="PackedScene" uid="uid://bnqjjd4k8w4nn" path="res://game/solar_system/planet_panel.tscn" id="21_planet_panel"]
+[ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="22_studio"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -261,6 +262,9 @@ script = ExtResource("14_waiting")
 types = Array[ExtResource("16_type")]([ExtResource("15_commuter")])
 bus = NodePath("../Bus")
 
+[node name="PortraitStudio" parent="." unique_id=1933731670 instance=ExtResource("22_studio")]
+unique_name_in_owner = true
+
 [node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
 
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
@@ -296,5 +300,6 @@ text = "Right-click planets or space to add stops. Backspace clears the route."
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
 unique_name_in_owner = true
+anchors_preset = 11
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]

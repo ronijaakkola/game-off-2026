@@ -43,4 +43,6 @@ func _ready() -> void:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line
 		cabin.board(passenger)
-	(%PassengerPanel as PassengerPanel).cabin = cabin
+	var panel := %PassengerPanel as PassengerPanel
+	panel.portrait_studio = %PortraitStudio as PortraitStudio
+	panel.cabin = cabin

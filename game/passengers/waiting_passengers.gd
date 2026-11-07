@@ -89,7 +89,11 @@ func create(origin: Planet) -> Passenger:
 	var distance := origin.get_body_global_position().distance_to(
 		destination.get_body_global_position()
 	)
-	return Passenger.new(kind, destination, _trip_seconds(distance), distance * fare_per_unit, _rng)
+	var passenger := Passenger.new(
+		kind, destination, _trip_seconds(distance), distance * fare_per_unit, _rng
+	)
+	passenger.origin = origin
+	return passenger
 
 
 # A rough direct trip: the charge, then the distance at top speed, plus the time to speed

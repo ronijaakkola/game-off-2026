@@ -40,4 +40,6 @@ func test_take_hands_over_at_most_the_count_asked_for() -> void:
 
 func test_a_passenger_goes_to_another_planet() -> void:
 	for i: int in 10:
-		assert_object(_waiting.create(_home).destination).is_same(_away)
+		var passenger := _waiting.create(_home)
+		assert_object(passenger.destination).is_same(_away)
+		assert_object(passenger.origin).is_same(_home)

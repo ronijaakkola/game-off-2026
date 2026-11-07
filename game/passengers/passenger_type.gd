@@ -11,6 +11,6 @@ extends Resource
 ## What they ask for during a ride. Each need keeps its own timer.
 @export var needs: Array[Need] = []
 ## What the card says they are doing while nothing is asked for.
-@export var idle_lines: PackedStringArray = ["Looking at empty space"]
+@export var idle_lines: Array[String] = ["Looking at empty space"]
 ## The names a passenger of this type picks from.
-@export var names: PackedStringArray = ["Passenger"]
+@export var names: Array[String] = ["Passenger"]
