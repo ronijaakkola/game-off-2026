@@ -5,34 +5,41 @@ extends Node3D
 ## toward its next stop while it charges, then it flies there. It passes through points in
 ## space and docks at every planet on its route, charging again before it leaves each one,
 ## and holds still at a point in space that ends the route. A new course in flight or in
-## space starts at once, with no charge.
+## space starts at once, with no charge. Flying to a planet, it slows down as it nears it,
+## then parks: it glides the last stretch and swings side-on, with its door toward the
+## planet. It has docked once it is parked.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
-## The bus docked at [param planet] after flying there: the end of its route, or a
-## planet stop on it. Not emitted for [member start_planet]. Emitted before the drive
+## The bus docked at [param planet] after flying there and parking: the end of its route,
+## or a planet stop on it. Not emitted for [member start_planet]. Emitted before the drive
 ## charges for the next stop, so a listener can set [member boarding] first.
 signal docked(planet: Planet)
 
-enum State { DOCKED, CHARGING, FLYING, HOLDING }
+enum State { DOCKED, CHARGING, FLYING, HOLDING, PARKING }
 
-# How close the bus gets to a planet, and to a point in space, to arrive.
-const DOCK_DISTANCE := 0.2
+# How close the bus flies to where it docks at a planet before it glides the rest of the
+# way, and how close it gets to a point in space to arrive.
+const DOCK_DISTANCE := 0.5
 const STOP_DISTANCE := 0.05
-# How fast a docked bus catches up with its moving planet.
-const DOCK_SMOOTHING := 6.0
+# How fast a docked bus glides into place beside its planet: the share of the way left it
+# covers per second. The flight brakes to the glide's speed, so the two join smoothly.
+const DOCK_SMOOTHING := 2.0
+# How fast a docked bus eases out of its swing side-on, per second.
+const DOCK_TURN_EASE := 4.0
+# How close to its dock point, and to side-on, a parking bus gets to count as parked.
+const PARK_DISTANCE := 0.03
+const PARK_ANGLE := 0.05
 # How far the model leans per radian per second of turn.
 const BANK := 0.12
 # How fast the thrusters' glow fades, per second.
 const THRUST_FADE := 2.0
 # Where the thrusters leave their trail, from the bus: at the nozzles, behind it.
 const TRAIL_START := Vector3(0.0, -0.035, -0.45)
-# How fast the felt push follows the bus's acceleration, per second. It spreads the jolt
-# of docking, where the bus stops from a crawl in one frame, over a moment. The cap below
-# still clips that spike harder on a short frame, so the jolt varies a little with the
-# frame rate.
+# How fast the felt push follows the bus's acceleration, per second, so a sudden change,
+# such as cancelling a course mid-turn, comes on over a moment.
 const FELT_SMOOTHING := 12.0
-# The strongest push felt on board, in units per second squared, so docking jolts rather
-# than throws. Braking and turning at full rate stay under it.
+# The strongest push felt on board, in units per second squared, so nothing throws the
+# passengers. Braking and turning at full rate stay under it.
 const FELT_MAX := 3.5
 
 ## Where the bus starts docked. None starts it holding where it stands.
@@ -48,7 +55,10 @@ const FELT_MAX := 3.5
 ## Radians per second.
 @export_range(0.1, 20.0, 0.1) var turn_speed := 2.0
 ## From a planet's surface to the bus's centre, docked.
-@export_range(0.0, 5.0, 0.01) var dock_gap := 0.6
+@export_range(0.0, 5.0, 0.01) var dock_gap := 0.35
+## From a planet's surface to the bus's centre while the drive charges: the bus pulls out
+## from its dock so it has room to turn without its tail going through the planet.
+@export_range(0.0, 5.0, 0.01) var charge_gap := 0.6
 ## How close the bus passes a stop before it heads for the next one.
 @export_range(0.05, 5.0, 0.01) var waypoint_radius := 0.3
 
@@ -88,13 +98,20 @@ var _float := 1.0
 # The bus's velocity last frame, on the orbit plane, and the push felt on board.
 var _velocity := Vector3.ZERO
 var _felt := Vector2.ZERO
+# How fast the bus glides toward its dock point, measured from the planet.
+var _glide_velocity := Vector3.ZERO
+# Where the bus is from its docked planet's centre, on the orbit plane. Kept rather than
+# measured each frame: a planet that moves after the bus in a frame would otherwise drag
+# the bus behind it, and it would never park.
+var _dock_offset := Vector3.ZERO
 
 
 func _ready() -> void:
 	rotation.y = PI * 0.5
 	if start_planet:
+		global_position = _approach_point(start_planet, Vector3.BACK, dock_gap)
 		_dock(start_planet, Vector3.BACK)
-		global_position = _dock_point()
+		rotation.y = _dock_heading()
 	# Draws the route line and charge ring once while SceneFlow's fade covers the screen,
 	# so their materials compile now and not on the first click.
 	%RouteLine.draw_route(
@@ -109,7 +126,7 @@ func _ready() -> void:
 
 
 ## Sets the route to [param stop], or adds it to the end with [param append]. From a planet
-## the drive charges first; anywhere else the bus heads off at once.
+## the drive charges first, once the bus has parked; anywhere else the bus heads off at once.
 func plot_course(stop: RouteStop, append := false) -> void:
 	if append:
 		_route.append(stop)
@@ -176,8 +193,11 @@ func get_route_planets() -> Array[Planet]:
 	return planets
 
 
-## The first planet on the route still ahead, or null when the route has none.
+## The first planet on the route still ahead, or null when the route has none. While the
+## bus parks, the planet it parks at.
 func get_next_planet() -> Planet:
+	if state == State.PARKING:
+		return _dock_planet
 	for stop: RouteStop in _route:
 		if stop.planet:
 			return stop.planet
@@ -191,12 +211,16 @@ func get_charge_progress() -> float:
 	return clampf(1.0 - _charge_left / charge_time, 0.0, 1.0)
 
 
-## Whether the bus is braking into its next stop, a planet: the end of a flight to it.
+## Whether the bus is braking into its next stop, a planet, or parking there: the end of a
+## flight to it.
 func is_docking() -> bool:
+	if state == State.PARKING:
+		return true
 	if state != State.FLYING or _route.is_empty() or not _route[0].planet:
 		return false
 	var distance := _flat(_stop_position(_route[0], global_position) - global_position).length()
-	return distance <= _speed * _speed / (2.0 * acceleration) + DOCK_DISTANCE
+	var glide := _glide_speed()
+	return distance <= (_speed * _speed - glide * glide) / (2.0 * acceleration) + DOCK_DISTANCE
 
 
 ## Whether the bus is slowing to a stop in space after its course was cancelled.
@@ -206,18 +230,21 @@ func is_stopping() -> bool:
 
 ## The push someone on board feels as the bus speeds up, brakes and turns, in units per
 ## second squared: +x toward the bus's right, +y forward. Braking pushes forward, turning
-## left pushes right, and docking gives a short jolt forward. Following a planet while
-## docked pushes nothing.
+## left pushes right, and parking eases off a forward push as the bus glides to a stop.
+## Following a planet while docked pushes nothing.
 func get_felt_acceleration() -> Vector2:
 	return _felt
 
 
 ## Seconds until the bus docks at [method get_next_planet], from where everything is now:
 ## the charge left, then the route's straight legs at top speed, with the speeding up and
-## braking. Planets move and the bus turns, so it is an estimate. -1 with no planet ahead.
+## braking, then parking. Planets move and the bus turns, so it is an estimate. -1 with no
+## planet ahead.
 func estimate_time_to_next_planet() -> float:
 	if not get_next_planet():
 		return -1.0
+	if state == State.PARKING:
+		return _park_seconds(_flat(_dock_point() - global_position).length())
 	var from := _flat(global_position)
 	var distance := 0.0
 	for stop: RouteStop in _route:
@@ -227,7 +254,9 @@ func estimate_time_to_next_planet() -> float:
 		if stop.planet:
 			break
 	var start_speed := _speed if state == State.FLYING else 0.0
-	var time := _travel_time(distance, start_speed)
+	# It docks where the glide starts.
+	var time := _travel_time(maxf(distance - DOCK_DISTANCE, 0.0), start_speed, _glide_speed())
+	time += _park_seconds(minf(distance, DOCK_DISTANCE))
 	if state == State.CHARGING:
 		time += _charge_left
 	return time
@@ -238,6 +267,7 @@ func _process(delta: float) -> void:
 	match state:
 		State.DOCKED:
 			_follow_dock(delta)
+			_face_dock_side(delta)
 		State.CHARGING:
 			_follow_dock(delta)
 			_face_next_stop(delta)
@@ -247,6 +277,11 @@ func _process(delta: float) -> void:
 				_undock()
 			else:
 				%ChargeRing.show_progress(global_position, 1.0 - _charge_left / charge_time)
+		State.PARKING:
+			_follow_dock(delta)
+			_face_dock_side(delta)
+			if _is_parked():
+				_finish_docking()
 		State.FLYING:
 			_fly(delta)
 		State.HOLDING:
@@ -281,8 +316,13 @@ func _fly(delta: float) -> void:
 	# than circling it.
 	var facing := maxf(_forward().dot(to_target / distance), 0.0)
 	var limit := max_speed
-	if last or stop.planet:
-		# Brakes so it comes to rest where it stops: a planet, or the end of the route.
+	if stop.planet:
+		# Brakes to the glide's speed where the glide into the dock starts.
+		var glide := _glide_speed()
+		var braking := maxf(distance - DOCK_DISTANCE, 0.0)
+		limit = minf(limit, sqrt(glide * glide + 2.0 * acceleration * braking))
+	elif last:
+		# Brakes so it comes to rest at the end of the route.
 		limit = minf(limit, sqrt(2.0 * acceleration * distance))
 	_speed = move_toward(_speed, limit * facing * facing, acceleration * delta)
 	global_position += _forward() * minf(_speed * delta, distance)
@@ -297,10 +337,29 @@ func _face_next_stop(delta: float) -> void:
 		_turn_toward(to_target, delta)
 
 
+# Docked, so the door on the bus's left faces the planet. Eases out at the end of the swing.
+func _face_dock_side(delta: float) -> void:
+	var previous := rotation.y
+	var left := absf(angle_difference(rotation.y, _dock_heading()))
+	var step := minf(turn_speed * delta, left * (1.0 - exp(-DOCK_TURN_EASE * delta)))
+	rotation.y = rotate_toward(rotation.y, _dock_heading(), step)
+	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
+
+
+# The heading that puts the bus's left side, where its door is, toward its planet.
+func _dock_heading() -> float:
+	return atan2(-_dock_direction.z, _dock_direction.x)
+
+
+# The speed the bus glides into its dock at, from where the glide starts.
+func _glide_speed() -> float:
+	return minf(DOCK_SMOOTHING * DOCK_DISTANCE, max_speed)
+
+
 func _turn_toward(direction: Vector3, delta: float) -> void:
 	var previous := rotation.y
 	rotation.y = rotate_toward(rotation.y, atan2(direction.x, direction.z), turn_speed * delta)
-	_turn_rate = angle_difference(previous, rotation.y) / delta
+	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
 
 
 func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
@@ -318,18 +377,37 @@ func _arrive(stop: RouteStop) -> void:
 		state = State.HOLDING
 		return
 	_dock(stop.planet, global_position - stop.planet.get_body_global_position())
+	state = State.PARKING
+
+
+# Parked side-on: the bus has docked. A course set while it parked charges now, unless
+# passengers are getting off or on.
+func _finish_docking() -> void:
+	state = State.DOCKED
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
 	# Before charging, so a listener can set boarding and hold the charge.
-	docked.emit(stop.planet)
+	docked.emit(_dock_planet)
 	if state == State.DOCKED and not _route.is_empty():
 		_start_charge()
+
+
+func _is_parked() -> bool:
+	var center := _flat(_dock_planet.get_body_global_position())
+	var off := (_dock_point() - center - _dock_offset).length()
+	return off < PARK_DISTANCE and absf(angle_difference(rotation.y, _dock_heading())) < PARK_ANGLE
+
+
+# Seconds the glide takes from [param distance] out to parked.
+func _park_seconds(distance: float) -> float:
+	return log(maxf(distance, PARK_DISTANCE) / PARK_DISTANCE) / DOCK_SMOOTHING
 
 
 func _dock(planet: Planet, direction: Vector3) -> void:
 	_dock_planet = planet
 	var flat := _flat(direction)
 	_dock_direction = flat.normalized() if flat.length_squared() > 1e-6 else Vector3.BACK
+	_dock_offset = _flat(global_position - planet.get_body_global_position())
 	state = State.DOCKED
 
 
@@ -347,16 +425,23 @@ func _undock() -> void:
 	state = State.FLYING if not _route.is_empty() else State.HOLDING
 
 
+# Glides toward the dock point, measured from the planet, so the bus keeps up with a
+# moving planet without lagging behind it.
 func _follow_dock(delta: float) -> void:
 	_turn_rate = 0.0
 	if not _dock_planet:
 		return
+	var center := _flat(_dock_planet.get_body_global_position())
 	var weight := 1.0 - exp(-DOCK_SMOOTHING * delta)
-	global_position = global_position.lerp(_dock_point(), weight)
+	var glided := _dock_offset.lerp(_dock_point() - center, weight)
+	_glide_velocity = (glided - _dock_offset) / delta if delta > 0.0 else Vector3.ZERO
+	_dock_offset = glided
+	global_position = center + glided
 
 
 func _dock_point() -> Vector3:
-	return _approach_point(_dock_planet, _dock_direction)
+	var gap := charge_gap if state == State.CHARGING else dock_gap
+	return _approach_point(_dock_planet, _dock_direction, gap)
 
 
 # Where the bus heads for a stop, coming from [param from]: a planet's near side, or the
@@ -366,17 +451,20 @@ func _stop_position(stop: RouteStop, from: Vector3) -> Vector3:
 		return _flat(stop.point)
 	var flat := _flat(from - stop.planet.get_body_global_position())
 	var direction := flat.normalized() if flat.length_squared() > 1e-6 else Vector3.BACK
-	return _approach_point(stop.planet, direction)
+	return _approach_point(stop.planet, direction, dock_gap)
 
 
-func _approach_point(planet: Planet, direction: Vector3) -> Vector3:
+func _approach_point(planet: Planet, direction: Vector3, gap: float) -> Vector3:
 	var center := _flat(planet.get_body_global_position())
-	return center + direction * (planet.get_body_radius() + dock_gap)
+	return center + direction * (planet.get_body_radius() + gap)
 
 
 # The push felt on board is the opposite of the bus's acceleration, in the bus's frame.
+# Parking, the bus moves by its glide, measured from the planet.
 func _feel(delta: float) -> void:
 	var velocity := _forward() * _speed
+	if state == State.PARKING:
+		velocity = _glide_velocity
 	var push := Vector3.ZERO
 	if delta > 0.0:
 		push = (_velocity - velocity) / delta
@@ -442,18 +530,20 @@ func _surface_point(planet: Planet, toward: Vector3) -> Vector3:
 
 
 # Seconds to cover [param distance] in a straight line from [param start_speed], speeding
-# up toward top speed and braking to rest at the end.
-func _travel_time(distance: float, start_speed: float) -> float:
-	var speed_up := (max_speed * max_speed - start_speed * start_speed) / (2.0 * acceleration)
-	var brake := max_speed * max_speed / (2.0 * acceleration)
+# up toward top speed and braking to [param end_speed] at the end.
+func _travel_time(distance: float, start_speed: float, end_speed: float) -> float:
+	var top := max_speed
+	var speed_up := (top * top - start_speed * start_speed) / (2.0 * acceleration)
+	var brake := (top * top - end_speed * end_speed) / (2.0 * acceleration)
 	if speed_up + brake <= distance:
-		var cruise := (distance - speed_up - brake) / max_speed
-		return (max_speed - start_speed) / acceleration + cruise + max_speed / acceleration
+		var cruise := (distance - speed_up - brake) / top
+		return (top - start_speed) / acceleration + cruise + (top - end_speed) / acceleration
 	# Never reaches top speed: speeds up to a peak, then brakes.
-	var peak := sqrt(maxf(acceleration * distance + start_speed * start_speed * 0.5, 0.0))
+	var ends := (start_speed * start_speed + end_speed * end_speed) * 0.5
+	var peak := sqrt(maxf(acceleration * distance + ends, 0.0))
 	if peak < start_speed:
-		return start_speed / acceleration
-	return (peak - start_speed) / acceleration + peak / acceleration
+		return maxf(start_speed - end_speed, 0.0) / acceleration
+	return (peak - start_speed) / acceleration + maxf(peak - end_speed, 0.0) / acceleration
 
 
 func _forward() -> Vector3:
