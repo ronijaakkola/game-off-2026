@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 ## The player sees a card for each passenger on board and serves a request from it.
 
 const SCENE := "res://game/passengers/passenger_panel.tscn"
+const PREVIEW := "res://test/previews/passenger_panel_preview.tscn"
 
 var _window_size: Vector2i
 
@@ -54,6 +55,19 @@ func test_clicking_serve_on_a_card_serves_the_request() -> void:
 
 	assert_object(passenger.request).is_null()
 	assert_str((runner.find_child("ActivityLabel") as Label).text).is_equal("Munching")
+
+
+func test_the_preview_shows_a_full_cabin_with_three_requests() -> void:
+	var runner := scene_runner(PREVIEW)
+	await runner.simulate_frames(2)
+
+	var cards := runner.find_child("Cards") as Control
+	assert_int(cards.get_child_count()).is_equal(8)
+	var serving := 0
+	for button: Node in cards.find_children("ServeButton", "", true, false):
+		if (button as Button).is_visible_in_tree():
+			serving += 1
+	assert_int(serving).is_equal(3)
 
 
 func _cabin(runner: GdUnitSceneRunner) -> Cabin:
