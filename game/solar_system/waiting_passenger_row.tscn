@@ -35,7 +35,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 0
+theme_override_constants/separation = 2
 
 [node name="NameLabel" type="Label" parent="Columns/Who" unique_id=1537369398]
 unique_name_in_owner = true
@@ -45,19 +45,23 @@ text = "Name"
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="DestinationIcon" type="ColorRect" parent="Columns" unique_id=1310667037]
+[node name="Destination" type="HBoxContainer" parent="Columns/Who" unique_id=477762177]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="DestinationIcon" type="ColorRect" parent="Columns/Who/Destination" unique_id=1310667037]
 unique_name_in_owner = true
 visible = false
 material = SubResource("ShaderMaterial_icon")
-custom_minimum_size = Vector2(16, 16)
+custom_minimum_size = Vector2(14, 14)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
 
-[node name="DestinationLabel" type="Label" parent="Columns" unique_id=1605523246]
+[node name="DestinationLabel" type="Label" parent="Columns/Who/Destination" unique_id=1605523246]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 text = "To ?"
