@@ -4,9 +4,11 @@
 [ext_resource type="Script" uid="uid://ddvccqtdkw6wu" path="res://game/bus/bus_model.gd" id="2_model"]
 [ext_resource type="Script" uid="uid://didki7xhd18nw" path="res://game/bus/route_line.gd" id="3_line"]
 [ext_resource type="Script" uid="uid://cuoggoqvxa5ln" path="res://game/bus/charge_ring.gd" id="4_ring"]
+[ext_resource type="AudioStream" uid="uid://dcb04fc88ixi5" path="res://game/bus/dock_bell.ogg" id="5_bell"]
 
 [node name="Bus" type="Node3D" unique_id=845724280]
 script = ExtResource("1_bus")
+dock_sound = ExtResource("5_bell")
 
 [node name="Model" type="Node3D" parent="." unique_id=11086623]
 unique_name_in_owner = true

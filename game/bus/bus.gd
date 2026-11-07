@@ -24,6 +24,8 @@ const BANK := 0.12
 
 ## Where the bus starts docked. None starts it holding where it stands.
 @export var start_planet: Planet
+## Plays each time the bus docks after flying to a planet.
+@export var dock_sound: AudioStream
 ## Seconds the frameshift drive charges before the bus leaves a planet.
 @export_range(0.0, 10.0, 0.1) var charge_time := 3.0
 ## Top speed. Planets orbit at under 0.5, so the bus can catch one.
@@ -191,6 +193,8 @@ func _arrive(stop: RouteStop) -> void:
 	_dock(stop.planet, global_position - stop.planet.get_body_global_position())
 	if not _route.is_empty():
 		_start_charge()
+	if dock_sound:
+		Audio.play_sfx(dock_sound)
 	docked.emit(stop.planet)
 
 
