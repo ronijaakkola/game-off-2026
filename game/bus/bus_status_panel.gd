@@ -64,7 +64,7 @@ func _state_text(next: Planet) -> String:
 			return "Docked"
 		FrameshiftBus.State.CHARGING:
 			return "Charging frameshift"
-		FrameshiftBus.State.FLYING:
+		FrameshiftBus.State.FLYING, FrameshiftBus.State.PARKING:
 			return _flying_text(next)
 	return "Holding in space"
 
@@ -86,7 +86,8 @@ func _show_trip(next: Planet) -> void:
 		_trip_planet = null
 		return
 	var time_left := bus.estimate_time_to_next_planet()
-	var flying := bus.state == FrameshiftBus.State.FLYING
+	# Parking ends the flight, so the track carries on to the end.
+	var flying := bus.state in [FrameshiftBus.State.FLYING, FrameshiftBus.State.PARKING]
 	if next != _trip_planet or not flying:
 		_trip_planet = next
 		_trip_time = time_left

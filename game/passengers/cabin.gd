@@ -32,6 +32,10 @@ var docked := true:
 				passenger.depart()
 		docked = value
 
+## Whether the bus is parking at a planet, so everyone's patience holds: the bus has
+## arrived. The scene that holds the bus sets it.
+var parking := false
+
 var _passengers: Array[Passenger] = []
 # The stop under way: who still gets off, with what they pay, and who still gets on.
 var _stopping := false
@@ -44,7 +48,7 @@ var _until_step := 0.0
 
 func _process(delta: float) -> void:
 	for passenger: Passenger in _passengers:
-		passenger.tick(delta, docked)
+		passenger.tick(delta, docked, parking)
 		if passenger.request:
 			var amenity := _amenity_for(passenger.request)
 			if amenity:

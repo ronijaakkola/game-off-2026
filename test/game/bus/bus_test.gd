@@ -34,7 +34,7 @@ func after_test() -> void:
 	Settings.reduce_motion = _reduce_motion
 
 
-func test_a_course_from_a_planet_charges_then_flies_and_docks() -> void:
+func test_a_course_from_a_planet_charges_then_flies_and_docks_at_the_moving_planet() -> void:
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_step_for(_bus.charge_time - 0.5)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
@@ -42,18 +42,29 @@ func test_a_course_from_a_planet_charges_then_flies_and_docks() -> void:
 	_step_for(1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 	assert_object(_bus.get_docked_planet()).is_null()
-	assert_bool(_step_until_docked()).is_true()
+	# The planet moves after the bus each frame, as it does in the game.
+	var docked := false
+	for i: int in MAX_STEPS:
+		_bus._process(STEP)
+		_near.position += Vector3(0.0, 0.0, 0.45) * STEP
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			docked = true
+			break
+	assert_bool(docked).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
 	assert_array(_bus.get_route_planets()).is_empty()
 
 
-func test_the_bus_turns_toward_its_next_stop_while_charging() -> void:
+func test_the_bus_pulls_out_and_turns_toward_its_next_stop_while_charging() -> void:
+	var parked := _bus.global_position.distance_to(_home.global_position)
 	var behind := _planet(_home.get_parent() as Node3D, Vector3(-6.0, 0.0, 0.0))
 	_bus.plot_course(RouteStop.at_planet(behind))
 	_step_for(_bus.charge_time - 0.5)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 	var to_stop := (behind.global_position - _bus.global_position) * Vector3(1.0, 0.0, 1.0)
 	assert_float(_bus._forward().dot(to_stop.normalized())).is_greater(0.99)
+	var out := _bus.global_position.distance_to(_home.global_position) - parked
+	assert_float(out).is_equal_approx(_bus.charge_gap - _bus.dock_gap, 0.02)
 
 
 func test_the_thrusters_light_up_while_charging_burn_in_flight_and_go_dark_docked() -> void:
@@ -76,7 +87,7 @@ func test_the_thrusters_light_up_while_charging_burn_in_flight_and_go_dark_docke
 	assert_float(glow.scale.z).is_less(0.2)
 
 
-func test_a_flight_leaves_a_trail_that_fades_after_docking() -> void:
+func test_a_flight_leaves_a_trail_that_fades_after_it_arrives() -> void:
 	var trail := _bus.get_node(^"%ThrusterTrail") as ThrusterTrail
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_step_for(_bus.charge_time - 0.5)
@@ -84,7 +95,7 @@ func test_a_flight_leaves_a_trail_that_fades_after_docking() -> void:
 	assert_bool(_step_until(FrameshiftBus.State.FLYING)).is_true()
 	_step_for(1.0)
 	assert_bool(trail.is_empty()).is_false()
-	assert_bool(_step_until_docked()).is_true()
+	assert_bool(_step_until(FrameshiftBus.State.PARKING)).is_true()
 	_step_for(trail.lifetime * 0.5)
 	assert_bool(trail.is_empty()).is_false()
 	_step_for(trail.lifetime)
@@ -211,7 +222,10 @@ func test_the_next_planet_skips_points_in_space() -> void:
 	assert_float(_bus.estimate_time_to_next_planet()).is_greater(_bus.charge_time)
 
 
-func test_docking_is_only_the_end_of_the_flight() -> void:
+func test_docking_brakes_then_parks_with_the_door_toward_the_planet_then_docks() -> void:
+	var docked_at: Array[Planet] = []
+	_bus.docked.connect(func(planet: Planet) -> void: docked_at.append(planet))
+	assert_float(_door_facing(_home)).is_greater(0.99)
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_step_for(_bus.charge_time + 1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
@@ -219,11 +233,25 @@ func test_docking_is_only_the_end_of_the_flight() -> void:
 	var docking_seen := false
 	for i: int in MAX_STEPS:
 		_bus._process(STEP)
-		if _bus.state == FrameshiftBus.State.DOCKED:
+		if _bus.state == FrameshiftBus.State.PARKING:
 			break
 		docking_seen = docking_seen or _bus.is_docking()
 	assert_bool(docking_seen).is_true()
+	# Arrives still a little way out, nose first, then glides the rest, slowing, and swings
+	# side-on. It hasn't docked yet.
+	var dock_point := _bus._dock_point()
+	assert_float(_bus.global_position.distance_to(dock_point)).is_greater(0.3)
+	assert_float(_door_facing(_near)).is_less(0.5)
+	assert_object(_bus.get_next_planet()).is_same(_near)
+	var first_step := _moved_in(STEP)
+	_step_for(1.0)
+	assert_float(_moved_in(STEP)).is_less(first_step * 0.5)
+	assert_array(docked_at).is_empty()
+	assert_bool(_step_until_docked()).is_true()
+	assert_array(docked_at).contains_exactly([_near])
 	assert_bool(_bus.is_docking()).is_false()
+	assert_float(_bus.global_position.distance_to(dock_point)).is_less(0.05)
+	assert_float(_door_facing(_near)).is_greater(0.99)
 
 
 func test_cancel_while_flying_is_stopping_until_it_holds_in_space() -> void:
@@ -255,7 +283,7 @@ func test_on_board_speeding_up_pushes_back_a_turn_pushes_out_and_braking_forward
 	assert_object(_bus.get_docked_planet()).is_same(side)
 	assert_float(least.y).is_less(-1.0)
 	assert_float(most.x).is_greater(0.5)
-	# Braking at its rate, then the jolt of docking, capped.
+	# Braking at its rate, then the glide easing off, capped.
 	assert_float(most.y).is_between(_bus.acceleration, FrameshiftBus.FELT_MAX)
 	_step_for(2.0)
 	assert_vector(_bus.get_felt_acceleration()).is_equal_approx(Vector2.ZERO, Vector2.ONE * 0.01)
@@ -270,6 +298,19 @@ func _planet(parent: Node3D, at: Vector3) -> Planet:
 	planet.position = at
 	parent.add_child(planet)
 	return planet
+
+
+# How squarely the door on the bus's left faces the planet: 1 when it faces it head on.
+func _door_facing(planet: Planet) -> float:
+	var to_planet := (planet.global_position - _bus.global_position) * Vector3(1.0, 0.0, 1.0)
+	return (-_bus.global_basis.x).dot(to_planet.normalized())
+
+
+# How far the bus moves in one step of [param seconds].
+func _moved_in(seconds: float) -> float:
+	var before := _bus.global_position
+	_bus._process(seconds)
+	return _bus.global_position.distance_to(before)
 
 
 func _step_for(seconds: float) -> void:

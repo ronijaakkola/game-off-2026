@@ -48,6 +48,16 @@ func test_boarding_on_the_frame_the_bus_arrives_still_holds_patience() -> void:
 	assert_float(passenger.patience).is_equal(passenger.patience_max)
 
 
+func test_patience_holds_while_the_bus_parks() -> void:
+	var passenger := _passenger(_away)
+	_cabin.board(passenger)
+	_cabin.docked = false
+	_cabin.parking = true
+	_cabin._process(10.0)
+
+	assert_float(passenger.patience).is_equal(passenger.patience_max)
+
+
 func test_only_passengers_going_there_get_off_and_pay() -> void:
 	var going := _passenger(_away)
 	var staying := _passenger(_home)
