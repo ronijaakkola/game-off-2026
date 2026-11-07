@@ -1,8 +1,9 @@
 extends Node3D
-## The solar system. The pointer picks a planet, which shows a white border, and a click
-## plots the bus's course: to the planet under the pointer, or to the point on the orbit
-## plane under it. Shift adds the stop to the end of the route; a right click cancels the
-## course. Planets on the route show an orange border.
+## The solar system. The pointer picks a planet, which shows a white border, and a right
+## click plots the bus's course: to the planet under the pointer, or to the point on the
+## orbit plane under it. Shift adds the stop to the end of the route. Left click is left
+## free for selecting things. Planets on the route show an orange border. A hint at the
+## bottom says how to set a course until the player first sets one.
 ## It also runs the passengers: every time the bus docks, the passengers going to that
 ## planet get off and pay, and those waiting there board while seats are free. The game
 ## starts with one passenger on board.
@@ -53,15 +54,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if not click or not click.pressed:
 		return
-	if click.button_index == MOUSE_BUTTON_LEFT:
-		var stop := _stop_at(click.position)
-		if not stop:
-			return
-		(%Bus as FrameshiftBus).plot_course(stop, click.shift_pressed)
-	elif click.button_index == MOUSE_BUTTON_RIGHT:
-		(%Bus as FrameshiftBus).cancel_course()
-	else:
+	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
+	var stop := _stop_at(click.position)
+	if not stop:
+		return
+	(%Bus as FrameshiftBus).plot_course(stop, click.shift_pressed)
+	(%CourseHint as Label).hide()
 	get_viewport().set_input_as_handled()
 
 

@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
-## Passengers in the solar system: one on board at the start, and docking lets off those
-## going there and takes on those waiting.
+## Passengers in the solar system, and the clicks that set the bus's course. One passenger
+## is on board at the start, and docking lets off those going there and takes on those
+## waiting.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -29,3 +30,48 @@ func test_docking_at_a_destination_lets_them_off_and_pays() -> void:
 	assert_int(cabin.get_passengers().size()).is_equal(1)
 	var credits := (runner.find_child("CreditsLabel") as Label).text
 	assert_str(credits).is_equal("%d credits" % passenger.get_payout())
+
+
+func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var hint := runner.find_child("CourseHint") as Label
+	assert_bool(hint.visible).is_true()
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_array(bus.get_route_planets()).contains_exactly([terra])
+	assert_bool(hint.visible).is_false()
+
+
+func test_left_click_on_a_planet_sets_no_course() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_array(bus.get_route_planets()).is_empty()
+	assert_bool((runner.find_child("CourseHint") as Label).visible).is_true()
+
+
+# Where planet is in window pixels, which a sent event carries: the viewport's own pixels
+# differ by the window's stretch.
+func _screen_point(runner: GdUnitSceneRunner, planet: Planet) -> Vector2:
+	var camera := runner.find_child("Camera") as Camera3D
+	var point := camera.unproject_position(planet.get_body_global_position())
+	return camera.get_viewport().get_final_transform() * point
+
+
+# Through Input alone: the runner's own calls deliver each event twice to the root.
+func _send_click(button: MouseButton, at: Vector2) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = button
+	event.position = at
+	event.global_position = at
+	event.pressed = true
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
