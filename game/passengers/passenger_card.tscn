@@ -23,27 +23,35 @@ corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
-[node name="PassengerCard" type="PanelContainer" unique_id=1751346549]
+[node name="PassengerCard" type="Control" unique_id=1751346549]
 custom_minimum_size = Vector2(220, 0)
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
 theme = ExtResource("2_theme")
-theme_type_variation = &"CardPanel"
 script = ExtResource("1_card")
 
-[node name="Rows" type="VBoxContainer" parent="." unique_id=1669341052]
+[node name="Panel" type="PanelContainer" parent="." unique_id=895231627]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 0
+theme_type_variation = &"CardPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Panel" unique_id=1669341052]
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="Header" type="HBoxContainer" parent="Rows" unique_id=1604587981]
+[node name="Header" type="HBoxContainer" parent="Panel/Rows" unique_id=1604587981]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="NameLabel" type="Label" parent="Rows/Header" unique_id=519713180]
+[node name="NameLabel" type="Label" parent="Panel/Rows/Header" unique_id=519713180]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
 text = "Name"
 
-[node name="TypeLabel" type="Label" parent="Rows/Header" unique_id=1642334577]
+[node name="TypeLabel" type="Label" parent="Panel/Rows/Header" unique_id=1642334577]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -51,18 +59,18 @@ theme_type_variation = &"TinyLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 text = "Type"
 
-[node name="MoodLabel" type="Label" parent="Rows/Header" unique_id=1260888406]
+[node name="MoodLabel" type="Label" parent="Panel/Rows/Header" unique_id=1260888406]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 text = "Happy"
 horizontal_alignment = 2
 
-[node name="Patience" type="HBoxContainer" parent="Rows" unique_id=1965568126]
+[node name="Patience" type="HBoxContainer" parent="Panel/Rows" unique_id=1965568126]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="DestinationIcon" type="ColorRect" parent="Rows/Patience" unique_id=394251105]
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Rows/Patience" unique_id=394251105]
 unique_name_in_owner = true
 visible = false
 material = SubResource("ShaderMaterial_tocvp")
@@ -72,13 +80,13 @@ size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
 
-[node name="DestinationLabel" type="Label" parent="Rows/Patience" unique_id=624535876]
+[node name="DestinationLabel" type="Label" parent="Panel/Rows/Patience" unique_id=624535876]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 text = "To ?"
 
-[node name="PatienceBar" type="ProgressBar" parent="Rows/Patience" unique_id=1379124599]
+[node name="PatienceBar" type="ProgressBar" parent="Panel/Rows/Patience" unique_id=1379124599]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
@@ -90,12 +98,12 @@ max_value = 1.0
 value = 1.0
 show_percentage = false
 
-[node name="Activity" type="HBoxContainer" parent="Rows" unique_id=1257753859]
+[node name="Activity" type="HBoxContainer" parent="Panel/Rows" unique_id=1257753859]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ActivityLabel" type="Label" parent="Rows/Activity" unique_id=100637608]
+[node name="ActivityLabel" type="Label" parent="Panel/Rows/Activity" unique_id=100637608]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -105,11 +113,11 @@ text = "Looking at empty space"
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="ServeButton" type="Button" parent="Rows/Activity" unique_id=818275599]
+[node name="ServeButton" type="Button" parent="Panel/Rows/Activity" unique_id=818275599]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Serve"
 
-[connection signal="pressed" from="Rows/Activity/ServeButton" to="." method="_on_serve_button_pressed"]
+[connection signal="pressed" from="Panel/Rows/Activity/ServeButton" to="." method="_on_serve_button_pressed"]

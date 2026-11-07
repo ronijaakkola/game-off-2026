@@ -33,9 +33,29 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	assert_str((card.find_child("NameLabel") as Label).text).is_equal(passenger.name)
 	assert_str((card.find_child("DestinationLabel") as Label).text).contains("Ember")
 
-	cabin.arrive_at(planet)
-	await runner.simulate_frames(2)
+	# Done sliding in.
+	await runner.simulate_frames(30, 30)
+	cabin.stop_at(planet)
+	# It slides out to the left and folds away before it goes.
+	await runner.simulate_frames(5)
+	assert_int(cards.get_child_count()).is_equal(1)
+	assert_float((card.find_child("Panel") as Control).position.x).is_less(0.0)
+	await runner.simulate_frames(30, 30)
 	assert_int(cards.get_child_count()).is_equal(0)
+
+
+func test_a_boarding_card_slides_in_from_the_left() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	await runner.simulate_frames(1)
+
+	cabin.board(_passenger(auto_free(Planet.new()), 1000.0))
+
+	var panel := runner.find_child("Panel") as Control
+	# Its right edge is past the screen's left edge.
+	assert_float(panel.global_position.x + panel.size.x).is_less(0.0)
+	await runner.simulate_frames(30, 30)
+	assert_float(panel.position.x).is_equal(0.0)
 
 
 func test_clicking_serve_on_a_card_serves_the_request() -> void:

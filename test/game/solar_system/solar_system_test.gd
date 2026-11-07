@@ -14,7 +14,7 @@ func test_starts_with_one_passenger_on_board() -> void:
 	assert_int((runner.find_child("Cards") as Control).get_child_count()).is_equal(1)
 
 
-func test_docking_at_a_destination_lets_them_off_and_pays() -> void:
+func test_docking_lets_them_off_and_pays_then_boards_before_the_bus_can_charge() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var cabin := runner.find_child("Cabin") as Cabin
@@ -23,13 +23,22 @@ func test_docking_at_a_destination_lets_them_off_and_pays() -> void:
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.take(passenger.destination, 99)
 	waiting.add(passenger.destination)
+	var payout := passenger.get_payout()
 
 	bus.docked.emit(passenger.destination)
 
 	assert_array(cabin.get_passengers()).not_contains([passenger])
+	assert_bool(bus.boarding).is_true()
+	await assert_signal(cabin).wait_until(3000).is_emitted("stop_finished")
+	assert_bool(bus.boarding).is_false()
 	assert_int(cabin.get_passengers().size()).is_equal(1)
-	var credits := (runner.find_child("CreditsLabel") as Label).text
-	assert_str(credits).is_equal("%d credits" % passenger.get_payout())
+	var counter := runner.find_child("CreditsCounter") as CreditsCounter
+	assert_int(counter.credits).is_equal(payout)
+	assert_str((runner.find_child("GainLabel") as Label).text).is_equal("+%d" % payout)
+	# Once they are off, the total counts up to include the fare.
+	await await_millis(1600)
+	var total := (runner.find_child("TotalLabel") as Label).text
+	assert_str(total).is_equal("%d credits" % payout)
 
 
 func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
