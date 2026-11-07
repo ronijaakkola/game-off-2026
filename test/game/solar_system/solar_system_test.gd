@@ -58,18 +58,57 @@ func test_left_click_on_a_planet_sets_no_course() -> void:
 	assert_bool((runner.find_child("CourseHint") as Label).visible).is_true()
 
 
-# Where planet is in window pixels, which a sent event carries: the viewport's own pixels
-# differ by the window's stretch.
+func test_shift_right_click_on_the_last_planet_removes_it() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var giant := runner.find_child("Giant") as Planet
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant), true)
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant), true)
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_array(bus.get_route_planets()).contains_exactly([terra])
+
+
+func test_shift_right_click_on_the_last_point_in_space_removes_it() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var giant := runner.find_child("Giant") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	# Halfway from Terra to Giant, clear of every planet.
+	var between := terra.get_body_global_position().lerp(giant.get_body_global_position(), 0.5)
+	var on_screen := camera.unproject_position(between)
+	var point := _to_window(camera, on_screen)
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+	_send_click(MOUSE_BUTTON_RIGHT, point, true)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_object(bus.get_last_stop().planet).is_null()
+
+	# A few pixels off the point still hits its diamond.
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(4, 4)), true)
+
+	assert_object(bus.get_last_stop().planet).is_same(terra)
+
+
 func _screen_point(runner: GdUnitSceneRunner, planet: Planet) -> Vector2:
 	var camera := runner.find_child("Camera") as Camera3D
-	var point := camera.unproject_position(planet.get_body_global_position())
-	return camera.get_viewport().get_final_transform() * point
+	return _to_window(camera, camera.unproject_position(planet.get_body_global_position()))
+
+
+# Where a viewport point is in window pixels, which a sent event carries: the viewport's
+# own pixels differ by the window's stretch.
+func _to_window(camera: Camera3D, viewport_point: Vector2) -> Vector2:
+	return camera.get_viewport().get_final_transform() * viewport_point
 
 
 # Through Input alone: the runner's own calls deliver each event twice to the root.
-func _send_click(button: MouseButton, at: Vector2) -> void:
+func _send_click(button: MouseButton, at: Vector2, shift := false) -> void:
 	var event := InputEventMouseButton.new()
 	event.button_index = button
+	event.shift_pressed = shift
 	event.position = at
 	event.global_position = at
 	event.pressed = true

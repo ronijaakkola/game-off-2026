@@ -103,6 +103,24 @@ func cancel_course() -> void:
 		%ChargeRing.show_progress(global_position, 0.0)
 
 
+## Removes the last stop on the route. With none left it is the same as
+## [method cancel_course].
+func remove_last_stop() -> void:
+	_route.pop_back()
+	if _route.is_empty():
+		cancel_course()
+
+
+## The last stop on the route, or null when there is no route.
+func get_last_stop() -> RouteStop:
+	return _route.back() if not _route.is_empty() else null
+
+
+## The size of the diamond drawn at a point in space on the route, in world units.
+func get_marker_size() -> float:
+	return (%RouteLine as RouteLine).marker_size
+
+
 ## The planet the bus is docked at, or null.
 func get_docked_planet() -> Planet:
 	return _dock_planet

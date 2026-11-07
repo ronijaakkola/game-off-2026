@@ -77,6 +77,7 @@ Built, in the solar system, which Play opens:
 | Right click a planet | Set course straight to it |
 | Right click empty space | Set course to that point on the orbit plane |
 | Shift + right click | Add a planet or point to the end of the route |
+| Shift + right click the last stop | Remove it from the route. Only the last one: a stop in the middle is added again, so a route can come back to a planet. With no stop left, the course is cancelled |
 | Right click the planet the bus is docked at | Cancel the course: a charging drive stops |
 | W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit |
 | Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
