@@ -46,7 +46,7 @@ func place(planet: Planet, screen_point: Vector2, shown := true) -> void:
 		return
 	row.visible = shown and row.get_child_count() > 0
 	row.reset_size()
-	row.position = (screen_point - Vector2(row.size.x * 0.5, 0.0)).round()
+	row.position = screen_point - Vector2(row.size.x * 0.5, 0.0)
 
 
 ## How many icons [param planet]'s row shows.

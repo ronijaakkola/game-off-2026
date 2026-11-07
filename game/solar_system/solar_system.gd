@@ -44,6 +44,9 @@ var _faded_planet: Planet
 
 
 func _ready() -> void:
+	# After the planets, the bus and the camera have moved this frame, so the names, the
+	# popup and the waiting icons follow where they are now, not where they were a frame ago.
+	process_priority = 1
 	_collect_planets(self)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
