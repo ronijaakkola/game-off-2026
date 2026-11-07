@@ -210,7 +210,8 @@ func test_the_next_planet_skips_points_in_space() -> void:
 	assert_float(_bus.estimate_time_to_next_planet()).is_greater(_bus.charge_time)
 
 
-func test_docking_is_only_the_end_of_the_flight() -> void:
+func test_docking_brakes_then_glides_in_and_parks_with_the_door_toward_the_planet() -> void:
+	assert_float(_door_facing(_home)).is_greater(0.99)
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_step_for(_bus.charge_time + 1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
@@ -223,6 +224,17 @@ func test_docking_is_only_the_end_of_the_flight() -> void:
 		docking_seen = docking_seen or _bus.is_docking()
 	assert_bool(docking_seen).is_true()
 	assert_bool(_bus.is_docking()).is_false()
+	# Docks still a little way out, nose first, then glides the rest, slowing, and swings
+	# side-on.
+	var dock_point := _bus._dock_point()
+	assert_float(_bus.global_position.distance_to(dock_point)).is_greater(0.3)
+	assert_float(_door_facing(_near)).is_less(0.5)
+	var first_step := _moved_in(STEP)
+	_step_for(1.0)
+	assert_float(_moved_in(STEP)).is_less(first_step * 0.5)
+	_step_for(3.0)
+	assert_float(_bus.global_position.distance_to(dock_point)).is_less(0.02)
+	assert_float(_door_facing(_near)).is_greater(0.99)
 
 
 func test_a_cancelled_flight_is_stopping_until_it_holds() -> void:
@@ -244,6 +256,19 @@ func _planet(parent: Node3D, at: Vector3) -> Planet:
 	planet.position = at
 	parent.add_child(planet)
 	return planet
+
+
+# How squarely the door on the bus's left faces the planet: 1 when it faces it head on.
+func _door_facing(planet: Planet) -> float:
+	var to_planet := (planet.global_position - _bus.global_position) * Vector3(1.0, 0.0, 1.0)
+	return (-_bus.global_basis.x).dot(to_planet.normalized())
+
+
+# How far the bus moves in one step of [param seconds].
+func _moved_in(seconds: float) -> float:
+	var before := _bus.global_position
+	_bus._process(seconds)
+	return _bus.global_position.distance_to(before)
 
 
 func _step_for(seconds: float) -> void:
