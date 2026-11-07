@@ -60,19 +60,25 @@ layout_mode = 2
 theme_type_variation = &"SmallLabel"
 text = "?"
 
-[node name="Rows" type="VBoxContainer" parent="Card/Clip/Content" unique_id=288850977]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 0)
+[node name="List" type="MarginContainer" parent="Card/Clip/Content" unique_id=526103822]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 0
 
-[node name="EmptyLabel" type="Label" parent="Card/Clip/Content" unique_id=40552596]
+[node name="EmptyLabel" type="Label" parent="Card/Clip/Content/List" unique_id=40552596]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 0
 theme_type_variation = &"TinyLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.45)
 text = "Nobody waiting."
+
+[node name="Rows" type="VBoxContainer" parent="Card/Clip/Content/List" unique_id=288850977]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 0
 
 [node name="BoardAllButton" type="Button" parent="Card/Clip/Content" unique_id=294880964]
 unique_name_in_owner = true

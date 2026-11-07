@@ -9,8 +9,11 @@ extends Control
 ## It slides in from the right when [member planet] is set and back out when it is
 ## cleared. A row whose passenger boards slides out to the right, clipped by the card, and
 ## the card grows and shrinks smoothly to fit what it holds.
-## The root is a slot that holds the panel's place above the bus status, and the card moves
-## inside it.
+## The root is a slot of no height that marks the panel's place just above the bus status,
+## and the card hangs upward from it. So the card's bottom edge stays put however its
+## height changes, with no container to re-sort a frame later and round the height to whole
+## pixels. "Nobody waiting." sits under the rows, so a row sliding out uncovers it and the
+## card only shrinks.
 
 ## The player pressed the button to pick up [param passenger]. Board all presses it for
 ## each one waiting, longest waiting first; the parent stops once the seats are full.
@@ -161,13 +164,14 @@ func _margins() -> Vector2:
 	return (%Card as Control).get_theme_stylebox(&"panel").get_minimum_size()
 
 
-# Sizes the slot to the card's width and its height now, and places the card in it. The
-# content keeps its own height inside the clip, so a card shorter than it cuts it off.
+# Sizes the slot to the card's width, and hangs the card at its height now upward from the
+# slot. The content keeps its own height inside the clip, so a card shorter than it cuts it
+# off.
 func _lay_out(needed: Vector2) -> void:
-	custom_minimum_size = Vector2(needed.x, _height)
+	custom_minimum_size = Vector2(needed.x, 0.0)
 	var width := maxf(size.x, needed.x)
 	var card := %Card as Control
-	card.position = Vector2(_offset * (width + OFF_RIGHT), 0.0)
+	card.position = Vector2(_offset * (width + OFF_RIGHT), -_height)
 	card.size = Vector2(width, _height)
 	var content := %Content as Control
 	content.position = Vector2.ZERO
