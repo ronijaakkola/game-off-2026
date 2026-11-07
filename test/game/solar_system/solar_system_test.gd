@@ -76,7 +76,7 @@ func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
 	assert_bool(is_instance_valid(row)).is_false()
 
 
-func test_the_dock_panel_shrinks_with_its_bottom_edge_in_place() -> void:
+func test_the_dock_panel_shrinks_with_its_bottom_edge_and_board_all_in_place() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
@@ -90,15 +90,17 @@ func test_the_dock_panel_shrinks_with_its_bottom_edge_in_place() -> void:
 	var top := card.get_global_rect().position.y
 	var camera := runner.find_child("Camera") as Camera3D
 	var button := runner.find_child("BoardAllButton", true, false) as Button
+	var button_at := button.get_global_rect().position.y
 
 	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
 
-	# Every frame while the rows slide out and the card shrinks: the bottom edge stays, and
-	# the top edge only ever moves down.
+	# Every frame while the rows slide out and the card shrinks: the bottom edge and Board
+	# all stay, and the top edge only ever moves down.
 	for frame: int in 90:
 		await runner.simulate_frames(1)
 		var rect := card.get_global_rect()
 		assert_float(rect.end.y).is_equal_approx(bottom, 0.01)
+		assert_float(button.get_global_rect().position.y).is_equal_approx(button_at, 0.01)
 		assert_float(rect.position.y).is_greater_equal(top - 0.01)
 		top = rect.position.y
 	assert_float(top).is_greater(bottom - 200.0)
