@@ -28,10 +28,19 @@ func test_patience_starts_at_the_trip_time_with_the_type_s_slack() -> void:
 	assert_float(passenger.patience).is_equal(150.0)
 
 
+func test_patience_holds_until_the_bus_leaves_their_planet() -> void:
+	var snack := _need(1.0)
+	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
+	passenger.tick(30.0, true)
+	assert_object(passenger.request).is_same(snack)
+	assert_float(passenger.patience).is_equal(passenger.patience_max)
+
+
 func test_patience_runs_down_at_half_speed_while_docked() -> void:
 	var flying := Passenger.new(_type(), _planet, TRIP, FARE)
 	var docked := Passenger.new(_type(), _planet, TRIP, FARE)
 	flying.tick(10.0, false)
+	docked.tick(0.0, false)
 	docked.tick(10.0, true)
 	assert_float(flying.patience_max - flying.patience).is_equal_approx(10.0, 0.001)
 	assert_float(docked.patience_max - docked.patience).is_equal_approx(5.0, 0.001)
@@ -50,10 +59,12 @@ func test_pay_follows_mood_at_the_end() -> void:
 	assert_int(passenger.get_payout()).is_equal(0)
 
 
-func test_idles_on_one_of_the_type_s_lines() -> void:
+func test_finds_their_seat_then_idles_on_one_of_the_type_s_lines() -> void:
 	var kind := _type()
 	kind.idle_lines = PackedStringArray(["Sleeping...", "Counting stars"])
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	assert_str(passenger.activity).is_equal(Passenger.BOARDING_LINE)
+	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, true)
 	assert_array(kind.idle_lines).contains([passenger.activity])
 
 

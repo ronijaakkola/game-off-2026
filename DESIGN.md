@@ -17,11 +17,11 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 5. **Arrive.** At a planet, passengers going there get off and pay by their mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing.
 6. **Refuel.** Three of the six planets have a fuel depot. Docked at one, the player can refuel; it takes a few seconds. If the bus runs out of fuel in space, the player pays for a tow to the nearest depot planet. The tow costs money, and the time it takes costs passengers' patience.
 
-A passenger's patience runs down while they ride, at half speed while the bus is docked. It starts at the direct trip time with some slack, so a straight trip keeps them happy and detours cost mood. Mood comes from patience left: happy at 60 % or more, okay at 30 % or more, annoyed above 0, furious at 0. The fare grows with the distance to the destination.
+A passenger's patience holds until the bus leaves the planet they boarded at, then runs down while they ride, at half speed while the bus is docked. It starts at the direct trip time with some slack, so a straight trip keeps them happy and detours cost mood. Mood comes from patience left: happy at 60 % or more, okay at 30 % or more, annoyed above 0, furious at 0. The fare grows with the distance to the destination.
 
 ### On board
 
-Each passenger on board has a card down the left edge of the screen: name, type, destination (a small flat icon of the planet and its name), a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"). Built in `game/passengers/`, and running in the solar system:
+Each passenger on board has a card down the left edge of the screen: name, type, destination (a small flat icon of the planet and its name), a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"), starting with "Finding their seat..." for a few seconds after boarding. Built in `game/passengers/`, and running in the solar system:
 
 - **Waiting and boarding (first phase).** Each planet, the Moon included, gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random. They are hidden for now and lose no patience while they wait. Whenever the bus docks at a planet, the passengers going there get off and pay, then those waiting board, longest waiting first, while any of the 4 seats are free. The game starts with one passenger on board at Ember.
 - **Trip time and fare** come from the straight distance at boarding: the trip time is the charge plus that distance at the bus's top speed, and the fare is 3 credits per unit times the type's multiplier. Planets move, so it is only an estimate.

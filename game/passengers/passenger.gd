@@ -18,6 +18,9 @@ const DOCKED_DRAIN := 0.5
 ## How long an idle line shows before the next one, in seconds.
 const IDLE_MIN := 6.0
 const IDLE_MAX := 14.0
+## The line they show on boarding, and for how long, in seconds.
+const BOARDING_LINE := "Finding their seat..."
+const BOARDING_SECONDS := 3.0
 
 var name: String
 var type: PassengerType
@@ -38,6 +41,8 @@ var _activity_left := 0.0
 var _busy := false
 # Seconds until each need in type.needs asks again.
 var _need_timers := PackedFloat32Array()
+# Whether the bus has left the planet they boarded at. Patience holds until it has.
+var _departed := false
 
 
 ## A passenger of [param kind] going to [param to]. Their patience starts at
@@ -60,7 +65,8 @@ func _init(
 	patience = patience_max
 	for need: Need in type.needs:
 		_need_timers.append(_interval(need))
-	_idle()
+	activity = BOARDING_LINE
+	_activity_left = BOARDING_SECONDS
 
 
 ## The mood for [param fraction] of patience left: happy at 60 % or more, okay at 30 % or
@@ -88,15 +94,19 @@ func get_payout() -> int:
 	return roundi(fare * PAY[get_mood()])
 
 
-## Runs [param delta] seconds of the ride. Patience runs down at half speed while
-## [param docked], and faster while a request is open.
+## Runs [param delta] seconds of the ride. Patience holds while the bus is still
+## [param docked] at the planet they boarded at. After that it runs down at half speed while
+## docked, and faster while a request is open.
 func tick(delta: float, docked: bool) -> void:
-	var drain := delta
-	if docked:
-		drain *= DOCKED_DRAIN
-	if request:
-		drain *= request.unmet_drain
-	patience = maxf(patience - drain, 0.0)
+	if not docked:
+		_departed = true
+	if _departed:
+		var drain := delta
+		if docked:
+			drain *= DOCKED_DRAIN
+		if request:
+			drain *= request.unmet_drain
+		patience = maxf(patience - drain, 0.0)
 	if request:
 		return
 	_activity_left -= delta
