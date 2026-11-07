@@ -100,13 +100,17 @@ var _velocity := Vector3.ZERO
 var _felt := Vector2.ZERO
 # How fast the bus glides toward its dock point, measured from the planet.
 var _glide_velocity := Vector3.ZERO
+# Where the bus is from its docked planet's centre, on the orbit plane. Kept rather than
+# measured each frame: a planet that moves after the bus in a frame would otherwise drag
+# the bus behind it, and it would never park.
+var _dock_offset := Vector3.ZERO
 
 
 func _ready() -> void:
 	rotation.y = PI * 0.5
 	if start_planet:
+		global_position = _approach_point(start_planet, Vector3.BACK, dock_gap)
 		_dock(start_planet, Vector3.BACK)
-		global_position = _dock_point()
 		rotation.y = _dock_heading()
 	# Draws the route line and charge ring once while SceneFlow's fade covers the screen,
 	# so their materials compile now and not on the first click.
@@ -388,7 +392,8 @@ func _finish_docking() -> void:
 
 
 func _is_parked() -> bool:
-	var off := _flat(_dock_point() - global_position).length()
+	var center := _flat(_dock_planet.get_body_global_position())
+	var off := (_dock_point() - center - _dock_offset).length()
 	return off < PARK_DISTANCE and absf(angle_difference(rotation.y, _dock_heading())) < PARK_ANGLE
 
 
@@ -401,6 +406,7 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 	_dock_planet = planet
 	var flat := _flat(direction)
 	_dock_direction = flat.normalized() if flat.length_squared() > 1e-6 else Vector3.BACK
+	_dock_offset = _flat(global_position - planet.get_body_global_position())
 	state = State.DOCKED
 
 
@@ -425,10 +431,10 @@ func _follow_dock(delta: float) -> void:
 	if not _dock_planet:
 		return
 	var center := _flat(_dock_planet.get_body_global_position())
-	var offset := _flat(global_position) - center
 	var weight := 1.0 - exp(-DOCK_SMOOTHING * delta)
-	var glided := offset.lerp(_dock_point() - center, weight)
-	_glide_velocity = (glided - offset) / delta if delta > 0.0 else Vector3.ZERO
+	var glided := _dock_offset.lerp(_dock_point() - center, weight)
+	_glide_velocity = (glided - _dock_offset) / delta if delta > 0.0 else Vector3.ZERO
+	_dock_offset = glided
 	global_position = center + glided
 
 

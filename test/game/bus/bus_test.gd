@@ -34,7 +34,7 @@ func after_test() -> void:
 	Settings.reduce_motion = _reduce_motion
 
 
-func test_a_course_from_a_planet_charges_then_flies_and_docks() -> void:
+func test_a_course_from_a_planet_charges_then_flies_and_docks_at_the_moving_planet() -> void:
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_step_for(_bus.charge_time - 0.5)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
@@ -42,7 +42,15 @@ func test_a_course_from_a_planet_charges_then_flies_and_docks() -> void:
 	_step_for(1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 	assert_object(_bus.get_docked_planet()).is_null()
-	assert_bool(_step_until_docked()).is_true()
+	# The planet moves after the bus each frame, as it does in the game.
+	var docked := false
+	for i: int in MAX_STEPS:
+		_bus._process(STEP)
+		_near.position += Vector3(0.0, 0.0, 0.45) * STEP
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			docked = true
+			break
+	assert_bool(docked).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
 	assert_array(_bus.get_route_planets()).is_empty()
 
