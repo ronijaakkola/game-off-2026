@@ -2,11 +2,12 @@ class_name SolarSystem
 extends Node3D
 ## The solar system. The pointer picks a planet, which shows a white border, or else the
 ## diamond of the route's last stop when that is a point in space, which turns white; a
-## pointer over the HUD picks nothing. A right click plots the bus's course: to the planet
-## under the pointer, or to the point on the orbit plane under it, and Shift adds the stop
-## to the end of the route instead. A right click on the route's last stop, with or without
-## Shift, removes it. Planets on the route show an orange border. A hint at the bottom says
-## how to set a course until the player first sets one, hidden while a planet is open.
+## pointer over the HUD picks nothing. A right click adds a stop to the end of the bus's
+## route: the planet under the pointer, or the point on the orbit plane under it. A right
+## click on the route's last stop removes it, and the clear_route action clears the whole
+## route. No modifier keys: Firefox opens its own context menu on Shift + right click
+## whatever the page does. Planets on the route show an orange border. A hint at the bottom
+## says how to set a course until the player first sets one, hidden while a planet is open.
 ## A left click on a planet opens it: the camera follows it on the left side of the screen
 ## and its panel opens on the right. A left click on the open planet or on empty space, or
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
@@ -85,6 +86,10 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"clear_route"):
+		(%Bus as FrameshiftBus).cancel_course()
+		get_viewport().set_input_as_handled()
+		return
 	var click := event as InputEventMouseButton
 	if not click or not click.pressed:
 		return
@@ -100,7 +105,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var stop := _stop_at(click.position)
 		if not stop:
 			return
-		bus.plot_course(stop, click.shift_pressed)
+		bus.plot_course(stop, true)
 		(%CourseHint as Label).hide()
 	get_viewport().set_input_as_handled()
 
