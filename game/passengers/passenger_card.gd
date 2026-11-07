@@ -1,3 +1,4 @@
+class_name PassengerCard
 extends PanelContainer
 ## One passenger's card: their name and type, where they are going, their patience as a
 ## bar in their mood's colour, and what they are doing. While they ask for something, a
@@ -59,8 +60,8 @@ func _show() -> void:
 	_set_text(%ActivityLabel, passenger.activity)
 	var button := %ServeButton as Button
 	button.visible = passenger.request != null
-	if passenger.request:
-		_set_text(button, passenger.request.serve_label)
+	if passenger.request and button.text != passenger.request.serve_label:
+		button.text = passenger.request.serve_label
 
 
 func _destination_name() -> String:
@@ -72,9 +73,9 @@ func _destination_name() -> String:
 
 
 # Sets text only when it changes, since this runs every frame.
-func _set_text(control: Control, text: String) -> void:
-	if control.get(&"text") != text:
-		control.set(&"text", text)
+func _set_text(label: Label, text: String) -> void:
+	if label.text != text:
+		label.text = text
 
 
 func _on_serve_button_pressed() -> void:

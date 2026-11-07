@@ -1,3 +1,4 @@
+class_name CameraRig
 extends Node3D
 ## An RTS camera. WASD, the arrow keys or the pointer at a window edge pan it across the
 ## orbit plane, and the mouse wheel zooms it toward the point under the pointer. This node

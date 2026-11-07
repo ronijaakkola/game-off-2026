@@ -29,9 +29,9 @@ func after_test() -> void:
 
 func test_forward_key_pans_away_from_the_camera_and_stops_at_the_edge() -> void:
 	var runner := scene_runner(SCENE)
-	var rig := runner.scene() as Node3D
-	rig.set(&"bounds_radius", 3.0)
-	rig.set(&"smoothing", 1000.0)
+	var rig := runner.scene() as CameraRig
+	rig.bounds_radius = 3.0
+	rig.smoothing = 1000.0
 
 	_hold(KEY_W)
 	await runner.simulate_frames(10, FRAME_MS)
@@ -45,10 +45,10 @@ func test_forward_key_pans_away_from_the_camera_and_stops_at_the_edge() -> void:
 
 func test_wheel_zooms_between_the_limits() -> void:
 	var runner := scene_runner(SCENE)
-	var rig := runner.scene() as Node3D
-	rig.set(&"min_distance", 10.0)
-	rig.set(&"max_distance", 50.0)
-	rig.set(&"smoothing", 1000.0)
+	var rig := runner.scene() as CameraRig
+	rig.min_distance = 10.0
+	rig.max_distance = 50.0
+	rig.smoothing = 1000.0
 	var shot := runner.find_child("Shot") as Node3D
 
 	for i: int in 40:
@@ -64,9 +64,9 @@ func test_wheel_zooms_between_the_limits() -> void:
 
 func test_wheel_zooms_toward_what_is_under_the_pointer_even_mid_zoom() -> void:
 	var runner := scene_runner(SOLAR_SYSTEM)
-	var rig := runner.find_child("CameraRig") as Node3D
+	var rig := runner.find_child("CameraRig") as CameraRig
 	# Eased, so the second burst lands while the camera is still on its way.
-	rig.set(&"smoothing", 20.0)
+	rig.smoothing = 20.0
 	var camera := runner.find_child("Camera") as Camera3D
 	await runner.simulate_frames(2, FRAME_MS)
 	var start_distance := camera.global_position.distance_to(rig.global_position)
@@ -89,8 +89,8 @@ func test_wheel_zooms_toward_what_is_under_the_pointer_even_mid_zoom() -> void:
 
 func test_pointer_at_an_edge_pans_until_it_leaves_the_window() -> void:
 	var runner := scene_runner(SCENE)
-	var rig := runner.scene() as Node3D
-	rig.set(&"smoothing", 1000.0)
+	var rig := runner.scene() as CameraRig
+	rig.smoothing = 1000.0
 	var rect := rig.get_viewport().get_visible_rect()
 
 	_send_motion(Vector2(rect.end.x - 2.0, rect.get_center().y))

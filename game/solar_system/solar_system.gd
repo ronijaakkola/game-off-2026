@@ -71,7 +71,7 @@ func _start_passengers() -> void:
 	waiting.set_planets(_planets)
 	bus.docked.connect(_on_bus_docked)
 	var cabin := %Cabin as Cabin
-	%PassengerPanel.set(&"cabin", cabin)
+	(%PassengerPanel as PassengerPanel).cabin = cabin
 	var home := bus.get_docked_planet()
 	if home:
 		var first := waiting.create(home)
