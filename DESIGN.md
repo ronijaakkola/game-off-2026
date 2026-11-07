@@ -23,7 +23,7 @@ A passenger's patience holds until the bus leaves the planet they boarded at, th
 
 Each passenger on board has a card down the left edge of the screen: name, type, destination (a small flat icon of the planet and its name), a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"), starting with "Finding their seat..." for a few seconds after boarding. Built in `game/passengers/`, and running in the solar system:
 
-- **Waiting and boarding (first phase).** Each planet, the Moon included, gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random. They are hidden for now and lose no patience while they wait. Whenever the bus docks at a planet, it makes a stop there: the passengers going there get off one at a time and pay, then those waiting board one at a time, longest waiting first, while any of the 4 seats are free. Each takes 0.6 s, so a busy stop takes longer and an empty one none. The drive can't charge until the stop is over: a course set during it charges once the last passenger is on. A passenger getting off pays by the mood they arrived in. Their card slides out past the left edge of the screen and the cards below move up into the gap; one boarding slides in at the bottom from past the left edge. The game starts with one passenger on board at Ember.
+- **Waiting and boarding (first phase).** Each planet, the Moon included, gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random. They show in the open planet's panel (Controls) and lose no patience while they wait. Whenever the bus docks at a planet, it makes a stop there: the passengers going there get off one at a time and pay, then those waiting board one at a time, longest waiting first, while any of the 4 seats are free. Each takes 0.6 s, so a busy stop takes longer and an empty one none. The drive can't charge until the stop is over: a course set during it charges once the last passenger is on. A passenger getting off pays by the mood they arrived in. Their card slides out past the left edge of the screen and the cards below move up into the gap; one boarding slides in at the bottom from past the left edge. The game starts with one passenger on board at Ember.
 - **Trip time and fare** come from the straight distance at boarding: the trip time is the charge plus that distance at the bus's top speed, and the fare is 3 credits per unit times the type's multiplier. Planets move, so it is only an estimate.
 - **Credits** show in the top right. Payments at a stop collect in a green gain just under the total ("+15"): with each one it pops bigger for a moment and shows the new sum. Once everyone going there is off, after a short delay the total counts up to include it one credit at a time, while the gain fades out drifting upward.
 - **Bus status** shows in the bottom right (`game/bus/bus_status_panel.tscn`): what the bus is doing ("Docked at Terra", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to waypoint", "Stopping", "Holding in space"), a track from the planet it left (or "Space") to the next planet on the route with the time left to it, and a person for each seat, filled while taken, with the count ("3/4 seats"). Docking is the braking at the end of a flight to a planet. The time left is an estimate from the distance now: the charge left, the route's straight legs at top speed, speeding up and braking. The track never moves back, so a planet that moves away slows it instead. While the bus charges or flies, a button cancels the course: "Cancel" keeps a charging bus docked, and "Cancel route" slows a flying one to a stop in space.
@@ -64,9 +64,9 @@ Planned for the core loop, not built yet:
 
 | Input | Action |
 |---|---|
-| Left click a planet | Open its panel: the fuel cost and time to get there, and who is waiting |
-| Left click empty space | Close the open panel |
 | Left click a waiting passenger | Pick them up |
+
+The open planet's panel will also show the fuel cost and time to get there.
 
 Esc stays pause only. In browser fullscreen the browser takes Esc to leave fullscreen and the game never sees it, so Esc can't close a panel the same way in a window and in fullscreen.
 
@@ -74,7 +74,10 @@ Built, in the solar system, which Play opens:
 
 | Input | Action |
 |---|---|
-| Pointer over a planet | Shows a white border round it (over its orange route border) |
+| Pointer over a planet | Shows a white border round it (over its orange route border). Over the HUD, the pointer picks nothing |
+| Left click a planet | Open it (below). Opening another planet while one is open moves on to it |
+| Left click the open planet, or empty space | Close it |
+| The planet panel's Close button | Close it |
 | Right click a planet | Add it to the end of the route |
 | Right click empty space | Add that point on the orbit plane to the end of the route |
 | Right click the last stop | Remove it from the route. Only the last one: right-clicking a stop in the middle adds it again, so a route can come back to a planet. With no stop left, the course is cancelled |
@@ -86,6 +89,8 @@ Built, in the solar system, which Play opens:
 | Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
 
 The bus flies on the orbit plane at 1.2 units a second, a little faster than the mockup's trip times: a planet orbits at under 40 % of the bus's speed, so the bus catches one without a long chase. Docked, it floats beside its planet (a barely visible bob and sway) and moves with it. Leaving a planet charges the drive first: a white ring round the bus fills clockwise (temporary), and the bus shakes slightly, unless Reduce motion is on. While it charges, the bus turns toward its next stop, so it leaves already facing it, and speeds up as it goes. It passes through points in space, docks at every planet on the route and charges again before leaving each one, and holds still at a point in space that ends the route. A planet stop is the planet's near side, so the bus chases a moving planet. Right-clicking the planet it is docked at adds it as the last stop, so a route can end where it started; with no route, it does nothing. Until the player first sets a course, a hint at the bottom of the screen says how: "Right-click planets or space to add stops. Backspace clears the route." The route is a flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border, so planets read as part of the route. Under the pointer, the last stop's diamond turns white, as a planet's border does, and right-clicking it removes it. Diamonds earlier on the route stay orange.
+
+**Opening a planet.** The camera blends in to the planet, from the same angle, and follows it along its orbit. A bigger planet fills more of the screen's height, from about a third for the Moon to half for the Giant, so sizes still compare; and the camera stays far enough back that rings fit across the space beside the panel. The rings are why the Giant can't come closer: they are 2.2 times its radius. It sits in the middle of the space left of the panel, which slides in down the right side of the screen in step with the camera, arriving as the zoom completes (`game/solar_system/planet_panel.tscn`): the planet's icon and name, and a row for each passenger waiting there, longest waiting first, with their name, type, destination and fare, kept up to date as they arrive and board. The panel covers the credits and the bus status while open, and the course hint hides. The planets' names fade out, and the open planet's white hover border fades out and stays off while it is open, so nothing sits on the close-up; both fade back in when it closes. Pan and zoom do nothing while a planet is open; closing it blends the camera back to where it was. Right click still sets the course as usual.
 
 WASD reads physical key positions, so it sits in the same place on every keyboard layout. Edge pan starts only once the pointer has moved inside the game, and stops when it leaves the window or the window loses focus, so a pointer that left through an edge doesn't keep the camera moving. In the example game scene, a left click on the board or a piece's top places a piece.
 
@@ -101,7 +106,7 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 - **Example game** (`game/game.tscn`): no longer reached from the menu; its tests still load it. The camera with one Phantom Camera shot (`BoardShot`), one shadowed sun, the soft-look environment, the board, and the HUD (`game/hud.tscn`) with the placed count. Placing a piece emits `Events.piece_placed`, and the HUD listens. Placing a piece calls `Feedback.shake`, which does nothing when Reduce motion is on. It instances the pause menu.
 - **Pause menu** (`ui/pause_menu/`): Resume, Settings, Main menu. Pauses the tree; music keeps playing. Also opens when the player leaves browser fullscreen.
 - **Settings panel** (`ui/settings/`): Master, Music and SFX volume, and Reduce motion. Shared by the main menu and the pause menu.
-- **Solar system** (`game/solar_system/`): what Play opens. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky` with parallax on (its star and fog layers drift slightly as the camera moves, and hold still under Reduce motion), seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. The scene's script turns the pointer into planet hover and course clicks for the bus (`game/bus/bus.tscn`), which starts docked at Ember. It also runs the passengers (a `Cabin`, `WaitingPassengers`, and the HUD with the passenger cards and credits). It instances the pause menu.
+- **Solar system** (`game/solar_system/`): what Play opens. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky` with parallax on (its star and fog layers drift slightly as the camera moves, and hold still under Reduce motion), seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. The scene's script turns the pointer into planet hover, opening planets and course clicks for the bus (`game/bus/bus.tscn`), which starts docked at Ember. It also runs the passengers (a `Cabin`, `WaitingPassengers`, and the HUD with the passenger cards and credits). It instances the pause menu.
 
 Scene changes go through `SceneFlow.go_to`, which fades to black and back.
 
@@ -123,6 +128,7 @@ Features we will very probably build, but that need more design work first.
 - **Happiness score.** What it measures. One option: the average mood of the passengers on board, with the 20 s countdown paused when the bus is empty, so a bus full of furious passengers is the losing state.
 - **Tow.** What it costs, how fast it is, and what happens when the player can't afford it.
 - **Fuel shown for a free point and for waypoints.** Whether the route line shows the total fuel and time like a planet does.
+- **Passenger cards while a planet is open.** They stay down the left edge and can cover part of the open planet. Hide them, shrink them, or leave them?
 - **Seats and waiting passengers.** The prototype had 4 seats and up to 3 waiting per planet; keep them until playtests say otherwise.
 
 ## Online

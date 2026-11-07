@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Passengers in the solar system, and the clicks that set the bus's course. One passenger
 ## is on board at the start, and docking lets off those going there and takes on those
-## waiting.
+## waiting. Opening a planet is in planet_panel_test.gd.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 

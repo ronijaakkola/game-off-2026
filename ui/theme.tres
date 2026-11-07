@@ -17,6 +17,28 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sheet"]
+content_margin_left = 20.0
+content_margin_top = 16.0
+content_margin_right = 20.0
+content_margin_bottom = 16.0
+bg_color = Color(0.2, 0.16, 0.32, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_row"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 1, 1, 0.06)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [resource]
 default_font_size = 24
 BlackPanel/base_type = &"PanelContainer"
@@ -37,3 +59,9 @@ TinyLabel/base_type = &"Label"
 TinyLabel/font_sizes/font_size = 12
 SmallButton/base_type = &"Button"
 SmallButton/font_sizes/font_size = 12
+SheetPanel/base_type = &"PanelContainer"
+SheetPanel/styles/panel = SubResource("StyleBoxFlat_sheet")
+RowPanel/base_type = &"PanelContainer"
+RowPanel/styles/panel = SubResource("StyleBoxFlat_row")
+HeadingLabel/base_type = &"Label"
+HeadingLabel/font_sizes/font_size = 32

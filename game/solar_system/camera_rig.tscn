@@ -6,6 +6,8 @@
 
 [sub_resource type="Resource" id="Resource_tween"]
 script = ExtResource("3_tween")
+duration = 0.7
+transition = 7
 
 [node name="CameraRig" type="Node3D" unique_id=906935748]
 transform = Transform3D(0.939693, -0.210569, 0.269516, 0, 0.788011, 0.615661, -0.34202, -0.578533, 0.740488, 0, 0, 0)
@@ -15,5 +17,14 @@ script = ExtResource("1_rig")
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
 script = ExtResource("2_pcam")
+priority = 1
+tween_resource = SubResource("Resource_tween")
+tween_on_load = false
+
+[node name="FocusShot" type="Node3D" parent="." unique_id=2035962143]
+unique_name_in_owner = true
+top_level = true
+script = ExtResource("2_pcam")
+follow_mode = 2
 tween_resource = SubResource("Resource_tween")
 tween_on_load = false
