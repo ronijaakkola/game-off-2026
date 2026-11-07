@@ -32,10 +32,11 @@ var reduce_motion := false:
 		_queue_save()
 
 var _loaded := false
-var _save_timer := Timer.new()
+var _save_timer: Timer
 
 
 func _ready() -> void:
+	_save_timer = Timer.new()
 	_save_timer.one_shot = true
 	_save_timer.wait_time = SAVE_DELAY
 	# Settings change in the pause menu, and a hit-stop may slow time.

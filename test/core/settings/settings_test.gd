@@ -18,19 +18,22 @@ func after() -> void:
 		Settings.set(key, Settings.get(key))
 
 
+# Compares with the defaults the script declares, read from an instance that never loaded,
+# so tuning a default changes no test.
 func test_defaults_without_a_saved_file() -> void:
+	var declared_defaults: SettingsScript = auto_free(SettingsScript.new())
 	var settings := _new_session()
-	assert_float(settings.master_volume).is_equal_approx(0.8, 0.001)
-	assert_float(settings.music_volume).is_equal_approx(0.6, 0.001)
-	assert_float(settings.sfx_volume).is_equal_approx(0.8, 0.001)
-	assert_bool(settings.reduce_motion).is_false()
+	for setting: String in settings.get_names():
+		var declared: Variant = declared_defaults.get(setting)
+		var message := "%s isn't its declared default without a saved file" % setting
+		assert_that(settings.get(setting)).override_failure_message(message).is_equal(declared)
 
 
 func test_defaults_reach_the_buses() -> void:
-	_new_session()
-	assert_float(Audio.get_volume(Audio.Bus.MASTER)).is_equal_approx(0.8, 0.001)
-	assert_float(Audio.get_volume(Audio.Bus.MUSIC)).is_equal_approx(0.6, 0.001)
-	assert_float(Audio.get_volume(Audio.Bus.SFX)).is_equal_approx(0.8, 0.001)
+	var settings := _new_session()
+	assert_float(Audio.get_volume(Audio.Bus.MASTER)).is_equal_approx(settings.master_volume, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.MUSIC)).is_equal_approx(settings.music_volume, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.SFX)).is_equal_approx(settings.sfx_volume, 0.001)
 
 
 func test_every_public_var_is_a_setting() -> void:
@@ -51,10 +54,15 @@ func test_each_setting_lasts_into_the_next_session() -> void:
 		assert_that(_new_session().get(setting)).override_failure_message(message).is_equal(changed)
 
 
-func test_volume_change_reaches_its_bus() -> void:
+# A different value for each, so a setter that sets another setting's bus fails here.
+func test_each_volume_reaches_its_own_bus() -> void:
 	var settings := _new_session()
-	settings.music_volume = 0.3
-	assert_float(Audio.get_volume(Audio.Bus.MUSIC)).is_equal_approx(0.3, 0.001)
+	settings.master_volume = 0.1
+	settings.music_volume = 0.2
+	settings.sfx_volume = 0.3
+	assert_float(Audio.get_volume(Audio.Bus.MASTER)).is_equal_approx(0.1, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.MUSIC)).is_equal_approx(0.2, 0.001)
+	assert_float(Audio.get_volume(Audio.Bus.SFX)).is_equal_approx(0.3, 0.001)
 
 
 func test_a_burst_of_changes_saves_once_it_stops() -> void:
