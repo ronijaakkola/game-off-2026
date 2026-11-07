@@ -47,6 +47,15 @@ func test_a_course_from_a_planet_charges_then_flies_and_docks() -> void:
 	assert_array(_bus.get_route_planets()).is_empty()
 
 
+func test_the_bus_turns_toward_its_next_stop_while_charging() -> void:
+	var behind := _planet(_home.get_parent() as Node3D, Vector3(-6.0, 0.0, 0.0))
+	_bus.plot_course(RouteStop.at_planet(behind))
+	_step_for(_bus.charge_time - 0.5)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	var to_stop := (behind.global_position - _bus.global_position) * Vector3(1.0, 0.0, 1.0)
+	assert_float(_bus._forward().dot(to_stop.normalized())).is_greater(0.99)
+
+
 func test_each_planet_on_the_route_docks_and_charges_again() -> void:
 	var docked_at: Array[Planet] = []
 	_bus.docked.connect(func(planet: Planet) -> void: docked_at.append(planet))

@@ -1,11 +1,11 @@
 class_name FrameshiftBus
 extends Node3D
 ## The Frameshift Bus. Docked, it floats beside its planet and moves with it. Leaving a
-## planet first charges the frameshift drive for [member charge_time], then the bus turns
-## toward its next stop and flies there. It passes through points in space and docks at
-## every planet on its route, charging again before it leaves each one, and holds still at
-## a point in space that ends the route. A new course in flight or in space starts at once,
-## with no charge.
+## planet first charges the frameshift drive for [member charge_time], turning the bus
+## toward its next stop while it charges, then it flies there. It passes through points in
+## space and docks at every planet on its route, charging again before it leaves each one,
+## and holds still at a point in space that ends the route. A new course in flight or in
+## space starts at once, with no charge.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 ## The bus docked at [param planet] after flying there: the end of its route, or a
@@ -198,6 +198,7 @@ func _process(delta: float) -> void:
 			_follow_dock(delta)
 		State.CHARGING:
 			_follow_dock(delta)
+			_face_next_stop(delta)
 			_charge_left -= delta
 			if _charge_left <= 0.0:
 				_undock()
@@ -229,9 +230,7 @@ func _fly(delta: float) -> void:
 		if stop.planet or last:
 			_arrive(stop)
 		return
-	var previous := rotation.y
-	rotation.y = rotate_toward(rotation.y, atan2(to_target.x, to_target.z), turn_speed * delta)
-	_turn_rate = angle_difference(previous, rotation.y) / delta
+	_turn_toward(to_target, delta)
 	# Slow to a crawl while facing away, so the bus turns toward a stop behind it rather
 	# than circling it.
 	var facing := maxf(_forward().dot(to_target / distance), 0.0)
@@ -241,6 +240,21 @@ func _fly(delta: float) -> void:
 		limit = minf(limit, sqrt(2.0 * acceleration * distance))
 	_speed = move_toward(_speed, limit * facing * facing, acceleration * delta)
 	global_position += _forward() * minf(_speed * delta, distance)
+
+
+# While charging, so the bus leaves the planet already facing where it goes.
+func _face_next_stop(delta: float) -> void:
+	if _route.is_empty():
+		return
+	var to_target := _flat(_stop_position(_route[0], global_position) - global_position)
+	if to_target.length_squared() > 1e-6:
+		_turn_toward(to_target, delta)
+
+
+func _turn_toward(direction: Vector3, delta: float) -> void:
+	var previous := rotation.y
+	rotation.y = rotate_toward(rotation.y, atan2(direction.x, direction.z), turn_speed * delta)
+	_turn_rate = angle_difference(previous, rotation.y) / delta
 
 
 func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
