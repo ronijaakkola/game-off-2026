@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dbexovw5obyax"]
+
+[ext_resource type="Script" uid="uid://bxjw01o5x1fj8" path="res://game/solar_system/credits_counter.gd" id="1_counter"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="CreditsCounter" type="MarginContainer" unique_id=15544917]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 40.0
+grow_horizontal = 0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+script = ExtResource("1_counter")
+
+[node name="Rows" type="VBoxContainer" parent="." unique_id=183628487]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="TotalLabel" type="Label" parent="Rows" unique_id=1751940342]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 credits"
+horizontal_alignment = 2
+
+[node name="GainSlot" type="Control" parent="Rows" unique_id=399299186]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="GainLabel" type="Label" parent="Rows/GainSlot" unique_id=758914984]
+unique_name_in_owner = true
+layout_mode = 0
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.55, 0.85, 0.4, 1)
+text = "+0"
+horizontal_alignment = 2

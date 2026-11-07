@@ -5,9 +5,10 @@ extends Node3D
 ## stop when the click is on it. Left click is left
 ## free for selecting things. Planets on the route show an orange border. A hint at the
 ## bottom says how to set a course until the player first sets one.
-## It also runs the passengers: every time the bus docks, the passengers going to that
-## planet get off and pay, and those waiting there board while seats are free. The game
-## starts with one passenger on board.
+## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
+## where the passengers going to that planet get off one by one and pay, and those waiting
+## there board one by one while seats are free. The bus can't charge until the stop is
+## over. The game starts with one passenger on board.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -21,7 +22,6 @@ const LABEL_GAP_PIXELS := 0.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 
 var _planets: Array[Planet] = []
-var _credits := 0
 
 
 func _ready() -> void:
@@ -75,26 +75,29 @@ func _start_passengers() -> void:
 	waiting.set_planets(_planets)
 	bus.docked.connect(_on_bus_docked)
 	var cabin := %Cabin as Cabin
-	(%PassengerPanel as PassengerPanel).cabin = cabin
+	cabin.delivered.connect(_on_delivered)
+	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
+	cabin.stop_finished.connect(_on_stop_finished)
 	var home := bus.get_docked_planet()
 	if home:
 		var first := waiting.create(home)
 		if first:
 			cabin.board(first)
-	_show_credits()
+	# After the first passenger boards, so their card is there from the start.
+	(%PassengerPanel as PassengerPanel).cabin = cabin
 
 
 func _on_bus_docked(planet: Planet) -> void:
-	var cabin := %Cabin as Cabin
-	_credits += cabin.arrive_at(planet)
-	var free := cabin.seats - cabin.get_passengers().size()
-	for passenger: Passenger in (%WaitingPassengers as WaitingPassengers).take(planet, free):
-		cabin.board(passenger)
-	_show_credits()
+	(%Bus as FrameshiftBus).boarding = true
+	(%Cabin as Cabin).stop_at(planet, %WaitingPassengers as WaitingPassengers)
 
 
-func _show_credits() -> void:
-	(%CreditsLabel as Label).text = "%d credits" % _credits
+func _on_delivered(_passenger: Passenger, payout: int) -> void:
+	(%CreditsCounter as CreditsCounter).add(payout)
+
+
+func _on_stop_finished() -> void:
+	(%Bus as FrameshiftBus).boarding = false
 
 
 # The stop under screen_point: a planet, else the point on the orbit plane. Null when the

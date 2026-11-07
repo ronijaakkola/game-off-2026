@@ -47,6 +47,15 @@ func test_a_course_from_a_planet_charges_then_flies_and_docks() -> void:
 	assert_array(_bus.get_route_planets()).is_empty()
 
 
+func test_the_bus_turns_toward_its_next_stop_while_charging() -> void:
+	var behind := _planet(_home.get_parent() as Node3D, Vector3(-6.0, 0.0, 0.0))
+	_bus.plot_course(RouteStop.at_planet(behind))
+	_step_for(_bus.charge_time - 0.5)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	var to_stop := (behind.global_position - _bus.global_position) * Vector3(1.0, 0.0, 1.0)
+	assert_float(_bus._forward().dot(to_stop.normalized())).is_greater(0.99)
+
+
 func test_each_planet_on_the_route_docks_and_charges_again() -> void:
 	var docked_at: Array[Planet] = []
 	_bus.docked.connect(func(planet: Planet) -> void: docked_at.append(planet))
@@ -60,6 +69,32 @@ func test_each_planet_on_the_route_docks_and_charges_again() -> void:
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_far)
 	assert_array(docked_at).contains_exactly([_near, _far])
+
+
+func test_a_course_set_while_boarding_charges_once_boarding_is_done() -> void:
+	_bus.boarding = true
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(_bus.charge_time + 1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+
+	_bus.boarding = false
+
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+
+
+func test_boarding_set_on_docking_holds_the_charge_to_the_next_stop() -> void:
+	_bus.docked.connect(func(_planet: Planet) -> void: _bus.boarding = true)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.plot_course(RouteStop.at_planet(_far), true)
+	assert_bool(_step_until_docked()).is_true()
+	assert_object(_bus.get_docked_planet()).is_same(_near)
+	_step_for(_bus.charge_time + 1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+
+	_bus.boarding = false
+
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 
 func test_removing_the_last_stop_keeps_the_rest() -> void:

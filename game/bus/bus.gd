@@ -1,15 +1,16 @@
 class_name FrameshiftBus
 extends Node3D
 ## The Frameshift Bus. Docked, it floats beside its planet and moves with it. Leaving a
-## planet first charges the frameshift drive for [member charge_time], then the bus turns
-## toward its next stop and flies there. It passes through points in space and docks at
-## every planet on its route, charging again before it leaves each one, and holds still at
-## a point in space that ends the route. A new course in flight or in space starts at once,
-## with no charge.
+## planet first charges the frameshift drive for [member charge_time], turning the bus
+## toward its next stop while it charges, then it flies there. It passes through points in
+## space and docks at every planet on its route, charging again before it leaves each one,
+## and holds still at a point in space that ends the route. A new course in flight or in
+## space starts at once, with no charge.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 ## The bus docked at [param planet] after flying there: the end of its route, or a
-## planet stop on it. Not emitted for [member start_planet].
+## planet stop on it. Not emitted for [member start_planet]. Emitted before the drive
+## charges for the next stop, so a listener can set [member boarding] first.
 signal docked(planet: Planet)
 
 enum State { DOCKED, CHARGING, FLYING, HOLDING }
@@ -50,6 +51,14 @@ const BANK := 0.12
 @export_range(0.0, 0.5, 0.005) var charge_shake := 0.012
 
 var state := State.HOLDING
+## Whether passengers are getting off or on. While they are, a docked bus doesn't charge:
+## a course set meanwhile charges once they are done. The scene that runs the passengers
+## sets it.
+var boarding := false:
+	set(value):
+		boarding = value
+		if not boarding and state == State.DOCKED and not _route.is_empty():
+			_start_charge()
 
 var _route: Array[RouteStop] = []
 var _dock_planet: Planet
@@ -198,6 +207,7 @@ func _process(delta: float) -> void:
 			_follow_dock(delta)
 		State.CHARGING:
 			_follow_dock(delta)
+			_face_next_stop(delta)
 			_charge_left -= delta
 			if _charge_left <= 0.0:
 				_undock()
@@ -229,9 +239,7 @@ func _fly(delta: float) -> void:
 		if stop.planet or last:
 			_arrive(stop)
 		return
-	var previous := rotation.y
-	rotation.y = rotate_toward(rotation.y, atan2(to_target.x, to_target.z), turn_speed * delta)
-	_turn_rate = angle_difference(previous, rotation.y) / delta
+	_turn_toward(to_target, delta)
 	# Slow to a crawl while facing away, so the bus turns toward a stop behind it rather
 	# than circling it.
 	var facing := maxf(_forward().dot(to_target / distance), 0.0)
@@ -241,6 +249,21 @@ func _fly(delta: float) -> void:
 		limit = minf(limit, sqrt(2.0 * acceleration * distance))
 	_speed = move_toward(_speed, limit * facing * facing, acceleration * delta)
 	global_position += _forward() * minf(_speed * delta, distance)
+
+
+# While charging, so the bus leaves the planet already facing where it goes.
+func _face_next_stop(delta: float) -> void:
+	if _route.is_empty():
+		return
+	var to_target := _flat(_stop_position(_route[0], global_position) - global_position)
+	if to_target.length_squared() > 1e-6:
+		_turn_toward(to_target, delta)
+
+
+func _turn_toward(direction: Vector3, delta: float) -> void:
+	var previous := rotation.y
+	rotation.y = rotate_toward(rotation.y, atan2(direction.x, direction.z), turn_speed * delta)
+	_turn_rate = angle_difference(previous, rotation.y) / delta
 
 
 func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
@@ -258,11 +281,12 @@ func _arrive(stop: RouteStop) -> void:
 		state = State.HOLDING
 		return
 	_dock(stop.planet, global_position - stop.planet.get_body_global_position())
-	if not _route.is_empty():
-		_start_charge()
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
+	# Before charging, so a listener can set boarding and hold the charge.
 	docked.emit(stop.planet)
+	if state == State.DOCKED and not _route.is_empty():
+		_start_charge()
 
 
 func _dock(planet: Planet, direction: Vector3) -> void:
@@ -272,7 +296,10 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 	state = State.DOCKED
 
 
+# Charges, unless passengers are boarding: then the bus stays docked until they are done.
 func _start_charge() -> void:
+	if boarding:
+		return
 	state = State.CHARGING
 	_charge_left = charge_time
 
