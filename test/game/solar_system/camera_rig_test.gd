@@ -87,6 +87,30 @@ func test_wheel_zooms_toward_what_is_under_the_pointer_even_mid_zoom() -> void:
 	assert_float(camera.unproject_position(under_pointer).distance_to(pointer)).is_less(1.0)
 
 
+func test_zooming_mid_pan_keeps_the_pan_going() -> void:
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	rig.edge_pan_margin = 0.0
+	# Room to pan for the whole test: the frames wait in real time, which runs longer.
+	rig.bounds_radius = 1000.0
+	var screen_right := Vector3(rig.basis.x.x, 0.0, rig.basis.x.z).normalized()
+	_hold(KEY_D)
+	await runner.simulate_frames(20, FRAME_MS)
+	var before := rig.position
+	await runner.simulate_frames(5, FRAME_MS)
+	var pan_before := (rig.position - before).dot(screen_right)
+
+	# At the screen's centre, so the zoom itself doesn't move the look-at point.
+	_send_wheel(MOUSE_BUTTON_WHEEL_UP)
+	before = rig.position
+	await runner.simulate_frames(5, FRAME_MS)
+	var pan_after := (rig.position - before).dot(screen_right)
+
+	assert_float(pan_before).is_greater(1.0)
+	# A notch zooms in by a share, and the pan slows with the zoom; no more than that.
+	assert_float(pan_after).is_greater(pan_before * (1.0 - rig.zoom_step))
+
+
 func test_pointer_at_an_edge_pans_until_it_leaves_the_window() -> void:
 	var runner := scene_runner(SCENE)
 	var rig := runner.scene() as CameraRig

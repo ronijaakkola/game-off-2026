@@ -6,7 +6,9 @@ extends Node3D
 ## %Shot, sits [member distance] back along that angle, and the scene's PhantomCameraHost
 ## moves the camera to it.
 ## The look-at point stays within [member bounds_radius] of the parent's origin, and the
-## zoom between [member min_distance] and [member max_distance]. Both ease to their target.
+## zoom between [member min_distance] and [member max_distance]. A zoom eases the look-at
+## point and the distance to their target; a pan eases its speed and moves the look-at point
+## and its target together, so zooming mid-pan doesn't hold the pan back.
 
 ## How far from the parent's origin the look-at point may go, on the orbit plane.
 @export_range(0.0, 200.0, 0.1, "or_greater") var bounds_radius := 20.0
@@ -28,6 +30,8 @@ extends Node3D
 
 var _target_position := Vector3.ZERO
 var _target_distance := 0.0
+# How fast the pan moves the look-at point, in the parent's space, per second.
+var _pan_velocity := Vector3.ZERO
 # Edge pan waits for the pointer to move inside the window: before that its position is
 # unknown, and after it leaves, the last position may sit on the edge it left through.
 var _pointer_inside := false
@@ -71,14 +75,15 @@ func _process(delta: float) -> void:
 		&"camera_pan_left", &"camera_pan_right", &"camera_pan_forward", &"camera_pan_back"
 	)
 	var input := (keys + _edge_pan_input()).limit_length(1.0)
-	if input != Vector2.ZERO:
-		# Screen right and screen down, laid flat on the orbit plane.
-		var right := Vector3(basis.x.x, 0.0, basis.x.z).normalized()
-		var back := Vector3(basis.z.x, 0.0, basis.z.z).normalized()
-		var step := (right * input.x + back * input.y) * pan_speed * _target_distance * delta
-		_target_position = _clamp_to_bounds(_target_position + step)
+	# Screen right and screen down, laid flat on the orbit plane.
+	var right := Vector3(basis.x.x, 0.0, basis.x.z).normalized()
+	var back := Vector3(basis.z.x, 0.0, basis.z.z).normalized()
+	var pan_target := (right * input.x + back * input.y) * pan_speed * distance
 	var weight := 1.0 - exp(-smoothing * delta)
-	position = position.lerp(_target_position, weight)
+	_pan_velocity = _pan_velocity.lerp(pan_target, weight)
+	var step := _pan_velocity * delta
+	_target_position = _clamp_to_bounds(_target_position + step)
+	position = _clamp_to_bounds(position + step).lerp(_target_position, weight)
 	distance = lerpf(distance, _target_distance, weight)
 	_place_shot()
 
