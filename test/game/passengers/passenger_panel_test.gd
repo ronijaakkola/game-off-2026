@@ -36,10 +36,10 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	# Done sliding in.
 	await runner.simulate_frames(30, 30)
 	cabin.stop_at(planet)
-	# It slides out to the right and folds away before it goes.
+	# It slides out to the left and folds away before it goes.
 	await runner.simulate_frames(5)
 	assert_int(cards.get_child_count()).is_equal(1)
-	assert_float((card.find_child("Panel") as Control).position.x).is_greater(0.0)
+	assert_float((card.find_child("Panel") as Control).position.x).is_less(0.0)
 	await runner.simulate_frames(30, 30)
 	assert_int(cards.get_child_count()).is_equal(0)
 

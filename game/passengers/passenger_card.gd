@@ -4,7 +4,7 @@ extends Control
 ## bar in their mood's colour, and what they are doing. While they ask for something, a
 ## button serves it. It only reads the passenger; the [Cabin] runs the ride.
 ## The card slides in from past the left edge of the screen when the passenger boards, and
-## out past the right edge when they get off, then folds its height away so the cards below it
+## back out past it when they get off, then folds its height away so the cards below it
 ## move up. The root is a slot that holds the card's place in the list, and the panel moves
 ## inside it.
 
@@ -13,9 +13,9 @@ signal serve_pressed
 ## The card has slid out and folded away after [method leave]. It can be freed.
 signal left
 
-## Seconds to slide in from past the left edge, and out past the right one.
+## Seconds to slide in from past the left edge of the screen, and back out past it.
 const SLIDE_IN_SECONDS := 0.4
-const SLIDE_OUT_SECONDS := 0.35
+const SLIDE_OUT_SECONDS := 0.3
 ## Seconds to fold the slot's height away once the card is out.
 const FOLD_SECONDS := 0.2
 
@@ -77,18 +77,17 @@ func slide_in() -> void:
 	)
 
 
-## Slides the card out past the right edge of the screen, then folds its height away, and
+## Slides the card out past the left edge of the screen, then folds its height away, and
 ## emits [signal left]. The serve button stops working at once.
 func leave() -> void:
 	if _motion:
 		_motion.kill()
 	var panel := %Panel as Control
 	(%ServeButton as Button).disabled = true
-	var gone := get_viewport_rect().size.x - global_position.x + 8.0
 	_motion = create_tween()
 	(
 		_motion
-		. tween_property(panel, ^"position:x", gone, SLIDE_OUT_SECONDS)
+		. tween_property(panel, ^"position:x", _off_left(), SLIDE_OUT_SECONDS)
 		. set_trans(Tween.TRANS_CUBIC)
 		. set_ease(Tween.EASE_IN)
 	)

@@ -2,7 +2,7 @@ class_name PassengerPanel
 extends MarginContainer
 ## The passenger cards down the left edge of the screen, one for each passenger in
 ## [member cabin], in the order they boarded. A passenger who boards slides in from the
-## left at the bottom, and one who gets off slides out to the right, while the cards below
+## left at the bottom, and one who gets off slides back out to the left, while the cards below
 ## move up to fill the gap.
 ## A card's serve button serves that passenger's request through the cabin.
 
