@@ -9,6 +9,9 @@ extends Node
 signal boarded(passenger: Passenger)
 ## [param passenger] got off at their destination and paid [param payout] credits.
 signal delivered(passenger: Passenger, payout: int)
+## Everyone getting off at the stop [method stop_at] started has got off, one step after
+## the last of them, and boarding starts. Emitted even when nobody got off.
+signal unloaded
 ## The stop [method stop_at] started is over: everyone going there got off, and those
 ## waiting got on.
 signal stop_finished
@@ -106,6 +109,7 @@ func _step() -> void:
 		return
 	if not _boarding_taken:
 		_boarding_taken = true
+		unloaded.emit()
 		if _stop_waiting:
 			var free := seats - _passengers.size()
 			_getting_on = _stop_waiting.take(_stop_planet, free)

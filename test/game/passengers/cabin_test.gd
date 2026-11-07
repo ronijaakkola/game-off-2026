@@ -50,6 +50,7 @@ func test_a_stop_lets_off_then_boards_one_at_a_time() -> void:
 	var events: Array[String] = []
 	_cabin.delivered.connect(func(_p: Passenger, _paid: int) -> void: events.append("off"))
 	_cabin.boarded.connect(func(_p: Passenger) -> void: events.append("on"))
+	_cabin.unloaded.connect(func() -> void: events.append("unloaded"))
 
 	_cabin.stop_at(_away, waiting)
 
@@ -60,7 +61,7 @@ func test_a_stop_lets_off_then_boards_one_at_a_time() -> void:
 	assert_array(events).contains_exactly(["off", "off"])
 	await assert_signal(_cabin).wait_until(2000).is_emitted("stop_finished")
 	# Two seats came free, so two of the three waiting boarded.
-	assert_array(events).contains_exactly(["off", "off", "on", "on"])
+	assert_array(events).contains_exactly(["off", "off", "unloaded", "on", "on"])
 	assert_int(_cabin.get_passengers().size()).is_equal(3)
 	assert_int(waiting.count_at(_away)).is_equal(1)
 	assert_bool(_cabin.is_stopping()).is_false()

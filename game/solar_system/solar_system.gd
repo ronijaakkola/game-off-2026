@@ -76,6 +76,7 @@ func _start_passengers() -> void:
 	bus.docked.connect(_on_bus_docked)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
+	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	var home := bus.get_docked_planet()
 	if home:

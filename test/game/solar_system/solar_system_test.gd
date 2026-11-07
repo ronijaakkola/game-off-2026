@@ -35,6 +35,10 @@ func test_docking_lets_them_off_and_pays_then_boards_before_the_bus_can_charge()
 	var counter := runner.find_child("CreditsCounter") as CreditsCounter
 	assert_int(counter.credits).is_equal(payout)
 	assert_str((runner.find_child("GainLabel") as Label).text).is_equal("+%d" % payout)
+	# Once they are off, the total counts up to include the fare.
+	await await_millis(1600)
+	var total := (runner.find_child("TotalLabel") as Label).text
+	assert_str(total).is_equal("%d credits" % payout)
 
 
 func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
