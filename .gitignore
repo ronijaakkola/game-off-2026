@@ -18,3 +18,12 @@ addons/gdUnit4/GdUnitRunner.cfg
 # The model library (art/models.blend and Blender's .blend1 backups) stays with the modeller
 /art/*
 !/art/.gdignore
+
+# Written by check.py capture --size for the duration of a capture
+/override.cfg
+
+# Scratch files: probes and throwaway scenes (CODING_STANDARDS.md, Assets)
+tmp_*
+tmp/
+!/addons/**/tmp_*
+!/addons/**/tmp/

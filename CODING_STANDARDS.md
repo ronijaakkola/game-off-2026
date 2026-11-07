@@ -146,6 +146,7 @@ Game cameras run on [Phantom Camera](https://phantom-camera.dev) (`addons/phanto
 - Set `tween_on_load` off on a scene's first shot. `SceneFlow`'s fade already hides the cut, and the load blend starts from wherever the camera happened to be.
 - Shake through `Feedback.shake`, never the plugin's noise (`noise` on a shot or a `PhantomCameraNoiseEmitter3D`): Feedback honours Reduce motion and the plugin's noise doesn't. Feedback owns the camera's `h_offset` and `v_offset`, so leave them at 0 on every shot and its `Camera3DResource`; the host only writes them when they differ between shots.
 - Cast picking rays from the `Camera3D` (`%Camera`), not the shot: the camera is where the player looks from, including mid-blend.
+- The host moves the camera in `_process` at `process_priority = 300`. Anything that places itself from the camera, such as UI that follows a planet through `unproject_position()`, sets a `process_priority` above 300, or it trails the camera by a frame and twitches when it pans.
 - The plugin's updater is off (`phantom_camera/updater/updater_mode=0`) so the pinned version stays pinned.
 
 ## Physics
@@ -165,7 +166,7 @@ Plugins have the same gap: enabling one from a script misses the settings the ed
 
 Each vendored plugin folder has a deny rule in `.claude/settings.json`, such as `Edit(/addons/talo/**)`, so agents can read it but not edit it. Vendoring a new plugin adds its rule in the same change. Upgrading a plugin is the human's job.
 
-After a visual change, capture the scene (`uv run tools/check.py capture <scene>`) and look at the frame. When a scene shows its look only with made-up state, such as the passenger cards with a full cabin, capture its preview: `test/previews/<scene>_preview.tscn` sets that state up and instances the real scene. Previews are for visual checks only, because a test runs headless and can't make a frame. Anything a test can set up and assert by itself, it does in the test: never add a preview for it. Add a preview only when a scene needs one to be looked at, keep it to setup so the frame shows the real scene, and give it one scene test in the real scene's suite that runs it and asserts the state it shows, so a preview that breaks fails `test`. When the change is about feel (the soft look, lighting, camera, motion), end the handoff with "Needs a visual check: `<scene>`". Tuning by eye in the editor is recommended, never required.
+After a visual change, capture the scene (`uv run tools/check.py capture <scene>`) and look at the frame. When a scene shows its look only with made-up state, such as the passenger cards with a full cabin, capture its preview: `test/previews/<scene>_preview.tscn` sets that state up and instances the real scene. A preview that can show several states (another planet, a later moment) reads which from `OS.get_cmdline_user_args()`, so `capture <preview> -- <args>` picks one without a copy of the preview. Previews are for visual checks only, because a test runs headless and can't make a frame. Anything a test can set up and assert by itself, it does in the test: never add a preview for it. Add a preview only when a scene needs one to be looked at, keep it to setup so the frame shows the real scene, and give it one scene test in the real scene's suite that runs it and asserts the state it shows, so a preview that breaks fails `test`. When the change is about feel (the soft look, lighting, camera, motion), end the handoff with "Needs a visual check: `<scene>`". Tuning by eye in the editor is recommended, never required.
 
 ## Saved files
 
@@ -182,7 +183,8 @@ A file in `user://` belongs to one script, which writes its path once, as a `con
 ## Assets
 
 - No Git LFS. Question or compress any single asset over about 10 MB.
-- Commit every `*.uid` and `*.import` file Godot creates next to your files.
+- Commit every `*.uid` and `*.import` file Godot creates next to your files, and delete a `.uid` with its file (`lint` fails on one left behind).
+- Name a scratch file, such as a probe script or a throwaway scene, `tmp_*`, or put it in a `tmp/` folder. Git ignores both, so it can't reach a commit.
 - To change how an asset imports, edit the value under `[params]` in its `.import` file, then run `uv run tools/check.py load`, which reimports it. Write the edit at least a second after the last import: Godot notices it by the file's modification time.
 
 ## Models

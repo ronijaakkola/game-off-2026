@@ -19,12 +19,12 @@ Run checks exactly as `uv run tools/check.py <command>`. That text is allowliste
 | `lint [files]` | Runs by itself after every edit to a `.gd`, `.tscn` or `.gdshader` file; fix what it reports. `format [files]` fixes what it reports as formatting. |
 | `load` | After editing scripts, scenes or resources. |
 | `ids [files]` | After writing a `.tscn` or `.tres` as text (the `edit-tscn` skill). Saves every one missing a `uid` or `unique_id` the way the editor does, so Godot assigns them; commit the result. `lint` fails until it runs. |
-| `test` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. |
+| `test [files] [--verbose]` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. Give suites or folders to run only those; `--verbose` shows the tests' `print()` lines. |
 | `smoke [scenes]` | After changes to anything that runs at startup. Runs every scene the game reaches, each on its own, the main scene first, or the ones given. |
-| `capture <scene>` | After any visual change. Then open the last frame it names and look at it. |
+| `capture <scene> [--size WxH] [--frames N] [-- args]` | After any visual change. Then open the last frame it names and look at it. `--size` scales the game as a browser window does (text and UI sharpness show only then); args after `--` reach the scene through `OS.get_cmdline_user_args()`. |
 | `evidence [frame]` | When a PR body needs a frame. Pushes the last capture frame, or the one given, to the `pr-evidence` branch and prints the image line to paste under Evidence. |
 | `api <query>` | Before using a Godot API you aren't sure exists in 4.7.2. `Class`, `Class.member`, or a word to search for. |
-| `all` | Before every handoff. Runs `lint`, `load`, `test` and `smoke`. |
+| `all` | Before every handoff. Runs `lint`, `load`, `test` and `smoke`, which takes over the Bash tool's default 2 minutes: give it `timeout: 600000`. |
 | `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. |
 
 ## Handoff
