@@ -1,30 +1,36 @@
 [gd_scene format=3 uid="uid://70b0mq875ago"]
 
-[ext_resource type="Script" uid="uid://wn0pxtmcj3pr" path="res://game/solar_system/boarding_popup.gd" id="1_popup"]
+[ext_resource type="Script" uid="uid://wn0pxtmcj3pr" path="res://game/solar_system/dock_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 
-[node name="BoardingPopup" type="PanelContainer" unique_id=1953939187]
+[node name="DockPanel" type="PanelContainer" unique_id=1953939187]
 visible = false
-offset_right = 240.0
+custom_minimum_size = Vector2(240, 0)
 theme = ExtResource("2_theme")
 theme_type_variation = &"CardPanel"
-script = ExtResource("1_popup")
+script = ExtResource("1_panel")
 
 [node name="Content" type="VBoxContainer" parent="." unique_id=1193597470]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Title" type="Label" parent="Content" unique_id=864290337]
+[node name="TitleLabel" type="Label" parent="Content" unique_id=864290337]
+unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.55)
-text = "Waiting here"
+theme_type_variation = &"SmallLabel"
+text = "Waiting at ?"
 
 [node name="Rows" type="VBoxContainer" parent="Content" unique_id=288850977]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_constants/separation = 4
+
+[node name="EmptyLabel" type="Label" parent="Content" unique_id=1285481172]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.45)
+text = "Nobody waiting."
 
 [node name="FullLabel" type="Label" parent="Content" unique_id=649371277]
 unique_name_in_owner = true

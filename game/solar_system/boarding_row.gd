@@ -1,9 +1,10 @@
 class_name BoardingRow
 extends PanelContainer
-## One passenger waiting at the planet the bus is docked at, as a row in the boarding
-## popup: where they are going (an icon of the planet and its name), their fare, and a
-## button that picks them up. It reads the passenger when [member passenger] is set; a
-## passenger's details don't change while they wait.
+## One passenger waiting at the planet the bus is docked at, as a row in the dock panel:
+## their portrait (a [PassengerPhoto]), their name with where they are going under it (an
+## icon of the planet and its name), their fare, and a button that picks them up. It reads
+## the passenger when [member passenger] is set; a passenger's details don't change while
+## they wait.
 
 ## The player pressed the button to pick up [member passenger].
 signal board_pressed(passenger: Passenger)
@@ -20,6 +21,8 @@ var can_board := true:
 		can_board = value
 		if is_node_ready():
 			(%BoardButton as Button).disabled = not can_board
+## Where the portrait is rendered. Set it before [member passenger].
+var portrait_studio: PortraitStudio
 
 
 func _ready() -> void:
@@ -30,6 +33,10 @@ func _ready() -> void:
 func _show() -> void:
 	if not passenger:
 		return
+	var photo := %PassengerPhoto as PassengerPhoto
+	photo.studio = portrait_studio
+	photo.passenger = passenger
+	(%NameLabel as Label).text = passenger.name
 	(%DestinationIcon as PlanetIcon).planet = passenger.destination
 	(%DestinationLabel as Label).text = "To %s" % _destination_name()
 	(%FareLabel as Label).text = "%d cr" % roundi(passenger.fare)

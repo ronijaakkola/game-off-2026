@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Passengers in the solar system, and the clicks that set the bus's course. One passenger
 ## is on board at the start, docking lets off those going there, and the player picks
-## up those waiting from the popup beside the docked planet. Opening a planet is in
+## up those waiting from the dock panel above the bus status. Opening a planet is in
 ## planet_panel_test.gd.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
@@ -43,7 +43,7 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	assert_str(total).is_equal("%d credits" % payout)
 
 
-func test_hovering_the_docked_planet_opens_the_popup_and_board_picks_up() -> void:
+func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
@@ -52,24 +52,16 @@ func test_hovering_the_docked_planet_opens_the_popup_and_board_picks_up() -> voi
 	waiting.add(ember)
 	var picked := waiting.get_waiting(ember)[0]
 	await runner.simulate_frames(3)
-	var popup := runner.find_child("BoardingPopup") as BoardingPopup
+	var panel := runner.find_child("DockPanel") as DockPanel
 	var markers := runner.find_child("WaitingMarkers") as WaitingMarkers
-	assert_bool(popup.visible).is_false()
+	assert_bool(panel.visible).is_true()
+	assert_str((panel.find_child("TitleLabel") as Label).text).is_equal("Waiting at Ember")
 	assert_bool(markers.is_shown(ember)).is_true()
 	assert_int(markers.count_at(ember)).is_equal(1)
-
-	_send_motion(_screen_point(runner, ember))
-	await runner.simulate_frames(2)
-	assert_bool(popup.visible).is_true()
-	assert_bool(markers.is_shown(ember)).is_false()
-	# It stays while the pointer is on it.
-	var camera := runner.find_child("Camera") as Camera3D
-	var button := popup.find_child("BoardButton", true, false) as Button
-	_send_motion(_to_window(camera, button.get_global_rect().get_center()))
-	await await_millis(500)
-	assert_bool(popup.visible).is_true()
 	var cabin := runner.find_child("Cabin") as Cabin
 	monitor_signals(cabin)
+	var camera := runner.find_child("Camera") as Camera3D
+	var button := panel.find_child("BoardButton", true, false) as Button
 
 	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
 
@@ -78,50 +70,26 @@ func test_hovering_the_docked_planet_opens_the_popup_and_board_picks_up() -> voi
 	assert_int(waiting.count_at(ember)).is_equal(0)
 	assert_int(markers.count_at(ember)).is_equal(0)
 	await runner.simulate_frames(1)
-	assert_bool(popup.visible).is_false()
+	assert_bool(panel.visible).is_true()
+	assert_bool((panel.find_child("EmptyLabel") as Control).visible).is_true()
 
 
-func test_the_popup_closes_a_moment_after_the_pointer_leaves() -> void:
+func test_the_dock_panel_hides_once_the_bus_leaves() -> void:
 	var runner := scene_runner(SCENE)
-	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
-	waiting.set_process(false)
-	var ember := (runner.find_child("Bus") as FrameshiftBus).get_docked_planet()
-	waiting.add(ember)
-	await runner.simulate_frames(3)
-	_send_motion(_screen_point(runner, ember))
 	await runner.simulate_frames(2)
-	var popup := runner.find_child("BoardingPopup") as BoardingPopup
-	assert_bool(popup.visible).is_true()
-
-	var camera := runner.find_child("Camera") as Camera3D
-	_send_motion(_to_window(camera, _between_screen_point(runner)))
-
-	await assert_func(popup, "is_visible").wait_until(2000).is_false()
-
-
-func test_the_popup_keeps_beside_its_planet_while_the_camera_pans() -> void:
-	var runner := scene_runner(SCENE)
-	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
-	waiting.set_process(false)
+	var panel := runner.find_child("DockPanel") as DockPanel
 	var bus := runner.find_child("Bus") as FrameshiftBus
-	var ember := bus.get_docked_planet()
-	waiting.add(ember)
-	await runner.simulate_frames(3)
-	_send_motion(_screen_point(runner, ember))
-	await runner.simulate_frames(2)
+	assert_bool(panel.visible).is_true()
 
-	Input.action_press(&"camera_pan_right")
-	await runner.simulate_frames(5)
-	Input.action_release(&"camera_pan_right")
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, runner.find_child("Terra") as Planet))
 
-	# Placed after the planets and the camera moved this frame, not from the frame before.
-	var camera := runner.find_child("Camera") as Camera3D
-	var edge := camera.unproject_position(
-		ember.get_body_global_position() + camera.global_basis.x * ember.get_body_radius()
-	)
-	var popup := runner.find_child("BoardingPopup") as BoardingPopup
-	assert_bool(popup.visible).is_true()
-	assert_float(popup.position.x).is_equal_approx(edge.x + BoardingPopup.GAP, 0.001)
+	# It stays while the drive charges, so the player can still pick passengers up.
+	await assert_func(bus, "get_charge_progress").wait_until(2000).is_not_equal(0.0)
+	await runner.simulate_frames(1)
+	assert_bool(panel.visible).is_true()
+	await assert_func(bus, "is_at_planet").wait_until(5000).is_false()
+	await runner.simulate_frames(1)
+	assert_bool(panel.visible).is_false()
 
 
 func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
