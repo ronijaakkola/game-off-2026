@@ -342,7 +342,7 @@ func _face_dock_side(delta: float) -> void:
 	var left := absf(angle_difference(rotation.y, _dock_heading()))
 	var step := minf(turn_speed * delta, left * (1.0 - exp(-DOCK_TURN_EASE * delta)))
 	rotation.y = rotate_toward(rotation.y, _dock_heading(), step)
-	_turn_rate = angle_difference(previous, rotation.y) / delta
+	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
 
 
 # The heading that puts the bus's left side, where its door is, toward its planet.
@@ -358,7 +358,7 @@ func _glide_speed() -> float:
 func _turn_toward(direction: Vector3, delta: float) -> void:
 	var previous := rotation.y
 	rotation.y = rotate_toward(rotation.y, atan2(direction.x, direction.z), turn_speed * delta)
-	_turn_rate = angle_difference(previous, rotation.y) / delta
+	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
 
 
 func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
