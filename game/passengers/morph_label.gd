@@ -5,7 +5,8 @@ extends Label
 ## focus just behind it, so each spot clears before its new letter lands. Letters both
 ## texts start with stay, sliding to their new place when the alignment moves them.
 ## Change the text with [method morph_to]; setting [member Label.text] still swaps it at
-## once. With Reduce motion on, it swaps too.
+## once. With Reduce motion on, nothing moves: the old letters fade out and the new ones
+## fade in where they stand, all together.
 ## While it morphs, [member Label.text] is already the new text, so layout and readers see
 ## it. The label's own drawing is hidden by [member CanvasItem.self_modulate], and the
 ## letters are drawn on a canvas item of its own, beneath it in the tree, so they keep the
@@ -44,6 +45,8 @@ var _kept := 0
 var _time := 0.0
 # Seconds the whole morph takes; 0 while not morphing.
 var _duration := 0.0
+# Whether this morph is a still crossfade, for Reduce motion.
+var _still := false
 # The canvas item the morph draws on, and the label's self modulate to give back after.
 var _canvas: RID
 var _self_modulate := Color.WHITE
@@ -75,12 +78,12 @@ func _process(delta: float) -> void:
 
 
 ## Morphs from the current text to [param new_text]. A morph already running restarts from
-## the text it was heading to. From an empty text, while hidden or with Reduce motion on,
-## the text swaps at once.
+## the text it was heading to. From an empty text, or while hidden, the text swaps at once.
+## With Reduce motion on when it starts, it crossfades instead.
 func morph_to(new_text: String) -> void:
 	if new_text == text:
 		return
-	if text.is_empty() or not is_visible_in_tree() or Settings.reduce_motion:
+	if text.is_empty() or not is_visible_in_tree():
 		_stop()
 		text = new_text
 		return
@@ -93,6 +96,7 @@ func morph_to(new_text: String) -> void:
 	_kept = _shared_start(_from, _to)
 	text = new_text
 	_time = 0.0
+	_still = Settings.reduce_motion
 	var widest := maxf(_from_width, _to_width)
 	_duration = arrive_delay + _wave_delay(widest, get_theme_font_size(&"font_size"))
 	_duration += arrive_seconds
@@ -133,26 +137,29 @@ func _draw_morph() -> void:
 	var font_size := get_theme_font_size(&"font_size")
 	var color := get_theme_color(&"font_color")
 	var baseline := _baseline()
-	var drift_px := drift * font_size
-	var smear_px := smear * font_size
+	var drift_px := 0.0 if _still else drift * font_size
+	var smear_px := 0.0 if _still else smear * font_size
 	var from_left := _left(_from_width)
 	var to_left := _left(_to_width)
-	var settle := _ease(clampf(_time / arrive_seconds, 0.0, 1.0))
+	var settle := 1.0 if _still else _ease(clampf(_time / arrive_seconds, 0.0, 1.0))
+	# Kept letters slide when the alignment moves them; a still crossfade can't slide them,
+	# so it fades the whole line instead.
+	var kept := 0 if _still and from_left != to_left else _kept
 	# The wave starts at the first letter that changes, in either text.
 	var wave_from := INF
 	for glyph: Dictionary in _from_glyphs:
-		if glyph.letter >= _kept:
+		if glyph.letter >= kept:
 			wave_from = minf(wave_from, from_left + glyph.x)
 			break
 	for glyph: Dictionary in _to_glyphs:
-		if glyph.letter >= _kept:
+		if glyph.letter >= kept:
 			wave_from = minf(wave_from, to_left + glyph.x)
 			break
 	# Kept letters slide from where the old text had them; both texts shape them alike.
 	var kept_shift := (from_left - to_left) * (1.0 - settle)
 	for glyph: Dictionary in _to_glyphs:
 		var x: float = to_left + glyph.x
-		if glyph.letter < _kept:
+		if glyph.letter < kept:
 			_draw_glyph(glyph, Vector2(x + kept_shift, baseline), color, 0.0)
 			continue
 		var shown := _ease(
@@ -162,7 +169,7 @@ func _draw_morph() -> void:
 		var at := Vector2(x, baseline + drift_px * (1.0 - shown))
 		_draw_glyph(glyph, at, arriving, smear_px * (1.0 - shown))
 	for glyph: Dictionary in _from_glyphs:
-		if glyph.letter < _kept:
+		if glyph.letter < kept:
 			continue
 		var x: float = from_left + glyph.x
 		var gone := _ease(_progress(_wave_delay(x - wave_from, font_size), leave_seconds))
@@ -185,6 +192,8 @@ func _progress(start: float, seconds: float) -> float:
 
 # Seconds the wave takes to travel [param distance] pixels at [param font_size].
 func _wave_delay(distance: float, font_size: int) -> float:
+	if _still:
+		return 0.0
 	return maxf(distance, 0.0) / (font_size * 0.5) * stagger_seconds
 
 

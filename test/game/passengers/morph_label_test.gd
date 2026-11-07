@@ -53,10 +53,12 @@ func test_from_an_empty_text_it_swaps_at_once() -> void:
 	assert_bool(_label.is_morphing()).is_false()
 
 
-func test_with_reduce_motion_it_swaps_at_once() -> void:
+func test_with_reduce_motion_it_crossfades_and_gives_the_label_back() -> void:
 	Settings.reduce_motion = true
 	_label.morph_to("Wants a drink")
 	assert_str(_label.text).is_equal("Wants a drink")
+	assert_bool(_label.is_morphing()).is_true()
+	_finish()
 	assert_bool(_label.is_morphing()).is_false()
 	assert_float(_label.self_modulate.a).is_equal(1.0)
 
