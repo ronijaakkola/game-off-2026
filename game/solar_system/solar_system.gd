@@ -9,7 +9,9 @@ extends Node3D
 ## how to set a course until the player first sets one, hidden while a planet is open.
 ## A left click on a planet opens it: the camera follows it on the left side of the screen
 ## and its panel opens on the right. A left click on the open planet or on empty space, or
-## the panel's close button, closes it, and the camera goes back to where it was.
+## the panel's close button, closes it, and the camera goes back to where it was. While a
+## planet is open, the planets' names fade out, and the open planet's white hover border
+## fades out and stays off; both fade back in when it closes.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one and pay, and those waiting
 ## there board one by one while seats are free. The bus can't charge until the stop is
@@ -25,8 +27,15 @@ const LABEL_PIXELS := 13.0
 ## The gap between a planet's lower edge on screen and its name, in pixels.
 const LABEL_GAP_PIXELS := 0.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
+## Seconds for the names and the open planet's hover border to fade out or back in.
+const FADE_SECONDS := 0.4
 
 var _planets: Array[Planet] = []
+# 1 with no planet open, 0 once one is open and the fade is done.
+var _fade := 1.0
+# The planet whose hover border fades: the open one, and after it closes, until the fade
+# is back to 1.
+var _faded_planet: Planet
 
 
 func _ready() -> void:
@@ -39,11 +48,13 @@ func _ready() -> void:
 	var panel := %PlanetPanel as PlanetPanel
 	panel.waiting = %WaitingPassengers as WaitingPassengers
 	panel.close_pressed.connect(close_planet)
+	panel.slide_in_seconds = (%CameraRig as CameraRig).get_focus_seconds()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
 	_place_labels()
+	_update_fade(delta)
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
 		rig.focus_screen_x = _focus_screen_x()
@@ -58,10 +69,13 @@ func _process(_delta: float) -> void:
 	bus.hovered_stop = marker if marker and marker == bus.get_last_stop() else null
 	var on_route := bus.get_route_planets()
 	for planet: Planet in _planets:
-		if planet == under:
+		var hover_opacity := _fade if planet == _faded_planet else 1.0
+		if planet == under and hover_opacity > 0.0:
 			planet.border = Planet.Border.HOVER
+			planet.border_opacity = hover_opacity
 		elif planet in on_route:
 			planet.border = Planet.Border.ROUTE
+			planet.border_opacity = 1.0
 		else:
 			planet.border = Planet.Border.NONE
 		if planet.border != Planet.Border.NONE:
@@ -125,14 +139,26 @@ func _select_at(screen_point: Vector2) -> void:
 	get_viewport().set_input_as_handled()
 
 
-# Where the open planet sits across the screen: halfway between the passenger cards on the
-# left and the planet's panel on the right.
+# Where the open planet sits across the screen: in the middle of the space left of its
+# panel.
 func _focus_screen_x() -> float:
-	var left := (%PassengerPanel as Control).get_combined_minimum_size().x
-	var right := (
+	var space := (
 		get_viewport().get_visible_rect().size.x - (%PlanetPanel as PlanetPanel).get_width()
 	)
-	return (left + right) * 0.5
+	return space * 0.5
+
+
+# Fades the names, and the open planet's hover border, out while a planet is open and back
+# in after.
+func _update_fade(delta: float) -> void:
+	var open := get_open_planet()
+	if open:
+		_faded_planet = open
+	_fade = move_toward(_fade, 0.0 if open else 1.0, delta / FADE_SECONDS)
+	if _fade >= 1.0:
+		_faded_planet = null
+	for planet: Planet in _planets:
+		planet.label_opacity = _fade
 
 
 func _start_passengers() -> void:

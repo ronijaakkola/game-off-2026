@@ -129,6 +129,12 @@ func is_focused() -> bool:
 	return _focus_target != null
 
 
+## Seconds the camera takes to blend in to a focused target.
+func get_focus_seconds() -> float:
+	var blend := (%FocusShot as PhantomCamera3D).tween_resource
+	return blend.duration if blend else 0.0
+
+
 # Back along the rig's angle far enough that the target fills focus_fill of the screen's
 # height, and to the side so it sits at focus_screen_x. The camera keeps its height, so
 # the field of view is vertical and the width follows the aspect. A following shot is top

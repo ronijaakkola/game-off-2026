@@ -23,14 +23,13 @@ const BORDER_COLORS: Dictionary[Border, Color] = {
 }
 
 static var _sphere: SphereMesh
-static var _border_materials: Dictionary[Border, StandardMaterial3D] = {}
 
 ## The name shown under the body. Empty shows none.
 @export var display_name := "":
 	set(value):
 		display_name = value
 		_label.text = value
-		_label.visible = value != ""
+		_label.visible = value != "" and label_opacity > 0.0
 ## The body's radius.
 @export_range(0.05, 10.0, 0.01, "or_greater") var radius := 1.0:
 	set(value):
@@ -101,9 +100,19 @@ static var _border_materials: Dictionary[Border, StandardMaterial3D] = {}
 var border := Border.NONE:
 	set(value):
 		border = value
-		_outline.visible = value != Border.NONE
-		if _outline.visible:
-			_outline.material_override = _get_border_material(value)
+		_show_border()
+## How opaque the border is, from 0 (hidden) to 1, for fading it.
+var border_opacity := 1.0:
+	set(value):
+		border_opacity = clampf(value, 0.0, 1.0)
+		_show_border()
+## How opaque the name is, from 0 (hidden) to 1, for fading it.
+var label_opacity := 1.0:
+	set(value):
+		label_opacity = clampf(value, 0.0, 1.0)
+		_label.modulate.a = LABEL_COLOR.a * label_opacity
+		_label.outline_modulate.a = LABEL_OUTLINE_COLOR.a * label_opacity
+		_label.visible = display_name != "" and label_opacity > 0.0
 ## How far the border reaches past the body's edge.
 var outline_width := 0.05:
 	set(value):
@@ -133,6 +142,9 @@ var _surface := MeshInstance3D.new()
 var _rings := MeshInstance3D.new()
 var _outline := MeshInstance3D.new()
 var _label := Label3D.new()
+# This planet's own border material, so its colour and opacity change on it alone. Always
+# see-through, so a fade never switches it to another shader.
+var _border_material := _make_border_material()
 
 
 func _init() -> void:
@@ -147,6 +159,7 @@ func _init() -> void:
 	_surface.mesh = _get_sphere()
 	_outline.mesh = _get_sphere()
 	_outline.visible = false
+	_outline.material_override = _border_material
 	_outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_orbit_line.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_rings.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -289,12 +302,18 @@ static func _get_sphere() -> SphereMesh:
 	return _sphere
 
 
+func _show_border() -> void:
+	_outline.visible = border != Border.NONE and border_opacity > 0.0
+	if _outline.visible:
+		var color := BORDER_COLORS[border]
+		color.a = border_opacity
+		_border_material.albedo_color = color
+
+
 # A shell drawn from behind, so only its rim past the body shows.
-static func _get_border_material(kind: Border) -> StandardMaterial3D:
-	if not _border_materials.has(kind):
-		var material := StandardMaterial3D.new()
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.cull_mode = BaseMaterial3D.CULL_FRONT
-		material.albedo_color = BORDER_COLORS[kind]
-		_border_materials[kind] = material
-	return _border_materials[kind]
+static func _make_border_material() -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.cull_mode = BaseMaterial3D.CULL_FRONT
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	return material

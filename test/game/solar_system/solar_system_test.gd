@@ -203,6 +203,8 @@ func test_open_planet_sits_left_of_the_panel_and_left_click_on_space_closes_it()
 	assert_float(on_screen.x).is_less(panel.get_global_rect().position.x)
 	var rig := runner.find_child("CameraRig") as CameraRig
 	assert_float(on_screen.x).is_equal_approx(rig.focus_screen_x, 2.0)
+	# In the middle of the space left of the panel.
+	assert_float(on_screen.x).is_equal_approx(panel.get_global_rect().position.x * 0.5, 2.0)
 
 	# Above the planet, clear of it and of the panel.
 	_send_click(MOUSE_BUTTON_LEFT, _to_window(camera, Vector2(on_screen.x, 40.0)))
@@ -261,6 +263,52 @@ func test_right_click_still_sets_course_while_a_planet_is_open() -> void:
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_array(bus.get_route_planets()).contains_exactly([terra])
 	assert_object((runner.scene() as SolarSystem).get_open_planet()).is_same(terra)
+
+
+func test_names_fade_out_while_a_planet_is_open_and_back_after() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var giant := runner.find_child("Giant") as Planet
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await await_millis(600)
+
+	assert_float(terra.label_opacity).is_equal(0.0)
+	assert_float(giant.label_opacity).is_equal(0.0)
+
+	(runner.scene() as SolarSystem).close_planet()
+	await await_millis(600)
+
+	assert_float(terra.label_opacity).is_equal(1.0)
+	assert_float(giant.label_opacity).is_equal(1.0)
+
+
+func test_open_planet_shows_no_hover_border_but_keeps_its_route_border() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	_send_motion(_screen_point(runner, terra))
+	await runner.simulate_frames(1)
+	assert_int(terra.border).is_equal(Planet.Border.HOVER)
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await await_millis(1200)
+
+	_send_motion(_screen_point(runner, terra))
+	await runner.simulate_frames(2)
+	assert_int(terra.border).is_equal(Planet.Border.NONE)
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+	await runner.simulate_frames(2)
+	assert_int(terra.border).is_equal(Planet.Border.ROUTE)
+
+
+func test_the_panel_slides_in_with_the_camera_blend() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	var panel := runner.find_child("PlanetPanel") as PlanetPanel
+	assert_float(rig.get_focus_seconds()).is_greater(0.0)
+	assert_float(panel.slide_in_seconds).is_equal(rig.get_focus_seconds())
 
 
 func test_the_preview_opens_terra_with_three_waiting() -> void:

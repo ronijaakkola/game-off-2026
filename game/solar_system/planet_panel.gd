@@ -2,14 +2,14 @@ class_name PlanetPanel
 extends MarginContainer
 ## The open planet's panel down the right side of the screen: the planet's name and icon,
 ## and a row for each passenger waiting there, longest waiting first, kept up to date as
-## they arrive and board. It slides in from past the right edge when it opens and back out
-## when it closes. Its close button only asks; the parent closes it.
+## they arrive and board. It slides in from past the right edge when it opens, over
+## [member slide_in_seconds] so it can arrive with the camera, and back out when it closes.
+## Its close button only asks; the parent closes it.
 
 ## The close button was pressed.
 signal close_pressed
 
 const ROW := preload("res://game/solar_system/waiting_passenger_row.tscn")
-const SLIDE_IN_SECONDS := 0.3
 const SLIDE_OUT_SECONDS := 0.2
 
 ## Who waits at each planet.
@@ -22,6 +22,9 @@ const SLIDE_OUT_SECONDS := 0.2
 			waiting.changed.connect(_on_waiting_changed)
 		if is_node_ready():
 			_show_waiting()
+
+## Seconds to slide in. It eases in and out, as the camera's blend does.
+var slide_in_seconds := 0.7
 
 var _planet: Planet
 # The one tween that slides the panel in and out.
@@ -45,9 +48,9 @@ func open(planet: Planet) -> void:
 	_slide = create_tween()
 	(
 		_slide
-		. tween_property(self, ^"position:x", _rest_x(), SLIDE_IN_SECONDS)
+		. tween_property(self, ^"position:x", _rest_x(), slide_in_seconds)
 		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_OUT)
+		. set_ease(Tween.EASE_IN_OUT)
 	)
 
 
