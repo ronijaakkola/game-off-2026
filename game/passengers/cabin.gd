@@ -23,8 +23,15 @@ signal stop_finished
 @export_range(0.0, 3.0, 0.05) var step_seconds := 0.6
 
 ## Whether the bus waits at a planet, docked or charging, so patience runs down at half
-## speed. The scene that holds the bus sets it.
-var docked := true
+## speed. The scene that holds the bus sets it. When it turns false the bus has left, and
+## everyone on board has departed, so the patience of those who just boarded starts running
+## down.
+var docked := true:
+	set(value):
+		if docked and not value:
+			for passenger: Passenger in _passengers:
+				passenger.depart()
+		docked = value
 
 var _passengers: Array[Passenger] = []
 # The stop under way: who still gets off, with what they pay, and where the rest board.

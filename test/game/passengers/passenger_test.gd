@@ -28,10 +28,11 @@ func test_patience_starts_at_the_trip_time_with_the_type_s_slack() -> void:
 	assert_float(passenger.patience).is_equal(150.0)
 
 
-func test_patience_holds_until_the_bus_leaves_their_planet() -> void:
+func test_patience_holds_until_they_depart() -> void:
 	var snack := _need(1.0)
 	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
 	passenger.tick(30.0, true)
+	passenger.tick(30.0, false)
 	assert_object(passenger.request).is_same(snack)
 	assert_float(passenger.patience).is_equal(passenger.patience_max)
 
@@ -39,8 +40,9 @@ func test_patience_holds_until_the_bus_leaves_their_planet() -> void:
 func test_patience_runs_down_at_half_speed_while_docked() -> void:
 	var flying := Passenger.new(_type(), _planet, TRIP, FARE)
 	var docked := Passenger.new(_type(), _planet, TRIP, FARE)
+	flying.depart()
+	docked.depart()
 	flying.tick(10.0, false)
-	docked.tick(0.0, false)
 	docked.tick(10.0, true)
 	assert_float(flying.patience_max - flying.patience).is_equal_approx(10.0, 0.001)
 	assert_float(docked.patience_max - docked.patience).is_equal_approx(5.0, 0.001)
@@ -82,6 +84,7 @@ func test_an_open_request_drains_patience_faster() -> void:
 	var snack := _need(1.0)
 	snack.unmet_drain = 3.0
 	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
+	passenger.depart()
 	passenger.tick(1.0, false)
 	var before := passenger.patience
 	passenger.tick(10.0, false)

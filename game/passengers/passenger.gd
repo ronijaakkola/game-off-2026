@@ -94,12 +94,14 @@ func get_payout() -> int:
 	return roundi(fare * PAY[get_mood()])
 
 
-## Runs [param delta] seconds of the ride. Patience holds while the bus is still
-## [param docked] at the planet they boarded at. After that it runs down at half speed while
-## docked, and faster while a request is open.
+## The bus has left the planet they boarded at, so their patience starts running down.
+func depart() -> void:
+	_departed = true
+
+
+## Runs [param delta] seconds of the ride. Patience holds until [method depart]. After that
+## it runs down at half speed while [param docked], and faster while a request is open.
 func tick(delta: float, docked: bool) -> void:
-	if not docked:
-		_departed = true
 	if _departed:
 		var drain := delta
 		if docked:
