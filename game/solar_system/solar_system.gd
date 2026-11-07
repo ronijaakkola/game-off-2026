@@ -57,7 +57,7 @@ func _process(delta: float) -> void:
 	_update_fade(delta)
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
-		rig.focus_screen_x = _focus_screen_x()
+		rig.focus_rect = _focus_rect()
 	# The panel covers the bottom of the screen where the hint is.
 	(%HintBox as Control).visible = not get_open_planet()
 	var mouse := get_viewport().get_mouse_position()
@@ -110,8 +110,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func open_planet(planet: Planet) -> void:
 	(%PlanetPanel as PlanetPanel).open(planet)
 	var rig := %CameraRig as CameraRig
-	rig.focus_screen_x = _focus_screen_x()
-	rig.focus(planet.get_body(), planet.get_extent())
+	rig.focus_rect = _focus_rect()
+	rig.focus(planet.get_body(), planet.get_body_radius(), planet.get_extent())
 
 
 ## Closes the open planet's panel and gives the camera back. Does nothing when none is open.
@@ -139,13 +139,11 @@ func _select_at(screen_point: Vector2) -> void:
 	get_viewport().set_input_as_handled()
 
 
-# Where the open planet sits across the screen: in the middle of the space left of its
-# panel.
-func _focus_screen_x() -> float:
-	var space := (
-		get_viewport().get_visible_rect().size.x - (%PlanetPanel as PlanetPanel).get_width()
-	)
-	return space * 0.5
+# Where the open planet is framed: the space left of its panel.
+func _focus_rect() -> Rect2:
+	var screen := get_viewport().get_visible_rect().size
+	var width := screen.x - (%PlanetPanel as PlanetPanel).get_width()
+	return Rect2(0.0, 0.0, width, screen.y)
 
 
 # Fades the names, and the open planet's hover border, out while a planet is open and back

@@ -10,10 +10,11 @@ extends Node3D
 ## point and the distance to their target; a pan eases its speed and moves the look-at point
 ## and its target together, so zooming mid-pan doesn't hold the pan back.
 ## [method focus] hands the camera to a second shot, %FocusShot, which follows a target
-## from the same angle, close enough that it fills [member focus_fill] of the screen's
-## height, and to the side so it sits at [member focus_screen_x] across. The host blends to
-## it and, on [method release_focus], back to %Shot, which waited where it was: pan and zoom
-## do nothing while the rig is focused.
+## from the same angle, centred in [member focus_rect]. It comes close enough that the
+## target's body fills a share of the rect's height that grows with the body's radius, so a
+## bigger body looks bigger, but stays far enough back that its widest part, such as rings,
+## fits across the rect. The host blends to it and, on [method release_focus], back to
+## %Shot, which waited where it was: pan and zoom do nothing while the rig is focused.
 
 ## %FocusShot's priority while focused, over %Shot's.
 const FOCUSED_PRIORITY := 2
@@ -35,12 +36,20 @@ const FOCUSED_PRIORITY := 2
 @export_range(0.0, 0.5, 0.01) var zoom_step := 0.12
 ## How fast pan and zoom catch up with their target. Higher is snappier.
 @export_range(0.1, 100.0, 0.1, "or_greater") var smoothing := 5.0
-## How much of the screen's height a focused target fills, edge to edge across its extent.
-@export_range(0.05, 1.0, 0.01) var focus_fill := 0.55
+@export_group("Focus")
+## How much of [member focus_rect]'s height a focused body fills, edge to edge, at
+## [member focus_radius_min] and smaller.
+@export_range(0.05, 1.0, 0.01) var focus_fill_min := 0.32
+## The same at [member focus_radius_max] and larger. In between, it grows linearly.
+@export_range(0.05, 1.0, 0.01) var focus_fill_max := 0.5
+@export_range(0.0, 100.0, 0.01, "or_greater") var focus_radius_min := 0.15
+@export_range(0.0, 100.0, 0.01, "or_greater") var focus_radius_max := 1.0
+## How much of [member focus_rect]'s width a focused target's widest part may take.
+@export_range(0.05, 1.0, 0.01) var focus_width_share := 0.92
 
-## Where across the screen a focused target sits, in viewport pixels from the left edge.
-## Read every frame, so a parent can follow a window resize.
-var focus_screen_x := 0.0
+## The part of the screen a focused target is framed in, in viewport pixels. Empty frames it
+## in the whole viewport. Read every frame, so a parent can follow a window resize.
+var focus_rect := Rect2()
 
 var _target_position := Vector3.ZERO
 var _target_distance := 0.0
@@ -51,7 +60,8 @@ var _pan_velocity := Vector3.ZERO
 var _pointer_inside := false
 var _pointer_position := Vector2.ZERO
 var _focus_target: Node3D
-var _focus_extent := 0.0
+var _focus_radius := 0.0
+var _focus_reach := 0.0
 
 
 func _ready() -> void:
@@ -107,12 +117,13 @@ func _process(delta: float) -> void:
 	_place_shot()
 
 
-## Hands the camera to %FocusShot, which follows [param target] (a body that reaches
-## [param extent] from its centre), from where it was. Focusing on another target moves
-## the shot on to it.
-func focus(target: Node3D, extent: float) -> void:
+## Hands the camera to %FocusShot, which follows [param target], a body of
+## [param radius] whose widest part, such as rings, reaches [param reach] from its centre.
+## Focusing on another target moves the shot on to it.
+func focus(target: Node3D, radius: float, reach: float) -> void:
 	_focus_target = target
-	_focus_extent = extent
+	_focus_radius = radius
+	_focus_reach = maxf(reach, radius)
 	var shot := %FocusShot as PhantomCamera3D
 	shot.follow_target = target
 	_place_focus_shot()
@@ -129,26 +140,46 @@ func is_focused() -> bool:
 	return _focus_target != null
 
 
+## How much of [member focus_rect]'s height a body of [param radius] fills when focused,
+## unless its widest part needs the camera further back.
+func get_focus_fill(radius: float) -> float:
+	var weight := inverse_lerp(focus_radius_min, focus_radius_max, radius)
+	return lerpf(focus_fill_min, focus_fill_max, clampf(weight, 0.0, 1.0))
+
+
 ## Seconds the camera takes to blend in to a focused target.
 func get_focus_seconds() -> float:
 	var blend := (%FocusShot as PhantomCamera3D).tween_resource
 	return blend.duration if blend else 0.0
 
 
-# Back along the rig's angle far enough that the target fills focus_fill of the screen's
-# height, and to the side so it sits at focus_screen_x. The camera keeps its height, so
-# the field of view is vertical and the width follows the aspect. A following shot is top
-# level, so it gets the rig's angle here rather than from its parent.
+# Back along the rig's angle as far as the farther of two needs: the body filling its
+# share of the rect's height, and its widest part fitting across the rect. Then to the side
+# and up or down so it sits at the rect's centre. The camera keeps its height, so the field
+# of view is vertical and the width follows the aspect. A following shot is top level, so
+# it gets the rig's angle here rather than from its parent.
 func _place_focus_shot() -> void:
 	var shot := %FocusShot as PhantomCamera3D
 	var camera := get_viewport().get_camera_3d()
 	var half_height := tan(deg_to_rad(camera.fov if camera else 30.0) * 0.5)
 	var screen := get_viewport().get_visible_rect().size
-	var depth := _focus_extent / (focus_fill * half_height)
-	var across := focus_screen_x / screen.x * 2.0 - 1.0
-	var shift := -across * depth * half_height * screen.x / screen.y
+	var space := focus_rect if focus_rect.has_area() else Rect2(Vector2.ZERO, screen)
+	# Pixels per world unit at a depth of one unit.
+	var pixels_per_unit := screen.y / (2.0 * half_height)
+	var fill := get_focus_fill(_focus_radius)
+	var depth := maxf(
+		2.0 * _focus_radius * pixels_per_unit / (fill * space.size.y),
+		2.0 * _focus_reach * pixels_per_unit / (focus_width_share * space.size.x)
+	)
+	var center := space.get_center()
+	var across := center.x / screen.x * 2.0 - 1.0
+	var up := 1.0 - center.y / screen.y * 2.0
+	var shift_x := -across * depth * half_height * screen.x / screen.y
+	var shift_y := -up * depth * half_height
 	shot.global_basis = global_basis
-	shot.follow_offset = global_basis.z * depth + global_basis.x * shift
+	shot.follow_offset = (
+		global_basis.z * depth + global_basis.x * shift_x + global_basis.y * shift_y
+	)
 
 
 # Screen directions to pan in, -1, 0 or 1 on each axis, from the pointer at the edges.

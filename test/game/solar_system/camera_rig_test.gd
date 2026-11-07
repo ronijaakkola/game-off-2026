@@ -140,21 +140,53 @@ func test_focus_frames_the_target_beside_the_panel_and_release_goes_back() -> vo
 	target.position = Vector3(4.0, 0.0, 3.0)
 	runner.scene().add_child(target)
 
-	rig.focus(target, 0.5)
+	rig.focus(target, 0.5, 0.5)
 	# Past the blend.
 	await runner.simulate_frames(30, FRAME_MS)
 
-	# The solar system sets focus_screen_x every frame, beside its planet panel.
+	# The solar system sets focus_rect every frame: the space left of its planet panel.
+	var space := rig.focus_rect
+	assert_float(space.size.x).is_between(600.0, 1000.0)
 	var center := camera.unproject_position(target.global_position)
-	assert_float(rig.focus_screen_x).is_between(300.0, 576.0)
-	assert_vector(center).is_equal_approx(Vector2(rig.focus_screen_x, 324.0), Vector2.ONE)
-	# Its extent, seen across, fills focus_fill of the screen's height.
+	assert_vector(center).is_equal_approx(space.get_center(), Vector2.ONE)
+	# The body fills its share of the rect's height.
 	var edge := camera.unproject_position(target.global_position + camera.global_basis.y * 0.5)
-	assert_float(center.distance_to(edge) * 2.0 / 648.0).is_equal_approx(rig.focus_fill, 0.01)
+	var fill := center.distance_to(edge) * 2.0 / space.size.y
+	assert_float(fill).is_equal_approx(rig.get_focus_fill(0.5), 0.01)
 
 	rig.release_focus()
 	await runner.simulate_frames(30, FRAME_MS)
 	assert_vector(camera.global_position).is_equal_approx(start, Vector3.ONE * 0.01)
+
+
+func test_focus_keeps_wide_rings_inside_the_rect() -> void:
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	var camera := runner.find_child("Camera") as Camera3D
+	await runner.simulate_frames(2, FRAME_MS)
+	var target := Node3D.new()
+	runner.scene().add_child(target)
+
+	rig.focus(target, 0.5, 3.0)
+	await runner.simulate_frames(30, FRAME_MS)
+
+	# The rings decide: they take focus_width_share of the rect's width, and the body less
+	# than its share of the height.
+	var space := rig.focus_rect
+	var center := camera.unproject_position(target.global_position)
+	var ring_edge := camera.unproject_position(target.global_position + camera.global_basis.x * 3.0)
+	var across := center.distance_to(ring_edge) * 2.0 / space.size.x
+	assert_float(across).is_equal_approx(rig.focus_width_share, 0.01)
+	var edge := camera.unproject_position(target.global_position + camera.global_basis.y * 0.5)
+	var fill := center.distance_to(edge) * 2.0 / space.size.y
+	assert_float(fill).is_less(rig.get_focus_fill(0.5))
+
+
+func test_a_bigger_body_fills_more_of_the_height() -> void:
+	var rig := auto_free(CameraRig.new()) as CameraRig
+	assert_float(rig.get_focus_fill(0.0)).is_equal(rig.focus_fill_min)
+	assert_float(rig.get_focus_fill(0.5)).is_greater(rig.get_focus_fill(0.3))
+	assert_float(rig.get_focus_fill(5.0)).is_equal(rig.focus_fill_max)
 
 
 func test_pan_and_zoom_do_nothing_while_focused() -> void:
@@ -165,7 +197,7 @@ func test_pan_and_zoom_do_nothing_while_focused() -> void:
 	await runner.simulate_frames(2, FRAME_MS)
 	var target := Node3D.new()
 	runner.scene().add_child(target)
-	rig.focus(target, 0.5)
+	rig.focus(target, 0.5, 0.5)
 	var position_before := rig.position
 	var distance_before := rig.global_position.distance_to(shot.global_position)
 

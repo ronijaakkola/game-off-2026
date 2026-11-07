@@ -202,7 +202,7 @@ func test_open_planet_sits_left_of_the_panel_and_left_click_on_space_closes_it()
 	var on_screen := camera.unproject_position(terra.get_body_global_position())
 	assert_float(on_screen.x).is_less(panel.get_global_rect().position.x)
 	var rig := runner.find_child("CameraRig") as CameraRig
-	assert_float(on_screen.x).is_equal_approx(rig.focus_screen_x, 2.0)
+	assert_float(on_screen.x).is_equal_approx(rig.focus_rect.get_center().x, 2.0)
 	# In the middle of the space left of the panel.
 	assert_float(on_screen.x).is_equal_approx(panel.get_global_rect().position.x * 0.5, 2.0)
 
