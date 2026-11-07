@@ -298,7 +298,7 @@ func _left(width: float) -> float:
 	# Whole pixels, as Label places them, so the hand-off back to it doesn't shift.
 	match horizontal_alignment:
 		HORIZONTAL_ALIGNMENT_CENTER:
-			return left + int(room - width) / 2
+			return left + int((room - width) * 0.5)
 		HORIZONTAL_ALIGNMENT_RIGHT:
 			return left + int(room - width)
 	return left
