@@ -150,6 +150,16 @@ func test_the_dock_panel_slides_out_once_the_bus_leaves() -> void:
 	await assert_func(panel, "is_visible").wait_until(2000).is_false()
 
 
+func test_runs_after_the_camera_host_so_labels_follow_this_frame() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	# Phantom Camera's host sets its own priority; this fails if an upgrade changes it.
+	var host := runner.find_child("PhantomCameraHost") as Node
+	assert_int(host.process_priority).is_equal(SolarSystem.CAMERA_HOST_PRIORITY)
+	var system := runner.scene() as SolarSystem
+	assert_int(system.process_priority).is_greater(host.process_priority)
+
+
 func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)

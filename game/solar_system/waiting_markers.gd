@@ -48,8 +48,8 @@ func place(planet: Planet, screen_point: Vector2, shown := true) -> void:
 	if not marker:
 		return
 	marker.visible = shown and count_at(planet) > 0
-	marker.reset_size()
-	marker.position = screen_point - Vector2(marker.size.x * 0.5, 0.0)
+	if marker.visible:
+		marker.position = screen_point - Vector2(marker.size.x * 0.5, 0.0)
 
 
 ## How many the marker under [param planet] says wait there.
@@ -86,6 +86,8 @@ func _show_waiting(planet: Planet) -> void:
 		return
 	_counts[planet] = waiting.count_at(planet) if waiting else 0
 	(marker.get_child(1) as Label).text = str(_counts[planet])
+	# Only the count changes its width, so it is sized here, not every frame in place().
+	marker.reset_size()
 
 
 func _on_waiting_changed(planet: Planet) -> void:
