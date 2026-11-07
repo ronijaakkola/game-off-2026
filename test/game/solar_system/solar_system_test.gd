@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
-## Passengers in the solar system, and the clicks that set the bus's course. One passenger
-## is on board at the start, and docking lets off those going there and takes on those
-## waiting.
+## Passengers in the solar system, the clicks that set the bus's course, and the left
+## clicks that open and close a planet. One passenger is on board at the start, and docking
+## lets off those going there and takes on those waiting.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -159,6 +159,119 @@ func test_hovering_a_point_in_space_before_the_last_stop_picks_nothing() -> void
 	assert_object(bus.hovered_stop).is_null()
 
 
+func test_left_click_on_a_planet_opens_it_and_again_closes_it() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var system := runner.scene() as SolarSystem
+	var terra := runner.find_child("Terra") as Planet
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.add(terra)
+	waiting.add(terra)
+	var rig := runner.find_child("CameraRig") as CameraRig
+
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+
+	assert_object(system.get_open_planet()).is_same(terra)
+	assert_bool(rig.is_focused()).is_true()
+	assert_bool((runner.find_child("PlanetPanel") as Control).visible).is_true()
+	assert_str((runner.find_child("PlanetNameLabel") as Label).text).is_equal("Terra")
+	var rows := runner.find_child("WaitingRows") as Node
+	assert_int(rows.get_child_count()).is_equal(waiting.count_at(terra))
+	await runner.simulate_frames(1)
+	assert_bool((runner.find_child("HintBox") as Control).visible).is_false()
+
+	await runner.simulate_frames(2)
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+
+	assert_object(system.get_open_planet()).is_null()
+	assert_bool(rig.is_focused()).is_false()
+	await runner.simulate_frames(1)
+	assert_bool((runner.find_child("HintBox") as Control).visible).is_true()
+
+
+func test_open_planet_sits_left_of_the_panel_and_left_click_on_space_closes_it() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var system := runner.scene() as SolarSystem
+	var terra := runner.find_child("Terra") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	var panel := runner.find_child("PlanetPanel") as PlanetPanel
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await await_millis(1200)
+
+	var on_screen := camera.unproject_position(terra.get_body_global_position())
+	assert_float(on_screen.x).is_less(panel.get_global_rect().position.x)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	assert_float(on_screen.x).is_equal_approx(rig.focus_screen_x, 2.0)
+
+	# Above the planet, clear of it and of the panel.
+	_send_click(MOUSE_BUTTON_LEFT, _to_window(camera, Vector2(on_screen.x, 40.0)))
+
+	assert_object(system.get_open_planet()).is_null()
+
+
+func test_left_click_on_the_panel_keeps_it_open_and_its_close_button_closes_it() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var system := runner.scene() as SolarSystem
+	var terra := runner.find_child("Terra") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await await_millis(500)
+	var sheet := runner.find_child("Sheet") as Control
+
+	_send_click(MOUSE_BUTTON_LEFT, _to_window(camera, sheet.get_global_rect().get_center()))
+	_send_release(MOUSE_BUTTON_LEFT, _to_window(camera, sheet.get_global_rect().get_center()))
+	assert_object(system.get_open_planet()).is_same(terra)
+
+	var button := runner.find_child("CloseButton") as Button
+	_send_click(MOUSE_BUTTON_LEFT, _to_window(camera, button.get_global_rect().get_center()))
+	_send_release(MOUSE_BUTTON_LEFT, _to_window(camera, button.get_global_rect().get_center()))
+
+	assert_object(system.get_open_planet()).is_null()
+	assert_bool((runner.find_child("CameraRig") as CameraRig).is_focused()).is_false()
+
+
+func test_left_click_on_another_planet_opens_that_one() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var system := runner.scene() as SolarSystem
+	var terra := runner.find_child("Terra") as Planet
+	var ember := runner.find_child("Ember") as Planet
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await runner.simulate_frames(1)
+
+	# The camera has barely moved, and the panel is still sliding in at the right edge.
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, ember))
+
+	assert_object(system.get_open_planet()).is_same(ember)
+	assert_str((runner.find_child("PlanetNameLabel") as Label).text).is_equal("Ember")
+	assert_bool((runner.find_child("CameraRig") as CameraRig).is_focused()).is_true()
+
+
+func test_right_click_still_sets_course_while_a_planet_is_open() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await runner.simulate_frames(1)
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_array(bus.get_route_planets()).contains_exactly([terra])
+	assert_object((runner.scene() as SolarSystem).get_open_planet()).is_same(terra)
+
+
+func test_the_preview_opens_terra_with_three_waiting() -> void:
+	var runner := scene_runner("res://test/previews/solar_system_preview.tscn")
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var system := runner.find_child("SolarSystem") as SolarSystem
+	assert_object(system.get_open_planet()).is_same(terra)
+	assert_int((runner.find_child("WaitingRows") as Node).get_child_count()).is_equal(3)
+
+
 # Halfway from Terra to Giant on screen, in viewport pixels: clear of every planet.
 func _between_screen_point(runner: GdUnitSceneRunner) -> Vector2:
 	var terra := runner.find_child("Terra") as Planet
@@ -187,6 +300,16 @@ func _send_click(button: MouseButton, at: Vector2, shift := false) -> void:
 	event.position = at
 	event.global_position = at
 	event.pressed = true
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
+func _send_release(button: MouseButton, at: Vector2) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = button
+	event.position = at
+	event.global_position = at
+	event.pressed = false
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
 

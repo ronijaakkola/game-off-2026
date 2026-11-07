@@ -1,11 +1,15 @@
+class_name SolarSystem
 extends Node3D
 ## The solar system. The pointer picks a planet, which shows a white border, or else the
-## diamond of the route's last stop when that is a point in space, which turns white. A
-## right click plots the bus's course: to the planet under the pointer, or to the point on
-## the orbit plane under it, and Shift adds the stop to the end of the route instead. A
-## right click on the route's last stop, with or without Shift, removes it. Left click is
-## left free for selecting things. Planets on the route show an orange border. A hint at
-## the bottom says how to set a course until the player first sets one.
+## diamond of the route's last stop when that is a point in space, which turns white; a
+## pointer over the HUD picks nothing. A right click plots the bus's course: to the planet
+## under the pointer, or to the point on the orbit plane under it, and Shift adds the stop
+## to the end of the route instead. A right click on the route's last stop, with or without
+## Shift, removes it. Planets on the route show an orange border. A hint at the bottom says
+## how to set a course until the player first sets one, hidden while a planet is open.
+## A left click on a planet opens it: the camera follows it on the left side of the screen
+## and its panel opens on the right. A left click on the open planet or on empty space, or
+## the panel's close button, closes it, and the camera goes back to where it was.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one and pay, and those waiting
 ## there board one by one while seats are free. The bus can't charge until the stop is
@@ -32,15 +36,24 @@ func _ready() -> void:
 	for planet: Planet in _planets:
 		planet.border = Planet.Border.HOVER
 	_start_passengers()
+	var panel := %PlanetPanel as PlanetPanel
+	panel.waiting = %WaitingPassengers as WaitingPassengers
+	panel.close_pressed.connect(close_planet)
 
 
 func _process(_delta: float) -> void:
 	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
 	_place_labels()
+	var rig := %CameraRig as CameraRig
+	if rig.is_focused():
+		rig.focus_screen_x = _focus_screen_x()
+	# The panel covers the bottom of the screen where the hint is.
+	(%HintBox as Control).visible = not get_open_planet()
 	var mouse := get_viewport().get_mouse_position()
-	var under := _planet_at(mouse)
+	var over_hud := get_viewport().gui_get_hovered_control() != null
+	var under: Planet = null if over_hud else _planet_at(mouse)
 	var bus := %Bus as FrameshiftBus
-	var marker: RouteStop = null if under else _marker_at(mouse)
+	var marker: RouteStop = null if under or over_hud else _marker_at(mouse)
 	# Only the last stop, the one a right click removes.
 	bus.hovered_stop = marker if marker and marker == bus.get_last_stop() else null
 	var on_route := bus.get_route_planets()
@@ -61,6 +74,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if not click or not click.pressed:
 		return
+	if click.button_index == MOUSE_BUTTON_LEFT:
+		_select_at(click.position)
+		return
 	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
 	var bus := %Bus as FrameshiftBus
@@ -73,6 +89,50 @@ func _unhandled_input(event: InputEvent) -> void:
 		bus.plot_course(stop, click.shift_pressed)
 		(%CourseHint as Label).hide()
 	get_viewport().set_input_as_handled()
+
+
+## Opens [param planet]: the camera follows it on the left and its panel shows on the
+## right. Opening another planet while one is open moves both on to it.
+func open_planet(planet: Planet) -> void:
+	(%PlanetPanel as PlanetPanel).open(planet)
+	var rig := %CameraRig as CameraRig
+	rig.focus_screen_x = _focus_screen_x()
+	rig.focus(planet.get_body(), planet.get_extent())
+
+
+## Closes the open planet's panel and gives the camera back. Does nothing when none is open.
+func close_planet() -> void:
+	if not get_open_planet():
+		return
+	(%PlanetPanel as PlanetPanel).close()
+	(%CameraRig as CameraRig).release_focus()
+
+
+## The open planet, or null.
+func get_open_planet() -> Planet:
+	return (%PlanetPanel as PlanetPanel).get_planet()
+
+
+# A left click: on a planet opens it, on the open planet or empty space closes it.
+func _select_at(screen_point: Vector2) -> void:
+	var planet := _planet_at(screen_point)
+	if planet and planet != get_open_planet():
+		open_planet(planet)
+	elif get_open_planet():
+		close_planet()
+	else:
+		return
+	get_viewport().set_input_as_handled()
+
+
+# Where the open planet sits across the screen: halfway between the passenger cards on the
+# left and the planet's panel on the right.
+func _focus_screen_x() -> float:
+	var left := (%PassengerPanel as Control).get_combined_minimum_size().x
+	var right := (
+		get_viewport().get_visible_rect().size.x - (%PlanetPanel as PlanetPanel).get_width()
+	)
+	return (left + right) * 0.5
 
 
 func _start_passengers() -> void:

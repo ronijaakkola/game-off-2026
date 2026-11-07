@@ -9,6 +9,14 @@ extends Node3D
 ## zoom between [member min_distance] and [member max_distance]. A zoom eases the look-at
 ## point and the distance to their target; a pan eases its speed and moves the look-at point
 ## and its target together, so zooming mid-pan doesn't hold the pan back.
+## [method focus] hands the camera to a second shot, %FocusShot, which follows a target
+## from the same angle, close enough that it fills [member focus_fill] of the screen's
+## height, and to the side so it sits at [member focus_screen_x] across. The host blends to
+## it and, on [method release_focus], back to %Shot, which waited where it was: pan and zoom
+## do nothing while the rig is focused.
+
+## %FocusShot's priority while focused, over %Shot's.
+const FOCUSED_PRIORITY := 2
 
 ## How far from the parent's origin the look-at point may go, on the orbit plane.
 @export_range(0.0, 200.0, 0.1, "or_greater") var bounds_radius := 20.0
@@ -27,6 +35,12 @@ extends Node3D
 @export_range(0.0, 0.5, 0.01) var zoom_step := 0.12
 ## How fast pan and zoom catch up with their target. Higher is snappier.
 @export_range(0.1, 100.0, 0.1, "or_greater") var smoothing := 5.0
+## How much of the screen's height a focused target fills, edge to edge across its extent.
+@export_range(0.05, 1.0, 0.01) var focus_fill := 0.55
+
+## Where across the screen a focused target sits, in viewport pixels from the left edge.
+## Read every frame, so a parent can follow a window resize.
+var focus_screen_x := 0.0
 
 var _target_position := Vector3.ZERO
 var _target_distance := 0.0
@@ -36,6 +50,8 @@ var _pan_velocity := Vector3.ZERO
 # unknown, and after it leaves, the last position may sit on the edge it left through.
 var _pointer_inside := false
 var _pointer_position := Vector2.ZERO
+var _focus_target: Node3D
+var _focus_extent := 0.0
 
 
 func _ready() -> void:
@@ -57,7 +73,7 @@ func _input(event: InputEvent) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	var wheel := event as InputEventMouseButton
-	if not wheel or not wheel.pressed:
+	if not wheel or not wheel.pressed or is_focused():
 		return
 	# A touchpad sends fractions of a notch in factor; a wheel sends 1 or 0.
 	var notches := wheel.factor if wheel.factor > 0.0 else 1.0
@@ -75,6 +91,9 @@ func _process(delta: float) -> void:
 		&"camera_pan_left", &"camera_pan_right", &"camera_pan_forward", &"camera_pan_back"
 	)
 	var input := (keys + _edge_pan_input()).limit_length(1.0)
+	if is_focused():
+		input = Vector2.ZERO
+		_place_focus_shot()
 	# Screen right and screen down, laid flat on the orbit plane.
 	var right := Vector3(basis.x.x, 0.0, basis.x.z).normalized()
 	var back := Vector3(basis.z.x, 0.0, basis.z.z).normalized()
@@ -86,6 +105,44 @@ func _process(delta: float) -> void:
 	position = _clamp_to_bounds(position + step).lerp(_target_position, weight)
 	distance = lerpf(distance, _target_distance, weight)
 	_place_shot()
+
+
+## Hands the camera to %FocusShot, which follows [param target] (a body that reaches
+## [param extent] from its centre), from where it was. Focusing on another target moves
+## the shot on to it.
+func focus(target: Node3D, extent: float) -> void:
+	_focus_target = target
+	_focus_extent = extent
+	var shot := %FocusShot as PhantomCamera3D
+	shot.follow_target = target
+	_place_focus_shot()
+	shot.priority = FOCUSED_PRIORITY
+
+
+## Gives the camera back to %Shot, which is where it was before [method focus].
+func release_focus() -> void:
+	_focus_target = null
+	(%FocusShot as PhantomCamera3D).priority = 0
+
+
+func is_focused() -> bool:
+	return _focus_target != null
+
+
+# Back along the rig's angle far enough that the target fills focus_fill of the screen's
+# height, and to the side so it sits at focus_screen_x. The camera keeps its height, so
+# the field of view is vertical and the width follows the aspect. A following shot is top
+# level, so it gets the rig's angle here rather than from its parent.
+func _place_focus_shot() -> void:
+	var shot := %FocusShot as PhantomCamera3D
+	var camera := get_viewport().get_camera_3d()
+	var half_height := tan(deg_to_rad(camera.fov if camera else 30.0) * 0.5)
+	var screen := get_viewport().get_visible_rect().size
+	var depth := _focus_extent / (focus_fill * half_height)
+	var across := focus_screen_x / screen.x * 2.0 - 1.0
+	var shift := -across * depth * half_height * screen.x / screen.y
+	shot.global_basis = global_basis
+	shot.follow_offset = global_basis.z * depth + global_basis.x * shift
 
 
 # Screen directions to pan in, -1, 0 or 1 on each axis, from the pointer at the edges.

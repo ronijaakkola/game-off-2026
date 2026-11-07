@@ -182,6 +182,20 @@ func get_body_radius() -> float:
 	return radius * _get_sphere().radius
 
 
+## How far the planet reaches from the body's centre: its rings' outer edge when it has
+## rings, else its body's radius.
+func get_extent() -> float:
+	if has_rings():
+		return maxf(get_body_radius(), radius * ring_outer)
+	return get_body_radius()
+
+
+## The node at the body's centre, which moves along the orbit, for a camera to follow. Read
+## it only; the planet places it every frame.
+func get_body() -> Node3D:
+	return _body
+
+
 ## Whether the body has rings: it does when it has a [member ring_material].
 func has_rings() -> bool:
 	return ring_material != null

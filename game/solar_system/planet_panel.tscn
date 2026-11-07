@@ -1,0 +1,99 @@
+[gd_scene format=3 uid="uid://bnqjjd4k8w4nn"]
+
+[ext_resource type="Script" uid="uid://djgglreo0dvp4" path="res://game/solar_system/planet_panel.gd" id="1_panel"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
+[ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="4_icon_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_icon"]
+resource_local_to_scene = true
+shader = ExtResource("4_icon_shader")
+shader_parameter/color = null
+shader_parameter/night_tint = null
+shader_parameter/has_rings = null
+shader_parameter/ring_color = null
+shader_parameter/ring_tilt = null
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
+content_margin_top = 1.0
+bg_color = Color(1, 1, 1, 0.1)
+
+[node name="PlanetPanel" type="MarginContainer" unique_id=2147144430]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+script = ExtResource("1_panel")
+
+[node name="Sheet" type="PanelContainer" parent="." unique_id=1864369398]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+theme_type_variation = &"SheetPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Sheet" unique_id=811084215]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Header" type="HBoxContainer" parent="Sheet/Rows" unique_id=2083007615]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="PlanetIcon" type="ColorRect" parent="Sheet/Rows/Header" unique_id=605576375]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_icon")
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3_icon")
+
+[node name="PlanetNameLabel" type="Label" parent="Sheet/Rows/Header" unique_id=1164484599]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Planet"
+
+[node name="Rule" type="Panel" parent="Sheet/Rows" unique_id=1625155362]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+
+[node name="WaitingTitle" type="Label" parent="Sheet/Rows" unique_id=1733747462]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+text = "Waiting here"
+
+[node name="WaitingRows" type="VBoxContainer" parent="Sheet/Rows" unique_id=1330770822]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="EmptyLabel" type="Label" parent="Sheet/Rows" unique_id=18524571]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.35)
+text = "No one is waiting."
+
+[node name="Spacer" type="Control" parent="Sheet/Rows" unique_id=555852281]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="CloseButton" type="Button" parent="Sheet/Rows" unique_id=2026300211]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"
+
+[connection signal="pressed" from="Sheet/Rows/CloseButton" to="." method="_on_close_button_pressed"]

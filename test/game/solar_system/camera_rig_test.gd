@@ -130,6 +130,54 @@ func test_pointer_at_an_edge_pans_until_it_leaves_the_window() -> void:
 	assert_vector(rig.position).is_equal_approx(left_at, Vector3.ONE * 0.001)
 
 
+func test_focus_frames_the_target_beside_the_panel_and_release_goes_back() -> void:
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	var camera := runner.find_child("Camera") as Camera3D
+	await runner.simulate_frames(2, FRAME_MS)
+	var start := camera.global_position
+	var target := Node3D.new()
+	target.position = Vector3(4.0, 0.0, 3.0)
+	runner.scene().add_child(target)
+
+	rig.focus(target, 0.5)
+	# Past the blend.
+	await runner.simulate_frames(30, FRAME_MS)
+
+	# The solar system sets focus_screen_x every frame, beside its planet panel.
+	var center := camera.unproject_position(target.global_position)
+	assert_float(rig.focus_screen_x).is_between(300.0, 576.0)
+	assert_vector(center).is_equal_approx(Vector2(rig.focus_screen_x, 324.0), Vector2.ONE)
+	# Its extent, seen across, fills focus_fill of the screen's height.
+	var edge := camera.unproject_position(target.global_position + camera.global_basis.y * 0.5)
+	assert_float(center.distance_to(edge) * 2.0 / 648.0).is_equal_approx(rig.focus_fill, 0.01)
+
+	rig.release_focus()
+	await runner.simulate_frames(30, FRAME_MS)
+	assert_vector(camera.global_position).is_equal_approx(start, Vector3.ONE * 0.01)
+
+
+func test_pan_and_zoom_do_nothing_while_focused() -> void:
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	rig.smoothing = 1000.0
+	var shot := runner.find_child("Shot") as Node3D
+	await runner.simulate_frames(2, FRAME_MS)
+	var target := Node3D.new()
+	runner.scene().add_child(target)
+	rig.focus(target, 0.5)
+	var position_before := rig.position
+	var distance_before := rig.global_position.distance_to(shot.global_position)
+
+	_hold(KEY_D)
+	_send_wheel(MOUSE_BUTTON_WHEEL_UP)
+	await runner.simulate_frames(10, FRAME_MS)
+
+	assert_vector(rig.position).is_equal_approx(position_before, Vector3.ONE * 0.001)
+	var distance := rig.global_position.distance_to(shot.global_position)
+	assert_float(distance).is_equal_approx(distance_before, 0.001)
+
+
 func _hold(key: Key) -> void:
 	_held.append(key)
 	_send_key(key, true)
