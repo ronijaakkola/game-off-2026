@@ -24,6 +24,30 @@ func test_boards_until_the_seats_are_full() -> void:
 	assert_int(_cabin.get_passengers().size()).is_equal(2)
 
 
+func test_patience_starts_running_down_when_the_bus_leaves() -> void:
+	var passenger := _passenger(_away)
+	_cabin.board(passenger)
+	passenger.tick(10.0, true)
+	assert_float(passenger.patience).is_equal(passenger.patience_max)
+
+	_cabin.docked = false
+	passenger.tick(10.0, false)
+
+	assert_float(passenger.patience_max - passenger.patience).is_equal_approx(10.0, 0.001)
+
+
+func test_boarding_on_the_frame_the_bus_arrives_still_holds_patience() -> void:
+	# On the frame the bus docks, docked is still false from before it moved.
+	_cabin.docked = false
+	var passenger := _passenger(_away)
+	_cabin.board(passenger)
+	passenger.tick(0.1, false)
+	_cabin.docked = true
+	passenger.tick(10.0, true)
+
+	assert_float(passenger.patience).is_equal(passenger.patience_max)
+
+
 func test_only_passengers_going_there_get_off_and_pay() -> void:
 	var going := _passenger(_away)
 	var staying := _passenger(_home)
