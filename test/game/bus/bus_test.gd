@@ -118,6 +118,53 @@ func test_a_course_to_the_docked_planet_cancels() -> void:
 	assert_array(_bus.get_route_planets()).is_empty()
 
 
+func test_the_time_estimate_matches_a_trip_to_a_still_planet() -> void:
+	_bus.plot_course(RouteStop.at_planet(_near))
+	var estimate := _bus.estimate_time_to_next_planet()
+	var took := 0.0
+	for i: int in MAX_STEPS:
+		_bus._process(STEP)
+		took += STEP
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			break
+	assert_object(_bus.get_docked_planet()).is_same(_near)
+	assert_float(estimate).is_between(took * 0.9, took * 1.1)
+
+
+func test_the_next_planet_skips_points_in_space() -> void:
+	_bus.plot_course(RouteStop.at_point(Vector3(3.0, 0.0, 3.0)))
+	assert_object(_bus.get_next_planet()).is_null()
+	assert_float(_bus.estimate_time_to_next_planet()).is_equal(-1.0)
+	_bus.plot_course(RouteStop.at_planet(_far), true)
+	assert_object(_bus.get_next_planet()).is_same(_far)
+	assert_float(_bus.estimate_time_to_next_planet()).is_greater(_bus.charge_time)
+
+
+func test_docking_is_only_the_end_of_the_flight() -> void:
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(_bus.charge_time + 1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
+	assert_bool(_bus.is_docking()).is_false()
+	var docking_seen := false
+	for i: int in MAX_STEPS:
+		_bus._process(STEP)
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			break
+		docking_seen = docking_seen or _bus.is_docking()
+	assert_bool(docking_seen).is_true()
+	assert_bool(_bus.is_docking()).is_false()
+
+
+func test_a_cancelled_flight_is_stopping_until_it_holds() -> void:
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(_bus.charge_time + 2.0)
+	assert_bool(_bus.is_stopping()).is_false()
+	_bus.cancel_course()
+	assert_bool(_bus.is_stopping()).is_true()
+	assert_bool(_step_until(FrameshiftBus.State.HOLDING)).is_true()
+	assert_bool(_bus.is_stopping()).is_false()
+
+
 # A planet that stays where it is put.
 func _planet(parent: Node3D, at: Vector3) -> Planet:
 	var planet := Planet.new()

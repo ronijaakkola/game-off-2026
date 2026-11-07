@@ -142,6 +142,55 @@ func get_route_planets() -> Array[Planet]:
 	return planets
 
 
+## The first planet on the route still ahead, or null when the route has none.
+func get_next_planet() -> Planet:
+	for stop: RouteStop in _route:
+		if stop.planet:
+			return stop.planet
+	return null
+
+
+## How far the frameshift drive has charged, from 0 to 1. 0 when it isn't charging.
+func get_charge_progress() -> float:
+	if state != State.CHARGING or charge_time <= 0.0:
+		return 0.0
+	return clampf(1.0 - _charge_left / charge_time, 0.0, 1.0)
+
+
+## Whether the bus is braking into its next stop, a planet: the end of a flight to it.
+func is_docking() -> bool:
+	if state != State.FLYING or _route.is_empty() or not _route[0].planet:
+		return false
+	var distance := _flat(_stop_position(_route[0], global_position) - global_position).length()
+	return distance <= _speed * _speed / (2.0 * acceleration) + DOCK_DISTANCE
+
+
+## Whether the bus is slowing to a stop in space after its course was cancelled.
+func is_stopping() -> bool:
+	return state == State.FLYING and _route.is_empty()
+
+
+## Seconds until the bus docks at [method get_next_planet], from where everything is now:
+## the charge left, then the route's straight legs at top speed, with the speeding up and
+## braking. Planets move and the bus turns, so it is an estimate. -1 with no planet ahead.
+func estimate_time_to_next_planet() -> float:
+	if not get_next_planet():
+		return -1.0
+	var from := _flat(global_position)
+	var distance := 0.0
+	for stop: RouteStop in _route:
+		var to := _stop_position(stop, from)
+		distance += from.distance_to(to)
+		from = to
+		if stop.planet:
+			break
+	var start_speed := _speed if state == State.FLYING else 0.0
+	var time := _travel_time(distance, start_speed)
+	if state == State.CHARGING:
+		time += _charge_left
+	return time
+
+
 func _process(delta: float) -> void:
 	_time += delta
 	match state:
@@ -308,6 +357,21 @@ func _surface_point(planet: Planet, toward: Vector3) -> Vector3:
 	var flat := _flat(toward - center)
 	var direction := flat.normalized() if flat.length_squared() > 1e-6 else Vector3.BACK
 	return center + direction * planet.get_body_radius()
+
+
+# Seconds to cover [param distance] in a straight line from [param start_speed], speeding
+# up toward top speed and braking to rest at the end.
+func _travel_time(distance: float, start_speed: float) -> float:
+	var speed_up := (max_speed * max_speed - start_speed * start_speed) / (2.0 * acceleration)
+	var brake := max_speed * max_speed / (2.0 * acceleration)
+	if speed_up + brake <= distance:
+		var cruise := (distance - speed_up - brake) / max_speed
+		return (max_speed - start_speed) / acceleration + cruise + max_speed / acceleration
+	# Never reaches top speed: speeds up to a peak, then brakes.
+	var peak := sqrt(maxf(acceleration * distance + start_speed * start_speed * 0.5, 0.0))
+	if peak < start_speed:
+		return start_speed / acceleration
+	return (peak - start_speed) / acceleration + peak / acceleration
 
 
 func _forward() -> Vector3:

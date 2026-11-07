@@ -26,6 +26,7 @@ Each passenger on board has a card down the left edge of the screen: name, type,
 - **Waiting and boarding (first phase).** Each planet, the Moon included, gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random. They are hidden for now and lose no patience while they wait. Whenever the bus docks at a planet, the passengers going there get off and pay, then those waiting board, longest waiting first, while any of the 4 seats are free. The game starts with one passenger on board at Ember.
 - **Trip time and fare** come from the straight distance at boarding: the trip time is the charge plus that distance at the bus's top speed, and the fare is 3 credits per unit times the type's multiplier. Planets move, so it is only an estimate.
 - **Credits** show in the top right.
+- **Bus status** shows in the bottom right (`game/bus/bus_status_panel.tscn`): what the bus is doing ("Docked at Terra", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to waypoint", "Stopping", "Holding in space"), a track from the planet it left (or "Space") to the next planet on the route with the time left to it, and a person for each seat, filled while taken, with the count ("3/4 seats"). Docking is the braking at the end of a flight to a planet. The time left is an estimate from the distance now: the charge left, the route's straight legs at top speed, speeding up and braking. The track never moves back, so a planet that moves away slows it instead. While the bus charges or flies, a button cancels the course: "Cancel" keeps a charging bus docked, and "Cancel route" slows a flying one to a stop in space.
 
 - **Needs.** Each passenger type has a few needs, such as a snack or a drink. Each need asks again a random while after the last one was served. While a request is open, the card says so ("Hungry. Wants a snack") and shows a button to serve it, and patience runs down several times faster. A request stays open until it is served, never expiring, since a request that expired would make ignoring a passenger cheaper than serving them. One request at a time, and the other needs' timers wait while it is open, so serving one doesn't set off the rest at once. A served need shows its own line ("Munching a snack") for a few seconds.
 - **Amenities.** Something on the bus that serves one need by itself, the moment it is asked for, with its own line ("Getting a drink from the dispenser"). This is what upgrades buy: each one takes a chore off the player. None exist yet.
@@ -65,7 +66,6 @@ Planned for the core loop, not built yet:
 | Left click a planet | Open its panel: the fuel cost and time to get there, and who is waiting |
 | Left click empty space | Close the open panel |
 | Left click a waiting passenger | Pick them up |
-| A cancel-route button | Cancel the course from anywhere. Until it exists, the bus stops by right-clicking its own planet, or a point just ahead of it in flight |
 
 Esc stays pause only. In browser fullscreen the browser takes Esc to leave fullscreen and the game never sees it, so Esc can't close a panel the same way in a window and in fullscreen.
 
@@ -79,6 +79,7 @@ Built, in the solar system, which Play opens:
 | Shift + right click | Add a planet or point to the end of the route |
 | Shift + right click the last stop | Remove it from the route. Only the last one: a stop in the middle is added again, so a route can come back to a planet. With no stop left, the course is cancelled |
 | Right click the planet the bus is docked at | Cancel the course: a charging drive stops |
+| The bus status panel's Cancel / Cancel route button | Cancel the course while the bus charges or flies. A flying bus slows to a stop in space |
 | W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit |
 | Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
 | Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
