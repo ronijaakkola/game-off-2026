@@ -1,11 +1,11 @@
 extends Node3D
 ## The solar system. The pointer picks a planet, which shows a white border, or else the
-## diamond of a point in space on the route, which turns white. A right click plots the
-## bus's course: to the planet under the pointer, or to the point on the orbit plane under
-## it, and Shift adds the stop to the end of the route instead. A right click on the
-## route's last stop, with or without Shift, removes it. Left click is left free for
-## selecting things. Planets on the route show an orange border. A hint at the
-## bottom says how to set a course until the player first sets one.
+## diamond of the route's last stop when that is a point in space, which turns white. A
+## right click plots the bus's course: to the planet under the pointer, or to the point on
+## the orbit plane under it, and Shift adds the stop to the end of the route instead. A
+## right click on the route's last stop, with or without Shift, removes it. Left click is
+## left free for selecting things. Planets on the route show an orange border. A hint at
+## the bottom says how to set a course until the player first sets one.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one and pay, and those waiting
 ## there board one by one while seats are free. The bus can't charge until the stop is
@@ -39,8 +39,11 @@ func _process(_delta: float) -> void:
 	_place_labels()
 	var mouse := get_viewport().get_mouse_position()
 	var under := _planet_at(mouse)
-	(%Bus as FrameshiftBus).hovered_stop = null if under else _marker_at(mouse)
-	var on_route := (%Bus as FrameshiftBus).get_route_planets()
+	var bus := %Bus as FrameshiftBus
+	var marker: RouteStop = null if under else _marker_at(mouse)
+	# Only the last stop, the one a right click removes.
+	bus.hovered_stop = marker if marker and marker == bus.get_last_stop() else null
+	var on_route := bus.get_route_planets()
 	for planet: Planet in _planets:
 		if planet == under:
 			planet.border = Planet.Border.HOVER

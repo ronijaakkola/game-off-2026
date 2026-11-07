@@ -125,7 +125,7 @@ func test_right_click_on_the_last_point_in_space_removes_it() -> void:
 	assert_object(bus.get_last_stop().planet).is_same(terra)
 
 
-func test_hovering_a_point_in_space_on_the_route_picks_it() -> void:
+func test_hovering_the_last_point_in_space_picks_it() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var camera := runner.find_child("Camera") as Camera3D
@@ -140,6 +140,22 @@ func test_hovering_a_point_in_space_on_the_route_picks_it() -> void:
 
 	_send_motion(_to_window(camera, on_screen + Vector2(200, 0)))
 	await runner.simulate_frames(1)
+	assert_object(bus.hovered_stop).is_null()
+
+
+func test_hovering_a_point_in_space_before_the_last_stop_picks_nothing() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	var on_screen := _between_screen_point(runner)
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra), true)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+
+	_send_motion(_to_window(camera, on_screen))
+	await runner.simulate_frames(1)
+
 	assert_object(bus.hovered_stop).is_null()
 
 
