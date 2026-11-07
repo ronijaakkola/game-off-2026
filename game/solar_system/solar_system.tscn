@@ -145,6 +145,7 @@ fog_color = Color(0.13, 0.12, 0.3, 1)
 fog_accent_color = Color(0.17, 0.1, 0.26, 1)
 fog_strength = 0.5
 star_color = Color(0.9, 0.88, 1, 1)
+parallax = true
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1555607591]
 unique_name_in_owner = true
