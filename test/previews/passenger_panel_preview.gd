@@ -27,4 +27,4 @@ func _ready() -> void:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line
 		cabin.board(passenger)
-	%PassengerPanel.set(&"cabin", cabin)
+	(%PassengerPanel as PassengerPanel).cabin = cabin
