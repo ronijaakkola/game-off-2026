@@ -210,7 +210,21 @@ func _draw_glyph(glyph: Dictionary, at: Vector2, color: Color, blur: float) -> v
 func _draw_glyph_at(glyph: Dictionary, at: Vector2, color: Color) -> void:
 	var server := TextServerManager.get_primary_interface()
 	var position: Vector2 = at + glyph.offset
-	server.font_draw_glyph(glyph.font_rid, _canvas, glyph.font_size, position, glyph.index, color)
+	# The viewport's oversampling, as the label draws with: the canvas item is bare, so the
+	# server can't find it, and the glyphs would be rasterised at 1x and scaled up, blurry.
+	var oversampling := get_viewport().get_oversampling()
+	(
+		server
+		. font_draw_glyph(
+			glyph.font_rid,
+			_canvas,
+			glyph.font_size,
+			position,
+			glyph.index,
+			color,
+			oversampling,
+		)
+	)
 
 
 # [param line] shaped with the label's font, width and overrun, as the label shapes it.
