@@ -27,7 +27,7 @@ Each passenger on board has a card down the left edge of the screen: name, type,
 - **Trip time and fare** come from the straight distance at boarding: the trip time is the charge plus that distance at the bus's top speed, and the fare is 3 credits per unit times the type's multiplier. Planets move, so it is only an estimate.
 - **Credits** show in the top right.
 
-- **Needs.** Each passenger type has a few needs, such as a snack or a drink. Each need asks again a random while after the last one was served. While a request is open, the card says so ("Hungry. Wants a snack") and shows a button to serve it, and patience runs down several times faster. One request at a time; a served need shows its own line ("Munching a snack") for a few seconds.
+- **Needs.** Each passenger type has a few needs, such as a snack or a drink. Each need asks again a random while after the last one was served. While a request is open, the card says so ("Hungry. Wants a snack") and shows a button to serve it, and patience runs down several times faster. A request stays open until it is served, never expiring, since a request that expired would make ignoring a passenger cheaper than serving them. One request at a time, and the other needs' timers wait while it is open, so serving one doesn't set off the rest at once. A served need shows its own line ("Munching a snack") for a few seconds.
 - **Amenities.** Something on the bus that serves one need by itself, the moment it is asked for, with its own line ("Getting a drink from the dispenser"). This is what upgrades buy: each one takes a chore off the player. None exist yet.
 - **Passenger types** are data (a `PassengerType` resource): fare multiplier, patience slack, needs, idle lines and names. There is one, the Commuter.
 
