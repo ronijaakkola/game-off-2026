@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://c4ts4i4v8a1kd"]
+
+[ext_resource type="Script" uid="uid://udbsici8x8l8" path="res://game/passengers/passenger_photo.gd" id="1_photo"]
+[ext_resource type="Shader" uid="uid://jsmh20iu8g0q" path="res://game/passengers/photo_backdrop.gdshader" id="2_backdrop"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_frame"]
+bg_color = Color(0.97, 0.96, 0.93, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 2
+shadow_offset = Vector2(1, 2)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
+resource_local_to_scene = true
+shader = ExtResource("2_backdrop")
+shader_parameter/planet_color = null
+shader_parameter/shadow_color = null
+shader_parameter/seed = null
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_photo"]
+blend_mode = 4
+
+[node name="PassengerPhoto" type="Control" unique_id=302240649]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 3
+anchors_preset = 0
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("1_photo")
+
+[node name="Frame" type="Panel" parent="." unique_id=538847311]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 50.0
+offset_bottom = 50.0
+pivot_offset = Vector2(25, 25)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_frame")
+
+[node name="Backdrop" type="ColorRect" parent="Frame" unique_id=859221113]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_backdrop")
+layout_mode = 0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 47.0
+offset_bottom = 47.0
+mouse_filter = 2
+
+[node name="Photo" type="TextureRect" parent="Frame" unique_id=844548627]
+unique_name_in_owner = true
+material = SubResource("CanvasItemMaterial_photo")
+layout_mode = 0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 47.0
+offset_bottom = 47.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

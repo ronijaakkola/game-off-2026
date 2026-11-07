@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" uid="uid://bnqjjd4k8w4nn" path="res://game/solar_system/planet_panel.tscn" id="21_planet_panel"]
 [ext_resource type="PackedScene" uid="uid://c4va8x2cf4kps" path="res://game/solar_system/waiting_markers.tscn" id="22_markers"]
 [ext_resource type="PackedScene" uid="uid://70b0mq875ago" path="res://game/solar_system/boarding_popup.tscn" id="23_popup"]
+[ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="22_studio"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -262,6 +263,9 @@ unique_name_in_owner = true
 script = ExtResource("14_waiting")
 types = Array[ExtResource("16_type")]([ExtResource("15_commuter")])
 bus = NodePath("../Bus")
+
+[node name="PortraitStudio" parent="." unique_id=1933731670 instance=ExtResource("22_studio")]
+unique_name_in_owner = true
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
 

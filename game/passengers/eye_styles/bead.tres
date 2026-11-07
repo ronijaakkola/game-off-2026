@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AlienEyeStyle" format=3 uid="uid://bjxwafikn5o6t"]
+
+[ext_resource type="Script" uid="uid://bdjunjwf2tma2" path="res://game/passengers/alien_eye_style.gd" id="1_style"]
+
+[resource]
+script = ExtResource("1_style")
+white_color = Color(0.09, 0.08, 0.18, 1)
+outline_width = 0.0
+pupil_size = 0.0
+shine_size = 0.24
+shine_offset = Vector2(-0.3, 0.32)
+second_shine_size = 0.1
+look_range = 0.15

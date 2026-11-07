@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 const SCENE := "res://game/solar_system/planet_panel.tscn"
 const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
+const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
 
 var _waiting: WaitingPassengers
 var _home: Planet
@@ -54,6 +55,55 @@ func test_opens_hidden_and_shows_the_planet_and_who_waits_there() -> void:
 	assert_bool((runner.find_child("EmptyLabel") as Label).visible).is_false()
 	var first := rows[0] as WaitingPassengerRow
 	assert_str((first.find_child("DestinationLabel") as Label).text).is_equal("To Away")
+
+
+func test_each_row_shows_a_portrait_and_gives_it_back_when_the_passenger_boards() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as PlanetPanel
+	var studio := STUDIO.instantiate() as PortraitStudio
+	panel.add_child(studio)
+	panel.portrait_studio = studio
+	panel.waiting = _waiting
+	_waiting.add(_home)
+	_waiting.add(_home)
+	panel.open(_home)
+	await runner.simulate_frames(1)
+
+	assert_int(studio.get_portrait_count()).is_equal(2)
+	for row: Node in _rows(runner):
+		var photo := row.find_child("PassengerPhoto") as PassengerPhoto
+		assert_object(photo.get_photo()).is_not_null()
+
+	for passenger: Passenger in _waiting.get_waiting(_home):
+		_waiting.take(_home, passenger)
+	await runner.simulate_frames(2)
+	assert_int(studio.get_portrait_count()).is_equal(0)
+
+
+func test_a_newcomer_slides_in_from_the_right_and_rows_already_there_stay_as_they_are() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as PlanetPanel
+	panel.waiting = _waiting
+	_waiting.add(_home)
+	panel.open(_home)
+	await runner.simulate_frames(30, 30)
+	var first := _rows(runner)[0] as WaitingPassengerRow
+	var tilt := (first.find_child("Frame") as Control).rotation
+
+	_waiting.add(_home)
+	await runner.simulate_frames(2)
+
+	var rows := _rows(runner)
+	assert_int(rows.size()).is_equal(2)
+	assert_object(rows[0]).is_same(first)
+	assert_float((first.find_child("Frame") as Control).rotation).is_equal(tilt)
+	assert_float((first.find_child("Panel") as Control).position.x).is_equal(0.0)
+	# The newcomer is still to the right, where the sheet clips it, and settles in place.
+	var newcomer := (rows[1] as Node).find_child("Panel") as Control
+	assert_float(newcomer.position.x).is_greater(0.0)
+	assert_bool((runner.find_child("Sheet") as Control).clip_contents).is_true()
+	await runner.simulate_frames(30, 30)
+	assert_float(newcomer.position.x).is_equal(0.0)
 
 
 func test_rows_follow_the_line_as_passengers_arrive_and_board() -> void:

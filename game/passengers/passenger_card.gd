@@ -1,9 +1,10 @@
 class_name PassengerCard
 extends Control
-## One passenger's card: their name and type, where they are going (an icon of the
+## One passenger's card: their name, where they are going (an icon of the
 ## planet and its name), their patience as a bar in their mood's colour, and what they
 ## are doing. While they ask for something, a button serves it. It only reads the
 ## passenger; the [Cabin] runs the ride.
+## Their portrait sits on the left, as a [PassengerPhoto].
 ## The card slides in from past the left edge of the screen when the passenger boards, and
 ## back out past it when they get off, then folds its height away so the cards below it
 ## move up. The root is a slot that holds the card's place in the list, and the panel moves
@@ -32,18 +33,33 @@ const MOOD_NAMES: Dictionary[Passenger.Mood, String] = {
 	Passenger.Mood.ANNOYED: "Annoyed",
 	Passenger.Mood.FURIOUS: "Furious",
 }
+## How the mood name shakes, as the `[shake]` tag's rate and level, for the moods that
+## shake at all. Reduce motion holds it still.
+const MOOD_SHAKES: Dictionary[Passenger.Mood, Vector2] = {
+	Passenger.Mood.ANNOYED: Vector2(10.0, 4.0),
+	Passenger.Mood.FURIOUS: Vector2(18.0, 8.0),
+}
 
 var passenger: Passenger:
 	set(value):
 		passenger = value
 		_mood = -1
 		if is_node_ready():
+			(%PassengerPhoto as PassengerPhoto).passenger = value
 			_show()
+## Where the portrait is rendered. Set it before [member passenger].
+var portrait_studio: PortraitStudio:
+	set(value):
+		portrait_studio = value
+		if is_node_ready():
+			(%PassengerPhoto as PassengerPhoto).studio = value
 
 # The bar's fill, this card's own copy, so its colour changes on this card alone.
 var _fill: StyleBoxFlat
 # The mood shown, so the colours change only when it does. -1 before the first show.
 var _mood := -1
+# Whether Reduce motion was on when the mood name was last written.
+var _still := false
 # How much of the card's height the slot keeps: 1 in the list, 0 folded away.
 var _fold := 1.0
 # The one tween that moves the panel and folds the slot, in turn.
@@ -54,6 +70,9 @@ func _ready() -> void:
 	var bar := %PatienceBar as ProgressBar
 	_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate()
 	bar.add_theme_stylebox_override(&"fill", _fill)
+	var photo := %PassengerPhoto as PassengerPhoto
+	photo.studio = portrait_studio
+	photo.passenger = passenger
 	_show()
 	_fit_slot()
 
@@ -120,23 +139,32 @@ func _show() -> void:
 	if not passenger:
 		return
 	_set_text(%NameLabel, passenger.name)
-	_set_text(%TypeLabel, passenger.type.display_name)
 	var icon := %DestinationIcon as PlanetIcon
 	if icon.planet != passenger.destination:
 		icon.planet = passenger.destination
 	_set_text(%DestinationLabel, "To %s" % _destination_name())
 	(%PatienceBar as ProgressBar).value = passenger.get_patience_fraction()
 	var mood := passenger.get_mood()
-	if mood != _mood:
+	if mood != _mood or Settings.reduce_motion != _still:
 		_mood = mood
-		_set_text(%MoodLabel, MOOD_NAMES[mood])
-		(%MoodLabel as Label).add_theme_color_override(&"font_color", MOOD_COLORS[mood])
+		_still = Settings.reduce_motion
+		var mood_label := %MoodLabel as RichTextLabel
+		mood_label.text = _mood_text(mood)
+		mood_label.add_theme_color_override(&"default_color", MOOD_COLORS[mood])
 		_fill.bg_color = MOOD_COLORS[mood]
 	_set_text(%ActivityLabel, passenger.activity)
 	var button := %ServeButton as Button
 	button.visible = passenger.request != null
 	if passenger.request and button.text != passenger.request.serve_label:
 		button.text = passenger.request.serve_label
+
+
+# The mood's name as BBCode, shaking for the low moods unless Reduce motion is on.
+func _mood_text(mood: Passenger.Mood) -> String:
+	if Settings.reduce_motion or not MOOD_SHAKES.has(mood):
+		return MOOD_NAMES[mood]
+	var shake := MOOD_SHAKES[mood]
+	return "[shake rate=%s level=%s]%s[/shake]" % [shake.x, shake.y, MOOD_NAMES[mood]]
 
 
 func _destination_name() -> String:

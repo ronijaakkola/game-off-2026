@@ -42,4 +42,6 @@ func test_take_removes_only_that_passenger_from_the_line() -> void:
 
 func test_a_passenger_goes_to_another_planet() -> void:
 	for i: int in 10:
-		assert_object(_waiting.create(_home).destination).is_same(_away)
+		var passenger := _waiting.create(_home)
+		assert_object(passenger.destination).is_same(_away)
+		assert_object(passenger.origin).is_same(_home)

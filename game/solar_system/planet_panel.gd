@@ -23,6 +23,9 @@ const SLIDE_OUT_SECONDS := 0.2
 		if is_node_ready():
 			_show_waiting()
 
+## Where the rows' portraits are rendered. Without one, their photos stay empty.
+var portrait_studio: PortraitStudio
+
 ## Seconds to slide in. It eases in and out, as the camera's blend does.
 var slide_in_seconds := 0.7
 
@@ -93,18 +96,32 @@ func _show_planet() -> void:
 	(%PlanetNameLabel as Label).text = _planet_name()
 
 
-func _show_waiting() -> void:
+# Keeps the rows of passengers still waiting as they are, so their photos don't change,
+# drops those who have gone, and adds a row for each newcomer in their place in the line.
+# With [param animate], a newcomer's row slides in from the right.
+func _show_waiting(animate: bool = false) -> void:
 	var rows := %WaitingRows as Control
-	for row: Node in rows.get_children():
-		rows.remove_child(row)
-		row.queue_free()
 	var line: Array[Passenger] = []
 	if waiting and _planet:
 		line = waiting.get_waiting(_planet)
-	for passenger: Passenger in line:
-		var row := ROW.instantiate() as WaitingPassengerRow
-		row.passenger = passenger
-		rows.add_child(row)
+	var kept: Dictionary[Passenger, WaitingPassengerRow] = {}
+	for node: Node in rows.get_children():
+		var row := node as WaitingPassengerRow
+		if row.passenger in line:
+			kept[row.passenger] = row
+		else:
+			rows.remove_child(row)
+			row.queue_free()
+	for i: int in line.size():
+		var row: WaitingPassengerRow = kept.get(line[i])
+		if not row:
+			row = ROW.instantiate() as WaitingPassengerRow
+			row.portrait_studio = portrait_studio
+			row.passenger = line[i]
+			rows.add_child(row)
+			if animate:
+				row.slide_in()
+		rows.move_child(row, i)
 	(%EmptyLabel as Label).visible = line.is_empty()
 
 
@@ -116,7 +133,7 @@ func _planet_name() -> String:
 
 func _on_waiting_changed(planet: Planet) -> void:
 	if planet == _planet:
-		_show_waiting()
+		_show_waiting(true)
 
 
 func _on_close_button_pressed() -> void:
