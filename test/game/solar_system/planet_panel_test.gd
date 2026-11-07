@@ -117,7 +117,10 @@ func test_left_click_on_a_planet_opens_it_and_again_closes_it() -> void:
 
 	assert_object(system.get_open_planet()).is_null()
 	assert_bool(rig.is_focused()).is_false()
+	# Not while the panel slides out over it.
 	await runner.simulate_frames(1)
+	assert_bool((runner.find_child("HintBox") as Control).visible).is_false()
+	await await_millis(400)
 	assert_bool((runner.find_child("HintBox") as Control).visible).is_true()
 
 

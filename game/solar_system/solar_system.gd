@@ -59,8 +59,8 @@ func _process(delta: float) -> void:
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
-	# The panel covers the bottom of the screen where the hint is.
-	(%HintBox as Control).visible = not get_open_planet()
+	# The panel covers the bottom of the screen where the hint is, until it has slid out.
+	(%HintBox as Control).visible = not (%PlanetPanel as Control).visible
 	var mouse := get_viewport().get_mouse_position()
 	var over_hud := get_viewport().gui_get_hovered_control() != null
 	var under: Planet = null if over_hud else _planet_at(mouse)
