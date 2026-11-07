@@ -16,7 +16,8 @@
 [ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="16_type"]
 [ext_resource type="PackedScene" uid="uid://lhx0mmtinvdx" path="res://game/passengers/passenger_panel.tscn" id="17_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="18_theme"]
-[ext_resource type="PackedScene" uid="uid://dbexovw5obyax" path="res://game/solar_system/credits_counter.tscn" id="19_credits"]
+[ext_resource type="PackedScene" uid="uid://ciwv4teguvu2s" path="res://game/bus/bus_status_panel.tscn" id="19_status"]
+[ext_resource type="PackedScene" uid="uid://dbexovw5obyax" path="res://game/solar_system/credits_counter.tscn" id="20_credits"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -187,6 +188,7 @@ orbit_period = 70.0
 start_angle = 200.0
 spin_period = 27.0
 surface_material = SubResource("ShaderMaterial_ember")
+icon_color = Color(0.82, 0.58, 0.4, 1)
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Terra" type="Node3D" parent="." unique_id=310922244]
@@ -199,6 +201,7 @@ start_angle = 300.0
 spin_period = 36.0
 tilt = 15.0
 surface_material = SubResource("ShaderMaterial_terra")
+icon_color = Color(0.5, 0.82, 0.34, 1)
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Moon" type="Node3D" parent="Terra" unique_id=247044122]
@@ -209,6 +212,7 @@ orbit_radius = 2.0
 start_angle = 40.0
 spin_period = 0.0
 surface_material = SubResource("ShaderMaterial_moon")
+icon_color = Color(0.95, 0.93, 1, 1)
 orbit_width = 0.03
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
@@ -221,10 +225,12 @@ start_angle = 140.0
 spin_period = 48.0
 tilt = 18.0
 surface_material = SubResource("ShaderMaterial_giant")
+icon_color = Color(1, 0.6, 0.25, 1)
 orbit_material = SubResource("StandardMaterial3D_orbit")
 ring_material = SubResource("ShaderMaterial_giant_rings")
 ring_inner = 1.35
 ring_outer = 2.2
+icon_ring_color = Color(0.72, 0.72, 1, 1)
 
 [node name="Frost" type="Node3D" parent="." unique_id=2128267833]
 script = ExtResource("2_planet")
@@ -236,6 +242,7 @@ start_angle = 20.0
 spin_period = 42.0
 tilt = -10.0
 surface_material = SubResource("ShaderMaterial_frost")
+icon_color = Color(1, 0.62, 0.74, 1)
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
@@ -257,7 +264,11 @@ bus = NodePath("../Bus")
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
 
-[node name="CreditsCounter" parent="Hud" unique_id=517520806 instance=ExtResource("19_credits")]
+[node name="BusStatusPanel" parent="Hud" unique_id=923292603 node_paths=PackedStringArray("bus", "cabin") instance=ExtResource("19_status")]
+bus = NodePath("../../Bus")
+cabin = NodePath("../../Cabin")
+
+[node name="CreditsCounter" parent="Hud" unique_id=517520806 instance=ExtResource("20_credits")]
 unique_name_in_owner = true
 
 [node name="HintBox" type="MarginContainer" parent="Hud" unique_id=299227585]

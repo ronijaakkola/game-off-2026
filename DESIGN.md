@@ -21,11 +21,12 @@ A passenger's patience runs down while they ride, at half speed while the bus is
 
 ### On board
 
-Each passenger on board has a card down the left edge of the screen: name, type, destination, a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"). Built in `game/passengers/`, and running in the solar system:
+Each passenger on board has a card down the left edge of the screen: name, type, destination (a small flat icon of the planet and its name), a patience bar in their mood's colour, and a short line saying what they are doing ("Sleeping...", "Counting stars"). Built in `game/passengers/`, and running in the solar system:
 
 - **Waiting and boarding (first phase).** Each planet, the Moon included, gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random. They are hidden for now and lose no patience while they wait. Whenever the bus docks at a planet, it makes a stop there: the passengers going there get off one at a time and pay, then those waiting board one at a time, longest waiting first, while any of the 4 seats are free. Each takes 0.6 s, so a busy stop takes longer and an empty one none. The drive can't charge until the stop is over: a course set during it charges once the last passenger is on. A passenger getting off pays by the mood they arrived in. Their card slides out past the left edge of the screen and the cards below move up into the gap; one boarding slides in at the bottom from past the left edge. The game starts with one passenger on board at Ember.
 - **Trip time and fare** come from the straight distance at boarding: the trip time is the charge plus that distance at the bus's top speed, and the fare is 3 credits per unit times the type's multiplier. Planets move, so it is only an estimate.
 - **Credits** show in the top right. A payment counts the total up and shows what was paid in green just under it ("+15"), which fades in, stays a moment and fades out. Payments at one stop add up in it, so it reads as one sum growing.
+- **Bus status** shows in the bottom right (`game/bus/bus_status_panel.tscn`): what the bus is doing ("Docked at Terra", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to waypoint", "Stopping", "Holding in space"), a track from the planet it left (or "Space") to the next planet on the route with the time left to it, and a person for each seat, filled while taken, with the count ("3/4 seats"). Docking is the braking at the end of a flight to a planet. The time left is an estimate from the distance now: the charge left, the route's straight legs at top speed, speeding up and braking. The track never moves back, so a planet that moves away slows it instead. While the bus charges or flies, a button cancels the course: "Cancel" keeps a charging bus docked, and "Cancel route" slows a flying one to a stop in space.
 
 - **Needs.** Each passenger type has a few needs, such as a snack or a drink. Each need asks again a random while after the last one was served. While a request is open, the card says so ("Hungry. Wants a snack") and shows a button to serve it, and patience runs down several times faster. A request stays open until it is served, never expiring, since a request that expired would make ignoring a passenger cheaper than serving them. One request at a time, and the other needs' timers wait while it is open, so serving one doesn't set off the rest at once. A served need shows its own line ("Munching a snack") for a few seconds.
 - **Amenities.** Something on the bus that serves one need by itself, the moment it is asked for, with its own line ("Getting a drink from the dispenser"). This is what upgrades buy: each one takes a chore off the player. None exist yet.
@@ -49,6 +50,7 @@ Flat and cartoony, like a picture book of the solar system: solid colours with c
 - **Colours.** Soft, warm and saturated, never dark: sandy orange, leaf green, a pale lilac moon, an orange-striped gas giant with lilac rings, a pink ice planet with white caps. Planets are told apart by colour first, so each new one needs its own hue.
 - **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom or glow pass.
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is drawn as a thin, faint lilac line, so the player can see where each planet is going.
+- **Planet icons** (`planet_icon.gdshader`). The UI shows a planet as a flat disc in its one icon colour, with the same purple night side as in the world, lit from the upper left. A planet with rings shows them as a line at its tilt, passing behind the disc at the top and in front at the bottom; its disc is smaller, so the rings fit at any tilt. Each planet's icon colour is set by hand to the colour it reads as from the camera.
 - **Names.** Each planet and moon has its name just under it: small off-white text with the sky's lilac, a little see-through, with a thin navy outline so it still reads where it crosses an orbit line. The text faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
 - **Sky** (`SpaceSky`). A deep navy-violet background with faint coloured fog and two layers of small stars. It is dim on purpose, so the planets stand out. It doesn't light the planets.
 
@@ -65,7 +67,6 @@ Planned for the core loop, not built yet:
 | Left click a planet | Open its panel: the fuel cost and time to get there, and who is waiting |
 | Left click empty space | Close the open panel |
 | Left click a waiting passenger | Pick them up |
-| A cancel-route button | Cancel the course from anywhere. Until it exists, the bus stops by right-clicking its own planet, or a point just ahead of it in flight |
 
 Esc stays pause only. In browser fullscreen the browser takes Esc to leave fullscreen and the game never sees it, so Esc can't close a panel the same way in a window and in fullscreen.
 
@@ -79,6 +80,7 @@ Built, in the solar system, which Play opens:
 | Shift + right click | Add a planet or point to the end of the route |
 | Shift + right click the last stop | Remove it from the route. Only the last one: a stop in the middle is added again, so a route can come back to a planet. With no stop left, the course is cancelled |
 | Right click the planet the bus is docked at | Cancel the course: a charging drive stops |
+| The bus status panel's Cancel / Cancel route button | Cancel the course while the bus charges or flies. A flying bus slows to a stop in space |
 | W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit |
 | Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
 | Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |

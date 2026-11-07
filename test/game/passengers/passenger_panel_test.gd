@@ -77,6 +77,27 @@ func test_clicking_serve_on_a_card_serves_the_request() -> void:
 	assert_str((runner.find_child("ActivityLabel") as Label).text).is_equal("Munching")
 
 
+func test_each_card_shows_an_icon_in_its_own_destination_colour() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var colors: Array[Color] = [Color.ORANGE, Color.TEAL]
+	for color: Color in colors:
+		var planet: Planet = auto_free(Planet.new())
+		planet.icon_color = color
+		cabin.board(_passenger(planet, 1000.0))
+	await runner.simulate_frames(2)
+
+	var icons := (runner.find_child("Cards") as Control).find_children(
+		"DestinationIcon", "", true, false
+	)
+	assert_int(icons.size()).is_equal(2)
+	for i: int in icons.size():
+		var icon := icons[i] as PlanetIcon
+		assert_bool(icon.is_visible_in_tree()).is_true()
+		var shown: Color = (icon.material as ShaderMaterial).get_shader_parameter(&"color")
+		assert_that(shown).is_equal(colors[i])
+
+
 func test_the_preview_shows_a_full_cabin_with_three_requests() -> void:
 	var runner := scene_runner(PREVIEW)
 	await runner.simulate_frames(2)

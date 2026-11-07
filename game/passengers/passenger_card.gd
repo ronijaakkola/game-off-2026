@@ -1,8 +1,9 @@
 class_name PassengerCard
 extends Control
-## One passenger's card: their name and type, where they are going, their patience as a
-## bar in their mood's colour, and what they are doing. While they ask for something, a
-## button serves it. It only reads the passenger; the [Cabin] runs the ride.
+## One passenger's card: their name and type, where they are going (an icon of the
+## planet and its name), their patience as a bar in their mood's colour, and what they
+## are doing. While they ask for something, a button serves it. It only reads the
+## passenger; the [Cabin] runs the ride.
 ## The card slides in from past the left edge of the screen when the passenger boards, and
 ## back out past it when they get off, then folds its height away so the cards below it
 ## move up. The root is a slot that holds the card's place in the list, and the panel moves
@@ -120,6 +121,9 @@ func _show() -> void:
 		return
 	_set_text(%NameLabel, passenger.name)
 	_set_text(%TypeLabel, passenger.type.display_name)
+	var icon := %DestinationIcon as PlanetIcon
+	if icon.planet != passenger.destination:
+		icon.planet = passenger.destination
 	_set_text(%DestinationLabel, "To %s" % _destination_name())
 	(%PatienceBar as ProgressBar).value = passenger.get_patience_fraction()
 	var mood := passenger.get_mood()
