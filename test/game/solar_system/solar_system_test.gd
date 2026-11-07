@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Passengers in the solar system, and the clicks that set the bus's course. One passenger
 ## is on board at the start, and docking lets off those going there and takes on those
-## waiting.
+## waiting. Opening a planet is in planet_panel_test.gd.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -73,7 +73,7 @@ func test_right_click_on_the_last_planet_removes_it() -> void:
 	var terra := runner.find_child("Terra") as Planet
 	var giant := runner.find_child("Giant") as Planet
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant), true)
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
 
@@ -81,18 +81,60 @@ func test_right_click_on_the_last_planet_removes_it() -> void:
 	assert_array(bus.get_route_planets()).contains_exactly([terra])
 
 
-func test_shift_right_click_on_the_last_planet_also_removes_it() -> void:
+func test_right_clicks_add_stops_one_after_another() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var giant := runner.find_child("Giant") as Planet
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_array(bus.get_route_planets()).contains_exactly([terra, giant])
+
+
+func test_right_click_on_the_docked_planet_with_a_route_makes_a_round_trip() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var home := bus.get_docked_planet()
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, home))
+
+	assert_array(bus.get_route_planets()).contains_exactly([terra, home])
+
+
+func test_right_click_on_the_docked_planet_with_no_route_does_nothing() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, bus.get_docked_planet()))
+
+	assert_object(bus.get_last_stop()).is_null()
+	assert_float(bus.get_charge_progress()).is_equal(0.0)
+
+
+func test_clear_route_clears_every_stop() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var giant := runner.find_child("Giant") as Planet
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant), true)
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
 
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant), true)
+	var key := InputEventKey.new()
+	key.keycode = KEY_BACKSPACE
+	key.pressed = true
+	Input.parse_input_event(key)
+	Input.flush_buffered_events()
 
 	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_array(bus.get_route_planets()).contains_exactly([terra])
+	assert_object(bus.get_last_stop()).is_null()
+	assert_float(bus.get_charge_progress()).is_equal(0.0)
 
 
 func test_right_click_on_the_only_planet_cancels_the_course() -> void:
@@ -115,7 +157,7 @@ func test_right_click_on_the_last_point_in_space_removes_it() -> void:
 	var camera := runner.find_child("Camera") as Camera3D
 	var on_screen := _between_screen_point(runner)
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen), true)
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_object(bus.get_last_stop().planet).is_null()
 
@@ -150,7 +192,7 @@ func test_hovering_a_point_in_space_before_the_last_stop_picks_nothing() -> void
 	var camera := runner.find_child("Camera") as Camera3D
 	var on_screen := _between_screen_point(runner)
 	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra), true)
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 	var bus := runner.find_child("Bus") as FrameshiftBus
 
 	_send_motion(_to_window(camera, on_screen))
@@ -180,10 +222,9 @@ func _to_window(camera: Camera3D, viewport_point: Vector2) -> Vector2:
 
 
 # Through Input alone: the runner's own calls deliver each event twice to the root.
-func _send_click(button: MouseButton, at: Vector2, shift := false) -> void:
+func _send_click(button: MouseButton, at: Vector2) -> void:
 	var event := InputEventMouseButton.new()
 	event.button_index = button
-	event.shift_pressed = shift
 	event.position = at
 	event.global_position = at
 	event.pressed = true

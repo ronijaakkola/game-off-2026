@@ -56,6 +56,10 @@ _Avoid_: backend, network manager, Talo (the service, not our code)
 Turning bus events into analytics events and stats, all in `core/online/tracking.gd`.
 _Avoid_: telemetry, logging, metrics
 
+**Open planet**:
+The planet the player left-clicked to look at: the camera follows it on the left of the screen, and its **planet panel** on the right shows who is waiting there. One at a time. `SolarSystem.open_planet()` in code.
+_Avoid_: selected planet, focused planet, planet view
+
 **Passenger**:
 Someone riding the bus to a destination planet, with a fare, a patience that runs down during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
 _Avoid_: customer, rider, NPC

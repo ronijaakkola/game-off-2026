@@ -18,6 +18,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="18_theme"]
 [ext_resource type="PackedScene" uid="uid://ciwv4teguvu2s" path="res://game/bus/bus_status_panel.tscn" id="19_status"]
 [ext_resource type="PackedScene" uid="uid://dbexovw5obyax" path="res://game/solar_system/credits_counter.tscn" id="20_credits"]
+[ext_resource type="PackedScene" uid="uid://bnqjjd4k8w4nn" path="res://game/solar_system/planet_panel.tscn" id="21_planet_panel"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -158,6 +159,7 @@ fov = 30.0
 script = ExtResource("6_pcam_host")
 
 [node name="CameraRig" parent="." unique_id=1977612620 instance=ExtResource("10_rig")]
+unique_name_in_owner = true
 bounds_radius = 18.0
 min_distance = 8.0
 max_distance = 55.0
@@ -265,13 +267,16 @@ bus = NodePath("../Bus")
 unique_name_in_owner = true
 
 [node name="BusStatusPanel" parent="Hud" unique_id=923292603 node_paths=PackedStringArray("bus", "cabin") instance=ExtResource("19_status")]
+anchors_preset = 3
 bus = NodePath("../../Bus")
 cabin = NodePath("../../Cabin")
 
 [node name="CreditsCounter" parent="Hud" unique_id=517520806 instance=ExtResource("20_credits")]
 unique_name_in_owner = true
+anchors_preset = 1
 
 [node name="HintBox" type="MarginContainer" parent="Hud" unique_id=299227585]
+unique_name_in_owner = true
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -287,6 +292,9 @@ theme_override_constants/margin_bottom = 20
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
-text = "Right-click a planet or space to set course. Shift + right-click adds a stop."
+text = "Right-click planets or space to add stops. Backspace clears the route."
+
+[node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
+unique_name_in_owner = true
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]

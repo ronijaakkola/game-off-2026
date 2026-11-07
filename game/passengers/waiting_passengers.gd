@@ -1,8 +1,12 @@
 class_name WaitingPassengers
 extends Node
-## The passengers waiting at each planet, hidden for now. Each planet gets a new one every
-## so often, up to [member max_per_planet], going to another planet at random. Their
-## patience and fare come from the distance to their destination when they board.
+## The passengers waiting at each planet, shown in the open planet's panel. Each planet gets
+## a new one every so often, up to [member max_per_planet], going to another planet at
+## random. Their patience and fare come from the distance to their destination when they
+## board.
+
+## The line at [param planet] changed: someone joined it or was taken from it.
+signal changed(planet: Planet)
 
 ## The kinds of passenger that turn up, picked at random.
 @export var types: Array[PassengerType] = []
@@ -48,11 +52,19 @@ func add(planet: Planet) -> void:
 	var passenger := create(planet)
 	if passenger:
 		_waiting[planet].append(passenger)
+		changed.emit(planet)
 
 
 ## How many wait at [param planet].
 func count_at(planet: Planet) -> int:
 	return _waiting.get(planet, []).size()
+
+
+## Who waits at [param planet], longest waiting first.
+func get_waiting(planet: Planet) -> Array[Passenger]:
+	var line: Array[Passenger] = []
+	line.assign(_waiting.get(planet, []))
+	return line
 
 
 ## Takes up to [param count] passengers waiting at [param planet], longest waiting first.
@@ -61,6 +73,8 @@ func take(planet: Planet, count: int) -> Array[Passenger]:
 	var queue: Array = _waiting.get(planet, [])
 	while taken.size() < count and not queue.is_empty():
 		taken.append(queue.pop_front())
+	if not taken.is_empty():
+		changed.emit(planet)
 	return taken
 
 
