@@ -51,6 +51,10 @@ report/godot/push_error=true
 settings/test/test_discovery=true
 ui/toolbar/run_overall=true
 
+[gui]
+
+common/snap_controls_to_pixels=false
+
 [input]
 
 camera_pan_left={

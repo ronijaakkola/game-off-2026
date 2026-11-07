@@ -74,7 +74,8 @@ func test_each_row_shows_a_portrait_and_gives_it_back_when_the_passenger_boards(
 		var photo := row.find_child("PassengerPhoto") as PassengerPhoto
 		assert_object(photo.get_photo()).is_not_null()
 
-	_waiting.take(_home, 2)
+	for passenger: Passenger in _waiting.get_waiting(_home):
+		_waiting.take(_home, passenger)
 	await runner.simulate_frames(2)
 	assert_int(studio.get_portrait_count()).is_equal(0)
 
@@ -117,7 +118,7 @@ func test_rows_follow_the_line_as_passengers_arrive_and_board() -> void:
 	_waiting.add(_away)
 	assert_int(_rows(runner).size()).is_equal(1)
 
-	_waiting.take(_home, 1)
+	_waiting.take(_home, _waiting.get_waiting(_home)[0])
 	assert_int(_rows(runner).size()).is_equal(0)
 	assert_bool((runner.find_child("EmptyLabel") as Label).visible).is_true()
 
