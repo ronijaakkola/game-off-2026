@@ -3,7 +3,7 @@ extends Node3D
 ## The bus's model: `models/bus.glb` under it, redrawn with the planets' two-tone light in
 ## the colours it was made with. Its thrusters' exhaust glows and grows by [member thrust].
 
-const SHADER := preload("res://game/bus/bus.gdshader")
+const SHADER := preload("res://shared/two_tone.gdshader")
 # The glb's node for the thrusters' exhaust, lit by thrust rather than by the star. Its
 # origin is at the nozzles.
 const GLOW_NODE := &"ThrusterGlow"

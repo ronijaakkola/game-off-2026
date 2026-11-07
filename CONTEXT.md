@@ -68,6 +68,10 @@ _Avoid_: customer, rider, NPC
 How much more riding a passenger will take, in seconds, starting at the direct trip time with some slack.
 _Avoid_: frustration, timer, budget
 
+**Portrait**:
+A passenger's alien head and shoulders, shown in a photo frame on their card: a head shape, an eye style and a race colour (their **look**). `AlienPortrait` in code.
+_Avoid_: avatar, face, picture
+
 **Need**:
 Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves.
 _Avoid_: want, demand, task

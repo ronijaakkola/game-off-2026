@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="AlienEyeStyle" format=3 uid="uid://dw4cyke3jifbg"]
+
+[ext_resource type="Script" uid="uid://bdjunjwf2tma2" path="res://game/passengers/alien_eye_style.gd" id="1_style"]
+
+[resource]
+script = ExtResource("1_style")

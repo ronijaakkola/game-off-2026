@@ -116,6 +116,17 @@ func test_an_amenity_serves_with_its_own_line() -> void:
 	assert_str(passenger.activity).is_equal(dispenser.line)
 
 
+func test_the_same_seed_gives_the_same_look() -> void:
+	var looks: Array[AlienLook] = []
+	for i: int in 2:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 42
+		looks.append(Passenger.new(_type(), _planet, TRIP, FARE, rng).look)
+	assert_object(looks[0].head).is_same(looks[1].head)
+	assert_object(looks[0].eye_style).is_same(looks[1].eye_style)
+	assert_that(looks[0].skin_color).is_equal(looks[1].skin_color)
+
+
 func _type(needs: Array[Need] = []) -> PassengerType:
 	var kind := PassengerType.new()
 	kind.needs = needs

@@ -24,6 +24,8 @@ const BOARDING_SECONDS := 3.0
 
 var name: String
 var type: PassengerType
+## The planet they boarded at, or null when not known.
+var origin: Planet
 var destination: Planet
 var fare: float
 ## Patience at boarding, in seconds of riding.
@@ -33,6 +35,8 @@ var patience: float
 var activity := ""
 ## The need they are asking for, or null.
 var request: Need
+## What they look like in their portrait.
+var look: AlienLook
 
 var _rng: RandomNumberGenerator
 # Seconds left of the current activity line.
@@ -47,8 +51,8 @@ var _departed := false
 
 ## A passenger of [param kind] going to [param to]. Their patience starts at
 ## [param trip_seconds], the direct trip time, times the type's slack, and their fare at
-## [param base_fare] times the type's multiplier. [param rng] picks the name, the lines and
-## the timers; pass a seeded one for a repeatable ride.
+## [param base_fare] times the type's multiplier. [param rng] picks the name, the lines,
+## the timers and the look; pass a seeded one for a repeatable ride.
 func _init(
 	kind: PassengerType,
 	to: Planet,
@@ -67,6 +71,7 @@ func _init(
 		_need_timers.append(_interval(need))
 	activity = BOARDING_LINE
 	_activity_left = BOARDING_SECONDS
+	look = AlienLook.random(_rng)
 
 
 ## The mood for [param fraction] of patience left: happy at 60 % or more, okay at 30 % or

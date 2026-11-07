@@ -4,7 +4,6 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 
 [node name="PassengerPanel" type="MarginContainer" unique_id=173000372]
-layout_mode = 3
 anchors_preset = 9
 anchor_bottom = 1.0
 grow_vertical = 2

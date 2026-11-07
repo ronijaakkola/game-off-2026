@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://rxovwrdoxn7r" path="res://test/previews/passenger_panel_preview.gd" id="1_preview"]
 [ext_resource type="Script" uid="uid://ddec1r5comhsp" path="res://game/passengers/cabin.gd" id="2_cabin"]
 [ext_resource type="PackedScene" uid="uid://lhx0mmtinvdx" path="res://game/passengers/passenger_panel.tscn" id="3_panel"]
+[ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="4_studio"]
 
 [node name="PassengerPanelPreview" type="Node" unique_id=1364627504]
 script = ExtResource("1_preview")
@@ -20,4 +21,7 @@ unique_name_in_owner = true
 script = ExtResource("2_cabin")
 
 [node name="PassengerPanel" parent="." unique_id=1987619419 instance=ExtResource("3_panel")]
+unique_name_in_owner = true
+
+[node name="PortraitStudio" parent="." unique_id=1672816815 instance=ExtResource("4_studio")]
 unique_name_in_owner = true

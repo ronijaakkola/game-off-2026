@@ -1,9 +1,10 @@
 class_name PassengerCard
 extends Control
-## One passenger's card: their name and type, where they are going (an icon of the
+## One passenger's card: their name, where they are going (an icon of the
 ## planet and its name), their patience as a bar in their mood's colour, and what they
 ## are doing. While they ask for something, a button serves it. It only reads the
 ## passenger; the [Cabin] runs the ride.
+## Their portrait sits on the left, as a [PassengerPhoto].
 ## The card slides in from past the left edge of the screen when the passenger boards, and
 ## back out past it when they get off, then folds its height away so the cards below it
 ## move up. The root is a slot that holds the card's place in the list, and the panel moves
@@ -44,7 +45,14 @@ var passenger: Passenger:
 		passenger = value
 		_mood = -1
 		if is_node_ready():
+			(%PassengerPhoto as PassengerPhoto).passenger = value
 			_show()
+## Where the portrait is rendered. Set it before [member passenger].
+var portrait_studio: PortraitStudio:
+	set(value):
+		portrait_studio = value
+		if is_node_ready():
+			(%PassengerPhoto as PassengerPhoto).studio = value
 
 # The bar's fill, this card's own copy, so its colour changes on this card alone.
 var _fill: StyleBoxFlat
@@ -62,6 +70,9 @@ func _ready() -> void:
 	var bar := %PatienceBar as ProgressBar
 	_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate()
 	bar.add_theme_stylebox_override(&"fill", _fill)
+	var photo := %PassengerPhoto as PassengerPhoto
+	photo.studio = portrait_studio
+	photo.passenger = passenger
 	_show()
 	_fit_slot()
 
@@ -128,7 +139,6 @@ func _show() -> void:
 	if not passenger:
 		return
 	_set_text(%NameLabel, passenger.name)
-	_set_text(%TypeLabel, passenger.type.display_name)
 	var icon := %DestinationIcon as PlanetIcon
 	if icon.planet != passenger.destination:
 		icon.planet = passenger.destination
