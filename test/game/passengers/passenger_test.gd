@@ -63,7 +63,7 @@ func test_pay_follows_mood_at_the_end() -> void:
 
 func test_finds_their_seat_then_idles_on_one_of_the_type_s_lines() -> void:
 	var kind := _type()
-	kind.idle_lines = PackedStringArray(["Sleeping...", "Counting stars"])
+	kind.idle_lines = ["Sleeping...", "Counting stars"]
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
 	assert_str(passenger.activity).is_equal(Passenger.BOARDING_LINE)
 	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, true)

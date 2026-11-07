@@ -164,5 +164,5 @@ func _interval(need: Need) -> float:
 	return _rng.randf_range(need.min_interval, maxf(need.min_interval, need.max_interval))
 
 
-func _pick(lines: PackedStringArray) -> String:
+func _pick(lines: Array[String]) -> String:
 	return lines[_rng.randi_range(0, lines.size() - 1)] if not lines.is_empty() else ""

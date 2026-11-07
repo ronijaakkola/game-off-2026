@@ -46,6 +46,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Expect about 10 MB of engine download plus the `.pck`. itch gzips the files itself.
 - The single-threaded build runs everything on the main thread: `load_threaded_request` blocks, so a loading bar would jump from 0 to 1. Load while the screen is black.
 - The game pauses while its browser tab is hidden.
+- In 4.7.2 the export's text-to-binary resource conversion drops the values of script-exported `PackedStringArray` properties saved in a `.tres`, so exported builds get the script's default. Export string lists as `Array[String]`.
 
 ## Audio
 
