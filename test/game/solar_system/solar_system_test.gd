@@ -55,13 +55,15 @@ func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
 	var panel := runner.find_child("DockPanel") as DockPanel
 	var markers := runner.find_child("WaitingMarkers") as WaitingMarkers
 	assert_bool(panel.visible).is_true()
-	assert_str((panel.find_child("TitleLabel") as Label).text).is_equal("Waiting at Ember")
-	assert_bool(markers.is_shown(ember)).is_true()
+	assert_str((panel.find_child("NameLabel", true, false) as Label).text).is_equal("Ember")
 	assert_int(markers.count_at(ember)).is_equal(1)
 	var cabin := runner.find_child("Cabin") as Cabin
 	monitor_signals(cabin)
+	# Slid in from the right by now.
+	await await_millis(500)
 	var camera := runner.find_child("Camera") as Camera3D
-	var button := panel.find_child("BoardButton", true, false) as Button
+	var row := panel.find_child("BoardingRow", true, false) as BoardingRow
+	var button := row.find_child("BoardButton", true, false) as Button
 
 	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
 
@@ -69,12 +71,39 @@ func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
 	assert_array(cabin.get_passengers()).contains([picked])
 	assert_int(waiting.count_at(ember)).is_equal(0)
 	assert_int(markers.count_at(ember)).is_equal(0)
-	await runner.simulate_frames(1)
-	assert_bool(panel.visible).is_true()
-	assert_bool((panel.find_child("EmptyLabel") as Control).visible).is_true()
+	assert_bool((panel.find_child("EmptyLabel", true, false) as Control).visible).is_true()
+	# The row slid out and closed up while they got on.
+	assert_bool(is_instance_valid(row)).is_false()
 
 
-func test_the_dock_panel_hides_once_the_bus_leaves() -> void:
+func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	waiting.max_per_planet = 4
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var ember := bus.get_docked_planet()
+	for i: int in 4:
+		waiting.add(ember)
+	var line := waiting.get_waiting(ember)
+	await runner.simulate_frames(3)
+	await await_millis(500)
+	var cabin := runner.find_child("Cabin") as Cabin
+	var panel := runner.find_child("DockPanel") as DockPanel
+	var button := panel.find_child("BoardAllButton", true, false) as Button
+	assert_str(button.text).is_equal("Board all")
+	var camera := runner.find_child("Camera") as Camera3D
+
+	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
+	await assert_func(button, "is_disabled").wait_until(1000).is_true()
+
+	# One passenger is on board at the start, so three of the four fit, longest waiting first.
+	assert_array(waiting.get_waiting(ember)).contains_exactly([line[3]])
+	assert_int(cabin.get_free_seats()).is_equal(0)
+	assert_str(button.text).is_equal("Bus full %d/%d" % [cabin.seats, cabin.seats])
+
+
+func test_the_dock_panel_slides_out_once_the_bus_leaves() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var panel := runner.find_child("DockPanel") as DockPanel
@@ -88,8 +117,7 @@ func test_the_dock_panel_hides_once_the_bus_leaves() -> void:
 	await runner.simulate_frames(1)
 	assert_bool(panel.visible).is_true()
 	await assert_func(bus, "is_at_planet").wait_until(5000).is_false()
-	await runner.simulate_frames(1)
-	assert_bool(panel.visible).is_false()
+	await assert_func(panel, "is_visible").wait_until(2000).is_false()
 
 
 func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:

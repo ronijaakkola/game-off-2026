@@ -28,6 +28,19 @@ func test_passengers_turn_up_over_time_up_to_the_limit() -> void:
 	assert_int(_waiting.count_at(_home)).is_equal(2)
 
 
+func test_nobody_new_turns_up_where_the_bus_waits() -> void:
+	var bus := (load("res://game/bus/bus.tscn") as PackedScene).instantiate() as FrameshiftBus
+	bus.start_planet = _home
+	(_home.get_parent() as Node).add_child(bus)
+	bus.set_process(false)
+	_waiting.bus = bus
+
+	await await_millis(300)
+
+	assert_int(_waiting.count_at(_home)).is_equal(0)
+	assert_int(_waiting.count_at(_away)).is_equal(2)
+
+
 func test_take_removes_only_that_passenger_from_the_line() -> void:
 	_waiting.add(_home)
 	_waiting.add(_home)

@@ -61,7 +61,7 @@ func _show() -> void:
 func _state_text(next: Planet) -> String:
 	match bus.state:
 		FrameshiftBus.State.DOCKED:
-			return "Docked at %s" % _planet_name(bus.get_docked_planet())
+			return "Docked"
 		FrameshiftBus.State.CHARGING:
 			return "Charging frameshift"
 		FrameshiftBus.State.FLYING:

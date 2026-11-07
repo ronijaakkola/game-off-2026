@@ -2,40 +2,82 @@
 
 [ext_resource type="Script" uid="uid://wn0pxtmcj3pr" path="res://game/solar_system/dock_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
+[ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="4_icon_shader"]
 
-[node name="DockPanel" type="PanelContainer" unique_id=1953939187]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_icon"]
+resource_local_to_scene = true
+shader = ExtResource("4_icon_shader")
+shader_parameter/color = null
+shader_parameter/night_tint = null
+shader_parameter/has_rings = null
+shader_parameter/ring_color = null
+shader_parameter/ring_tilt = null
+
+[node name="DockPanel" type="Control" unique_id=1953939187]
 visible = false
-custom_minimum_size = Vector2(240, 0)
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
 theme = ExtResource("2_theme")
-theme_type_variation = &"CardPanel"
 script = ExtResource("1_panel")
 
-[node name="Content" type="VBoxContainer" parent="." unique_id=1193597470]
-layout_mode = 2
-theme_override_constants/separation = 4
+[node name="Card" type="PanelContainer" parent="." unique_id=71083133]
+unique_name_in_owner = true
+layout_mode = 0
+theme_type_variation = &"CardPanel"
 
-[node name="TitleLabel" type="Label" parent="Content" unique_id=864290337]
+[node name="Clip" type="Control" parent="Card" unique_id=119368153]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="Card/Clip" unique_id=1193597470]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Card/Clip/Content" unique_id=509452386]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="PlanetIcon" type="ColorRect" parent="Card/Clip/Content/Header" unique_id=11877451]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_icon")
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3_icon")
+
+[node name="NameLabel" type="Label" parent="Card/Clip/Content/Header" unique_id=864290337]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
-text = "Waiting at ?"
+text = "?"
 
-[node name="Rows" type="VBoxContainer" parent="Content" unique_id=288850977]
+[node name="Rows" type="VBoxContainer" parent="Card/Clip/Content" unique_id=288850977]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
-theme_override_constants/separation = 4
+mouse_filter = 2
+theme_override_constants/separation = 0
 
-[node name="EmptyLabel" type="Label" parent="Content" unique_id=1285481172]
+[node name="EmptyLabel" type="Label" parent="Card/Clip/Content" unique_id=40552596]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.45)
 text = "Nobody waiting."
 
-[node name="FullLabel" type="Label" parent="Content" unique_id=649371277]
+[node name="BoardAllButton" type="Button" parent="Card/Clip/Content" unique_id=294880964]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.45)
-text = "Every seat is taken."
+theme_type_variation = &"SmallButton"
+text = "Board all"
+
+[connection signal="pressed" from="Card/Clip/Content/BoardAllButton" to="." method="_on_board_all_button_pressed"]
