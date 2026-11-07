@@ -68,7 +68,7 @@ func test_rows_follow_the_line_as_passengers_arrive_and_board() -> void:
 	_waiting.add(_away)
 	assert_int(_rows(runner).size()).is_equal(1)
 
-	_waiting.take(_home, 1)
+	_waiting.take(_home, _waiting.get_waiting(_home)[0])
 	assert_int(_rows(runner).size()).is_equal(0)
 	assert_bool((runner.find_child("EmptyLabel") as Label).visible).is_true()
 

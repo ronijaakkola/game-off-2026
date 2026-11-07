@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://cnqx1y78580u8"]
+
+[ext_resource type="Script" uid="uid://cuwy8ggn45uni" path="res://game/solar_system/boarding_row.gd" id="1_row"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
+[ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="4_icon_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_icon"]
+resource_local_to_scene = true
+shader = ExtResource("4_icon_shader")
+shader_parameter/color = null
+shader_parameter/night_tint = null
+shader_parameter/has_rings = null
+shader_parameter/ring_color = null
+shader_parameter/ring_tilt = null
+
+[node name="BoardingRow" type="PanelContainer" unique_id=2017478593]
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_type_variation = &"RowPanel"
+script = ExtResource("1_row")
+
+[node name="Columns" type="HBoxContainer" parent="." unique_id=1226437029]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="DestinationIcon" type="ColorRect" parent="Columns" unique_id=746353628]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_icon")
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3_icon")
+
+[node name="DestinationLabel" type="Label" parent="Columns" unique_id=802791631]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TinyLabel"
+text = "To ?"
+
+[node name="FareLabel" type="Label" parent="Columns" unique_id=1301313441]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.6)
+text = "0 cr"
+horizontal_alignment = 2
+
+[node name="BoardButton" type="Button" parent="Columns" unique_id=998031172]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Board"
+
+[connection signal="pressed" from="Columns/BoardButton" to="." method="_on_board_button_pressed"]

@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## Passengers in the solar system, and the clicks that set the bus's course. One passenger
-## is on board at the start, and docking lets off those going there and takes on those
-## waiting. Opening a planet is in planet_panel_test.gd.
+## is on board at the start, docking lets off those going there, and the player picks
+## up those waiting from the popup beside the docked planet. Opening a planet is in
+## planet_panel_test.gd.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -14,15 +15,15 @@ func test_starts_with_one_passenger_on_board() -> void:
 	assert_int((runner.find_child("Cards") as Control).get_child_count()).is_equal(1)
 
 
-func test_docking_lets_them_off_and_pays_then_boards_before_the_bus_can_charge() -> void:
+func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var cabin := runner.find_child("Cabin") as Cabin
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var passenger := cabin.get_passengers()[0]
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
-	waiting.take(passenger.destination, 99)
 	waiting.add(passenger.destination)
+	var count := waiting.count_at(passenger.destination)
 	var payout := passenger.get_payout()
 
 	bus.docked.emit(passenger.destination)
@@ -31,7 +32,8 @@ func test_docking_lets_them_off_and_pays_then_boards_before_the_bus_can_charge()
 	assert_bool(bus.boarding).is_true()
 	await assert_signal(cabin).wait_until(3000).is_emitted("stop_finished")
 	assert_bool(bus.boarding).is_false()
-	assert_int(cabin.get_passengers().size()).is_equal(1)
+	assert_int(cabin.get_passengers().size()).is_equal(0)
+	assert_int(waiting.count_at(passenger.destination)).is_equal(count)
 	var counter := runner.find_child("CreditsCounter") as CreditsCounter
 	assert_int(counter.credits).is_equal(payout)
 	assert_str((runner.find_child("GainLabel") as Label).text).is_equal("+%d" % payout)
@@ -39,6 +41,83 @@ func test_docking_lets_them_off_and_pays_then_boards_before_the_bus_can_charge()
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
 	assert_str(total).is_equal("%d credits" % payout)
+
+
+func test_hovering_the_docked_planet_opens_the_popup_and_board_picks_up() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var ember := bus.get_docked_planet()
+	waiting.add(ember)
+	var picked := waiting.get_waiting(ember)[0]
+	await runner.simulate_frames(3)
+	var popup := runner.find_child("BoardingPopup") as BoardingPopup
+	var markers := runner.find_child("WaitingMarkers") as WaitingMarkers
+	assert_bool(popup.visible).is_false()
+	assert_bool(markers.is_shown(ember)).is_true()
+	assert_int(markers.count_at(ember)).is_equal(1)
+
+	_send_motion(_screen_point(runner, ember))
+	await runner.simulate_frames(2)
+	assert_bool(popup.visible).is_true()
+	assert_bool(markers.is_shown(ember)).is_false()
+	# It stays while the pointer is on it.
+	var camera := runner.find_child("Camera") as Camera3D
+	var button := popup.find_child("BoardButton", true, false) as Button
+	_send_motion(_to_window(camera, button.get_global_rect().get_center()))
+	await await_millis(500)
+	assert_bool(popup.visible).is_true()
+	var cabin := runner.find_child("Cabin") as Cabin
+	monitor_signals(cabin)
+
+	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
+
+	await assert_signal(cabin).wait_until(2000).is_emitted("stop_finished")
+	assert_array(cabin.get_passengers()).contains([picked])
+	assert_int(waiting.count_at(ember)).is_equal(0)
+	assert_int(markers.count_at(ember)).is_equal(0)
+	await runner.simulate_frames(1)
+	assert_bool(popup.visible).is_false()
+
+
+func test_the_popup_closes_a_moment_after_the_pointer_leaves() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	var ember := (runner.find_child("Bus") as FrameshiftBus).get_docked_planet()
+	waiting.add(ember)
+	await runner.simulate_frames(3)
+	_send_motion(_screen_point(runner, ember))
+	await runner.simulate_frames(2)
+	var popup := runner.find_child("BoardingPopup") as BoardingPopup
+	assert_bool(popup.visible).is_true()
+
+	var camera := runner.find_child("Camera") as Camera3D
+	_send_motion(_to_window(camera, _between_screen_point(runner)))
+
+	await assert_func(popup, "is_visible").wait_until(2000).is_false()
+
+
+func test_the_popup_keeps_beside_its_planet_on_the_frame_it_moves() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var ember := bus.get_docked_planet()
+	waiting.add(ember)
+	await runner.simulate_frames(3)
+	_send_motion(_screen_point(runner, ember))
+	await runner.simulate_frames(5)
+
+	# Placed after the planets and camera moved this frame, not from the frame before.
+	var camera := runner.find_child("Camera") as Camera3D
+	var edge := camera.unproject_position(
+		ember.get_body_global_position() + camera.global_basis.x * ember.get_body_radius()
+	)
+	var popup := runner.find_child("BoardingPopup") as BoardingPopup
+	assert_bool(popup.visible).is_true()
+	assert_float(popup.position.x).is_equal_approx(edge.x + BoardingPopup.GAP, 0.001)
 
 
 func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
@@ -229,6 +308,18 @@ func _send_click(button: MouseButton, at: Vector2) -> void:
 	event.global_position = at
 	event.pressed = true
 	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
+# A press and its release, which a Button needs to count as pressed.
+func _send_button_click(at: Vector2) -> void:
+	_send_motion(at)
+	_send_click(MOUSE_BUTTON_LEFT, at)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.position = at
+	release.global_position = at
+	Input.parse_input_event(release)
 	Input.flush_buffered_events()
 
 

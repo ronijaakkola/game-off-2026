@@ -14,9 +14,13 @@ extends Node3D
 ## planet is open, the planets' names fade out, and the open planet's white hover border
 ## fades out and stays off; both fade back in when it closes.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
-## where the passengers going to that planet get off one by one and pay, and those waiting
-## there board one by one while seats are free. The bus can't charge until the stop is
-## over. The game starts with one passenger on board.
+## where the passengers going to that planet get off one by one and pay. Under each planet
+## where someone waits, a small person and a number say how many. While the bus is docked
+## or charging, the pointer over its planet opens a popup beside it that lists who waits
+## there, and the player picks them up one by one while seats are free. The popup stays
+## while the pointer is on it, and closes a moment after the pointer leaves both. The bus
+## can't charge, and a charge under way holds, until the stop is over. The game starts
+## with one passenger on board.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -30,6 +34,11 @@ const LABEL_GAP_PIXELS := 0.0
 const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
+## Pixels between a planet's name and the marker for who waits there.
+const MARKER_GAP_PIXELS := 4.0
+## Seconds the boarding popup stays open after the pointer leaves the planet and the
+## popup, so it can cross the gap between them.
+const POPUP_LINGER_SECONDS := 0.3
 
 var _planets: Array[Planet] = []
 # 1 with no planet open, 0 once one is open and the fade is done.
@@ -37,9 +46,14 @@ var _fade := 1.0
 # The planet whose hover border fades: the open one, and after it closes, until the fade
 # is back to 1.
 var _faded_planet: Planet
+# Seconds the boarding popup stays open without the pointer on the planet or the popup.
+var _popup_linger := 0.0
 
 
 func _ready() -> void:
+	# After the planets, the bus and the camera have moved this frame, so the names, the
+	# popup and the waiting icons follow where they are now, not where they were a frame ago.
+	process_priority = 1
 	_collect_planets(self)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
@@ -50,6 +64,13 @@ func _ready() -> void:
 	panel.waiting = %WaitingPassengers as WaitingPassengers
 	panel.close_pressed.connect(close_planet)
 	panel.slide_in_seconds = (%CameraRig as CameraRig).get_focus_seconds()
+	var markers := %WaitingMarkers as WaitingMarkers
+	markers.waiting = %WaitingPassengers as WaitingPassengers
+	markers.set_planets(_planets)
+	var popup := %BoardingPopup as BoardingPopup
+	popup.waiting = %WaitingPassengers as WaitingPassengers
+	popup.cabin = %Cabin as Cabin
+	popup.board_pressed.connect(_on_board_pressed)
 
 
 func _process(delta: float) -> void:
@@ -64,6 +85,7 @@ func _process(delta: float) -> void:
 	var mouse := get_viewport().get_mouse_position()
 	var over_hud := get_viewport().gui_get_hovered_control() != null
 	var under: Planet = null if over_hud else _planet_at(mouse)
+	_place_waiting(delta, under, mouse)
 	var bus := %Bus as FrameshiftBus
 	var marker: RouteStop = null if under or over_hud else _marker_at(mouse)
 	# Only the last stop, the one a right click removes.
@@ -184,7 +206,22 @@ func _start_passengers() -> void:
 
 func _on_bus_docked(planet: Planet) -> void:
 	(%Bus as FrameshiftBus).boarding = true
-	(%Cabin as Cabin).stop_at(planet, %WaitingPassengers as WaitingPassengers)
+	(%Cabin as Cabin).stop_at(planet)
+
+
+# The player picked up a passenger in the popup: they leave the line and board after
+# whoever is getting off or on before them. Only at the planet the bus waits at, while a
+# seat is free.
+func _on_board_pressed(passenger: Passenger) -> void:
+	var bus := %Bus as FrameshiftBus
+	var cabin := %Cabin as Cabin
+	var planet := bus.get_docked_planet()
+	if not planet or not bus.is_at_planet() or cabin.get_free_seats() <= 0:
+		return
+	if not (%WaitingPassengers as WaitingPassengers).take(planet, passenger):
+		return
+	bus.boarding = true
+	cabin.pick_up(passenger)
 
 
 func _on_delivered(_passenger: Passenger, payout: int) -> void:
@@ -262,6 +299,42 @@ func _planet_at(screen_point: Vector2) -> Planet:
 			best = planet
 			best_depth = depth
 	return best
+
+
+# Opens the boarding popup beside the planet the bus waits at while the pointer is on
+# that planet or the popup, and puts each planet's waiting marker under its name. The
+# markers fade with the names, and the docked planet's hides while the popup is open.
+func _place_waiting(delta: float, under: Planet, mouse: Vector2) -> void:
+	var bus := %Bus as FrameshiftBus
+	var camera := %Camera as Camera3D
+	var popup := %BoardingPopup as BoardingPopup
+	var docked_at := bus.get_docked_planet() if bus.is_at_planet() else null
+	var on_popup := popup.visible and popup.get_global_rect().has_point(mouse)
+	if docked_at and (under == docked_at or on_popup):
+		_popup_linger = POPUP_LINGER_SECONDS
+	else:
+		_popup_linger = maxf(_popup_linger - delta, 0.0)
+	popup.planet = docked_at if _popup_linger > 0.0 else null
+	if docked_at and not camera.is_position_behind(docked_at.get_body_global_position()):
+		var center := docked_at.get_body_global_position()
+		var edge := camera.unproject_position(
+			center + camera.global_basis.x * docked_at.get_body_radius()
+		)
+		var bounds := _focus_rect() if get_open_planet() else get_viewport().get_visible_rect()
+		popup.place(edge, bounds)
+	var markers := %WaitingMarkers as WaitingMarkers
+	markers.modulate.a = _fade
+	var below := LABEL_PIXELS + MARKER_GAP_PIXELS
+	for planet: Planet in _planets:
+		var center := planet.get_body_global_position()
+		if camera.is_position_behind(center):
+			markers.place(planet, Vector2.ZERO, false)
+			continue
+		var bottom := camera.unproject_position(
+			center - camera.global_basis.y * planet.get_body_radius()
+		)
+		var shown := _fade > 0.0 and not (planet == docked_at and popup.visible)
+		markers.place(planet, bottom + Vector2(0.0, below), shown)
 
 
 # Hangs each planet's name just under its body on screen, at the same size at any zoom.

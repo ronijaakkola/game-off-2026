@@ -1,9 +1,9 @@
 class_name WaitingPassengerRow
 extends PanelContainer
-## One passenger waiting at a planet, as a row in its panel: their name and type, where
-## they are going (an icon of the planet and its name), and their fare. It reads the
-## passenger when [member passenger] is set; a passenger's details don't change while they
-## wait.
+## One passenger waiting at a planet, as a row in its panel: their name, type and fare on
+## top, and under them where they are going (an icon of the planet and its name). It reads
+## the passenger when [member passenger] is set; a passenger's details don't change while
+## they wait.
 
 var passenger: Passenger:
 	set(value):
