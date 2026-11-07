@@ -59,6 +59,9 @@ var boarding := false:
 		boarding = value
 		if not boarding and state == State.DOCKED and not _route.is_empty():
 			_start_charge()
+## The stop on the route under the pointer. A point in space draws its diamond white. The
+## scene that handles the pointer sets it.
+var hovered_stop: RouteStop
 
 var _route: Array[RouteStop] = []
 var _dock_planet: Planet
@@ -80,7 +83,9 @@ func _ready() -> void:
 	# Draws the route line and charge ring once while SceneFlow's fade covers the screen,
 	# so their materials compile now and not on the first click.
 	%RouteLine.draw_route(
-		PackedVector3Array([global_position, global_position + Vector3.LEFT]), PackedVector3Array()
+		PackedVector3Array([global_position, global_position + Vector3.LEFT]),
+		PackedVector3Array([global_position + Vector3.LEFT]),
+		0
 	)
 	%ChargeRing.show_progress(global_position, 1.0)
 	await get_tree().process_frame
@@ -125,6 +130,11 @@ func remove_last_stop() -> void:
 ## The last stop on the route, or null when there is no route.
 func get_last_stop() -> RouteStop:
 	return _route.back() if not _route.is_empty() else null
+
+
+## Every stop on the route still ahead, in order.
+func get_route_stops() -> Array[RouteStop]:
+	return _route.duplicate()
 
 
 ## The size of the diamond drawn at a point in space on the route, in world units.
@@ -361,6 +371,7 @@ func _animate_model(delta: float) -> void:
 func _draw_route() -> void:
 	var legs := PackedVector3Array()
 	var markers := PackedVector3Array()
+	var hovered := -1
 	var from := _flat(global_position)
 	var from_planet: Planet
 	for stop: RouteStop in _route:
@@ -372,10 +383,12 @@ func _draw_route() -> void:
 			legs.append_array([start, _surface_point(stop.planet, start)])
 		else:
 			legs.append_array([start, end])
+			if stop == hovered_stop:
+				hovered = markers.size()
 			markers.append(end)
 		from = end
 		from_planet = stop.planet
-	%RouteLine.draw_route(legs, markers)
+	%RouteLine.draw_route(legs, markers, hovered)
 
 
 # The point on planet's surface, on the orbit plane, that faces toward.
