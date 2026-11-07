@@ -3,8 +3,8 @@ extends Control
 ## One passenger's card: their name and type, where they are going, their patience as a
 ## bar in their mood's colour, and what they are doing. While they ask for something, a
 ## button serves it. It only reads the passenger; the [Cabin] runs the ride.
-## The card slides in from the right edge of the screen when the passenger boards, and out
-## past the left edge when they get off, then folds its height away so the cards below it
+## The card slides in from past the left edge of the screen when the passenger boards, and
+## out past the right edge when they get off, then folds its height away so the cards below it
 ## move up. The root is a slot that holds the card's place in the list, and the panel moves
 ## inside it.
 
@@ -13,9 +13,9 @@ signal serve_pressed
 ## The card has slid out and folded away after [method leave]. It can be freed.
 signal left
 
-## Seconds to slide in from the right edge, and out past the left one.
+## Seconds to slide in from past the left edge, and out past the right one.
 const SLIDE_IN_SECONDS := 0.4
-const SLIDE_OUT_SECONDS := 0.3
+const SLIDE_OUT_SECONDS := 0.35
 ## Seconds to fold the slot's height away once the card is out.
 const FOLD_SECONDS := 0.2
 
@@ -62,12 +62,12 @@ func _process(_delta: float) -> void:
 	_fit_slot()
 
 
-## Starts the card past the right edge of the screen and slides it into place.
+## Starts the card past the left edge of the screen and slides it into place.
 func slide_in() -> void:
 	if _motion:
 		_motion.kill()
 	var panel := %Panel as Control
-	panel.position.x = get_viewport_rect().size.x
+	panel.position.x = _off_left()
 	_motion = create_tween()
 	(
 		_motion
@@ -77,14 +77,14 @@ func slide_in() -> void:
 	)
 
 
-## Slides the card out past the left edge of the screen, then folds its height away, and
+## Slides the card out past the right edge of the screen, then folds its height away, and
 ## emits [signal left]. The serve button stops working at once.
 func leave() -> void:
 	if _motion:
 		_motion.kill()
 	var panel := %Panel as Control
 	(%ServeButton as Button).disabled = true
-	var gone := -(global_position.x + panel.size.x + 8.0)
+	var gone := get_viewport_rect().size.x - global_position.x + 8.0
 	_motion = create_tween()
 	(
 		_motion
@@ -94,6 +94,11 @@ func leave() -> void:
 	)
 	_motion.tween_method(_set_fold, 1.0, 0.0, FOLD_SECONDS).set_trans(Tween.TRANS_QUAD)
 	_motion.tween_callback(left.emit)
+
+
+# Where the panel sits just past the left edge of the screen, from the slot.
+func _off_left() -> float:
+	return -(global_position.x + (%Panel as Control).size.x + 8.0)
 
 
 func _set_fold(value: float) -> void:
