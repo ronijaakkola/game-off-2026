@@ -2,7 +2,7 @@
 
 How this project is organised. Godot 4.7.2, GDScript only. Words in **bold** are defined in `CONTEXT.md`.
 
-`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, a `user://` path written in two scripts, a `res://` or `uid://` path in a script that names no file, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids or naming a uid that isn't its path's, an exported Node set from a path its `[node]` line doesn't list in `node_paths`, and asset size (a warning only). Each message names its rule and section.
+`uv run tools/check.py lint` checks the rules here that need no Godot: naming and layout, typed loop variables, `set()` or `get()` with a literal member name, the node paths in Scene composition, bus events and core system signals, where `LimboConsole`, `Talo` and audio bus names are named, a `user://` path written in two scripts, a `res://` or `uid://` path in a script that names no file, test file names, two nodes sharing a `unique_id`, a scene or resource missing its ids or naming a uid that isn't its path's, an exported Node set from a path its `[node]` line doesn't list in `node_paths`, and asset size (a warning only). Each message names its rule and section.
 
 ## Layout
 
@@ -36,6 +36,8 @@ Follow the [Godot GDScript style guide](https://docs.godotengine.org/en/4.7/tuto
 ## Static typing
 
 Every declaration is typed: variables, parameters, return types, loop variables. The `untyped_declaration` warning is an **Error** in `project.godot`, so an untyped script fails to load. It misses loop variables (`for i in 3:` loads), so `check.py lint` fails on those. Inferred types (`:=`) count as typed.
+
+Reach another script's members through its type, not by name. `node.set(&"cabin", cabin)` loads, and once `cabin` is misspelled or renamed it sets nothing and `get()` returns null, with no error anywhere; a test that configures a scene that way then passes without testing what it says. Give the script a `class_name` (a typed variable is reason enough), cast to it and use the member: `(%PassengerPanel as PassengerPanel).cabin = cabin`. `check.py lint` fails on `set()` or `set_deferred()` with a literal name, and on `get()` with a `StringName` literal (`typed-member`). A name in a variable, as when binding controls by a setting's name, is fine.
 
 ```gdscript
 var speed := 4.0

@@ -185,6 +185,9 @@ GD_COMMENT_OR_STRING = re.compile(
 )
 # Godot's untyped_declaration warning skips loop variables, so `for i in 3:` loads.
 UNTYPED_LOOP_VARIABLE = re.compile(r"^[ \t]*for[ \t]+(\w+)[ \t]+in\b", re.MULTILINE)
+# A member set or read by a name written as a literal, which a typo or a rename turns into
+# a no-op: Object.set() ignores a name the object doesn't have, and get() returns null.
+DYNAMIC_MEMBER = re.compile(r"\.\s*(set|set_deferred|get)\s*\(")
 OWN_GET_PARENT = re.compile(r"(?<![\w.])get_parent\s*\(|\bself\s*\.\s*get_parent\s*\(")
 SHADER_DIRECTIVE = re.compile(
     r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
@@ -357,6 +360,7 @@ def script_problems(path: str, hook: bool) -> list[str]:
     code, strings = split_gdscript(source)
     problems = test_file_problems(path, check_target=not hook)
     problems += untyped_loop_problems(path, code)
+    problems += dynamic_member_problems(path, code, source)
     # Tests and tools drive scenes from outside, so they may reach anywhere.
     outside = path.split("/")[0] in ("test", "tools")
     if not outside:
@@ -389,6 +393,27 @@ def untyped_loop_problems(path: str, code: str) -> list[str]:
         )
         problems.append(
             problem(path, line_at(code, m.start()), "typed-loop-variable", message, STATIC_TYPING)
+        )
+    return problems
+
+
+def dynamic_member_problems(path: str, code: str, source: str) -> list[str]:
+    """node.set(&"name", value) and node.get(&"name") skip the type check, so a misspelled or
+    renamed name sets nothing and reads null, with no error in load, smoke or tests. Only a
+    literal name is flagged: set(name, value) with a variable is how to bind by name, and
+    get("key") is how a Dictionary is read, so get is flagged only with a StringName."""
+    problems = []
+    for m in DYNAMIC_MEMBER.finditer(code):
+        literal = re.match(r"\s*(&?)[\"']", source[m.end() :])
+        if not literal or (m.group(1) == "get" and not literal.group(1)):
+            continue
+        message = (
+            f"{m.group(1)}() with a literal name does nothing, with no error, once that name "
+            "is misspelled or renamed. Give the script a class_name if it has none, cast to "
+            "it and use the member: (%Panel as PassengerPanel).cabin = cabin."
+        )
+        problems.append(
+            problem(path, line_at(code, m.start()), "typed-member", message, STATIC_TYPING)
         )
     return problems
 
