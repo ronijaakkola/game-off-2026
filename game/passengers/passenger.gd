@@ -104,10 +104,11 @@ func depart() -> void:
 	_departed = true
 
 
-## Runs [param delta] seconds of the ride. Patience holds until [method depart]. After that
-## it runs down at half speed while [param docked], and faster while a request is open.
-func tick(delta: float, docked: bool) -> void:
-	if _departed:
+## Runs [param delta] seconds of the ride. Patience holds until [method depart], and while
+## [param patience_holds]. Otherwise it runs down at half speed while [param docked], and
+## faster while a request is open.
+func tick(delta: float, docked: bool, patience_holds := false) -> void:
+	if _departed and not patience_holds:
 		var drain := delta
 		if docked:
 			drain *= DOCKED_DRAIN

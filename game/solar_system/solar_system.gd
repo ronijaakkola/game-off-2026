@@ -57,6 +57,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
+	(%Cabin as Cabin).parking = (%Bus as FrameshiftBus).state == FrameshiftBus.State.PARKING
 	_place_labels()
 	_update_fade(delta)
 	var rig := %CameraRig as CameraRig
