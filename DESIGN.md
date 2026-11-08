@@ -113,7 +113,7 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 - **Settings panel** (`ui/settings/`): Master, Music and SFX volume, Reduce motion, and Edge pan (on by default; off, only the keys pan the camera). Shared by the main menu and the pause menu.
 - **Solar system** (`game/solar_system/`): what Play opens. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky` with parallax on (its star and fog layers drift slightly as the camera moves, and hold still under Reduce motion), seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. The scene's script turns the pointer into planet hover, opening planets and course clicks for the bus (`game/bus/bus.tscn`), which starts docked at Ember. It also runs the passengers (a `Cabin`, `WaitingPassengers`, and the HUD with the passenger cards and credits). It instances the pause menu.
 
-Scene changes go through `SceneFlow.go_to`, which fades to black and back.
+Scene changes go through `SceneFlow.go_to`, which fades to a black loading card ("Loading…") while the next scene loads, then back in. The text stays still: on the web the load blocks the only thread, so a spinner or progress bar would freeze.
 
 ## Scope
 

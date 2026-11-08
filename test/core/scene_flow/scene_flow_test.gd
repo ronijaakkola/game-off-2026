@@ -98,5 +98,37 @@ func test_fades_in_smoothly_after_a_slow_first_frame() -> void:
 	assert_float(largest_step).is_less(0.25)
 
 
+func test_shows_loading_while_the_next_scene_loads() -> void:
+	# The old scene leaves right after load() returns: what shows then is the frame the
+	# player looks at during the load.
+	var old_scene := Node.new()
+	get_tree().root.add_child(old_scene)
+	get_tree().current_scene = old_scene
+	var shown_during_load: Array[String] = []
+	old_scene.tree_exiting.connect(func() -> void: shown_during_load.append(_shown_text()))
+	await _flow.go_to(GAME)
+	assert_array(shown_during_load).contains_exactly(["Loading…"])
+
+
+func test_hides_the_loading_card_after_the_transition() -> void:
+	await _flow.go_to(GAME)
+	assert_bool(_curtain().visible).is_false()
+
+
 func _record_shown_alpha() -> void:
-	_shown_alphas.append((_flow.get_child(0) as ColorRect).color.a)
+	_shown_alphas.append(_curtain().modulate.a)
+
+
+func _curtain() -> Control:
+	return _flow.get_child(0) as Control
+
+
+## The text on the loading card, if the card is fully shown.
+func _shown_text() -> String:
+	var curtain := _curtain()
+	if not curtain.visible or curtain.modulate.a < 1.0:
+		return ""
+	for label: Node in curtain.find_children("*", "Label", true, false):
+		if (label as Label).visible:
+			return (label as Label).text
+	return ""
