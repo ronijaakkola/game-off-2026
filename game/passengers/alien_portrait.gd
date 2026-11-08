@@ -6,8 +6,10 @@ extends Node3D
 ## eyes shut and the head nods forward; on a moving bus, the bust leans with the push it
 ## feels and sways back. Angry, the lids slant into a frown over smaller pupils, the skin
 ## flushes red and the head trembles past halfway; joyful, lower lids rise so the eyes
-## smile into crescents, and the head bobs. Content, they beam that way now and then.
-## Eating or drinking, a [PortraitMeal] holds the food up to the face and nods the head.
+## smile into crescents, and the head bobs. Content, they beam that way now and then. A
+## single eye shows anger with a brow over it and joy as a starry eye over blushing
+## cheeks, since any curve cut into it reads as a mouth. Eating or drinking, a
+## [PortraitMeal] holds the food up to the face and nods the head.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
@@ -64,6 +66,9 @@ const BOB := 0.03
 const LURCH_MAX := 0.6
 ## How much of the lean the whole bust takes; the head takes all of it.
 const BODY_LURCH := 0.35
+## How far the quad of an eye in the middle of the face reaches, in eye radii, so it has
+## room for the brow and blush the shader draws around it.
+const CENTRED_EYE_REACH := 1.6
 
 ## One of the head models in `models/`.
 @export var head_model: PackedScene
@@ -394,13 +399,16 @@ func _add_meal() -> void:
 
 
 func _add_eye(marker: Node3D) -> void:
-	var quad := QuadMesh.new()
-	quad.size = Vector2(2.0, 2.0)
-	var material := ShaderMaterial.new()
-	material.shader = EYE_SHADER
 	# The camera faces them, so an eye left of the middle has the middle to its right.
 	var x := (global_transform.affine_inverse() * marker.global_position).x
-	material.set_shader_parameter(&"inner_side", 0.0 if absf(x) < 0.01 else -signf(x))
+	var centred := absf(x) < 0.01
+	var reach := CENTRED_EYE_REACH if centred else 1.0
+	var quad := QuadMesh.new()
+	quad.size = Vector2(2.0, 2.0) * reach
+	var material := ShaderMaterial.new()
+	material.shader = EYE_SHADER
+	material.set_shader_parameter(&"inner_side", 0.0 if centred else -signf(x))
+	material.set_shader_parameter(&"reach", reach)
 	_eye_materials.append(material)
 	var eye := MeshInstance3D.new()
 	eye.name = "EyeDisc"

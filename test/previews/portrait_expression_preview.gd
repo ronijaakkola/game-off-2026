@@ -5,7 +5,7 @@ extends Control
 ## first four get there by their mood, and happy ones beam now and then; the joyful ones'
 ## full joy is set on the portrait, so their photo doesn't ride and set it by mood. The
 ## eating and drinking ones asked for a snack or a drink and were served it. Pass `big`
-## to show them three times the size.
+## to show them three times the size, and `swap` to give every head the other eye style.
 
 const PHOTO := preload("res://game/passengers/passenger_photo.tscn")
 const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
@@ -72,7 +72,8 @@ func _passenger(head: int, patience: float, home: Planet) -> Passenger:
 	passenger.origin = home
 	passenger.patience = passenger.patience_max * patience
 	passenger.look.head = AlienLook.HEADS[head]
-	passenger.look.eye_style = AlienLook.EYE_STYLES[head % AlienLook.EYE_STYLES.size()]
+	var style := head + (1 if "swap" in OS.get_cmdline_user_args() else 0)
+	passenger.look.eye_style = AlienLook.EYE_STYLES[style % AlienLook.EYE_STYLES.size()]
 	passenger.look.skin_color = AlienLook.SKIN_COLORS[head % AlienLook.SKIN_COLORS.size()]
 	return passenger
 
