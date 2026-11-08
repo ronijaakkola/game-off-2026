@@ -17,21 +17,16 @@ const EYE_STYLES: Array[AlienEyeStyle] = [
 	preload("res://game/passengers/eye_styles/googly.tres"),
 	preload("res://game/passengers/eye_styles/bead.tres"),
 ]
-# Trial race colours: teal, coral and mustard, hues the planets don't use.
-const RACES: Array[Color] = [
-	Color(0.3, 0.8, 0.7),
-	Color(0.98, 0.52, 0.47),
-	Color(0.95, 0.76, 0.3),
-]
 const SPACING := Vector2(0.8, 0.84)
 ## How hard the arrow keys push, in units per second squared.
 const PUSH := 3.0
 
 
 func _ready() -> void:
-	var rows := EYE_STYLES.size() * RACES.size()
+	var races := Race.SKIN_COLORS.values()
+	var rows := EYE_STYLES.size() * races.size()
 	for row: int in rows:
-		var style := EYE_STYLES[row / RACES.size()]
+		var style := EYE_STYLES[row / races.size()]
 		var y := ((rows - 1) / 2.0 - row) * SPACING.y - 0.38
 		var label := Label3D.new()
 		label.text = style.resource_path.get_file().get_basename().capitalize()
@@ -43,7 +38,7 @@ func _ready() -> void:
 			var portrait := PORTRAIT.instantiate() as AlienPortrait
 			portrait.head_model = HEADS[column]
 			portrait.eye_style = style
-			portrait.skin_color = RACES[row % RACES.size()]
+			portrait.skin_color = races[row % races.size()]
 			var x := (column - (HEADS.size() - 1) / 2.0) * SPACING.x
 			portrait.position = Vector3(x, y, 0.0)
 			%Portraits.add_child(portrait)
