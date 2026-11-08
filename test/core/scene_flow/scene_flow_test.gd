@@ -130,6 +130,18 @@ func test_fills_the_bar_in_steps_while_loading() -> void:
 	assert_array(steps).is_equal(sorted)
 
 
+func test_loads_the_scene_script_after_its_sub_scenes() -> void:
+	# Compiling a script compiles every script it names. Loaded first, the scene's own
+	# script compiled the whole game in one step, and the bar jumped from empty to full.
+	var order := _flow._load_order(SOLAR_SYSTEM)
+	assert_str(order.back()).is_equal("res://game/solar_system/solar_system.gd")
+	# The same holds a level down, so a sub-scene's steps stay small too.
+	assert_int(order.find("res://game/bus/bus.gd")).is_less(order.find("res://game/bus/bus.tscn"))
+	assert_int(order.find("res://game/bus/bus_model.gd")).is_less(
+		order.find("res://game/bus/bus.gd")
+	)
+
+
 func test_hides_the_loading_card_after_the_transition() -> void:
 	await _flow.go_to(GAME)
 	assert_bool(_curtain().visible).is_false()

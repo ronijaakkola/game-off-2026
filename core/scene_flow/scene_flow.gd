@@ -97,7 +97,9 @@ func go_to(path: String) -> void:
 func _load_dependencies(path: String) -> void:
 	var files: Array[String] = []
 	if ResourceLoader.exists(path):
-		_collect_dependencies(path, files, {})
+		for file: String in _load_order(path):
+			if not ResourceLoader.has_cached(file):
+				files.append(file)
 	var parts := files.size() + 1
 	var step_start := Time.get_ticks_msec()
 	for i: int in files.size():
@@ -109,12 +111,36 @@ func _load_dependencies(path: String) -> void:
 	_bar.value = float(files.size()) / parts
 
 
-## Appends to [param files] what [param path] uses and isn't loaded yet, each file after
-## everything it uses. [param seen] holds the paths already visited.
+## Every file the scene at [param path] uses, in the order to load them.
+func _load_order(path: String) -> Array[String]:
+	var files: Array[String] = []
+	_collect_dependencies(path, files, {})
+	return files
+
+
+## Appends to [param files] what [param path] uses, each file after everything it uses.
+## [param seen] holds the paths already visited.
+##
+## Scripts are most of the load, and compiling one also compiles every script it names.
+## Exported scripts are compiled to binary and report no dependencies, so the walk can't
+## see that. A scene's own script (the one sharing its base name) names the types of the
+## nodes below it, so it goes last, after the sub-scenes and the other scripts: they compile
+## in steps of their own, and it finds them compiled. Loaded first, it compiled the whole
+## game in one step.
 func _collect_dependencies(path: String, files: Array[String], seen: Dictionary) -> void:
+	var own_script := path.get_basename() + ".gd"
+	var order: Array[String] = []
+	var uses_own_script := false
 	for dependency: String in ResourceLoader.get_dependencies(path):
 		var file := dependency.get_slice("::", 2) if dependency.contains("::") else dependency
-		if seen.has(file) or ResourceLoader.has_cached(file) or not ResourceLoader.exists(file):
+		if file == own_script:
+			uses_own_script = true
+		else:
+			order.append(file)
+	if uses_own_script:
+		order.append(own_script)
+	for file: String in order:
+		if seen.has(file) or not ResourceLoader.exists(file):
 			continue
 		seen[file] = true
 		_collect_dependencies(file, files, seen)
