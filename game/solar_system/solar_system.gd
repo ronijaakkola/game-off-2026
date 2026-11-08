@@ -23,10 +23,9 @@ extends Node3D
 ## picks them up one by one while seats are free; the row under the pointer, or a clicked
 ## one, shows their trip as an arc to their destination. The bus can't charge, and a
 ## charge under way holds, until the stop is over. The game starts with the bus empty.
-## Docked at a planet, the player refuels there from its open planet's panel: fuel flows
-## while they hold the refuel button, slowly at first and faster the longer they hold, and
-## costs the planet's fuel price, taken a credit at a time. It stops when they let go, the
-## tank is full or the credits run out.
+## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
+## open planet's panel: the [FuelPump] runs while they hold the fuel button. It stops when
+## they let go, the tank is full or the credits run out.
 ## When the bus runs out of fuel in space, a tow ship comes out from the nearest planet,
 ## hitches on and pulls it there, where it docks with a full tank and the tow costs
 ## [constant TOW_FEE] credits, or all the player has when that is less.
@@ -51,11 +50,6 @@ const MARKER_GAP_PIXELS := 4.0
 ## What a tow costs, in credits.
 const TOW_FEE := 20
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
-## Fuel a second the pump gives as the refuel button goes down, the most it speeds up to,
-## and the seconds it takes to get there.
-const PUMP_START_RATE := 12.0
-const PUMP_MAX_RATE := 60.0
-const PUMP_RAMP_SECONDS := 1.5
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
 ## The percent of top speed and of the fuel tank the debug panel's stat buttons add or take
@@ -73,10 +67,6 @@ var _fade := 1.0
 # The planet whose hover border fades: the open one, and after it closes, until the fade
 # is back to 1.
 var _faded_planet: Planet
-# Seconds the pump has run since the refuel button went down.
-var _pump_time := 0.0
-# Credits owed for fuel pumped but not yet taken: under one, since whole ones go at once.
-var _fuel_owed := 0.0
 
 
 func _ready() -> void:
@@ -338,48 +328,38 @@ func _on_bus_ran_out_of_fuel() -> void:
 
 func _on_bus_towed(_planet: Planet) -> void:
 	var counter := %CreditsCounter as CreditsCounter
-	counter.credits = maxi(counter.credits - TOW_FEE, 0)
+	counter.spend(mini(TOW_FEE, counter.credits))
 
 
-# Refuels the bus at the open planet while the panel's refuel button is held and the bus
-# is docked there, and shows the fuel, the price and what stops it in the panel.
+# Runs the fuel pump at the planet the bus is docked at while the dock panel's fuel
+# button is held, or the open planet's refuel button when that is the same planet. Shows in
+# both panels whether it can, and in the open planet's the fuel, the price and what stops it.
 func _run_fuel_pump(delta: float) -> void:
-	var planet := get_open_planet()
-	var panel := %PlanetPanel as PlanetPanel
-	if not planet:
-		_pump_time = 0.0
-		return
 	var bus := %Bus as FrameshiftBus
 	var tank := bus.get_fuel_tank()
 	var counter := %CreditsCounter as CreditsCounter
-	var room := tank.capacity - tank.fuel
-	var affordable := INF
-	if planet.fuel_price > 0.0:
-		affordable = maxf(counter.credits - _fuel_owed, 0.0) / planet.fuel_price
-	var docked_here := bus.is_at_planet() and bus.get_docked_planet() == planet
-	var can_refuel := docked_here and room > 0.0 and affordable > 0.0
-	var note := "%d credits" % counter.credits
-	if not docked_here:
-		note = "Dock here to refuel."
-	elif room <= 0.0:
-		note = "Tank full."
-	elif affordable <= 0.0:
-		note = "Not enough credits."
-	if can_refuel and panel.is_refuel_held():
-		_pump_time += delta
-		var ramp := clampf(_pump_time / PUMP_RAMP_SECONDS, 0.0, 1.0)
-		var amount := minf(lerpf(PUMP_START_RATE, PUMP_MAX_RATE, ramp) * delta, affordable)
-		amount = minf(amount, room)
-		tank.refuel(amount)
-		_fuel_owed += amount * planet.fuel_price
-		var whole := floori(_fuel_owed)
-		if whole > 0:
-			counter.spend(whole)
-			_fuel_owed -= whole
+	var pump := %FuelPump as FuelPump
+	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
+	var open := get_open_planet()
+	var panel := %PlanetPanel as PlanetPanel
+	var dock_panel := %DockPanel as DockPanel
+	var stop := pump.get_stop(docked, tank, counter) if docked else ""
+	var fill_cost := ceili((tank.capacity - tank.fuel) * docked.fuel_price) if docked else 0
+	var can_fuel := docked != null and stop.is_empty()
+	dock_panel.show_fuel(tank.get_fraction(), fill_cost, can_fuel, stop.trim_suffix("."))
+	if docked:
+		var held := dock_panel.is_fuel_held() or (open == docked and panel.is_refuel_held())
+		pump.run(delta, docked, held, tank, counter)
 	else:
-		_pump_time = 0.0
-	var full_tank_cost := ceili(tank.capacity * planet.fuel_price)
-	panel.show_fuel(tank.get_fraction(), full_tank_cost, can_refuel, note)
+		pump.stop(counter)
+	if not open:
+		return
+	var open_stop := stop if open == docked else "Dock here to refuel."
+	if not open.sells_fuel:
+		open_stop = "No fuel sold here."
+	var note := open_stop if open_stop else "%d credits" % counter.credits
+	var full_tank_cost := ceili(tank.capacity * open.fuel_price)
+	panel.show_fuel(tank.get_fraction(), full_tank_cost, open_stop.is_empty(), note)
 
 
 # The debug panel's Empty fuel. Out in space the tow comes at once; at a planet the bus

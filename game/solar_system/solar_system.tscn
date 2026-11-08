@@ -26,6 +26,7 @@
 [ext_resource type="PackedScene" uid="uid://cv1jtomgb7ywi" path="res://game/solar_system/fuel_forecast.tscn" id="25_forecast"]
 [ext_resource type="PackedScene" uid="uid://cqh6m26bmhwpp" path="res://game/solar_system/trip_arc.tscn" id="26_trip"]
 [ext_resource type="PackedScene" uid="uid://jrqbnobo7om0" path="res://game/solar_system/rating_counter.tscn" id="25_rating"]
+[ext_resource type="Script" uid="uid://d7ilyo18irr3" path="res://game/solar_system/fuel_pump.gd" id="27_pump"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -265,6 +266,10 @@ start_planet = NodePath("../Ember")
 [node name="Cabin" type="Node" parent="." unique_id=1517490635]
 unique_name_in_owner = true
 script = ExtResource("13_cabin")
+
+[node name="FuelPump" type="Node" parent="." unique_id=2138476615]
+unique_name_in_owner = true
+script = ExtResource("27_pump")
 
 [node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus")]
 unique_name_in_owner = true
