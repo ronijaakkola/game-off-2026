@@ -183,3 +183,18 @@ func test_content_they_beam_now_and_then_and_stop_when_not() -> void:
 	portrait.content = false
 	await runner.simulate_frames(10, 100)
 	assert_float(eye.get_shader_parameter(&"joy") as float).is_equal_approx(0.0, 0.01)
+
+
+func test_a_skin_and_eye_style_set_before_it_is_ready_reach_every_eye() -> void:
+	var portrait := (load(SCENE) as PackedScene).instantiate() as AlienPortrait
+	var style := load("res://game/passengers/eye_styles/bead.tres") as AlienEyeStyle
+	portrait.skin_color = Color(0.95, 0.76, 0.3)
+	portrait.eye_style = style
+	add_child(auto_free(portrait))
+
+	for eye: MeshInstance3D in portrait.eyes:
+		var material := eye.material_override as ShaderMaterial
+		assert_that(material.get_shader_parameter(&"lid_color")).is_equal(portrait.skin_color)
+		assert_float(material.get_shader_parameter(&"pupil_size") as float).is_equal(
+			style.pupil_size
+		)
