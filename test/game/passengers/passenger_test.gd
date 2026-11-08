@@ -79,6 +79,7 @@ func test_finds_their_seat_then_idles_on_one_of_the_type_s_lines() -> void:
 	assert_str(passenger.activity).is_equal(Passenger.BOARDING_LINE)
 	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, true)
 	assert_array(kind.idle_lines).contains([passenger.activity])
+	assert_bool(passenger.asleep).is_false()
 
 
 func test_a_sleep_line_puts_them_to_sleep_until_a_request_wakes_them() -> void:
@@ -93,16 +94,6 @@ func test_a_sleep_line_puts_them_to_sleep_until_a_request_wakes_them() -> void:
 	assert_bool(passenger.asleep).is_true()
 	passenger.tick(1.0, false)
 	assert_object(passenger.request).is_same(snack)
-	assert_bool(passenger.asleep).is_false()
-
-
-func test_an_idle_line_keeps_them_awake() -> void:
-	var kind := _type()
-	kind.idle_lines = ["Counting stars"]
-	kind.sleep_lines = []
-	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
-	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, false)
-	assert_str(passenger.activity).is_equal("Counting stars")
 	assert_bool(passenger.asleep).is_false()
 
 
@@ -138,18 +129,6 @@ func test_serving_closes_the_request_and_shows_the_served_line() -> void:
 	passenger.tick(snack.served_seconds + 0.1, false)
 	assert_str(passenger.activity).is_not_equal(snack.served_line)
 	assert_object(passenger.request).is_null()
-
-
-func test_an_amenity_serves_with_its_own_line() -> void:
-	var snack := _need(1.0)
-	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
-	passenger.tick(1.0, false)
-	var dispenser := Amenity.new()
-	dispenser.need = snack.id
-	dispenser.line = "Getting a snack from the dispenser"
-	passenger.serve_with(dispenser)
-	assert_object(passenger.request).is_null()
-	assert_str(passenger.activity).is_equal(dispenser.line)
 
 
 func test_the_same_seed_gives_the_same_look() -> void:

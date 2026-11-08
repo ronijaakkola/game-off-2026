@@ -38,9 +38,10 @@ func after_test() -> void:
 	get_tree().unload_current_scene()
 
 
-func test_changes_the_current_scene() -> void:
+func test_changes_the_current_scene_and_hides_the_loading_card() -> void:
 	await _flow.go_to(GAME)
 	assert_str(get_tree().current_scene.scene_file_path).is_equal(GAME)
+	assert_bool(_curtain().visible).is_false()
 
 
 func test_blocks_input_only_while_fading() -> void:
@@ -161,11 +162,6 @@ func test_warms_up_one_new_shader_or_material_a_step() -> void:
 	assert_int(steps.size()).is_equal(2)
 	assert_array(steps[0]).contains_exactly([planet, moon])
 	assert_array(steps[1]).contains_exactly([star])
-
-
-func test_hides_the_loading_card_after_the_transition() -> void:
-	await _flow.go_to(GAME)
-	assert_bool(_curtain().visible).is_false()
 
 
 func _record_shown_alpha() -> void:

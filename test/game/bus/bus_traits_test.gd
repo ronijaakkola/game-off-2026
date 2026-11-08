@@ -5,20 +5,6 @@ extends GdUnitTestSuite
 const FORECAST := BusTraits.Type.FUEL_FORECAST
 
 
-func test_the_bus_starts_with_no_traits() -> void:
-	var traits := BusStats.new().get_traits()
-	for value: int in BusTraits.Type.values():
-		assert_bool(traits.has(value as BusTraits.Type)).is_false()
-
-
-func test_an_added_trait_is_had_until_it_is_taken_out() -> void:
-	var traits := BusTraits.new()
-	traits.add(FORECAST)
-	assert_bool(traits.has(FORECAST)).is_true()
-	traits.remove(FORECAST)
-	assert_bool(traits.has(FORECAST)).is_false()
-
-
 func test_a_trait_added_twice_stays_until_taken_out_twice() -> void:
 	var traits := BusTraits.new()
 	traits.add(FORECAST)

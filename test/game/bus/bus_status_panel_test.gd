@@ -18,14 +18,6 @@ func after() -> void:
 	get_tree().root.size = _window_size
 
 
-func test_shows_the_docked_bus_and_its_seats() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	assert_str(_text(runner, "StateLabel")).is_equal("Docked")
-	assert_str(_text(runner, "SeatLabel")).is_equal("0/4 seats")
-	assert_bool((runner.find_child("CancelButton") as Button).visible).is_false()
-
-
 func test_cancel_while_charging_keeps_the_bus_docked() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)

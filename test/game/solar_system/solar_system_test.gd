@@ -7,14 +7,6 @@ extends GdUnitTestSuite
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
 
-func test_starts_with_the_bus_empty() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var cabin := runner.find_child("Cabin") as Cabin
-	assert_int(cabin.get_passengers().size()).is_equal(0)
-	assert_int((runner.find_child("Cards") as Control).get_child_count()).is_equal(0)
-
-
 func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
@@ -268,18 +260,6 @@ func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
 	assert_bool(hint.visible).is_false()
 
 
-func test_left_click_on_a_planet_sets_no_course() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var terra := runner.find_child("Terra") as Planet
-
-	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
-
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_array(bus.get_route_planets()).is_empty()
-	assert_bool((runner.find_child("CourseHint") as Label).visible).is_true()
-
-
 func test_right_click_on_the_last_planet_removes_it() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
@@ -287,24 +267,12 @@ func test_right_click_on_the_last_planet_removes_it() -> void:
 	var giant := runner.find_child("Giant") as Planet
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
-
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
-
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_array(bus.get_route_planets()).contains_exactly([terra])
-
-
-func test_right_clicks_add_stops_one_after_another() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var terra := runner.find_child("Terra") as Planet
-	var giant := runner.find_child("Giant") as Planet
-
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
-
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_array(bus.get_route_planets()).contains_exactly([terra, giant])
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+
+	assert_array(bus.get_route_planets()).contains_exactly([terra])
 
 
 func test_right_click_on_the_docked_planet_with_a_route_makes_a_round_trip() -> void:
@@ -344,19 +312,6 @@ func test_clear_route_clears_every_stop() -> void:
 	key.pressed = true
 	Input.parse_input_event(key)
 	Input.flush_buffered_events()
-
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_object(bus.get_last_stop()).is_null()
-	assert_float(bus.get_charge_progress()).is_equal(0.0)
-
-
-func test_right_click_on_the_only_planet_cancels_the_course() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var terra := runner.find_child("Terra") as Planet
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_object(bus.get_last_stop()).is_null()

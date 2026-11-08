@@ -62,7 +62,8 @@ func test_the_bus_pulls_out_and_turns_toward_its_next_stop_while_charging() -> v
 	_step_for(_bus.charge_time - 0.5)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 	var to_stop := (behind.global_position - _bus.global_position) * Vector3(1.0, 0.0, 1.0)
-	assert_float(_bus._forward().dot(to_stop.normalized())).is_greater(0.99)
+	var forward := (_bus.global_basis.z * Vector3(1.0, 0.0, 1.0)).normalized()
+	assert_float(forward.dot(to_stop.normalized())).is_greater(0.99)
 	var out := _bus.global_position.distance_to(_home.global_position) - parked
 	assert_float(out).is_equal_approx(_bus.charge_gap - _bus.dock_gap, 0.02)
 
@@ -152,14 +153,6 @@ func test_boarding_set_on_docking_holds_the_charge_to_the_next_stop() -> void:
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 
-func test_removing_the_last_stop_keeps_the_rest() -> void:
-	_bus.plot_course(RouteStop.at_planet(_near))
-	_bus.plot_course(RouteStop.at_planet(_far), true)
-	_bus.remove_stop(_bus.get_last_stop())
-	assert_array(_bus.get_route_planets()).contains_exactly([_near])
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
-
-
 func test_removing_a_stop_in_the_middle_keeps_the_rest_in_order() -> void:
 	_bus.plot_course(RouteStop.at_planet(_near))
 	var checkpoint := RouteStop.at_point(Vector3(3.0, 0.0, 3.0))
@@ -205,13 +198,8 @@ func test_removing_a_planet_takes_its_checkpoint_along() -> void:
 	# The checkpoint before Near isn't Far's, so it stays.
 	assert_array(_bus.get_route_stops()).has_size(2)
 	assert_array(_bus.get_route_planets()).contains_exactly([_near])
-	_bus.remove_stop(_bus.get_last_stop())
-	assert_object(_bus.get_last_stop()).is_null()
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
-
-
-func test_removing_the_only_stop_stops_the_charge() -> void:
-	_bus.plot_course(RouteStop.at_planet(_near))
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	# Near takes its checkpoint along, and with no stop left the charge stops.
 	_bus.remove_stop(_bus.get_last_stop())
 	assert_object(_bus.get_last_stop()).is_null()
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)

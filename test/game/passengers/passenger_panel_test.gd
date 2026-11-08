@@ -37,13 +37,13 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	# Done sliding in.
 	await runner.simulate_frames(30, 30)
 	cabin.stop_at(planet)
-	# It shows their rating and stays in place for a moment.
-	await runner.simulate_frames(5)
+	# It shows their rating and stays in place almost until it has lingered its time.
+	await await_millis(roundi(PassengerCard.LINGER_SECONDS * 1000.0) - 300)
 	assert_bool((card as PassengerCard).is_rated()).is_true()
 	var panel := card.find_child("Panel") as Control
 	assert_float(panel.position.x).is_equal(0.0)
 	# Then it slides out to the left and folds away before it goes.
-	await await_millis(roundi(PassengerCard.LINGER_SECONDS * 1000.0))
+	await await_millis(400)
 	assert_int(cards.get_child_count()).is_equal(1)
 	assert_float(panel.position.x).is_less(0.0)
 	await runner.simulate_frames(30, 30)
