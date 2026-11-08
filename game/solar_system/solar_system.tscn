@@ -194,6 +194,7 @@ start_angle = 200.0
 spin_period = 27.0
 surface_material = SubResource("ShaderMaterial_ember")
 icon_color = Color(0.82, 0.58, 0.4, 1)
+fuel_price = 0.1
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Terra" type="Node3D" parent="." unique_id=310922244]
@@ -207,6 +208,7 @@ spin_period = 36.0
 tilt = 15.0
 surface_material = SubResource("ShaderMaterial_terra")
 icon_color = Color(0.5, 0.82, 0.34, 1)
+fuel_price = 0.12
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Moon" type="Node3D" parent="Terra" unique_id=247044122]
@@ -218,6 +220,7 @@ start_angle = 40.0
 spin_period = 0.0
 surface_material = SubResource("ShaderMaterial_moon")
 icon_color = Color(0.95, 0.93, 1, 1)
+fuel_price = 0.15
 orbit_width = 0.03
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
@@ -231,6 +234,7 @@ spin_period = 48.0
 tilt = 18.0
 surface_material = SubResource("ShaderMaterial_giant")
 icon_color = Color(1, 0.6, 0.25, 1)
+fuel_price = 0.06
 orbit_material = SubResource("StandardMaterial3D_orbit")
 ring_material = SubResource("ShaderMaterial_giant_rings")
 ring_inner = 1.35
@@ -248,6 +252,7 @@ spin_period = 42.0
 tilt = -10.0
 surface_material = SubResource("ShaderMaterial_frost")
 icon_color = Color(1, 0.62, 0.74, 1)
+fuel_price = 0.08
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]

@@ -62,6 +62,8 @@ static var _sphere: SphereMesh
 ## The one colour that stands for this body in the UI, such as a passenger card's
 ## destination icon. Pick the colour the body reads as from the camera.
 @export var icon_color := Color.WHITE
+## Credits for one unit of fuel bought here. The bus's tank holds 100.
+@export_range(0.0, 10.0, 0.01, "or_greater") var fuel_price := 0.1
 
 @export_group("Orbit line")
 @export var show_orbit := true:
@@ -133,6 +135,8 @@ var label_pixel_size := 0.001:
 		_label.pixel_size = value
 
 var _time := 0.0
+# How fast the orbit's centre moves, in global space: a moon's planet's body velocity.
+var _center_velocity := Vector3.ZERO
 # Internal nodes: the scene doesn't own them, so the editor never saves them.
 var _pivot := Node3D.new()
 var _orbit_line := MeshInstance3D.new()
@@ -179,9 +183,11 @@ func _process(delta: float) -> void:
 		_surface.rotation.y = TAU * _time / spin_period
 
 
-## Moves the centre of the orbit, relative to this node. A planet calls it on its moons.
-func set_orbit_center(center: Vector3) -> void:
+## Moves the centre of the orbit, relative to this node, and sets how fast it moves, in
+## global space. A planet calls it on its moons.
+func set_orbit_center(center: Vector3, velocity := Vector3.ZERO) -> void:
 	_pivot.position = center
+	_center_velocity = velocity
 
 
 ## Where the body is now, relative to this node.
@@ -217,6 +223,17 @@ func has_rings() -> bool:
 ## Where the body is now, in global space.
 func get_body_global_position() -> Vector3:
 	return to_global(get_body_position())
+
+
+## How fast and which way the body moves now, in global space, per second: along its orbit,
+## plus its orbit centre's motion, which a moon's planet sets.
+func get_body_velocity() -> Vector3:
+	var velocity := Vector3.ZERO
+	if orbit_period != 0.0:
+		var angle := deg_to_rad(start_angle) + TAU * _time / orbit_period
+		var along := Vector3(-sin(angle), 0.0, -cos(angle))
+		velocity = global_basis * along * orbit_radius * TAU / orbit_period
+	return velocity + _center_velocity
 
 
 ## A flat ring in the XZ plane, facing up, from [param inner] to [param outer]. UV.x runs
@@ -270,7 +287,7 @@ func _place_body() -> void:
 	for child: Node in get_children():
 		var moon := child as Planet
 		if moon:
-			moon.set_orbit_center(get_body_position())
+			moon.set_orbit_center(get_body_position(), get_body_velocity())
 
 
 # Faces the camera at a fixed size on screen, hanging down from its position. It draws

@@ -61,3 +61,36 @@ func test_commit_with_nothing_paid_changes_nothing() -> void:
 
 	assert_str((runner.find_child("TotalLabel") as Label).text).is_equal("5 credits")
 	assert_float((runner.find_child("GainLabel") as Label).modulate.a).is_equal(0.0)
+
+
+func test_spending_takes_off_the_total_at_once_and_leaves_a_waiting_gain() -> void:
+	var runner := scene_runner(SCENE)
+	var counter := runner.scene() as CreditsCounter
+	counter.credits = 50
+	var total := runner.find_child("TotalLabel") as Label
+	var gain := runner.find_child("GainLabel") as Label
+	counter.add(10)
+
+	counter.spend(15)
+
+	assert_int(counter.credits).is_equal(45)
+	assert_str(total.text).is_equal("35 credits")
+	assert_str(gain.text).is_equal("+10")
+	counter.commit()
+	await runner.simulate_frames(80, 30)
+	assert_str(total.text).is_equal("45 credits")
+
+
+func test_spending_during_a_count_up_ends_it_at_the_new_total() -> void:
+	var runner := scene_runner(SCENE)
+	var counter := runner.scene() as CreditsCounter
+	var total := runner.find_child("TotalLabel") as Label
+	counter.add(40)
+	counter.commit()
+	await runner.simulate_frames(15, 30)
+
+	counter.spend(5)
+	await runner.simulate_frames(80, 30)
+
+	assert_int(counter.credits).is_equal(35)
+	assert_str(total.text).is_equal("35 credits")

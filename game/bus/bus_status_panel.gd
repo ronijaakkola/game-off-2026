@@ -1,9 +1,9 @@
 class_name BusStatusPanel
 extends MarginContainer
 ## The bus's status in the bottom right corner: what it is doing, a track from the planet
-## it left to the next one with the time left to it, a person for each seat, filled while
-## taken, and a button that cancels the course while the bus charges or flies. It reads
-## [member bus] and [member cabin] every frame.
+## it left to the next one with the time left to it, its fuel, a person for each seat,
+## filled while taken, and a button that cancels the course while the bus charges or flies
+## under its own power. It reads [member bus] and [member cabin] every frame.
 
 const TRACK_COLOR := Color(1.0, 1.0, 1.0, 0.18)
 const ROUTE_COLOR := Color(1.0, 0.6, 0.22, 1.0)
@@ -12,6 +12,10 @@ const END_FILL := Color(0.2, 0.16, 0.32, 1.0)
 const SEAT_EMPTY := Color(1.0, 1.0, 1.0, 0.18)
 # The gap between people, in pixels.
 const SEAT_GAP := 2.0
+const FUEL_COLOR := Color(0.6, 0.95, 1.0, 1.0)
+const FUEL_LOW_COLOR := Color(0.95, 0.3, 0.4, 1.0)
+# At or under this share of a full tank, the fuel shows in FUEL_LOW_COLOR.
+const FUEL_LOW := 0.25
 
 ## The bus whose status it shows.
 @export var bus: FrameshiftBus
@@ -27,9 +31,15 @@ var _progress := 0.0
 # The planet the bus left last, where the track starts. Null for a point in space.
 var _from_planet: Planet
 var _seats_shown := Vector2i(-1, -1)
+# The fuel bar's fill, a copy of the scene's, so its colour can change.
+var _fuel_fill: StyleBoxFlat
+var _fuel_low := false
 
 
 func _ready() -> void:
+	var bar := %FuelBar as ProgressBar
+	_fuel_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate() as StyleBoxFlat
+	bar.add_theme_stylebox_override(&"fill", _fuel_fill)
 	(%Track as Control).draw.connect(_draw_track)
 	(%Seats as Control).draw.connect(_draw_seats)
 	_show()
@@ -53,12 +63,16 @@ func _show() -> void:
 	(%ChargeBar as ProgressBar).visible = charging
 	(%ChargeBar as ProgressBar).value = bus.get_charge_progress()
 	var button := %CancelButton as Button
-	button.visible = charging or (bus.state == FrameshiftBus.State.FLYING and not bus.is_stopping())
+	var flying := bus.state == FrameshiftBus.State.FLYING
+	button.visible = charging or (flying and not bus.is_stopping() and not bus.is_towing())
 	_set_text(button, "Cancel" if charging else "Cancel route")
+	_show_fuel()
 	_show_seats()
 
 
 func _state_text(next: Planet) -> String:
+	if bus.get_fuel_tank().is_empty() and not bus.is_towing():
+		return "Out of fuel: refuel here" if bus.is_at_planet() else "Out of fuel: tow on its way"
 	match bus.state:
 		FrameshiftBus.State.DOCKED:
 			return "Docked"
@@ -75,6 +89,8 @@ func _flying_text(next: Planet) -> String:
 	if not next:
 		return "Heading to waypoint"
 	var verb := "Docking to" if bus.is_docking() else "Travelling to"
+	if bus.is_towing():
+		verb = "Towed to"
 	return "%s %s" % [verb, _planet_name(next)]
 
 
@@ -98,6 +114,22 @@ func _show_trip(next: Planet) -> void:
 	_set_text(%FromLabel, _planet_name(_from_planet) if _from_planet else "Space")
 	_set_text(%ToLabel, _planet_name(next))
 	_set_text(%EtaLabel, "%d s" % ceili(time_left))
+
+
+func _show_fuel() -> void:
+	var fraction := bus.get_fuel_tank().get_fraction()
+	(%FuelBar as ProgressBar).value = fraction
+	_set_text(%FuelAmount, "%d%%" % ceili(fraction * 100.0))
+	var low := fraction <= FUEL_LOW
+	if low == _fuel_low:
+		return
+	_fuel_low = low
+	_fuel_fill.bg_color = FUEL_LOW_COLOR if low else FUEL_COLOR
+	var amount := %FuelAmount as Label
+	if low:
+		amount.add_theme_color_override(&"font_color", FUEL_LOW_COLOR)
+	else:
+		amount.remove_theme_color_override(&"font_color")
 
 
 func _show_seats() -> void:

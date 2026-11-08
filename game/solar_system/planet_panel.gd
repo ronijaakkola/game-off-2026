@@ -2,9 +2,12 @@ class_name PlanetPanel
 extends MarginContainer
 ## The open planet's panel down the right side of the screen: the planet's name and icon,
 ## and a row for each passenger waiting there, longest waiting first, kept up to date as
-## they arrive and board. It slides in from past the right edge when it opens, over
-## [member slide_in_seconds] so it can arrive with the camera, and back out when it closes.
-## Its close button only asks; the parent closes it.
+## they arrive and board. Under them, the bus's fuel, a full tank's price here, and a
+## button to hold down to refuel, with a note under it; the parent pumps the fuel while
+## [method is_refuel_held] and sets what shows with [method show_fuel]. It slides in from
+## past the right edge when it opens, over [member slide_in_seconds] so it can arrive with
+## the camera, and back out when it closes. Its close button only asks; the parent closes
+## it.
 
 ## The close button was pressed.
 signal close_pressed
@@ -32,10 +35,18 @@ var slide_in_seconds := 0.7
 var _planet: Planet
 # The one tween that slides the panel in and out.
 var _slide: Tween
+var _refuel_held := false
+# The fuel bar's fill, a copy of the scene's, so its colour can change. Low fuel shows in
+# the bus status's low colour, at the same share of a tank.
+var _fuel_fill: StyleBoxFlat
+var _fuel_low := false
 
 
 func _ready() -> void:
 	hide()
+	var bar := %FuelBar as ProgressBar
+	_fuel_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate() as StyleBoxFlat
+	bar.add_theme_stylebox_override(&"fill", _fuel_fill)
 
 
 ## Shows [param planet] and slides in, unless already open, then it only changes planet.
@@ -60,6 +71,7 @@ func open(planet: Planet) -> void:
 ## Slides out past the right edge, then hides.
 func close() -> void:
 	_planet = null
+	_refuel_held = false
 	if _slide:
 		_slide.kill()
 	_slide = create_tween()
@@ -75,6 +87,27 @@ func close() -> void:
 ## The planet shown, or null while closed.
 func get_planet() -> Planet:
 	return _planet
+
+
+## Whether the refuel button is held down.
+func is_refuel_held() -> bool:
+	return _refuel_held
+
+
+## Shows the bus's fuel at [param fraction] of a full tank, [param full_tank_cost] credits
+## for a full tank here, and [param note] under the refuel button. With [param can_refuel]
+## false the button is off and lets go.
+func show_fuel(fraction: float, full_tank_cost: int, can_refuel: bool, note: String) -> void:
+	(%FuelBar as ProgressBar).value = fraction
+	_set_text(%FuelAmount, "%d%%" % ceili(fraction * 100.0))
+	_show_fuel_low(fraction <= BusStatusPanel.FUEL_LOW)
+	_set_text(%PriceLabel, "Full tank %d credits" % full_tank_cost)
+	_set_text(%FuelNote, note)
+	var button := %RefuelButton as Button
+	button.disabled = not can_refuel
+	if not can_refuel:
+		_refuel_held = false
+	button.text = "Refuelling..." if _refuel_held else "Hold to refuel"
 
 
 ## How wide the panel is, margins included, so the parent can keep the planet clear of it.
@@ -134,6 +167,32 @@ func _planet_name() -> String:
 func _on_waiting_changed(planet: Planet) -> void:
 	if planet == _planet:
 		_show_waiting(true)
+
+
+func _show_fuel_low(low: bool) -> void:
+	if low == _fuel_low:
+		return
+	_fuel_low = low
+	_fuel_fill.bg_color = BusStatusPanel.FUEL_LOW_COLOR if low else BusStatusPanel.FUEL_COLOR
+	var amount := %FuelAmount as Label
+	if low:
+		amount.add_theme_color_override(&"font_color", BusStatusPanel.FUEL_LOW_COLOR)
+	else:
+		amount.remove_theme_color_override(&"font_color")
+
+
+# Sets text only when it changes, since the parent calls show_fuel() every frame.
+func _set_text(label: Label, text: String) -> void:
+	if label.text != text:
+		label.text = text
+
+
+func _on_refuel_button_down() -> void:
+	_refuel_held = true
+
+
+func _on_refuel_button_up() -> void:
+	_refuel_held = false
 
 
 func _on_close_button_pressed() -> void:
