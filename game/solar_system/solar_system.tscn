@@ -17,17 +17,15 @@
 [ext_resource type="PackedScene" uid="uid://lhx0mmtinvdx" path="res://game/passengers/passenger_panel.tscn" id="17_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="18_theme"]
 [ext_resource type="PackedScene" uid="uid://ciwv4teguvu2s" path="res://game/bus/bus_status_panel.tscn" id="19_status"]
-[ext_resource type="PackedScene" uid="uid://dbexovw5obyax" path="res://game/solar_system/credits_counter.tscn" id="20_credits"]
 [ext_resource type="PackedScene" uid="uid://bnqjjd4k8w4nn" path="res://game/solar_system/planet_panel.tscn" id="21_planet_panel"]
 [ext_resource type="PackedScene" uid="uid://c4va8x2cf4kps" path="res://game/solar_system/waiting_markers.tscn" id="22_markers"]
 [ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="22_studio"]
 [ext_resource type="PackedScene" uid="uid://70b0mq875ago" path="res://game/solar_system/dock_panel.tscn" id="23_dock"]
 [ext_resource type="PackedScene" uid="uid://b384geq2qmg0r" path="res://game/bus/bus_panel.tscn" id="24_bus_panel"]
 [ext_resource type="PackedScene" uid="uid://cv1jtomgb7ywi" path="res://game/solar_system/fuel_forecast.tscn" id="25_forecast"]
-[ext_resource type="PackedScene" uid="uid://jrqbnobo7om0" path="res://game/solar_system/rating_counter.tscn" id="25_rating"]
-[ext_resource type="PackedScene" uid="uid://b225tbpcnfsxu" path="res://game/solar_system/research_counter.tscn" id="27_research"]
 [ext_resource type="PackedScene" uid="uid://cqh6m26bmhwpp" path="res://game/solar_system/trip_arc.tscn" id="26_trip"]
 [ext_resource type="Script" uid="uid://d7ilyo18irr3" path="res://game/solar_system/fuel_pump.gd" id="27_pump"]
+[ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="28_bar"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -337,35 +335,8 @@ theme_override_constants/margin_bottom = 0
 bus = NodePath("../../../../Bus")
 cabin = NodePath("../../../../Cabin")
 
-[node name="TopRight" type="MarginContainer" parent="Hud" unique_id=516002667]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -40.0
-offset_bottom = 40.0
-grow_horizontal = 0
-mouse_filter = 2
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 16
-
-[node name="Row" type="HBoxContainer" parent="Hud/TopRight" unique_id=841537947]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 20
-
-[node name="ResearchCounter" parent="Hud/TopRight/Row" unique_id=1121616893 instance=ExtResource("27_research")]
+[node name="ResourceBar" parent="Hud" unique_id=1204237600 instance=ExtResource("28_bar")]
 unique_name_in_owner = true
-layout_mode = 2
-
-[node name="RatingCounter" parent="Hud/TopRight/Row" unique_id=2082618219 instance=ExtResource("25_rating")]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="CreditsCounter" parent="Hud/TopRight/Row" unique_id=517520806 instance=ExtResource("20_credits")]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 0
 
 [node name="HintBox" type="MarginContainer" parent="Hud" unique_id=299227585]
 unique_name_in_owner = true

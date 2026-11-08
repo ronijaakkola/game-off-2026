@@ -285,8 +285,9 @@ func _start_passengers() -> void:
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
 	cabin.kicked.connect(_on_kicked)
-	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
-	cabin.unloaded.connect((%RatingCounter as RatingCounter).commit)
+	var bar := %ResourceBar as ResourceBar
+	cabin.unloaded.connect(bar.get_credits().commit)
+	cabin.unloaded.connect(bar.get_rating().commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
@@ -332,7 +333,7 @@ func _on_bus_ran_out_of_fuel() -> void:
 
 
 func _on_bus_towed(_planet: Planet) -> void:
-	var counter := %CreditsCounter as CreditsCounter
+	var counter := (%ResourceBar as ResourceBar).get_credits()
 	counter.spend(mini(TOW_FEE, counter.credits))
 
 
@@ -342,7 +343,7 @@ func _on_bus_towed(_planet: Planet) -> void:
 func _run_fuel_pump(delta: float) -> void:
 	var bus := %Bus as FrameshiftBus
 	var tank := bus.get_fuel_tank()
-	var counter := %CreditsCounter as CreditsCounter
+	var counter := (%ResourceBar as ResourceBar).get_credits()
 	var pump := %FuelPump as FuelPump
 	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
 	var open := get_open_planet()
@@ -375,7 +376,7 @@ func _debug_empty_fuel() -> void:
 
 # The debug panel's Add credits, shown as a gain that counts into the total, like a fare.
 func _debug_add_credits() -> void:
-	var counter := %CreditsCounter as CreditsCounter
+	var counter := (%ResourceBar as ResourceBar).get_credits()
 	counter.add(DEBUG_CREDITS)
 	counter.commit()
 
@@ -413,9 +414,10 @@ func _debug_toggle_trait(type: BusTraits.Type) -> void:
 
 
 func _on_delivered(passenger: Passenger, payout: int) -> void:
-	(%CreditsCounter as CreditsCounter).add(payout)
-	(%RatingCounter as RatingCounter).add(passenger.get_rating())
-	(%ResearchCounter as ResearchCounter).add(passenger.race)
+	var bar := %ResourceBar as ResourceBar
+	bar.get_credits().add(payout)
+	bar.get_rating().add(passenger.get_rating())
+	bar.get_research().add(passenger.race)
 
 
 func _on_kicked(passenger: Passenger) -> void:

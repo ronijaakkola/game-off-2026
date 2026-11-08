@@ -1,12 +1,12 @@
 class_name RatingCounter
-extends VBoxContainer
-## The player's average rating, beside the credits in the top right: a star and the mean
-## of every rating passengers gave on getting off, to one decimal, or a dash before the
-## first. Like the credits, ratings collect first: the change they make to the average
-## shows in a gain just under it ("+0.2" in green, "-0.3" in red), which pops with each
-## rating. Once [method commit] is called, after a short delay the average moves to its
-## new value while the gain fades out drifting upward. [method get_average] already counts
-## every rating; only what shows waits.
+extends HBoxContainer
+## The player's average rating in the resource bar: a star and the mean of every rating
+## passengers gave on getting off, to one decimal, or a dash before the first, in the room
+## a rating takes so the bar keeps its width. Like the credits, ratings collect first: the
+## change they make to the average shows in a gain floating under the bar ("+0.2" in green,
+## "-0.3" in red), which pops with each rating. Once [method commit] is called, after a
+## short delay the average moves to its new value while the gain fades out drifting upward.
+## [method get_average] already counts every rating; only what shows waits.
 
 ## What shows before anyone has rated a ride.
 const NO_RATING := "–"
@@ -20,6 +20,9 @@ const POP_DOWN_SECONDS := 0.14
 ## Seconds the gain takes to fade out, and how far up it drifts meanwhile, in pixels.
 const FADE_OUT_SECONDS := 0.6
 const RISE_PIXELS := 14.0
+## How far under the average the gain starts, in pixels: clear of the resource bar's pill,
+## so that drifting up it fades out just under the pill's edge.
+const GAIN_DROP := 23.0
 ## The gain's colours when the average goes up, down, or stays as it shows.
 const UP_COLOR := Color(0.55, 0.85, 0.4)
 const DOWN_COLOR := Color(0.95, 0.3, 0.4)
@@ -38,6 +41,12 @@ var _pop: Tween
 
 
 func _ready() -> void:
+	var average := %AverageLabel as Label
+	var font := average.get_theme_font(&"font")
+	var font_size := average.get_theme_font_size(&"font_size")
+	average.custom_minimum_size.x = (
+		font.get_string_size("0.0", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	)
 	(%GainLabel as Label).modulate.a = 0.0
 	_show_average(_shown_average)
 	_place_gain()
@@ -154,13 +163,15 @@ func _set_rise(value: float) -> void:
 	_place_gain()
 
 
-# The gain sits right-aligned in its slot, drifted up by _rise, and pops from its centre.
+# The gain floats centred under the average, GAIN_DROP below it, drifted up by _rise, and
+# pops from its centre. It takes no room in the bar.
 func _place_gain() -> void:
-	var label := %GainLabel as Label
+	var average := %AverageLabel as Label
 	var slot := %GainSlot as Control
+	slot.position = Vector2(0.0, average.size.y + GAIN_DROP)
+	slot.size = Vector2(average.size.x, 0.0)
+	var label := %GainLabel as Label
 	var size_needed := label.get_combined_minimum_size()
-	if slot.custom_minimum_size != size_needed:
-		slot.custom_minimum_size = size_needed
 	label.size = size_needed
-	label.position = Vector2(slot.size.x - size_needed.x, -_rise)
+	label.position = Vector2((slot.size.x - size_needed.x) * 0.5, -_rise)
 	label.pivot_offset = size_needed * 0.5

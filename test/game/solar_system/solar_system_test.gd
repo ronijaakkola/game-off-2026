@@ -42,7 +42,7 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	# Once they are off, the total counts up to include the fare.
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
-	assert_str(total).is_equal("%d credits" % payout)
+	assert_str(total).is_equal(CreditsCounter.group_digits(payout))
 	var rating := runner.find_child("RatingCounter") as RatingCounter
 	assert_int(rating.get_count()).is_equal(1)
 	assert_float(rating.get_average()).is_equal(passenger.get_rating())

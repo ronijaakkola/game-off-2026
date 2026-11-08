@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://de5dx528njg5f"]
+
+[ext_resource type="Script" uid="uid://dfnic8npcg5rw" path="res://test/previews/resource_bar_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="2_system"]
+
+[node name="ResourceBarPreview" type="Node" unique_id=1656548606]
+script = ExtResource("1_preview")
+
+[node name="SolarSystem" parent="." unique_id=2071339958 instance=ExtResource("2_system")]
+
+[node name="Overlay" type="CanvasLayer" parent="." unique_id=1694074605]
+layer = 2
+
+[node name="Bars" type="VBoxContainer" parent="Overlay" unique_id=1394907742]
+unique_name_in_owner = true
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 64.0
+offset_right = -16.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 36
