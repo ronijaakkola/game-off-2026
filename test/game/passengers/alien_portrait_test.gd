@@ -25,6 +25,20 @@ func test_the_preview_shows_each_head_with_its_eyes_in_each_race_colour() -> voi
 	assert_array(eye_counts).is_equal(row + row + row + row + row + row)
 
 
+func test_the_bust_is_lit_from_the_photo_lamp_not_the_star() -> void:
+	# The two-tone shader lights from the star at the origin unless told otherwise, and the
+	# portrait studio has no light of its own any more.
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(1)
+	var portrait := runner.scene() as AlienPortrait
+	var head := portrait.find_children("*Head", "MeshInstance3D", true, false)[0] as MeshInstance3D
+	var skin := head.get_surface_override_material(0) as ShaderMaterial
+	assert_bool(skin.get_shader_parameter(&"light_is_directional") as bool).is_true()
+	assert_vector(skin.get_shader_parameter(&"light_source") as Vector3).is_equal(
+		AlienPortrait.LIGHT_DIRECTION
+	)
+
+
 func test_a_blink_shuts_the_eyes_and_opens_them_again() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(1)
