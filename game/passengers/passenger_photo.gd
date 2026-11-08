@@ -6,11 +6,17 @@ extends Control
 ## while it is in the tree and gives it back when it leaves, so a freed photo frees its
 ## slot. When the studio is full it waits for the next free slot. Without a studio or a
 ## passenger the frame stays empty. While the passenger rides, it shows on the portrait
-## every frame whether they are asleep and the push they feel on the bus.
+## every frame whether they are asleep, how angry their mood makes them, and the push they
+## feel on the bus.
 
 ## The photo's tilt, in degrees either way.
 const TILT_MIN := 0.5
 const TILT_MAX := 2.0
+## How angry each mood looks on the portrait; the others look calm.
+const MOOD_ANGER: Dictionary[Passenger.Mood, float] = {
+	Passenger.Mood.ANNOYED: 0.5,
+	Passenger.Mood.FURIOUS: 1.0,
+}
 
 ## Whether the passenger rides the bus, so their portrait leans with its pushes. Their
 ## card sets it; while they wait at a planet it stays off, and so does the portrait.
@@ -50,6 +56,7 @@ func _process(_delta: float) -> void:
 	if not portrait:
 		return
 	portrait.asleep = passenger.asleep
+	portrait.anger = MOOD_ANGER.get(passenger.get_mood(), 0.0)
 	portrait.felt_acceleration = studio.felt_acceleration if riding else Vector2.ZERO
 
 
