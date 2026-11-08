@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://dudv6k1sr1bxb"]
+
+[ext_resource type="Script" uid="uid://b0u8d6c3o8hix" path="res://test/previews/portrait_expression_preview.gd" id="1_preview"]
+
+[node name="PortraitExpressionPreview" type="Control" unique_id=290276858]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_preview")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1581802471]
+show_behind_parent = true
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.11, 0.1, 0.24, 1)
