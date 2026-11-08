@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://cv1jtomgb7ywi"]
+
+[ext_resource type="Script" uid="uid://kyu2876872gi" path="res://game/solar_system/fuel_forecast.gd" id="1_forecast"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="FuelForecast" type="Control" unique_id=1058951215]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_forecast")
+
+[node name="Label" type="Label" parent="." unique_id=128670319]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.93, 0.92, 1, 0.95)
+theme_override_colors/font_outline_color = Color(0.08, 0.07, 0.18, 0.7)
+theme_override_constants/outline_size = 3

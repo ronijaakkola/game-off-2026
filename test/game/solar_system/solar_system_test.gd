@@ -77,6 +77,26 @@ func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
 	assert_bool(is_instance_valid(row)).is_false()
 
 
+func test_waiting_markers_show_only_while_the_bus_has_the_trait() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	var terra := runner.find_child("Terra") as Planet
+	waiting.add(terra)
+	await runner.simulate_frames(2)
+	var markers := runner.find_child("WaitingMarkers") as WaitingMarkers
+	var traits := (runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	assert_bool(markers.is_shown(terra)).is_false()
+
+	traits.add(BusTraits.Type.WAITING_MARKERS)
+	await runner.simulate_frames(1)
+	assert_bool(markers.is_shown(terra)).is_true()
+
+	traits.remove(BusTraits.Type.WAITING_MARKERS)
+	await runner.simulate_frames(1)
+	assert_bool(markers.is_shown(terra)).is_false()
+
+
 func test_the_dock_panel_shrinks_with_its_bottom_edge_and_board_all_in_place() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers

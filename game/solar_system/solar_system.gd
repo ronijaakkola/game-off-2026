@@ -62,6 +62,8 @@ const DEBUG_STAT_PERCENT := 20
 const DEBUG_SEATS := 1
 ## The debug panel's group for the stat buttons: its own card, opened from the main one.
 const DEBUG_STATS_GROUP := "Stats"
+## The debug panel's group for the trait buttons, one per trait that turns it on or off.
+const DEBUG_TRAITS_GROUP := "Traits"
 
 var _planets: Array[Planet] = []
 # 1 with no planet open, 0 once one is open and the fade is done.
@@ -113,6 +115,10 @@ func _ready() -> void:
 	_add_debug_stat_buttons(BusStats.Type.MAX_SPEED, percent, DEBUG_STAT_PERCENT, "% top speed")
 	_add_debug_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, DEBUG_STAT_PERCENT, "% fuel tank")
 	_add_debug_stat_buttons(BusStats.Type.SEATS, StatModifier.Kind.FLAT, DEBUG_SEATS, " seat")
+	for value: int in BusTraits.Type.values():
+		var text := "Toggle %s" % String(BusTraits.Type.keys()[value]).capitalize().to_lower()
+		var action := _debug_toggle_trait.bind(value as BusTraits.Type)
+		DebugPanel.add_button(text, action, self, DEBUG_TRAITS_GROUP)
 
 
 func _process(delta: float) -> void:
@@ -407,6 +413,16 @@ func _debug_change_stat(type: BusStats.Type, kind: StatModifier.Kind, amount: in
 	stats.add_modifier(StatModifier.new(type, kind, amount))
 
 
+# The debug panel's trait buttons: gives the bus the trait, as an upgrade would, or takes
+# it back out.
+func _debug_toggle_trait(type: BusTraits.Type) -> void:
+	var traits := (%Bus as FrameshiftBus).get_stats().get_traits()
+	if traits.has(type):
+		traits.remove(type)
+	else:
+		traits.add(type)
+
+
 func _on_delivered(_passenger: Passenger, payout: int) -> void:
 	(%CreditsCounter as CreditsCounter).add(payout)
 
@@ -514,13 +530,16 @@ func _planet_at(screen_point: Vector2) -> Planet:
 
 
 # Shows the dock panel for the planet the bus waits at, docked or charging, and puts each
-# planet's waiting marker under its name. The markers fade with the names.
+# planet's waiting marker under its name, while the bus has the waiting markers trait. The
+# markers and the fuel forecast fade with the names.
 func _place_waiting() -> void:
 	var bus := %Bus as FrameshiftBus
 	var camera := %Camera as Camera3D
 	(%DockPanel as DockPanel).planet = bus.get_docked_planet() if bus.is_at_planet() else null
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.modulate.a = _fade
+	(%FuelForecast as Control).modulate.a = _fade
+	var unlocked := bus.get_stats().get_traits().has(BusTraits.Type.WAITING_MARKERS)
 	var below := LABEL_PIXELS + MARKER_GAP_PIXELS
 	for planet: Planet in _planets:
 		var center := planet.get_body_global_position()
@@ -530,7 +549,7 @@ func _place_waiting() -> void:
 		var bottom := camera.unproject_position(
 			center - camera.global_basis.y * planet.get_body_radius()
 		)
-		markers.place(planet, bottom + Vector2(0.0, below), _fade > 0.0)
+		markers.place(planet, bottom + Vector2(0.0, below), unlocked and _fade > 0.0)
 
 
 # Hangs each planet's name just under its body on screen, at the same size at any zoom.

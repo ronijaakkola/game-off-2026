@@ -84,6 +84,10 @@ _Avoid_: attribute, property, Talo stat
 One change to one stat, flat (+5, in the stat's units) or a percent (+20 %): an upgrade's effect. The flat ones add to the base first, then the percents add together and scale the sum. `StatModifier` in code.
 _Avoid_: buff, bonus, effect
 
+**Trait**:
+A feature on the bus that an upgrade unlocks, which the bus either has or doesn't, such as the **fuel forecast** (the fuel the course burns, shown over its last stop, `FuelForecast`): the on/off kind of stat. Whatever shows or does the feature asks whether the bus has it first. `BusTraits` in code, one of each `BusTraits.Type`, reached through `BusStats.get_traits()`.
+_Avoid_: perk, flag, unlock (the purchase, not the thing)
+
 **Tow**:
 What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. A **tow ship** (`TowShip`) flies out from the planet, hitches on with a cable and leads the bus in, where it docks with a full tank, for a fee. `FrameshiftBus.tow_to()` moves the bus.
 _Avoid_: rescue, respawn

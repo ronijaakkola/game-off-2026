@@ -206,7 +206,7 @@ func is_towing() -> bool:
 	return _towing
 
 
-## The bus's stats, where upgrades add their modifiers.
+## The bus's stats and traits, where upgrades add their modifiers and unlock features.
 func get_stats() -> BusStats:
 	return _stats
 
@@ -535,19 +535,12 @@ func _dock_point() -> Vector3:
 	return _approach_point(_dock_planet, _dock_direction, gap)
 
 
-# Where the bus heads for a stop, coming from [param from]: a planet's near side, or the
-# point itself.
 func _stop_position(stop: RouteStop, from: Vector3) -> Vector3:
-	if not stop.planet:
-		return _flat(stop.point)
-	var flat := _flat(from - stop.planet.get_body_global_position())
-	var direction := flat.normalized() if flat.length_squared() > 1e-6 else Vector3.BACK
-	return _approach_point(stop.planet, direction, dock_gap)
+	return stop.get_target(from, dock_gap)
 
 
 func _approach_point(planet: Planet, direction: Vector3, gap: float) -> Vector3:
-	var center := _flat(planet.get_body_global_position())
-	return center + direction * (planet.get_body_radius() + gap)
+	return RouteStop.approach_point(planet, direction, gap)
 
 
 # The push felt on board is the opposite of the bus's acceleration, in the bus's frame.

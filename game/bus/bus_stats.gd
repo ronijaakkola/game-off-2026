@@ -4,6 +4,8 @@ extends RefCounted
 ## bases. Upgrades hand their [StatModifier]s to [method add_modifier], which applies each
 ## to the stat it names. Each stat has a floor ([constant MINIMUMS]), so however much
 ## modifiers take away, the bus still moves, holds some fuel and has a seat.
+## Its traits ([method get_traits]) are the other kind of stat: features the bus has or
+## doesn't, rather than numbers.
 
 ## Which stat a [StatModifier] changes. A [code].tres[/code] saves a type as its number, so
 ## add new ones only at the end.
@@ -24,6 +26,7 @@ const MINIMUMS: Dictionary[Type, float] = {
 }
 
 var _stats: Dictionary[Type, Stat] = {}
+var _traits := BusTraits.new()
 
 
 func _init() -> void:
@@ -37,6 +40,11 @@ func _init() -> void:
 ## The [param type] stat, with every modifier applied.
 func get_stat(type: Type) -> Stat:
 	return _stats[type]
+
+
+## The bus's traits, the features upgrades unlock, such as the fuel forecast.
+func get_traits() -> BusTraits:
+	return _traits
 
 
 ## The seats the [constant Type.SEATS] stat makes: its value to the nearest whole seat.

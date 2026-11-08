@@ -56,6 +56,30 @@ func test_seats_show_in_whole_seats_and_what_is_taken_away_shows_in_red() -> voi
 	assert_object(penalty.get_theme_color(&"font_color")).is_equal(BusPanel.PENALTY_COLOR)
 
 
+func test_shows_the_traits_the_bus_has_as_they_come_and_go() -> void:
+	var bus := auto_free((load(BUS) as PackedScene).instantiate()) as FrameshiftBus
+	add_child(bus)
+	var traits := bus.get_stats().get_traits()
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as BusPanel
+	panel.open(bus)
+	var none := runner.find_child("NoTraitsLabel") as Label
+	var forecast := runner.find_child("TraitLabel") as Label
+	assert_bool(none.visible).is_true()
+	assert_bool(forecast.visible).is_false()
+
+	traits.add(BusTraits.Type.FUEL_FORECAST)
+
+	assert_bool(none.visible).is_false()
+	assert_bool(forecast.visible).is_true()
+	assert_str(forecast.text).is_equal("Fuel forecast")
+
+	traits.remove(BusTraits.Type.FUEL_FORECAST)
+
+	assert_bool(none.visible).is_true()
+	assert_bool(forecast.visible).is_false()
+
+
 func test_left_click_on_the_bus_opens_it_and_again_closes_it() -> void:
 	var runner := scene_runner(SOLAR_SYSTEM)
 	await runner.simulate_frames(2)
