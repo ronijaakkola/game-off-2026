@@ -72,6 +72,10 @@ _Avoid_: customer, rider, NPC
 How much more riding a passenger will take, in seconds, starting at the direct trip time with some slack.
 _Avoid_: frustration, timer, budget
 
+**Rating**:
+The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **average rating** is the mean of every rating so far, shown beside the credits. `Passenger.get_rating()` and `RatingCounter` in code.
+_Avoid_: reputation, review, score
+
 **Portrait**:
 A passenger's alien head and shoulders, shown in a photo frame on their card: a head shape, an eye style and a race colour (their **look**). `AlienPortrait` in code.
 _Avoid_: avatar, face, picture

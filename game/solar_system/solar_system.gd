@@ -14,7 +14,8 @@ extends Node3D
 ## planet is open, the planets' names fade out, and the open planet's white hover border
 ## fades out and stays off; both fade back in when it closes.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
-## where the passengers going to that planet get off one by one and pay. Under each planet
+## where the passengers going to that planet get off one by one, pay and rate the ride,
+## which goes into the average rating beside the credits. Under each planet
 ## where someone waits, a small person and a number say how many. While the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
 ## picks them up one by one while seats are free. The bus can't charge, and a charge under
@@ -228,8 +229,9 @@ func _on_board_pressed(passenger: Passenger) -> void:
 	cabin.pick_up(passenger)
 
 
-func _on_delivered(_passenger: Passenger, payout: int) -> void:
+func _on_delivered(passenger: Passenger, payout: int) -> void:
 	(%CreditsCounter as CreditsCounter).add(payout)
+	(%RatingCounter as RatingCounter).add(passenger.get_rating())
 
 
 func _on_stop_finished() -> void:

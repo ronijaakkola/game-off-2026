@@ -41,6 +41,9 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
 	assert_str(total).is_equal("%d credits" % payout)
+	var rating := runner.find_child("RatingCounter") as RatingCounter
+	assert_int(rating.get_count()).is_equal(1)
+	assert_float(rating.get_average()).is_equal(passenger.get_rating())
 
 
 func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
