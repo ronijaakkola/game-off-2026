@@ -21,6 +21,13 @@ corner_radius_bottom_left = 2
 content_margin_top = 1.0
 bg_color = Color(1, 1, 1, 0.1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuel"]
+bg_color = Color(0.6, 0.95, 1, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
 [node name="BusStatusPanel" type="MarginContainer" unique_id=1252999255]
 anchor_left = 1.0
 anchor_top = 1.0
@@ -98,6 +105,36 @@ custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+
+[node name="FuelRow" type="HBoxContainer" parent="Card/Rows" unique_id=1784337636]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FuelLabel" type="Label" parent="Card/Rows/FuelRow" unique_id=492183118]
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+text = "Fuel"
+
+[node name="FuelBar" type="ProgressBar" parent="Card/Rows/FuelRow" unique_id=1218609742]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_track")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fuel")
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="FuelAmount" type="Label" parent="Card/Rows/FuelRow" unique_id=2031955704]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+text = "100%"
+horizontal_alignment = 2
 
 [node name="SeatRow" type="HBoxContainer" parent="Card/Rows" unique_id=813470893]
 layout_mode = 2

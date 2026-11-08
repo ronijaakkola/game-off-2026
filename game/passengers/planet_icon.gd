@@ -3,11 +3,8 @@ extends ColorRect
 ## A planet as a small flat icon: a disc in its icon colour with a night side, and its
 ## rings at its tilt when it has them. A planet with rings gets a smaller disc, so the
 ## rings fit inside the icon at any tilt. Keep the icon square. Each icon draws with its
-## own material, made here, so a scene sets no material on it. The material is set in
-## _ready(), not _init(): packing a scene runs _init() but not _ready(), so a material set
-## there is saved into every scene that holds an icon (`check.py ids` fails on it). It
-## reads the planet when [member planet] is set, so it doesn't follow later changes to
-## the planet's colours.
+## own material, made here, so a scene sets no material on it. It reads the planet when
+## [member planet] is set, so it doesn't follow later changes to the planet's colours.
 
 const SHADER := preload("res://game/passengers/planet_icon.gdshader")
 
@@ -25,9 +22,10 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	# Nothing else sets a material before this, so one here came from the scene, and
-	# every icon sharing it would show the last planet's colours.
-	if material != null:
+	# A material set in the scene would be shared by every icon using it, so each would
+	# show the last planet's colours. Set here rather than in _init(): the editor's save,
+	# which check.py ids runs, would write one set there into the scene.
+	if material:
 		push_error("%s: PlanetIcon makes its own material; remove the one its scene sets" % name)
 	material = _material
 
