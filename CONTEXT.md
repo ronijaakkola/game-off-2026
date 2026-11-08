@@ -128,6 +128,10 @@ _Avoid_: facility, station, upgrade (the purchase, not the thing)
 The inside of the bus: the passengers on board and the amenities, run as a small simulation. `Cabin` in code.
 _Avoid_: interior, passenger manager
 
+**Kick**:
+The player throwing a passenger off the bus mid-ride from their card, for nothing in return. A small figure in their skin colour (`KickedPassenger`) tumbles out of the door. `Cabin.kick()` in code.
+_Avoid_: remove, drop off (that is getting off at their planet)
+
 **Activity**:
 The short line on a passenger's card saying what they are doing now.
 _Avoid_: status, action

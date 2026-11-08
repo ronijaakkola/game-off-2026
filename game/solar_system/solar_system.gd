@@ -24,6 +24,8 @@ extends Node3D
 ## picks them up one by one while seats are free; the row under the pointer, or a clicked
 ## one, shows their trip as an arc to their destination. The bus can't charge, and a
 ## charge under way holds, until the stop is over. The game starts with the bus empty.
+## A passenger kicked off from their card is thrown out of the bus's door as a small figure
+## in their skin colour.
 ## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
 ## open planet's panel: the [FuelPump] runs while they hold the fuel button. It stops when
 ## they let go, the tank is full or the credits run out.
@@ -51,6 +53,7 @@ const MARKER_GAP_PIXELS := 4.0
 ## What a tow costs, in credits.
 const TOW_FEE := 20
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
+const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
 ## The percent of top speed and of the fuel tank the debug panel's stat buttons add or take
@@ -281,6 +284,7 @@ func _start_passengers() -> void:
 	bus.docked.connect(_on_bus_docked)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
+	cabin.kicked.connect(_on_kicked)
 	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
 	cabin.unloaded.connect((%RatingCounter as RatingCounter).commit)
 	cabin.stop_finished.connect(_on_stop_finished)
@@ -412,6 +416,14 @@ func _on_delivered(passenger: Passenger, payout: int) -> void:
 	(%CreditsCounter as CreditsCounter).add(payout)
 	(%RatingCounter as RatingCounter).add(passenger.get_rating())
 	(%ResearchCounter as ResearchCounter).add(passenger.race)
+
+
+func _on_kicked(passenger: Passenger) -> void:
+	var bus := %Bus as FrameshiftBus
+	var figure := KICKED_PASSENGER.instantiate() as KickedPassenger
+	add_child(figure)
+	var door := bus.global_transform * FrameshiftBus.DOOR
+	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color)
 
 
 func _on_stop_finished() -> void:

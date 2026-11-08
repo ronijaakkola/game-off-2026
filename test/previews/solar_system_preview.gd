@@ -9,6 +9,8 @@ extends Node
 ## opens nothing, puts two passengers in line at Ember, where the bus is docked, and pins
 ## the first one's row in the dock panel, so their trip arc shows.
 
+const COMMUTER := preload("res://game/passengers/types/commuter.tres")
+
 
 func _ready() -> void:
 	var system := %SolarSystem as SolarSystem
@@ -32,6 +34,15 @@ func _ready() -> void:
 		await get_tree().process_frame
 		var dock := system.find_child("DockPanel") as DockPanel
 		dock.pin(line.get_waiting(trip_bus.get_docked_planet())[0])
+		return
+	if planet_name == "Kick":
+		var cabin := system.find_child("Cabin") as Cabin
+		var terra := system.find_child("Terra") as Planet
+		for i: int in 3:
+			cabin.board(Passenger.new(COMMUTER, terra, 60.0, 40.0))
+		system.open_bus()
+		await get_tree().create_timer(1.0).timeout
+		cabin.kick(cabin.get_passengers()[1])
 		return
 	if planet_name == "Bus":
 		var bus := system.find_child("Bus") as FrameshiftBus
