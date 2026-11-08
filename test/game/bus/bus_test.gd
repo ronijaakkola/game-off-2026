@@ -377,7 +377,6 @@ func test_a_tow_catches_a_planet_that_orbits_faster_than_the_tow_speed() -> void
 	assert_bool(_bus.is_towing()).is_false()
 
 
-# A planet that stays where it is put.
 func test_a_top_speed_modifier_makes_the_bus_cruise_faster() -> void:
 	var boost := StatModifier.new(BusStats.Type.MAX_SPEED, StatModifier.Kind.PERCENT, 100.0)
 	_bus.get_stats().add_modifier(boost)
@@ -389,6 +388,16 @@ func test_a_top_speed_modifier_makes_the_bus_cruise_faster() -> void:
 	_step_for(1.0)
 	var flown := before.distance_to(_bus.global_position)
 	assert_float(flown).is_equal_approx(_bus.max_speed * 2.0, 0.02)
+
+
+func test_a_fuel_capacity_modifier_resizes_the_tank() -> void:
+	var tank := _bus.get_fuel_tank()
+	var bigger := StatModifier.new(BusStats.Type.FUEL_CAPACITY, StatModifier.Kind.PERCENT, 50.0)
+	_bus.get_stats().add_modifier(bigger)
+	assert_float(tank.capacity).is_equal_approx(150.0, 0.0001)
+
+
+# A planet that stays where it is put.
 
 
 func _planet(parent: Node3D, at: Vector3) -> Planet:

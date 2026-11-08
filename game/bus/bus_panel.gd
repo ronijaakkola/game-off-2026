@@ -10,9 +10,17 @@ signal close_pressed
 
 ## What upgrades add, in the green of the credits' gain.
 const BONUS_COLOR := Color(0.55, 0.85, 0.4, 1)
+## What modifiers take away, in the red of low fuel.
+const PENALTY_COLOR := Color(0.95, 0.3, 0.4, 1)
 ## Each stat's name in its row, by [enum BusStats.Type]. A stat missing here shows its
 ## type's name.
-const STAT_NAMES := {BusStats.Type.MAX_SPEED: "Top speed"}
+const STAT_NAMES := {
+	BusStats.Type.MAX_SPEED: "Top speed",
+	BusStats.Type.FUEL_CAPACITY: "Fuel tank",
+	BusStats.Type.SEATS: "Seats",
+}
+## How each stat's value shows, by type. A stat missing here shows two decimals.
+const VALUE_FORMATS := {BusStats.Type.FUEL_CAPACITY: "%.0f"}
 
 var _bus: FrameshiftBus
 var _open := false
@@ -70,7 +78,6 @@ func _make_row(type: BusStats.Type) -> HBoxContainer:
 	var value_label := _make_label("ValueLabel")
 	row.add_child(value_label)
 	var bonus_label := _make_label("BonusLabel")
-	bonus_label.add_theme_color_override(&"font_color", BONUS_COLOR)
 	row.add_child(bonus_label)
 	_value_labels[type] = value_label
 	_bonus_labels[type] = bonus_label
@@ -88,15 +95,26 @@ func _make_label(label_name: String) -> Label:
 func _show_stats() -> void:
 	for type: BusStats.Type in _value_labels:
 		var stat := _bus.get_stats().get_stat(type)
-		_value_labels[type].text = "%.2f" % stat.get_value()
+		_value_labels[type].text = _value_text(type, stat)
 		var bonus := _bonus_labels[type]
-		bonus.text = _bonus_text(stat)
+		bonus.text = _bonus_text(type, stat)
 		bonus.visible = not bonus.text.is_empty()
+		var color := PENALTY_COLOR if bonus.text.begins_with("-") else BONUS_COLOR
+		bonus.add_theme_color_override(&"font_color", color)
 
 
-# How much the modifiers add to the base in all, as a whole percent, or nothing when they
-# add up to under half a percent either way.
-func _bonus_text(stat: Stat) -> String:
+func _value_text(type: BusStats.Type, stat: Stat) -> String:
+	if type == BusStats.Type.SEATS:
+		return str(_bus.get_stats().get_seats())
+	return (VALUE_FORMATS.get(type, "%.2f") as String) % stat.get_value()
+
+
+# How much the modifiers add to the base in all: whole seats for the seats ("+1"), a whole
+# percent for the rest. Nothing when they add up to none either way.
+func _bonus_text(type: BusStats.Type, stat: Stat) -> String:
+	if type == BusStats.Type.SEATS:
+		var seats := _bus.get_stats().get_seats() - roundi(stat.base)
+		return "%+d" % seats if seats != 0 else ""
 	if stat.base == 0.0:
 		return ""
 	var percent := roundi((stat.get_value() / stat.base - 1.0) * 100.0)

@@ -46,6 +46,40 @@ func test_a_scenes_button_runs_its_action_and_goes_with_the_scene() -> void:
 	assert_bool(empty.visible).is_true()
 
 
+func test_a_groups_buttons_go_on_their_own_card_that_its_toggle_opens() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene()
+	var buttons := runner.find_child("Buttons") as Container
+	var cards := runner.find_child("Cards") as Container
+	var scene := Node.new()
+	add_child(scene)
+
+	panel.call(&"add_button", "General", func() -> void: pass, scene)
+	panel.call(&"add_button", "+1 seat", func() -> void: pass, scene, "Stats")
+	panel.call(&"add_button", "-1 seat", func() -> void: pass, scene, "Stats")
+
+	# The main card has the general button and the group's toggle; the group's own card
+	# sits to its right, shut.
+	assert_int(buttons.get_child_count()).is_equal(2)
+	var toggle := buttons.get_child(1) as Button
+	assert_str(toggle.text).is_equal("Stats")
+	assert_int(cards.get_child_count()).is_equal(2)
+	var stats_card := cards.get_child(1) as Control
+	assert_bool(stats_card.visible).is_false()
+	assert_bool(panel.call(&"is_group_open", "Stats")).is_false()
+
+	toggle.button_pressed = true
+	assert_bool(stats_card.visible).is_true()
+	assert_bool(panel.call(&"is_group_open", "Stats")).is_true()
+	toggle.button_pressed = false
+	assert_bool(stats_card.visible).is_false()
+
+	scene.free()
+	await runner.simulate_frames(2)
+	assert_int(buttons.get_child_count()).is_equal(0)
+	assert_int(cards.get_child_count()).is_equal(1)
+
+
 # Through Input alone: the runner's own key calls deliver each event twice.
 func _press_f2() -> void:
 	var event := InputEventKey.new()

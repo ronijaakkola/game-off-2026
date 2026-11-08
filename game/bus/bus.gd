@@ -132,6 +132,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	(%FuelTank as FuelTank).emptied.connect(_on_fuel_emptied)
+	(%FuelTank as FuelTank).follow(_stats.get_stat(BusStats.Type.FUEL_CAPACITY))
 	rotation.y = PI * 0.5
 	if start_planet:
 		global_position = _approach_point(start_planet, Vector3.BACK, dock_gap)

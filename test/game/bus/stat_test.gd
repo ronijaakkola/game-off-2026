@@ -52,6 +52,21 @@ func test_the_value_never_goes_below_zero() -> void:
 	assert_float(stat.get_value()).is_equal(0.0)
 
 
+func test_the_value_never_goes_below_its_minimum() -> void:
+	var stat := Stat.new(4.0)
+	stat.minimum = 1.0
+	stat.add_modifier(_flat(-10.0))
+	assert_float(stat.get_value()).is_equal(1.0)
+
+
+func test_every_bus_stat_has_a_floor_above_zero() -> void:
+	var stats := BusStats.new()
+	for value: int in BusStats.Type.values():
+		var stat := stats.get_stat(value as BusStats.Type)
+		stat.add_modifier(_percent(-200.0))
+		assert_float(stat.get_value()).is_greater(0.0)
+
+
 func test_changed_is_emitted_when_the_value_changes() -> void:
 	var stat := Stat.new(8.0)
 	monitor_signals(stat, false)
