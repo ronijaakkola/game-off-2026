@@ -6,7 +6,8 @@ extends MarginContainer
 ## shows the stars its passenger rates the ride; once the passenger gets off and the
 ## rating has shown for a moment, the card slides back out to the left, while the cards
 ## below move up to fill the gap.
-## A card's serve button serves that passenger's request through the cabin.
+## A card's serve button serves that passenger's request through the cabin, and its kick
+## button kicks them off the bus, so their card slides out at once.
 
 const CARD := preload("res://game/passengers/passenger_card.tscn")
 
@@ -18,11 +19,13 @@ const CARD := preload("res://game/passengers/passenger_card.tscn")
 			cabin.boarded.disconnect(_on_boarded)
 			cabin.getting_off.disconnect(_on_getting_off)
 			cabin.delivered.disconnect(_on_delivered)
+			cabin.kicked.disconnect(_on_kicked)
 		cabin = value
 		if cabin:
 			cabin.boarded.connect(_on_boarded)
 			cabin.getting_off.connect(_on_getting_off)
 			cabin.delivered.connect(_on_delivered)
+			cabin.kicked.connect(_on_kicked)
 		if is_node_ready():
 			_show_all()
 
@@ -54,6 +57,7 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	card.portrait_studio = portrait_studio
 	card.passenger = passenger
 	card.serve_pressed.connect(func() -> void: cabin.serve(passenger))
+	card.kick_pressed.connect(func() -> void: cabin.kick(passenger))
 	card.left.connect(card.queue_free)
 	_cards[passenger] = card
 	%Cards.add_child(card)
@@ -74,4 +78,11 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 		# that missed getting_off, such as one made after the stop began; the rating can't
 		# have changed, since patience stops when a passenger leaves their seat.
 		card.show_rating(passenger.get_rating())
+		card.leave()
+
+
+func _on_kicked(passenger: Passenger) -> void:
+	var card: PassengerCard = _cards.get(passenger)
+	if card:
+		_cards.erase(passenger)
 		card.leave()

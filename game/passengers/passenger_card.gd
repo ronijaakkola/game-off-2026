@@ -12,9 +12,14 @@ extends Control
 ## only then [method leave] slides it back out past the left edge and folds its height
 ## away so the cards below it move up. The root is a slot that holds
 ## the card's place in the list, and the panel moves inside it.
+## The pointer over the card slides its options out from under it to its right: for now
+## one button, which kicks the passenger off the bus. They slide back under once the
+## pointer leaves both, and stay away once the card shows the rating or leaves.
 
 ## The serve button was pressed for [member passenger]'s open request.
 signal serve_pressed
+## The kick button was pressed: the player wants [member passenger] off the bus.
+signal kick_pressed
 ## The card has slid out and folded away after [method leave]. It can be freed.
 signal left
 
@@ -32,6 +37,9 @@ const SWAP_SECONDS := 0.3
 const SWAP_STAGGER := 0.1
 ## How far the bar sinks and the stars drop, in pixels. Reduce motion only fades them.
 const SWAP_PIXELS := 6.0
+## Seconds the options take to slide out from under the card, or back under it. Under
+## Reduce motion they only fade.
+const OPTIONS_SECONDS := 0.18
 ## Seconds each star takes to fill once the stars are in.
 const STAR_FILL_SECONDS := 0.18
 ## Seconds the card shows the rating before it can slide out, counted from
@@ -91,6 +99,13 @@ var _rated := false
 var _linger_left := 0.0
 # The middle row's swap from the patience bar to the stars, then the stars filling.
 var _rating_swap: Tween
+# Whether the card is on its way out, after leave().
+var _leaving := false
+# How far the options have slid out: 0 under the card, 1 out to its right.
+var _reveal := 0.0
+# Whether the options are out, or on their way out.
+var _options_open := false
+var _options_slide: Tween
 
 
 func _ready() -> void:
@@ -112,6 +127,7 @@ func _process(delta: float) -> void:
 	_linger_left = maxf(_linger_left - delta, 0.0)
 	if not _rated:
 		_show()
+	_slide_options(_wants_options())
 	_fit_slot()
 
 
@@ -192,6 +208,8 @@ func leave() -> void:
 		_motion.kill()
 	var panel := %Panel as Control
 	(%ServeButton as Button).disabled = true
+	(%KickButton as Button).disabled = true
+	_leaving = true
 	_motion = create_tween()
 	if _linger_left > 0.0:
 		_motion.tween_interval(_linger_left)
@@ -233,6 +251,52 @@ func _fit_slot() -> void:
 	var slot := Vector2(size_needed.x, size_needed.y * _fold)
 	if custom_minimum_size != slot:
 		custom_minimum_size = slot
+	_place_options()
+
+
+# Whether the options should be out: the pointer is over the card or them, and the
+# passenger is still riding.
+func _wants_options() -> bool:
+	if _rated or _leaving:
+		return false
+	var hovered := get_viewport().gui_get_hovered_control()
+	return hovered != null and is_ancestor_of(hovered)
+
+
+# Slides the options out from under the card, or back under it, when [param open] changes.
+func _slide_options(open: bool) -> void:
+	if open == _options_open:
+		return
+	_options_open = open
+	if _options_slide:
+		_options_slide.kill()
+	var target := 1.0 if open else 0.0
+	_options_slide = create_tween()
+	(
+		_options_slide
+		. tween_property(self, ^"_reveal", target, OPTIONS_SECONDS * absf(target - _reveal))
+		. set_trans(Tween.TRANS_CUBIC)
+		. set_ease(Tween.EASE_OUT if open else Tween.EASE_IN)
+	)
+
+
+# The options sit beside the panel, centred on it: tucked under its right edge when in, and
+# just past it when out. They fade as they go, since the card is see-through. Under Reduce
+# motion they stay out and only fade.
+func _place_options() -> void:
+	var options := %Options as Control
+	options.visible = _reveal > 0.0
+	if not options.visible:
+		return
+	var panel := %Panel as Control
+	options.size = options.get_combined_minimum_size()
+	var slide := 1.0 if Settings.reduce_motion else _reveal
+	var tucked := panel.size.x - options.size.x
+	options.position = Vector2(
+		panel.position.x + lerpf(tucked, panel.size.x, slide),
+		panel.position.y + (panel.size.y - options.size.y) * 0.5
+	)
+	options.modulate.a = _reveal
 
 
 func _show() -> void:
@@ -332,3 +396,8 @@ func _morph_text(label: MorphLabel, text: String, at_once: bool) -> void:
 
 func _on_serve_button_pressed() -> void:
 	serve_pressed.emit()
+
+
+func _on_kick_button_pressed() -> void:
+	(%KickButton as Button).disabled = true
+	kick_pressed.emit()

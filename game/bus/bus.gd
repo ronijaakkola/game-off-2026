@@ -51,6 +51,9 @@ const FELT_MAX := 3.5
 ## About half the bus's length: how big it is when the camera frames it and when a click
 ## picks it.
 const RADIUS := 0.45
+## Where the door is, from the bus: on its -X side, which faces the planet when docked,
+## near the front.
+const DOOR := Vector3(-0.18, 0.03, 0.3)
 
 ## Where the bus starts docked. None starts it holding where it stands.
 @export var start_planet: Planet

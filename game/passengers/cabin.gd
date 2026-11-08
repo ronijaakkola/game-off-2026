@@ -13,6 +13,9 @@ signal boarded(passenger: Passenger)
 signal getting_off(passenger: Passenger)
 ## [param passenger] got off at their destination and paid [param payout] credits.
 signal delivered(passenger: Passenger, payout: int)
+## The player kicked [param passenger] off the bus mid-ride ([method kick]). They pay
+## nothing and rate nothing.
+signal kicked(passenger: Passenger)
 ## Everyone getting off at the stop [method stop_at] started has got off, one step after
 ## the last of them. Emitted even when nobody got off.
 signal unloaded
@@ -108,6 +111,17 @@ func board(passenger: Passenger) -> bool:
 ## The player serves [param passenger]'s open request.
 func serve(passenger: Passenger) -> void:
 	passenger.serve()
+
+
+## The player kicks [param passenger] off the bus: they leave their seat at once, wherever
+## the bus is, paying and rating nothing. False, and nothing happens, when they aren't on
+## board, as when they are already getting off at a stop.
+func kick(passenger: Passenger) -> bool:
+	if passenger not in _passengers:
+		return false
+	_passengers.erase(passenger)
+	kicked.emit(passenger)
+	return true
 
 
 ## Starts a stop at [param planet]. Everyone going there leaves their seat now, and their
