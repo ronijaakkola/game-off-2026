@@ -7,7 +7,7 @@ extends Node
 ## each new width. The last takes about 1.7 s: capture it with --frames 120.
 
 const BAR := preload("res://game/solar_system/resource_bar.tscn")
-## Credits, research points (teal, coral, mustard), and the average rating or -1 for none.
+## Credits, research points (blue, orange, green), and the average rating or -1 for none.
 const STILL_BARS: Array[Array] = [
 	[0, [0, 0, 0], -1.0],
 	[999, [9, 9, 9], 4.6],

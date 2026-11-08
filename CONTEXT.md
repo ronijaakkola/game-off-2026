@@ -113,7 +113,7 @@ A passenger's alien head and shoulders, shown in a photo frame on their card: a 
 _Avoid_: avatar, face, picture
 
 **Race**:
-Which kind of alien a passenger is, shown only as their skin colour: teal, coral or mustard. Delivering them earns a research point of it. `Race.Type` in code.
+Which kind of alien a passenger is: blue, orange or green, shown as their skin colour and the build of their head. Delivering them earns a research point of it. `Race.Type` in code.
 _Avoid_: species, colour (that is how it shows), passenger type (fare, patience and needs)
 
 **Research point**:

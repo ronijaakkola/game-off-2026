@@ -1,6 +1,7 @@
 extends Control
-## Every head shape in each expression, as passenger photos at the size their cards show
-## them, for a visual check of how anger, joy, eating and drinking read: a row per head,
+## Every head shape in its race's colour in each expression, as passenger photos at the
+## size their cards show them, for a visual check of how anger, joy, eating and drinking
+## read: a row per head, race by race,
 ## and a column each for okay, happy, annoyed, furious, joyful, eating and drinking. The
 ## first four get there by their mood, and happy ones beam now and then; the joyful ones'
 ## full joy is set on the portrait, so their photo doesn't ride and set it by mood. The
@@ -32,17 +33,20 @@ func _ready() -> void:
 	var home := Planet.new()
 	home.icon_color = Color(0.5, 0.82, 0.34)
 	add_child(home)
-	var heads := AlienLook.HEADS.size()
+	var rows: Array[Array] = []
+	for race: Race.Type in AlienLook.HEADS:
+		for head: PackedScene in AlienLook.HEADS[race]:
+			rows.append([race, head])
 	for column: int in COLUMNS.size():
 		var heading := Label.new()
 		heading.text = COLUMNS[column]
 		heading.position = ORIGIN + Vector2(column * CELL.x, -28.0)
 		add_child(heading)
-	for row: int in heads:
+	for row: int in rows.size():
 		for column: int in COLUMNS.size():
 			var photo := PHOTO.instantiate() as PassengerPhoto
 			photo.studio = _studio_with_room()
-			photo.passenger = _passenger(row, PATIENCE[column], home)
+			photo.passenger = _passenger(rows[row][0], rows[row][1], row, PATIENCE[column], home)
 			if SERVED.has(column):
 				_serve(photo.passenger, SERVED[column])
 			photo.riding = column != JOYFUL
@@ -67,15 +71,17 @@ func _studio_with_room() -> PortraitStudio:
 	return _studios[-1]
 
 
-func _passenger(head: int, patience: float, home: Planet) -> Passenger:
+# [param row]'s passenger, of [param race] with [param head]; rows take turns at eye style.
+func _passenger(
+	race: Race.Type, head: PackedScene, row: int, patience: float, home: Planet
+) -> Passenger:
 	var passenger := Passenger.new(COMMUTER, home, 60.0, 40.0)
 	passenger.origin = home
 	passenger.patience = passenger.patience_max * patience
-	passenger.look.head = AlienLook.HEADS[head]
-	var style := head + (1 if "swap" in OS.get_cmdline_user_args() else 0)
+	passenger.look.head = head
+	var style := row + (1 if "swap" in OS.get_cmdline_user_args() else 0)
 	passenger.look.eye_style = AlienLook.EYE_STYLES[style % AlienLook.EYE_STYLES.size()]
-	var races := Race.Type.values()
-	passenger.race = races[head % races.size()] as Race.Type
+	passenger.race = race
 	passenger.look.skin_color = Race.SKIN_COLORS[passenger.race]
 	return passenger
 

@@ -6,13 +6,13 @@ const PREVIEW := "res://test/previews/alien_portrait_preview.tscn"
 const EXPRESSIONS := "res://test/previews/portrait_expression_preview.tscn"
 
 
-func test_the_preview_shows_each_head_with_its_eyes_in_each_race_colour() -> void:
+func test_the_preview_shows_each_race_s_heads_with_their_eyes_in_its_colour() -> void:
 	var runner := scene_runner(PREVIEW)
 	await runner.simulate_frames(2)
 
 	var portraits := runner.find_child("Portraits").get_children()
-	assert_int(portraits.size()).is_equal(30)
-	# A row per eye style and race, each with the Dome, Blob, Stalks, Bean and Hammer.
+	assert_int(portraits.size()).is_equal(12)
+	# Two rows per race, one per eye style: Dome and Bean, Blob and Mound, Stalks and Hammer.
 	var eye_counts: Array[int] = []
 	for node: Node in portraits:
 		var portrait := node as AlienPortrait
@@ -22,8 +22,10 @@ func test_the_preview_shows_each_head_with_its_eyes_in_each_race_colour() -> voi
 		)
 		var skin := head.get_surface_override_material(0) as ShaderMaterial
 		assert_that(skin.get_shader_parameter(&"color")).is_equal(portrait.skin_color)
-	var row: Array[int] = [2, 1, 2, 2, 2]
-	assert_array(eye_counts).is_equal(row + row + row + row + row + row)
+	var blue: Array[int] = [2, 2]
+	var orange: Array[int] = [1, 2]
+	var green: Array[int] = [2, 2]
+	assert_array(eye_counts).is_equal(blue + blue + orange + orange + green + green)
 
 
 func test_the_bust_is_lit_from_the_photo_lamp_not_the_star() -> void:
@@ -120,6 +122,22 @@ func test_a_model_with_no_head_or_material_still_builds_framed_whole_and_reports
 	assert_vector(bounds.size).is_equal_approx(Vector3.ONE, Vector3.ONE * 0.001)
 
 
+func test_the_hammer_s_stem_and_bar_are_one_head_so_they_move_together() -> void:
+	# The bar used to be the head on a stem that stayed put, so it came off the stem as it
+	# bobbed and leaned.
+	var portrait: AlienPortrait = auto_free(preload(SCENE).instantiate())
+	portrait.head_model = preload("res://game/passengers/models/head_hammer.glb")
+	add_child(portrait)
+
+	var head := portrait.find_children("*Head", "MeshInstance3D", true, false)[0] as Node3D
+	for node: Node in portrait.find_children("Hammer*", "MeshInstance3D", true, false):
+		(
+			assert_bool(node == head or head.is_ancestor_of(node))
+			. override_failure_message("%s doesn't move with the head" % node.name)
+			. is_true()
+		)
+
+
 func test_a_head_that_is_not_a_mesh_still_gets_food_sized_to_the_mesh_under_it() -> void:
 	# A plain node named *Head with a 0.4-wide box under it, as some models may be built.
 	var shape := MeshInstance3D.new()
@@ -189,7 +207,7 @@ func test_the_expression_preview_shows_each_head_in_each_expression_eating_and_d
 		joys.append(portrait.joy)
 		contents.append(portrait.content)
 		actions.append(portrait.action)
-	# Okay, happy, annoyed, furious, joyful, eating and drinking, for each of five heads.
+	# Okay, happy, annoyed, furious, joyful, eating and drinking, for each of six heads.
 	var row_anger: Array[float] = [0.0, 0.0, 0.5, 1.0, 0.0, 0.0, 0.0]
 	var row_joy: Array[float] = [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 	var row_content: Array[bool] = [false, true, false, false, false, false, false]
@@ -239,6 +257,7 @@ func test_a_skin_and_eye_style_set_before_it_is_ready_reach_every_eye() -> void:
 # [param row] once for each head shape, as the expression preview lays them out.
 func _rows(row: Array) -> Array:
 	var rows := []
-	for head: int in AlienLook.HEADS.size():
-		rows.append_array(row)
+	for race: Race.Type in AlienLook.HEADS:
+		for head: PackedScene in AlienLook.HEADS[race]:
+			rows.append_array(row)
 	return rows

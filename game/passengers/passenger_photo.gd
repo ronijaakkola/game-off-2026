@@ -1,13 +1,12 @@
 class_name PassengerPhoto
 extends Control
 ## A passenger's portrait as a small photo: a thin white frame tilted a little at random,
-## over a blurred background in the colours of the planet they boarded at (or, when that
-## isn't known, the one they are going to). It takes its portrait from [member studio]
-## while it is in the tree and gives it back when it leaves, so a freed photo frees its
-## slot. When the studio is full it waits for the next free slot. Without a studio or a
-## passenger the frame stays empty. While the passenger rides, it shows on the portrait
-## every frame whether they are asleep, how angry or content their mood makes them, what
-## they are eating or drinking, and the push they feel on the bus.
+## over a blurred background in their [Race]'s backdrop colour. It takes its portrait from
+## [member studio] while it is in the tree and gives it back when it leaves, so a freed
+## photo frees its slot. When the studio is full it waits for the next free slot. Without
+## a studio or a passenger the frame stays empty. While the passenger rides, it shows on
+## the portrait every frame whether they are asleep, how angry or content their mood makes
+## them, what they are eating or drinking, and the push they feel on the bus.
 
 ## The photo's tilt, in degrees either way.
 const TILT_MIN := 0.5
@@ -74,9 +73,7 @@ func get_photo() -> Texture2D:
 func _show() -> void:
 	if not passenger:
 		return
-	var home := passenger.origin if passenger.origin else passenger.destination
-	if home:
-		_backdrop().set_shader_parameter(&"planet_color", home.icon_color)
+	_backdrop().set_shader_parameter(&"backdrop_color", Race.BACKDROP_COLORS[passenger.race])
 	if studio and not _photo and is_inside_tree():
 		_photo = studio.add(passenger.look)
 		if not _photo and not studio.slot_freed.is_connected(_show):
