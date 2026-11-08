@@ -78,6 +78,16 @@ func add(amount: int) -> void:
 	)
 
 
+## Takes [param amount] off [member credits] and off the total shown, at once. A count up
+## under way finishes at once first; a gain still waiting for [method commit] stays.
+func spend(amount: int) -> void:
+	if _fade and _fade.is_running():
+		_fade.kill()
+		(%GainLabel as Label).modulate.a = 0.0
+	_credits -= amount
+	_show_total(_credits - _pending)
+
+
 ## Moves the gain into the total: after [constant COMMIT_DELAY], the total counts up one
 ## credit at a time while the gain fades out drifting upward. Nothing happens without a
 ## gain.

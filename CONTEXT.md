@@ -64,6 +64,14 @@ _Avoid_: selected planet, focused planet, planet view
 The panel just above the bus status while the bus is docked or charging, for what it can do at that planet: for now, picking up the passengers waiting there, one by one or all at once. `DockPanel` in code.
 _Avoid_: boarding popup, station menu, planet panel (that is the open planet's)
 
+**Fuel**:
+What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the open planet's panel, at that planet's **fuel price**.
+_Avoid_: energy, gas, charge (that is the frameshift drive's)
+
+**Tow**:
+What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. A **tow ship** (`TowShip`) flies out from the planet, hitches on with a cable and leads the bus in, where it docks with a full tank, for a fee. `FrameshiftBus.tow_to()` moves the bus.
+_Avoid_: rescue, respawn
+
 **Passenger**:
 Someone riding the bus to a destination planet, with a fare, a patience that runs down during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
 _Avoid_: customer, rider, NPC

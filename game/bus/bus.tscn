@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" uid="uid://dcb04fc88ixi5" path="res://game/bus/dock_bell.ogg" id="5_bell"]
 [ext_resource type="PackedScene" uid="uid://binbtwxaodhoe" path="res://game/bus/models/bus.glb" id="6_glb"]
 [ext_resource type="Script" uid="uid://cq4kscykvshix" path="res://game/bus/thruster_trail.gd" id="7_trail"]
+[ext_resource type="Script" uid="uid://bl44x5cob22py" path="res://game/bus/fuel_tank.gd" id="8_fuel"]
 
 [node name="Bus" type="Node3D" unique_id=845724280]
 script = ExtResource("1_bus")
@@ -30,3 +31,7 @@ script = ExtResource("4_ring")
 [node name="ThrusterTrail" type="MeshInstance3D" parent="." unique_id=1084277193]
 unique_name_in_owner = true
 script = ExtResource("7_trail")
+
+[node name="FuelTank" type="Node" parent="." unique_id=53952394]
+unique_name_in_owner = true
+script = ExtResource("8_fuel")
