@@ -1,19 +1,17 @@
 class_name PlanetPanel
-extends MarginContainer
+extends SidePanel
 ## The open planet's panel down the right side of the screen: the planet's name and icon,
 ## and a row for each passenger waiting there, longest waiting first, kept up to date as
 ## they arrive and board. Under them, the bus's fuel, a full tank's price here, and a
 ## button to hold down to refuel, with a note under it; the parent pumps the fuel while
-## [method is_refuel_held] and sets what shows with [method show_fuel]. It slides in from
-## past the right edge when it opens, over [member slide_in_seconds] so it can arrive with
-## the camera, and back out when it closes. Its close button only asks; the parent closes
-## it.
+## [method is_refuel_held] and sets what shows with [method show_fuel]. It slides in when
+## it opens and back out when it closes ([SidePanel]). Its close button only asks; the
+## parent closes it.
 
 ## The close button was pressed.
 signal close_pressed
 
 const ROW := preload("res://game/solar_system/waiting_passenger_row.tscn")
-const SLIDE_OUT_SECONDS := 0.2
 
 ## Who waits at each planet.
 @export var waiting: WaitingPassengers:
@@ -29,12 +27,7 @@ const SLIDE_OUT_SECONDS := 0.2
 ## Where the rows' portraits are rendered. Without one, their photos stay empty.
 var portrait_studio: PortraitStudio
 
-## Seconds to slide in. It eases in and out, as the camera's blend does.
-var slide_in_seconds := 0.7
-
 var _planet: Planet
-# The one tween that slides the panel in and out.
-var _slide: Tween
 var _refuel_held := false
 # The fuel bar's fill, a copy of the scene's, so its colour can change. Low fuel shows in
 # the bus status's low colour, at the same share of a tank.
@@ -43,7 +36,7 @@ var _fuel_low := false
 
 
 func _ready() -> void:
-	hide()
+	super()
 	var bar := %FuelBar as ProgressBar
 	_fuel_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate() as StyleBoxFlat
 	bar.add_theme_stylebox_override(&"fill", _fuel_fill)
@@ -54,34 +47,14 @@ func open(planet: Planet) -> void:
 	_planet = planet
 	_show_planet()
 	_show_waiting()
-	if _slide:
-		_slide.kill()
-	if not visible:
-		show()
-		position.x = _off_right()
-	_slide = create_tween()
-	(
-		_slide
-		. tween_property(self, ^"position:x", _rest_x(), slide_in_seconds)
-		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_IN_OUT)
-	)
+	slide_in()
 
 
 ## Slides out past the right edge, then hides.
 func close() -> void:
 	_planet = null
 	_refuel_held = false
-	if _slide:
-		_slide.kill()
-	_slide = create_tween()
-	(
-		_slide
-		. tween_property(self, ^"position:x", _off_right(), SLIDE_OUT_SECONDS)
-		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_IN)
-	)
-	_slide.tween_callback(hide)
+	slide_out()
 
 
 ## The planet shown, or null while closed.
@@ -108,20 +81,6 @@ func show_fuel(fraction: float, full_tank_cost: int, can_refuel: bool, note: Str
 	if not can_refuel:
 		_refuel_held = false
 	button.text = "Refuelling..." if _refuel_held else "Hold to refuel"
-
-
-## How wide the panel is, margins included, so the parent can keep the planet clear of it.
-func get_width() -> float:
-	return get_combined_minimum_size().x
-
-
-# Where the anchors put the panel, flush with the right edge.
-func _rest_x() -> float:
-	return get_parent_area_size().x - size.x
-
-
-func _off_right() -> float:
-	return get_parent_area_size().x
 
 
 func _show_planet() -> void:

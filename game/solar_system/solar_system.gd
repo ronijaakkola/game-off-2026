@@ -13,6 +13,8 @@ extends Node3D
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
 ## planet is open, the planets' names fade out, and the open planet's white hover border
 ## fades out and stays off; both fade back in when it closes.
+## A left click on the bus opens it the same way, with its stats in its panel. One of the
+## two is open at a time: opening either closes the other.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one and pay. Under each planet
 ## where someone waits, a small person and a number say how many. While the bus is docked
@@ -54,6 +56,8 @@ const PUMP_MAX_RATE := 60.0
 const PUMP_RAMP_SECONDS := 1.5
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
+## The percent of top speed the debug panel's speed button adds, on every click.
+const DEBUG_SPEED_PERCENT := 20
 
 var _planets: Array[Planet] = []
 # 1 with no planet open, 0 once one is open and the fade is done.
@@ -86,6 +90,9 @@ func _ready() -> void:
 	panel.waiting = %WaitingPassengers as WaitingPassengers
 	panel.close_pressed.connect(close_planet)
 	panel.slide_in_seconds = (%CameraRig as CameraRig).get_focus_seconds()
+	var bus_panel := %BusPanel as BusPanel
+	bus_panel.close_pressed.connect(close_bus)
+	bus_panel.slide_in_seconds = panel.slide_in_seconds
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.waiting = %WaitingPassengers as WaitingPassengers
 	markers.set_planets(_planets)
@@ -98,6 +105,7 @@ func _ready() -> void:
 	bus.towed.connect(_on_bus_towed)
 	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
 	DebugPanel.add_button("Add %d credits" % DEBUG_CREDITS, _debug_add_credits, self)
+	DebugPanel.add_button("+%d%% top speed" % DEBUG_SPEED_PERCENT, _debug_add_speed, self)
 
 
 func _process(delta: float) -> void:
@@ -112,13 +120,21 @@ func _process(delta: float) -> void:
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
 	# The panel covers the bottom of the screen where the hint is, until it has slid out.
-	(%HintBox as Control).visible = not (%PlanetPanel as Control).visible
+	(%HintBox as Control).visible = not (
+		(%PlanetPanel as Control).visible or (%BusPanel as Control).visible
+	)
 	var mouse := get_viewport().get_mouse_position()
 	var over_hud := get_viewport().gui_get_hovered_control() != null
-	var under: Planet = null if over_hud else _planet_at(mouse)
+	# What a left click would open shows the white border.
+	var picked: Node3D = null if over_hud else _pick_at(mouse)
+	var under := picked as Planet
 	_place_waiting()
 	var bus := %Bus as FrameshiftBus
-	var marker: RouteStop = null if under or over_hud else _marker_at(mouse)
+	var model := bus.get_model()
+	model.border = picked == bus and not is_bus_open()
+	if model.border:
+		model.outline_width = _pixels_to_world(OUTLINE_PIXELS, bus.global_position)
+	var marker: RouteStop = null if picked or over_hud else _marker_at(mouse)
 	# Only the last stop, the one a right click removes.
 	bus.hovered_stop = marker if marker and marker == bus.get_last_stop() else null
 	var on_route := bus.get_route_planets()
@@ -164,8 +180,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Opens [param planet]: the camera follows it on the left and its panel shows on the
-## right. Opening another planet while one is open moves both on to it.
+## right. Opening another planet while one is open moves both on to it. It closes the bus's
+## panel.
 func open_planet(planet: Planet) -> void:
+	if is_bus_open():
+		(%BusPanel as BusPanel).close()
 	(%PlanetPanel as PlanetPanel).open(planet)
 	var rig := %CameraRig as CameraRig
 	rig.focus_rect = _focus_rect()
@@ -185,32 +204,63 @@ func get_open_planet() -> Planet:
 	return (%PlanetPanel as PlanetPanel).get_planet()
 
 
-# A left click: on a planet opens it, on the open planet or empty space closes it.
+## Opens the bus: the camera follows it on the left and its panel shows its stats on the
+## right. It closes the open planet's panel.
+func open_bus() -> void:
+	if get_open_planet():
+		(%PlanetPanel as PlanetPanel).close()
+	var bus := %Bus as FrameshiftBus
+	(%BusPanel as BusPanel).open(bus)
+	var rig := %CameraRig as CameraRig
+	rig.focus_rect = _focus_rect()
+	rig.focus(bus, FrameshiftBus.RADIUS, FrameshiftBus.RADIUS)
+
+
+## Closes the bus's panel and gives the camera back. Does nothing when it isn't open.
+func close_bus() -> void:
+	if not is_bus_open():
+		return
+	(%BusPanel as BusPanel).close()
+	(%CameraRig as CameraRig).release_focus()
+
+
+func is_bus_open() -> bool:
+	return (%BusPanel as BusPanel).is_open()
+
+
+# A left click: on the bus or a planet opens it, on what is open or on empty space closes
+# it.
 func _select_at(screen_point: Vector2) -> void:
-	var planet := _planet_at(screen_point)
-	if planet and planet != get_open_planet():
+	var picked := _pick_at(screen_point)
+	var planet := picked as Planet
+	if picked is FrameshiftBus and not is_bus_open():
+		open_bus()
+	elif planet and planet != get_open_planet():
 		open_planet(planet)
 	elif get_open_planet():
 		close_planet()
+	elif is_bus_open():
+		close_bus()
 	else:
 		return
 	get_viewport().set_input_as_handled()
 
 
-# Where the open planet is framed: the space left of its panel.
+# Where the open planet or bus is framed: the space left of its panel.
 func _focus_rect() -> Rect2:
 	var screen := get_viewport().get_visible_rect().size
-	var width := screen.x - (%PlanetPanel as PlanetPanel).get_width()
-	return Rect2(0.0, 0.0, width, screen.y)
+	var panel := (%BusPanel if is_bus_open() else %PlanetPanel) as SidePanel
+	return Rect2(0.0, 0.0, screen.x - panel.get_width(), screen.y)
 
 
-# Fades the names, and the open planet's hover border, out while a planet is open and back
-# in after.
+# Fades the names, and the open planet's hover border, out while a planet or the bus is
+# open and back in after.
 func _update_fade(delta: float) -> void:
 	var open := get_open_planet()
 	if open:
 		_faded_planet = open
-	_fade = move_toward(_fade, 0.0 if open else 1.0, delta / FADE_SECONDS)
+	var target := 0.0 if open or is_bus_open() else 1.0
+	_fade = move_toward(_fade, target, delta / FADE_SECONDS)
 	if _fade >= 1.0:
 		_faded_planet = null
 	for planet: Planet in _planets:
@@ -327,6 +377,14 @@ func _debug_add_credits() -> void:
 	counter.commit()
 
 
+# The debug panel's top speed button, a modifier like an upgrade's. Each click adds another.
+func _debug_add_speed() -> void:
+	var boost := StatModifier.new(
+		BusStats.Type.MAX_SPEED, StatModifier.Kind.PERCENT, DEBUG_SPEED_PERCENT
+	)
+	(%Bus as FrameshiftBus).get_stats().add_modifier(boost)
+
+
 func _on_delivered(_passenger: Passenger, payout: int) -> void:
 	(%CreditsCounter as CreditsCounter).add(payout)
 
@@ -381,6 +439,35 @@ func _marker_at(screen_point: Vector2) -> RouteStop:
 		if on_screen.distance_to(screen_point) <= on_screen.distance_to(edge) + PICK_MARGIN:
 			return stop
 	return null
+
+
+# What a left click at screen_point opens: the bus, a planet, or null. Where the bus and a
+# planet overlap, as when it is docked, whichever centre is nearer wins, so the docked
+# planet stays easy to open.
+func _pick_at(screen_point: Vector2) -> Node3D:
+	var planet := _planet_at(screen_point)
+	if not _is_bus_at(screen_point):
+		return planet
+	var bus := %Bus as FrameshiftBus
+	if not planet:
+		return bus
+	var camera := %Camera as Camera3D
+	var to_bus := screen_point.distance_to(camera.unproject_position(bus.global_position))
+	var to_planet := screen_point.distance_to(
+		camera.unproject_position(planet.get_body_global_position())
+	)
+	return bus if to_bus < to_planet else planet
+
+
+# Whether the bus covers screen_point on screen, give or take PICK_MARGIN.
+func _is_bus_at(screen_point: Vector2) -> bool:
+	var camera := %Camera as Camera3D
+	var center := (%Bus as FrameshiftBus).global_position
+	if camera.is_position_behind(center):
+		return false
+	var on_screen := camera.unproject_position(center)
+	var edge := camera.unproject_position(center + camera.global_basis.x * FrameshiftBus.RADIUS)
+	return on_screen.distance_to(screen_point) <= on_screen.distance_to(edge) + PICK_MARGIN
 
 
 # The nearest planet whose body covers screen_point on screen, give or take PICK_MARGIN.
