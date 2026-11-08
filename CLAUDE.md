@@ -14,17 +14,19 @@ Ask the human before changing anything outside the repo, such as export template
 
 Run checks exactly as `uv run tools/check.py <command>`. That text is allowlisted, and the script owns every Godot flag.
 
+Keep the loop short while a feature takes shape: `load` (10 s) and the suites for what you touched. The full `test` and `smoke` take a minute and a half each, so they run once, in `all`, when the feature works. CI runs everything again on the PR.
+
 | Command | When |
 |---|---|
 | `lint [files]` | Runs by itself after every edit to a `.gd`, `.tscn` or `.gdshader` file; fix what it reports. `format [files]` fixes what it reports as formatting. |
 | `load` | After editing scripts, scenes or resources. |
 | `ids [files]` | After writing a `.tscn` or `.tres` as text (the `edit-tscn` skill). Saves every one missing a `uid` or `unique_id` the way the editor does, so Godot assigns them; commit the result. `lint` fails until it runs. |
-| `test [files] [--verbose]` | After logic changes. Whether the change needs a new test, and which kind: the `gdunit-tests` skill. Give suites or folders to run only those; `--verbose` shows the tests' `print()` lines. |
-| `smoke [scenes]` | After changes to anything that runs at startup. Runs every scene the game reaches, each on its own, the main scene first, or the ones given. |
-| `capture <scene> [--size WxH] [--frames N] [-- args]` | After any visual change. Then open the last frame it names and look at it. `--size` scales the game as a browser window does (text and UI sharpness show only then); args after `--` reach the scene through `OS.get_cmdline_user_args()`. |
+| `test [files] [--verbose]` | While building, only the suites or folders for what you changed: `test test/game/bus/`. The whole run is part of `all`. A feature still taking shape gets no new tests; they come once it's settled, apart from a regression test for a fixed bug (the `gdunit-tests` skill). `--verbose` shows the tests' `print()` lines. |
+| `smoke [scenes]` | While building, only a scene you changed that might error on start: `smoke res://game/bus/bus.tscn`. With no scenes it runs every scene the game reaches, each on its own, which `all` does. |
+| `capture <scene> [--size WxH] [--frames N] [-- args]` | When a visual change is done, not after every tweak. Then open the last frame it names and look at it. `--size` scales the game as a browser window does (text and UI sharpness show only then); args after `--` reach the scene through `OS.get_cmdline_user_args()`. |
 | `evidence [frame]` | When a PR body needs a frame. Pushes the last capture frame, or the one given, to the `pr-evidence` branch and prints the image line to paste under Evidence. |
 | `api <query>` | Before using a Godot API you aren't sure exists in 4.7.2. `Class`, `Class.member`, or a word to search for. |
-| `all` | Before every handoff. Runs `lint`, `load`, `test` and `smoke`, which takes over the Bash tool's default 2 minutes: give it `timeout: 600000`. |
+| `all` | Once, before handoff, when the feature works. Runs `lint` and `load`, then `test` and `smoke` at the same time, which can take over the Bash tool's default 2 minutes: give it `timeout: 600000`. When it fails, fix it with the failing step on just what failed (`test <suite>`, `smoke <scene>`), then run `all` once more. |
 | `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. |
 
 ## Handoff

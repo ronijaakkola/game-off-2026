@@ -1,15 +1,17 @@
 ---
 name: gdunit-tests
-description: Decide whether a change needs a test and which kind, then write, run and debug gdUnit4 tests in this project. Use when changing logic or a player-facing flow, fixing a bug, adding or changing tests under test/, testing a scene with simulated mouse or key input, awaiting a signal in a test, or reading a failing `check.py test` run.
+description: Decide whether a change needs a test (a feature still taking shape doesn't) and which kind, then write, run and debug gdUnit4 tests in this project. Use when changing logic or a player-facing flow, fixing a bug, adding or changing tests under test/, testing a scene with simulated mouse or key input, awaiting a signal in a test, or reading a failing `check.py test` run.
 ---
 
 # gdUnit4 tests
 
-gdUnit4 6.2.2, vendored in `addons/gdUnit4/`. Run every test with `uv run tools/check.py test`.
+gdUnit4 6.2.2, vendored in `addons/gdUnit4/`. While building, run only the suites for what you changed: `uv run tools/check.py test test/game/bus/`. The whole run (a minute and a half) is part of `check.py all`, once before handoff.
 
 ## Which test, and when
 
-**When.** A flow gets tests once it's settled: the human says so, or the ticket asks for them. Boilerplate work counts as settled. Until then the load check, the smoke run and the human's visual check cover it, and your handoff names each untested flow the change touched. A fixed bug is the exception: it gets a regression test right away, at whichever kind reproduces it.
+**When.** A flow gets tests once it's settled: the human says so, or the ticket asks for them. Boilerplate work counts as settled. A new feature is not settled, so the change that builds it adds no tests, even for logic that would be easy to test: in a jam, features change shape after the first playtest, and their tests get rewritten with them. Until then the load check, the smoke run and the human's visual check cover it, and your handoff names each untested flow the change touched. A fixed bug is the exception: it gets a regression test right away, at whichever kind reproduces it.
+
+Existing tests that a change breaks get fixed in that change, whether or not the flow is settled.
 
 **Which kind** (both defined in `CONTEXT.md`):
 
