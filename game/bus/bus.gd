@@ -4,10 +4,10 @@ extends Node3D
 ## planet first charges the frameshift drive for [member charge_time], turning the bus
 ## toward its next stop while it charges, then it flies there. It passes through points in
 ## space and docks at every planet on its route, charging again before it leaves each one,
-## and holds still at a point in space that ends the route. A new course in flight or in
-## space starts at once, with no charge. Flying to a planet, it slows down as it nears it,
-## then parks: it glides the last stretch and swings side-on, with its door toward the
-## planet. It has docked once it is parked.
+## and holds still at a point in space that ends the route. A new course in flight starts
+## at once, with no charge, as does one in space up to [member warm_time] after stopping.
+## Flying to a planet, it slows down as it nears it, then parks: it glides the last stretch
+## and swings side-on, with its door toward the planet. It has docked once it is parked.
 ## Flying burns fuel from its [FuelTank] by distance. Run dry, it coasts to a stop unless
 ## [method tow_to] tows it, slowly and with no say over its route, to a planet.
 ## It moves on the orbit plane, in global space, and faces its +Z.
@@ -59,8 +59,10 @@ const DOOR := Vector3(-0.18, 0.03, 0.3)
 @export var start_planet: Planet
 ## Plays each time the bus docks after flying to a planet.
 @export var dock_sound: AudioStream
-## Seconds the frameshift drive charges before the bus leaves a planet.
+## Seconds the frameshift drive charges before the bus leaves a planet, or space once cold.
 @export_range(0.0, 10.0, 0.1) var charge_time := 3.0
+## Seconds the drive stays warm after the bus stops in space: a course set later charges.
+@export_range(0.0, 30.0, 0.1) var warm_time := 1.0
 ## Top speed before upgrades: the base of the MAX_SPEED stat ([method get_stats]). Planets
 ## orbit at under 0.5, so the bus can catch one.
 @export_range(0.1, 20.0, 0.05) var max_speed := 1.2:
@@ -113,6 +115,7 @@ var _dock_direction := Vector3.BACK
 var _speed := 0.0
 var _turn_rate := 0.0
 var _charge_left := 0.0
+var _holding_time := 0.0
 var _time := 0.0
 # How much of the float shows: 1 while still, 0 in flight.
 var _float := 1.0
@@ -170,18 +173,20 @@ func plot_course(stop: RouteStop, add := false) -> void:
 	match state:
 		State.DOCKED:
 			_start_charge()
+		State.HOLDING when _holding_time > warm_time:
+			_start_charge()
 		State.HOLDING:
 			state = State.FLYING
 
 
-## Clears the route. A charging drive stops and the bus stays docked; in flight it slows to
-## a stop where it is. Does nothing while towed.
+## Clears the route. A charging drive stops and the bus stays docked, or holds in space; in
+## flight it slows to a stop where it is. Does nothing while towed.
 func cancel_course() -> void:
 	if _towing:
 		return
 	_route.clear()
 	if state == State.CHARGING:
-		state = State.DOCKED
+		state = State.DOCKED if _dock_planet else State.HOLDING
 		%ChargeRing.show_progress(global_position, 0.0)
 
 
@@ -246,7 +251,7 @@ func get_docked_planet() -> Planet:
 
 ## Whether the bus waits at a planet: docked, or charging to leave it.
 func is_at_planet() -> bool:
-	return state == State.DOCKED or state == State.CHARGING
+	return state == State.DOCKED or (state == State.CHARGING and _dock_planet != null)
 
 
 ## Every planet on the route still ahead.
@@ -348,9 +353,11 @@ func _process(delta: float) -> void:
 			if _is_parked():
 				_finish_docking()
 		State.FLYING:
+			_holding_time = 0.0
 			_fly(delta)
 		State.HOLDING:
 			_turn_rate = 0.0
+			_holding_time += delta
 	_feel(delta)
 	_animate_model(delta)
 	var burn := (%Model as BusModel).thrust if state == State.FLYING else 0.0
@@ -402,7 +409,7 @@ func _move(distance: float) -> void:
 
 # At a planet it only drops the route and any charge: the player refuels there.
 func _on_fuel_emptied() -> void:
-	var in_space := state == State.FLYING or state == State.HOLDING
+	var in_space := not is_at_planet() and state != State.PARKING
 	cancel_course()
 	if in_space:
 		ran_out_of_fuel.emit()
