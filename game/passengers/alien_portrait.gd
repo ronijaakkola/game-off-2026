@@ -383,10 +383,10 @@ func _body_material(material_name: String) -> ShaderMaterial:
 # The meal goes on the head, in front of where a mouth would be: just below the eyes, since
 # the photo crops the bottom of most faces, but within the head for eyes on stalks.
 func _add_meal() -> void:
-	var bounds := AABB()
-	var head_mesh := _head as MeshInstance3D
-	if head_mesh:
-		bounds = head_mesh.get_aabb()
+	var bounds := _head_shape_bounds()
+	if not bounds.has_volume():
+		push_warning("%s's head has no mesh to hold food up to" % head_model.resource_path)
+		return
 	var width := bounds.size.x
 	var mouth_y := bounds.end.y
 	for eye: MeshInstance3D in eyes:
@@ -396,6 +396,25 @@ func _add_meal() -> void:
 	_meal.name = "Meal"
 	_head.add_child(_meal)
 	_meal.setup(Vector3(bounds.get_center().x, mouth_y, bounds.end.z), width * MEAL_SIZE)
+
+
+# The bounds of the head's own shape in its space, without the eyes: the head part when it
+# is a mesh, or else the meshes under it.
+func _head_shape_bounds() -> AABB:
+	var meshes: Array[Node] = [_head]
+	if not _head is MeshInstance3D:
+		meshes = _head.find_children("*", "MeshInstance3D", true, false)
+	var to_head := _head.global_transform.affine_inverse()
+	var bounds := AABB()
+	var first := true
+	for node: Node in meshes:
+		var mesh := node as MeshInstance3D
+		if mesh in eyes:
+			continue
+		var local := to_head * mesh.global_transform * mesh.get_aabb()
+		bounds = local if first else bounds.merge(local)
+		first = false
+	return bounds
 
 
 func _add_eye(marker: Node3D) -> void:
