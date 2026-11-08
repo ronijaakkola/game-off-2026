@@ -135,6 +135,9 @@ func test_pointer_at_an_edge_pans_until_it_leaves_the_window() -> void:
 
 	# On the web the pointer can leave through that edge, and its last position stays there.
 	rig.get_window().mouse_exited.emit()
+	# The pan eases out rather than stopping dead, and how far it glides depends on the
+	# frame time; let it settle before checking the edge no longer pushes it.
+	await runner.simulate_frames(5, FRAME_MS)
 	var left_at := rig.position
 	await runner.simulate_frames(5, FRAME_MS)
 	assert_vector(rig.position).is_equal_approx(left_at, Vector3.ONE * 0.001)
