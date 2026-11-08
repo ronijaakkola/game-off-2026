@@ -122,6 +122,22 @@ func test_a_model_with_no_head_or_material_still_builds_framed_whole_and_reports
 	assert_vector(bounds.size).is_equal_approx(Vector3.ONE, Vector3.ONE * 0.001)
 
 
+func test_the_hammer_s_stem_and_bar_are_one_head_so_they_move_together() -> void:
+	# The bar used to be the head on a stem that stayed put, so it came off the stem as it
+	# bobbed and leaned.
+	var portrait: AlienPortrait = auto_free(preload(SCENE).instantiate())
+	portrait.head_model = preload("res://game/passengers/models/head_hammer.glb")
+	add_child(portrait)
+
+	var head := portrait.find_children("*Head", "MeshInstance3D", true, false)[0] as Node3D
+	for node: Node in portrait.find_children("Hammer*", "MeshInstance3D", true, false):
+		(
+			assert_bool(node == head or head.is_ancestor_of(node))
+			. override_failure_message("%s doesn't move with the head" % node.name)
+			. is_true()
+		)
+
+
 func test_a_head_that_is_not_a_mesh_still_gets_food_sized_to_the_mesh_under_it() -> void:
 	# A plain node named *Head with a 0.4-wide box under it, as some models may be built.
 	var shape := MeshInstance3D.new()
