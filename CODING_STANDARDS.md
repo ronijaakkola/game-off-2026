@@ -220,6 +220,7 @@ The web build logs one `Failed to instantiate an autoload` error at startup, for
 `DebugPanel` (`core/debug_panel/`) is a side panel of testing buttons, opened and closed with F2, for anything quicker to test with a click than a console command. It works while paused, and starts closed.
 
 - A scene adds its buttons in `_ready()`: `DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)`. Each button goes when the scene that added it leaves the tree, so the panel never knows which scene runs. Name the scene's handler `_debug_<what it does>`, next to the scene's other handlers.
+- Related buttons that would crowd the main card, such as the bus's stat buttons, go in a group: `DebugPanel.add_button("+1 seat", action, self, "Stats")`. Each group gets its own card to the right of the main one, opened and closed by a button of the group's name in the main card, one group's card at a time. The card and its button go with the group's last button.
 - Unlike the dev console, it ships in every build, web and release builds included, so testers can use it on itch.io. Release builds are made before the game is out, so being a release build doesn't turn it off.
 - **Before the game is released**, set `ENABLED` to `false` in `core/debug_panel/debug_panel.gd`. F2 then does nothing, and `add_button` adds nothing, so the scenes' calls can stay.
 
