@@ -8,6 +8,7 @@ const FRAME_MS := 50
 
 var _held: Array[Key] = []
 var _window_size: Vector2i
+var _edge_pan: bool
 
 
 func before() -> void:
@@ -15,10 +16,19 @@ func before() -> void:
 	# position by 18. At the base size it scales by 1.
 	_window_size = get_tree().root.size
 	get_tree().root.size = Vector2i(1152, 648)
+	# The developer's own settings may have edge pan off.
+	_edge_pan = Settings.edge_pan
 
 
 func after() -> void:
 	get_tree().root.size = _window_size
+	if Settings.edge_pan != _edge_pan:
+		Settings.edge_pan = _edge_pan
+
+
+func before_test() -> void:
+	if not Settings.edge_pan:
+		Settings.edge_pan = true
 
 
 func after_test() -> void:
@@ -128,6 +138,19 @@ func test_pointer_at_an_edge_pans_until_it_leaves_the_window() -> void:
 	var left_at := rig.position
 	await runner.simulate_frames(5, FRAME_MS)
 	assert_vector(rig.position).is_equal_approx(left_at, Vector3.ONE * 0.001)
+
+
+func test_pointer_at_an_edge_does_nothing_with_edge_pan_off() -> void:
+	Settings.edge_pan = false
+	var runner := scene_runner(SCENE)
+	var rig := runner.scene() as CameraRig
+	rig.smoothing = 1000.0
+	var rect := rig.get_viewport().get_visible_rect()
+	var start := rig.position
+
+	_send_motion(Vector2(rect.end.x - 2.0, rect.get_center().y))
+	await runner.simulate_frames(5, FRAME_MS)
+	assert_vector(rig.position).is_equal_approx(start, Vector3.ONE * 0.001)
 
 
 func test_focus_frames_the_target_beside_the_panel_and_release_goes_back() -> void:

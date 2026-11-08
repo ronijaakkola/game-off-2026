@@ -30,6 +30,11 @@ var reduce_motion := false:
 	set(value):
 		reduce_motion = value
 		_queue_save()
+## Whether the pointer at a window edge pans the camera. WASD and the arrow keys pan either way.
+var edge_pan := true:
+	set(value):
+		edge_pan = value
+		_queue_save()
 
 var _loaded := false
 var _save_timer: Timer
