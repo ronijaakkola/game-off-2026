@@ -5,10 +5,13 @@ extends Control
 ## are doing. While they ask for something, a button serves it. It only reads the
 ## passenger; the [Cabin] runs the ride.
 ## Their portrait sits on the left, as a [PassengerPhoto].
-## The card slides in from past the left edge of the screen when the passenger boards, and
-## back out past it when they get off, then folds its height away so the cards below it
-## move up. The root is a slot that holds the card's place in the list, and the panel moves
-## inside it.
+## The card slides in from past the left edge of the screen when the passenger boards.
+## When the bus stops at their destination, [method show_rating] swaps the middle row,
+## where they are going and their patience, for the stars they rate the ride, which fill
+## up one by one, and the activity reads "Getting off". The card lingers like that, and
+## only then [method leave] slides it back out past the left edge and folds its height
+## away so the cards below it move up. The root is a slot that holds
+## the card's place in the list, and the panel moves inside it.
 
 ## The serve button was pressed for [member passenger]'s open request.
 signal serve_pressed
@@ -23,6 +26,17 @@ const FOLD_SECONDS := 0.2
 ## Seconds the mood name takes to fade out and back in as the new mood, and the bar's
 ## colour to blend into the new mood's. A fade is no motion, so Reduce motion keeps it.
 const MOOD_FADE_SECONDS := 0.3
+## Seconds the middle row takes to swap the patience bar for the stars: the bar sinks and
+## fades out while the stars drop in from above and fade in, a little behind it.
+const SWAP_SECONDS := 0.3
+const SWAP_STAGGER := 0.1
+## How far the bar sinks and the stars drop, in pixels. Reduce motion only fades them.
+const SWAP_PIXELS := 6.0
+## Seconds each star takes to fill once the stars are in.
+const STAR_FILL_SECONDS := 0.18
+## Seconds the card shows the rating before it can slide out, counted from
+## [method show_rating]. Long enough for five stars to fill and be read.
+const LINGER_SECONDS := 2.2
 
 const MOOD_COLORS: Dictionary[Passenger.Mood, Color] = {
 	Passenger.Mood.HAPPY: Color(0.55, 0.85, 0.4),
@@ -70,9 +84,19 @@ var _motion: Tween
 # The mood name's fade out and in, and the bar's blend into the new mood's colour.
 var _mood_fade: Tween
 var _fill_fade: Tween
+# Whether the card shows the rating: the passenger is getting off, so it stops following
+# them.
+var _rated := false
+# Seconds left until the card has shown the rating long enough to slide out.
+var _linger_left := 0.0
+# The middle row's swap from the patience bar to the stars, then the stars filling.
+var _rating_swap: Tween
 
 
 func _ready() -> void:
+	var stars := %RatingStars as StarIcon
+	stars.count = roundi(Passenger.MAX_STARS)
+	stars.fill = 0.0
 	var bar := %PatienceBar as ProgressBar
 	_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate()
 	bar.add_theme_stylebox_override(&"fill", _fill)
@@ -84,8 +108,10 @@ func _ready() -> void:
 	_fit_slot()
 
 
-func _process(_delta: float) -> void:
-	_show()
+func _process(delta: float) -> void:
+	_linger_left = maxf(_linger_left - delta, 0.0)
+	if not _rated:
+		_show()
 	_fit_slot()
 
 
@@ -104,14 +130,71 @@ func slide_in() -> void:
 	)
 
 
+## Shows that the passenger is getting off and rated the ride [param stars] out of
+## [constant Passenger.MAX_STARS]. The middle row swaps: the patience bar, and where they
+## are going, sink and fade out while empty stars drop in from above and fade in, then the
+## stars fill up to the rating one after another, each swelling as it fills. The activity
+## morphs to "Getting off", and the serve button goes. The name and mood stay. The card
+## stops following the passenger. Under Reduce motion the row only crossfades and the
+## stars only change colour. Only the first call counts.
+func show_rating(stars: float) -> void:
+	if _rated:
+		return
+	_rated = true
+	_linger_left = LINGER_SECONDS
+	var button := %ServeButton as Button
+	button.disabled = true
+	button.visible = false
+	var still := Settings.reduce_motion
+	var drop := 0.0 if still else SWAP_PIXELS
+	var patience := %Patience as Control
+	var rating := %RatingStars as StarIcon
+	var rest_y := (patience.size.y - rating.size.y) * 0.5
+	rating.fill = 0.0
+	rating.bump = not still
+	rating.modulate.a = 0.0
+	rating.position.y = rest_y - drop
+	rating.visible = true
+	if _rating_swap:
+		_rating_swap.kill()
+	_rating_swap = create_tween().set_parallel()
+	_rating_swap.tween_property(patience, ^"modulate:a", 0.0, SWAP_SECONDS)
+	(
+		_rating_swap
+		. tween_property(patience, ^"position:y", drop, SWAP_SECONDS)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_IN)
+	)
+	_rating_swap.tween_property(rating, ^"modulate:a", 1.0, SWAP_SECONDS).set_delay(SWAP_STAGGER)
+	(
+		_rating_swap
+		. tween_property(rating, ^"position:y", rest_y, SWAP_SECONDS)
+		. set_delay(SWAP_STAGGER)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_OUT)
+	)
+	_rating_swap.chain().tween_property(
+		rating, ^"fill", clampf(stars, 0.0, rating.count), stars * STAR_FILL_SECONDS
+	)
+	(%ActivityLabel as MorphLabel).morph_to("Getting off")
+
+
+## Whether the card shows the rating, after [method show_rating].
+func is_rated() -> bool:
+	return _rated
+
+
 ## Slides the card out past the left edge of the screen, then folds its height away, and
-## emits [signal left]. The serve button stops working at once.
+## emits [signal left]. After [method show_rating], it first waits until the rating has
+## shown for [constant LINGER_SECONDS]. The serve button stops working at once.
 func leave() -> void:
 	if _motion:
 		_motion.kill()
 	var panel := %Panel as Control
 	(%ServeButton as Button).disabled = true
 	_motion = create_tween()
+	if _linger_left > 0.0:
+		_motion.tween_interval(_linger_left)
 	(
 		_motion
 		. tween_property(panel, ^"position:x", _off_left(), SLIDE_OUT_SECONDS)
@@ -132,8 +215,18 @@ func _set_fold(value: float) -> void:
 	_fit_slot()
 
 
-# The slot is as tall as the card, times the fold, and the panel fills its width.
+# The slot is as tall as the card, times the fold, and the panel fills its width. The
+# middle row's slot is as tall as the patience row, which fills its width; the swap moves
+# the row and the stars inside it.
 func _fit_slot() -> void:
+	var middle := %Middle as Control
+	var patience := %Patience as Control
+	var row := patience.get_combined_minimum_size()
+	if middle.custom_minimum_size != row:
+		middle.custom_minimum_size = row
+	patience.size = Vector2(middle.size.x, row.y)
+	var rating := %RatingStars as Control
+	rating.size = rating.custom_minimum_size
 	var panel := %Panel as Control
 	var size_needed := panel.get_combined_minimum_size()
 	panel.size = size_needed
