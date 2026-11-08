@@ -99,10 +99,11 @@ func is_fuel_held() -> bool:
 	return (%FuelButton as FuelButton).is_held()
 
 
-## Shows the bus's fuel at [param fraction] of a full tank in the fuel button, and turns it
-## on or off. Off, it lets go and reads [param reason] instead.
-func show_fuel(fraction: float, can_fuel: bool, reason: String) -> void:
-	(%FuelButton as FuelButton).show_fuel(fraction, can_fuel, reason)
+## Shows the bus's fuel at [param fraction] of a full tank in the fuel button, with
+## [param cost], the credits to fill it, and turns it on or off. Off, it lets go and reads
+## [param reason] instead.
+func show_fuel(fraction: float, cost: int, can_fuel: bool, reason: String) -> void:
+	(%FuelButton as FuelButton).show_fuel(fraction, cost, can_fuel, reason)
 
 
 func _show_planet() -> void:
