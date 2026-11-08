@@ -4,7 +4,8 @@ extends Node3D
 ## or a cup with a straw. The aliens have no mouths, so the food covers where one would be
 ## and the head does the rest. Eating, the bar rises to the face, the head dips to bite
 ## and then munches; drinking, the cup stays up and the head sips at the straw now and
-## then. The [AlienPortrait] it sits in moves its head by [member pitch] and
+## then. The food always runs off the bottom of the photo, as if held from below, so it
+## never floats. The [AlienPortrait] it sits in moves its head by [member pitch] and
 ## [member squash] and looks down by [member look_down].
 
 ## How fast the food comes up into view and goes away again, per second.
@@ -18,6 +19,9 @@ const SIP_DIP := 0.1
 ## How fast they munch between bites, and how far each chew squashes the head.
 const CHEW_SPEED := 14.0
 const CHEW := 0.06
+## How far down the food reaches from its top, in food sizes: past the bottom of any
+## photo, even with the bar raised to bite.
+const LENGTH := 5.0
 ## The colours: the bar, its wrapper, the cup, its band and the straw.
 const BAR_COLOR := Color(0.86, 0.6, 0.34)
 const WRAPPER_COLOR := Color(0.93, 0.33, 0.45)
@@ -92,8 +96,9 @@ func advance(delta: float, motion: float) -> void:
 	pitch *= up * motion
 	squash = Vector3.ONE.lerp(squash, up * motion)
 	# Below the frame when down, and just under the mouth when up.
-	var low := Vector3(0.0, -_size * 2.5, 0.0)
-	var held := Vector3(0.0, -_size * (0.3 - raise * motion), _size * 0.4)
+	# The food's top: well below the photo when down, and just under the mouth when up.
+	var low := Vector3(0.0, -_size * (LENGTH + 1.0), 0.0)
+	var held := Vector3(0.0, -_size * (0.15 - raise * motion), _size * 0.4)
 	position = _mouth + low.lerp(held, up)
 
 
@@ -102,35 +107,40 @@ func _show_food() -> void:
 	_drink.visible = _shown == Need.Action.DRINK
 
 
-# A bar, a little tilted, with its lower half in a wrapper.
+# A bar held upright, its top bare and the rest in a wrapper that runs down out of the photo.
+# Its top is at the meal's origin.
 func _make_snack() -> Node3D:
 	var snack := Node3D.new()
 	snack.name = "Snack"
-	snack.rotation.z = 0.25
+	snack.rotation.z = 0.12
 	add_child(snack)
-	var bar := _box(Vector3(_size * 1.1, _size * 0.45, _size * 0.3), BAR_COLOR)
+	var bar := _box(Vector3(_size * 0.62, _size * 0.5, _size * 0.3), BAR_COLOR)
+	bar.position.y = -_size * 0.25
 	snack.add_child(bar)
-	var wrapper := _box(Vector3(_size * 0.62, _size * 0.52, _size * 0.36), WRAPPER_COLOR)
-	wrapper.position.x = -_size * 0.26
+	var wrapper_length := _size * LENGTH
+	var wrapper := _box(Vector3(_size * 0.7, wrapper_length, _size * 0.36), WRAPPER_COLOR)
+	wrapper.position.y = -_size * 0.4 - wrapper_length * 0.5
 	snack.add_child(wrapper)
 	return snack
 
 
-# A cup with a band round it and a straw up to the mouth.
+# A tall cup that runs down out of the photo, with a band under its rim and a straw from
+# the rim up to the mouth. The straw's top is at the meal's origin.
 func _make_drink() -> Node3D:
 	var drink := Node3D.new()
 	drink.name = "Drink"
 	add_child(drink)
-	var height := _size * 0.9
-	var cup := _cylinder(_size * 0.36, _size * 0.3, height, CUP_COLOR)
-	cup.position.y = -height * 0.5
+	var rim := -_size * 0.3
+	var height := _size * LENGTH
+	var cup := _cylinder(_size * 0.36, _size * 0.32, height, CUP_COLOR)
+	cup.position.y = rim - height * 0.5
 	drink.add_child(cup)
-	var band := _cylinder(_size * 0.345, _size * 0.335, height * 0.25, BAND_COLOR)
-	band.position.y = -height * 0.45
+	var band := _cylinder(_size * 0.365, _size * 0.36, _size * 0.25, BAND_COLOR)
+	band.position.y = rim - _size * 0.35
 	drink.add_child(band)
-	var straw := _cylinder(_size * 0.05, _size * 0.05, _size * 0.75, STRAW_COLOR)
-	straw.rotation.z = -0.35
-	straw.position = Vector3(_size * 0.08, _size * 0.2, 0.0)
+	var straw := _cylinder(_size * 0.05, _size * 0.05, _size * 0.45, STRAW_COLOR)
+	straw.rotation.z = -0.3
+	straw.position = Vector3(_size * 0.07, rim + _size * 0.2, 0.0)
 	drink.add_child(straw)
 	return drink
 
