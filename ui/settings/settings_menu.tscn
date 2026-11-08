@@ -4,7 +4,6 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 
 [node name="SettingsMenu" type="PanelContainer" unique_id=432771015]
-layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -79,6 +78,11 @@ step = 0.01
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reduce motion"
+
+[node name="EdgePan" type="CheckButton" parent="Center/Panel/Margin/Items" unique_id=2103737014]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edge pan"
 
 [node name="BackButton" type="Button" parent="Center/Panel/Margin/Items" unique_id=707033197]
 unique_name_in_owner = true

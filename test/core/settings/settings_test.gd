@@ -38,7 +38,9 @@ func test_defaults_reach_the_buses() -> void:
 
 func test_every_public_var_is_a_setting() -> void:
 	var names := _new_session().get_names()
-	assert_array(names).contains(["master_volume", "music_volume", "sfx_volume", "reduce_motion"])
+	assert_array(names).contains(
+		["master_volume", "music_volume", "sfx_volume", "reduce_motion", "edge_pan"]
+	)
 	assert_array(names).not_contains(["_loaded", "_save_timer"])
 
 
