@@ -3,16 +3,6 @@
 [ext_resource type="Script" uid="uid://djgglreo0dvp4" path="res://game/solar_system/planet_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
-[ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="4_icon_shader"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_icon"]
-resource_local_to_scene = true
-shader = ExtResource("4_icon_shader")
-shader_parameter/color = null
-shader_parameter/night_tint = null
-shader_parameter/has_rings = null
-shader_parameter/ring_color = null
-shader_parameter/ring_tilt = null
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
 content_margin_top = 1.0
@@ -49,7 +39,6 @@ theme_override_constants/separation = 12
 [node name="PlanetIcon" type="ColorRect" parent="Sheet/Rows/Header" unique_id=605576375]
 unique_name_in_owner = true
 visible = false
-material = SubResource("ShaderMaterial_icon")
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_vertical = 4
