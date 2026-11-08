@@ -16,7 +16,8 @@ extends Node3D
 ## A left click on the bus opens it the same way, with its stats in its panel. One of the
 ## two is open at a time: opening either closes the other.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
-## where the passengers going to that planet get off one by one and pay. Under each planet
+## where the passengers going to that planet get off one by one, pay and rate the ride,
+## which goes into the average rating beside the credits. Under each planet
 ## where someone waits, a small person and a number say how many. While the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
 ## picks them up one by one while seats are free; the row under the pointer, or a clicked
@@ -290,6 +291,7 @@ func _start_passengers() -> void:
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
 	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
+	cabin.unloaded.connect((%RatingCounter as RatingCounter).commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
@@ -425,8 +427,9 @@ func _debug_toggle_trait(type: BusTraits.Type) -> void:
 		traits.add(type)
 
 
-func _on_delivered(_passenger: Passenger, payout: int) -> void:
+func _on_delivered(passenger: Passenger, payout: int) -> void:
 	(%CreditsCounter as CreditsCounter).add(payout)
+	(%RatingCounter as RatingCounter).add(passenger.get_rating())
 
 
 func _on_stop_finished() -> void:

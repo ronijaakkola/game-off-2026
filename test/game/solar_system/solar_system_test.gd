@@ -37,11 +37,18 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	assert_int(waiting.count_at(passenger.destination)).is_equal(count)
 	var counter := runner.find_child("CreditsCounter") as CreditsCounter
 	assert_int(counter.credits).is_equal(payout)
-	assert_str((runner.find_child("GainLabel") as Label).text).is_equal("+%d" % payout)
+	var gain := counter.find_child("GainLabel", true, false) as Label
+	assert_str(gain.text).is_equal("+%d" % payout)
 	# Once they are off, the total counts up to include the fare.
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
 	assert_str(total).is_equal("%d credits" % payout)
+	var rating := runner.find_child("RatingCounter") as RatingCounter
+	assert_int(rating.get_count()).is_equal(1)
+	assert_float(rating.get_average()).is_equal(passenger.get_rating())
+	# Once they are off, the average shows their rating too.
+	var average := (runner.find_child("AverageLabel") as Label).text
+	assert_str(average).is_equal("%.1f" % passenger.get_rating())
 
 
 func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
