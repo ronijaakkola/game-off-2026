@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://dosqy8bh07bb"]
+
+[ext_resource type="Script" uid="uid://u6cb1bticmi" path="res://game/passengers/kicked_passenger.gd" id="1_kicked"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_torso"]
+radius = 0.026
+height = 0.078
+radial_segments = 12
+rings = 3
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+radius = 0.023
+height = 0.046
+radial_segments = 12
+rings = 6
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_arm"]
+radius = 0.012
+height = 0.056
+radial_segments = 8
+rings = 2
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_leg"]
+radius = 0.014
+height = 0.06
+radial_segments = 8
+rings = 2
+
+[node name="KickedPassenger" type="Node3D" unique_id=672729603]
+script = ExtResource("1_kicked")
+
+[node name="Torso" type="MeshInstance3D" parent="." unique_id=1719673416]
+mesh = SubResource("CapsuleMesh_torso")
+
+[node name="Head" type="MeshInstance3D" parent="." unique_id=1186331280]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.056, 0)
+mesh = SubResource("SphereMesh_head")
+
+[node name="LeftArm" type="MeshInstance3D" parent="." unique_id=481834632]
+transform = Transform3D(0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0, 1, 0.031, 0.036, 0)
+mesh = SubResource("CapsuleMesh_arm")
+
+[node name="RightArm" type="MeshInstance3D" parent="." unique_id=1136031446]
+transform = Transform3D(0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, -0.031, 0.036, 0)
+mesh = SubResource("CapsuleMesh_arm")
+
+[node name="LeftLeg" type="MeshInstance3D" parent="." unique_id=24775678]
+transform = Transform3D(0.866025, -0.5, 0, 0.5, 0.866025, 0, 0, 0, 1, 0.021, -0.046, 0)
+mesh = SubResource("CapsuleMesh_leg")
+
+[node name="RightLeg" type="MeshInstance3D" parent="." unique_id=1327852639]
+transform = Transform3D(0.866025, 0.5, 0, -0.5, 0.866025, 0, 0, 0, 1, -0.021, -0.046, 0)
+mesh = SubResource("CapsuleMesh_leg")

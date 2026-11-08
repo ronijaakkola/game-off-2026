@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://dl6jwib3kd3a0" path="res://game/passengers/morph_label.gd" id="4_morph"]
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="4_photo"]
 [ext_resource type="Script" uid="uid://itg4wk4y13k" path="res://game/passengers/star_icon.gd" id="5_stars"]
+[ext_resource type="Texture2D" uid="uid://dis4faq8oc0vt" path="res://game/passengers/kick_icon.svg" id="6_kick"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
 bg_color = Color(1, 1, 1, 0.12)
@@ -28,6 +29,24 @@ anchors_preset = 0
 mouse_filter = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_card")
+
+[node name="Options" type="MarginContainer" parent="." unique_id=1549296714]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+theme_override_constants/margin_left = 6
+
+[node name="OptionButtons" type="VBoxContainer" parent="Options" unique_id=2002934006]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="KickButton" type="Button" parent="Options/OptionButtons" unique_id=1577807745]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+theme_override_constants/icon_max_width = 14
+text = "Kick"
+icon = ExtResource("6_kick")
 
 [node name="Panel" type="PanelContainer" parent="." unique_id=895231627]
 unique_name_in_owner = true
@@ -142,4 +161,5 @@ layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Serve"
 
+[connection signal="pressed" from="Options/OptionButtons/KickButton" to="." method="_on_kick_button_pressed"]
 [connection signal="pressed" from="Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_pressed"]

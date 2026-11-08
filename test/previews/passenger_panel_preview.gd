@@ -1,7 +1,8 @@
 extends Node
 ## A full cabin for capturing the passenger cards: eight passengers on the Commuter type,
 ## one in each mood and some in between, three of them asking for something. The cabin
-## stands still, so every frame shows the same state.
+## stands still, so every frame shows the same state. `-- Kick` puts the pointer over the
+## second card, so its options slide out.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const DESTINATIONS: Array[String] = ["Ember", "Terra", "Moon", "Giant", "Frost"]
@@ -46,3 +47,12 @@ func _ready() -> void:
 	var panel := %PassengerPanel as PassengerPanel
 	panel.portrait_studio = %PortraitStudio as PortraitStudio
 	panel.cabin = cabin
+	if "Kick" in OS.get_cmdline_user_args():
+		# The cards lay out a frame in.
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var card := panel.find_children("*", "PassengerCard", true, false)[1] as PassengerCard
+		var motion := InputEventMouseMotion.new()
+		motion.position = card.get_global_rect().get_center()
+		motion.global_position = motion.position
+		get_viewport().push_input(motion)
