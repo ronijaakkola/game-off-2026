@@ -7,5 +7,6 @@ script = ExtResource("1_need")
 id = &"drink"
 request_line = "Thirsty. Wants a drink"
 serve_label = "Pour a drink"
+served_action = 2
 served_line = "Sipping a drink"
 max_interval = 50.0

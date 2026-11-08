@@ -7,6 +7,7 @@ extends Node3D
 ## feels and sways back. Angry, the lids slant into a frown over smaller pupils, the skin
 ## flushes red and the head trembles past halfway; joyful, lower lids rise so the eyes
 ## smile into crescents, and the head bobs. Content, they beam that way now and then.
+## Eating or drinking, a [PortraitMeal] holds the food up to the face and nods the head.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
@@ -36,6 +37,8 @@ const FORWARD_LURCH := 2.0
 ## it drops, in the model's units, and how much bigger it looks, per radian of lean.
 const FORWARD_DIP := 0.12
 const FORWARD_GROW := 0.25
+## How big the food is, as a share of the head's width.
+const MEAL_SIZE := 0.6
 ## How fast anger and joy blend in and out, per second.
 const EXPRESSION_SPEED := 3.0
 ## At full anger: how far the lids close, how big the pupils are, and how much of the
@@ -91,6 +94,8 @@ const BODY_LURCH := 0.35
 ## Whether they are content: now and then they beam with full joy for a moment, as they
 ## blink. A partial joy doesn't read at a card's size, so contentment is these moments.
 @export var content := false
+## What they are eating or drinking, if anything.
+@export var action := Need.Action.NONE
 ## The push they feel on the bus, in units per second squared: +x toward their own right
 ## (the camera's left, since they face it) and +y forward, toward the camera. The bust
 ## leans with it on a spring, so a jolt makes it sway.
@@ -133,6 +138,7 @@ var _joy := 0.0
 # Seconds until the next beam while content, and seconds left of the current one.
 var _beam_in := randf_range(0.5, 3.0)
 var _beam_left := 0.0
+var _meal: PortraitMeal
 
 
 func _ready() -> void:
@@ -162,6 +168,8 @@ func _ready() -> void:
 	skin_color = skin_color
 	outfit_color = outfit_color
 	eye_style = eye_style
+	if _head:
+		_add_meal()
 	_blink_in = randf_range(1.0, 4.0)
 
 
@@ -184,6 +192,9 @@ func _process(delta: float) -> void:
 		_blink_in = randf_range(2.0, 5.5)
 	_sway_with_push(delta)
 	_show_expression(delta)
+	if _meal:
+		_meal.action = action
+		_meal.advance(delta, motion)
 
 	var t := _time + _phase
 	var lurch := _lurch * motion
@@ -195,6 +206,8 @@ func _process(delta: float) -> void:
 		var breath := sin(_breath + _phase) * lerpf(0.018, 0.03, _sleep) * motion
 		var grow := 1.0 + lurch.y * FORWARD_GROW
 		_head.scale = Vector3(1.0 - breath * 0.5, 1.0 + breath, 1.0 - breath * 0.5) * grow
+		if _meal:
+			_head.scale *= _meal.squash
 		# The head turns a little toward where the eyes look, nods forward asleep, and leans
 		# with the push the bust doesn't take.
 		var nod := Vector2(_sleep_side * 0.1, 0.16) * _sleep * motion
@@ -204,6 +217,8 @@ func _process(delta: float) -> void:
 			_look.x * 0.18,
 			sin(t * 0.9 + 1.3) * 0.05 * motion + lean.x,
 		)
+		if _meal:
+			_head.rotation.x += _meal.pitch
 		var tremble := clampf(_anger * 2.0 - 1.0, 0.0, 1.0) * TREMBLE * motion
 		_head.rotation.z += sin(_time * TREMBLE_SPEED) * tremble
 		var bob := absf(sin(t * BOB_SPEED)) * BOB * _joy * motion
@@ -226,7 +241,11 @@ func _process(delta: float) -> void:
 	var open := lerpf(eye_openness, 0.0, _sleep) * lerpf(1.0, ANGRY_OPEN, _anger)
 	open *= 1.0 - _blink
 	_set_eyes(&"open", lerpf(open, 1.0, _startle))
-	_set_eyes(&"look", _look + Vector2(0.0, JOYFUL_LOOK * _joy))
+	var look := _look + Vector2(0.0, JOYFUL_LOOK * _joy)
+	if _meal:
+		# Eating or drinking, they look down at the food.
+		look = look.lerp(Vector2(look.x * 0.3, -0.7), _meal.look_down)
+	_set_eyes(&"look", look)
 	for eye: MeshInstance3D in eyes:
 		eye.scale = Vector3.ONE * (1.0 + _startle * 0.25)
 
@@ -354,6 +373,24 @@ func _body_material(material_name: String) -> ShaderMaterial:
 		material.set_shader_parameter(&"light_is_directional", true)
 		_materials[material_name] = material
 	return _materials[material_name]
+
+
+# The meal goes on the head, in front of where a mouth would be: just below the eyes, since
+# the photo crops the bottom of most faces, but within the head for eyes on stalks.
+func _add_meal() -> void:
+	var bounds := AABB()
+	var head_mesh := _head as MeshInstance3D
+	if head_mesh:
+		bounds = head_mesh.get_aabb()
+	var width := bounds.size.x
+	var mouth_y := bounds.end.y
+	for eye: MeshInstance3D in eyes:
+		mouth_y = minf(mouth_y, _head.to_local(eye.global_position).y - width * 0.15)
+	mouth_y = clampf(mouth_y, bounds.position.y + width * 0.1, bounds.end.y - bounds.size.y * 0.4)
+	_meal = PortraitMeal.new()
+	_meal.name = "Meal"
+	_head.add_child(_meal)
+	_meal.setup(Vector3(bounds.get_center().x, mouth_y, bounds.end.z), width * MEAL_SIZE)
 
 
 func _add_eye(marker: Node3D) -> void:
