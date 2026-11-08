@@ -22,7 +22,7 @@ func test_shows_the_docked_bus_and_its_seats() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	assert_str(_text(runner, "StateLabel")).is_equal("Docked")
-	assert_str(_text(runner, "SeatLabel")).is_equal("1/4 seats")
+	assert_str(_text(runner, "SeatLabel")).is_equal("0/4 seats")
 	assert_bool((runner.find_child("CancelButton") as Button).visible).is_false()
 
 

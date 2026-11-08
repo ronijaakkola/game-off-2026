@@ -12,6 +12,9 @@ Godot 4.7.2 GDScript project, web (itch.io) first, Compatibility renderer.
    - **Mac:** `export GODOT=/Applications/Godot.app/Contents/MacOS/Godot` in your shell profile, or `brew install godot` if it installs 4.7.2.
 5. Enable the git hooks once per clone: `git config core.hooksPath .githooks`.
 6. Run `uv run tools/check.py all`. It imports the project and should end with `PASS all`.
+7. Optional, but recommended: install the [GitHub CLI](https://cli.github.com/) (`gh`) and sign in once with `gh auth login`. The game and the checks don't need it, but Claude Code uses it to read issues, open PRs and wait for CI. Without it, do those steps on GitHub yourself.
+   - **Windows:** `winget install --id GitHub.cli`
+   - **Mac:** `brew install gh`
 
 ### Cloud sessions
 

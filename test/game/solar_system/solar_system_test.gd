@@ -1,18 +1,18 @@
 extends GdUnitTestSuite
-## Passengers in the solar system, and the clicks that set the bus's course. One passenger
-## is on board at the start, docking lets off those going there, and the player picks
-## up those waiting from the dock panel above the bus status. Opening a planet is in
+## Passengers in the solar system, and the clicks that set the bus's course. The bus starts
+## empty, docking lets off those going there, and the player picks up those waiting from
+## the dock panel above the bus status. Opening a planet is in
 ## planet_panel_test.gd.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
 
-func test_starts_with_one_passenger_on_board() -> void:
+func test_starts_with_the_bus_empty() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var cabin := runner.find_child("Cabin") as Cabin
-	assert_int(cabin.get_passengers().size()).is_equal(1)
-	assert_int((runner.find_child("Cards") as Control).get_child_count()).is_equal(1)
+	assert_int(cabin.get_passengers().size()).is_equal(0)
+	assert_int((runner.find_child("Cards") as Control).get_child_count()).is_equal(0)
 
 
 func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> void:
@@ -20,8 +20,9 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	await runner.simulate_frames(2)
 	var cabin := runner.find_child("Cabin") as Cabin
 	var bus := runner.find_child("Bus") as FrameshiftBus
-	var passenger := cabin.get_passengers()[0]
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	var passenger := waiting.create(bus.get_docked_planet())
+	cabin.board(passenger)
 	waiting.add(passenger.destination)
 	var count := waiting.count_at(passenger.destination)
 	var payout := passenger.get_payout()
@@ -124,13 +125,18 @@ func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() 
 	assert_str(button.text).is_equal("Board all")
 	var camera := runner.find_child("Camera") as Camera3D
 
+	monitor_signals(cabin)
+
 	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
 	await assert_func(button, "is_disabled").wait_until(1000).is_true()
 
-	# One passenger is on board at the start, so three of the four fit, longest waiting first.
-	assert_array(waiting.get_waiting(ember)).contains_exactly([line[3]])
+	# The bus starts empty, so all four fit.
+	assert_array(waiting.get_waiting(ember)).is_empty()
 	assert_int(cabin.get_free_seats()).is_equal(0)
 	assert_str(button.text).is_equal("Bus full %d/%d" % [cabin.seats, cabin.seats])
+	# They get on one at a time, longest waiting first.
+	await assert_signal(cabin).wait_until(4000).is_emitted("stop_finished")
+	assert_array(cabin.get_passengers()).contains_exactly(line)
 
 
 func test_the_dock_panel_slides_out_once_the_bus_leaves() -> void:
