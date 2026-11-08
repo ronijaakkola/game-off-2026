@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="22_studio"]
 [ext_resource type="PackedScene" uid="uid://70b0mq875ago" path="res://game/solar_system/dock_panel.tscn" id="23_dock"]
 [ext_resource type="PackedScene" uid="uid://b384geq2qmg0r" path="res://game/bus/bus_panel.tscn" id="24_bus_panel"]
+[ext_resource type="PackedScene" uid="uid://cv1jtomgb7ywi" path="res://game/solar_system/fuel_forecast.tscn" id="25_forecast"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -276,6 +277,11 @@ unique_name_in_owner = true
 
 [node name="WaitingMarkers" parent="Hud" unique_id=1789310111 instance=ExtResource("22_markers")]
 unique_name_in_owner = true
+
+[node name="FuelForecast" parent="Hud" unique_id=1670509518 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("25_forecast")]
+unique_name_in_owner = true
+bus = NodePath("../../Bus")
+camera = NodePath("../../Camera")
 
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
