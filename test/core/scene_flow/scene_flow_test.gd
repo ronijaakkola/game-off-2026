@@ -142,6 +142,27 @@ func test_loads_the_scene_script_after_its_sub_scenes() -> void:
 	)
 
 
+func test_warms_up_one_new_shader_or_material_a_step() -> void:
+	# Each first draw of a shader compiles it, so each step brings one new one. Objects on
+	# shaders already drawn come along for free, and hidden ones aren't drawn at all.
+	var scene: Node3D = auto_free(Node3D.new())
+	var shader := Shader.new()
+	shader.code = "shader_type spatial;"
+	var planet := _mesh_with(_shader_material(shader))
+	var moon := _mesh_with(_shader_material(shader))
+	var star := _mesh_with(StandardMaterial3D.new())
+	var hidden := _mesh_with(StandardMaterial3D.new())
+	hidden.visible = false
+	for mesh: MeshInstance3D in [planet, moon, star, hidden]:
+		scene.add_child(mesh)
+
+	var steps := _flow._warm_up_steps(scene)
+
+	assert_int(steps.size()).is_equal(2)
+	assert_array(steps[0]).contains_exactly([planet, moon])
+	assert_array(steps[1]).contains_exactly([star])
+
+
 func test_hides_the_loading_card_after_the_transition() -> void:
 	await _flow.go_to(GAME)
 	assert_bool(_curtain().visible).is_false()
@@ -153,6 +174,19 @@ func _record_shown_alpha() -> void:
 
 func _curtain() -> Control:
 	return _flow.get_child(0) as Control
+
+
+func _mesh_with(material: Material) -> MeshInstance3D:
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = BoxMesh.new()
+	mesh.material_override = material
+	return mesh
+
+
+func _shader_material(shader: Shader) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	return material
 
 
 func _bar() -> ProgressBar:
