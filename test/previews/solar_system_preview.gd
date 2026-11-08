@@ -5,7 +5,9 @@ extends Node
 ## the bus instead, with +20 % top speed, -20 % fuel tank and +1 seat, so its rows show a
 ## bonus, a penalty and a seat, and the fuel forecast trait. `-- Forecast` opens nothing,
 ## and gives the bus the fuel forecast and waiting markers traits, a course to Terra and
-## someone waiting there, so the forecast shows over it and the marker under it.
+## someone waiting there, so the forecast shows over it and the marker under it. `-- Trip`
+## opens nothing, puts two passengers in line at Ember, where the bus is docked, and pins
+## the first one's row in the dock panel, so their trip arc shows.
 
 
 func _ready() -> void:
@@ -19,6 +21,17 @@ func _ready() -> void:
 		var terra := system.find_child("Terra") as Planet
 		(system.find_child("WaitingPassengers") as WaitingPassengers).add(terra)
 		forecast_bus.plot_course(RouteStop.at_planet(terra))
+		return
+	if planet_name == "Trip":
+		var trip_bus := system.find_child("Bus") as FrameshiftBus
+		var line := system.find_child("WaitingPassengers") as WaitingPassengers
+		line.add(trip_bus.get_docked_planet())
+		line.add(trip_bus.get_docked_planet())
+		# The dock panel lists the line once it has shown the planet, a frame in.
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var dock := system.find_child("DockPanel") as DockPanel
+		dock.pin(line.get_waiting(trip_bus.get_docked_planet())[0])
 		return
 	if planet_name == "Bus":
 		var bus := system.find_child("Bus") as FrameshiftBus

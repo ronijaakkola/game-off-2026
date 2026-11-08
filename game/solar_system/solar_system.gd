@@ -19,8 +19,9 @@ extends Node3D
 ## where the passengers going to that planet get off one by one and pay. Under each planet
 ## where someone waits, a small person and a number say how many. While the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
-## picks them up one by one while seats are free. The bus can't charge, and a charge under
-## way holds, until the stop is over. The game starts with the bus empty.
+## picks them up one by one while seats are free; the row under the pointer, or a clicked
+## one, shows their trip as an arc to their destination. The bus can't charge, and a
+## charge under way holds, until the stop is over. The game starts with the bus empty.
 ## Docked at a planet, the player refuels there from its open planet's panel: fuel flows
 ## while they hold the refuel button, slowly at first and faster the longer they hold, and
 ## costs the planet's fuel price, taken a credit at a time. It stops when they let go, the
@@ -106,6 +107,7 @@ func _ready() -> void:
 	dock_panel.waiting = %WaitingPassengers as WaitingPassengers
 	dock_panel.cabin = %Cabin as Cabin
 	dock_panel.board_pressed.connect(_on_board_pressed)
+	dock_panel.trip_previewed.connect((%TripArc as TripArc).show_passenger)
 	var bus := %Bus as FrameshiftBus
 	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
 	bus.towed.connect(_on_bus_towed)
@@ -539,6 +541,7 @@ func _place_waiting() -> void:
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.modulate.a = _fade
 	(%FuelForecast as Control).modulate.a = _fade
+	(%TripArc as TripArc).opacity = _fade
 	var unlocked := bus.get_stats().get_traits().has(BusTraits.Type.WAITING_MARKERS)
 	var below := LABEL_PIXELS + MARKER_GAP_PIXELS
 	for planet: Planet in _planets:
