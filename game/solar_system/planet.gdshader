@@ -1,8 +1,11 @@
 shader_type spatial;
 // A flat, cartoon planet: up to three colour bands from noise or stripes, optional polar
-// caps, and two-tone lighting from the star (a lit side and a tinted night side).
-// Only light() lights it, so the ambient light and specular never touch its colours.
-render_mode ambient_light_disabled, specular_disabled;
+// caps, and two-tone lighting from the star (a lit side and a tinted night side), worked
+// out in fragment() (see two_tone_light.gdshaderinc). Unshaded, so the ambient light and
+// specular never touch its colours.
+render_mode unshaded;
+
+#include "res://shared/two_tone_light.gdshaderinc"
 
 uniform vec3 base_color : source_color = vec3(0.3, 0.55, 0.85);
 uniform vec3 mid_color : source_color = vec3(0.45, 0.75, 0.4);
@@ -18,8 +21,6 @@ uniform vec3 cap_color : source_color = vec3(0.95, 0.97, 1.0);
 // The share of the sphere's height each polar cap covers. 0 is no caps.
 uniform float cap_size : hint_range(0.0, 0.5) = 0.0;
 uniform float seed = 0.0;
-// The night side is the surface colour multiplied by this.
-uniform vec3 shadow_color : source_color = vec3(0.5, 0.45, 0.78);
 // Extra blur on the day-night edge. 0 keeps it a crisp line about a pixel wide at any zoom.
 uniform float terminator_softness : hint_range(0.0, 0.5) = 0.0;
 
@@ -77,14 +78,5 @@ void fragment() {
 	// A wobbly cap edge, from the same noise.
 	float cap = abs(p.y) + (blobs - 0.5) * 0.15;
 	color = mix(color, cap_color, crisp_step(1.0 - cap_size, cap) * step(0.001, cap_size));
-	ALBEDO = color;
-}
-
-void light() {
-	// Two tones only: the star's colour, energy and distance are left out on purpose.
-	float ndl = dot(NORMAL, LIGHT);
-	// Blend over one screen pixel, so the edge is as sharp up close as from afar.
-	float width = max(fwidth(ndl), terminator_softness) + 1e-4;
-	float lit = smoothstep(-width, width, ndl);
-	DIFFUSE_LIGHT += mix(shadow_color, vec3(1.0), lit);
+	ALBEDO = two_tone_light(color, NORMAL, VERTEX, INV_VIEW_MATRIX, terminator_softness);
 }

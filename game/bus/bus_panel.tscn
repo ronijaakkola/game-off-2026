@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://b384geq2qmg0r"]
+
+[ext_resource type="Script" uid="uid://d4h6peo1d1no0" path="res://game/bus/bus_panel.gd" id="1_panel"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
+content_margin_top = 1.0
+bg_color = Color(1, 1, 1, 0.1)
+
+[node name="BusPanel" type="MarginContainer" unique_id=1561658414]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+script = ExtResource("1_panel")
+
+[node name="Sheet" type="PanelContainer" parent="." unique_id=760002739]
+custom_minimum_size = Vector2(420, 0)
+clip_contents = true
+layout_mode = 2
+theme_type_variation = &"SheetPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Sheet" unique_id=1042116542]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="TitleLabel" type="Label" parent="Sheet/Rows" unique_id=1589075703]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Frameshift Bus"
+
+[node name="Rule" type="Panel" parent="Sheet/Rows" unique_id=315961883]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+
+[node name="StatsTitle" type="Label" parent="Sheet/Rows" unique_id=717956304]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+text = "Stats"
+
+[node name="StatRows" type="VBoxContainer" parent="Sheet/Rows" unique_id=1731415453]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="TraitsTitle" type="Label" parent="Sheet/Rows" unique_id=1477223791]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+text = "Traits"
+
+[node name="TraitRows" type="VBoxContainer" parent="Sheet/Rows" unique_id=1846078694]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="NoTraitsLabel" type="Label" parent="Sheet/Rows/TraitRows" unique_id=1956767655]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+text = "None yet."
+
+[node name="Spacer" type="Control" parent="Sheet/Rows" unique_id=1521798359]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="CloseButton" type="Button" parent="Sheet/Rows" unique_id=1766694961]
+layout_mode = 2
+text = "Close"
+
+[connection signal="pressed" from="Sheet/Rows/CloseButton" to="." method="_on_close_button_pressed"]

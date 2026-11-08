@@ -101,7 +101,9 @@ func create(origin: Planet) -> Passenger:
 
 
 # A rough direct trip: the charge, then the distance at top speed, plus the time to speed
-# up and slow down. Planets move, so it is only an estimate.
+# up and slow down. Planets move, so it is only an estimate. It uses the top speed before
+# upgrades on purpose, so a faster bus makes for happier passengers instead of less patient
+# ones.
 func _trip_seconds(distance: float) -> float:
 	if not bus:
 		return distance
