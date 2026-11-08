@@ -80,7 +80,7 @@ Built, in the solar system, which Play opens:
 | Right click the planet the bus is docked at | With a route, add it as the last stop: a round trip. With no route, nothing |
 | Backspace or Delete | Clear the route: a charging drive stops, a flying bus coasts to a stop. Right-clicking a stop straight after sets off again without losing much speed |
 | The bus status panel's Cancel / Cancel route button | Cancel the course while the bus charges or flies. A flying bus slows to a stop in space |
-| W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit |
+| W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit. The Edge pan setting turns the window edges off |
 | Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
 | Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
 
@@ -101,7 +101,7 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 - **Main menu** (`ui/main_menu/`): the main scene. Title, Play, Settings, Quit (Quit hidden on web). On web, a title card (game title, "Click to start") comes first, and that click starts the menu music.
 - **Example game** (`game/game.tscn`): no longer reached from the menu; its tests still load it. The camera with one Phantom Camera shot (`BoardShot`), one shadowed sun, the soft-look environment, the board, and the HUD (`game/hud.tscn`) with the placed count. Placing a piece emits `Events.piece_placed`, and the HUD listens. Placing a piece calls `Feedback.shake`, which does nothing when Reduce motion is on. It instances the pause menu.
 - **Pause menu** (`ui/pause_menu/`): Resume, Settings, Main menu. Pauses the tree; music keeps playing. Also opens when the player leaves browser fullscreen.
-- **Settings panel** (`ui/settings/`): Master, Music and SFX volume, and Reduce motion. Shared by the main menu and the pause menu.
+- **Settings panel** (`ui/settings/`): Master, Music and SFX volume, Reduce motion, and Edge pan (on by default; off, only the keys pan the camera). Shared by the main menu and the pause menu.
 - **Solar system** (`game/solar_system/`): what Play opens. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky` with parallax on (its star and fog layers drift slightly as the camera moves, and hold still under Reduce motion), seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. The scene's script turns the pointer into planet hover, opening planets and course clicks for the bus (`game/bus/bus.tscn`), which starts docked at Ember. It also runs the passengers (a `Cabin`, `WaitingPassengers`, and the HUD with the passenger cards and credits). It instances the pause menu.
 
 Scene changes go through `SceneFlow.go_to`, which fades to black and back.
