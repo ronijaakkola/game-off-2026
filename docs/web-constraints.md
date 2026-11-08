@@ -16,7 +16,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - **Glow**, simplified: Screen blend only, with a low threshold for soft bloom on emissives.
 - **Depth and height fog**, with Sun Scatter.
 - One shadowed DirectionalLight with soft PCF filtering, plus a few unshadowed omni lights. The limit is 8 omni and 8 spot lights per mesh.
-- **Toon** diffuse in StandardMaterial3D, or a custom `light()` ramp in a spatial shader.
+- **Toon** diffuse in StandardMaterial3D, or a two-tone ramp worked out in `fragment()` of an `unshaded` shader (`shared/two_tone_light.gdshaderinc`). Not a custom `light()`: see Costs.
 - Outlines with **Grow** on an unshaded next-pass material (Cull Front), or the Outline stencil mode. Both need smooth-shaded, connected meshes.
 - **MSAA 3D**, the only edge antialiasing on the web.
 - Baked **LightmapGI** renders, but baking needs a Vulkan, D3D12 or Metal GPU: bake in the editor on a dev machine. CI can't bake.
@@ -27,7 +27,8 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 
 - Each post effect (glow, SSAO, adjustments) adds a full-screen pass. Test on a laptop iGPU in a browser.
 - Fog and gradients band, because there is no debanding. Add dither or noise in materials.
-- Shaders compile the first time they're seen, which stutters. Show every material for one frame while the screen is black after a scene change.
+- Shaders compile the first time they're seen, which stutters. Show every material for one frame while the screen is black after a scene change; `SceneFlow` does it under its loading card, one new material a frame. In Chrome on Windows (ANGLE on Direct3D 11, measured 2026-11-08), a first draw costs about 200 ms per material, and the solar system's first draw was 90 % of its load.
+- **A custom `light()` function costs about 1.5 s to compile**, even one that only adds a constant, against about 0.2 s for the same shader `unshaded` (measured as above). Light in `fragment()` instead, as `shared/two_tone_light.gdshaderinc` does. In `light()`, Compatibility also used `source_color` uniforms as stored, without the sRGB to linear conversion `fragment()` gets, so a colour moved out of `light()` needs its value converted to keep its look.
 - `vertex_color_is_srgb` does nothing in Compatibility. Check vertex-coloured models in the engine.
 - Shadowed lights render in sRGB, so they can look brighter or darker than unshadowed ones. Adjust energy by eye.
 
@@ -44,7 +45,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Single-threaded build (`variant/thread_support=false`), no PWA, exported as `index.html`. Leave itch's SharedArrayBuffer option off.
 - Every machine needs the **4.7.2** Web export templates. Templates from another version fail.
 - Expect about 10 MB of engine download plus the `.pck`. itch gzips the files itself.
-- The single-threaded build runs everything on the main thread: `load_threaded_request` blocks, so a loading bar would jump from 0 to 1. Load while the screen is black.
+- The single-threaded build runs everything on the main thread: `load_threaded_request` blocks, so its progress jumps from 0 to 1. Load while the screen is black. `SceneFlow`'s loading bar moves anyway because it loads the next scene's files itself, everything a file uses before the file, and draws a frame between steps, then draws the scene's materials for the first time one a frame.
 - The game pauses while its browser tab is hidden.
 - In 4.7.2 the export's text-to-binary resource conversion drops the values of script-exported `PackedStringArray` properties saved in a `.tres`, so exported builds get the script's default. Export string lists as `Array[String]`.
 

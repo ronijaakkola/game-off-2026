@@ -10,6 +10,9 @@ extends Node3D
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
+## Toward the light that lights the bust, in world space: above, to the left and in front,
+## like a photographer's lamp. Portraits face +z.
+const LIGHT_DIRECTION := Vector3(-0.48, 0.6, 0.64)
 # The models' material names, recoloured here.
 const SKIN_MATERIAL := "AlienSkin"
 const OUTFIT_MATERIAL := "AlienOutfit"
@@ -347,6 +350,8 @@ func _body_material(material_name: String) -> ShaderMaterial:
 	if not _materials.has(material_name):
 		var material := ShaderMaterial.new()
 		material.shader = BODY_SHADER
+		material.set_shader_parameter(&"light_source", LIGHT_DIRECTION)
+		material.set_shader_parameter(&"light_is_directional", true)
 		_materials[material_name] = material
 	return _materials[material_name]
 
