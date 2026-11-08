@@ -2,23 +2,46 @@ class_name BusStats
 extends RefCounted
 ## The bus's stats: one [Stat] of each [enum Type], made here, with the bus setting their
 ## bases. Upgrades hand their [StatModifier]s to [method add_modifier], which applies each
-## to the stat it names.
+## to the stat it names. Each stat has a floor ([constant MINIMUMS]), so however much
+## modifiers take away, the bus still moves, holds some fuel and has a seat.
 
 ## Which stat a [StatModifier] changes. A [code].tres[/code] saves a type as its number, so
 ## add new ones only at the end.
-enum Type { MAX_SPEED }
+enum Type {
+	## Top speed, in units per second.
+	MAX_SPEED,
+	## How much fuel a full tank holds.
+	FUEL_CAPACITY,
+	## How many passengers fit on board, to the nearest whole seat ([method get_seats]).
+	SEATS,
+}
+
+## The lowest each stat goes: the lowest the export it comes from allows.
+const MINIMUMS: Dictionary[Type, float] = {
+	Type.MAX_SPEED: 0.1,
+	Type.FUEL_CAPACITY: 1.0,
+	Type.SEATS: 1.0,
+}
 
 var _stats: Dictionary[Type, Stat] = {}
 
 
 func _init() -> void:
-	for type: int in Type.values():
-		_stats[type as Type] = Stat.new()
+	for value: int in Type.values():
+		var type := value as Type
+		var stat := Stat.new()
+		stat.minimum = MINIMUMS.get(type, 0.0)
+		_stats[type] = stat
 
 
 ## The [param type] stat, with every modifier applied.
 func get_stat(type: Type) -> Stat:
 	return _stats[type]
+
+
+## The seats the [constant Type.SEATS] stat makes: its value to the nearest whole seat.
+func get_seats() -> int:
+	return roundi(get_stat(Type.SEATS).get_value())
 
 
 ## Applies [param modifier] to the stat it names.

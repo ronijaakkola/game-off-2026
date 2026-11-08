@@ -56,8 +56,12 @@ const PUMP_MAX_RATE := 60.0
 const PUMP_RAMP_SECONDS := 1.5
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
-## The percent of top speed the debug panel's speed button adds, on every click.
-const DEBUG_SPEED_PERCENT := 20
+## The percent of top speed and of the fuel tank the debug panel's stat buttons add or take
+## away, and the seats, on every click.
+const DEBUG_STAT_PERCENT := 20
+const DEBUG_SEATS := 1
+## The debug panel's group for the stat buttons: its own card, opened from the main one.
+const DEBUG_STATS_GROUP := "Stats"
 
 var _planets: Array[Planet] = []
 # 1 with no planet open, 0 once one is open and the fade is done.
@@ -105,7 +109,10 @@ func _ready() -> void:
 	bus.towed.connect(_on_bus_towed)
 	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
 	DebugPanel.add_button("Add %d credits" % DEBUG_CREDITS, _debug_add_credits, self)
-	DebugPanel.add_button("+%d%% top speed" % DEBUG_SPEED_PERCENT, _debug_add_speed, self)
+	var percent := StatModifier.Kind.PERCENT
+	_add_debug_stat_buttons(BusStats.Type.MAX_SPEED, percent, DEBUG_STAT_PERCENT, "% top speed")
+	_add_debug_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, DEBUG_STAT_PERCENT, "% fuel tank")
+	_add_debug_stat_buttons(BusStats.Type.SEATS, StatModifier.Kind.FLAT, DEBUG_SEATS, " seat")
 
 
 func _process(delta: float) -> void:
@@ -277,6 +284,7 @@ func _start_passengers() -> void:
 	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
+	cabin.follow(bus.get_stats())
 
 
 func _on_bus_docked(planet: Planet) -> void:
@@ -377,12 +385,26 @@ func _debug_add_credits() -> void:
 	counter.commit()
 
 
-# The debug panel's top speed button, a modifier like an upgrade's. Each click adds another.
-func _debug_add_speed() -> void:
-	var boost := StatModifier.new(
-		BusStats.Type.MAX_SPEED, StatModifier.Kind.PERCENT, DEBUG_SPEED_PERCENT
-	)
-	(%Bus as FrameshiftBus).get_stats().add_modifier(boost)
+# A pair of buttons for the type stat on the debug panel's Stats card, "+20% top speed"
+# and "-20% top speed": one adds step, the other takes it away.
+func _add_debug_stat_buttons(
+	type: BusStats.Type, kind: StatModifier.Kind, step: int, what: String
+) -> void:
+	for amount: int in [step, -step]:
+		var text := "%+d%s" % [amount, what]
+		var action := _debug_change_stat.bind(type, kind, amount)
+		DebugPanel.add_button(text, action, self, DEBUG_STATS_GROUP)
+
+
+# The debug panel's stat buttons, each a modifier like an upgrade's, another with every
+# click. Once the stat is at its floor, taking away adds nothing, so the clicks that bring
+# it back up count from there.
+func _debug_change_stat(type: BusStats.Type, kind: StatModifier.Kind, amount: int) -> void:
+	var stats := (%Bus as FrameshiftBus).get_stats()
+	var stat := stats.get_stat(type)
+	if amount < 0 and stat.get_value() <= stat.minimum:
+		return
+	stats.add_modifier(StatModifier.new(type, kind, amount))
 
 
 func _on_delivered(_passenger: Passenger, payout: int) -> void:

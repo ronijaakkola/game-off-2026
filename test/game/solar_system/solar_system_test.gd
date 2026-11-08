@@ -139,6 +139,19 @@ func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() 
 	assert_array(cabin.get_passengers()).contains_exactly(line)
 
 
+func test_the_cabin_has_as_many_seats_as_the_bus_seats_stat() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var cabin := runner.find_child("Cabin") as Cabin
+	var stats := (runner.find_child("Bus") as FrameshiftBus).get_stats()
+	assert_int(stats.get_seats()).is_equal(cabin.seats)
+	var before := cabin.seats
+
+	stats.add_modifier(StatModifier.new(BusStats.Type.SEATS, StatModifier.Kind.FLAT, 2.0))
+
+	assert_int(cabin.seats).is_equal(before + 2)
+
+
 func test_the_dock_panel_slides_out_once_the_bus_leaves() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)

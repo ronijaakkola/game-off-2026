@@ -3,8 +3,9 @@ extends RefCounted
 ## A number that modifiers change, such as the bus's top speed. Its value is [member base]
 ## plus every flat [StatModifier], times one plus every percent one added together:
 ## a base of 8 with +5, +10 % and +20 % is (8 + 5) × 1.3. Percents add up rather than
-## compound, so the order upgrades come in doesn't matter. The value never goes below 0.
-## It is worked out when the base or the modifiers change, not on every read.
+## compound, so the order upgrades come in doesn't matter. The value never goes below
+## [member minimum], however much the modifiers take away. It is worked out when the base,
+## the minimum or the modifiers change, not on every read.
 
 ## [method get_value] changed.
 signal changed
@@ -13,6 +14,11 @@ signal changed
 var base := 0.0:
 	set(value):
 		base = value
+		_update()
+## The lowest the value goes.
+var minimum := 0.0:
+	set(value):
+		minimum = value
 		_update()
 
 var _modifiers: Array[StatModifier] = []
@@ -50,7 +56,7 @@ func _update() -> void:
 				flat += modifier.amount
 			StatModifier.Kind.PERCENT:
 				percent += modifier.amount
-	var value := maxf((base + flat) * (1.0 + percent / 100.0), 0.0)
+	var value := maxf((base + flat) * (1.0 + percent / 100.0), minimum)
 	if value == _value:
 		return
 	_value = value
