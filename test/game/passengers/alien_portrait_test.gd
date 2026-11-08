@@ -120,6 +120,34 @@ func test_a_model_with_no_head_or_material_still_builds_framed_whole_and_reports
 	assert_vector(bounds.size).is_equal_approx(Vector3.ONE, Vector3.ONE * 0.001)
 
 
+func test_a_head_that_is_not_a_mesh_still_gets_food_sized_to_the_mesh_under_it() -> void:
+	# A plain node named *Head with a 0.4-wide box under it, as some models may be built.
+	var shape := MeshInstance3D.new()
+	shape.name = "Shape"
+	var box := BoxMesh.new()
+	box.size = Vector3(0.4, 0.4, 0.4)
+	shape.mesh = box
+	var head := Node3D.new()
+	head.name = "TestHead"
+	head.add_child(shape)
+	var model := Node3D.new()
+	model.add_child(head)
+	head.owner = model
+	shape.owner = model
+	var scene := PackedScene.new()
+	scene.pack(model)
+	model.free()
+	var portrait: AlienPortrait = auto_free(preload(SCENE).instantiate())
+	portrait.head_model = scene
+	add_child(portrait)
+
+	var meal := portrait.find_child("Meal", true, false) as PortraitMeal
+	assert_object(meal).is_not_null()
+	var snack := meal.find_child("Snack", true, false) as Node3D
+	var bar := snack.get_child(0) as MeshInstance3D
+	assert_float((bar.mesh as BoxMesh).size.x).is_greater(0.1)
+
+
 func test_angry_the_lids_slant_toward_the_middle_and_a_mark_shows_with_the_skin_as_it_was() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(1)
