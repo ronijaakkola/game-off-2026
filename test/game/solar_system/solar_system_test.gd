@@ -84,6 +84,74 @@ func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
 	assert_bool(is_instance_valid(row)).is_false()
 
 
+func test_the_pointer_on_a_waiting_row_shows_their_trip_and_a_click_pins_it() -> void:
+	var runner := scene_runner(SCENE)
+	var row := await _wait_for_a_boarding_row(runner)
+	var camera := runner.find_child("Camera") as Camera3D
+	var arc := runner.find_child("TripArc") as TripArc
+	var name_label := row.find_child("NameLabel", true, false) as Control
+	var on_row := _to_window(camera, name_label.get_global_rect().get_center())
+	var away := _to_window(camera, _between_screen_point(runner))
+
+	_send_motion(on_row)
+	await runner.simulate_frames(2)
+	assert_object(arc.get_destination()).is_same(row.passenger.destination)
+	assert_bool(row.highlighted).is_true()
+	_send_motion(away)
+	await runner.simulate_frames(2)
+	assert_object(arc.get_destination()).is_null()
+	assert_bool(row.highlighted).is_false()
+
+	# Clicked, it stays once the pointer leaves, until a second click.
+	_send_button_click(on_row)
+	_send_motion(away)
+	await runner.simulate_frames(2)
+	assert_object(arc.get_destination()).is_same(row.passenger.destination)
+	assert_bool(row.highlighted).is_true()
+	_send_button_click(on_row)
+	_send_motion(away)
+	await runner.simulate_frames(2)
+	assert_object(arc.get_destination()).is_null()
+	assert_bool(row.highlighted).is_false()
+
+
+func test_boarding_a_pinned_passenger_hides_their_trip() -> void:
+	var runner := scene_runner(SCENE)
+	var row := await _wait_for_a_boarding_row(runner)
+	var camera := runner.find_child("Camera") as Camera3D
+	var arc := runner.find_child("TripArc") as TripArc
+	var name_label := row.find_child("NameLabel", true, false) as Control
+	_send_button_click(_to_window(camera, name_label.get_global_rect().get_center()))
+	await runner.simulate_frames(2)
+	assert_object(arc.get_destination()).is_not_null()
+	var button := row.find_child("BoardButton", true, false) as Button
+
+	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
+	await runner.simulate_frames(2)
+
+	assert_object(arc.get_destination()).is_null()
+
+
+func test_waiting_markers_show_only_while_the_bus_has_the_trait() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	var terra := runner.find_child("Terra") as Planet
+	waiting.add(terra)
+	await runner.simulate_frames(2)
+	var markers := runner.find_child("WaitingMarkers") as WaitingMarkers
+	var traits := (runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	assert_bool(markers.is_shown(terra)).is_false()
+
+	traits.add(BusTraits.Type.WAITING_MARKERS)
+	await runner.simulate_frames(1)
+	assert_bool(markers.is_shown(terra)).is_true()
+
+	traits.remove(BusTraits.Type.WAITING_MARKERS)
+	await runner.simulate_frames(1)
+	assert_bool(markers.is_shown(terra)).is_false()
+
+
 func test_the_dock_panel_shrinks_with_its_bottom_edge_and_board_all_in_place() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
@@ -144,6 +212,19 @@ func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() 
 	# They get on one at a time, longest waiting first.
 	await assert_signal(cabin).wait_until(4000).is_emitted("stop_finished")
 	assert_array(cabin.get_passengers()).contains_exactly(line)
+
+
+func test_the_cabin_has_as_many_seats_as_the_bus_seats_stat() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var cabin := runner.find_child("Cabin") as Cabin
+	var stats := (runner.find_child("Bus") as FrameshiftBus).get_stats()
+	assert_int(stats.get_seats()).is_equal(cabin.seats)
+	var before := cabin.seats
+
+	stats.add_modifier(StatModifier.new(BusStats.Type.SEATS, StatModifier.Kind.FLAT, 2.0))
+
+	assert_int(cabin.seats).is_equal(before + 2)
 
 
 func test_the_dock_panel_slides_out_once_the_bus_leaves() -> void:
@@ -331,6 +412,17 @@ func test_hovering_a_point_in_space_before_the_last_stop_picks_nothing() -> void
 	await runner.simulate_frames(1)
 
 	assert_object(bus.hovered_stop).is_null()
+
+
+# One passenger waiting at the planet the bus is docked at, and their row in the dock
+# panel once it has slid in.
+func _wait_for_a_boarding_row(runner: GdUnitSceneRunner) -> BoardingRow:
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	waiting.add((runner.find_child("Bus") as FrameshiftBus).get_docked_planet())
+	await runner.simulate_frames(3)
+	await await_millis(500)
+	return runner.find_child("BoardingRow", true, false) as BoardingRow
 
 
 # Halfway from Terra to Giant on screen, in viewport pixels: clear of every planet.

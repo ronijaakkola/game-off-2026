@@ -22,6 +22,9 @@
 [ext_resource type="PackedScene" uid="uid://c4va8x2cf4kps" path="res://game/solar_system/waiting_markers.tscn" id="22_markers"]
 [ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="22_studio"]
 [ext_resource type="PackedScene" uid="uid://70b0mq875ago" path="res://game/solar_system/dock_panel.tscn" id="23_dock"]
+[ext_resource type="PackedScene" uid="uid://b384geq2qmg0r" path="res://game/bus/bus_panel.tscn" id="24_bus_panel"]
+[ext_resource type="PackedScene" uid="uid://cv1jtomgb7ywi" path="res://game/solar_system/fuel_forecast.tscn" id="25_forecast"]
+[ext_resource type="PackedScene" uid="uid://cqh6m26bmhwpp" path="res://game/solar_system/trip_arc.tscn" id="26_trip"]
 [ext_resource type="PackedScene" uid="uid://jrqbnobo7om0" path="res://game/solar_system/rating_counter.tscn" id="25_rating"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
@@ -195,7 +198,6 @@ start_angle = 200.0
 spin_period = 27.0
 surface_material = SubResource("ShaderMaterial_ember")
 icon_color = Color(0.82, 0.58, 0.4, 1)
-fuel_price = 0.1
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Terra" type="Node3D" parent="." unique_id=310922244]
@@ -273,10 +275,19 @@ bus = NodePath("../Bus")
 [node name="PortraitStudio" parent="." unique_id=1933731670 instance=ExtResource("22_studio")]
 unique_name_in_owner = true
 
+[node name="TripArc" parent="." unique_id=1848385847 node_paths=PackedStringArray("camera") instance=ExtResource("26_trip")]
+unique_name_in_owner = true
+camera = NodePath("../Camera")
+
 [node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
 
 [node name="WaitingMarkers" parent="Hud" unique_id=1789310111 instance=ExtResource("22_markers")]
 unique_name_in_owner = true
+
+[node name="FuelForecast" parent="Hud" unique_id=1670509518 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("25_forecast")]
+unique_name_in_owner = true
+bus = NodePath("../../Bus")
+camera = NodePath("../../Camera")
 
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
@@ -356,6 +367,10 @@ theme_type_variation = &"SmallLabel"
 text = "Right-click planets or space to add stops. Backspace clears the route."
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
+unique_name_in_owner = true
+anchors_preset = 11
+
+[node name="BusPanel" parent="Hud" unique_id=1346201264 instance=ExtResource("24_bus_panel")]
 unique_name_in_owner = true
 anchors_preset = 11
 

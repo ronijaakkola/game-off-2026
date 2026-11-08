@@ -6,17 +6,32 @@ extends Node
 ## The tank ran dry: [member fuel] reached 0.
 signal emptied
 
-## How much fuel a full tank holds.
-@export_range(1.0, 1000.0, 1.0) var capacity := 100.0
+## How much fuel a full tank holds: the base of the stat it follows ([method follow]).
+## Shrunk below [member fuel], it spills what no longer fits; grown, the new room starts
+## empty.
+@export_range(1.0, 1000.0, 1.0) var capacity := 100.0:
+	set(value):
+		capacity = value
+		fuel = minf(fuel, capacity)
 ## Fuel burnt per unit flown. A full tank flies [member capacity] / this far.
 @export_range(0.0, 100.0, 0.05) var burn_per_unit := 2.5
 
 ## The fuel left, from 0 to [member capacity].
 var fuel := capacity
 
+var _capacity_stat: Stat
+
 
 func _ready() -> void:
 	fuel = capacity
+
+
+## Makes [member capacity] [param stat]'s base, and from then on its value, as upgrades
+## change it.
+func follow(stat: Stat) -> void:
+	_capacity_stat = stat
+	stat.base = capacity
+	stat.changed.connect(_on_capacity_stat_changed)
 
 
 ## Burns the fuel for [param distance] flown. Emits [signal emptied] once, when it runs dry.
@@ -53,3 +68,7 @@ func is_empty() -> bool:
 ## How full the tank is, from 0 to 1.
 func get_fraction() -> float:
 	return fuel / capacity if capacity > 0.0 else 0.0
+
+
+func _on_capacity_stat_changed() -> void:
+	capacity = _capacity_stat.get_value()

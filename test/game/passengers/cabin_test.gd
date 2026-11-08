@@ -140,6 +140,43 @@ func test_picks_up_only_while_a_seat_is_free_for_them() -> void:
 	assert_array(_cabin.get_passengers()).contains([picked])
 
 
+func test_the_seats_follow_the_bus_stat_and_cutting_them_leaves_riders_on_board() -> void:
+	_cabin.seats = 2
+	var stats := BusStats.new()
+
+	_cabin.follow(stats)
+	assert_float(stats.get_stat(BusStats.Type.SEATS).base).is_equal(2.0)
+
+	stats.add_modifier(_seat_change(1.0))
+	assert_int(_cabin.seats).is_equal(3)
+	for i: int in 3:
+		assert_bool(_cabin.board(_passenger(_away))).is_true()
+
+	stats.add_modifier(_seat_change(-2.0))
+	assert_int(_cabin.seats).is_equal(1)
+	assert_int(_cabin.get_passengers().size()).is_equal(3)
+	assert_int(_cabin.get_free_seats()).is_equal(0)
+	assert_bool(_cabin.board(_passenger(_away))).is_false()
+
+
+func test_someone_picked_up_still_gets_on_after_their_seat_is_cut() -> void:
+	_cabin.step_seconds = 0.1
+	_cabin.seats = 2
+	var stats := BusStats.new()
+	_cabin.follow(stats)
+	_cabin.board(_passenger(_away))
+	_cabin.board(_passenger(_home))
+	# The first gets off at once, which frees a seat to pick someone up into.
+	_cabin.stop_at(_away)
+	var picked := _passenger(_home)
+	assert_bool(_cabin.pick_up(picked)).is_true()
+
+	stats.add_modifier(_seat_change(-1.0))
+
+	await assert_signal(_cabin).wait_until(2000).is_emitted("stop_finished")
+	assert_array(_cabin.get_passengers()).contains([picked])
+
+
 func test_an_amenity_serves_its_need_as_soon_as_it_is_asked_for() -> void:
 	var dispenser := Amenity.new()
 	dispenser.need = &"snack"
@@ -163,3 +200,7 @@ func _passenger(to: Planet, need_after := 1000.0) -> Passenger:
 	var kind := PassengerType.new()
 	kind.needs = [snack]
 	return Passenger.new(kind, to, 100.0, 40.0)
+
+
+func _seat_change(amount: float) -> StatModifier:
+	return StatModifier.new(BusStats.Type.SEATS, StatModifier.Kind.FLAT, amount)

@@ -15,12 +15,13 @@
   test [files]     run the gdUnit4 tests in test/, or the given suites or folders
   test --verbose   also print the run's whole output, the tests' print() lines included
   smoke [scenes]   run every scene the game reaches from the main scene and the autoloads,
-                   each on its own (or the given ones) headless, fail on any logged error
+                   each on its own (or the given ones) headless, several at once, fail on
+                   any logged error
   capture <scene> [--size WxH] [--frames N] [-- args]
                    render a scene in a window (default 1152x648, 60 frames: ~1 s), save
                    the frames to build/capture/; args after -- reach the scene through
                    OS.get_cmdline_user_args()
-  all              lint, load, test, smoke
+  all              lint, load, then test and smoke at the same time
   export           export Web to build/web/ and boot the .pck headless (needs the Web templates)
   export --preview export Web Preview (dev console, debug template) to build/web-preview/game/,
                    framed by tools/preview_frame.html
@@ -41,7 +42,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from functools import cache
 from importlib.metadata import version as pkg_version
@@ -51,6 +54,8 @@ ROOT = Path(__file__).resolve().parent.parent
 GODOT_VERSION = "4.7.2"
 TIMEOUT = 300
 SMOKE_FRAMES = "300"
+# Smoke boots one Godot per scene, and the boot is most of each run, so several at once.
+SMOKE_WORKERS = max(1, min(8, (os.cpu_count() or 2) // 2))
 CAPTURE_FRAMES = 60
 CAPTURE_SIZE = re.compile(r"^[1-9]\d*x[1-9]\d*$")
 # Not part of the game, and not exported: smoke never runs a scene in these.
@@ -145,10 +150,11 @@ def main() -> int:
         "export": lambda: run_export(args.preview),
         "evidence": lambda: run_evidence(args.frame),
     }
-    names = ["lint", "load", "test", "smoke"] if args.command == "all" else [args.command]
-    failed = [name for name in names if not run_step(name, steps[name])]
-    if args.command == "all":
-        print("FAIL all: " + ", ".join(failed) if failed else "PASS all")
+    if args.command != "all":
+        return 0 if run_step(args.command, steps[args.command]) else 1
+    failed = [name for name in ("lint", "load") if not run_step(name, steps[name])]
+    failed += run_steps_at_once({name: steps[name] for name in ("test", "smoke")})
+    print("FAIL all: " + ", ".join(failed) if failed else "PASS all")
     return 1 if failed else 0
 
 
@@ -160,6 +166,47 @@ def run_step(name, step) -> bool:
         return False
     print(f"PASS {name}" + (f": {note}" if note else ""))
     return True
+
+
+class ThreadOutput:
+    """Stands in for sys.stdout while steps run on threads: each thread's prints go to its
+    own buffer, so two steps' failure output can't interleave."""
+
+    def __init__(self, real):
+        self.real = real
+        self.local = threading.local()
+
+    def write(self, text: str) -> int:
+        buffer = getattr(self.local, "buffer", None)
+        if buffer is None:
+            return self.real.write(text)
+        buffer.append(text)
+        return len(text)
+
+    def flush(self) -> None:
+        self.real.flush()
+
+
+def run_steps_at_once(steps: dict) -> list[str]:
+    """Runs independent steps (each its own Godot process) at the same time, then prints
+    each one's output whole, in the order given. Returns the names of the failed ones."""
+    output = ThreadOutput(sys.stdout)
+
+    def captured(name: str) -> tuple[bool, str]:
+        output.local.buffer = []
+        passed = run_step(name, steps[name])
+        return passed, "".join(output.local.buffer)
+
+    godot()  # Find the binary once, before the threads do.
+    sys.stdout = output
+    try:
+        with ThreadPoolExecutor(len(steps)) as pool:
+            results = list(pool.map(captured, steps))
+    finally:
+        sys.stdout = output.real
+    for text in (text for _, text in results):
+        print(text, end="")
+    return [name for name, (passed, _) in zip(steps, results) if not passed]
 
 
 # --- lint -------------------------------------------------------------------
@@ -1324,10 +1371,18 @@ def run_smoke(scenes: list[str]):
         scenes = game_scenes()
         if not scenes:
             return "SKIPPED, no main scene set in project.godot"
-    for scene in scenes:
-        result = run_godot(
-            ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]
+    godot()  # Find the binary once, before the threads do.
+    with ThreadPoolExecutor(SMOKE_WORKERS) as pool:
+        results = list(
+            pool.map(
+                lambda scene: run_godot(
+                    ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]
+                ),
+                scenes,
+            )
         )
+    # Each scene still runs on its own; the first failure in scene order is the one named.
+    for scene, result in zip(scenes, results):
         # A crash logs a backtrace but no ERROR line, so only the exit code shows it.
         if result.returncode != 0:
             print(result.stdout, end="")
