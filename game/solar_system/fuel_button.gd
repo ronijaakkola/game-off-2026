@@ -1,0 +1,84 @@
+class_name FuelButton
+extends Button
+## A button to hold down to refuel that is also the tank's gauge: a faint fill behind the
+## label, as wide as the share of a full tank the bus holds, which grows as fuel flows in.
+## It reads "Hold to fuel"; held, the label morphs into the fuel's percentage, which counts
+## up as the tank fills, and back when let go. Off, it reads why instead. Low fuel fills in
+## the bus status's low colour, at the same share of a tank. The parent pumps while
+## [method is_held] and sets what shows with [method show_fuel].
+## The button's own text stays empty: a child label draws it, over the fill.
+
+const IDLE_TEXT := "Hold to fuel"
+## How opaque the fill is, so the label stays readable over a full tank.
+const FILL_ALPHA := 0.3
+
+var _held := false
+var _fraction := 1.0
+# The fill's style: a flat box with the button's corners, so a full tank fills it exactly.
+var _fill_style := StyleBoxFlat.new()
+
+
+func _ready() -> void:
+	# Keeps the height the button's own text gave it, which the label inside doesn't.
+	custom_minimum_size.y = maxf(custom_minimum_size.y, get_minimum_size().y)
+	text = ""
+	var button_style := get_theme_stylebox(&"normal") as StyleBoxFlat
+	if button_style:
+		for corner: int in 4:
+			_fill_style.set_corner_radius(corner, button_style.get_corner_radius(corner))
+	(%Fill as Panel).add_theme_stylebox_override(&"panel", _fill_style)
+	(%Label as Label).text = IDLE_TEXT
+	button_down.connect(_on_button_down)
+	button_up.connect(_on_button_up)
+	resized.connect(_place_fill)
+	show_fuel(_fraction, true, "")
+
+
+func _notification(what: int) -> void:
+	# Hidden while held, as when the dock panel goes, it may never see the release.
+	if what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree():
+		_held = false
+
+
+## Whether the button is held down.
+func is_held() -> bool:
+	return _held
+
+
+## Shows [param fraction] of a full tank in the fill and, while held, as the label. With
+## [param can_fuel] false the button is off, lets go and reads [param reason].
+func show_fuel(fraction: float, can_fuel: bool, reason: String) -> void:
+	_fraction = clampf(fraction, 0.0, 1.0)
+	disabled = not can_fuel
+	if not can_fuel:
+		_held = false
+	var low := _fraction <= BusStatusPanel.FUEL_LOW
+	var color := BusStatusPanel.FUEL_LOW_COLOR if low else BusStatusPanel.FUEL_COLOR
+	_fill_style.bg_color = Color(color, FILL_ALPHA)
+	_place_fill()
+	var label := %Label as MorphLabel
+	label.modulate.a = 0.5 if disabled else 1.0
+	var wanted := reason
+	if can_fuel:
+		wanted = "%d%%" % ceili(_fraction * 100.0) if _held else IDLE_TEXT
+	if label.is_morphing() or wanted == label.text:
+		return
+	# Into or out of the percentage, or to a reason, it morphs; the count itself just ticks.
+	if label.text.ends_with("%") and wanted.ends_with("%"):
+		label.text = wanted
+	else:
+		label.morph_to(wanted)
+
+
+func _place_fill() -> void:
+	var fill := %Fill as Control
+	fill.position = Vector2.ZERO
+	fill.size = Vector2(size.x * _fraction, size.y)
+
+
+func _on_button_down() -> void:
+	_held = true
+
+
+func _on_button_up() -> void:
+	_held = false

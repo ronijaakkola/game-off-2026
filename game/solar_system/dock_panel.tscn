@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://wn0pxtmcj3pr" path="res://game/solar_system/dock_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
+[ext_resource type="PackedScene" uid="uid://bbs2kxbdg7qyr" path="res://game/solar_system/fuel_button.tscn" id="4_fuel"]
 
 [node name="DockPanel" type="Control" unique_id=1953939187]
 visible = false
@@ -49,11 +50,9 @@ layout_mode = 2
 theme_type_variation = &"SmallLabel"
 text = "?"
 
-[node name="FuelButton" type="Button" parent="Card/Clip/Content" unique_id=1671080909]
+[node name="FuelButton" parent="Card/Clip/Content" unique_id=1671080909 instance=ExtResource("4_fuel")]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"SmallButton"
-text = "Hold to fuel"
 
 [node name="List" type="MarginContainer" parent="Card/Clip/Content" unique_id=526103822]
 layout_mode = 2
@@ -81,6 +80,4 @@ layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Board all"
 
-[connection signal="button_down" from="Card/Clip/Content/FuelButton" to="." method="_on_fuel_button_down"]
-[connection signal="button_up" from="Card/Clip/Content/FuelButton" to="." method="_on_fuel_button_up"]
 [connection signal="pressed" from="Card/Clip/Content/BoardAllButton" to="." method="_on_board_all_button_pressed"]

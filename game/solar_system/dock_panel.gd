@@ -65,7 +65,6 @@ var _rows: Dictionary[Passenger, BoardingRow] = {}
 # 0 in place, 1 out past the right edge.
 var _offset := 1.0
 var _slide: Tween
-var _fuel_held := false
 # The passenger whose row was clicked, whose trip shows while no row is under the pointer.
 var _pinned: Passenger
 # The passenger whose trip shows, as last sent in trip_previewed.
@@ -97,20 +96,13 @@ func pin(passenger: Passenger) -> void:
 
 ## Whether the fuel button is held down.
 func is_fuel_held() -> bool:
-	return _fuel_held
+	return (%FuelButton as FuelButton).is_held()
 
 
-## Turns the fuel button on or off. Off, it lets go and reads [param reason] instead.
-func show_fuel(can_fuel: bool, reason: String) -> void:
-	var button := %FuelButton as Button
-	button.disabled = not can_fuel
-	if not can_fuel:
-		_fuel_held = false
-	var text := reason
-	if can_fuel:
-		text = "Fuelling..." if _fuel_held else "Hold to fuel"
-	if button.text != text:
-		button.text = text
+## Shows the bus's fuel at [param fraction] of a full tank in the fuel button, and turns it
+## on or off. Off, it lets go and reads [param reason] instead.
+func show_fuel(fraction: float, can_fuel: bool, reason: String) -> void:
+	(%FuelButton as FuelButton).show_fuel(fraction, can_fuel, reason)
 
 
 func _show_planet() -> void:
@@ -123,7 +115,6 @@ func _show_planet() -> void:
 		_show_buttons()
 		_slide_to(0.0)
 	elif visible:
-		_fuel_held = false
 		_slide_to(1.0)
 
 
@@ -154,7 +145,6 @@ func _rebuild() -> void:
 		rows.remove_child(row)
 		row.queue_free()
 	_rows.clear()
-	_fuel_held = false
 	_pinned = null
 	if _shown:
 		(%PlanetIcon as PlanetIcon).planet = _shown
@@ -246,14 +236,6 @@ func _on_content_resized() -> void:
 func _on_waiting_changed(changed_planet: Planet) -> void:
 	if changed_planet == _shown:
 		_sync_rows()
-
-
-func _on_fuel_button_down() -> void:
-	_fuel_held = true
-
-
-func _on_fuel_button_up() -> void:
-	_fuel_held = false
 
 
 # A click on a row pins its trip, and a second click unpins it.

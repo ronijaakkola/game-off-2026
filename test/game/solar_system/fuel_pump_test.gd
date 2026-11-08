@@ -75,14 +75,18 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	counter.credits = 100
 	await await_millis(500)
 	var button := runner.find_child("FuelButton") as Button
+	var label := button.find_child("Label") as Label
+	var fill := button.find_child("Fill") as Control
 	assert_bool(button.is_visible_in_tree()).is_true()
-	assert_str(button.text).is_equal("Hold to fuel")
+	assert_str(label.text).is_equal("Hold to fuel")
+	assert_float(fill.size.x).is_equal_approx(button.size.x * 0.5, 1.0)
 	var camera := runner.find_child("Camera") as Camera3D
 	var at := _to_window(camera, button.get_global_rect().get_center())
 
 	_send_click(MOUSE_BUTTON_LEFT, at)
 	await runner.simulate_frames(30, 30)
-	assert_str(button.text).is_equal("Fuelling...")
+	# The label shows the fuel while held, at most a morph behind it.
+	assert_str(label.text).ends_with("%")
 	_send_release(MOUSE_BUTTON_LEFT, at)
 	await runner.simulate_frames(1)
 
@@ -92,10 +96,12 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	var held_to := tank.fuel
 	await runner.simulate_frames(20, 30)
 	assert_float(tank.fuel).is_equal(held_to)
+	assert_str(label.text).is_equal("Hold to fuel")
+	assert_float(fill.size.x).is_equal_approx(button.size.x * tank.get_fraction(), 1.0)
 	tank.fill()
 	await runner.simulate_frames(2)
 	assert_bool(button.disabled).is_true()
-	assert_str(button.text).is_equal("Tank full")
+	assert_str(label.text).is_equal("Tank full")
 
 
 func test_the_dock_panel_has_no_fuel_button_where_no_fuel_is_sold() -> void:

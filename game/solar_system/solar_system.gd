@@ -342,7 +342,9 @@ func _run_fuel_pump(delta: float) -> void:
 	var panel := %PlanetPanel as PlanetPanel
 	var dock_panel := %DockPanel as DockPanel
 	var stop := pump.get_stop(docked, tank, counter) if docked else ""
-	dock_panel.show_fuel(docked != null and stop.is_empty(), stop.trim_suffix("."))
+	dock_panel.show_fuel(
+		tank.get_fraction(), docked != null and stop.is_empty(), stop.trim_suffix(".")
+	)
 	if docked:
 		var held := dock_panel.is_fuel_held() or (open == docked and panel.is_refuel_held())
 		pump.run(delta, docked, held, tank, counter)
