@@ -44,7 +44,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Single-threaded build (`variant/thread_support=false`), no PWA, exported as `index.html`. Leave itch's SharedArrayBuffer option off.
 - Every machine needs the **4.7.2** Web export templates. Templates from another version fail.
 - Expect about 10 MB of engine download plus the `.pck`. itch gzips the files itself.
-- The single-threaded build runs everything on the main thread: `load_threaded_request` blocks, so a loading bar would jump from 0 to 1. Load while the screen is black.
+- The single-threaded build runs everything on the main thread: `load_threaded_request` blocks, so its progress jumps from 0 to 1. Load while the screen is black. `SceneFlow`'s loading bar moves anyway because it loads the next scene's files itself, everything a file uses before the file, and draws a frame between steps.
 - The game pauses while its browser tab is hidden.
 - In 4.7.2 the export's text-to-binary resource conversion drops the values of script-exported `PackedStringArray` properties saved in a `.tres`, so exported builds get the script's default. Export string lists as `Array[String]`.
 

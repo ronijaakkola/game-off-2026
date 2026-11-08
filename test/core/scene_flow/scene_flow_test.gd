@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 
 const SceneFlowScript := preload("res://core/scene_flow/scene_flow.gd")
 const GAME := "res://game/game.tscn"
+const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 
 var _flow: SceneFlowScript
@@ -110,6 +111,25 @@ func test_shows_loading_while_the_next_scene_loads() -> void:
 	assert_array(shown_during_load).contains_exactly(["Loading…"])
 
 
+func test_fills_the_bar_in_steps_while_loading() -> void:
+	# A bar that jumps from empty to full says nothing. Here it's drawn after every file.
+	_flow.step_msec = 0
+	var shown: Array[float] = []
+	var record := func() -> void: shown.append(_bar().value)
+	get_tree().process_frame.connect(record)
+	await _flow.go_to(SOLAR_SYSTEM)
+	get_tree().process_frame.disconnect(record)
+	var steps: Array[float] = []
+	for value: float in shown:
+		if steps.is_empty() or value != steps.back():
+			steps.append(value)
+	assert_float(steps.back()).is_equal(1.0)
+	assert_int(steps.size()).is_greater(10)
+	var sorted := steps.duplicate()
+	sorted.sort()
+	assert_array(steps).is_equal(sorted)
+
+
 func test_hides_the_loading_card_after_the_transition() -> void:
 	await _flow.go_to(GAME)
 	assert_bool(_curtain().visible).is_false()
@@ -121,6 +141,10 @@ func _record_shown_alpha() -> void:
 
 func _curtain() -> Control:
 	return _flow.get_child(0) as Control
+
+
+func _bar() -> ProgressBar:
+	return _curtain().find_children("*", "ProgressBar", true, false)[0] as ProgressBar
 
 
 ## The text on the loading card, if the card is fully shown.
