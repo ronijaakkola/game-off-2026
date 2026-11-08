@@ -52,4 +52,8 @@ func _press_f2() -> void:
 	event.physical_keycode = KEY_F2
 	event.pressed = true
 	Input.parse_input_event(event)
+	# Let go too, so no later suite starts with F2 held.
+	var release := event.duplicate() as InputEventKey
+	release.pressed = false
+	Input.parse_input_event(release)
 	Input.flush_buffered_events()
