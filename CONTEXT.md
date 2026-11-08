@@ -16,6 +16,10 @@ _Avoid_: `Bus` as a class name (it shadows `Audio.Bus`), ship, vehicle
 The ordered stops the bus flies through, each a planet or a point in space. A **course** is the route the player sets with a click.
 _Avoid_: path, waypoints list
 
+**Checkpoint**:
+A point in space on the route before a planet, which the bus flies through on its way there. Right-clicking space puts one just before the first planet on the route, replacing the one there: one at a time.
+_Avoid_: waypoint
+
 **Docked**:
 The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first.
 _Avoid_: landed, parked
@@ -101,7 +105,7 @@ How much more riding a passenger will take, in seconds, starting at the direct t
 _Avoid_: frustration, timer, budget
 
 **Rating**:
-The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **average rating** is the mean of every rating so far, shown beside the credits. `Passenger.get_rating()` and `RatingCounter` in code.
+The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **average rating** is the mean of every rating so far, shown in the **resource bar**. `Passenger.get_rating()` and `RatingCounter` in code.
 _Avoid_: reputation, review, score
 
 **Portrait**:
@@ -115,6 +119,10 @@ _Avoid_: species, colour (that is how it shows), passenger type (fare, patience 
 **Research point**:
 What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `ResearchCounter` in code.
 _Avoid_: science, XP, tech points
+
+**Resource bar**:
+The pill in the top right corner showing the player's credits, research points and average rating, each counting to its new value. `ResourceBar` in code.
+_Avoid_: HUD (the whole overlay), top bar, wallet
 
 **Need**:
 Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves.

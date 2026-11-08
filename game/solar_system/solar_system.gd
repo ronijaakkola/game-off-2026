@@ -144,9 +144,8 @@ func _process(delta: float) -> void:
 	model.border = picked == bus and not is_bus_open()
 	if model.border:
 		model.outline_width = _pixels_to_world(OUTLINE_PIXELS, bus.global_position)
-	var marker: RouteStop = null if picked or over_hud else _marker_at(mouse)
-	# Only the last stop, the one a right click removes.
-	bus.hovered_stop = marker if marker and marker == bus.get_last_stop() else null
+	# A right click removes any point in space on the route.
+	bus.hovered_stop = null if picked or over_hud else _marker_at(mouse)
 	var on_route := bus.get_route_planets()
 	for planet: Planet in _planets:
 		var hover_opacity := _fade if planet == _faded_planet else 1.0
@@ -178,8 +177,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
 	var bus := %Bus as FrameshiftBus
-	if _is_last_stop_at(click.position):
-		bus.remove_last_stop()
+	var removed := _removable_stop_at(click.position)
+	if removed:
+		bus.remove_stop(removed)
 	else:
 		var stop := _stop_at(click.position)
 		if not stop:
@@ -285,8 +285,9 @@ func _start_passengers() -> void:
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
 	cabin.kicked.connect(_on_kicked)
-	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
-	cabin.unloaded.connect((%RatingCounter as RatingCounter).commit)
+	var bar := %ResourceBar as ResourceBar
+	cabin.unloaded.connect(bar.get_credits().commit)
+	cabin.unloaded.connect(bar.get_rating().commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
@@ -332,7 +333,7 @@ func _on_bus_ran_out_of_fuel() -> void:
 
 
 func _on_bus_towed(_planet: Planet) -> void:
-	var counter := %CreditsCounter as CreditsCounter
+	var counter := (%ResourceBar as ResourceBar).get_credits()
 	counter.spend(mini(TOW_FEE, counter.credits))
 
 
@@ -342,7 +343,7 @@ func _on_bus_towed(_planet: Planet) -> void:
 func _run_fuel_pump(delta: float) -> void:
 	var bus := %Bus as FrameshiftBus
 	var tank := bus.get_fuel_tank()
-	var counter := %CreditsCounter as CreditsCounter
+	var counter := (%ResourceBar as ResourceBar).get_credits()
 	var pump := %FuelPump as FuelPump
 	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
 	var open := get_open_planet()
@@ -375,7 +376,7 @@ func _debug_empty_fuel() -> void:
 
 # The debug panel's Add credits, shown as a gain that counts into the total, like a fare.
 func _debug_add_credits() -> void:
-	var counter := %CreditsCounter as CreditsCounter
+	var counter := (%ResourceBar as ResourceBar).get_credits()
 	counter.add(DEBUG_CREDITS)
 	counter.commit()
 
@@ -413,9 +414,10 @@ func _debug_toggle_trait(type: BusTraits.Type) -> void:
 
 
 func _on_delivered(passenger: Passenger, payout: int) -> void:
-	(%CreditsCounter as CreditsCounter).add(payout)
-	(%RatingCounter as RatingCounter).add(passenger.get_rating())
-	(%ResearchCounter as ResearchCounter).add(passenger.race)
+	var bar := %ResourceBar as ResourceBar
+	bar.get_credits().add(payout)
+	bar.get_rating().add(passenger.get_rating())
+	bar.get_research().add(passenger.race)
 
 
 func _on_kicked(passenger: Passenger) -> void:
@@ -445,22 +447,21 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 	return RouteStop.at_point(hit)
 
 
-# Whether the route's last stop is under screen_point: its planet, or the diamond at its
-# point in space when no planet is. The same pick as the hover, so what turns white is
-# what a click removes.
-func _is_last_stop_at(screen_point: Vector2) -> bool:
-	var last := (%Bus as FrameshiftBus).get_last_stop()
-	if not last:
-		return false
+# The stop on the route a right click at screen_point removes, or null: the last stop
+# when it is the planet there, or else any point in space whose diamond is there. A planet
+# earlier on the route isn't removed, so a route can come back to it. The same pick as the
+# hover, so what turns white is what a click removes.
+func _removable_stop_at(screen_point: Vector2) -> RouteStop:
 	var planet := _planet_at(screen_point)
-	if planet or last.planet:
-		return planet != null and planet == last.planet
-	return _marker_at(screen_point) == last
+	if planet:
+		var last := (%Bus as FrameshiftBus).get_last_stop()
+		return last if last and last.planet == planet else null
+	return _marker_at(screen_point)
 
 
 # The point in space on the route whose diamond covers screen_point on screen, give or take
-# PICK_MARGIN. Where diamonds overlap, the one latest on the route, so the last stop can
-# always be removed. Null when there is none.
+# PICK_MARGIN. Where diamonds overlap, the one latest on the route. Null when there is
+# none.
 func _marker_at(screen_point: Vector2) -> RouteStop:
 	var bus := %Bus as FrameshiftBus
 	var camera := %Camera as Camera3D

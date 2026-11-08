@@ -20,6 +20,11 @@ static func at_point(target: Vector3) -> RouteStop:
 	return stop
 
 
+## Whether [param stop] is a planet, for filtering a route.
+static func is_planet(stop: RouteStop) -> bool:
+	return stop.planet != null
+
+
 ## The point [param gap] off [param target]'s surface in [param direction] from its centre,
 ## on the orbit plane.
 static func approach_point(target: Planet, direction: Vector3, gap: float) -> Vector3:

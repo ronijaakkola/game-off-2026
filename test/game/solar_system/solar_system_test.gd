@@ -42,7 +42,7 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	# Once they are off, the total counts up to include the fare.
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
-	assert_str(total).is_equal("%d credits" % payout)
+	assert_str(total).is_equal(CreditsCounter.group_digits(payout))
 	var rating := runner.find_child("RatingCounter") as RatingCounter
 	assert_int(rating.get_count()).is_equal(1)
 	assert_float(rating.get_average()).is_equal(passenger.get_rating())
@@ -363,7 +363,31 @@ func test_right_click_on_the_only_planet_cancels_the_course() -> void:
 	assert_float(bus.get_charge_progress()).is_equal(0.0)
 
 
-func test_right_click_on_the_last_point_in_space_removes_it() -> void:
+func test_right_click_on_space_sets_the_one_checkpoint_before_the_planet_ahead() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var giant := runner.find_child("Giant") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	var on_screen := _between_screen_point(runner)
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(0, 80)))
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	# The second click's point replaces the first's.
+	var stops := bus.get_route_stops()
+	assert_int(stops.size()).is_equal(3)
+	assert_object(stops[0].planet).is_null()
+	assert_object(stops[1].planet).is_same(terra)
+	assert_object(stops[2].planet).is_same(giant)
+	var second := on_screen + Vector2(0, 80)
+	assert_vector(camera.unproject_position(stops[0].point)).is_equal_approx(second, Vector2.ONE)
+
+
+func test_right_click_on_a_checkpoint_removes_it() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
@@ -372,45 +396,33 @@ func test_right_click_on_the_last_point_in_space_removes_it() -> void:
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
 	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_object(bus.get_last_stop().planet).is_null()
+	assert_int(bus.get_route_stops().size()).is_equal(2)
 
 	# A few pixels off the point still hits its diamond.
 	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(4, 4)))
 
-	assert_object(bus.get_last_stop().planet).is_same(terra)
+	var stops := bus.get_route_stops()
+	assert_int(stops.size()).is_equal(1)
+	assert_object(stops[0].planet).is_same(terra)
 
 
-func test_hovering_the_last_point_in_space_picks_it() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var camera := runner.find_child("Camera") as Camera3D
-	var on_screen := _between_screen_point(runner)
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	var point := bus.get_last_stop()
-
-	_send_motion(_to_window(camera, on_screen + Vector2(4, 4)))
-	await runner.simulate_frames(1)
-	assert_object(bus.hovered_stop).is_same(point)
-
-	_send_motion(_to_window(camera, on_screen + Vector2(200, 0)))
-	await runner.simulate_frames(1)
-	assert_object(bus.hovered_stop).is_null()
-
-
-func test_hovering_a_point_in_space_before_the_last_stop_picks_nothing() -> void:
+func test_hovering_a_checkpoint_before_a_planet_picks_it() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var camera := runner.find_child("Camera") as Camera3D
 	var on_screen := _between_screen_point(runner)
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
 	var bus := runner.find_child("Bus") as FrameshiftBus
 
-	_send_motion(_to_window(camera, on_screen))
+	# A few pixels off the point still hits its diamond.
+	_send_motion(_to_window(camera, on_screen + Vector2(4, 4)))
 	await runner.simulate_frames(1)
+	assert_object(bus.hovered_stop).is_same(bus.get_route_stops()[0])
 
+	_send_motion(_to_window(camera, on_screen + Vector2(200, 0)))
+	await runner.simulate_frames(1)
 	assert_object(bus.hovered_stop).is_null()
 
 
