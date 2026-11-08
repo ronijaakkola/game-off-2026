@@ -8,7 +8,6 @@
 clip_contents = true
 theme = ExtResource("2_theme")
 theme_type_variation = &"SmallButton"
-text = "Hold to fuel"
 script = ExtResource("1_button")
 
 [node name="Fill" type="Panel" parent="." unique_id=388235467]

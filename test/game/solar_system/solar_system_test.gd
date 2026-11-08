@@ -485,6 +485,8 @@ func test_a_tow_costs_its_fee_or_all_the_player_has() -> void:
 
 	bus.towed.emit(bus.get_docked_planet())
 	assert_int(counter.credits).is_equal(50 - SolarSystem.TOW_FEE)
+	var loss := runner.find_child("LossLabel") as Label
+	assert_str(loss.text).is_equal("-%d" % SolarSystem.TOW_FEE)
 
 	counter.credits = SolarSystem.TOW_FEE - 5
 	bus.towed.emit(bus.get_docked_planet())

@@ -22,9 +22,10 @@ var _fill_style := StyleBoxFlat.new()
 
 
 func _ready() -> void:
-	# Keeps the height the button's own text gave it, which the label inside doesn't.
-	custom_minimum_size.y = maxf(custom_minimum_size.y, get_minimum_size().y)
-	text = ""
+	# As tall as the button would be with its text, which the label inside doesn't give it.
+	var line := get_theme_font(&"font").get_height(get_theme_font_size(&"font_size"))
+	var tall := get_theme_stylebox(&"normal").get_minimum_size().y + line
+	custom_minimum_size.y = maxf(custom_minimum_size.y, tall)
 	var button_style := get_theme_stylebox(&"normal") as StyleBoxFlat
 	if button_style:
 		for corner: int in 4:

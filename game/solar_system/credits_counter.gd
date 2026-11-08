@@ -51,6 +51,10 @@ var _pop: Tween
 var _loss_rise := 0.0
 # The spending: the pop, the delay, then the count down, the fade and the drift.
 var _loss: Tween
+# What the loss shows, which adds up spendings while it shows, and the total shown before
+# the first of them.
+var _loss_amount := 0
+var _loss_from := 0
 
 
 func _ready() -> void:
@@ -92,22 +96,27 @@ func add(amount: int) -> void:
 
 ## Takes [param amount] off [member credits] and shows it in the loss ("-12"), which pops;
 ## after [constant COMMIT_DELAY] the total counts down to it while the loss fades out
-## drifting upward. A count up or down under way finishes at once first; a gain still
-## waiting for [method commit] stays.
+## drifting upward. While a loss still shows, it adds to it and pops again, and the count
+## down starts over from where it began. A count up under way finishes at once first; a
+## gain still waiting for [method commit] stays.
 func spend(amount: int) -> void:
 	if _fade and _fade.is_running():
 		_fade.kill()
 		(%GainLabel as Label).modulate.a = 0.0
-	_finish_loss()
-	var from := _credits - _pending
-	_credits -= amount
 	var label := %LossLabel as Label
-	label.text = "-%d" % amount
+	if _loss and _loss.is_running():
+		_loss.kill()
+		_loss_amount += amount
+	else:
+		_loss_amount = amount
+		_loss_from = _credits - _pending
+	_credits -= amount
+	label.text = "-%d" % _loss_amount
 	label.modulate.a = 1.0
 	label.scale = Vector2.ONE
 	_loss_rise = 0.0
 	_place_gain()
-	var seconds := minf(amount * SECONDS_PER_CREDIT, MAX_COUNT_SECONDS)
+	var seconds := minf(_loss_amount * SECONDS_PER_CREDIT, MAX_COUNT_SECONDS)
 	_loss = create_tween()
 	_loss.tween_property(label, ^"scale", Vector2.ONE * POP_SCALE, POP_UP_SECONDS)
 	(
@@ -117,7 +126,7 @@ func spend(amount: int) -> void:
 		. set_ease(Tween.EASE_OUT)
 	)
 	_loss.tween_interval(COMMIT_DELAY)
-	_loss.tween_method(_show_total, from, _credits - _pending, seconds)
+	_loss.tween_method(_show_total, _loss_from, _credits - _pending, seconds)
 	_loss.parallel().tween_property(label, ^"modulate:a", 0.0, FADE_OUT_SECONDS)
 	(
 		_loss

@@ -137,7 +137,7 @@ Features we will very probably build, but that need more design work first.
 
 - **Happiness score.** What it measures. One option: the average mood of the passengers on board, with the 20 s countdown paused when the bus is empty, so a bus full of furious passengers is the losing state.
 - **What the rating does.** It is only shown so far. Options: it sets how often passengers turn up or which types do, it gates upgrades, it is the happiness score of the goal, or it is the leaderboard score. Also whether a run's average should weigh recent rides more, since one ride barely moves the mean of fifty.
-- **Tow.** Set for now at 20 credits, or all the player has, and 0.4 units a second faster than the planet it goes to (Core loop, Fuel, as built). Tune both in playtests. The credits drop with no sign of why yet; a "-20" like the payments' gain would show it.
+- **Tow.** Set for now at 20 credits, or all the player has, and 0.4 units a second faster than the planet it goes to (Core loop, Fuel, as built). Tune both in playtests. It shows as a red "-20" under the credits, as refuelling's bill does.
 - **Fuel shown for a free point and for waypoints.** Whether the route line shows the total fuel and time like a planet does.
 - **Passenger cards while a planet is open.** They stay down the left edge and can cover part of the open planet. Hide them, shrink them, or leave them?
 - **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button, so the player closes it to pick anyone up. Add Board buttons to the planet panel while the bus is docked there, or leave it?

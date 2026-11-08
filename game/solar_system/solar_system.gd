@@ -328,7 +328,7 @@ func _on_bus_ran_out_of_fuel() -> void:
 
 func _on_bus_towed(_planet: Planet) -> void:
 	var counter := %CreditsCounter as CreditsCounter
-	counter.credits = maxi(counter.credits - TOW_FEE, 0)
+	counter.spend(mini(TOW_FEE, counter.credits))
 
 
 # Runs the fuel pump at the planet the bus is docked at while the dock panel's fuel
