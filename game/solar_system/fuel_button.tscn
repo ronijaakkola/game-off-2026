@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://bbs2kxbdg7qyr"]
+
+[ext_resource type="Script" uid="uid://6uwkjwijnfh3" path="res://game/solar_system/fuel_button.gd" id="1_button"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" uid="uid://dl6jwib3kd3a0" path="res://game/passengers/morph_label.gd" id="3_morph"]
+
+[node name="FuelButton" type="Button" unique_id=517879022]
+clip_contents = true
+theme = ExtResource("2_theme")
+theme_type_variation = &"SmallButton"
+script = ExtResource("1_button")
+
+[node name="Fill" type="Panel" parent="." unique_id=388235467]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="." unique_id=1933842340]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 12
+text = "Hold to fuel"
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("3_morph")

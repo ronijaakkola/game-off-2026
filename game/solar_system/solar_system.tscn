@@ -24,9 +24,10 @@
 [ext_resource type="PackedScene" uid="uid://70b0mq875ago" path="res://game/solar_system/dock_panel.tscn" id="23_dock"]
 [ext_resource type="PackedScene" uid="uid://b384geq2qmg0r" path="res://game/bus/bus_panel.tscn" id="24_bus_panel"]
 [ext_resource type="PackedScene" uid="uid://cv1jtomgb7ywi" path="res://game/solar_system/fuel_forecast.tscn" id="25_forecast"]
-[ext_resource type="PackedScene" uid="uid://cqh6m26bmhwpp" path="res://game/solar_system/trip_arc.tscn" id="26_trip"]
 [ext_resource type="PackedScene" uid="uid://jrqbnobo7om0" path="res://game/solar_system/rating_counter.tscn" id="25_rating"]
 [ext_resource type="PackedScene" uid="uid://b225tbpcnfsxu" path="res://game/solar_system/research_counter.tscn" id="27_research"]
+[ext_resource type="PackedScene" uid="uid://cqh6m26bmhwpp" path="res://game/solar_system/trip_arc.tscn" id="26_trip"]
+[ext_resource type="Script" uid="uid://d7ilyo18irr3" path="res://game/solar_system/fuel_pump.gd" id="27_pump"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -49,6 +50,9 @@ shader_parameter/inner_radius = 0.78
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ember"]
 render_priority = 0
 shader = ExtResource("3_surface")
+shader_parameter/light_source = null
+shader_parameter/light_is_directional = null
+shader_parameter/shadow_color = null
 shader_parameter/base_color = Color(0.82, 0.58, 0.4, 1)
 shader_parameter/mid_color = Color(0.66, 0.43, 0.3, 1)
 shader_parameter/top_color = Color(0.94, 0.78, 0.58, 1)
@@ -60,7 +64,6 @@ shader_parameter/stripe_count = null
 shader_parameter/cap_color = null
 shader_parameter/cap_size = null
 shader_parameter/seed = 3.0
-shader_parameter/shadow_color = null
 shader_parameter/terminator_softness = null
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orbit"]
@@ -72,6 +75,9 @@ albedo_color = Color(0.8, 0.8, 1, 0.3)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_terra"]
 render_priority = 0
 shader = ExtResource("3_surface")
+shader_parameter/light_source = null
+shader_parameter/light_is_directional = null
+shader_parameter/shadow_color = null
 shader_parameter/base_color = Color(0.5, 0.82, 0.34, 1)
 shader_parameter/mid_color = Color(0.84, 0.95, 0.56, 1)
 shader_parameter/top_color = Color(0.36, 0.71, 0.35, 1)
@@ -83,12 +89,14 @@ shader_parameter/stripe_count = null
 shader_parameter/cap_color = null
 shader_parameter/cap_size = null
 shader_parameter/seed = 11.0
-shader_parameter/shadow_color = null
 shader_parameter/terminator_softness = null
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_moon"]
 render_priority = 0
 shader = ExtResource("3_surface")
+shader_parameter/light_source = null
+shader_parameter/light_is_directional = null
+shader_parameter/shadow_color = null
 shader_parameter/base_color = Color(0.95, 0.93, 1, 1)
 shader_parameter/mid_color = Color(0.8, 0.78, 0.95, 1)
 shader_parameter/top_color = Color(0.8, 0.78, 0.95, 1)
@@ -100,12 +108,14 @@ shader_parameter/stripe_count = null
 shader_parameter/cap_color = null
 shader_parameter/cap_size = null
 shader_parameter/seed = 5.0
-shader_parameter/shadow_color = null
 shader_parameter/terminator_softness = null
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_giant"]
 render_priority = 0
 shader = ExtResource("3_surface")
+shader_parameter/light_source = null
+shader_parameter/light_is_directional = null
+shader_parameter/shadow_color = null
 shader_parameter/base_color = Color(1, 0.6, 0.25, 1)
 shader_parameter/mid_color = Color(0.95, 0.42, 0.22, 1)
 shader_parameter/top_color = Color(1, 0.8, 0.5, 1)
@@ -117,7 +127,6 @@ shader_parameter/stripe_count = 5.0
 shader_parameter/cap_color = null
 shader_parameter/cap_size = null
 shader_parameter/seed = 21.0
-shader_parameter/shadow_color = null
 shader_parameter/terminator_softness = null
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_giant_rings"]
@@ -132,6 +141,9 @@ shader_parameter/opacity = null
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_frost"]
 render_priority = 0
 shader = ExtResource("3_surface")
+shader_parameter/light_source = null
+shader_parameter/light_is_directional = null
+shader_parameter/shadow_color = null
 shader_parameter/base_color = Color(1, 0.62, 0.74, 1)
 shader_parameter/mid_color = Color(1, 0.76, 0.84, 1)
 shader_parameter/top_color = Color(1, 0.92, 0.95, 1)
@@ -143,7 +155,6 @@ shader_parameter/stripe_count = null
 shader_parameter/cap_color = null
 shader_parameter/cap_size = 0.22
 shader_parameter/seed = 37.0
-shader_parameter/shadow_color = null
 shader_parameter/terminator_softness = null
 
 [node name="SolarSystem" type="Node3D" unique_id=1939531791]
@@ -266,6 +277,10 @@ start_planet = NodePath("../Ember")
 [node name="Cabin" type="Node" parent="." unique_id=1517490635]
 unique_name_in_owner = true
 script = ExtResource("13_cabin")
+
+[node name="FuelPump" type="Node" parent="." unique_id=2138476615]
+unique_name_in_owner = true
+script = ExtResource("27_pump")
 
 [node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus")]
 unique_name_in_owner = true

@@ -48,6 +48,8 @@ var request: Need
 var asleep := false
 ## Their race: their skin colour, and the research point delivering them earns.
 var race: Race.Type
+## What their portrait acts out: eating or drinking while a served need lasts.
+var action := Need.Action.NONE
 ## What they look like in their portrait.
 var look: AlienLook
 
@@ -143,6 +145,7 @@ func tick(delta: float, docked: bool, patience_holds := false) -> void:
 	if _busy and _activity_left > 0.0:
 		return
 	_busy = false
+	action = Need.Action.NONE
 	for i: int in _need_timers.size():
 		if _need_timers[i] <= 0.0:
 			_open(type.needs[i])
@@ -176,6 +179,7 @@ func _close(line: String, seconds: float) -> void:
 	var index := type.needs.find(request)
 	if index >= 0:
 		_need_timers[index] = seconds + _interval(request)
+	action = request.served_action
 	request = null
 	asleep = false
 	activity = line

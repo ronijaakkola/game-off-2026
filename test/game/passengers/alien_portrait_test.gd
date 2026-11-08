@@ -144,13 +144,14 @@ func test_angry_the_lids_slant_toward_the_middle_and_a_mark_shows_with_the_skin_
 	assert_bool(portrait.anger_mark.visible).is_true()
 
 
-func test_the_expression_preview_shows_each_head_okay_happy_annoyed_furious_and_joyful() -> void:
+func test_the_expression_preview_shows_each_head_in_each_expression_eating_and_drinking() -> void:
 	var runner := scene_runner(EXPRESSIONS)
 	await runner.simulate_frames(40, 50)
 
 	var angers: Array[float] = []
 	var joys: Array[float] = []
 	var contents: Array[bool] = []
+	var actions: Array[Need.Action] = []
 	for node: Node in runner.scene().get_children():
 		var photo := node as PassengerPhoto
 		if not photo:
@@ -159,14 +160,19 @@ func test_the_expression_preview_shows_each_head_okay_happy_annoyed_furious_and_
 		angers.append(portrait.anger)
 		joys.append(portrait.joy)
 		contents.append(portrait.content)
-	var row_anger: Array[float] = [0.0, 0.0, 0.5, 1.0, 0.0]
-	var row_joy: Array[float] = [0.0, 0.0, 0.0, 0.0, 1.0]
-	var row_content: Array[bool] = [false, true, false, false, false]
-	assert_array(angers).is_equal(row_anger + row_anger + row_anger + row_anger + row_anger)
-	assert_array(joys).is_equal(row_joy + row_joy + row_joy + row_joy + row_joy)
-	assert_array(contents).is_equal(
-		row_content + row_content + row_content + row_content + row_content
-	)
+		actions.append(portrait.action)
+	# Okay, happy, annoyed, furious, joyful, eating and drinking, for each of five heads.
+	var row_anger: Array[float] = [0.0, 0.0, 0.5, 1.0, 0.0, 0.0, 0.0]
+	var row_joy: Array[float] = [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+	var row_content: Array[bool] = [false, true, false, false, false, false, false]
+	var none := Need.Action.NONE
+	var row_action: Array[Need.Action] = [
+		none, none, none, none, none, Need.Action.EAT, Need.Action.DRINK
+	]
+	assert_array(angers).is_equal(_rows(row_anger))
+	assert_array(joys).is_equal(_rows(row_joy))
+	assert_array(contents).is_equal(_rows(row_content))
+	assert_array(actions).is_equal(_rows(row_action))
 
 
 func test_content_they_beam_now_and_then_and_stop_when_not() -> void:
@@ -200,3 +206,11 @@ func test_a_skin_and_eye_style_set_before_it_is_ready_reach_every_eye() -> void:
 		assert_float(material.get_shader_parameter(&"pupil_size") as float).is_equal(
 			style.pupil_size
 		)
+
+
+# [param row] once for each head shape, as the expression preview lays them out.
+func _rows(row: Array) -> Array:
+	var rows := []
+	for head: int in AlienLook.HEADS.size():
+		rows.append_array(row)
+	return rows

@@ -1168,9 +1168,16 @@ def verify_resave(order: list[str], before: list[str], originals: dict[str, byte
 RESAVE_IDS = re.compile(r' (uid|unique_id|id|load_steps)=("[^"]*"|\d+)|(?<=Resource\()"[^"]*"')
 
 
+# A shader uniform the material leaves at the shader's default. Godot writes one for every
+# uniform the shader gained since the file was saved; the material loads the same with or
+# without it, so it can't be a value a script set.
+UNSET_SHADER_PARAMETER = re.compile(r"shader_parameter/\w+ = null")
+
+
 def added_lines(path: str, original: bytes) -> list[str]:
-    """The lines a resave added to a file, ids aside. A resave only adds ids, so any other
-    line is a value that wasn't in the file, such as one a script's _init() set."""
+    """The lines a resave added to a file, ids and unset shader uniforms aside. A resave
+    only adds those, so any other line is a value that wasn't in the file, such as one a
+    script's _init() set."""
     def lines(text: str) -> list[str]:
         return [RESAVE_IDS.sub("", line) for line in text.splitlines() if line.strip()]
 
@@ -1181,7 +1188,7 @@ def added_lines(path: str, original: bytes) -> list[str]:
     for line in after:
         if line in left:
             left.remove(line)
-        else:
+        elif not UNSET_SHADER_PARAMETER.fullmatch(line):
             added.append(line)
     return added
 

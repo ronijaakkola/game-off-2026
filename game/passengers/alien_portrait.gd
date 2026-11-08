@@ -7,7 +7,10 @@ extends Node3D
 ## feels and sways back. Angry, the lids slant into a frown over smaller pupils, and past
 ## halfway a red anger mark pops up on the head, which trembles. The skin keeps its
 ## colour, since it shows the passenger's race; joyful, lower lids rise so the eyes
-## smile into crescents, and the head bobs. Content, they beam that way now and then.
+## smile into crescents, and the head bobs. Content, they beam that way now and then. A
+## single eye shows anger with a brow over it and joy as a starry eye over blushing
+## cheeks, since any curve cut into it reads as a mouth. Eating or drinking, a
+## [PortraitMeal] holds the food up to the face and nods the head.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
@@ -38,6 +41,8 @@ const FORWARD_LURCH := 2.0
 ## it drops, in the model's units, and how much bigger it looks, per radian of lean.
 const FORWARD_DIP := 0.12
 const FORWARD_GROW := 0.25
+## How big the food is, as a share of the head's width.
+const MEAL_SIZE := 0.6
 ## How fast anger and joy blend in and out, per second.
 const EXPRESSION_SPEED := 3.0
 ## At full anger: how far the lids close, and how big the pupils are.
@@ -66,6 +71,9 @@ const BOB := 0.03
 const LURCH_MAX := 0.6
 ## How much of the lean the whole bust takes; the head takes all of it.
 const BODY_LURCH := 0.35
+## How far the quad of an eye in the middle of the face reaches, in eye radii, so it has
+## room for the brow and blush the shader draws around it.
+const CENTRED_EYE_REACH := 1.6
 
 ## One of the head models in `models/`.
 @export var head_model: PackedScene
@@ -96,6 +104,8 @@ const BODY_LURCH := 0.35
 ## Whether they are content: now and then they beam with full joy for a moment, as they
 ## blink. A partial joy doesn't read at a card's size, so contentment is these moments.
 @export var content := false
+## What they are eating or drinking, if anything.
+@export var action := Need.Action.NONE
 ## The push they feel on the bus, in units per second squared: +x toward their own right
 ## (the camera's left, since they face it) and +y forward, toward the camera. The bust
 ## leans with it on a spring, so a jolt makes it sway.
@@ -140,6 +150,7 @@ var _joy := 0.0
 # Seconds until the next beam while content, and seconds left of the current one.
 var _beam_in := randf_range(0.5, 3.0)
 var _beam_left := 0.0
+var _meal: PortraitMeal
 
 
 func _ready() -> void:
@@ -166,10 +177,12 @@ func _ready() -> void:
 				% [head_model.resource_path, HEAD_SUFFIX]
 			)
 		)
-	_addanger_mark()
+	_add_anger_mark()
 	skin_color = skin_color
 	outfit_color = outfit_color
 	eye_style = eye_style
+	if _head:
+		_add_meal()
 	_blink_in = randf_range(1.0, 4.0)
 
 
@@ -192,6 +205,9 @@ func _process(delta: float) -> void:
 		_blink_in = randf_range(2.0, 5.5)
 	_sway_with_push(delta)
 	_show_expression(delta)
+	if _meal:
+		_meal.action = action
+		_meal.advance(delta, motion)
 
 	var t := _time + _phase
 	var lurch := _lurch * motion
@@ -203,6 +219,8 @@ func _process(delta: float) -> void:
 		var breath := sin(_breath + _phase) * lerpf(0.018, 0.03, _sleep) * motion
 		var grow := 1.0 + lurch.y * FORWARD_GROW
 		_head.scale = Vector3(1.0 - breath * 0.5, 1.0 + breath, 1.0 - breath * 0.5) * grow
+		if _meal:
+			_head.scale *= _meal.squash
 		# The head turns a little toward where the eyes look, nods forward asleep, and leans
 		# with the push the bust doesn't take.
 		var nod := Vector2(_sleep_side * 0.1, 0.16) * _sleep * motion
@@ -212,6 +230,8 @@ func _process(delta: float) -> void:
 			_look.x * 0.18,
 			sin(t * 0.9 + 1.3) * 0.05 * motion + lean.x,
 		)
+		if _meal:
+			_head.rotation.x += _meal.pitch
 		var tremble := _get_fury() * TREMBLE * motion
 		_head.rotation.z += sin(_time * TREMBLE_SPEED) * tremble
 		var bob := absf(sin(t * BOB_SPEED)) * BOB * _joy * motion
@@ -240,7 +260,11 @@ func _process(delta: float) -> void:
 	var open := lerpf(eye_openness, 0.0, _sleep) * lerpf(1.0, ANGRY_OPEN, _anger)
 	open *= 1.0 - _blink
 	_set_eyes(&"open", lerpf(open, 1.0, _startle))
-	_set_eyes(&"look", _look + Vector2(0.0, JOYFUL_LOOK * _joy))
+	var look := _look + Vector2(0.0, JOYFUL_LOOK * _joy)
+	if _meal:
+		# Eating or drinking, they look down at the food.
+		look = look.lerp(Vector2(look.x * 0.3, -0.7), _meal.look_down)
+	_set_eyes(&"look", look)
 	for eye: MeshInstance3D in eyes:
 		eye.scale = Vector3.ONE * (1.0 + _startle * 0.25)
 
@@ -323,7 +347,7 @@ func _get_fury() -> float:
 # The anger mark, a quad facing the camera on the head's upper right as the camera sees
 # it, on the head so it trembles and leans with it. It goes by the head's own mesh, not
 # the stalks or eyes on it, so it sits clear of them. Hidden until they are angry.
-func _addanger_mark() -> void:
+func _add_anger_mark() -> void:
 	var bounds := _get_head_body_bounds()
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE * (bounds.size.x + bounds.size.y) * 0.5 * ANGER_MARK_SIZE
@@ -405,14 +429,35 @@ func _body_material(material_name: String) -> ShaderMaterial:
 	return _materials[material_name]
 
 
+# The meal goes on the head, in front of where a mouth would be: just below the eyes, since
+# the photo crops the bottom of most faces, but within the head for eyes on stalks.
+func _add_meal() -> void:
+	var bounds := AABB()
+	var head_mesh := _head as MeshInstance3D
+	if head_mesh:
+		bounds = head_mesh.get_aabb()
+	var width := bounds.size.x
+	var mouth_y := bounds.end.y
+	for eye: MeshInstance3D in eyes:
+		mouth_y = minf(mouth_y, _head.to_local(eye.global_position).y - width * 0.15)
+	mouth_y = clampf(mouth_y, bounds.position.y + width * 0.1, bounds.end.y - bounds.size.y * 0.4)
+	_meal = PortraitMeal.new()
+	_meal.name = "Meal"
+	_head.add_child(_meal)
+	_meal.setup(Vector3(bounds.get_center().x, mouth_y, bounds.end.z), width * MEAL_SIZE)
+
+
 func _add_eye(marker: Node3D) -> void:
-	var quad := QuadMesh.new()
-	quad.size = Vector2(2.0, 2.0)
-	var material := ShaderMaterial.new()
-	material.shader = EYE_SHADER
 	# The camera faces them, so an eye left of the middle has the middle to its right.
 	var x := (global_transform.affine_inverse() * marker.global_position).x
-	material.set_shader_parameter(&"inner_side", 0.0 if absf(x) < 0.01 else -signf(x))
+	var centred := absf(x) < 0.01
+	var reach := CENTRED_EYE_REACH if centred else 1.0
+	var quad := QuadMesh.new()
+	quad.size = Vector2(2.0, 2.0) * reach
+	var material := ShaderMaterial.new()
+	material.shader = EYE_SHADER
+	material.set_shader_parameter(&"inner_side", 0.0 if centred else -signf(x))
+	material.set_shader_parameter(&"reach", reach)
 	_eye_materials.append(material)
 	var eye := MeshInstance3D.new()
 	eye.name = "EyeDisc"
