@@ -154,6 +154,7 @@ Features we will very probably build, but that need more design work first.
 - **Research points and rating.** A delivery earns its point whatever the rating, so a furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up), or stay out of research and only count for credits.
 - **Race and type.** Race and passenger type are separate for now: any race can be any type. Whether they stay independent, or a race leans toward some types or some planets, so the player can hunt for one kind of point.
 - **Seats and waiting passengers.** The prototype had 4 seats and up to 3 waiting per planet; keep them until playtests say otherwise.
+- **Who waits where.** Simulated experiments on the spawn rules are in `docs/passenger-director.md`. With the rules as built, one bus can't keep up (the lines sit full and the typical passenger has waited two minutes), and fare and patience are set when a passenger turns up rather than at boarding as Trip time and fare says. The proposal there is a dispatcher: one system-wide stream that ramps up, waiting passengers who give up after a while, lines that tend to share a destination, and someone turning up wherever the bus heads with a free seat. It also finds that a direct trip past about 4.5 units arrives Okay at best, so patience slack and the mood thresholds need deciding together.
 
 ## Online
 
