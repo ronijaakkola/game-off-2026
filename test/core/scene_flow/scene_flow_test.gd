@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 
 const SceneFlowScript := preload("res://core/scene_flow/scene_flow.gd")
 const GAME := "res://game/game.tscn"
+const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 
 var _flow: SceneFlowScript
@@ -98,5 +99,106 @@ func test_fades_in_smoothly_after_a_slow_first_frame() -> void:
 	assert_float(largest_step).is_less(0.25)
 
 
+func test_shows_loading_while_the_next_scene_loads() -> void:
+	# The old scene leaves right after load() returns: what shows then is the frame the
+	# player looks at during the load.
+	var old_scene := Node.new()
+	get_tree().root.add_child(old_scene)
+	get_tree().current_scene = old_scene
+	var shown_during_load: Array[String] = []
+	old_scene.tree_exiting.connect(func() -> void: shown_during_load.append(_shown_text()))
+	await _flow.go_to(GAME)
+	assert_array(shown_during_load).contains_exactly(["Loading…"])
+
+
+func test_fills_the_bar_in_steps_while_loading() -> void:
+	# A bar that jumps from empty to full says nothing. Here it's drawn after every file.
+	_flow.step_msec = 0
+	var shown: Array[float] = []
+	var record := func() -> void: shown.append(_bar().value)
+	get_tree().process_frame.connect(record)
+	await _flow.go_to(SOLAR_SYSTEM)
+	get_tree().process_frame.disconnect(record)
+	var steps: Array[float] = []
+	for value: float in shown:
+		if steps.is_empty() or value != steps.back():
+			steps.append(value)
+	assert_float(steps.back()).is_equal(1.0)
+	assert_int(steps.size()).is_greater(10)
+	var sorted := steps.duplicate()
+	sorted.sort()
+	assert_array(steps).is_equal(sorted)
+
+
+func test_loads_the_scene_script_after_its_sub_scenes() -> void:
+	# Compiling a script compiles every script it names. Loaded first, the scene's own
+	# script compiled the whole game in one step, and the bar jumped from empty to full.
+	var order := _flow._load_order(SOLAR_SYSTEM)
+	assert_str(order.back()).is_equal("res://game/solar_system/solar_system.gd")
+	# The same holds a level down, so a sub-scene's steps stay small too.
+	assert_int(order.find("res://game/bus/bus.gd")).is_less(order.find("res://game/bus/bus.tscn"))
+	assert_int(order.find("res://game/bus/bus_model.gd")).is_less(
+		order.find("res://game/bus/bus.gd")
+	)
+
+
+func test_warms_up_one_new_shader_or_material_a_step() -> void:
+	# Each first draw of a shader compiles it, so each step brings one new one. Objects on
+	# shaders already drawn come along for free, and hidden ones aren't drawn at all.
+	var scene: Node3D = auto_free(Node3D.new())
+	var shader := Shader.new()
+	shader.code = "shader_type spatial;"
+	var planet := _mesh_with(_shader_material(shader))
+	var moon := _mesh_with(_shader_material(shader))
+	var star := _mesh_with(StandardMaterial3D.new())
+	var hidden := _mesh_with(StandardMaterial3D.new())
+	hidden.visible = false
+	for mesh: MeshInstance3D in [planet, moon, star, hidden]:
+		scene.add_child(mesh)
+
+	var steps := _flow._warm_up_steps(scene)
+
+	assert_int(steps.size()).is_equal(2)
+	assert_array(steps[0]).contains_exactly([planet, moon])
+	assert_array(steps[1]).contains_exactly([star])
+
+
+func test_hides_the_loading_card_after_the_transition() -> void:
+	await _flow.go_to(GAME)
+	assert_bool(_curtain().visible).is_false()
+
+
 func _record_shown_alpha() -> void:
-	_shown_alphas.append((_flow.get_child(0) as ColorRect).color.a)
+	_shown_alphas.append(_curtain().modulate.a)
+
+
+func _curtain() -> Control:
+	return _flow.get_child(0) as Control
+
+
+func _mesh_with(material: Material) -> MeshInstance3D:
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = BoxMesh.new()
+	mesh.material_override = material
+	return mesh
+
+
+func _shader_material(shader: Shader) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	return material
+
+
+func _bar() -> ProgressBar:
+	return _curtain().find_children("*", "ProgressBar", true, false)[0] as ProgressBar
+
+
+## The text on the loading card, if the card is fully shown.
+func _shown_text() -> String:
+	var curtain := _curtain()
+	if not curtain.visible or curtain.modulate.a < 1.0:
+		return ""
+	for label: Node in curtain.find_children("*", "Label", true, false):
+		if (label as Label).visible:
+			return (label as Label).text
+	return ""

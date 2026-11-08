@@ -12,9 +12,6 @@ script = ExtResource("1_preview")
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=704207493]
 environment = SubResource("Environment_preview")
 
-[node name="Sun" type="DirectionalLight3D" parent="." unique_id=108977487]
-transform = Transform3D(0.8, 0.36, -0.48, 0, 0.8, 0.6, 0.6, -0.48, 0.64, 0, 0, 0)
-
 [node name="Camera" type="Camera3D" parent="." unique_id=843395259]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0, 9.6)
