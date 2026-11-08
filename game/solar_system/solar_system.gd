@@ -52,6 +52,8 @@ const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
 const PUMP_START_RATE := 12.0
 const PUMP_MAX_RATE := 60.0
 const PUMP_RAMP_SECONDS := 1.5
+## The credits the debug panel's Add credits button gives.
+const DEBUG_CREDITS := 1000
 
 var _planets: Array[Planet] = []
 # 1 with no planet open, 0 once one is open and the fade is done.
@@ -94,6 +96,8 @@ func _ready() -> void:
 	var bus := %Bus as FrameshiftBus
 	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
 	bus.towed.connect(_on_bus_towed)
+	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
+	DebugPanel.add_button("Add %d credits" % DEBUG_CREDITS, _debug_add_credits, self)
 
 
 func _process(delta: float) -> void:
@@ -314,6 +318,19 @@ func _run_fuel_pump(delta: float) -> void:
 		_pump_time = 0.0
 	var full_tank_cost := ceili(tank.capacity * planet.fuel_price)
 	panel.show_fuel(tank.get_fraction(), full_tank_cost, can_refuel, note)
+
+
+# The debug panel's Empty fuel. Out in space the tow comes at once; at a planet the bus
+# stays until it refuels.
+func _debug_empty_fuel() -> void:
+	(%Bus as FrameshiftBus).get_fuel_tank().drain()
+
+
+# The debug panel's Add credits, shown as a gain that counts into the total, like a fare.
+func _debug_add_credits() -> void:
+	var counter := %CreditsCounter as CreditsCounter
+	counter.add(DEBUG_CREDITS)
+	counter.commit()
 
 
 func _on_delivered(_passenger: Passenger, payout: int) -> void:

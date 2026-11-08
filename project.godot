@@ -30,6 +30,7 @@ Feedback="*res://core/feedback/feedback.gd"
 Talo="*uid://bpmdn8oc34pg7"
 Online="*res://core/online/online.gd"
 DevConsole="*res://core/dev_console/dev_console.gd"
+DebugPanel="*res://core/debug_panel/debug_panel.tscn"
 PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 
 [debug]
