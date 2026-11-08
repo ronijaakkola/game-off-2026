@@ -150,6 +150,12 @@ func test_left_click_on_a_planet_opens_it_and_again_closes_it() -> void:
 	waiting.add(terra)
 	waiting.add(terra)
 	var rig := runner.find_child("CameraRig") as CameraRig
+	# Both panels slide in with the camera's blend.
+	assert_float(rig.get_focus_seconds()).is_greater(0.0)
+	var planet_panel := runner.find_child("PlanetPanel") as PlanetPanel
+	assert_float(planet_panel.slide_in_seconds).is_equal(rig.get_focus_seconds())
+	var bus_panel := runner.find_child("BusPanel") as BusPanel
+	assert_float(bus_panel.slide_in_seconds).is_equal(rig.get_focus_seconds())
 
 	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
 

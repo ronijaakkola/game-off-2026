@@ -43,9 +43,8 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	var panel := card.find_child("Panel") as Control
 	assert_float(panel.position.x).is_equal(0.0)
 	# Then it slides out to the left and folds away before it goes.
-	await await_millis(400)
+	await assert_func(self, "_slid_out", [panel]).wait_until(2000).is_true()
 	assert_int(cards.get_child_count()).is_equal(1)
-	assert_float(panel.position.x).is_less(0.0)
 	await runner.simulate_frames(30, 30)
 	assert_int(cards.get_child_count()).is_equal(0)
 
@@ -154,6 +153,10 @@ func test_a_card_s_photo_background_takes_their_race_s_backdrop_colour() -> void
 	assert_that(backdrop.get_shader_parameter(&"backdrop_color")).is_equal(
 		Race.BACKDROP_COLORS[Race.Type.GREEN]
 	)
+
+
+func _slid_out(panel: Control) -> bool:
+	return panel.position.x < 0.0
 
 
 func _cabin(runner: GdUnitSceneRunner) -> Cabin:

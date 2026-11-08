@@ -1,9 +1,8 @@
 extends GdUnitTestSuite
 ## A passenger card's mood name shakes for the low moods, and holds still under Reduce
 ## motion. When the mood changes, the name fades out and back in as the new one. Getting
-## off, the patience row gives way to the stars they rate the ride, which fill up, and the
-## card lingers before it slides out
-## (in passenger_panel_test.gd).
+## off, the patience row gives way to the stars they rate the ride, which fill up. The
+## card's linger-then-slide-out is tested in passenger_panel_test.gd.
 
 const SCENE := preload("res://game/passengers/passenger_card.tscn")
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
