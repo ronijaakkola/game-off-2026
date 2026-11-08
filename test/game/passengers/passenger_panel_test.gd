@@ -141,20 +141,19 @@ func test_the_preview_shows_a_full_cabin_with_three_requests() -> void:
 		assert_float((panel as Control).size.x).is_equal((panels[0] as Control).size.x)
 
 
-func test_a_card_s_photo_background_takes_the_colour_of_the_planet_they_boarded_at() -> void:
+func test_a_card_s_photo_background_takes_their_race_s_backdrop_colour() -> void:
 	var runner := scene_runner(SCENE)
 	var cabin := _cabin(runner)
-	var home: Planet = auto_free(Planet.new())
-	home.icon_color = Color.ORANGE
 	var away: Planet = auto_free(Planet.new())
-	away.icon_color = Color.TEAL
 	var passenger := _passenger(away, 1000.0)
-	passenger.origin = home
+	passenger.race = Race.Type.GREEN
 	cabin.board(passenger)
 	await runner.simulate_frames(2)
 
 	var backdrop := (runner.find_child("Backdrop") as ColorRect).material as ShaderMaterial
-	assert_that(backdrop.get_shader_parameter(&"planet_color")).is_equal(Color.ORANGE)
+	assert_that(backdrop.get_shader_parameter(&"backdrop_color")).is_equal(
+		Race.BACKDROP_COLORS[Race.Type.GREEN]
+	)
 
 
 func _cabin(runner: GdUnitSceneRunner) -> Cabin:

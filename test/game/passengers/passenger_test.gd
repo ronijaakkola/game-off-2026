@@ -163,6 +163,15 @@ func test_the_same_seed_gives_the_same_look() -> void:
 	assert_that(looks[0].skin_color).is_equal(looks[1].skin_color)
 
 
+func test_a_passenger_has_one_of_their_race_s_heads_in_its_colour() -> void:
+	for i: int in 30:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = i
+		var passenger := Passenger.new(_type(), _planet, TRIP, FARE, rng)
+		assert_array(AlienLook.HEADS[passenger.race]).contains([passenger.look.head])
+		assert_that(passenger.look.skin_color).is_equal(Race.SKIN_COLORS[passenger.race])
+
+
 func _type(needs: Array[Need] = []) -> PassengerType:
 	var kind := PassengerType.new()
 	kind.needs = needs

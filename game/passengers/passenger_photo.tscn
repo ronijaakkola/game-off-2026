@@ -16,7 +16,7 @@ shadow_offset = Vector2(1, 2)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
 resource_local_to_scene = true
 shader = ExtResource("2_backdrop")
-shader_parameter/planet_color = null
+shader_parameter/backdrop_color = null
 shader_parameter/shadow_color = null
 shader_parameter/seed = null
 

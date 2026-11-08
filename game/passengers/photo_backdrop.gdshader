@@ -1,10 +1,10 @@
 shader_type canvas_item;
-// A portrait photo's background, as if snapped on a planet with the focus on the face:
-// a sky in a tint of the planet's colour, a few soft out-of-focus lights, and the
-// planet's blurred horizon along the bottom. Its edges fade over one pixel, so it stays
+// A portrait photo's background, as if snapped outdoors with the focus on the face: a sky
+// in a tint of the passenger's race's backdrop colour, a few soft out-of-focus lights,
+// and a blurred horizon along the bottom. Its edges fade over one pixel, so it stays
 // smooth when the frame is tilted.
 
-uniform vec3 planet_color : source_color = vec3(0.82, 0.8, 0.93);
+uniform vec3 backdrop_color : source_color = vec3(0.82, 0.8, 0.93);
 // The night side multiply shared with the planets.
 uniform vec3 shadow_color : source_color = vec3(0.5, 0.45, 0.78);
 // Places the lights, so each photo differs.
@@ -15,10 +15,10 @@ float hash(float n) {
 }
 
 void fragment() {
-	// A touch of the night tint keeps a pale planet's sky apart from the white frame.
-	vec3 sky = mix(planet_color, vec3(1.0), 0.3) * mix(vec3(1.0), shadow_color, 0.22);
-	vec3 deep = planet_color * shadow_color;
-	vec3 col = mix(sky, planet_color, UV.y * 0.6);
+	// A touch of the night tint keeps a pale sky apart from the white frame.
+	vec3 sky = mix(backdrop_color, vec3(1.0), 0.3) * mix(vec3(1.0), shadow_color, 0.22);
+	vec3 deep = backdrop_color * shadow_color;
+	vec3 col = mix(sky, backdrop_color, UV.y * 0.6);
 
 	// Out-of-focus lights: soft discs, some bright, some deep.
 	for (int i = 0; i < 4; i++) {
@@ -30,9 +30,9 @@ void fragment() {
 		col = mix(col, tint, blob * 0.3);
 	}
 
-	// The planet's blurred horizon, a wide curve along the bottom.
+	// The blurred horizon, a wide curve along the bottom.
 	float ground = length((UV - vec2(0.5, 1.75)) * vec2(0.55, 1.0));
-	col = mix(col, mix(planet_color, deep, 0.35), 1.0 - smoothstep(0.82, 1.02, ground));
+	col = mix(col, mix(backdrop_color, deep, 0.35), 1.0 - smoothstep(0.82, 1.02, ground));
 
 	COLOR.rgb = col;
 	vec2 edge = min(UV, 1.0 - UV) / max(fwidth(UV), vec2(1e-5));

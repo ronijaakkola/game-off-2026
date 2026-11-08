@@ -1,15 +1,29 @@
 class_name AlienLook
 extends RefCounted
-## What a passenger looks like in their portrait: a head shape and an eye style, for now
-## each picked at random, and the skin colour of their [Race].
+## What a passenger looks like in their portrait: one of their [Race]'s head shapes and an
+## eye style, for now each picked at random, and their race's skin colour.
 
-const HEADS: Array[PackedScene] = [
-	preload("res://game/passengers/models/head_dome.glb"),
-	preload("res://game/passengers/models/head_blob.glb"),
-	preload("res://game/passengers/models/head_stalks.glb"),
-	preload("res://game/passengers/models/head_bean.glb"),
-	preload("res://game/passengers/models/head_hammer.glb"),
-]
+## Each race's head shapes. A race's heads share a build, so its shape shows the race as
+## well as its colour, and differ in a detail. Blue are tall and smooth with eyes in the
+## face; orange are low mounds with no neck; green have a thin neck, with their eyes out on
+## the ends of stalks or a bar.
+const HEADS: Dictionary[Race.Type, Array] = {
+	Race.Type.BLUE:
+	[
+		preload("res://game/passengers/models/head_dome.glb"),
+		preload("res://game/passengers/models/head_bean.glb"),
+	],
+	Race.Type.ORANGE:
+	[
+		preload("res://game/passengers/models/head_blob.glb"),
+		preload("res://game/passengers/models/head_mound.glb"),
+	],
+	Race.Type.GREEN:
+	[
+		preload("res://game/passengers/models/head_stalks.glb"),
+		preload("res://game/passengers/models/head_hammer.glb"),
+	],
+}
 const EYE_STYLES: Array[AlienEyeStyle] = [
 	preload("res://game/passengers/eye_styles/googly.tres"),
 	preload("res://game/passengers/eye_styles/bead.tres"),
@@ -19,10 +33,12 @@ var eye_style: AlienEyeStyle
 var skin_color: Color
 
 
-## A look in [param race]'s skin colour, with every other part picked by [param rng].
+## A look in [param race]'s skin colour and one of its head shapes, with every other part
+## picked by [param rng].
 static func random(rng: RandomNumberGenerator, race: Race.Type) -> AlienLook:
 	var look := AlienLook.new()
-	look.head = HEADS[rng.randi_range(0, HEADS.size() - 1)]
+	var heads := HEADS[race]
+	look.head = heads[rng.randi_range(0, heads.size() - 1)] as PackedScene
 	look.eye_style = EYE_STYLES[rng.randi_range(0, EYE_STYLES.size() - 1)]
 	look.skin_color = Race.SKIN_COLORS[race]
 	return look
