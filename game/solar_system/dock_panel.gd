@@ -2,12 +2,12 @@ class_name DockPanel
 extends Control
 ## What the bus can do at the planet it is docked at, just above the bus status in the
 ## bottom right corner: the planet's icon and name, then, where the planet sells fuel, a
-## button to hold down to refuel, then who waits there: a row for each passenger, longest
-## waiting first, with their portrait and a button to pick them up, and a button to pick up
-## everyone that fits. The parent sets [member planet] while the bus is docked or charging.
-## The board buttons are off while every seat is taken. It only asks: the parent picks the
-## passenger up, pumps the fuel while [method is_fuel_held], and turns the fuel button on
-## or off with [method show_fuel].
+## button to hold down to refuel and a faint line under it, then who waits there: a row
+## for each passenger, longest waiting first, with their portrait and a button to pick them
+## up, and a button to pick up everyone that fits. The parent sets [member planet] while
+## the bus is docked or charging. The board buttons are off while every seat is taken. It
+## only asks: the parent picks the passenger up, pumps the fuel while
+## [method is_fuel_held], and turns the fuel button on or off with [method show_fuel].
 ## It slides in from the right when [member planet] is set and back out when it is
 ## cleared. A row whose passenger boards slides out to the right, clipped by the card, then
 ## closes up. The card fits what it holds every frame, so it shrinks as smoothly as the row
@@ -151,6 +151,7 @@ func _rebuild() -> void:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
 		(%FuelButton as Control).visible = _shown.sells_fuel
+		(%FuelRule as Control).visible = _shown.sells_fuel
 	_sync_rows()
 
 

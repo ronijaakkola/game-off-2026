@@ -24,12 +24,12 @@ func test_holding_refuel_at_the_docked_planet_buys_fuel_until_let_go() -> void:
 	_send_click(MOUSE_BUTTON_LEFT, at)
 	await runner.simulate_frames(30, 30)
 	_send_release(MOUSE_BUTTON_LEFT, at)
-	await runner.simulate_frames(1)
+	await runner.simulate_frames(2)
 
 	var bought := tank.fuel - tank.capacity * 0.5
 	assert_float(bought).is_greater(5.0)
 	assert_float(tank.fuel).is_less(tank.capacity)
-	# Whole credits go as they add up; the rest waits for the next drop.
+	# The bill goes once let go, in whole credits; the rest waits for the next refuel.
 	assert_int(counter.credits).is_equal(100 - floori(bought * ember.fuel_price))
 	var held_to := tank.fuel
 	await runner.simulate_frames(20, 30)
@@ -86,10 +86,11 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 
 	_send_click(MOUSE_BUTTON_LEFT, at)
 	await runner.simulate_frames(30, 30)
-	# The label shows the fuel while held, at most a morph behind it.
+	# The label shows the fuel while held, at most a morph behind it, and the bill waits.
 	assert_str(label.text).ends_with("%")
+	assert_int(counter.credits).is_equal(100)
 	_send_release(MOUSE_BUTTON_LEFT, at)
-	await runner.simulate_frames(1)
+	await runner.simulate_frames(2)
 
 	var bought := tank.fuel - tank.capacity * 0.5
 	assert_float(bought).is_greater(5.0)
@@ -113,6 +114,7 @@ func test_the_dock_panel_has_no_fuel_button_where_no_fuel_is_sold() -> void:
 	var button := runner.find_child("FuelButton") as Button
 	assert_bool((runner.find_child("DockPanel") as Control).visible).is_true()
 	assert_bool(button.visible).is_false()
+	assert_bool((runner.find_child("FuelRule") as Control).visible).is_false()
 
 
 # Where a viewport point is in window pixels, which a sent event carries: the viewport's

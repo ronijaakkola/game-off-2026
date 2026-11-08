@@ -5,6 +5,10 @@
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="PackedScene" uid="uid://bbs2kxbdg7qyr" path="res://game/solar_system/fuel_button.tscn" id="4_fuel"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
+content_margin_top = 1.0
+bg_color = Color(1, 1, 1, 0.1)
+
 [node name="DockPanel" type="Control" unique_id=1953939187]
 visible = false
 layout_mode = 3
@@ -53,6 +57,13 @@ text = "?"
 [node name="FuelButton" parent="Card/Clip/Content" unique_id=1671080909 instance=ExtResource("4_fuel")]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="FuelRule" type="Panel" parent="Card/Clip/Content" unique_id=1536806567]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
 
 [node name="List" type="MarginContainer" parent="Card/Clip/Content" unique_id=526103822]
 layout_mode = 2

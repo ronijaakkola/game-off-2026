@@ -2,8 +2,10 @@ class_name FuelPump
 extends Node
 ## Sells the bus fuel at the planet it is docked at while the player holds a fuel button:
 ## fuel flows slowly at first and faster the longer they hold, and costs the planet's fuel
-## price, taken from the credits a whole credit at a time. What is left under a credit
-## carries over to the next refuel. The parent says each frame whether a button is held.
+## price. The bill is paid once the pump stops, when they let go, the tank is full, the
+## credits run out or the bus leaves: the whole credits it adds up to come off the credits
+## together, and what is left under a credit carries over to the next refuel. The parent
+## says each frame whether a button is held.
 
 ## Fuel a second the pump gives as the button goes down, the most it speeds up to, and the
 ## seconds it takes to get there.
@@ -13,7 +15,8 @@ const RAMP_SECONDS := 1.5
 
 # Seconds the pump has run since the button went down.
 var _pump_time := 0.0
-# Credits owed for fuel pumped but not yet taken: under one, since whole ones go at once.
+# Credits owed for fuel pumped but not yet paid: this refuel's bill while the pump runs,
+# and under one credit, carried over, once it has stopped.
 var _owed := 0.0
 
 
@@ -29,11 +32,11 @@ func get_stop(planet: Planet, tank: FuelTank, counter: CreditsCounter) -> String
 
 
 ## Pumps [param delta] seconds of fuel into [param tank] at [param planet] while
-## [param held] and nothing stops it, and takes the credits from [param counter].
-## Otherwise the pump stops, and starts slow again next time.
+## [param held] and nothing stops it, adding to the bill. Otherwise the pump stops and pays
+## the bill from [param counter], and starts slow again next time.
 func run(delta: float, planet: Planet, held: bool, tank: FuelTank, counter: CreditsCounter) -> void:
 	if not held or not get_stop(planet, tank, counter).is_empty():
-		_pump_time = 0.0
+		stop(counter)
 		return
 	_pump_time += delta
 	var ramp := clampf(_pump_time / RAMP_SECONDS, 0.0, 1.0)
@@ -41,6 +44,11 @@ func run(delta: float, planet: Planet, held: bool, tank: FuelTank, counter: Cred
 	amount = minf(amount, tank.capacity - tank.fuel)
 	tank.refuel(amount)
 	_owed += amount * planet.fuel_price
+
+
+## Stops the pump, if it runs, and pays its bill from [param counter] in whole credits.
+func stop(counter: CreditsCounter) -> void:
+	_pump_time = 0.0
 	var whole := floori(_owed)
 	if whole > 0:
 		counter.spend(whole)

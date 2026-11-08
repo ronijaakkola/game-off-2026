@@ -350,6 +350,8 @@ func _run_fuel_pump(delta: float) -> void:
 	if docked:
 		var held := dock_panel.is_fuel_held() or (open == docked and panel.is_refuel_held())
 		pump.run(delta, docked, held, tank, counter)
+	else:
+		pump.stop(counter)
 	if not open:
 		return
 	var open_stop := stop if open == docked else "Dock here to refuel."
