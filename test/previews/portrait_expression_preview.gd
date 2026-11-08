@@ -74,7 +74,9 @@ func _passenger(head: int, patience: float, home: Planet) -> Passenger:
 	passenger.look.head = AlienLook.HEADS[head]
 	var style := head + (1 if "swap" in OS.get_cmdline_user_args() else 0)
 	passenger.look.eye_style = AlienLook.EYE_STYLES[style % AlienLook.EYE_STYLES.size()]
-	passenger.look.skin_color = AlienLook.SKIN_COLORS[head % AlienLook.SKIN_COLORS.size()]
+	var races := Race.Type.values()
+	passenger.race = races[head % races.size()] as Race.Type
+	passenger.look.skin_color = Race.SKIN_COLORS[passenger.race]
 	return passenger
 
 

@@ -46,6 +46,8 @@ var request: Need
 ## Whether they are asleep: their activity is one of the type's sleep lines. A request
 ## wakes them.
 var asleep := false
+## Their race: their skin colour, and the research point delivering them earns.
+var race: Race.Type
 ## What their portrait acts out: eating or drinking while a served need lasts.
 var action := Need.Action.NONE
 ## What they look like in their portrait.
@@ -65,7 +67,7 @@ var _departed := false
 ## A passenger of [param kind] going to [param to]. Their patience starts at
 ## [param trip_seconds], the direct trip time, times the type's slack, and their fare at
 ## [param base_fare] times the type's multiplier. [param rng] picks the name, the lines,
-## the timers and the look; pass a seeded one for a repeatable ride.
+## the timers, the race and the look; pass a seeded one for a repeatable ride.
 func _init(
 	kind: PassengerType,
 	to: Planet,
@@ -84,7 +86,8 @@ func _init(
 		_need_timers.append(_interval(need))
 	activity = BOARDING_LINE
 	_activity_left = BOARDING_SECONDS
-	look = AlienLook.random(_rng)
+	race = Race.random(_rng)
+	look = AlienLook.random(_rng, race)
 
 
 ## The mood for [param fraction] of patience left: happy at 60 % or more, okay at 30 % or

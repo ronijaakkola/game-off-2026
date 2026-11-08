@@ -105,8 +105,16 @@ The stars, from 0 to 5, a passenger gives the ride on getting off. The player's 
 _Avoid_: reputation, review, score
 
 **Portrait**:
-A passenger's alien head and shoulders, shown in a photo frame on their card: a head shape, an eye style and a race colour (their **look**). `AlienPortrait` in code.
+A passenger's alien head and shoulders, shown in a photo frame on their card: a head shape, an eye style and their **race**'s skin colour (their **look**). `AlienPortrait` in code.
 _Avoid_: avatar, face, picture
+
+**Race**:
+Which kind of alien a passenger is, shown only as their skin colour: teal, coral or mustard. Delivering them earns a research point of it. `Race.Type` in code.
+_Avoid_: species, colour (that is how it shows), passenger type (fare, patience and needs)
+
+**Research point**:
+What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `ResearchCounter` in code.
+_Avoid_: science, XP, tech points
 
 **Need**:
 Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves.

@@ -17,7 +17,8 @@ extends Node3D
 ## two is open at a time: opening either closes the other.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one, pay and rate the ride,
-## which goes into the average rating beside the credits. Under each planet
+## which goes into the average rating beside the credits, and earn a research point of
+## their race, whatever their rating. Under each planet
 ## where someone waits, a small person and a number say how many. While the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
 ## picks them up one by one while seats are free; the row under the pointer, or a clicked
@@ -410,6 +411,7 @@ func _debug_toggle_trait(type: BusTraits.Type) -> void:
 func _on_delivered(passenger: Passenger, payout: int) -> void:
 	(%CreditsCounter as CreditsCounter).add(payout)
 	(%RatingCounter as RatingCounter).add(passenger.get_rating())
+	(%ResearchCounter as ResearchCounter).add(passenger.race)
 
 
 func _on_stop_finished() -> void:
