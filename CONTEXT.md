@@ -64,6 +64,10 @@ _Avoid_: selected planet, focused planet, planet view
 The panel just above the bus status while the bus is docked or charging, for what it can do at that planet: for now, picking up the passengers waiting there, one by one or all at once. `DockPanel` in code.
 _Avoid_: boarding popup, station menu, planet panel (that is the open planet's)
 
+**Debug panel**:
+A side panel of testing buttons, opened with F2, that each scene fills with its own. It ships in every build until the game is released. `DebugPanel` in code.
+_Avoid_: cheat menu, dev menu, dev console (that is LimboConsole's, F1)
+
 **Fuel**:
 What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the open planet's panel, at that planet's **fuel price**.
 _Avoid_: energy, gas, charge (that is the frameshift drive's)

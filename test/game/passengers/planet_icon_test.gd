@@ -30,3 +30,16 @@ func test_an_icon_given_a_material_by_its_scene_logs_an_error() -> void:
 			"SharedIcon: PlanetIcon makes its own material; remove the one its scene sets"
 		)
 	)
+
+
+func test_packing_an_icon_saves_no_material() -> void:
+	# Saving a scene packs its nodes without adding them to the tree, as check.py ids does.
+	var icon: PlanetIcon = auto_free(PlanetIcon.new())
+	var packed := PackedScene.new()
+	assert_int(packed.pack(icon)).is_equal(OK)
+
+	var state := packed.get_state()
+	var saved: Array[StringName] = []
+	for i: int in state.get_node_property_count(0):
+		saved.append(state.get_node_property_name(0, i))
+	assert_array(saved).not_contains([&"material"])
