@@ -17,6 +17,9 @@ extends Node3D
 ## fits across the rect. The host blends to it and, on [method release_focus], back to
 ## %Shot, which waited where it was: pan and zoom do nothing while the rig is focused.
 
+## The camera has finished blending in to a focused target, and follows it from here on.
+signal focus_blend_finished
+
 ## %FocusShot's priority while focused, over %Shot's.
 const FOCUSED_PRIORITY := 2
 
@@ -70,6 +73,7 @@ func _ready() -> void:
 	_target_distance = clampf(distance, min_distance, max_distance)
 	distance = _target_distance
 	_place_shot()
+	(%FocusShot as PhantomCamera3D).tween_completed.connect(focus_blend_finished.emit)
 	get_window().mouse_exited.connect(_on_pointer_lost)
 	get_window().focus_exited.connect(_on_pointer_lost)
 

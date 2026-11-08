@@ -181,12 +181,14 @@ func test_open_planet_sits_left_of_the_panel_and_left_click_on_space_closes_it()
 	var terra := runner.find_child("Terra") as Planet
 	var camera := runner.find_child("Camera") as Camera3D
 	var panel := runner.find_child("PlanetPanel") as PlanetPanel
+	var rig := runner.find_child("CameraRig") as CameraRig
 	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
-	await await_millis(1200)
+	await await_signal_on(rig, "focus_blend_finished", [], 5000)
+	# Read at a frame's start: mid-frame, Terra has moved but the camera not yet after it.
+	await get_tree().process_frame
 
 	var on_screen := camera.unproject_position(terra.get_body_global_position())
 	assert_float(on_screen.x).is_less(panel.get_global_rect().position.x)
-	var rig := runner.find_child("CameraRig") as CameraRig
 	assert_float(on_screen.x).is_equal_approx(rig.focus_rect.get_center().x, 2.0)
 	# In the middle of the space left of the panel.
 	assert_float(on_screen.x).is_equal_approx(panel.get_global_rect().position.x * 0.5, 2.0)
