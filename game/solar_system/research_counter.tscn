@@ -4,8 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 
 [node name="ResearchCounter" type="HBoxContainer" unique_id=351271388]
-size_flags_vertical = 0
 mouse_filter = 2
 theme = ExtResource("2_theme")
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 script = ExtResource("1_counter")

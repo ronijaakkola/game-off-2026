@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## The average rating beside the credits: a dash until the first rating, then the mean of
+## The average rating in the resource bar: a dash until the first rating, then the mean of
 ## every rating to one decimal. Like the credits, ratings collect in a gain under it that
 ## shows how far the average moved, and on commit the average moves while the gain fades.
 

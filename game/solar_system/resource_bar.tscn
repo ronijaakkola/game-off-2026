@@ -1,0 +1,80 @@
+[gd_scene format=3 uid="uid://bqs31mawd7fca"]
+
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="1_theme"]
+[ext_resource type="Script" uid="uid://bet88gfdpqifx" path="res://game/solar_system/resource_bar.gd" id="5_script"]
+[ext_resource type="Shader" uid="uid://c5dwbr4kdirnp" path="res://game/solar_system/resource_bar.gdshader" id="6_glass"]
+[ext_resource type="PackedScene" uid="uid://dbexovw5obyax" path="res://game/solar_system/credits_counter.tscn" id="7_credits"]
+[ext_resource type="PackedScene" uid="uid://b225tbpcnfsxu" path="res://game/solar_system/research_counter.tscn" id="8_research"]
+[ext_resource type="PackedScene" uid="uid://jrqbnobo7om0" path="res://game/solar_system/rating_counter.tscn" id="9_rating"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glass"]
+shader = ExtResource("6_glass")
+shader_parameter/size = null
+shader_parameter/blur_lod = null
+shader_parameter/fill_color = null
+shader_parameter/border_color = null
+shader_parameter/border_width = null
+shader_parameter/shadow_color = null
+shader_parameter/shadow_offset = null
+shader_parameter/shadow_blur = null
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_canvas"]
+content_margin_left = 14.0
+content_margin_top = 7.0
+content_margin_right = 14.0
+content_margin_bottom = 7.0
+expand_margin_left = 24.0
+expand_margin_top = 24.0
+expand_margin_right = 24.0
+expand_margin_bottom = 36.0
+anti_aliasing = false
+
+[node name="ResourceBar" type="PanelContainer" unique_id=234811527]
+material = SubResource("ShaderMaterial_glass")
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -16.0
+offset_top = 12.0
+offset_right = -16.0
+grow_horizontal = 0
+mouse_filter = 2
+theme = ExtResource("1_theme")
+theme_override_styles/panel = SubResource("StyleBoxFlat_canvas")
+script = ExtResource("5_script")
+
+[node name="Track" type="Control" parent="." unique_id=1410024801]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Items" type="HBoxContainer" parent="Track" unique_id=1668883652]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="CreditsCounter" parent="Track/Items" unique_id=507477909 instance=ExtResource("7_credits")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Divider" type="ColorRect" parent="Track/Items" unique_id=1151127882]
+custom_minimum_size = Vector2(1, 17)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+color = Color(1, 1, 1, 0.15)
+
+[node name="ResearchCounter" parent="Track/Items" unique_id=284223634 instance=ExtResource("8_research")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Divider2" type="ColorRect" parent="Track/Items" unique_id=98256555]
+custom_minimum_size = Vector2(1, 17)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+color = Color(1, 1, 1, 0.15)
+
+[node name="RatingCounter" parent="Track/Items" unique_id=1919033065 instance=ExtResource("9_rating")]
+unique_name_in_owner = true
+layout_mode = 2
