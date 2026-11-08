@@ -6,7 +6,7 @@ extends Node3D
 ## eyes shut and the head nods forward; on a moving bus, the bust leans with the push it
 ## feels and sways back. Angry, the lids slant into a frown over smaller pupils, the skin
 ## flushes red and the head trembles past halfway; joyful, lower lids rise so the eyes
-## smile into crescents, and the head bobs.
+## smile into crescents, and the head bobs. Content, they beam that way now and then.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
@@ -41,6 +41,12 @@ const EXPRESSION_SPEED := 3.0
 const ANGRY_OPEN := 0.8
 const ANGRY_PUPIL := 0.7
 const ANGRY_FLUSH := 0.6
+## At full joy, how big the pupils are, and how far up the eyes look, from -1 to 1.
+const JOYFUL_PUPIL := 1.15
+const JOYFUL_LOOK := 0.35
+## Content, how long each beam lasts, and the wait between them, in seconds: a range each.
+const BEAM_SECONDS := Vector2(1.2, 2.0)
+const BEAM_WAIT := Vector2(3.0, 7.0)
 const FLUSH_COLOR := Color(0.95, 0.15, 0.2)
 ## Past half anger, the head trembles: how fast, and how far at full anger, in radians.
 const TREMBLE_SPEED := 45.0
@@ -79,6 +85,9 @@ const BODY_LURCH := 0.35
 @export_range(0.0, 1.0) var anger := 0.0
 ## How joyful they look, from 0 to 1. The face blends toward it.
 @export_range(0.0, 1.0) var joy := 0.0
+## Whether they are content: now and then they beam with full joy for a moment, as they
+## blink. A partial joy doesn't read at a card's size, so contentment is these moments.
+@export var content := false
 ## The push they feel on the bus, in units per second squared: +x toward their own right
 ## (the camera's left, since they face it) and +y forward, toward the camera. The bust
 ## leans with it on a spring, so a jolt makes it sway.
@@ -118,6 +127,9 @@ var _lurch_velocity := Vector2.ZERO
 # How angry and how joyful the face looks now, blending toward anger and joy.
 var _anger := 0.0
 var _joy := 0.0
+# Seconds until the next beam while content, and seconds left of the current one.
+var _beam_in := randf_range(0.5, 3.0)
+var _beam_left := 0.0
 
 
 func _ready() -> void:
@@ -211,7 +223,7 @@ func _process(delta: float) -> void:
 	var open := lerpf(eye_openness, 0.0, _sleep) * lerpf(1.0, ANGRY_OPEN, _anger)
 	open *= 1.0 - _blink
 	_set_eyes(&"open", lerpf(open, 1.0, _startle))
-	_set_eyes(&"look", _look)
+	_set_eyes(&"look", _look + Vector2(0.0, JOYFUL_LOOK * _joy))
 	for eye: MeshInstance3D in eyes:
 		eye.scale = Vector3.ONE * (1.0 + _startle * 0.25)
 
@@ -266,11 +278,18 @@ func startle() -> void:
 func _show_expression(delta: float) -> void:
 	var anger_was := _anger
 	_anger = move_toward(_anger, anger, delta * EXPRESSION_SPEED)
-	_joy = move_toward(_joy, joy, delta * EXPRESSION_SPEED)
+	_beam_left -= delta
+	if content and not asleep:
+		_beam_in -= delta
+		if _beam_in <= 0.0:
+			_beam_left = randf_range(BEAM_SECONDS.x, BEAM_SECONDS.y)
+			_beam_in = _beam_left + randf_range(BEAM_WAIT.x, BEAM_WAIT.y)
+	var beaming := content and _beam_left > 0.0
+	_joy = move_toward(_joy, 1.0 if beaming else joy, delta * EXPRESSION_SPEED)
 	if _anger != anger_was:
 		_show_skin()
 	_set_eyes(&"anger", _anger)
-	_set_eyes(&"pupil_scale", lerpf(1.0, ANGRY_PUPIL, _anger))
+	_set_eyes(&"pupil_scale", lerpf(1.0, ANGRY_PUPIL, _anger) * lerpf(1.0, JOYFUL_PUPIL, _joy))
 	_set_eyes(&"joy", _joy)
 
 

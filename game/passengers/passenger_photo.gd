@@ -6,8 +6,8 @@ extends Control
 ## while it is in the tree and gives it back when it leaves, so a freed photo frees its
 ## slot. When the studio is full it waits for the next free slot. Without a studio or a
 ## passenger the frame stays empty. While the passenger rides, it shows on the portrait
-## every frame whether they are asleep, how angry their mood makes them, and the push they
-## feel on the bus.
+## every frame whether they are asleep, how angry or content their mood makes them, and
+## the push they feel on the bus.
 
 ## The photo's tilt, in degrees either way.
 const TILT_MIN := 0.5
@@ -57,6 +57,7 @@ func _process(_delta: float) -> void:
 		return
 	portrait.asleep = passenger.asleep
 	portrait.anger = MOOD_ANGER.get(passenger.get_mood(), 0.0)
+	portrait.content = passenger.get_mood() == Passenger.Mood.HAPPY
 	portrait.felt_acceleration = studio.felt_acceleration if riding else Vector2.ZERO
 
 

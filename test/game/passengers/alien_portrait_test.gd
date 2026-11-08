@@ -128,12 +128,13 @@ func test_angry_the_lids_slant_toward_the_middle_and_the_skin_flushes() -> void:
 	assert_float(lid.r).is_greater(portrait.skin_color.r)
 
 
-func test_the_expression_preview_shows_each_head_calm_annoyed_furious_and_joyful() -> void:
+func test_the_expression_preview_shows_each_head_okay_happy_annoyed_furious_and_joyful() -> void:
 	var runner := scene_runner(EXPRESSIONS)
 	await runner.simulate_frames(40, 50)
 
 	var angers: Array[float] = []
 	var joys: Array[float] = []
+	var contents: Array[bool] = []
 	for node: Node in runner.scene().get_children():
 		var photo := node as PassengerPhoto
 		if not photo:
@@ -141,7 +142,30 @@ func test_the_expression_preview_shows_each_head_calm_annoyed_furious_and_joyful
 		var portrait := photo.studio.get_portrait(photo.get_photo() as AtlasTexture)
 		angers.append(portrait.anger)
 		joys.append(portrait.joy)
-	var row_anger: Array[float] = [0.0, 0.5, 1.0, 0.0]
-	var row_joy: Array[float] = [0.0, 0.0, 0.0, 1.0]
+		contents.append(portrait.content)
+	var row_anger: Array[float] = [0.0, 0.0, 0.5, 1.0, 0.0]
+	var row_joy: Array[float] = [0.0, 0.0, 0.0, 0.0, 1.0]
+	var row_content: Array[bool] = [false, true, false, false, false]
 	assert_array(angers).is_equal(row_anger + row_anger + row_anger + row_anger + row_anger)
 	assert_array(joys).is_equal(row_joy + row_joy + row_joy + row_joy + row_joy)
+	assert_array(contents).is_equal(
+		row_content + row_content + row_content + row_content + row_content
+	)
+
+
+func test_content_they_beam_now_and_then_and_stop_when_not() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(1)
+	var portrait := runner.scene() as AlienPortrait
+	var eye := portrait.eyes[0].material_override as ShaderMaterial
+
+	portrait.content = true
+	var widest := 0.0
+	for frame: int in 100:
+		await runner.simulate_frames(1, 100)
+		widest = maxf(widest, eye.get_shader_parameter(&"joy") as float)
+	assert_float(widest).is_equal_approx(1.0, 0.01)
+
+	portrait.content = false
+	await runner.simulate_frames(10, 100)
+	assert_float(eye.get_shader_parameter(&"joy") as float).is_equal_approx(0.0, 0.01)
