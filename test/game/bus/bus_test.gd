@@ -289,7 +289,117 @@ func test_on_board_speeding_up_pushes_back_a_turn_pushes_out_and_braking_forward
 	assert_vector(_bus.get_felt_acceleration()).is_equal_approx(Vector2.ZERO, Vector2.ONE * 0.01)
 
 
+func test_flying_burns_fuel_by_distance_and_charging_and_parking_burn_none() -> void:
+	var tank := _bus.get_fuel_tank()
+	_bus.plot_course(RouteStop.at_planet(_near))
+	var flown := 0.0
+	for i: int in MAX_STEPS:
+		var before := _bus.global_position
+		_bus._process(STEP)
+		if _bus.state == FrameshiftBus.State.FLYING:
+			flown += before.distance_to(_bus.global_position)
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			break
+	assert_object(_bus.get_docked_planet()).is_same(_near)
+	assert_float(flown).is_greater(4.0)
+	assert_float(tank.fuel).is_equal_approx(tank.capacity - flown * tank.burn_per_unit, 0.01)
+
+
+func test_running_dry_in_flight_stops_the_bus_and_asks_for_a_tow() -> void:
+	var tank := _bus.get_fuel_tank()
+	# Enough for 2 units of the trip, which is longer.
+	tank.fuel = 2.0 * tank.burn_per_unit
+	monitor_signals(_bus)
+	_bus.plot_course(RouteStop.at_planet(_far))
+	assert_bool(_step_until(FrameshiftBus.State.HOLDING)).is_true()
+	await assert_signal(_bus).is_emitted("ran_out_of_fuel")
+	assert_bool(tank.is_empty()).is_true()
+	assert_array(_bus.get_route_stops()).is_empty()
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.HOLDING)
+
+
+func test_a_tow_takes_no_course_changes_and_docks_with_a_full_tank() -> void:
+	var tank := _bus.get_fuel_tank()
+	tank.fuel = 2.0 * tank.burn_per_unit
+	_bus.plot_course(RouteStop.at_planet(_far))
+	assert_bool(_step_until(FrameshiftBus.State.HOLDING)).is_true()
+	monitor_signals(_bus)
+	_bus.tow_to(_near)
+	_bus.plot_course(RouteStop.at_planet(_far))
+	_bus.cancel_course()
+	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+	assert_bool(_step_until_docked()).is_true()
+	assert_object(_bus.get_docked_planet()).is_same(_near)
+	assert_float(tank.fuel).is_equal(tank.capacity)
+	assert_bool(_bus.is_towing()).is_false()
+	await assert_signal(_bus).is_emitted("towed", [_near])
+
+
+func test_emptying_the_tank_at_a_planet_stops_a_charge_and_calls_no_tow() -> void:
+	monitor_signals(_bus)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	_bus.get_fuel_tank().drain()
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_array(_bus.get_route_stops()).is_empty()
+	# No course until it refuels.
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	await assert_signal(_bus).wait_until(50).is_not_emitted("ran_out_of_fuel")
+
+
+func test_a_tow_catches_a_planet_that_orbits_faster_than_the_tow_speed() -> void:
+	_bus.plot_course(RouteStop.at_point(Vector3(0.0, 0.0, 4.0)))
+	assert_bool(_step_until(FrameshiftBus.State.HOLDING)).is_true()
+	# Just ahead of the bus and moving away from it (-z at its start angle), faster than the
+	# tow speed, so the tow chases it from behind.
+	var orbiting := Planet.new()
+	orbiting.orbit_radius = 5.0
+	orbiting.orbit_period = TAU * orbiting.orbit_radius / (_bus.tow_speed * 1.5)
+	orbiting.show_orbit = false
+	orbiting.position = Vector3(-5.0, 0.0, 2.0)
+	_home.get_parent().add_child(orbiting)
+	orbiting.set_process(false)
+	_bus.tow_to(orbiting)
+	var docked := false
+	for i: int in MAX_STEPS * 2:
+		_bus._process(STEP)
+		orbiting._process(STEP)
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			docked = true
+			break
+	assert_bool(docked).is_true()
+	assert_object(_bus.get_docked_planet()).is_same(orbiting)
+	assert_bool(_bus.is_towing()).is_false()
+
+
+func test_a_top_speed_modifier_makes_the_bus_cruise_faster() -> void:
+	var boost := StatModifier.new(BusStats.Type.MAX_SPEED, StatModifier.Kind.PERCENT, 100.0)
+	_bus.get_stats().add_modifier(boost)
+	_bus.plot_course(RouteStop.at_point(Vector3(-40.0, 0.0, 0.0)))
+	assert_bool(_step_until(FrameshiftBus.State.FLYING)).is_true()
+	# Long enough to reach top speed from a standstill.
+	_step_for(3.0)
+	var before := _bus.global_position
+	_step_for(1.0)
+	var flown := before.distance_to(_bus.global_position)
+	assert_float(flown).is_equal_approx(_bus.max_speed * 2.0, 0.02)
+
+
+func test_a_fuel_capacity_modifier_resizes_the_tank() -> void:
+	var tank := _bus.get_fuel_tank()
+	var bigger := StatModifier.new(BusStats.Type.FUEL_CAPACITY, StatModifier.Kind.PERCENT, 50.0)
+	_bus.get_stats().add_modifier(bigger)
+	assert_float(tank.capacity).is_equal_approx(150.0, 0.0001)
+
+
 # A planet that stays where it is put.
+
+
 func _planet(parent: Node3D, at: Vector3) -> Planet:
 	var planet := Planet.new()
 	planet.orbit_radius = 0.0

@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 ## The bus status panel in the solar system: it says what the bus is doing and how many
-## seats are taken, and its button cancels the course.
+## seats are taken and how much fuel is left, and its button cancels the course.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -45,6 +45,22 @@ func test_cancel_while_charging_keeps_the_bus_docked() -> void:
 	assert_int(bus.state).is_equal(FrameshiftBus.State.DOCKED)
 	assert_str(_text(runner, "StateLabel")).is_equal("Docked")
 	assert_bool(button.visible).is_false()
+
+
+func test_shows_the_fuel_left_and_says_when_it_runs_out_at_a_planet() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var tank := (runner.find_child("Bus") as FrameshiftBus).get_fuel_tank()
+	assert_str(_text(runner, "FuelAmount")).is_equal("100%")
+	tank.fuel = tank.capacity * 0.4
+	await runner.simulate_frames(1)
+	assert_str(_text(runner, "FuelAmount")).is_equal("40%")
+
+	tank.drain()
+	await runner.simulate_frames(1)
+
+	assert_str(_text(runner, "FuelAmount")).is_equal("0%")
+	assert_str(_text(runner, "StateLabel")).is_equal("Out of fuel: refuel here")
 
 
 func _text(runner: GdUnitSceneRunner, label: String) -> String:

@@ -60,9 +60,37 @@ _Avoid_: telemetry, logging, metrics
 The planet the player left-clicked to look at: the camera follows it on the left of the screen, and its **planet panel** on the right shows who is waiting there. One at a time. `SolarSystem.open_planet()` in code.
 _Avoid_: selected planet, focused planet, planet view
 
+**Open bus**:
+The bus when the player left-clicked it to look at it: the camera follows it on the left of the screen, and its **bus panel** on the right shows its stats. Opening it closes the open planet, and opening a planet closes it. `SolarSystem.open_bus()`, `BusPanel` in code.
+_Avoid_: selected bus, bus view, bus status (that is the panel in the bottom right)
+
 **Dock panel**:
 The panel just above the bus status while the bus is docked or charging, for what it can do at that planet: for now, picking up the passengers waiting there, one by one or all at once. `DockPanel` in code.
 _Avoid_: boarding popup, station menu, planet panel (that is the open planet's)
+
+**Debug panel**:
+A side panel of testing buttons, opened with F2, that each scene fills with its own. It ships in every build until the game is released. `DebugPanel` in code.
+_Avoid_: cheat menu, dev menu, dev console (that is LimboConsole's, F1)
+
+**Fuel**:
+What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the open planet's panel, at that planet's **fuel price**.
+_Avoid_: energy, gas, charge (that is the frameshift drive's)
+
+**Stat**:
+A number on the bus that upgrades change, such as its top speed: a base value, with **modifiers** applied on top. `Stat` in code; the bus's are its `BusStats`, one of each `BusStats.Type`. Not the stats `Online.add_stat` sends to Talo, which count what players do.
+_Avoid_: attribute, property, Talo stat
+
+**Modifier**:
+One change to one stat, flat (+5, in the stat's units) or a percent (+20 %): an upgrade's effect. The flat ones add to the base first, then the percents add together and scale the sum. `StatModifier` in code.
+_Avoid_: buff, bonus, effect
+
+**Trait**:
+A feature on the bus that an upgrade unlocks, which the bus either has or doesn't, such as the **fuel forecast** (the fuel the course burns, shown over its last stop, `FuelForecast`): the on/off kind of stat. Whatever shows or does the feature asks whether the bus has it first. `BusTraits` in code, one of each `BusTraits.Type`, reached through `BusStats.get_traits()`.
+_Avoid_: perk, flag, unlock (the purchase, not the thing)
+
+**Tow**:
+What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. A **tow ship** (`TowShip`) flies out from the planet, hitches on with a cable and leads the bus in, where it docks with a full tank, for a fee. `FrameshiftBus.tow_to()` moves the bus.
+_Avoid_: rescue, respawn
 
 **Passenger**:
 Someone riding the bus to a destination planet, with a fare, a patience that runs down during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.

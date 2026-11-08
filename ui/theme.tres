@@ -1,8 +1,5 @@
 [gd_resource type="Theme" format=3 uid="uid://67yr7b2dkwjh"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
-bg_color = Color(0, 0, 0, 0.5)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
 bg_color = Color(0, 0, 0, 1)
 
@@ -12,6 +9,20 @@ content_margin_top = 4.0
 content_margin_right = 8.0
 content_margin_bottom = 6.0
 bg_color = Color(0.2, 0.16, 0.32, 0.88)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
+bg_color = Color(0, 0, 0, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_row"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 1, 1, 0.06)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -28,42 +39,31 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_row"]
-content_margin_left = 10.0
-content_margin_top = 6.0
-content_margin_right = 10.0
-content_margin_bottom = 6.0
-bg_color = Color(1, 1, 1, 0.06)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
 [resource]
 default_font_size = 24
 BlackPanel/base_type = &"PanelContainer"
 BlackPanel/styles/panel = SubResource("StyleBoxFlat_black")
-DimPanel/base_type = &"PanelContainer"
-DimPanel/styles/panel = SubResource("StyleBoxFlat_dim")
-TitleLabel/base_type = &"Label"
-TitleLabel/font_sizes/font_size = 64
 CardPanel/base_type = &"PanelContainer"
 CardPanel/styles/panel = SubResource("StyleBoxFlat_card")
+DimPanel/base_type = &"PanelContainer"
+DimPanel/styles/panel = SubResource("StyleBoxFlat_dim")
 FaintLabel/base_type = &"Label"
 FaintLabel/colors/font_color = Color(1, 1, 1, 0.35)
 FaintLabel/font_sizes/font_size = 14
-VBoxContainer/constants/separation = 12
+HeadingLabel/base_type = &"Label"
+HeadingLabel/font_sizes/font_size = 32
+RowPanel/base_type = &"PanelContainer"
+RowPanel/styles/panel = SubResource("StyleBoxFlat_row")
+SheetPanel/base_type = &"PanelContainer"
+SheetPanel/styles/panel = SubResource("StyleBoxFlat_sheet")
+SmallButton/base_type = &"Button"
+SmallButton/font_sizes/font_size = 12
 SmallLabel/base_type = &"Label"
 SmallLabel/font_sizes/font_size = 15
 TinyLabel/base_type = &"Label"
 TinyLabel/font_sizes/font_size = 12
 TinyRichTextLabel/base_type = &"RichTextLabel"
 TinyRichTextLabel/font_sizes/normal_font_size = 12
-SmallButton/base_type = &"Button"
-SmallButton/font_sizes/font_size = 12
-SheetPanel/base_type = &"PanelContainer"
-SheetPanel/styles/panel = SubResource("StyleBoxFlat_sheet")
-RowPanel/base_type = &"PanelContainer"
-RowPanel/styles/panel = SubResource("StyleBoxFlat_row")
-HeadingLabel/base_type = &"Label"
-HeadingLabel/font_sizes/font_size = 32
+TitleLabel/base_type = &"Label"
+TitleLabel/font_sizes/font_size = 64
+VBoxContainer/constants/separation = 12

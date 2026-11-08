@@ -13,12 +13,21 @@ extends Node3D
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
 ## planet is open, the planets' names fade out, and the open planet's white hover border
 ## fades out and stays off; both fade back in when it closes.
+## A left click on the bus opens it the same way, with its stats in its panel. One of the
+## two is open at a time: opening either closes the other.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one and pay. Under each planet
 ## where someone waits, a small person and a number say how many. While the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
 ## picks them up one by one while seats are free. The bus can't charge, and a charge under
 ## way holds, until the stop is over. The game starts with the bus empty.
+## Docked at a planet, the player refuels there from its open planet's panel: fuel flows
+## while they hold the refuel button, slowly at first and faster the longer they hold, and
+## costs the planet's fuel price, taken a credit at a time. It stops when they let go, the
+## tank is full or the credits run out.
+## When the bus runs out of fuel in space, a tow ship comes out from the nearest planet,
+## hitches on and pulls it there, where it docks with a full tank and the tow costs
+## [constant TOW_FEE] credits, or all the player has when that is less.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -37,6 +46,24 @@ const FADE_SECONDS := 0.4
 const CAMERA_HOST_PRIORITY := 300
 ## Pixels between a planet's name and the marker for who waits there.
 const MARKER_GAP_PIXELS := 4.0
+## What a tow costs, in credits.
+const TOW_FEE := 20
+const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
+## Fuel a second the pump gives as the refuel button goes down, the most it speeds up to,
+## and the seconds it takes to get there.
+const PUMP_START_RATE := 12.0
+const PUMP_MAX_RATE := 60.0
+const PUMP_RAMP_SECONDS := 1.5
+## The credits the debug panel's Add credits button gives.
+const DEBUG_CREDITS := 1000
+## The percent of top speed and of the fuel tank the debug panel's stat buttons add or take
+## away, and the seats, on every click.
+const DEBUG_STAT_PERCENT := 20
+const DEBUG_SEATS := 1
+## The debug panel's group for the stat buttons: its own card, opened from the main one.
+const DEBUG_STATS_GROUP := "Stats"
+## The debug panel's group for the trait buttons, one per trait that turns it on or off.
+const DEBUG_TRAITS_GROUP := "Traits"
 
 var _planets: Array[Planet] = []
 # 1 with no planet open, 0 once one is open and the fade is done.
@@ -44,6 +71,10 @@ var _fade := 1.0
 # The planet whose hover border fades: the open one, and after it closes, until the fade
 # is back to 1.
 var _faded_planet: Planet
+# Seconds the pump has run since the refuel button went down.
+var _pump_time := 0.0
+# Credits owed for fuel pumped but not yet taken: under one, since whole ones go at once.
+var _fuel_owed := 0.0
 
 
 func _ready() -> void:
@@ -65,6 +96,9 @@ func _ready() -> void:
 	panel.waiting = %WaitingPassengers as WaitingPassengers
 	panel.close_pressed.connect(close_planet)
 	panel.slide_in_seconds = (%CameraRig as CameraRig).get_focus_seconds()
+	var bus_panel := %BusPanel as BusPanel
+	bus_panel.close_pressed.connect(close_bus)
+	bus_panel.slide_in_seconds = panel.slide_in_seconds
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.waiting = %WaitingPassengers as WaitingPassengers
 	markers.set_planets(_planets)
@@ -72,6 +106,19 @@ func _ready() -> void:
 	dock_panel.waiting = %WaitingPassengers as WaitingPassengers
 	dock_panel.cabin = %Cabin as Cabin
 	dock_panel.board_pressed.connect(_on_board_pressed)
+	var bus := %Bus as FrameshiftBus
+	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
+	bus.towed.connect(_on_bus_towed)
+	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
+	DebugPanel.add_button("Add %d credits" % DEBUG_CREDITS, _debug_add_credits, self)
+	var percent := StatModifier.Kind.PERCENT
+	_add_debug_stat_buttons(BusStats.Type.MAX_SPEED, percent, DEBUG_STAT_PERCENT, "% top speed")
+	_add_debug_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, DEBUG_STAT_PERCENT, "% fuel tank")
+	_add_debug_stat_buttons(BusStats.Type.SEATS, StatModifier.Kind.FLAT, DEBUG_SEATS, " seat")
+	for value: int in BusTraits.Type.values():
+		var text := "Toggle %s" % String(BusTraits.Type.keys()[value]).capitalize().to_lower()
+		var action := _debug_toggle_trait.bind(value as BusTraits.Type)
+		DebugPanel.add_button(text, action, self, DEBUG_TRAITS_GROUP)
 
 
 func _process(delta: float) -> void:
@@ -81,17 +128,26 @@ func _process(delta: float) -> void:
 	(%PortraitStudio as PortraitStudio).felt_acceleration = felt
 	_place_labels()
 	_update_fade(delta)
+	_run_fuel_pump(delta)
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
 	# The panel covers the bottom of the screen where the hint is, until it has slid out.
-	(%HintBox as Control).visible = not (%PlanetPanel as Control).visible
+	(%HintBox as Control).visible = not (
+		(%PlanetPanel as Control).visible or (%BusPanel as Control).visible
+	)
 	var mouse := get_viewport().get_mouse_position()
 	var over_hud := get_viewport().gui_get_hovered_control() != null
-	var under: Planet = null if over_hud else _planet_at(mouse)
+	# What a left click would open shows the white border.
+	var picked: Node3D = null if over_hud else _pick_at(mouse)
+	var under := picked as Planet
 	_place_waiting()
 	var bus := %Bus as FrameshiftBus
-	var marker: RouteStop = null if under or over_hud else _marker_at(mouse)
+	var model := bus.get_model()
+	model.border = picked == bus and not is_bus_open()
+	if model.border:
+		model.outline_width = _pixels_to_world(OUTLINE_PIXELS, bus.global_position)
+	var marker: RouteStop = null if picked or over_hud else _marker_at(mouse)
 	# Only the last stop, the one a right click removes.
 	bus.hovered_stop = marker if marker and marker == bus.get_last_stop() else null
 	var on_route := bus.get_route_planets()
@@ -137,8 +193,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Opens [param planet]: the camera follows it on the left and its panel shows on the
-## right. Opening another planet while one is open moves both on to it.
+## right. Opening another planet while one is open moves both on to it. It closes the bus's
+## panel.
 func open_planet(planet: Planet) -> void:
+	if is_bus_open():
+		(%BusPanel as BusPanel).close()
 	(%PlanetPanel as PlanetPanel).open(planet)
 	var rig := %CameraRig as CameraRig
 	rig.focus_rect = _focus_rect()
@@ -158,32 +217,63 @@ func get_open_planet() -> Planet:
 	return (%PlanetPanel as PlanetPanel).get_planet()
 
 
-# A left click: on a planet opens it, on the open planet or empty space closes it.
+## Opens the bus: the camera follows it on the left and its panel shows its stats on the
+## right. It closes the open planet's panel.
+func open_bus() -> void:
+	if get_open_planet():
+		(%PlanetPanel as PlanetPanel).close()
+	var bus := %Bus as FrameshiftBus
+	(%BusPanel as BusPanel).open(bus)
+	var rig := %CameraRig as CameraRig
+	rig.focus_rect = _focus_rect()
+	rig.focus(bus, FrameshiftBus.RADIUS, FrameshiftBus.RADIUS)
+
+
+## Closes the bus's panel and gives the camera back. Does nothing when it isn't open.
+func close_bus() -> void:
+	if not is_bus_open():
+		return
+	(%BusPanel as BusPanel).close()
+	(%CameraRig as CameraRig).release_focus()
+
+
+func is_bus_open() -> bool:
+	return (%BusPanel as BusPanel).is_open()
+
+
+# A left click: on the bus or a planet opens it, on what is open or on empty space closes
+# it.
 func _select_at(screen_point: Vector2) -> void:
-	var planet := _planet_at(screen_point)
-	if planet and planet != get_open_planet():
+	var picked := _pick_at(screen_point)
+	var planet := picked as Planet
+	if picked is FrameshiftBus and not is_bus_open():
+		open_bus()
+	elif planet and planet != get_open_planet():
 		open_planet(planet)
 	elif get_open_planet():
 		close_planet()
+	elif is_bus_open():
+		close_bus()
 	else:
 		return
 	get_viewport().set_input_as_handled()
 
 
-# Where the open planet is framed: the space left of its panel.
+# Where the open planet or bus is framed: the space left of its panel.
 func _focus_rect() -> Rect2:
 	var screen := get_viewport().get_visible_rect().size
-	var width := screen.x - (%PlanetPanel as PlanetPanel).get_width()
-	return Rect2(0.0, 0.0, width, screen.y)
+	var panel := (%BusPanel if is_bus_open() else %PlanetPanel) as SidePanel
+	return Rect2(0.0, 0.0, screen.x - panel.get_width(), screen.y)
 
 
-# Fades the names, and the open planet's hover border, out while a planet is open and back
-# in after.
+# Fades the names, and the open planet's hover border, out while a planet or the bus is
+# open and back in after.
 func _update_fade(delta: float) -> void:
 	var open := get_open_planet()
 	if open:
 		_faded_planet = open
-	_fade = move_toward(_fade, 0.0 if open else 1.0, delta / FADE_SECONDS)
+	var target := 0.0 if open or is_bus_open() else 1.0
+	_fade = move_toward(_fade, target, delta / FADE_SECONDS)
 	if _fade >= 1.0:
 		_faded_planet = null
 	for planet: Planet in _planets:
@@ -200,6 +290,7 @@ func _start_passengers() -> void:
 	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
+	cabin.follow(bus.get_stats())
 
 
 func _on_bus_docked(planet: Planet) -> void:
@@ -220,6 +311,116 @@ func _on_board_pressed(passenger: Passenger) -> void:
 		return
 	bus.boarding = true
 	cabin.pick_up(passenger)
+
+
+# Sends a tow ship from the planet nearest to the bus now. Once it has hitched on, it tows
+# the bus there.
+func _on_bus_ran_out_of_fuel() -> void:
+	var bus := %Bus as FrameshiftBus
+	var nearest: Planet
+	var nearest_distance := INF
+	for planet: Planet in _planets:
+		var distance := bus.global_position.distance_to(planet.get_body_global_position())
+		if distance < nearest_distance:
+			nearest = planet
+			nearest_distance = distance
+	if not nearest:
+		return
+	var ship := TOW_SHIP.instantiate() as TowShip
+	add_child(ship)
+	ship.hitched.connect(bus.tow_to.bind(nearest))
+	ship.come_for(bus, nearest)
+
+
+func _on_bus_towed(_planet: Planet) -> void:
+	var counter := %CreditsCounter as CreditsCounter
+	counter.credits = maxi(counter.credits - TOW_FEE, 0)
+
+
+# Refuels the bus at the open planet while the panel's refuel button is held and the bus
+# is docked there, and shows the fuel, the price and what stops it in the panel.
+func _run_fuel_pump(delta: float) -> void:
+	var planet := get_open_planet()
+	var panel := %PlanetPanel as PlanetPanel
+	if not planet:
+		_pump_time = 0.0
+		return
+	var bus := %Bus as FrameshiftBus
+	var tank := bus.get_fuel_tank()
+	var counter := %CreditsCounter as CreditsCounter
+	var room := tank.capacity - tank.fuel
+	var affordable := INF
+	if planet.fuel_price > 0.0:
+		affordable = maxf(counter.credits - _fuel_owed, 0.0) / planet.fuel_price
+	var docked_here := bus.is_at_planet() and bus.get_docked_planet() == planet
+	var can_refuel := docked_here and room > 0.0 and affordable > 0.0
+	var note := "%d credits" % counter.credits
+	if not docked_here:
+		note = "Dock here to refuel."
+	elif room <= 0.0:
+		note = "Tank full."
+	elif affordable <= 0.0:
+		note = "Not enough credits."
+	if can_refuel and panel.is_refuel_held():
+		_pump_time += delta
+		var ramp := clampf(_pump_time / PUMP_RAMP_SECONDS, 0.0, 1.0)
+		var amount := minf(lerpf(PUMP_START_RATE, PUMP_MAX_RATE, ramp) * delta, affordable)
+		amount = minf(amount, room)
+		tank.refuel(amount)
+		_fuel_owed += amount * planet.fuel_price
+		var whole := floori(_fuel_owed)
+		if whole > 0:
+			counter.spend(whole)
+			_fuel_owed -= whole
+	else:
+		_pump_time = 0.0
+	var full_tank_cost := ceili(tank.capacity * planet.fuel_price)
+	panel.show_fuel(tank.get_fraction(), full_tank_cost, can_refuel, note)
+
+
+# The debug panel's Empty fuel. Out in space the tow comes at once; at a planet the bus
+# stays until it refuels.
+func _debug_empty_fuel() -> void:
+	(%Bus as FrameshiftBus).get_fuel_tank().drain()
+
+
+# The debug panel's Add credits, shown as a gain that counts into the total, like a fare.
+func _debug_add_credits() -> void:
+	var counter := %CreditsCounter as CreditsCounter
+	counter.add(DEBUG_CREDITS)
+	counter.commit()
+
+
+# A pair of buttons for the type stat on the debug panel's Stats card, "+20% top speed"
+# and "-20% top speed": one adds step, the other takes it away.
+func _add_debug_stat_buttons(
+	type: BusStats.Type, kind: StatModifier.Kind, step: int, what: String
+) -> void:
+	for amount: int in [step, -step]:
+		var text := "%+d%s" % [amount, what]
+		var action := _debug_change_stat.bind(type, kind, amount)
+		DebugPanel.add_button(text, action, self, DEBUG_STATS_GROUP)
+
+
+# The debug panel's stat buttons, each a modifier like an upgrade's, another with every
+# click. Once the stat is at its floor, taking away adds nothing, so the clicks that bring
+# it back up count from there.
+func _debug_change_stat(type: BusStats.Type, kind: StatModifier.Kind, amount: int) -> void:
+	var stats := (%Bus as FrameshiftBus).get_stats()
+	var stat := stats.get_stat(type)
+	if amount < 0 and stat.get_value() <= stat.minimum:
+		return
+	stats.add_modifier(StatModifier.new(type, kind, amount))
+
+
+# The debug panel's trait buttons: gives the bus the trait, as an upgrade would, or takes
+# it back out.
+func _debug_toggle_trait(type: BusTraits.Type) -> void:
+	var traits := (%Bus as FrameshiftBus).get_stats().get_traits()
+	if traits.has(type):
+		traits.remove(type)
+	else:
+		traits.add(type)
 
 
 func _on_delivered(_passenger: Passenger, payout: int) -> void:
@@ -278,6 +479,35 @@ func _marker_at(screen_point: Vector2) -> RouteStop:
 	return null
 
 
+# What a left click at screen_point opens: the bus, a planet, or null. Where the bus and a
+# planet overlap, as when it is docked, whichever centre is nearer wins, so the docked
+# planet stays easy to open.
+func _pick_at(screen_point: Vector2) -> Node3D:
+	var planet := _planet_at(screen_point)
+	if not _is_bus_at(screen_point):
+		return planet
+	var bus := %Bus as FrameshiftBus
+	if not planet:
+		return bus
+	var camera := %Camera as Camera3D
+	var to_bus := screen_point.distance_to(camera.unproject_position(bus.global_position))
+	var to_planet := screen_point.distance_to(
+		camera.unproject_position(planet.get_body_global_position())
+	)
+	return bus if to_bus < to_planet else planet
+
+
+# Whether the bus covers screen_point on screen, give or take PICK_MARGIN.
+func _is_bus_at(screen_point: Vector2) -> bool:
+	var camera := %Camera as Camera3D
+	var center := (%Bus as FrameshiftBus).global_position
+	if camera.is_position_behind(center):
+		return false
+	var on_screen := camera.unproject_position(center)
+	var edge := camera.unproject_position(center + camera.global_basis.x * FrameshiftBus.RADIUS)
+	return on_screen.distance_to(screen_point) <= on_screen.distance_to(edge) + PICK_MARGIN
+
+
 # The nearest planet whose body covers screen_point on screen, give or take PICK_MARGIN.
 func _planet_at(screen_point: Vector2) -> Planet:
 	var camera := %Camera as Camera3D
@@ -300,13 +530,16 @@ func _planet_at(screen_point: Vector2) -> Planet:
 
 
 # Shows the dock panel for the planet the bus waits at, docked or charging, and puts each
-# planet's waiting marker under its name. The markers fade with the names.
+# planet's waiting marker under its name, while the bus has the waiting markers trait. The
+# markers and the fuel forecast fade with the names.
 func _place_waiting() -> void:
 	var bus := %Bus as FrameshiftBus
 	var camera := %Camera as Camera3D
 	(%DockPanel as DockPanel).planet = bus.get_docked_planet() if bus.is_at_planet() else null
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.modulate.a = _fade
+	(%FuelForecast as Control).modulate.a = _fade
+	var unlocked := bus.get_stats().get_traits().has(BusTraits.Type.WAITING_MARKERS)
 	var below := LABEL_PIXELS + MARKER_GAP_PIXELS
 	for planet: Planet in _planets:
 		var center := planet.get_body_global_position()
@@ -316,7 +549,7 @@ func _place_waiting() -> void:
 		var bottom := camera.unproject_position(
 			center - camera.global_basis.y * planet.get_body_radius()
 		)
-		markers.place(planet, bottom + Vector2(0.0, below), _fade > 0.0)
+		markers.place(planet, bottom + Vector2(0.0, below), unlocked and _fade > 0.0)
 
 
 # Hangs each planet's name just under its body on screen, at the same size at any zoom.

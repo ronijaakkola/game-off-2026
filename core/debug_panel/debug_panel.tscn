@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://gsq3kwrgonaq"]
+
+[ext_resource type="Script" uid="uid://5evbvci0j884" path="res://core/debug_panel/debug_panel.gd" id="1_panel"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="DebugPanel" type="CanvasLayer" unique_id=44902290]
+process_mode = 3
+layer = 100
+script = ExtResource("1_panel")
+
+[node name="Root" type="MarginContainer" parent="." unique_id=1050814228]
+unique_name_in_owner = true
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Cards" type="HBoxContainer" parent="Root" unique_id=654574483]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Card" type="PanelContainer" parent="Root/Cards" unique_id=2125484283]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+size_flags_vertical = 8
+theme_type_variation = &"CardPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Root/Cards/Card" unique_id=1695065892]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="Root/Cards/Card/Rows" unique_id=1674533232]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Debug (F2)"
+
+[node name="Buttons" type="VBoxContainer" parent="Root/Cards/Card/Rows" unique_id=942524981]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="EmptyLabel" type="Label" parent="Root/Cards/Card/Rows" unique_id=1458485150]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"FaintLabel"
+text = "No buttons in this scene."

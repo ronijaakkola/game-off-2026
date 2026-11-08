@@ -11,7 +11,7 @@ Folders are by feature:
 | Folder | What goes there |
 |---|---|
 | `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config, and Phantom Camera, vendored without its `examples/` folder. |
-| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`. |
+| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/` | The **example game scene**, replaced on jam day. |
 | `shared/` | Assets used by more than one feature, such as `shared/audio/`. |
@@ -69,6 +69,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
+| `DebugPanel` | `core/debug_panel/` | The **debug panel**: testing buttons that scenes add with `add_button(text, action, scene)`, opened with F2. In every build until release. See Debug panel. |
 | `PhantomCameraManager` | `addons/phantom_camera/` | The Phantom Camera plugin's autoload. Game code never calls it; see Cameras. |
 
 Add an autoload only for a service that must outlive a scene change, or that has exactly one instance game-wide. It lives in `core/<name>/`, works without knowing what the current scene is, and gets a row in this table.
@@ -213,6 +214,15 @@ Godot scenes merge badly, so prevent conflicts:
 `LimboConsole` is left out of the web build, so any script that names it fails to compile there. All console code lives in `core/dev_console/dev_commands.gd`, which is also left out of the web build. The `DevConsole` autoload loads it only when `get_tree().root.get_node_or_null(^"LimboConsole")` exists. Add new console commands there; open the console with F1 in an editor run. F1 is the same key on every keyboard layout; a backtick toggle can't be typed on Nordic layouts.
 
 The web build logs one `Failed to instantiate an autoload` error at startup, for the missing `LimboConsole`. That line is expected.
+
+## Debug panel
+
+`DebugPanel` (`core/debug_panel/`) is a side panel of testing buttons, opened and closed with F2, for anything quicker to test with a click than a console command. It works while paused, and starts closed.
+
+- A scene adds its buttons in `_ready()`: `DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)`. Each button goes when the scene that added it leaves the tree, so the panel never knows which scene runs. Name the scene's handler `_debug_<what it does>`, next to the scene's other handlers.
+- Related buttons that would crowd the main card, such as the bus's stat buttons, go in a group: `DebugPanel.add_button("+1 seat", action, self, "Stats")`. Each group gets its own card to the right of the main one, opened and closed by a button of the group's name in the main card, one group's card at a time. The card and its button go with the group's last button.
+- Unlike the dev console, it ships in every build, web and release builds included, so testers can use it on itch.io. Release builds are made before the game is out, so being a release build doesn't turn it off.
+- **Before the game is released**, set `ENABLED` to `false` in `core/debug_panel/debug_panel.gd`. F2 then does nothing, and `add_button` adds nothing, so the scenes' calls can stay.
 
 ## Online
 

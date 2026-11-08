@@ -19,15 +19,15 @@ var _material := ShaderMaterial.new()
 
 func _init() -> void:
 	_material.shader = SHADER
-	material = _material
 
 
 func _ready() -> void:
-	# A scene's saved properties are set after _init(), so a material set in the scene
-	# replaces this icon's own, and every icon sharing it shows the last planet's colours.
-	if material != _material:
+	# A material set in the scene would be shared by every icon using it, so each would
+	# show the last planet's colours. Set here rather than in _init(): the editor's save,
+	# which check.py ids runs, would write one set there into the scene.
+	if material:
 		push_error("%s: PlanetIcon makes its own material; remove the one its scene sets" % name)
-		material = _material
+	material = _material
 
 
 func _show() -> void:

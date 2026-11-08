@@ -15,6 +15,9 @@ signal unloaded
 ## The stop is over: everyone going there got off, and everyone picked up got on.
 signal stop_finished
 
+## How many passengers fit on board: the base of the bus's SEATS stat once the cabin
+## follows it ([method follow]). Taking seats away leaves anyone in them on board, with no
+## seat free until enough of them get off.
 @export_range(1, 12) var seats := 4
 ## What serves needs by itself. Upgrades add to it.
 @export var amenities: Array[Amenity] = []
@@ -44,6 +47,7 @@ var _getting_off: Array[Passenger] = []
 var _payouts: Array[int] = []
 var _getting_on: Array[Passenger] = []
 var _until_step := 0.0
+var _bus_stats: BusStats
 
 
 func _process(delta: float) -> void:
@@ -59,6 +63,15 @@ func _process(delta: float) -> void:
 			_step()
 
 
+## Makes [member seats] the base of [param stats]' SEATS stat, and from then on the seats
+## it makes, as upgrades change it.
+func follow(stats: BusStats) -> void:
+	_bus_stats = stats
+	var stat := stats.get_stat(BusStats.Type.SEATS)
+	stat.base = seats
+	stat.changed.connect(_on_seats_stat_changed)
+
+
 ## The passengers on board, in the order they boarded. A copy. Those getting off at a stop
 ## under way are no longer on board.
 func get_passengers() -> Array[Passenger]:
@@ -71,7 +84,7 @@ func has_free_seat() -> bool:
 
 ## Seats no one has taken or been picked up for.
 func get_free_seats() -> int:
-	return seats - _passengers.size() - _getting_on.size()
+	return maxi(seats - _passengers.size() - _getting_on.size(), 0)
 
 
 ## Whether a stop is under way: passengers are still getting off or on.
@@ -84,8 +97,7 @@ func is_stopping() -> bool:
 func board(passenger: Passenger) -> bool:
 	if not has_free_seat() or passenger in _passengers:
 		return false
-	_passengers.append(passenger)
-	boarded.emit(passenger)
+	_take_seat(passenger)
 	return true
 
 
@@ -138,7 +150,8 @@ func _step() -> void:
 		_unloading = false
 		unloaded.emit()
 	if not _getting_on.is_empty():
-		board(_getting_on.pop_front())
+		# Picked up with a seat promised, so they get on even if seats went since.
+		_take_seat(_getting_on.pop_front())
 		_until_step += step_seconds
 		return
 	_stopping = false
@@ -150,3 +163,12 @@ func _amenity_for(need: Need) -> Amenity:
 		if amenity.need == need.id:
 			return amenity
 	return null
+
+
+func _take_seat(passenger: Passenger) -> void:
+	_passengers.append(passenger)
+	boarded.emit(passenger)
+
+
+func _on_seats_stat_changed() -> void:
+	seats = _bus_stats.get_seats()

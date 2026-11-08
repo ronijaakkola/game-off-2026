@@ -2,6 +2,9 @@ shader_type spatial;
 // A flat colour with two-tone light from the star, as on the planets: a lit side in the
 // colour itself, and a night side multiplied by the same purple.
 render_mode ambient_light_disabled, specular_disabled;
+// Marks where it draws, so the bus's border (game/bus/bus_outline.gdshader) shows only past
+// its edge.
+stencil_mode write, compare_always, 1;
 
 uniform vec3 color : source_color = vec3(1.0, 0.8, 0.3);
 // The night side is the colour multiplied by this.
