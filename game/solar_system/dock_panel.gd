@@ -1,11 +1,13 @@
 class_name DockPanel
 extends Control
 ## What the bus can do at the planet it is docked at, just above the bus status in the
-## bottom right corner. For now, who waits there: the planet's icon and name, a row for
-## each passenger, longest waiting first, with their portrait and a button to pick them
-## up, and a button to pick up everyone that fits. The parent sets [member planet] while
-## the bus is docked or charging. The buttons are off while every seat is taken. It only
-## asks; the parent picks the passenger up.
+## bottom right corner: the planet's icon and name, then, where the planet sells fuel, a
+## button to hold down to refuel, then who waits there: a row for each passenger, longest
+## waiting first, with their portrait and a button to pick them up, and a button to pick up
+## everyone that fits. The parent sets [member planet] while the bus is docked or charging.
+## The board buttons are off while every seat is taken. It only asks: the parent picks the
+## passenger up, pumps the fuel while [method is_fuel_held], and turns the fuel button on
+## or off with [method show_fuel].
 ## It slides in from the right when [member planet] is set and back out when it is
 ## cleared. A row whose passenger boards slides out to the right, clipped by the card, then
 ## closes up. The card fits what it holds every frame, so it shrinks as smoothly as the row
@@ -57,6 +59,7 @@ var _rows: Dictionary[Passenger, BoardingRow] = {}
 # 0 in place, 1 out past the right edge.
 var _offset := 1.0
 var _slide: Tween
+var _fuel_held := false
 
 
 func _ready() -> void:
@@ -74,6 +77,24 @@ func _process(_delta: float) -> void:
 	_show_buttons()
 
 
+## Whether the fuel button is held down.
+func is_fuel_held() -> bool:
+	return _fuel_held
+
+
+## Turns the fuel button on or off. Off, it lets go and reads [param reason] instead.
+func show_fuel(can_fuel: bool, reason: String) -> void:
+	var button := %FuelButton as Button
+	button.disabled = not can_fuel
+	if not can_fuel:
+		_fuel_held = false
+	var text := reason
+	if can_fuel:
+		text = "Fuelling..." if _fuel_held else "Hold to fuel"
+	if button.text != text:
+		button.text = text
+
+
 func _show_planet() -> void:
 	if planet:
 		if planet != _shown:
@@ -84,6 +105,7 @@ func _show_planet() -> void:
 		_show_buttons()
 		_slide_to(0.0)
 	elif visible:
+		_fuel_held = false
 		_slide_to(1.0)
 
 
@@ -114,9 +136,11 @@ func _rebuild() -> void:
 		rows.remove_child(row)
 		row.queue_free()
 	_rows.clear()
+	_fuel_held = false
 	if _shown:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
+		(%FuelButton as Control).visible = _shown.sells_fuel
 	_sync_rows()
 
 
@@ -182,6 +206,14 @@ func _on_content_resized() -> void:
 func _on_waiting_changed(changed_planet: Planet) -> void:
 	if changed_planet == _shown:
 		_sync_rows()
+
+
+func _on_fuel_button_down() -> void:
+	_fuel_held = true
+
+
+func _on_fuel_button_up() -> void:
+	_fuel_held = false
 
 
 func _on_board_all_button_pressed() -> void:

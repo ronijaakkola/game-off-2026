@@ -49,6 +49,12 @@ layout_mode = 2
 theme_type_variation = &"SmallLabel"
 text = "?"
 
+[node name="FuelButton" type="Button" parent="Card/Clip/Content" unique_id=1671080909]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Hold to fuel"
+
 [node name="List" type="MarginContainer" parent="Card/Clip/Content" unique_id=526103822]
 layout_mode = 2
 mouse_filter = 2
@@ -75,4 +81,6 @@ layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Board all"
 
+[connection signal="button_down" from="Card/Clip/Content/FuelButton" to="." method="_on_fuel_button_down"]
+[connection signal="button_up" from="Card/Clip/Content/FuelButton" to="." method="_on_fuel_button_up"]
 [connection signal="pressed" from="Card/Clip/Content/BoardAllButton" to="." method="_on_board_all_button_pressed"]

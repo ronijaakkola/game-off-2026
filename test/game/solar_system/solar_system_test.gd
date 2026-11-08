@@ -437,6 +437,49 @@ func test_refuel_is_off_away_from_the_docked_planet_without_credits_or_with_a_fu
 	assert_str(note.text).is_equal("Tank full.")
 
 
+func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var tank := bus.get_fuel_tank()
+	tank.fuel = tank.capacity * 0.5
+	var counter := runner.find_child("CreditsCounter") as CreditsCounter
+	counter.credits = 100
+	await await_millis(500)
+	var button := runner.find_child("FuelButton") as Button
+	assert_bool(button.is_visible_in_tree()).is_true()
+	assert_str(button.text).is_equal("Hold to fuel")
+	var camera := runner.find_child("Camera") as Camera3D
+	var at := _to_window(camera, button.get_global_rect().get_center())
+
+	_send_click(MOUSE_BUTTON_LEFT, at)
+	await runner.simulate_frames(30, 30)
+	assert_str(button.text).is_equal("Fuelling...")
+	_send_release(MOUSE_BUTTON_LEFT, at)
+	await runner.simulate_frames(1)
+
+	var bought := tank.fuel - tank.capacity * 0.5
+	assert_float(bought).is_greater(5.0)
+	assert_int(counter.credits).is_less(100)
+	var held_to := tank.fuel
+	await runner.simulate_frames(20, 30)
+	assert_float(tank.fuel).is_equal(held_to)
+	tank.fill()
+	await runner.simulate_frames(2)
+	assert_bool(button.disabled).is_true()
+	assert_str(button.text).is_equal("Tank full")
+
+
+func test_the_dock_panel_has_no_fuel_button_where_no_fuel_is_sold() -> void:
+	var runner := scene_runner(SCENE)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	bus.get_docked_planet().sells_fuel = false
+	await runner.simulate_frames(3)
+	var button := runner.find_child("FuelButton") as Button
+	assert_bool((runner.find_child("DockPanel") as Control).visible).is_true()
+	assert_bool(button.visible).is_false()
+
+
 func test_a_tow_costs_its_fee_or_all_the_player_has() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
