@@ -15,10 +15,16 @@ extends Control
 ## height changes, with no container to re-sort a frame later and round the height to whole
 ## pixels. "Nobody waiting." sits under the rows, so a row sliding out uncovers it and the
 ## card only shrinks.
+## The pointer over a row shows that passenger's trip, and a click on a row pins it, so it
+## stays shown once the pointer leaves, until the row is clicked again, the passenger
+## boards or the bus leaves. The row whose trip shows is highlighted.
 
 ## The player pressed the button to pick up [param passenger]. Board all presses it for
 ## each one waiting, longest waiting first; the parent stops once the seats are full.
 signal board_pressed(passenger: Passenger)
+## The passenger whose trip to show changed to [param passenger]: the one whose row the
+## pointer is over, else the pinned one, or null for nobody.
+signal trip_previewed(passenger: Passenger)
 
 const ROW := preload("res://game/solar_system/boarding_row.tscn")
 ## Seconds to slide in from past the right edge, or back out.
@@ -57,6 +63,10 @@ var _rows: Dictionary[Passenger, BoardingRow] = {}
 # 0 in place, 1 out past the right edge.
 var _offset := 1.0
 var _slide: Tween
+# The passenger whose row was clicked, whose trip shows while no row is under the pointer.
+var _pinned: Passenger
+# The passenger whose trip shows, as last sent in trip_previewed.
+var _previewed: Passenger
 
 
 func _ready() -> void:
@@ -72,6 +82,14 @@ func _process(_delta: float) -> void:
 		return
 	_lay_out()
 	_show_buttons()
+	_preview()
+
+
+## Pins [param passenger]'s trip, so it shows while the pointer is over no row, as a click
+## on their row does. Null unpins.
+func pin(passenger: Passenger) -> void:
+	_pinned = passenger
+	_preview()
 
 
 func _show_planet() -> void:
@@ -114,6 +132,7 @@ func _rebuild() -> void:
 		rows.remove_child(row)
 		row.queue_free()
 	_rows.clear()
+	_pinned = null
 	if _shown:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
@@ -127,8 +146,11 @@ func _sync_rows() -> void:
 		line = waiting.get_waiting(_shown)
 	for passenger: Passenger in _rows.keys():
 		if passenger not in line:
+			_rows[passenger].highlighted = false
 			_rows[passenger].leave()
 			_rows.erase(passenger)
+			if passenger == _pinned:
+				_pinned = null
 	for passenger: Passenger in line:
 		if _rows.has(passenger):
 			continue
@@ -136,9 +158,27 @@ func _sync_rows() -> void:
 		row.portrait_studio = portrait_studio
 		row.passenger = passenger
 		row.board_pressed.connect(board_pressed.emit)
+		row.clicked.connect(_on_row_clicked)
 		(%Rows as Control).add_child(row)
 		_rows[passenger] = row
 	(%EmptyLabel as Control).visible = line.is_empty()
+
+
+# Shows the trip of the passenger whose row the pointer is over, else the pinned one's, and
+# nobody's once the bus has left. Highlights that row, and tells the parent when it changes.
+func _preview() -> void:
+	var shown: Passenger = null
+	if planet:
+		for passenger: Passenger in _rows:
+			if _rows[passenger].is_hovered():
+				shown = passenger
+		if not shown and _rows.has(_pinned):
+			shown = _pinned
+	for passenger: Passenger in _rows:
+		_rows[passenger].highlighted = passenger == shown
+	if shown != _previewed:
+		_previewed = shown
+		trip_previewed.emit(shown)
 
 
 func _show_buttons() -> void:
@@ -182,6 +222,11 @@ func _on_content_resized() -> void:
 func _on_waiting_changed(changed_planet: Planet) -> void:
 	if changed_planet == _shown:
 		_sync_rows()
+
+
+# A click on a row pins its trip, and a second click unpins it.
+func _on_row_clicked(passenger: Passenger) -> void:
+	pin(null if passenger == _pinned else passenger)
 
 
 func _on_board_all_button_pressed() -> void:

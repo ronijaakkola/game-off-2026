@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cqh6m26bmhwpp"]
+
+[ext_resource type="Script" uid="uid://dl36crfs5xnyx" path="res://game/solar_system/trip_arc.gd" id="1_arc"]
+
+[node name="TripArc" type="MeshInstance3D" unique_id=73833319]
+script = ExtResource("1_arc")
