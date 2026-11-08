@@ -61,6 +61,17 @@ func test_pay_follows_mood_at_the_end() -> void:
 	assert_int(passenger.get_payout()).is_equal(0)
 
 
+func test_rating_follows_mood_at_the_end() -> void:
+	var passenger := Passenger.new(_type(), _planet, TRIP, FARE)
+	assert_float(passenger.get_rating()).is_equal(5.0)
+	passenger.patience = passenger.patience_max * 0.4
+	assert_float(passenger.get_rating()).is_equal(4.0)
+	passenger.patience = passenger.patience_max * 0.1
+	assert_float(passenger.get_rating()).is_equal(2.0)
+	passenger.patience = 0.0
+	assert_float(passenger.get_rating()).is_equal(0.0)
+
+
 func test_finds_their_seat_then_idles_on_one_of_the_type_s_lines() -> void:
 	var kind := _type()
 	kind.idle_lines = ["Reading", "Counting stars"]

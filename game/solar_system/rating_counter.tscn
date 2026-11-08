@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://jrqbnobo7om0"]
+
+[ext_resource type="Script" uid="uid://bmgjetnhifb4n" path="res://game/solar_system/rating_counter.gd" id="1_counter"]
+[ext_resource type="Script" uid="uid://itg4wk4y13k" path="res://game/passengers/star_icon.gd" id="2_star"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="3_theme"]
+
+[node name="RatingCounter" type="VBoxContainer" unique_id=976470558]
+size_flags_vertical = 0
+mouse_filter = 2
+theme = ExtResource("3_theme")
+theme_override_constants/separation = 0
+script = ExtResource("1_counter")
+
+[node name="Top" type="HBoxContainer" parent="." unique_id=453829218]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Star" type="Control" parent="Top" unique_id=747188646]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("2_star")
+
+[node name="AverageLabel" type="Label" parent="Top" unique_id=1318600619]
+unique_name_in_owner = true
+layout_mode = 2
+text = "–"
+
+[node name="GainSlot" type="Control" parent="." unique_id=532588972]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="GainLabel" type="Label" parent="GainSlot" unique_id=47249099]
+unique_name_in_owner = true
+layout_mode = 0
+theme_type_variation = &"SmallLabel"
+text = "+0.0"
+horizontal_alignment = 2

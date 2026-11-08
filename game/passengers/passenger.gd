@@ -13,6 +13,14 @@ const PAY: Dictionary[Mood, float] = {
 	Mood.ANNOYED: 0.5,
 	Mood.FURIOUS: 0.0,
 }
+## The stars each mood rates the ride, out of [constant MAX_STARS].
+const STARS: Dictionary[Mood, float] = {
+	Mood.HAPPY: 5.0,
+	Mood.OKAY: 4.0,
+	Mood.ANNOYED: 2.0,
+	Mood.FURIOUS: 0.0,
+}
+const MAX_STARS := 5.0
 ## Patience runs down this much slower while the bus is docked.
 const DOCKED_DRAIN := 0.5
 ## How long an idle line shows before the next one, in seconds.
@@ -100,6 +108,12 @@ func get_mood() -> Mood:
 ## The credits they pay on getting off now, by their mood.
 func get_payout() -> int:
 	return roundi(fare * PAY[get_mood()])
+
+
+## The stars they rate the ride on getting off now, from 0 to [constant MAX_STARS]. For
+## now only their mood counts.
+func get_rating() -> float:
+	return STARS[get_mood()]
 
 
 ## The bus has left the planet they boarded at, so their patience starts running down.
