@@ -3,7 +3,7 @@ shader_type spatial;
 // each bowed in toward the middle with a gap between them, in a red with a dark outline.
 // It shows anger without tinting the skin, which keeps the race's colour. Every edge
 // blends over one screen pixel, so it stays crisp at any size.
-render_mode unshaded, cull_disabled, shadows_disabled, blend_mix, depth_test_disabled;
+render_mode unshaded, cull_disabled, shadows_disabled, blend_mix;
 
 uniform vec3 mark_color : source_color = vec3(0.95, 0.18, 0.24);
 uniform vec3 outline_color : source_color = vec3(0.1, 0.08, 0.2);

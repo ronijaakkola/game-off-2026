@@ -5,11 +5,11 @@ extends Node3D
 ## and look around, and a slow idle sway. Stalk parts wobble behind the head. Asleep, the
 ## eyes shut and the head nods forward; on a moving bus, the bust leans with the push it
 ## feels and sways back. Angry, the lids slant into a frown over smaller pupils, and past
-## halfway a red anger mark pops up on the head, which trembles. The skin keeps its
-## colour, since it shows the passenger's race; joyful, lower lids rise so the eyes
-## smile into crescents, and the head bobs. Content, they beam that way now and then. A
-## single eye shows anger with a brow over it and joy as a starry eye over blushing
-## cheeks, since any curve cut into it reads as a mouth. Eating or drinking, a
+## halfway a red anger mark pops up on the head, which trembles; joyful, lower lids rise
+## so the eyes smile into crescents, and the head bobs. Content, they beam that way now
+## and then. The skin never changes colour with mood, since it shows the passenger's
+## race. A single eye shows anger with a brow over it and joy as a starry eye over
+## blushing cheeks, since any curve cut into it reads as a mouth. Eating or drinking, a
 ## [PortraitMeal] holds the food up to the face and nods the head.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
