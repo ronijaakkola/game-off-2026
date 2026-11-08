@@ -1,0 +1,107 @@
+class_name BusPanel
+extends SidePanel
+## The open bus's panel down the right side of the screen: a row for each of the bus's
+## stats, with its value and, once upgrades change it, how much they add in all ("+20%"),
+## kept up to date as they change. It slides in when it opens and back out when it closes
+## ([SidePanel]). Its close button only asks; the parent closes it.
+
+## The close button was pressed.
+signal close_pressed
+
+## What upgrades add, in the green of the credits' gain.
+const BONUS_COLOR := Color(0.55, 0.85, 0.4, 1)
+## Each stat's name in its row, by [enum BusStats.Type]. A stat missing here shows its
+## type's name.
+const STAT_NAMES := {BusStats.Type.MAX_SPEED: "Top speed"}
+
+var _bus: FrameshiftBus
+var _open := false
+# Each stat's value and bonus labels, by type.
+var _value_labels: Dictionary[BusStats.Type, Label] = {}
+var _bonus_labels: Dictionary[BusStats.Type, Label] = {}
+
+
+## Shows [param bus]'s stats and slides in, unless already open.
+func open(bus: FrameshiftBus) -> void:
+	if bus != _bus:
+		_watch(bus)
+	_open = true
+	_show_stats()
+	slide_in()
+
+
+## Slides out past the right edge, then hides.
+func close() -> void:
+	_open = false
+	slide_out()
+
+
+## Whether it is open: from [method open] until [method close], while it slides out too.
+func is_open() -> bool:
+	return _open
+
+
+# Makes a row for each of the bus's stats, and follows their changes.
+func _watch(bus: FrameshiftBus) -> void:
+	if _bus:
+		for type: BusStats.Type in _value_labels:
+			_bus.get_stats().get_stat(type).changed.disconnect(_show_stats)
+	_bus = bus
+	var rows := %StatRows as Control
+	for row: Node in rows.get_children():
+		rows.remove_child(row)
+		row.queue_free()
+	_value_labels.clear()
+	_bonus_labels.clear()
+	for value: int in BusStats.Type.values():
+		var type := value as BusStats.Type
+		rows.add_child(_make_row(type))
+		bus.get_stats().get_stat(type).changed.connect(_show_stats)
+
+
+func _make_row(type: BusStats.Type) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override(&"separation", 12)
+	var name_label := _make_label("NameLabel")
+	name_label.text = STAT_NAMES.get(type, String(BusStats.Type.keys()[type]).capitalize())
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(name_label)
+	var value_label := _make_label("ValueLabel")
+	row.add_child(value_label)
+	var bonus_label := _make_label("BonusLabel")
+	bonus_label.add_theme_color_override(&"font_color", BONUS_COLOR)
+	row.add_child(bonus_label)
+	_value_labels[type] = value_label
+	_bonus_labels[type] = bonus_label
+	return row
+
+
+func _make_label(label_name: String) -> Label:
+	var label := Label.new()
+	label.name = label_name
+	label.theme_type_variation = &"SmallLabel"
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return label
+
+
+func _show_stats() -> void:
+	for type: BusStats.Type in _value_labels:
+		var stat := _bus.get_stats().get_stat(type)
+		_value_labels[type].text = "%.2f" % stat.get_value()
+		var bonus := _bonus_labels[type]
+		bonus.text = _bonus_text(stat)
+		bonus.visible = not bonus.text.is_empty()
+
+
+# How much the modifiers add to the base in all, as a whole percent, or nothing when they
+# add up to under half a percent either way.
+func _bonus_text(stat: Stat) -> String:
+	if stat.base == 0.0:
+		return ""
+	var percent := roundi((stat.get_value() / stat.base - 1.0) * 100.0)
+	return "%+d%%" % percent if percent != 0 else ""
+
+
+func _on_close_button_pressed() -> void:
+	close_pressed.emit()

@@ -48,6 +48,9 @@ const FELT_SMOOTHING := 12.0
 # The strongest push felt on board, in units per second squared, so nothing throws the
 # passengers. Braking and turning at full rate stay under it.
 const FELT_MAX := 3.5
+## About half the bus's length: how big it is when the camera frames it and when a click
+## picks it.
+const RADIUS := 0.45
 
 ## Where the bus starts docked. None starts it holding where it stands.
 @export var start_planet: Planet
@@ -55,13 +58,17 @@ const FELT_MAX := 3.5
 @export var dock_sound: AudioStream
 ## Seconds the frameshift drive charges before the bus leaves a planet.
 @export_range(0.0, 10.0, 0.1) var charge_time := 3.0
-## Top speed. Planets orbit at under 0.5, so the bus can catch one.
-@export_range(0.1, 20.0, 0.05) var max_speed := 1.2
+## Top speed before upgrades: the base of the MAX_SPEED stat ([method get_stats]). Planets
+## orbit at under 0.5, so the bus can catch one.
+@export_range(0.1, 20.0, 0.05) var max_speed := 1.2:
+	set(value):
+		max_speed = value
+		_stats.get_stat(BusStats.Type.MAX_SPEED).base = value
 ## Speed gained or lost per second.
 @export_range(0.1, 20.0, 0.05) var acceleration := 1.6
 ## Radians per second.
 @export_range(0.1, 20.0, 0.1) var turn_speed := 2.0
-## Towed, how much faster than its planet the bus goes, up to [member max_speed].
+## Towed, how much faster than its planet the bus goes, up to its top speed.
 @export_range(0.05, 20.0, 0.05) var tow_speed := 0.4
 ## From a planet's surface to the bus's centre, docked.
 @export_range(0.0, 5.0, 0.01) var dock_gap := 0.35
@@ -95,6 +102,7 @@ var boarding := false:
 var hovered_stop: RouteStop
 
 var _route: Array[RouteStop] = []
+var _stats := BusStats.new()
 var _towing := false
 var _dock_planet: Planet
 # From the docked planet's centre toward the bus, on the orbit plane.
@@ -114,6 +122,12 @@ var _glide_velocity := Vector3.ZERO
 # measured each frame: a planet that moves after the bus in a frame would otherwise drag
 # the bus behind it, and it would never park.
 var _dock_offset := Vector3.ZERO
+
+
+# Sets the stats' bases from the exports' defaults. A value the scene sets comes later,
+# through the export's setter.
+func _init() -> void:
+	_stats.get_stat(BusStats.Type.MAX_SPEED).base = max_speed
 
 
 func _ready() -> void:
@@ -189,6 +203,16 @@ func tow_to(planet: Planet) -> void:
 
 func is_towing() -> bool:
 	return _towing
+
+
+## The bus's stats, where upgrades add their modifiers.
+func get_stats() -> BusStats:
+	return _stats
+
+
+## The bus's model, whose border shows while the pointer is over the bus.
+func get_model() -> BusModel:
+	return %Model as BusModel
 
 
 ## The bus's fuel tank.
@@ -386,7 +410,8 @@ func _on_fuel_emptied() -> void:
 func _top_speed() -> float:
 	var planet := get_next_planet() if _towing else null
 	var chase := planet.get_body_velocity().length() if planet else 0.0
-	return minf(chase + tow_speed, max_speed) if _towing else max_speed
+	var top := _stats.get_stat(BusStats.Type.MAX_SPEED).get_value()
+	return minf(chase + tow_speed, top) if _towing else top
 
 
 # While charging, so the bus leaves the planet already facing where it goes.
