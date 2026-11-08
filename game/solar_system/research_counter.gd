@@ -6,7 +6,7 @@ extends HBoxContainer
 ## for [constant ROOM], so the bar keeps its width until one passes 99.
 
 ## The flask's size, in pixels.
-const ICON_SIZE := 17.0
+const ICON_SIZE := 14.0
 const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
 ## Each count always has room for this many digits.
 const ROOM := "00"
@@ -26,7 +26,7 @@ func _ready() -> void:
 		_points[race] = 0
 		var entry := HBoxContainer.new()
 		entry.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		entry.add_theme_constant_override(&"separation", 6)
+		entry.add_theme_constant_override(&"separation", 5)
 		var icon := TextureRect.new()
 		icon.texture = FLASK
 		icon.self_modulate = Race.SKIN_COLORS[race]

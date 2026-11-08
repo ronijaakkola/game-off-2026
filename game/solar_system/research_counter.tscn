@@ -6,5 +6,5 @@
 [node name="ResearchCounter" type="HBoxContainer" unique_id=351271388]
 mouse_filter = 2
 theme = ExtResource("2_theme")
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 script = ExtResource("1_counter")

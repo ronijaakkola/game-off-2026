@@ -19,10 +19,10 @@ shader_parameter/shadow_offset = null
 shader_parameter/shadow_blur = null
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_canvas"]
-content_margin_left = 14.0
-content_margin_top = 7.0
-content_margin_right = 14.0
-content_margin_bottom = 7.0
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
 expand_margin_left = 24.0
 expand_margin_top = 24.0
 expand_margin_right = 24.0
@@ -51,14 +51,14 @@ mouse_filter = 2
 unique_name_in_owner = true
 layout_mode = 0
 mouse_filter = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 
 [node name="CreditsCounter" parent="Track/Items" unique_id=507477909 instance=ExtResource("7_credits")]
 unique_name_in_owner = true
 layout_mode = 2
 
 [node name="Divider" type="ColorRect" parent="Track/Items" unique_id=1151127882]
-custom_minimum_size = Vector2(1, 17)
+custom_minimum_size = Vector2(1, 14)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -69,7 +69,7 @@ unique_name_in_owner = true
 layout_mode = 2
 
 [node name="Divider2" type="ColorRect" parent="Track/Items" unique_id=98256555]
-custom_minimum_size = Vector2(1, 17)
+custom_minimum_size = Vector2(1, 14)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
