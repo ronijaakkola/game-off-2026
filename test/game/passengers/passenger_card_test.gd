@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 ## A passenger card's mood name shakes for the low moods, and holds still under Reduce
 ## motion. When the mood changes, the name fades out and back in as the new one. Getting
-## off, the mood name turns into the stars they rate the ride, and the card lingers before
-## it slides out.
+## off, the patience row gives way to the stars they rate the ride, which fill up, and the
+## card lingers before it slides out.
 
 const SCENE := preload("res://game/passengers/passenger_card.tscn")
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
@@ -69,24 +69,55 @@ func test_a_mood_change_fades_the_name_out_and_back_in_as_the_new_mood() -> void
 	assert_that(_fill(card).bg_color).is_equal(PassengerCard.MOOD_COLORS[Passenger.Mood.OKAY])
 
 
-func test_showing_the_rating_swaps_the_mood_for_stars_and_says_so() -> void:
+func test_showing_the_rating_swaps_the_patience_row_for_stars_that_fill_up() -> void:
+	_set_reduce_motion(false)
+	var card := _card(0.1)
+	await await_idle_frame()
+	var mood_text := _mood_label(card).text
+
+	card.show_rating(2.0)
+	var stars := card.find_child("RatingStars", true, false) as StarIcon
+	var patience := card.find_child("Patience", true, false) as Control
+	await get_tree().create_timer(PassengerCard.SWAP_SECONDS * 0.5).timeout
+	# The row sinks as it fades, and the stars come from above, still empty.
+	assert_float(patience.position.y).is_greater(0.0)
+	assert_float(patience.modulate.a).is_less(1.0)
+	assert_bool(stars.visible).is_true()
+	assert_float(stars.fill).is_equal(0.0)
+	assert_float(stars.position.y).is_less((patience.size.y - stars.size.y) * 0.5)
+
+	await get_tree().create_timer(PassengerCard.SWAP_SECONDS + 0.1).timeout
+	# Filling, one star after another.
+	assert_float(stars.fill).is_greater(0.0)
+	assert_float(stars.fill).is_less(2.0)
+	await get_tree().create_timer(2.0 * PassengerCard.STAR_FILL_SECONDS + 0.1).timeout
+
+	assert_float(stars.fill).is_equal(2.0)
+	assert_int(stars.count).is_equal(5)
+	assert_bool(stars.bump).is_true()
+	assert_float(stars.modulate.a).is_equal(1.0)
+	assert_float(patience.modulate.a).is_equal(0.0)
+	var activity := card.find_child("ActivityLabel", true, false) as Label
+	assert_str(activity.text).is_equal("Getting off")
+	# The top row stays as it was.
+	assert_bool(_mood_label(card).visible).is_true()
+	assert_str(_mood_label(card).text).is_equal(mood_text)
+	assert_bool(card.is_rated()).is_true()
+
+
+func test_reduce_motion_only_crossfades_the_rating_in() -> void:
+	_set_reduce_motion(true)
 	var card := _card(1.0)
 	await await_idle_frame()
 
-	card.show_rating(4.0)
-	await get_tree().create_timer(PassengerCard.MOOD_FADE_SECONDS + 0.1).timeout
-
+	card.show_rating(5.0)
 	var stars := card.find_child("RatingStars", true, false) as StarIcon
-	assert_bool(_mood_label(card).visible).is_false()
-	assert_bool(stars.visible).is_true()
-	assert_float(stars.modulate.a).is_equal(1.0)
-	assert_int(stars.count).is_equal(5)
-	assert_int(stars.filled).is_equal(4)
-	var activity := card.find_child("ActivityLabel", true, false) as Label
-	assert_str(activity.text).is_equal(PassengerCard.rating_line(4.0))
-	var destination := card.find_child("DestinationLabel", true, false) as Label
-	assert_str(destination.text).starts_with("Getting off at ")
-	assert_bool(card.is_rated()).is_true()
+	var patience := card.find_child("Patience", true, false) as Control
+	await get_tree().create_timer(PassengerCard.SWAP_SECONDS * 0.5).timeout
+
+	assert_float(patience.position.y).is_equal(0.0)
+	assert_float(stars.position.y).is_equal_approx((patience.size.y - stars.size.y) * 0.5, 0.01)
+	assert_bool(stars.bump).is_false()
 
 
 func test_once_rated_the_card_stops_following_the_passenger() -> void:
@@ -97,9 +128,9 @@ func test_once_rated_the_card_stops_following_the_passenger() -> void:
 	card.passenger.activity = "Something else"
 	await get_tree().create_timer(PassengerCard.MOOD_FADE_SECONDS + 0.1).timeout
 
-	assert_bool(_mood_label(card).visible).is_false()
+	assert_str(_mood_label(card).text).is_equal("Happy")
 	var activity := card.find_child("ActivityLabel", true, false) as Label
-	assert_str(activity.text).is_equal(PassengerCard.rating_line(5.0))
+	assert_str(activity.text).is_equal("Getting off")
 
 
 func test_a_rated_card_lingers_before_it_slides_out() -> void:
@@ -113,13 +144,6 @@ func test_a_rated_card_lingers_before_it_slides_out() -> void:
 	assert_float(panel.position.x).is_equal(0.0)
 	await assert_signal(card).wait_until(2000).is_emitted("left")
 	assert_float(panel.position.x).is_less(0.0)
-
-
-func test_rating_lines_go_from_glowing_to_furious() -> void:
-	assert_str(PassengerCard.rating_line(5.0)).is_equal("Loved the ride!")
-	assert_str(PassengerCard.rating_line(4.0)).is_equal("Thanks for the ride.")
-	assert_str(PassengerCard.rating_line(2.0)).is_equal("That took forever...")
-	assert_str(PassengerCard.rating_line(0.0)).is_equal("Never riding this again!")
 
 
 func _card(patience_fraction: float) -> PassengerCard:
