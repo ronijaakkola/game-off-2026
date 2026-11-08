@@ -6,12 +6,20 @@ const BUS := "res://game/bus/bus.tscn"
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
 
-func test_the_estimate_is_the_distance_to_each_stop_times_the_burn() -> void:
+func test_the_estimate_is_the_distance_to_each_stop_short_of_parking_times_the_burn() -> void:
 	var bus := auto_free((load(BUS) as PackedScene).instantiate()) as FrameshiftBus
 	add_child(bus)
 	var start := bus.global_position
-	bus.plot_course(RouteStop.at_point(start + Vector3(4.0, 0.0, 0.0)))
-	bus.plot_course(RouteStop.at_point(start + Vector3(4.0, 0.0, 3.0)), true)
+	var planet := auto_free(Planet.new()) as Planet
+	planet.orbit_radius = 0.0
+	planet.orbit_period = 0.0
+	planet.show_orbit = false
+	add_child(planet)
+	# Where the bus starts to park at it, 3 past the checkpoint.
+	var park := planet.get_body_radius() + bus.dock_gap + FrameshiftBus.DOCK_DISTANCE
+	planet.position = start + Vector3(4.0, 0.0, 3.0 + park)
+	bus.plot_course(RouteStop.at_planet(planet))
+	bus.plot_course(RouteStop.at_point(start + Vector3(4.0, 0.0, 0.0)), true)
 
 	var burn := bus.get_fuel_tank().burn_per_unit
 	assert_float(FuelForecast.estimate(bus)).is_equal_approx(7.0 * burn, 0.001)

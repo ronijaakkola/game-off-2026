@@ -144,9 +144,8 @@ func _process(delta: float) -> void:
 	model.border = picked == bus and not is_bus_open()
 	if model.border:
 		model.outline_width = _pixels_to_world(OUTLINE_PIXELS, bus.global_position)
-	var marker: RouteStop = null if picked or over_hud else _marker_at(mouse)
-	# Only the last stop, the one a right click removes.
-	bus.hovered_stop = marker if marker and marker == bus.get_last_stop() else null
+	# A right click removes any point in space on the route.
+	bus.hovered_stop = null if picked or over_hud else _marker_at(mouse)
 	var on_route := bus.get_route_planets()
 	for planet: Planet in _planets:
 		var hover_opacity := _fade if planet == _faded_planet else 1.0
@@ -178,8 +177,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
 	var bus := %Bus as FrameshiftBus
-	if _is_last_stop_at(click.position):
-		bus.remove_last_stop()
+	var removed := _removable_stop_at(click.position)
+	if removed:
+		bus.remove_stop(removed)
 	else:
 		var stop := _stop_at(click.position)
 		if not stop:
@@ -445,22 +445,21 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 	return RouteStop.at_point(hit)
 
 
-# Whether the route's last stop is under screen_point: its planet, or the diamond at its
-# point in space when no planet is. The same pick as the hover, so what turns white is
-# what a click removes.
-func _is_last_stop_at(screen_point: Vector2) -> bool:
-	var last := (%Bus as FrameshiftBus).get_last_stop()
-	if not last:
-		return false
+# The stop on the route a right click at screen_point removes, or null: the last stop
+# when it is the planet there, or else any point in space whose diamond is there. A planet
+# earlier on the route isn't removed, so a route can come back to it. The same pick as the
+# hover, so what turns white is what a click removes.
+func _removable_stop_at(screen_point: Vector2) -> RouteStop:
 	var planet := _planet_at(screen_point)
-	if planet or last.planet:
-		return planet != null and planet == last.planet
-	return _marker_at(screen_point) == last
+	if planet:
+		var last := (%Bus as FrameshiftBus).get_last_stop()
+		return last if last and last.planet == planet else null
+	return _marker_at(screen_point)
 
 
 # The point in space on the route whose diamond covers screen_point on screen, give or take
-# PICK_MARGIN. Where diamonds overlap, the one latest on the route, so the last stop can
-# always be removed. Null when there is none.
+# PICK_MARGIN. Where diamonds overlap, the one latest on the route. Null when there is
+# none.
 func _marker_at(screen_point: Vector2) -> RouteStop:
 	var bus := %Bus as FrameshiftBus
 	var camera := %Camera as Camera3D

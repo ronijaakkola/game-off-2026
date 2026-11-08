@@ -154,14 +154,14 @@ func _ready() -> void:
 	_draw_route()
 
 
-## Sets the route to [param stop], or adds it to the end with [param append]. From a planet
-## the drive charges first, once the bus has parked; anywhere else the bus heads off at once.
-## Does nothing while towed or with an empty tank.
-func plot_course(stop: RouteStop, append := false) -> void:
+## Sets the route to [param stop], or adds it with [param add] where [method RoutePlotting.add]
+## puts it. From a planet the drive charges first, once the bus has parked; anywhere else
+## the bus heads off at once. Does nothing while towed or with an empty tank.
+func plot_course(stop: RouteStop, add := false) -> void:
 	if _towing or (%FuelTank as FuelTank).is_empty():
 		return
-	if append:
-		_route.append(stop)
+	if add:
+		RoutePlotting.add(_route, stop)
 	else:
 		_route = [stop]
 	if _route.size() == 1 and stop.planet and stop.planet == _dock_planet:
@@ -185,12 +185,12 @@ func cancel_course() -> void:
 		%ChargeRing.show_progress(global_position, 0.0)
 
 
-## Removes the last stop on the route. With none left it is the same as
-## [method cancel_course].
-func remove_last_stop() -> void:
+## Removes [param stop] from the route, with what [method RoutePlotting.remove] takes along.
+## With none left it is the same as [method cancel_course].
+func remove_stop(stop: RouteStop) -> void:
 	if _towing:
 		return
-	_route.pop_back()
+	RoutePlotting.remove(_route, stop)
 	if _route.is_empty():
 		cancel_course()
 
@@ -263,10 +263,8 @@ func get_route_planets() -> Array[Planet]:
 func get_next_planet() -> Planet:
 	if state == State.PARKING:
 		return _dock_planet
-	for stop: RouteStop in _route:
-		if stop.planet:
-			return stop.planet
-	return null
+	var first := _route.find_custom(RouteStop.is_planet)
+	return _route[first].planet if first >= 0 else null
 
 
 ## How far the frameshift drive has charged, from 0 to 1. 0 when it isn't charging.

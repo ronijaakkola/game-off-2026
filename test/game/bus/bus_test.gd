@@ -155,22 +155,73 @@ func test_boarding_set_on_docking_holds_the_charge_to_the_next_stop() -> void:
 func test_removing_the_last_stop_keeps_the_rest() -> void:
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_planet(_far), true)
-	_bus.remove_last_stop()
+	_bus.remove_stop(_bus.get_last_stop())
 	assert_array(_bus.get_route_planets()).contains_exactly([_near])
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 
-func test_removing_the_only_stop_stops_the_charge() -> void:
+func test_removing_a_stop_in_the_middle_keeps_the_rest_in_order() -> void:
 	_bus.plot_course(RouteStop.at_planet(_near))
-	_bus.remove_last_stop()
+	var checkpoint := RouteStop.at_point(Vector3(3.0, 0.0, 3.0))
+	_bus.plot_course(checkpoint, true)
+	_bus.remove_stop(checkpoint)
+	assert_array(_bus.get_route_stops()).has_size(1)
+	assert_object(_bus.get_last_stop().planet).is_same(_near)
+
+
+func test_a_point_in_space_becomes_the_one_checkpoint_before_the_first_planet() -> void:
+	var first := RouteStop.at_point(Vector3(3.0, 0.0, 3.0))
+	var second := RouteStop.at_point(Vector3(4.0, 0.0, 3.0))
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.plot_course(RouteStop.at_planet(_far), true)
+	_bus.plot_course(first, true)
+	assert_object(_bus.get_route_stops()[0]).is_same(first)
+	_bus.plot_course(second, true)
+	var stops := _bus.get_route_stops()
+	assert_array(stops).has_size(3)
+	assert_object(stops[0]).is_same(second)
+	assert_array(_bus.get_route_planets()).contains_exactly([_near, _far])
+
+
+func test_a_checkpoint_is_flown_through_before_docking() -> void:
+	var checkpoint := Vector3(-3.0, 0.0, -3.0)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.plot_course(RouteStop.at_point(checkpoint), true)
+	var closest := INF
+	for i: int in MAX_STEPS:
+		_bus._process(STEP)
+		closest = minf(closest, _bus.global_position.distance_to(checkpoint))
+		if _bus.state == FrameshiftBus.State.DOCKED and _bus.get_docked_planet() == _near:
+			break
+	assert_object(_bus.get_docked_planet()).is_same(_near)
+	assert_float(closest).is_less(_bus.waypoint_radius + 0.05)
+
+
+func test_removing_a_planet_takes_its_checkpoint_along() -> void:
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.plot_course(RouteStop.at_point(Vector3(3.0, 0.0, 3.0)), true)
+	_bus.plot_course(RouteStop.at_planet(_far), true)
+	_bus.remove_stop(_bus.get_last_stop())
+	# The checkpoint before Near isn't Far's, so it stays.
+	assert_array(_bus.get_route_stops()).has_size(2)
+	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+	_bus.remove_stop(_bus.get_last_stop())
 	assert_object(_bus.get_last_stop()).is_null()
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
 
 
-func test_a_point_in_space_ends_the_route_holding_there() -> void:
+func test_removing_the_only_stop_stops_the_charge() -> void:
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.remove_stop(_bus.get_last_stop())
+	assert_object(_bus.get_last_stop()).is_null()
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+
+
+func test_a_point_in_space_with_no_planet_ahead_replaces_the_one_there() -> void:
 	var point := Vector3(-4.0, 0.0, 3.0)
 	_bus.plot_course(RouteStop.at_point(Vector3(-2.0, 0.0, 4.0)))
 	_bus.plot_course(RouteStop.at_point(point), true)
+	assert_array(_bus.get_route_stops()).has_size(1)
 	_step_for(_bus.charge_time + STEP)
 	assert_bool(_step_until(FrameshiftBus.State.HOLDING)).is_true()
 	assert_vector(_bus.global_position).is_equal_approx(point, Vector3.ONE * 0.1)
@@ -217,9 +268,23 @@ func test_the_next_planet_skips_points_in_space() -> void:
 	_bus.plot_course(RouteStop.at_point(Vector3(3.0, 0.0, 3.0)))
 	assert_object(_bus.get_next_planet()).is_null()
 	assert_float(_bus.estimate_time_to_next_planet()).is_equal(-1.0)
-	_bus.plot_course(RouteStop.at_planet(_far), true)
+	_bus.plot_course(RouteStop.at_planet(_far))
+	_bus.plot_course(RouteStop.at_point(Vector3(3.0, 0.0, 3.0)), true)
+	assert_object(_bus.get_route_stops()[0].planet).is_null()
 	assert_object(_bus.get_next_planet()).is_same(_far)
 	assert_float(_bus.estimate_time_to_next_planet()).is_greater(_bus.charge_time)
+
+
+func test_a_planet_replaces_a_point_in_space_with_no_planet_ahead() -> void:
+	_bus.plot_course(RouteStop.at_point(Vector3(3.0, 0.0, 3.0)))
+	_bus.plot_course(RouteStop.at_planet(_far), true)
+	assert_array(_bus.get_route_stops()).has_size(1)
+	assert_object(_bus.get_last_stop().planet).is_same(_far)
+	# With a planet on the route, the point before it stays as its checkpoint.
+	_bus.plot_course(RouteStop.at_point(Vector3(3.0, 0.0, 3.0)), true)
+	_bus.plot_course(RouteStop.at_planet(_near), true)
+	assert_array(_bus.get_route_stops()).has_size(3)
+	assert_array(_bus.get_route_planets()).contains_exactly([_far, _near])
 
 
 func test_docking_brakes_then_parks_with_the_door_toward_the_planet_then_docks() -> void:
@@ -268,8 +333,8 @@ func test_cancel_while_flying_is_stopping_until_it_holds_in_space() -> void:
 func test_on_board_speeding_up_pushes_back_a_turn_pushes_out_and_braking_forward() -> void:
 	# The bus leaves Home toward +X, then turns left, toward -Z, for Side.
 	var side := _planet(_home.get_parent() as Node3D, Vector3(5.0, 0.0, -6.0))
-	_bus.plot_course(RouteStop.at_point(Vector3(4.0, 0.0, 0.0)))
-	_bus.plot_course(RouteStop.at_planet(side), true)
+	_bus.plot_course(RouteStop.at_planet(side))
+	_bus.plot_course(RouteStop.at_point(Vector3(4.0, 0.0, 0.0)), true)
 	_step_for(_bus.charge_time)
 	assert_vector(_bus.get_felt_acceleration()).is_equal(Vector2.ZERO)
 	var least := Vector2.ZERO
