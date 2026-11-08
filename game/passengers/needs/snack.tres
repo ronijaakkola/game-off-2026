@@ -7,6 +7,7 @@ script = ExtResource("1_need")
 id = &"snack"
 request_line = "Hungry. Wants a snack"
 serve_label = "Hand a snack"
+served_action = 1
 served_line = "Munching a snack"
 served_seconds = 6.0
 min_interval = 15.0

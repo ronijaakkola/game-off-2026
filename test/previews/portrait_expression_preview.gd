@@ -1,18 +1,23 @@
 extends Control
 ## Every head shape in each expression, as passenger photos at the size their cards show
-## them, for a visual check of how anger and joy read: a row per head, and a column each
-## for okay, happy, annoyed, furious and joyful. The first four get there by their mood,
-## and happy ones beam now and then; the joyful ones' full joy is set on the portrait, so
-## their photo doesn't ride and set it by mood. Pass `big` to show them three times the size,
-## and `swap` to give every head the other eye style.
+## them, for a visual check of how anger, joy, eating and drinking read: a row per head,
+## and a column each for okay, happy, annoyed, furious, joyful, eating and drinking. The
+## first four get there by their mood, and happy ones beam now and then; the joyful ones'
+## full joy is set on the portrait, so their photo doesn't ride and set it by mood. The
+## eating and drinking ones asked for a snack or a drink and were served it. Pass `big`
+## to show them three times the size, and `swap` to give every head the other eye style.
 
 const PHOTO := preload("res://game/passengers/passenger_photo.tscn")
 const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
-const COLUMNS: Array[String] = ["Okay", "Happy", "Annoyed", "Furious", "Joyful"]
+const COLUMNS: Array[String] = [
+	"Okay", "Happy", "Annoyed", "Furious", "Joyful", "Eating", "Drinking"
+]
 # Patience left, as a fraction of the full amount, for each column.
-const PATIENCE: Array[float] = [0.45, 0.9, 0.2, 0.0, 0.9]
+const PATIENCE: Array[float] = [0.45, 0.9, 0.2, 0.0, 0.9, 0.45, 0.45]
 const JOYFUL := 4
+# The need served to each column's passengers, by id, or none.
+const SERVED: Dictionary[int, StringName] = {5: &"snack", 6: &"drink"}
 const CELL := Vector2(70.0, 62.0)
 const ORIGIN := Vector2(90.0, 40.0)
 
@@ -38,6 +43,8 @@ func _ready() -> void:
 			var photo := PHOTO.instantiate() as PassengerPhoto
 			photo.studio = _studio_with_room()
 			photo.passenger = _passenger(row, PATIENCE[column], home)
+			if SERVED.has(column):
+				_serve(photo.passenger, SERVED[column])
 			photo.riding = column != JOYFUL
 			photo.position = ORIGIN + Vector2(column * CELL.x, row * CELL.y)
 			add_child(photo)
@@ -69,3 +76,10 @@ func _passenger(head: int, patience: float, home: Planet) -> Passenger:
 	passenger.look.eye_style = AlienLook.EYE_STYLES[style % AlienLook.EYE_STYLES.size()]
 	passenger.look.skin_color = AlienLook.SKIN_COLORS[head % AlienLook.SKIN_COLORS.size()]
 	return passenger
+
+
+func _serve(passenger: Passenger, need_id: StringName) -> void:
+	for need: Need in COMMUTER.needs:
+		if need.id == need_id:
+			passenger.request = need
+			passenger.serve()
