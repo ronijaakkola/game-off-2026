@@ -7,6 +7,10 @@ extends Node
 ## everyone getting off. Each takes [member step_seconds], so a busy stop takes longer.
 
 signal boarded(passenger: Passenger)
+## [param passenger] left their seat at the stop [method stop_at] started, and will get off
+## in turn. Emitted for everyone going there, in the order they get off, before the first
+## of them is [signal delivered].
+signal getting_off(passenger: Passenger)
 ## [param passenger] got off at their destination and paid [param payout] credits.
 signal delivered(passenger: Passenger, payout: int)
 ## Everyone getting off at the stop [method stop_at] started has got off, one step after
@@ -99,11 +103,15 @@ func serve(passenger: Passenger) -> void:
 ## The first one goes at once, and [signal stop_finished] comes [member step_seconds] after
 ## the last, or at once when nobody gets off or on.
 func stop_at(planet: Planet) -> void:
+	var leaving: Array[Passenger] = []
 	for passenger: Passenger in _passengers.duplicate():
 		if passenger.destination == planet:
 			_passengers.erase(passenger)
 			_getting_off.append(passenger)
 			_payouts.append(passenger.get_payout())
+			leaving.append(passenger)
+	for passenger: Passenger in leaving:
+		getting_off.emit(passenger)
 	_unloading = true
 	_start_stop()
 

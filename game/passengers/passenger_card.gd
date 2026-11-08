@@ -5,10 +5,12 @@ extends Control
 ## are doing. While they ask for something, a button serves it. It only reads the
 ## passenger; the [Cabin] runs the ride.
 ## Their portrait sits on the left, as a [PassengerPhoto].
-## The card slides in from past the left edge of the screen when the passenger boards, and
-## back out past it when they get off, then folds its height away so the cards below it
-## move up. The root is a slot that holds the card's place in the list, and the panel moves
-## inside it.
+## The card slides in from past the left edge of the screen when the passenger boards.
+## When the bus stops at their destination, [method show_rating] turns the mood name into
+## the stars they rate the ride and the activity into what they say about it. The card
+## lingers like that, and only then [method leave] slides it back out past the left edge
+## and folds its height away so the cards below it move up. The root is a slot that holds
+## the card's place in the list, and the panel moves inside it.
 
 ## The serve button was pressed for [member passenger]'s open request.
 signal serve_pressed
@@ -23,6 +25,17 @@ const FOLD_SECONDS := 0.2
 ## Seconds the mood name takes to fade out and back in as the new mood, and the bar's
 ## colour to blend into the new mood's. A fade is no motion, so Reduce motion keeps it.
 const MOOD_FADE_SECONDS := 0.3
+## The rating's stars, in pixels tall.
+const RATING_STAR_PIXELS := 11.0
+## Seconds the card shows the rating before it can slide out.
+const LINGER_SECONDS := 1.6
+## What they say on getting off, by the least stars that say it, best first.
+const RATING_LINES: Array[Array] = [
+	[4.5, "Loved the ride!"],
+	[3.5, "Thanks for the ride."],
+	[1.5, "That took forever..."],
+	[0.0, "Never riding this again!"],
+]
 
 const MOOD_COLORS: Dictionary[Passenger.Mood, Color] = {
 	Passenger.Mood.HAPPY: Color(0.55, 0.85, 0.4),
@@ -70,9 +83,27 @@ var _motion: Tween
 # The mood name's fade out and in, and the bar's blend into the new mood's colour.
 var _mood_fade: Tween
 var _fill_fade: Tween
+# Whether the card shows the rating: the passenger is getting off, so it stops following
+# them.
+var _rated := false
+# Seconds left until the card has shown the rating long enough to slide out.
+var _linger_left := 0.0
+# The stars that take the mood name's place once the card shows the rating. Made here, not
+# in the scene: the scene holds a PlanetIcon, whose material makes `check.py ids` refuse
+# to resave it.
+var _rating_stars := StarIcon.new()
 
 
 func _ready() -> void:
+	_rating_stars.name = "RatingStars"
+	_rating_stars.visible = false
+	_rating_stars.count = roundi(Passenger.MAX_STARS)
+	_rating_stars.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_rating_stars.custom_minimum_size = Vector2(
+		StarIcon.width_for(_rating_stars.count, RATING_STAR_PIXELS), RATING_STAR_PIXELS
+	)
+	var mood := %MoodLabel as Control
+	mood.add_sibling(_rating_stars)
 	var bar := %PatienceBar as ProgressBar
 	_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate()
 	bar.add_theme_stylebox_override(&"fill", _fill)
@@ -84,8 +115,10 @@ func _ready() -> void:
 	_fit_slot()
 
 
-func _process(_delta: float) -> void:
-	_show()
+func _process(delta: float) -> void:
+	_linger_left = maxf(_linger_left - delta, 0.0)
+	if not _rated:
+		_show()
 	_fit_slot()
 
 
@@ -104,14 +137,60 @@ func slide_in() -> void:
 	)
 
 
+## Shows that the passenger is getting off and rated the ride [param stars] out of
+## [constant Passenger.MAX_STARS]: the mood name fades out and the stars fade in in its
+## place, the destination fades into "Getting off at <planet>", and the activity morphs
+## into what they say about the ride. The card stops
+## following the passenger, and the serve button goes. Only the first call counts.
+func show_rating(stars: float) -> void:
+	if _rated:
+		return
+	_rated = true
+	_linger_left = LINGER_SECONDS
+	var button := %ServeButton as Button
+	button.disabled = true
+	button.visible = false
+	var rating := _rating_stars
+	rating.filled = roundi(stars)
+	rating.modulate.a = 0.0
+	var label := %MoodLabel as RichTextLabel
+	var destination := %DestinationLabel as Label
+	var half := MOOD_FADE_SECONDS * 0.5
+	if _mood_fade:
+		_mood_fade.kill()
+	_mood_fade = create_tween()
+	_mood_fade.tween_property(label, ^"modulate:a", 0.0, half * label.modulate.a)
+	_mood_fade.parallel().tween_property(destination, ^"modulate:a", 0.0, half)
+	_mood_fade.tween_callback(_swap_mood_for_rating)
+	_mood_fade.tween_property(rating, ^"modulate:a", 1.0, half)
+	_mood_fade.parallel().tween_property(destination, ^"modulate:a", 1.0, half)
+	(%ActivityLabel as MorphLabel).morph_to(rating_line(stars))
+
+
+## What a passenger who rated the ride [param stars] says about it.
+static func rating_line(stars: float) -> String:
+	for entry: Array in RATING_LINES:
+		if stars >= (entry[0] as float):
+			return entry[1] as String
+	return ""
+
+
+## Whether the card shows the rating, after [method show_rating].
+func is_rated() -> bool:
+	return _rated
+
+
 ## Slides the card out past the left edge of the screen, then folds its height away, and
-## emits [signal left]. The serve button stops working at once.
+## emits [signal left]. After [method show_rating], it first waits until the rating has
+## shown for [constant LINGER_SECONDS]. The serve button stops working at once.
 func leave() -> void:
 	if _motion:
 		_motion.kill()
 	var panel := %Panel as Control
 	(%ServeButton as Button).disabled = true
 	_motion = create_tween()
+	if _linger_left > 0.0:
+		_motion.tween_interval(_linger_left)
 	(
 		_motion
 		. tween_property(panel, ^"position:x", _off_left(), SLIDE_OUT_SECONDS)
@@ -120,6 +199,12 @@ func leave() -> void:
 	)
 	_motion.tween_method(_set_fold, 1.0, 0.0, FOLD_SECONDS).set_trans(Tween.TRANS_QUAD)
 	_motion.tween_callback(left.emit)
+
+
+func _swap_mood_for_rating() -> void:
+	(%MoodLabel as RichTextLabel).visible = false
+	_rating_stars.visible = true
+	_set_text(%DestinationLabel, "Getting off at %s" % _destination_name())
 
 
 # Where the panel sits just past the left edge of the screen, from the slot.

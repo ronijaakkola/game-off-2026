@@ -72,6 +72,25 @@ func test_only_passengers_going_there_get_off_and_pay() -> void:
 	await assert_signal(_cabin).is_emitted("delivered", [going, payout])
 
 
+func test_everyone_going_there_is_announced_before_the_first_gets_off() -> void:
+	var first := _passenger(_away)
+	var staying := _passenger(_home)
+	var second := _passenger(_away)
+	for passenger: Passenger in [first, staying, second]:
+		_cabin.board(passenger)
+	var events: Array[String] = []
+	_cabin.getting_off.connect(
+		func(p: Passenger) -> void: events.append("leaving %d" % [first, second].find(p))
+	)
+	_cabin.delivered.connect(
+		func(p: Passenger, _paid: int) -> void: events.append("off %d" % [first, second].find(p))
+	)
+
+	_cabin.stop_at(_away)
+
+	assert_array(events).contains_exactly(["leaving 0", "leaving 1", "off 0"])
+
+
 func test_a_stop_lets_off_then_boards_those_picked_up_one_at_a_time() -> void:
 	_cabin.step_seconds = 0.2
 	_cabin.seats = 3
