@@ -95,7 +95,6 @@ func advance(delta: float, motion: float) -> void:
 			squash = Vector3(1.0 + sip * 0.03, 1.0 - sip * 0.03, 1.0)
 	pitch *= up * motion
 	squash = Vector3.ONE.lerp(squash, up * motion)
-	# Below the frame when down, and just under the mouth when up.
 	# The food's top: well below the photo when down, and just under the mouth when up.
 	var low := Vector3(0.0, -_size * (LENGTH + 1.0), 0.0)
 	var held := Vector3(0.0, -_size * (0.15 - raise * motion), _size * 0.4)
