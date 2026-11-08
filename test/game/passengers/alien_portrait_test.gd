@@ -120,12 +120,13 @@ func test_a_model_with_no_head_or_material_still_builds_framed_whole_and_reports
 	assert_vector(bounds.size).is_equal_approx(Vector3.ONE, Vector3.ONE * 0.001)
 
 
-func test_angry_the_lids_slant_toward_the_middle_and_the_skin_flushes() -> void:
+func test_angry_the_lids_slant_toward_the_middle_and_a_mark_shows_with_the_skin_as_it_was() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(1)
 	var portrait := runner.scene() as AlienPortrait
 	var left := portrait.eyes[0].material_override as ShaderMaterial
 	var right := portrait.eyes[1].material_override as ShaderMaterial
+	assert_bool(portrait.anger_mark.visible).is_false()
 
 	portrait.anger = 1.0
 	await runner.simulate_frames(30, 50)
@@ -138,8 +139,9 @@ func test_angry_the_lids_slant_toward_the_middle_and_the_skin_flushes() -> void:
 	]
 	sides.sort()
 	assert_array(sides).is_equal([-1.0, 1.0])
-	var lid := left.get_shader_parameter(&"lid_color") as Color
-	assert_float(lid.r).is_greater(portrait.skin_color.r)
+	# The skin shows the passenger's race, so anger never tints it.
+	assert_that(left.get_shader_parameter(&"lid_color")).is_equal(portrait.skin_color)
+	assert_bool(portrait.anger_mark.visible).is_true()
 
 
 func test_the_expression_preview_shows_each_head_okay_happy_annoyed_furious_and_joyful() -> void:

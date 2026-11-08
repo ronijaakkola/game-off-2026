@@ -4,12 +4,14 @@ extends Node3D
 ## light in a skin and an outfit colour, with eyes drawn on its Eye markers that blink
 ## and look around, and a slow idle sway. Stalk parts wobble behind the head. Asleep, the
 ## eyes shut and the head nods forward; on a moving bus, the bust leans with the push it
-## feels and sways back. Angry, the lids slant into a frown over smaller pupils, the skin
-## flushes red and the head trembles past halfway; joyful, lower lids rise so the eyes
+## feels and sways back. Angry, the lids slant into a frown over smaller pupils, and past
+## halfway a red anger mark pops up on the head, which trembles. The skin keeps its
+## colour, since it shows the passenger's race; joyful, lower lids rise so the eyes
 ## smile into crescents, and the head bobs. Content, they beam that way now and then.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
+const ANGER_MARK_SHADER := preload("res://game/passengers/anger_mark.gdshader")
 ## Toward the light that lights the bust, in world space: above, to the left and in front,
 ## like a photographer's lamp. Portraits face +z.
 const LIGHT_DIRECTION := Vector3(-0.48, 0.6, 0.64)
@@ -38,19 +40,22 @@ const FORWARD_DIP := 0.12
 const FORWARD_GROW := 0.25
 ## How fast anger and joy blend in and out, per second.
 const EXPRESSION_SPEED := 3.0
-## At full anger: how far the lids close, how big the pupils are, and how much of the
-## skin turns to the flush colour. The flush starts only past half anger: any less turns a
-## teal skin grey.
+## At full anger: how far the lids close, and how big the pupils are.
 const ANGRY_OPEN := 0.8
 const ANGRY_PUPIL := 0.7
-const ANGRY_FLUSH := 0.6
+## The anger mark: its size, as a share of the head's (the mean of its width and height),
+## and where it sits on the head's upper right, from its middle, as a share of the head's
+## size. It grows in past half anger, and pulses: how fast, and by how much of its size.
+const ANGER_MARK_SIZE := 0.42
+const ANGER_MARK_AT := Vector2(0.3, 0.5)
+const ANGER_MARK_PULSE_SPEED := 7.0
+const ANGER_MARK_PULSE := 0.12
 ## At full joy, how big the pupils are, and how far up the eyes look, from -1 to 1.
 const JOYFUL_PUPIL := 1.15
 const JOYFUL_LOOK := 0.35
 ## Content, how long each beam lasts, and the wait between them, in seconds: a range each.
 const BEAM_SECONDS := Vector2(1.2, 2.0)
 const BEAM_WAIT := Vector2(3.0, 7.0)
-const FLUSH_COLOR := Color(0.95, 0.15, 0.2)
 ## Past half anger, the head trembles: how fast, and how far at full anger, in radians.
 const TREMBLE_SPEED := 45.0
 const TREMBLE := 0.04
@@ -98,6 +103,8 @@ var felt_acceleration := Vector2.ZERO
 
 ## The eyes, made on the model's Eye markers.
 var eyes: Array[MeshInstance3D] = []
+## The red anger mark on the head, shown past half anger.
+var anger_mark: MeshInstance3D
 
 var _materials: Dictionary[String, ShaderMaterial] = {}
 # One per eye, since each eye's lid slants its own way in anger.
@@ -159,6 +166,7 @@ func _ready() -> void:
 				% [head_model.resource_path, HEAD_SUFFIX]
 			)
 		)
+	_addanger_mark()
 	skin_color = skin_color
 	outfit_color = outfit_color
 	eye_style = eye_style
@@ -204,7 +212,7 @@ func _process(delta: float) -> void:
 			_look.x * 0.18,
 			sin(t * 0.9 + 1.3) * 0.05 * motion + lean.x,
 		)
-		var tremble := clampf(_anger * 2.0 - 1.0, 0.0, 1.0) * TREMBLE * motion
+		var tremble := _get_fury() * TREMBLE * motion
 		_head.rotation.z += sin(_time * TREMBLE_SPEED) * tremble
 		var bob := absf(sin(t * BOB_SPEED)) * BOB * _joy * motion
 		var lift := _startle * 0.02 * motion - lurch.y * FORWARD_DIP + bob
@@ -223,6 +231,12 @@ func _process(delta: float) -> void:
 		)
 		_stalks[i].rotation = _stalk_rest[i] + wobble * motion
 
+	if anger_mark:
+		var pulse := 1.0 + sin(_time * ANGER_MARK_PULSE_SPEED) * ANGER_MARK_PULSE * motion
+		var grow := ease(_get_fury(), 0.4)
+		anger_mark.scale = Vector3.ONE * maxf(grow * pulse, 0.001)
+		anger_mark.visible = grow > 0.0
+
 	var open := lerpf(eye_openness, 0.0, _sleep) * lerpf(1.0, ANGRY_OPEN, _anger)
 	open *= 1.0 - _blink
 	_set_eyes(&"open", lerpf(open, 1.0, _startle))
@@ -231,9 +245,9 @@ func _process(delta: float) -> void:
 		eye.scale = Vector3.ONE * (1.0 + _startle * 0.25)
 
 
-## The bounds of the head and what is on it, such as stalks and eyes, in this node's
-## space. A shape that is all one piece, such as the Bean, gives its whole body, and so
-## does a model with no head part.
+## The bounds of the head and what is on it, such as stalks and eyes, but not the anger
+## mark, in this node's space. A shape that is all one piece, such as the Bean, gives its
+## whole body, and so does a model with no head part.
 func get_head_bounds() -> AABB:
 	var parts: Array[Node] = []
 	if _head:
@@ -245,6 +259,8 @@ func get_head_bounds() -> AABB:
 	var first := true
 	for node: Node in parts:
 		var mesh := node as MeshInstance3D
+		if mesh == anger_mark:
+			continue
 		var local := global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
 		bounds = local if first else bounds.merge(local)
 		first = false
@@ -279,7 +295,6 @@ func startle() -> void:
 
 # Blends the face toward anger and joy, and shows how far it has got.
 func _show_expression(delta: float) -> void:
-	var anger_was := _anger
 	_anger = move_toward(_anger, anger, delta * EXPRESSION_SPEED)
 	_beam_left -= delta
 	if content and not asleep:
@@ -289,19 +304,53 @@ func _show_expression(delta: float) -> void:
 			_beam_in = _beam_left + randf_range(BEAM_WAIT.x, BEAM_WAIT.y)
 	var beaming := content and _beam_left > 0.0
 	_joy = move_toward(_joy, 1.0 if beaming else joy, delta * EXPRESSION_SPEED)
-	if _anger != anger_was:
-		_show_skin()
 	_set_eyes(&"anger", _anger)
 	_set_eyes(&"pupil_scale", lerpf(1.0, ANGRY_PUPIL, _anger) * lerpf(1.0, JOYFUL_PUPIL, _joy))
 	_set_eyes(&"joy", _joy)
 
 
-# The skin colour, flushed by anger, on the body and the eyelids.
+# The skin colour on the body and the eyelids.
 func _show_skin() -> void:
-	var flush := clampf(_anger * 2.0 - 1.0, 0.0, 1.0) * ANGRY_FLUSH
-	var skin := skin_color.lerp(FLUSH_COLOR, flush)
-	_body_material(SKIN_MATERIAL).set_shader_parameter(&"color", skin)
-	_set_eyes(&"lid_color", skin)
+	_body_material(SKIN_MATERIAL).set_shader_parameter(&"color", skin_color)
+	_set_eyes(&"lid_color", skin_color)
+
+
+# How far past half anger they are, from 0 to 1: the anger mark and the tremble.
+func _get_fury() -> float:
+	return clampf(_anger * 2.0 - 1.0, 0.0, 1.0)
+
+
+# The anger mark, a quad facing the camera on the head's upper right as the camera sees
+# it, on the head so it trembles and leans with it. It goes by the head's own mesh, not
+# the stalks or eyes on it, so it sits clear of them. Hidden until they are angry.
+func _addanger_mark() -> void:
+	var bounds := _get_head_body_bounds()
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * (bounds.size.x + bounds.size.y) * 0.5 * ANGER_MARK_SIZE
+	var material := ShaderMaterial.new()
+	material.shader = ANGER_MARK_SHADER
+	material.render_priority = 1
+	anger_mark = MeshInstance3D.new()
+	anger_mark.mesh = quad
+	anger_mark.material_override = material
+	anger_mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	anger_mark.visible = false
+	var middle := bounds.get_center()
+	var offset := Vector2(bounds.size.x, bounds.size.y) * ANGER_MARK_AT
+	var at := Vector3(middle.x + offset.x, middle.y + offset.y, bounds.end.z)
+	var parent: Node3D = _head if _head else self
+	parent.add_child(anger_mark)
+	anger_mark.global_position = global_transform * at
+	anger_mark.global_basis = global_basis
+
+
+# The bounds of the head's own mesh in this node's space, without the parts on it, or the
+# whole head's when the head part has no mesh of its own.
+func _get_head_body_bounds() -> AABB:
+	var mesh := _head as MeshInstance3D
+	if not mesh:
+		return get_head_bounds()
+	return global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
 
 
 func _set_eyes(parameter: StringName, value: Variant) -> void:
