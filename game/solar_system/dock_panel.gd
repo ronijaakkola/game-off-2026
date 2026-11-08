@@ -1,11 +1,13 @@
 class_name DockPanel
 extends Control
 ## What the bus can do at the planet it is docked at, just above the bus status in the
-## bottom right corner. For now, who waits there: the planet's icon and name, a row for
-## each passenger, longest waiting first, with their portrait and a button to pick them
+## bottom right corner: the planet's icon and name, then, where the planet sells fuel, a
+## button to hold down to refuel and a faint line under it, then who waits there: a row
+## for each passenger, longest waiting first, with their portrait and a button to pick them
 ## up, and a button to pick up everyone that fits. The parent sets [member planet] while
-## the bus is docked or charging. The buttons are off while every seat is taken. It only
-## asks; the parent picks the passenger up.
+## the bus is docked or charging. The board buttons are off while every seat is taken. It
+## only asks: the parent picks the passenger up, pumps the fuel while
+## [method is_fuel_held], and turns the fuel button on or off with [method show_fuel].
 ## It slides in from the right when [member planet] is set and back out when it is
 ## cleared. A row whose passenger boards slides out to the right, clipped by the card, then
 ## closes up. The card fits what it holds every frame, so it shrinks as smoothly as the row
@@ -92,6 +94,18 @@ func pin(passenger: Passenger) -> void:
 	_preview()
 
 
+## Whether the fuel button is held down.
+func is_fuel_held() -> bool:
+	return (%FuelButton as FuelButton).is_held()
+
+
+## Shows the bus's fuel at [param fraction] of a full tank in the fuel button, with
+## [param cost], the credits to fill it, and turns it on or off. Off, it lets go and reads
+## [param reason] instead.
+func show_fuel(fraction: float, cost: int, can_fuel: bool, reason: String) -> void:
+	(%FuelButton as FuelButton).show_fuel(fraction, cost, can_fuel, reason)
+
+
 func _show_planet() -> void:
 	if planet:
 		if planet != _shown:
@@ -136,6 +150,8 @@ func _rebuild() -> void:
 	if _shown:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
+		(%FuelButton as Control).visible = _shown.sells_fuel
+		(%FuelRule as Control).visible = _shown.sells_fuel
 	_sync_rows()
 
 
