@@ -38,3 +38,11 @@ theme_type_variation = &"SmallLabel"
 theme_override_colors/font_color = Color(0.55, 0.85, 0.4, 1)
 text = "+0"
 horizontal_alignment = 2
+
+[node name="LossLabel" type="Label" parent="Rows/GainSlot" unique_id=2017559192]
+unique_name_in_owner = true
+layout_mode = 0
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.95, 0.3, 0.4, 1)
+text = "-0"
+horizontal_alignment = 2

@@ -62,6 +62,8 @@ static var _sphere: SphereMesh
 ## The one colour that stands for this body in the UI, such as a passenger card's
 ## destination icon. Pick the colour the body reads as from the camera.
 @export var icon_color := Color.WHITE
+## Whether the bus can buy fuel here.
+@export var sells_fuel := true
 ## Credits for one unit of fuel bought here. The bus's tank holds 100.
 @export_range(0.0, 10.0, 0.01, "or_greater") var fuel_price := 0.1
 

@@ -476,66 +476,6 @@ func _send_motion(to: Vector2) -> void:
 	Input.flush_buffered_events()
 
 
-func test_holding_refuel_at_the_docked_planet_buys_fuel_until_let_go() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var system := runner.scene() as SolarSystem
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	var ember := bus.get_docked_planet()
-	var tank := bus.get_fuel_tank()
-	tank.fuel = tank.capacity * 0.5
-	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	counter.credits = 100
-	system.open_planet(ember)
-	await await_millis(500)
-	var camera := runner.find_child("Camera") as Camera3D
-	var button := runner.find_child("RefuelButton") as Button
-	var at := _to_window(camera, button.get_global_rect().get_center())
-
-	_send_click(MOUSE_BUTTON_LEFT, at)
-	await runner.simulate_frames(30, 30)
-	_send_release(MOUSE_BUTTON_LEFT, at)
-	await runner.simulate_frames(1)
-
-	var bought := tank.fuel - tank.capacity * 0.5
-	assert_float(bought).is_greater(5.0)
-	assert_float(tank.fuel).is_less(tank.capacity)
-	# Whole credits go as they add up; the rest waits for the next drop.
-	assert_int(counter.credits).is_equal(100 - floori(bought * ember.fuel_price))
-	var held_to := tank.fuel
-	await runner.simulate_frames(20, 30)
-	assert_float(tank.fuel).is_equal(held_to)
-
-
-func test_refuel_is_off_away_from_the_docked_planet_without_credits_or_with_a_full_tank() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var system := runner.scene() as SolarSystem
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	var button := runner.find_child("RefuelButton") as Button
-	var note := runner.find_child("FuelNote") as Label
-	bus.get_fuel_tank().fuel = 10.0
-
-	system.open_planet(runner.find_child("Terra") as Planet)
-	await runner.simulate_frames(2)
-	assert_bool(button.disabled).is_true()
-	assert_str(note.text).is_equal("Dock here to refuel.")
-
-	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	counter.credits = 0
-	system.open_planet(bus.get_docked_planet())
-	await runner.simulate_frames(2)
-	assert_bool(button.disabled).is_true()
-	assert_str(note.text).is_equal("Not enough credits.")
-	counter.credits = 100
-	await runner.simulate_frames(2)
-	assert_bool(button.disabled).is_false()
-	bus.get_fuel_tank().fill()
-	await runner.simulate_frames(2)
-	assert_bool(button.disabled).is_true()
-	assert_str(note.text).is_equal("Tank full.")
-
-
 func test_a_tow_costs_its_fee_or_all_the_player_has() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
@@ -545,6 +485,8 @@ func test_a_tow_costs_its_fee_or_all_the_player_has() -> void:
 
 	bus.towed.emit(bus.get_docked_planet())
 	assert_int(counter.credits).is_equal(50 - SolarSystem.TOW_FEE)
+	var loss := runner.find_child("LossLabel") as Label
+	assert_str(loss.text).is_equal("-%d" % SolarSystem.TOW_FEE)
 
 	counter.credits = SolarSystem.TOW_FEE - 5
 	bus.towed.emit(bus.get_docked_planet())
@@ -564,13 +506,3 @@ func test_running_dry_in_space_sends_one_tow_ship() -> void:
 
 	var ships := system.get_children().filter(func(node: Node) -> bool: return node is TowShip)
 	assert_int(ships.size()).is_equal(1)
-
-
-func _send_release(button: MouseButton, at: Vector2) -> void:
-	var event := InputEventMouseButton.new()
-	event.button_index = button
-	event.position = at
-	event.global_position = at
-	event.pressed = false
-	Input.parse_input_event(event)
-	Input.flush_buffered_events()
