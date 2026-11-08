@@ -3,18 +3,8 @@
 [ext_resource type="Script" uid="uid://fug2msntw58w" path="res://game/passengers/passenger_card.gd" id="1_card"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
-[ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="3_n65mv"]
 [ext_resource type="Script" uid="uid://dl6jwib3kd3a0" path="res://game/passengers/morph_label.gd" id="4_morph"]
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="4_photo"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_tocvp"]
-resource_local_to_scene = true
-shader = ExtResource("3_n65mv")
-shader_parameter/color = null
-shader_parameter/night_tint = null
-shader_parameter/has_rings = null
-shader_parameter/ring_color = null
-shader_parameter/ring_tilt = null
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
 bg_color = Color(1, 1, 1, 0.12)
@@ -90,7 +80,6 @@ theme_override_constants/separation = 6
 [node name="DestinationIcon" type="ColorRect" parent="Panel/Layout/Rows/Patience" unique_id=394251105]
 unique_name_in_owner = true
 visible = false
-material = SubResource("ShaderMaterial_tocvp")
 custom_minimum_size = Vector2(14, 14)
 layout_mode = 2
 size_flags_vertical = 4

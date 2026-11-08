@@ -3,17 +3,7 @@
 [ext_resource type="Script" uid="uid://bkxsoq7oddv3f" path="res://game/solar_system/waiting_passenger_row.gd" id="1_row"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
-[ext_resource type="Shader" uid="uid://dytsmd0rbe0h4" path="res://game/passengers/planet_icon.gdshader" id="4_icon_shader"]
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="5_photo"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_icon"]
-resource_local_to_scene = true
-shader = ExtResource("4_icon_shader")
-shader_parameter/color = null
-shader_parameter/night_tint = null
-shader_parameter/has_rings = null
-shader_parameter/ring_color = null
-shader_parameter/ring_tilt = null
 
 [node name="WaitingPassengerRow" type="Control" unique_id=1646157411]
 layout_mode = 3
@@ -60,7 +50,6 @@ theme_override_constants/separation = 6
 [node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination" unique_id=1310667037]
 unique_name_in_owner = true
 visible = false
-material = SubResource("ShaderMaterial_icon")
 custom_minimum_size = Vector2(14, 14)
 layout_mode = 2
 size_flags_vertical = 4

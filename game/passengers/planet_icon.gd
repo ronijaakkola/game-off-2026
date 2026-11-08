@@ -2,10 +2,11 @@ class_name PlanetIcon
 extends ColorRect
 ## A planet as a small flat icon: a disc in its icon colour with a night side, and its
 ## rings at its tilt when it has them. A planet with rings gets a smaller disc, so the
-## rings fit inside the icon at any tilt. Keep the icon square, and give it a
-## ShaderMaterial on planet_icon.gdshader that is local to its scene, so each icon has
-## its own colours. It reads the planet when [member planet] is set, so it doesn't follow
-## later changes to the planet's colours.
+## rings fit inside the icon at any tilt. Keep the icon square. Each icon draws with its
+## own material, made here, so a scene sets no material on it. It reads the planet when
+## [member planet] is set, so it doesn't follow later changes to the planet's colours.
+
+const SHADER := preload("res://game/passengers/planet_icon.gdshader")
 
 ## The planet shown. None hides the icon.
 var planet: Planet:
@@ -13,16 +14,27 @@ var planet: Planet:
 		planet = value
 		_show()
 
+var _material := ShaderMaterial.new()
+
+
+func _init() -> void:
+	_material.shader = SHADER
+	material = _material
+
+
+func _ready() -> void:
+	# A scene's saved properties are set after _init(), so a material set in the scene
+	# replaces this icon's own, and every icon sharing it shows the last planet's colours.
+	if material != _material:
+		push_error("%s: PlanetIcon makes its own material; remove the one its scene sets" % name)
+		material = _material
+
 
 func _show() -> void:
 	visible = planet != null
 	if not planet:
 		return
-	var shader_material := material as ShaderMaterial
-	if not shader_material:
-		push_error("PlanetIcon needs a ShaderMaterial on planet_icon.gdshader")
-		return
-	shader_material.set_shader_parameter(&"color", planet.icon_color)
-	shader_material.set_shader_parameter(&"has_rings", planet.has_rings())
-	shader_material.set_shader_parameter(&"ring_color", planet.icon_ring_color)
-	shader_material.set_shader_parameter(&"ring_tilt", deg_to_rad(planet.tilt))
+	_material.set_shader_parameter(&"color", planet.icon_color)
+	_material.set_shader_parameter(&"has_rings", planet.has_rings())
+	_material.set_shader_parameter(&"ring_color", planet.icon_ring_color)
+	_material.set_shader_parameter(&"ring_tilt", deg_to_rad(planet.tilt))
