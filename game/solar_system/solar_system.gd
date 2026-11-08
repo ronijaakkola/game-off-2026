@@ -18,7 +18,7 @@ extends Node3D
 ## where someone waits, a small person and a number say how many. While the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
 ## picks them up one by one while seats are free. The bus can't charge, and a charge under
-## way holds, until the stop is over. The game starts with one passenger on board.
+## way holds, until the stop is over. The game starts with the bus empty.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -199,12 +199,6 @@ func _start_passengers() -> void:
 	cabin.delivered.connect(_on_delivered)
 	cabin.unloaded.connect((%CreditsCounter as CreditsCounter).commit)
 	cabin.stop_finished.connect(_on_stop_finished)
-	var home := bus.get_docked_planet()
-	if home:
-		var first := waiting.create(home)
-		if first:
-			cabin.board(first)
-	# After the first passenger boards, so their card is there from the start.
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 
 
