@@ -63,19 +63,59 @@ func test_commit_with_nothing_paid_changes_nothing() -> void:
 	assert_float((runner.find_child("GainLabel") as Label).modulate.a).is_equal(0.0)
 
 
-func test_spending_takes_off_the_total_at_once_and_leaves_a_waiting_gain() -> void:
+func test_spending_shows_a_red_loss_and_counts_the_total_down() -> void:
+	var runner := scene_runner(SCENE)
+	var counter := runner.scene() as CreditsCounter
+	counter.credits = 50
+	var total := runner.find_child("TotalLabel") as Label
+	var loss := runner.find_child("LossLabel") as Label
+
+	counter.spend(12)
+
+	assert_int(counter.credits).is_equal(38)
+	assert_str(loss.text).is_equal("-12")
+	assert_float(loss.modulate.a).is_equal(1.0)
+	assert_str(total.text).is_equal("50 credits")
+	await runner.simulate_frames(60, 30)
+	assert_str(total.text).is_equal("38 credits")
+	assert_float(loss.modulate.a).is_equal(0.0)
+
+
+func test_spending_again_while_the_loss_shows_adds_to_it() -> void:
+	var runner := scene_runner(SCENE)
+	var counter := runner.scene() as CreditsCounter
+	counter.credits = 50
+	var total := runner.find_child("TotalLabel") as Label
+	var loss := runner.find_child("LossLabel") as Label
+	counter.spend(12)
+	await runner.simulate_frames(5, 30)
+
+	counter.spend(20)
+
+	assert_str(loss.text).is_equal("-32")
+	await runner.simulate_frames(60, 30)
+	assert_str(total.text).is_equal("18 credits")
+	counter.spend(3)
+	assert_str(loss.text).is_equal("-3")
+
+
+func test_spending_leaves_a_waiting_gain_and_shows_under_it() -> void:
 	var runner := scene_runner(SCENE)
 	var counter := runner.scene() as CreditsCounter
 	counter.credits = 50
 	var total := runner.find_child("TotalLabel") as Label
 	var gain := runner.find_child("GainLabel") as Label
+	var loss := runner.find_child("LossLabel") as Label
 	counter.add(10)
 
 	counter.spend(15)
+	await runner.simulate_frames(1)
 
 	assert_int(counter.credits).is_equal(45)
-	assert_str(total.text).is_equal("35 credits")
 	assert_str(gain.text).is_equal("+10")
+	assert_float(loss.position.y).is_greater_equal(gain.size.y - 1.0)
+	await runner.simulate_frames(60, 30)
+	assert_str(total.text).is_equal("35 credits")
 	counter.commit()
 	await runner.simulate_frames(80, 30)
 	assert_str(total.text).is_equal("45 credits")
