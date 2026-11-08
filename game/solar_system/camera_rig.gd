@@ -1,8 +1,9 @@
 class_name CameraRig
 extends Node3D
-## An RTS camera. WASD, the arrow keys or the pointer at a window edge pan it across the
-## orbit plane, and the mouse wheel zooms it toward the point under the pointer. This node
-## sits at the point the camera looks at, and its rotation is the viewing angle; its shot,
+## An RTS camera. WASD, the arrow keys or the pointer at a window edge (unless
+## [code]Settings.edge_pan[/code] is off) pan it across the orbit plane, and the mouse
+## wheel zooms it toward the point under the pointer. This node sits at the point the
+## camera looks at, and its rotation is the viewing angle; its shot,
 ## %Shot, sits [member distance] back along that angle, and the scene's PhantomCameraHost
 ## moves the camera to it.
 ## The look-at point stays within [member bounds_radius] of the parent's origin, and the
@@ -184,7 +185,7 @@ func _place_focus_shot() -> void:
 
 # Screen directions to pan in, -1, 0 or 1 on each axis, from the pointer at the edges.
 func _edge_pan_input() -> Vector2:
-	if edge_pan_margin <= 0.0 or not _pointer_inside:
+	if not Settings.edge_pan or edge_pan_margin <= 0.0 or not _pointer_inside:
 		return Vector2.ZERO
 	var rect := get_viewport().get_visible_rect()
 	var direction := Vector2.ZERO
