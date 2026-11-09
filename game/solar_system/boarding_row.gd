@@ -44,7 +44,7 @@ var can_board := true:
 ## Where the portrait is rendered. Set it before [member passenger].
 var portrait_studio: PortraitStudio
 
-## Whether the row's trip is the one shown: a border in the destination's icon colour.
+## Whether the row's trip is the one shown: a border in their race's skin colour.
 var highlighted := false:
 	set(value):
 		if value == highlighted:
