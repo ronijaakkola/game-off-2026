@@ -10,7 +10,9 @@ extends Node3D
 ## and then. The skin never changes colour with mood, since it shows the passenger's
 ## race. A single eye shows anger with a brow over it and joy as a starry eye over
 ## blushing cheeks, since any curve cut into it reads as a mouth. Eating or drinking, a
-## [PortraitMeal] holds the food up to the face and nods the head.
+## [PortraitMeal] holds the food up to the face and nods the head. Watching something, a
+## [PortraitScreen] lights the face in the screen's shifting colours, the eyes stay on it,
+## and now and then they laugh: a joyful face, the head tipped back and bouncing.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
@@ -151,6 +153,7 @@ var _joy := 0.0
 var _beam_in := randf_range(0.5, 3.0)
 var _beam_left := 0.0
 var _meal: PortraitMeal
+var _screen := PortraitScreen.new()
 
 
 func _ready() -> void:
@@ -204,6 +207,7 @@ func _process(delta: float) -> void:
 		blink()
 		_blink_in = randf_range(2.0, 5.5)
 	_sway_with_push(delta)
+	_watch(delta, motion)
 	_show_expression(delta)
 	if _meal:
 		_meal.action = action
@@ -234,8 +238,10 @@ func _process(delta: float) -> void:
 			_head.rotation.x += _meal.pitch
 		var tremble := _get_fury() * TREMBLE * motion
 		_head.rotation.z += sin(_time * TREMBLE_SPEED) * tremble
-		var bob := absf(sin(t * BOB_SPEED)) * BOB * _joy * motion
-		var lift := _startle * 0.02 * motion - lurch.y * FORWARD_DIP + bob
+		# A laugh bounces the head its own way, in place of the joyful bob.
+		var bob := absf(sin(t * BOB_SPEED)) * BOB * _joy * (1.0 - _screen.laugh) * motion
+		var lift := _startle * 0.02 * motion - lurch.y * FORWARD_DIP + bob + _screen.bounce
+		_head.rotation.x += _screen.pitch
 		_head.position = _head_rest + Vector3.UP * lift
 	for i: int in _stalks.size():
 		# Stalks trail behind a swing of the head.
@@ -327,10 +333,24 @@ func _show_expression(delta: float) -> void:
 			_beam_left = randf_range(BEAM_SECONDS.x, BEAM_SECONDS.y)
 			_beam_in = _beam_left + randf_range(BEAM_WAIT.x, BEAM_WAIT.y)
 	var beaming := content and _beam_left > 0.0
-	_joy = move_toward(_joy, 1.0 if beaming else joy, delta * EXPRESSION_SPEED)
+	var target := maxf(1.0 if beaming else joy, _screen.laugh)
+	_joy = move_toward(_joy, target, delta * EXPRESSION_SPEED)
 	_set_eyes(&"anger", _anger)
 	_set_eyes(&"pupil_scale", lerpf(1.0, ANGRY_PUPIL, _anger) * lerpf(1.0, JOYFUL_PUPIL, _joy))
 	_set_eyes(&"joy", _joy)
+
+
+# Watching something, the screen lights the face and sets off laughs, unless they are
+# angry or asleep.
+func _watch(delta: float, motion: float) -> void:
+	var watching := action == Need.Action.WATCH
+	if watching != _screen.watching:
+		_screen.watching = watching
+		_look_hold = 0.0
+	_screen.may_laugh = anger < 0.5 and not asleep
+	_screen.advance(delta, motion)
+	for material: ShaderMaterial in _materials.values():
+		material.set_shader_parameter(&"screen_light", _screen.light)
 
 
 # The skin colour on the body and the eyelids.
@@ -404,6 +424,9 @@ func _wander_gaze(delta: float) -> void:
 	if randf() < 0.2:
 		_look_target.x = signf(_look_target.x) * 0.95
 	_look_target *= 1.0 - _anger * 0.8
+	if _screen.watching:
+		# Their eyes stay on the screen, in front of them where the camera is.
+		_look_target *= 0.15
 	_look_hold = randf_range(1.2, 3.5)
 
 

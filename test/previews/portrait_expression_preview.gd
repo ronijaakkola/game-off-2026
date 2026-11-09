@@ -1,24 +1,25 @@
 extends Control
 ## Every head shape in its race's colour in each expression, as passenger photos at the
-## size their cards show them, for a visual check of how anger, joy, eating and drinking
-## read: a row per head, race by race,
-## and a column each for okay, happy, annoyed, furious, joyful, eating and drinking. The
-## first four get there by their mood, and happy ones beam now and then; the joyful ones'
-## full joy is set on the portrait, so their photo doesn't ride and set it by mood. The
-## eating and drinking ones asked for a snack or a drink and were served it. Pass `big`
-## to show them three times the size, and `swap` to give every head the other eye style.
+## size their cards show them, for a visual check of how anger, joy, eating, drinking and
+## watching read: a row per head, race by race, and a column each for okay, happy,
+## annoyed, furious, joyful, eating, drinking and watching. The first four get there by
+## their mood, and happy ones beam now and then; the joyful ones' full joy is set on the
+## portrait, so their photo doesn't ride and set it by mood. The eating, drinking and
+## watching ones asked for a snack, a drink or entertainment and were served it. Pass
+## `big` to show them three times the size, and `swap` to give every head the other eye
+## style.
 
 const PHOTO := preload("res://game/passengers/passenger_photo.tscn")
 const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const COLUMNS: Array[String] = [
-	"Okay", "Happy", "Annoyed", "Furious", "Joyful", "Eating", "Drinking"
+	"Okay", "Happy", "Annoyed", "Furious", "Joyful", "Eating", "Drinking", "Watching"
 ]
 # Patience left, as a fraction of the full amount, for each column.
-const PATIENCE: Array[float] = [0.45, 0.9, 0.2, 0.0, 0.9, 0.45, 0.45]
+const PATIENCE: Array[float] = [0.45, 0.9, 0.2, 0.0, 0.9, 0.45, 0.45, 0.45]
 const JOYFUL := 4
 # The need served to each column's passengers, by id, or none.
-const SERVED: Dictionary[int, StringName] = {5: &"snack", 6: &"drink"}
+const SERVED: Dictionary[int, StringName] = {5: &"snack", 6: &"drink", 7: &"entertainment"}
 const CELL := Vector2(70.0, 62.0)
 const ORIGIN := Vector2(90.0, 40.0)
 

@@ -4,11 +4,12 @@
 [ext_resource type="Resource" uid="uid://luqs0adq8oj6" path="res://game/passengers/needs/snack.tres" id="2_snack"]
 [ext_resource type="Resource" uid="uid://be5jdsgim3cu2" path="res://game/passengers/needs/drink.tres" id="3_drink"]
 [ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="4_need"]
+[ext_resource type="Resource" uid="uid://dn2w5nn2w7ujn" path="res://game/passengers/needs/entertainment.tres" id="5_entertainment"]
 
 [resource]
 script = ExtResource("1_type")
 display_name = "Commuter"
-needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink")])
+needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink"), ExtResource("5_entertainment")])
 idle_lines = Array[String](["Looking at empty space", "Counting stars", "Reading a pamphlet", "Humming quietly", "Drumming on the armrest"])
 sleep_lines = Array[String](["Sleeping..."])
 names = Array[String](["Vontti", "Tuomazus", "Ev'elinis", "Rasmusar", "Jen'na", "Auron", "Ar'tturi", "Aenna-marek", "Taepani", "Fil'ip", "Sufoi", "Vinkent", "Monno", "Iveel", "Isabelix", "Lenon", "Meoje", "Tommus", "Neeleth", "Zhen'nifer", "Reizhis", "Lileth", "Thajoni", "Zhoanna", "Evelinus", "Sisus", "Veisa", "Han'nes", "Viljanenus", "Autar"])
