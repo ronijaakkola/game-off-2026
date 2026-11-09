@@ -20,10 +20,15 @@ enum Type {
 	PILLOWS,
 	## Lets passengers sleep long, with their clock slower still. Beats pillows.
 	SLEEPING_PODS,
-	## A little fun on board: happier passengers, and a slightly slower clock.
-	GAMEPADS,
-	## More fun, on top of the gamepads'.
+	## Games on board: happier passengers, and longer shows on the entertainment system.
+	GAMING_SYSTEM,
+	## Shows on board: happier passengers, who now and then watch one, their clock slower
+	## while they do.
 	ENTERTAINMENT_SYSTEM,
+	## Hungry passengers fetch their own food from it, one at a time ([Amenity]).
+	FOOD_DISPENSER,
+	## Robots bring hungry passengers their food, several at a time ([Amenity]).
+	SERVING_ROBOTS,
 }
 
 # How many times each trait the bus has was added and not yet taken out.

@@ -57,8 +57,8 @@ const TOW_FEE := 20
 const TOW_SHOCK := -15.0
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
-## The percent of top speed and of the fuel tank the debug panel's stat buttons add or take
-## away, and the seats, on every click.
+## The percent of top speed, the fuel tank and portion size the debug panel's stat buttons
+## add or take away, and the seats, on every click.
 const DEBUG_STAT_PERCENT := 20
 const DEBUG_SEATS := 1
 ## The debug panel's group for the stat buttons: its own card, opened from the main one.
@@ -116,6 +116,7 @@ func _ready() -> void:
 	_add_debug_stat_buttons(BusStats.Type.MAX_SPEED, percent, DEBUG_STAT_PERCENT, "% top speed")
 	_add_debug_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, DEBUG_STAT_PERCENT, "% fuel tank")
 	_add_debug_stat_buttons(BusStats.Type.SEATS, StatModifier.Kind.FLAT, DEBUG_SEATS, " seat")
+	_add_debug_stat_buttons(BusStats.Type.PORTION_SIZE, percent, DEBUG_STAT_PERCENT, "% portions")
 	for value: int in BusTraits.Type.values():
 		var text := "Toggle %s" % String(BusTraits.Type.keys()[value]).capitalize().to_lower()
 		var action := _debug_toggle_trait.bind(value as BusTraits.Type)

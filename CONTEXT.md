@@ -105,7 +105,7 @@ How content a passenger is, from 0 to 100, sliding toward a **target** set by th
 _Avoid_: satisfaction, morale, frustration, patience (what it replaced)
 
 **Comfort**:
-What the bus's comfort upgrades give everyone on board: a bonus on the happiness they settle at, and how fast their ride's clock runs awake and asleep. `Comfort` in code, read off the bus's traits.
+What the bus's comfort upgrades give everyone on board: a bonus on the happiness they settle at, and how long and how slowly their ride's clock runs while they sleep or watch a show. `Comfort` in code, read off the bus's traits.
 _Avoid_: luxury, amenities (the things that serve needs)
 
 **Rating**:
@@ -141,7 +141,7 @@ Something a passenger asks for during the ride, such as a snack. An open one is 
 _Avoid_: want, demand, task
 
 **Amenity**:
-Something on the bus that serves one need by itself. Upgrades add them.
+Something on the bus that serves food by itself, such as the food dispenser, to a set number of passengers at a time, while the others asking wait for it. Upgrades put them on board as traits. `Amenity` in code.
 _Avoid_: facility, station, upgrade (the purchase, not the thing)
 
 **Cabin**:
