@@ -4,12 +4,21 @@ extends SidePanel
 ## and a row for each passenger waiting there, longest waiting first, kept up to date as
 ## they arrive and board. Under them, the bus's fuel, a full tank's price here, and a
 ## button to hold down to refuel, with a note under it; the parent pumps the fuel while
-## [method is_refuel_held] and sets what shows with [method show_fuel]. It slides in when
-## it opens and back out when it closes ([SidePanel]). Its close button only asks; the
-## parent closes it.
+## [method is_refuel_held] and sets what shows with [method show_fuel]. All of that is its
+## Services tab. A planet with a research tree also has a Research tab, which draws it
+## ([ResearchTreeView]); the parent sets what it shows with [method show_research] and
+## researches what the player clicks. With one tab, there is no tab bar. It opens on
+## Services, and moving straight on to another planet keeps the Research tab where that
+## planet has a tree. It slides in when it opens and back out when it closes ([SidePanel]).
+## Its close button only asks; the parent closes it.
 
 ## The close button was pressed.
 signal close_pressed
+## The player clicked [param upgrade] in the Research tab, available, with the bus docked.
+signal upgrade_clicked(upgrade: Upgrade)
+
+const SERVICES_TAB := 0
+const RESEARCH_TAB := 1
 
 const ROW := preload("res://game/solar_system/waiting_passenger_row.tscn")
 
@@ -26,6 +35,8 @@ const ROW := preload("res://game/solar_system/waiting_passenger_row.tscn")
 
 ## Where the rows' portraits are rendered. Without one, their photos stay empty.
 var portrait_studio: PortraitStudio
+## Which upgrades are researched, for the Research tab. Without it, the tab shows no states.
+var research: Research
 
 var _planet: Planet
 var _refuel_held := false
@@ -44,7 +55,15 @@ func _ready() -> void:
 
 ## Shows [param planet] and slides in, unless already open, then it only changes planet.
 func open(planet: Planet) -> void:
+	var moving_on := _planet != null
 	_planet = planet
+	var tree := planet.research_tree
+	var tabs := %Tabs as TabBar
+	tabs.visible = tree != null
+	if not moving_on or not tree:
+		tabs.current_tab = SERVICES_TAB
+	(%ResearchView as ResearchTreeView).tree = tree
+	_show_tab()
 	_show_planet()
 	_show_waiting()
 	slide_in()
@@ -81,6 +100,29 @@ func show_fuel(fraction: float, full_tank_cost: int, can_refuel: bool, note: Str
 	if not can_refuel:
 		_refuel_held = false
 	button.text = "Refuelling..." if _refuel_held else "Hold to refuel"
+
+
+## Shows the Research tab's upgrades as [member research] has them, with [param credits]
+## and [param points] the player has, and [param can_research] whether the bus is docked
+## here. Only what changed is redrawn, so the parent can call it every frame.
+func show_research(credits: int, points: Dictionary[Race.Type, int], can_research: bool) -> void:
+	if research:
+		(%ResearchView as ResearchTreeView).show_state(research, credits, points, can_research)
+
+
+## Switches to [param tab], [constant SERVICES_TAB] or [constant RESEARCH_TAB]. The
+## Research tab only opens where the planet has a tree.
+func show_tab(tab: int) -> void:
+	if tab == RESEARCH_TAB and not (_planet and _planet.research_tree):
+		return
+	(%Tabs as TabBar).current_tab = tab
+	_show_tab()
+
+
+func _show_tab() -> void:
+	var on_research := (%Tabs as TabBar).current_tab == RESEARCH_TAB
+	(%Services as Control).visible = not on_research
+	(%ResearchView as Control).visible = on_research
 
 
 func _show_planet() -> void:
@@ -152,6 +194,14 @@ func _on_refuel_button_down() -> void:
 
 func _on_refuel_button_up() -> void:
 	_refuel_held = false
+
+
+func _on_tabs_tab_changed(_tab: int) -> void:
+	_show_tab()
+
+
+func _on_research_view_upgrade_clicked(upgrade: Upgrade) -> void:
+	upgrade_clicked.emit(upgrade)
 
 
 func _on_close_button_pressed() -> void:

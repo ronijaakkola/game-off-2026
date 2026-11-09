@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://djgglreo0dvp4" path="res://game/solar_system/planet_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
+[ext_resource type="PackedScene" uid="uid://cjh1c4wmicyyv" path="res://game/research/research_tree_view.tscn" id="4_research"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
 content_margin_top = 1.0
@@ -36,7 +37,7 @@ theme_override_constants/margin_bottom = 12
 script = ExtResource("1_panel")
 
 [node name="Sheet" type="PanelContainer" parent="." unique_id=1864369398]
-custom_minimum_size = Vector2(420, 0)
+custom_minimum_size = Vector2(480, 0)
 clip_contents = true
 layout_mode = 2
 theme_type_variation = &"SheetPanel"
@@ -71,59 +72,74 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
 
-[node name="WaitingTitle" type="Label" parent="Sheet/Rows" unique_id=1733747462]
+[node name="Tabs" type="TabBar" parent="Sheet/Rows" unique_id=1950594210]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+current_tab = 0
+tab_count = 2
+tab_0/title = "Services"
+tab_1/title = "Research"
+
+[node name="Services" type="VBoxContainer" parent="Sheet/Rows" unique_id=987650556]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="WaitingTitle" type="Label" parent="Sheet/Rows/Services" unique_id=1733747462]
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.55)
 text = "Waiting here"
 
-[node name="WaitingRows" type="VBoxContainer" parent="Sheet/Rows" unique_id=1330770822]
+[node name="WaitingRows" type="VBoxContainer" parent="Sheet/Rows/Services" unique_id=1330770822]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 6
 
-[node name="EmptyLabel" type="Label" parent="Sheet/Rows" unique_id=18524571]
+[node name="EmptyLabel" type="Label" parent="Sheet/Rows/Services" unique_id=18524571]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.35)
 text = "No one is waiting."
 
-[node name="Spacer" type="Control" parent="Sheet/Rows" unique_id=555852281]
+[node name="Spacer" type="Control" parent="Sheet/Rows/Services" unique_id=555852281]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="FuelRule" type="Panel" parent="Sheet/Rows" unique_id=1247600231]
+[node name="FuelRule" type="Panel" parent="Sheet/Rows/Services" unique_id=1247600231]
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
 
-[node name="FuelHeader" type="HBoxContainer" parent="Sheet/Rows" unique_id=1623810674]
+[node name="FuelHeader" type="HBoxContainer" parent="Sheet/Rows/Services" unique_id=1623810674]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="FuelTitle" type="Label" parent="Sheet/Rows/FuelHeader" unique_id=1314631904]
+[node name="FuelTitle" type="Label" parent="Sheet/Rows/Services/FuelHeader" unique_id=1314631904]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"SmallLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.55)
 text = "Fuel"
 
-[node name="PriceLabel" type="Label" parent="Sheet/Rows/FuelHeader" unique_id=1303074348]
+[node name="PriceLabel" type="Label" parent="Sheet/Rows/Services/FuelHeader" unique_id=1303074348]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
 text = "Full tank 10 credits"
 
-[node name="FuelRow" type="HBoxContainer" parent="Sheet/Rows" unique_id=1835942146]
+[node name="FuelRow" type="HBoxContainer" parent="Sheet/Rows/Services" unique_id=1835942146]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="FuelBar" type="ProgressBar" parent="Sheet/Rows/FuelRow" unique_id=1662438485]
+[node name="FuelBar" type="ProgressBar" parent="Sheet/Rows/Services/FuelRow" unique_id=1662438485]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
@@ -136,7 +152,7 @@ max_value = 1.0
 value = 1.0
 show_percentage = false
 
-[node name="FuelAmount" type="Label" parent="Sheet/Rows/FuelRow" unique_id=2119550928]
+[node name="FuelAmount" type="Label" parent="Sheet/Rows/Services/FuelRow" unique_id=2119550928]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(44, 0)
 layout_mode = 2
@@ -144,12 +160,12 @@ theme_type_variation = &"SmallLabel"
 text = "100%"
 horizontal_alignment = 2
 
-[node name="RefuelButton" type="Button" parent="Sheet/Rows" unique_id=976823080]
+[node name="RefuelButton" type="Button" parent="Sheet/Rows/Services" unique_id=976823080]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Hold to refuel"
 
-[node name="FuelNote" type="Label" parent="Sheet/Rows" unique_id=1266662327]
+[node name="FuelNote" type="Label" parent="Sheet/Rows/Services" unique_id=1266662327]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
@@ -157,11 +173,19 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.55)
 text = "Dock here to refuel."
 horizontal_alignment = 1
 
+[node name="ResearchView" parent="Sheet/Rows" unique_id=722984581 instance=ExtResource("4_research")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
 [node name="CloseButton" type="Button" parent="Sheet/Rows" unique_id=2026300211]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Close"
 
-[connection signal="button_down" from="Sheet/Rows/RefuelButton" to="." method="_on_refuel_button_down"]
-[connection signal="button_up" from="Sheet/Rows/RefuelButton" to="." method="_on_refuel_button_up"]
+[connection signal="tab_changed" from="Sheet/Rows/Tabs" to="." method="_on_tabs_tab_changed"]
+[connection signal="button_down" from="Sheet/Rows/Services/RefuelButton" to="." method="_on_refuel_button_down"]
+[connection signal="button_up" from="Sheet/Rows/Services/RefuelButton" to="." method="_on_refuel_button_up"]
+[connection signal="upgrade_clicked" from="Sheet/Rows/ResearchView" to="." method="_on_research_view_upgrade_clicked"]
 [connection signal="pressed" from="Sheet/Rows/CloseButton" to="." method="_on_close_button_pressed"]

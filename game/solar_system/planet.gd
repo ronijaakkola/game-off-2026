@@ -66,6 +66,8 @@ static var _sphere: SphereMesh
 @export var sells_fuel := true
 ## Credits for one unit of fuel bought here. The bus's tank holds 100.
 @export_range(0.0, 10.0, 0.01, "or_greater") var fuel_price := 0.1
+## The upgrades researched here, or none: the open planet's panel then has no Research tab.
+@export var research_tree: ResearchTree
 
 @export_group("Orbit line")
 @export var show_orbit := true:

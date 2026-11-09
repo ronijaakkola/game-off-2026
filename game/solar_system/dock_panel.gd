@@ -2,7 +2,8 @@ class_name DockPanel
 extends Control
 ## What the bus can do at the planet it is docked at, just above the bus status in the
 ## bottom right corner: the planet's icon and name, then, where the planet sells fuel, a
-## button to hold down to refuel and a faint line under it, then who waits there: a row
+## button to hold down to refuel, where it has a research tree, a button to open its
+## Research tab, and a faint line under them, then who waits there: a row
 ## for each passenger, longest waiting first, with their portrait and a button to pick them
 ## up, and a button to pick up everyone that fits. The parent sets [member planet] while
 ## the bus is docked or charging. The board buttons are off while every seat is taken. It
@@ -27,6 +28,8 @@ signal board_pressed(passenger: Passenger)
 ## The passenger whose trip to show changed to [param passenger]: the one whose row the
 ## pointer is over, else the pinned one, or null for nobody.
 signal trip_previewed(passenger: Passenger)
+## The player pressed the Research button, to open [param at]'s research tree.
+signal research_pressed(at: Planet)
 
 const ROW := preload("res://game/solar_system/boarding_row.tscn")
 ## Seconds to slide in from past the right edge, or back out.
@@ -151,7 +154,8 @@ func _rebuild() -> void:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
 		(%FuelButton as Control).visible = _shown.sells_fuel
-		(%FuelRule as Control).visible = _shown.sells_fuel
+		(%ResearchButton as Control).visible = _shown.research_tree != null
+		(%FuelRule as Control).visible = _shown.sells_fuel or _shown.research_tree != null
 	_sync_rows()
 
 
@@ -243,6 +247,11 @@ func _on_waiting_changed(changed_planet: Planet) -> void:
 # A click on a row pins its trip, and a second click unpins it.
 func _on_row_clicked(passenger: Passenger) -> void:
 	pin(null if passenger == _pinned else passenger)
+
+
+func _on_research_button_pressed() -> void:
+	if _shown:
+		research_pressed.emit(_shown)
 
 
 func _on_board_all_button_pressed() -> void:

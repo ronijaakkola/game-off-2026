@@ -19,6 +19,24 @@ corner_radius_bottom_left = 6
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
 bg_color = Color(0, 0, 0, 0.5)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover_card"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.29, 0.24, 0.44, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.25)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
+
 [sub_resource type="FontVariation" id="FontVariation_baloo_bold"]
 base_font = ExtResource("1_baloo")
 variation_opentype = {
@@ -63,6 +81,8 @@ FaintLabel/colors/font_color = Color(1, 1, 1, 0.35)
 FaintLabel/font_sizes/font_size = 14
 HeadingLabel/base_type = &"Label"
 HeadingLabel/font_sizes/font_size = 32
+HoverCardPanel/base_type = &"PanelContainer"
+HoverCardPanel/styles/panel = SubResource("StyleBoxFlat_hover_card")
 PillGainLabel/base_type = &"Label"
 PillGainLabel/font_sizes/font_size = 11
 PillGainLabel/fonts/font = SubResource("FontVariation_baloo_bold")

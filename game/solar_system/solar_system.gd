@@ -54,8 +54,6 @@ const MARKER_GAP_PIXELS := 4.0
 const TOW_FEE := 20
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
-## The credits the debug panel's Add credits button gives.
-const DEBUG_CREDITS := 1000
 ## The percent of top speed and of the fuel tank the debug panel's stat buttons add or take
 ## away, and the seats, on every click.
 const DEBUG_STAT_PERCENT := 20
@@ -105,11 +103,11 @@ func _ready() -> void:
 	dock_panel.cabin = %Cabin as Cabin
 	dock_panel.board_pressed.connect(_on_board_pressed)
 	dock_panel.trip_previewed.connect((%TripArc as TripArc).show_passenger)
+	dock_panel.research_pressed.connect(_on_research_pressed)
 	var bus := %Bus as FrameshiftBus
 	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
 	bus.towed.connect(_on_bus_towed)
 	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
-	DebugPanel.add_button("Add %d credits" % DEBUG_CREDITS, _debug_add_credits, self)
 	var percent := StatModifier.Kind.PERCENT
 	_add_debug_stat_buttons(BusStats.Type.MAX_SPEED, percent, DEBUG_STAT_PERCENT, "% top speed")
 	_add_debug_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, DEBUG_STAT_PERCENT, "% fuel tank")
@@ -295,6 +293,7 @@ func _start_passengers() -> void:
 	cabin.kicked.connect(_on_kicked)
 	var bar := %ResourceBar as ResourceBar
 	bar.ledger = _ledger
+	(%ResearchLab as ResearchLab).ledger = _ledger
 	cabin.unloaded.connect(bar.commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
@@ -380,10 +379,10 @@ func _debug_empty_fuel() -> void:
 	(%Bus as FrameshiftBus).get_fuel_tank().drain()
 
 
-# The debug panel's Add credits, shown as a gain that counts into the total, like a fare.
-func _debug_add_credits() -> void:
-	_ledger.earn(DEBUG_CREDITS)
-	(%ResourceBar as ResourceBar).commit()
+# The dock panel's Research button: opens the planet on its Research tab.
+func _on_research_pressed(planet: Planet) -> void:
+	open_planet(planet)
+	(%PlanetPanel as PlanetPanel).show_tab(PlanetPanel.RESEARCH_TAB)
 
 
 # A pair of buttons for the type stat on the debug panel's Stats card, "+20% top speed"
