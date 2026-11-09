@@ -104,6 +104,10 @@ _Avoid_: customer, rider, NPC
 How much more riding a passenger will take, in seconds, starting at the direct trip time with some slack.
 _Avoid_: frustration, timer, budget
 
+**Happiness**:
+How content a passenger is, from 0 to 100, sliding toward a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. Designed, not built: it will replace patience and set the mood and rating.
+_Avoid_: satisfaction, morale, frustration
+
 **Rating**:
 The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **average rating** is the mean of every rating so far, shown in the **resource bar**. `Passenger.get_rating()`, and `Ledger.rate()` for the average, in code.
 _Avoid_: reputation, review, score
