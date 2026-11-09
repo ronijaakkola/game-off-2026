@@ -10,7 +10,7 @@ extends VBoxContainer
 ## The player clicked [param upgrade], which is available, while the bus is docked here.
 signal upgrade_clicked(upgrade: Upgrade)
 
-## Pixels between two upgrades in a row.
+## Pixels between two upgrades in a row, unless [member column_gap] says otherwise.
 const COLUMN_GAP := 28
 ## Pixels between two tiers, where the lines run.
 const TIER_GAP := 20
@@ -27,6 +27,9 @@ var tree: ResearchTree:
 		tree = value
 		if is_node_ready():
 			_build()
+
+## Pixels between two upgrades in a row. Set it before the view enters the tree.
+var column_gap := COLUMN_GAP
 
 var _buttons: Array[UpgradeButton] = []
 var _hovered: UpgradeButton
@@ -87,7 +90,7 @@ func _build() -> void:
 		var row := HBoxContainer.new()
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
-		row.add_theme_constant_override(&"separation", COLUMN_GAP)
+		row.add_theme_constant_override(&"separation", column_gap)
 		tiers.add_child(row)
 		for column: int in column_count:
 			var upgrade := _upgrade_at(tier, column)

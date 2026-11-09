@@ -293,7 +293,9 @@ func _start_passengers() -> void:
 	cabin.kicked.connect(_on_kicked)
 	var bar := %ResourceBar as ResourceBar
 	bar.ledger = _ledger
-	(%ResearchLab as ResearchLab).ledger = _ledger
+	var lab := %ResearchLab as ResearchLab
+	lab.ledger = _ledger
+	lab.planets = _planets
 	cabin.unloaded.connect(bar.commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
