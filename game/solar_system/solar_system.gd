@@ -52,7 +52,7 @@ const CAMERA_HOST_PRIORITY := 300
 ## Pixels between a planet's name and the marker for who waits there.
 const MARKER_GAP_PIXELS := 4.0
 ## What a tow costs, in credits.
-const TOW_FEE := 20
+const TOW_FEE := 100
 ## The scare everyone on board takes when the tow ship hooks on.
 const TOW_SHOCK := -15.0
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
