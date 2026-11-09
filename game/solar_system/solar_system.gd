@@ -288,6 +288,7 @@ func _start_passengers() -> void:
 	var bus := %Bus as FrameshiftBus
 	var waiting := %WaitingPassengers as WaitingPassengers
 	waiting.set_planets(_planets)
+	waiting.add_starting_passengers(bus.get_docked_planet())
 	bus.docked.connect(_on_bus_docked)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)

@@ -49,8 +49,10 @@ func test_the_dock_panel_lists_who_waits_and_board_picks_up() -> void:
 	waiting.set_process(false)
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var ember := bus.get_docked_planet()
-	waiting.add(ember)
+	# The game starts with some waiting at Ember: keep one.
 	var picked := waiting.get_waiting(ember)[0]
+	for passenger: Passenger in waiting.get_waiting(ember).slice(1):
+		waiting.take(ember, passenger)
 	await runner.simulate_frames(3)
 	var panel := runner.find_child("DockPanel") as DockPanel
 	var markers := runner.find_child("WaitingMarkers") as WaitingMarkers
