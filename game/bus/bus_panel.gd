@@ -28,6 +28,10 @@ const VALUE_FORMATS := {BusStats.Type.FUEL_CAPACITY: "%.0f"}
 const TRAIT_NAMES := {
 	BusTraits.Type.FUEL_FORECAST: "Fuel forecast",
 	BusTraits.Type.WAITING_MARKERS: "Waiting markers",
+	BusTraits.Type.PILLOWS: "Pillows",
+	BusTraits.Type.SLEEPING_PODS: "Sleeping pods",
+	BusTraits.Type.GAMEPADS: "Gamepads",
+	BusTraits.Type.ENTERTAINMENT_SYSTEM: "Entertainment system",
 }
 
 var _bus: FrameshiftBus

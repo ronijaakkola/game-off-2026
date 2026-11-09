@@ -1,13 +1,14 @@
 class_name PassengerCard
 extends Control
 ## One passenger's card: their name, where they are going (an icon of the
-## planet and its name), their patience as a bar in their mood's colour, and what they
-## are doing. While they ask for something, a button serves it. It only reads the
-## passenger; the [Cabin] runs the ride.
+## planet and its name), their happiness as a bar in their mood's colour, and what they
+## are doing. A big drop in happiness, such as a scare, leaves a red trail on the bar
+## that holds a moment, then shrinks to it. While they ask for something, a button serves
+## it. It only reads the passenger; the [Cabin] runs the ride.
 ## Their portrait sits on the left, as a [PassengerPhoto].
 ## The card slides in from past the left edge of the screen when the passenger boards.
 ## When the bus stops at their destination, [method show_rating] swaps the middle row,
-## where they are going and their patience, for the stars they rate the ride, which fill
+## where they are going and their happiness, for the stars they rate the ride, which fill
 ## up one by one, and the activity reads "Getting off". The card lingers like that, and
 ## only then [method leave] slides it back out past the left edge and folds its height
 ## away so the cards below it move up. The root is a slot that holds
@@ -28,10 +29,17 @@ const SLIDE_IN_SECONDS := 0.4
 const SLIDE_OUT_SECONDS := 0.3
 ## Seconds to fold the slot's height away once the card is out.
 const FOLD_SECONDS := 0.2
+## A drop in happiness this big in one frame, as a fraction of the bar, leaves a trail:
+## shocks do, the steady slide doesn't.
+const TRAIL_JUMP := 0.05
+## Seconds the trail holds after a drop before it shrinks, and how fast it shrinks then, in
+## bars a second. A slow slide it follows at once, so it never shows.
+const TRAIL_HOLD_SECONDS := 0.5
+const TRAIL_SHRINK_RATE := 0.5
 ## Seconds the mood name takes to fade out and back in as the new mood, and the bar's
 ## colour to blend into the new mood's. A fade is no motion, so Reduce motion keeps it.
 const MOOD_FADE_SECONDS := 0.3
-## Seconds the middle row takes to swap the patience bar for the stars: the bar sinks and
+## Seconds the middle row takes to swap the happiness bar for the stars: the bar sinks and
 ## fades out while the stars drop in from above and fade in, a little behind it.
 const SWAP_SECONDS := 0.3
 const SWAP_STAGGER := 0.1
@@ -81,6 +89,9 @@ var portrait_studio: PortraitStudio:
 
 # The bar's fill, this card's own copy, so its colour changes on this card alone.
 var _fill: StyleBoxFlat
+# The happiness the bar showed last frame, and seconds the trail holds still for.
+var _shown_happiness := 1.0
+var _trail_hold := 0.0
 # The mood shown, so the colours change only when it does. -1 before the first show.
 var _mood := -1
 # Whether Reduce motion was on when the mood name was last written.
@@ -97,7 +108,7 @@ var _fill_fade: Tween
 var _rated := false
 # Seconds left until the card has shown the rating long enough to slide out.
 var _linger_left := 0.0
-# The middle row's swap from the patience bar to the stars, then the stars filling.
+# The middle row's swap from the happiness bar to the stars, then the stars filling.
 var _rating_swap: Tween
 # Whether the card is on its way out, after leave().
 var _leaving := false
@@ -112,7 +123,7 @@ func _ready() -> void:
 	var stars := %RatingStars as StarIcon
 	stars.count = roundi(Passenger.MAX_STARS)
 	stars.fill = 0.0
-	var bar := %PatienceBar as ProgressBar
+	var bar := %HappinessBar as ProgressBar
 	_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate()
 	bar.add_theme_stylebox_override(&"fill", _fill)
 	var photo := %PassengerPhoto as PassengerPhoto
@@ -127,6 +138,7 @@ func _process(delta: float) -> void:
 	_linger_left = maxf(_linger_left - delta, 0.0)
 	if not _rated:
 		_show()
+		_follow_trail(delta)
 	_slide_options(_wants_options())
 	_fit_slot()
 
@@ -147,7 +159,7 @@ func slide_in() -> void:
 
 
 ## Shows that the passenger is getting off and rated the ride [param stars] out of
-## [constant Passenger.MAX_STARS]. The middle row swaps: the patience bar, and where they
+## [constant Passenger.MAX_STARS]. The middle row swaps: the happiness bar, and where they
 ## are going, sink and fade out while empty stars drop in from above and fade in, then the
 ## stars fill up to the rating one after another, each swelling as it fills. The activity
 ## morphs to "Getting off", and the serve button goes. The name and mood stay. The card
@@ -163,9 +175,9 @@ func show_rating(stars: float) -> void:
 	button.visible = false
 	var still := Settings.reduce_motion
 	var drop := 0.0 if still else SWAP_PIXELS
-	var patience := %Patience as Control
+	var trip := %Trip as Control
 	var rating := %RatingStars as StarIcon
-	var rest_y := (patience.size.y - rating.size.y) * 0.5
+	var rest_y := (trip.size.y - rating.size.y) * 0.5
 	rating.fill = 0.0
 	rating.bump = not still
 	rating.modulate.a = 0.0
@@ -174,10 +186,10 @@ func show_rating(stars: float) -> void:
 	if _rating_swap:
 		_rating_swap.kill()
 	_rating_swap = create_tween().set_parallel()
-	_rating_swap.tween_property(patience, ^"modulate:a", 0.0, SWAP_SECONDS)
+	_rating_swap.tween_property(trip, ^"modulate:a", 0.0, SWAP_SECONDS)
 	(
 		_rating_swap
-		. tween_property(patience, ^"position:y", drop, SWAP_SECONDS)
+		. tween_property(trip, ^"position:y", drop, SWAP_SECONDS)
 		. set_trans(Tween.TRANS_QUAD)
 		. set_ease(Tween.EASE_IN)
 	)
@@ -234,15 +246,15 @@ func _set_fold(value: float) -> void:
 
 
 # The slot is as tall as the card, times the fold, and the panel fills its width. The
-# middle row's slot is as tall as the patience row, which fills its width; the swap moves
+# middle row's slot is as tall as the trip row, which fills its width; the swap moves
 # the row and the stars inside it.
 func _fit_slot() -> void:
 	var middle := %Middle as Control
-	var patience := %Patience as Control
-	var row := patience.get_combined_minimum_size()
+	var trip := %Trip as Control
+	var row := trip.get_combined_minimum_size()
 	if middle.custom_minimum_size != row:
 		middle.custom_minimum_size = row
-	patience.size = Vector2(middle.size.x, row.y)
+	trip.size = Vector2(middle.size.x, row.y)
 	var rating := %RatingStars as Control
 	rating.size = rating.custom_minimum_size
 	var panel := %Panel as Control
@@ -309,7 +321,12 @@ func _show() -> void:
 	if icon.planet != passenger.destination:
 		icon.planet = passenger.destination
 	_set_text(%DestinationLabel, "To %s" % _destination_name())
-	(%PatienceBar as ProgressBar).value = passenger.get_patience_fraction()
+	var value := passenger.get_happiness_fraction()
+	(%HappinessBar as ProgressBar).value = value
+	if first:
+		(%HappinessTrail as ProgressBar).value = value
+		_shown_happiness = value
+		_trail_hold = 0.0
 	var mood := passenger.get_mood()
 	if mood != _mood:
 		_mood = mood
@@ -334,6 +351,23 @@ func _show() -> void:
 	button.visible = passenger.request != null
 	if passenger.request and button.text != passenger.request.serve_label:
 		button.text = passenger.request.serve_label
+
+
+# The trail behind the bar: a drop of TRAIL_JUMP or more holds it where it was for
+# TRAIL_HOLD_SECONDS, then it shrinks to the bar. A rise takes it along at once.
+func _follow_trail(delta: float) -> void:
+	var value := (%HappinessBar as ProgressBar).value
+	var trail := %HappinessTrail as ProgressBar
+	if _shown_happiness - value >= TRAIL_JUMP:
+		_trail_hold = TRAIL_HOLD_SECONDS
+	_shown_happiness = value
+	if value >= trail.value:
+		trail.value = value
+		_trail_hold = 0.0
+	elif _trail_hold > 0.0:
+		_trail_hold -= delta
+	else:
+		trail.value = move_toward(trail.value, value, TRAIL_SHRINK_RATE * delta)
 
 
 # Fades the mood name out, writes the new one, and fades it back in, while the bar blends

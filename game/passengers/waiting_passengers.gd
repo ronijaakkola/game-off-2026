@@ -3,7 +3,7 @@ extends Node
 ## The passengers waiting at each planet, shown in the open planet's panel. Each planet gets
 ## a new one every so often, up to [member max_per_planet], going to another planet at
 ## random, except the one the bus waits at: its clock holds until the bus leaves. Their
-## patience and fare come from the distance to their destination when they
+## trip time and fare come from the distance to their destination when they
 ## board.
 
 ## The line at [param planet] changed: someone joined it or was taken from it.

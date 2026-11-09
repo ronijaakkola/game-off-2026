@@ -22,6 +22,15 @@ corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_trail_track"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_trail"]
+bg_color = Color(0.6, 0.08, 0.16, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
 [node name="PassengerCard" type="Control" unique_id=1751346549]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 3
@@ -98,12 +107,12 @@ unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Patience" type="HBoxContainer" parent="Panel/Layout/Rows/Middle" unique_id=1965568126]
+[node name="Trip" type="HBoxContainer" parent="Panel/Layout/Rows/Middle" unique_id=1965568126]
 unique_name_in_owner = true
 layout_mode = 0
 theme_override_constants/separation = 6
 
-[node name="DestinationIcon" type="ColorRect" parent="Panel/Layout/Rows/Middle/Patience" unique_id=394251105]
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Layout/Rows/Middle/Trip" unique_id=394251105]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(14, 14)
@@ -112,13 +121,13 @@ size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
 
-[node name="DestinationLabel" type="Label" parent="Panel/Layout/Rows/Middle/Patience" unique_id=624535876]
+[node name="DestinationLabel" type="Label" parent="Panel/Layout/Rows/Middle/Trip" unique_id=624535876]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 text = "To ?"
 
-[node name="PatienceBar" type="ProgressBar" parent="Panel/Layout/Rows/Middle/Patience" unique_id=1379124599]
+[node name="HappinessBar" type="ProgressBar" parent="Panel/Layout/Rows/Middle/Trip" unique_id=1379124599]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
@@ -126,6 +135,22 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_styles/background = SubResource("StyleBoxFlat_track")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="HappinessTrail" type="ProgressBar" parent="Panel/Layout/Rows/Middle/Trip/HappinessBar" unique_id=248947368]
+unique_name_in_owner = true
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxEmpty_trail_track")
+theme_override_styles/fill = SubResource("StyleBoxFlat_trail")
 max_value = 1.0
 value = 1.0
 show_percentage = false

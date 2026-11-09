@@ -2,7 +2,8 @@ extends Node
 ## A full cabin for capturing the passenger cards: eight passengers on the Commuter type,
 ## one in each mood and some in between, three of them asking for something. The cabin
 ## stands still, so every frame shows the same state. `-- Kick` puts the pointer over the
-## second card, so its options slide out.
+## second card, so its options slide out. `-- Scare` gives everyone a kick's scare a few
+## frames in, so the bars drop and leave their red trail.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const DESTINATIONS: Array[String] = ["Ember", "Terra", "Moon", "Giant", "Frost"]
@@ -16,19 +17,19 @@ const ICON_COLORS: Array[Color] = [
 	Color(1.0, 0.62, 0.74),
 ]
 const RINGED := 3
-# Patience left, as a fraction of the full amount, one per seat.
-const PATIENCE: Array[float] = [0.9, 0.5, 0.2, 0.0, 0.75, 0.62, 0.35, 0.1]
+# Happiness, as a fraction of the most, one per seat.
+const HAPPINESS: Array[float] = [0.9, 0.5, 0.2, 0.0, 0.75, 0.62, 0.35, 0.1]
 # The seats whose passenger has a request open.
 const ASKING: Array[int] = [1, 4, 6]
 
 
 func _ready() -> void:
 	var cabin := %Cabin as Cabin
-	cabin.seats = PATIENCE.size()
+	cabin.seats = HAPPINESS.size()
 	cabin.set_process(false)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
-	for seat: int in PATIENCE.size():
+	for seat: int in HAPPINESS.size():
 		var destination := Planet.new()
 		var planet := seat % DESTINATIONS.size()
 		destination.display_name = DESTINATIONS[planet]
@@ -39,7 +40,7 @@ func _ready() -> void:
 			destination.tilt = 18.0
 		add_child(destination)
 		var passenger := Passenger.new(COMMUTER, destination, 60.0, 40.0, rng)
-		passenger.patience = passenger.patience_max * PATIENCE[seat]
+		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]
 		if seat in ASKING:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line
@@ -47,6 +48,10 @@ func _ready() -> void:
 	var panel := %PassengerPanel as PassengerPanel
 	panel.portrait_studio = %PortraitStudio as PortraitStudio
 	panel.cabin = cabin
+	if "Scare" in OS.get_cmdline_user_args():
+		await get_tree().process_frame
+		await get_tree().process_frame
+		cabin.shock(Cabin.KICK_SHOCK)
 	if "Kick" in OS.get_cmdline_user_args():
 		# The cards lay out a frame in.
 		await get_tree().process_frame

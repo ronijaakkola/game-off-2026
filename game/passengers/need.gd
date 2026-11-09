@@ -1,7 +1,7 @@
 class_name Need
 extends Resource
 ## Something a passenger asks for during a ride, such as a snack or a drink. While the
-## request is open the passenger loses patience faster, until the player serves it or an
+## request is open the passenger's happiness heads for 0, until the player serves it or an
 ## [Amenity] on the bus does.
 
 ## What a passenger's portrait acts out while the need is served.
@@ -23,5 +23,3 @@ enum Action { NONE, EAT, DRINK }
 ## request: a random value between these two.
 @export_range(1.0, 600.0, 1.0) var min_interval := 20.0
 @export_range(1.0, 600.0, 1.0) var max_interval := 40.0
-## How many times faster patience runs down while the request is open.
-@export_range(1.0, 10.0, 0.1) var unmet_drain := 3.0
