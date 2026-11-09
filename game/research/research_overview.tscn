@@ -18,9 +18,9 @@ script = ExtResource("1_overview")
 [node name="Margin" type="MarginContainer" parent="." unique_id=1417946372]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 24
+theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 72
-theme_override_constants/margin_right = 24
+theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 24
 
 [node name="Sheet" type="PanelContainer" parent="Margin" unique_id=1398909274]
@@ -61,7 +61,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
-theme_override_constants/separation = 32
+theme_override_constants/separation = 24
 alignment = 1
 
 [connection signal="pressed" from="Margin/Sheet/Rows/Header/CloseButton" to="." method="_on_close_button_pressed"]

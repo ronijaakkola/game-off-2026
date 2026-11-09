@@ -11,7 +11,10 @@ signal upgrade_clicked(upgrade: Upgrade)
 
 ## Pixels between two upgrades in a row, tighter than the planet panel's so three trees fit
 ## the smallest window side by side.
-const COLUMN_GAP := 16
+const COLUMN_GAP := 14
+## The line between two trees, as faint as the planet panel's rules.
+const DIVIDER_COLOR := Color(1, 1, 1, 0.1)
+const DIVIDER_WIDTH := 1.0
 
 const TREE_VIEW := preload("res://game/research/research_tree_view.tscn")
 
@@ -28,7 +31,8 @@ func _input(event: InputEvent) -> void:
 		close()
 
 
-## Shows the trees of [param planets] side by side, leaving out any without one.
+## Shows the trees of [param planets] side by side with a line between each two, leaving
+## out any planet without one.
 func open(planets: Array[Planet]) -> void:
 	var trees := %Trees as HBoxContainer
 	for child: Node in trees.get_children():
@@ -36,8 +40,11 @@ func open(planets: Array[Planet]) -> void:
 		child.queue_free()
 	_views.clear()
 	for planet: Planet in planets:
-		if planet.research_tree:
-			trees.add_child(_make_column(planet))
+		if not planet.research_tree:
+			continue
+		if not _views.is_empty():
+			trees.add_child(_make_divider())
+		trees.add_child(_make_column(planet))
 	show()
 
 
@@ -75,6 +82,15 @@ func _make_column(planet: Planet) -> Control:
 	column.add_child(view)
 	_views.append(view)
 	return column
+
+
+# A faint line between two trees, as tall as they are.
+func _make_divider() -> Control:
+	var divider := ColorRect.new()
+	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	divider.color = DIVIDER_COLOR
+	divider.custom_minimum_size.x = DIVIDER_WIDTH
+	return divider
 
 
 func _gui_input(event: InputEvent) -> void:
