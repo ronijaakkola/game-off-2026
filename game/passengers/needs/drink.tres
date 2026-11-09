@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("1_need")
 id = &"drink"
+food = true
+item = "a drink"
 request_line = "Thirsty. Wants a drink"
 serve_label = "Pour a drink"
 served_action = 2

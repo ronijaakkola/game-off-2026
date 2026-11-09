@@ -2,7 +2,7 @@ class_name Need
 extends Resource
 ## Something a passenger asks for during a ride, such as a snack, a drink or entertainment.
 ## While the request is open the passenger's happiness heads for 0, until the player serves
-## it or an [Amenity] on the bus does.
+## it, holding the serve button, or a food [Amenity] on the bus does.
 
 ## What a passenger's portrait acts out while the need is served.
 enum Action { NONE, EAT, DRINK, WATCH }
@@ -11,6 +11,10 @@ enum Action { NONE, EAT, DRINK, WATCH }
 @export var id: StringName
 ## The card's line while the request is open.
 @export var request_line := "Wants something"
+## A snack or a drink: food amenities serve it, and bigger portions make it last longer.
+@export var food := false
+## What they get, for an amenity's line: "a snack".
+@export var item := "something"
 ## The serve button's text on the card.
 @export var serve_label := "Serve"
 ## What their portrait acts out while it is served, by the player or an amenity.

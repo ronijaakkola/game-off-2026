@@ -5,8 +5,10 @@ extends RefCounted
 ## board; the card only reads them.
 ## Happiness slides toward a target: [constant BASE_HAPPINESS], plus the bus's [Comfort]
 ## bonus, plus their timing (how their ride compares with the trip time), or 0 while a
-## request is open. It falls fast and climbs back slowly. A [method shock] changes it at
-## once.
+## request is open and nobody serves it. It falls fast and climbs back slowly. A
+## [method shock] changes it at once.
+## A request is served over time: the player's hold on the serve button and the bus's food
+## amenities [method feed] it, and it closes once full.
 
 enum Mood { HAPPY, OKAY, ANNOYED, FURIOUS }
 
@@ -76,13 +78,20 @@ var leeway := 0.0
 var activity := ""
 ## The need they are asking for, or null.
 var request: Need
+## How much of the open request is served so far, from 0 to 1 ([method feed]).
+var serving := 0.0
 ## Whether they are asleep: their activity is one of the type's sleep lines. Only a bus
 ## with somewhere to sleep ([Comfort]) lets them, and a sleep runs its length unless a
 ## [method shock] wakes them.
 var asleep := false
+## Whether they are watching a show: their activity is one of the type's watch lines,
+## which only a bus with an entertainment system ([Comfort]) lets them, and their clock runs
+## as the comfort says while they do. A request interrupts it.
+var watching := false
 ## Their race: their skin colour, and the research point delivering them earns.
 var race: Race.Type
-## What their portrait acts out: eating or drinking while a served need lasts.
+## What their portrait acts out: eating or drinking while a served need lasts, or watching
+## a show.
 var action := Need.Action.NONE
 ## What they look like in their portrait.
 var look: AlienLook
@@ -102,6 +111,9 @@ var _clock := 0.0
 var _held_request: Need
 # Seconds of flying the open or held request has gone unserved.
 var _request_age := 0.0
+# Whether something fed the open request since the last tick: while it is being served,
+# their happiness holds rather than heading for 0.
+var _fed := false
 
 
 ## A passenger of [param kind] going to [param to]. [param trip_seconds] is the direct
@@ -178,7 +190,8 @@ func get_timing() -> float:
 
 
 ## The happiness they slide toward now, with the bus giving [param comfort]: 0 while a
-## request is open. Comfort lifts it no higher than [constant MAX_HAPPINESS] before timing,
+## request is open, though [method tick] holds them where they are while it is being
+## served. Comfort lifts it no higher than [constant MAX_HAPPINESS] before timing,
 ## so a worn-out ride brings anyone to 0.
 func get_target(comfort: Comfort = null) -> float:
 	if request:
@@ -216,7 +229,9 @@ func arrive() -> void:
 ## the ride clock hold until [method depart], and while [param holds] (the bus parks).
 ## While [param docked] the clock and the needs' timers run, and happiness falls (but not
 ## climbs), at [constant DOCKED_RATE] of their speed. The clock runs as the comfort says
-## while awake or asleep. Needs wait while they sleep, so a sleep runs its length. While
+## while asleep or watching a show. Needs wait while they sleep, so a sleep runs its
+## length, but not while they watch: a request stops the show. While a request is being
+## fed, happiness holds. While
 ## the bus is docked or parks, no request opens, and an open one goes on hold until the
 ## bus flies on.
 func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -> void:
@@ -231,14 +246,23 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		request = _held_request
 		_held_request = null
 		asleep = false
+		watching = false
+		action = Need.Action.NONE
 		activity = request.request_line
+	var fed := _fed and request != null
+	_fed = false
 	if _departed and not holds:
-		var rate := giving.sleep_clock if asleep else giving.clock
+		var rate := 1.0
+		if asleep:
+			rate = giving.sleep_clock
+		elif watching:
+			rate = giving.watch_clock
 		var ride := delta * rate * (DOCKED_RATE if docked else 1.0)
 		_clock += ride
 		if happiness >= LEEWAY_HAPPINESS:
 			leeway = minf(leeway + ride * LEEWAY_RATE, trip_seconds * LEEWAY_MAX)
-		var target := get_target(giving)
+		# A request on its way holds them where they are: they can see it coming.
+		var target := happiness if fed else get_target(giving)
 		var speed := CLIMB_RATE
 		if target < happiness:
 			speed = FALL_RATE * (DOCKED_RATE if docked else 1.0)
@@ -256,7 +280,9 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		return
 	_busy = false
 	asleep = false
-	action = Need.Action.NONE
+	if not watching or _activity_left <= 0.0:
+		watching = false
+		action = Need.Action.NONE
 	if not stopped and not _held_request:
 		for i: int in _need_timers.size():
 			if _need_timers[i] <= 0.0:
@@ -266,22 +292,40 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		_idle(giving)
 
 
-## The player serves the open request. Does nothing when none is open.
-func serve() -> void:
+## Serves the open request at once, all of it, as [method feed] would once full. Does
+## nothing when none is open.
+func serve(portion := 1.0) -> void:
 	if request:
-		_close(request.served_line, request.served_seconds)
+		feed(1.0 - serving, portion)
 
 
-## [param amenity] serves the open request, with its own line. Does nothing when none is
-## open.
-func serve_with(amenity: Amenity) -> void:
+## Serves [param amount] more of the open request, as a fraction of all of it: the player
+## holding the serve button, or an [Amenity], feeds it a little every frame. Once
+## [member serving] is full the request closes and the served line shows, for the need's
+## time, times [param portion] for food. Does nothing when none is open.
+func feed(amount: float, portion := 1.0) -> void:
+	if not request:
+		return
+	_fed = true
+	serving = minf(serving + amount, 1.0)
+	if serving >= 1.0:
+		var seconds := request.served_seconds * (portion if request.food else 1.0)
+		_close(request.served_line, seconds)
+
+
+## Shows [param line] while the request is open, such as who serves it, or the request's
+## own line when [param line] is empty. Does nothing when none is open.
+func show_request(line: String) -> void:
 	if request:
-		_close(amenity.line, amenity.seconds)
+		activity = line if not line.is_empty() else request.request_line
 
 
 func _open(need: Need) -> void:
 	request = need
+	serving = 0.0
 	asleep = false
+	watching = false
+	action = Need.Action.NONE
 	activity = need.request_line
 	_request_age = 0.0
 
@@ -294,6 +338,7 @@ func _close(line: String, seconds: float) -> void:
 		_need_timers[index] = seconds + _interval(request)
 	action = request.served_action
 	request = null
+	serving = 0.0
 	asleep = false
 	activity = line
 	_activity_left = seconds
@@ -301,16 +346,25 @@ func _close(line: String, seconds: float) -> void:
 
 
 # A new idle line. Where the bus lets them sleep, a sleep line comes up as often as any
-# one idle line, and lasts as long as the comfort's sleeps do.
+# one idle line, and lasts as long as the comfort's sleeps do; where it has shows, so does
+# a watch line, as long as the comfort's shows.
 func _idle(comfort: Comfort) -> void:
 	var lines := type.idle_lines.duplicate()
+	var sleep_from := lines.size()
 	if comfort.can_sleep():
 		lines.append_array(type.sleep_lines)
+	var watch_from := lines.size()
+	if comfort.can_watch():
+		lines.append_array(type.watch_lines)
 	var index := _rng.randi_range(0, lines.size() - 1) if not lines.is_empty() else -1
 	activity = lines[index] if index >= 0 else ""
-	asleep = index >= type.idle_lines.size()
+	asleep = index >= sleep_from and index < watch_from
+	watching = index >= watch_from
+	action = Need.Action.WATCH if watching else Need.Action.NONE
 	if asleep:
 		_activity_left = _rng.randf_range(comfort.sleep_min, comfort.sleep_max)
+	elif watching:
+		_activity_left = _rng.randf_range(comfort.watch_min, comfort.watch_max)
 	else:
 		_activity_left = _rng.randf_range(IDLE_MIN, IDLE_MAX)
 

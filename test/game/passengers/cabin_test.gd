@@ -76,10 +76,10 @@ func test_following_other_stats_stops_following_the_first() -> void:
 	_cabin.follow(first)
 	_cabin.follow(second)
 
-	first.get_traits().add(BusTraits.Type.GAMEPADS)
+	first.get_traits().add(BusTraits.Type.GAMING_SYSTEM)
 	assert_float(_cabin.comfort.bonus).is_equal(0.0)
-	second.get_traits().add(BusTraits.Type.GAMEPADS)
-	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMEPADS_BONUS)
+	second.get_traits().add(BusTraits.Type.GAMING_SYSTEM)
+	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMING_BONUS)
 
 
 func test_comfort_follows_the_bus_s_traits() -> void:
@@ -88,10 +88,10 @@ func test_comfort_follows_the_bus_s_traits() -> void:
 	assert_float(_cabin.comfort.bonus).is_equal(0.0)
 	assert_bool(_cabin.comfort.can_sleep()).is_false()
 
-	stats.get_traits().add(BusTraits.Type.GAMEPADS)
+	stats.get_traits().add(BusTraits.Type.GAMING_SYSTEM)
 	stats.get_traits().add(BusTraits.Type.PILLOWS)
 
-	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMEPADS_BONUS)
+	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMING_BONUS)
 	assert_float(_cabin.comfort.sleep_max).is_equal(Comfort.PILLOW_NAP_MAX)
 
 	stats.get_traits().add(BusTraits.Type.SLEEPING_PODS)
@@ -219,25 +219,94 @@ func test_someone_picked_up_still_gets_on_after_their_seat_is_cut() -> void:
 	assert_array(_cabin.get_passengers()).contains([picked])
 
 
-func test_an_amenity_serves_its_need_as_soon_as_it_is_asked_for() -> void:
-	var dispenser := Amenity.new()
-	dispenser.need = &"snack"
-	dispenser.line = "Getting a snack from the dispenser"
+func test_a_dispenser_serves_one_at_a_time_while_the_next_waits() -> void:
+	var dispenser := _dispenser(1)
 	_cabin.amenities = [dispenser]
-	var passenger := _passenger(_away, 0.5)
+	var first := _passenger(_away, 0.1)
+	var second := _passenger(_away, 0.1)
+	_cabin.board(first)
+	_cabin.board(second)
+	_cabin.docked = false
+	_cabin._process(0.2)
+
+	assert_str(first.activity).is_equal("Getting a snack from the dispenser")
+	assert_str(second.activity).is_equal(dispenser.waiting_line)
+	_run(dispenser.seconds)
+	assert_object(first.request).is_null()
+	assert_str(second.activity).is_equal("Getting a snack from the dispenser")
+	_run(dispenser.seconds)
+	assert_object(second.request).is_null()
+
+
+func test_robots_serve_several_at_once() -> void:
+	_cabin.amenities = [_dispenser(3)]
+	var riders: Array[Passenger] = []
+	for i: int in 3:
+		riders.append(_passenger(_away, 0.1))
+		_cabin.board(riders[i])
+	_cabin.docked = false
+	_run(4.3)
+
+	for rider: Passenger in riders:
+		assert_object(rider.request).is_null()
+
+
+func test_the_player_s_hold_serves_by_hand_and_speeds_up_an_amenity() -> void:
+	var passenger := _passenger(_away, 0.1)
 	_cabin.board(passenger)
 	_cabin.docked = false
+	_cabin._process(0.2)
+	_cabin.hold_serve(passenger, true)
+	_cabin._process(Cabin.HAND_SECONDS * 0.5)
+	assert_float(passenger.serving).is_equal_approx(0.5, 0.001)
+	_cabin.hold_serve(passenger, false)
+	_cabin._process(Cabin.HAND_SECONDS)
+	assert_float(passenger.serving).is_equal_approx(0.5, 0.001)
 
-	await await_millis(800)
-
+	_cabin.amenities = [_dispenser(1)]
+	_cabin.hold_serve(passenger, true)
+	# Alone, either would take longer to fill the other half.
+	_cabin._process(Cabin.HAND_SECONDS * 0.4)
 	assert_object(passenger.request).is_null()
-	assert_str(passenger.activity).is_equal(dispenser.line)
+
+
+func test_amenities_follow_the_bus_s_traits() -> void:
+	var stats := BusStats.new()
+	_cabin.follow(stats)
+	assert_array(_cabin.amenities).is_empty()
+
+	stats.get_traits().add(BusTraits.Type.FOOD_DISPENSER)
+	stats.get_traits().add(BusTraits.Type.SERVING_ROBOTS)
+
+	assert_array(_cabin.amenities).contains_exactly([Cabin.SERVING_ROBOTS, Cabin.FOOD_DISPENSER])
+	stats.add_modifier(
+		StatModifier.new(BusStats.Type.PORTION_SIZE, StatModifier.Kind.PERCENT, 50.0)
+	)
+	assert_float(_cabin.portion).is_equal(1.5)
+
+
+# Runs the cabin for [param seconds], a frame at a time.
+func _run(seconds: float) -> void:
+	for i: int in ceili(seconds / 0.05):
+		_cabin._process(0.05)
+
+
+# A food amenity that serves [param capacity] passengers at a time, each in 4 s.
+func _dispenser(capacity: int) -> Amenity:
+	var dispenser := Amenity.new()
+	dispenser.line = "Getting %s from the dispenser"
+	dispenser.waiting_line = "Waiting for the dispenser"
+	dispenser.seconds = 4.0
+	dispenser.capacity = capacity
+	return dispenser
 
 
 # A passenger to [param to] whose one need, a snack, asks after [param need_after] seconds.
 func _passenger(to: Planet, need_after := 1000.0) -> Passenger:
 	var snack := Need.new()
 	snack.id = &"snack"
+	snack.food = true
+	snack.item = "a snack"
 	snack.min_interval = need_after
 	snack.max_interval = need_after
 	var kind := PassengerType.new()

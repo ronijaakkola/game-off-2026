@@ -3,8 +3,9 @@ extends Control
 ## One passenger's card: their name, where they are going (an icon of the
 ## planet and its name), their happiness as a bar in their mood's colour, and what they
 ## are doing. A big drop in happiness, such as a scare, leaves a red trail on the bar
-## that holds a moment, then shrinks to it. While they ask for something, a button serves
-## it. It only reads the passenger; the [Cabin] runs the ride.
+## that holds a moment, then shrinks to it. While they ask for something, a button held
+## down serves it ([ServeButton]), filling as it is served. It only reads the passenger;
+## the [Cabin] runs the ride.
 ## Their portrait sits on the left, as a [PassengerPhoto].
 ## The card slides in from past the left edge of the screen when the passenger boards.
 ## When the bus stops at their destination, [method show_rating] swaps the middle row,
@@ -17,8 +18,9 @@ extends Control
 ## one button, which kicks the passenger off the bus. They slide back under once the
 ## pointer leaves both, and stay away once the card shows the rating or leaves.
 
-## The serve button was pressed for [member passenger]'s open request.
-signal serve_pressed
+## The serve button for [member passenger]'s open request was pressed down, with
+## [param held] true, or let go, with it false.
+signal serve_held(held: bool)
 ## The kick button was pressed: the player wants [member passenger] off the bus.
 signal kick_pressed
 ## The card has slid out and folded away after [method leave]. It can be freed.
@@ -170,7 +172,8 @@ func show_rating(stars: float) -> void:
 		return
 	_rated = true
 	_linger_left = LINGER_SECONDS
-	var button := %ServeButton as Button
+	var button := %ServeButton as ServeButton
+	button.release()
 	button.disabled = true
 	button.visible = false
 	var still := Settings.reduce_motion
@@ -219,7 +222,8 @@ func leave() -> void:
 	if _motion:
 		_motion.kill()
 	var panel := %Panel as Control
-	(%ServeButton as Button).disabled = true
+	(%ServeButton as ServeButton).release()
+	(%ServeButton as ServeButton).disabled = true
 	(%KickButton as Button).disabled = true
 	_leaving = true
 	_motion = create_tween()
@@ -347,8 +351,9 @@ func _show() -> void:
 		if not _is_mood_fading():
 			_write_mood()
 	_morph_text(%ActivityLabel, passenger.activity, first)
-	var button := %ServeButton as Button
+	var button := %ServeButton as ServeButton
 	button.visible = passenger.request != null
+	button.progress = passenger.serving
 	if passenger.request and button.text != passenger.request.serve_label:
 		button.text = passenger.request.serve_label
 
@@ -428,8 +433,8 @@ func _morph_text(label: MorphLabel, text: String, at_once: bool) -> void:
 		label.morph_to(text)
 
 
-func _on_serve_button_pressed() -> void:
-	serve_pressed.emit()
+func _on_serve_button_hold_changed(held: bool) -> void:
+	serve_held.emit(held)
 
 
 func _on_kick_button_pressed() -> void:

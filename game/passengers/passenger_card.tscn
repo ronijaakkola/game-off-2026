@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="4_photo"]
 [ext_resource type="Script" uid="uid://itg4wk4y13k" path="res://game/passengers/star_icon.gd" id="5_stars"]
 [ext_resource type="Texture2D" uid="uid://dis4faq8oc0vt" path="res://game/passengers/kick_icon.svg" id="6_kick"]
+[ext_resource type="Script" uid="uid://cucadeex8lgly" path="res://game/passengers/serve_button.gd" id="7_serve"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
 bg_color = Color(1, 1, 1, 0.12)
@@ -187,6 +188,7 @@ visible = false
 layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Serve"
+script = ExtResource("7_serve")
 
 [connection signal="pressed" from="Options/OptionButtons/KickButton" to="." method="_on_kick_button_pressed"]
-[connection signal="pressed" from="Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_pressed"]
+[connection signal="hold_changed" from="Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_hold_changed"]

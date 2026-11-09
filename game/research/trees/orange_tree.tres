@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://bcj82dtecmwyg" path="res://game/research/icons/tv.svg" id="8_tv"]
 [ext_resource type="Texture2D" uid="uid://cqsul35bsw7i0" path="res://game/research/icons/bed_double.svg" id="9_bed_double"]
 [ext_resource type="Texture2D" uid="uid://b8xlduth3p4wa" path="res://game/research/icons/bot.svg" id="10_bot"]
+[ext_resource type="Texture2D" uid="uid://pnjj8omu16f6" path="res://game/research/icons/ham.svg" id="11_ham"]
 
 [sub_resource type="Resource" id="Resource_extra_seat_1_mod"]
 script = ExtResource("3_modifier")
@@ -27,27 +28,46 @@ points = Dictionary[int, int]({
 })
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_1_mod")])
 
-[sub_resource type="Resource" id="Resource_food_dispenser_1"]
+[sub_resource type="Resource" id="Resource_food_dispenser"]
 script = ExtResource("2_upgrade")
-title = "Food dispenser 1"
-description = "NOT IMPLEMENTED"
+title = "Food dispenser"
+description = "Hungry passengers fetch their own snacks and drinks, one at a time."
 icon = ExtResource("5_sandwich")
 credits = 20
 points = Dictionary[int, int]({
 1: 2
 })
+traits = Array[int]([6])
 column = 2
 
-[sub_resource type="Resource" id="Resource_gamepads"]
+[sub_resource type="Resource" id="Resource_portions_1_mod"]
+script = ExtResource("3_modifier")
+stat = 3
+kind = 1
+amount = 50.0
+
+[sub_resource type="Resource" id="Resource_portions_1"]
 script = ExtResource("2_upgrade")
-title = "Gamepads"
-description = "Something to play: passengers are a little happier, and the ride feels a little shorter."
-icon = ExtResource("6_gamepad_2")
+title = "Bigger portions I"
+description = "Snacks and drinks last longer, so passengers ask for them less often."
+icon = ExtResource("11_ham")
 credits = 20
 points = Dictionary[int, int]({
 1: 2
 })
-traits = Array[int]([4])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_portions_1_mod")])
+column = 3
+
+[sub_resource type="Resource" id="Resource_entertainment_system"]
+script = ExtResource("2_upgrade")
+title = "Entertainment system"
+description = "Shows on board: passengers are happier, and the ride flies by while they watch one."
+icon = ExtResource("8_tv")
+credits = 20
+points = Dictionary[int, int]({
+1: 2
+})
+traits = Array[int]([5])
 column = 4
 
 [sub_resource type="Resource" id="Resource_extra_seat_2_mod"]
@@ -77,35 +97,42 @@ credits = 45
 points = Dictionary[int, int]({
 1: 4
 })
-requires = Array[Resource]([SubResource("Resource_extra_seat_1"), SubResource("Resource_food_dispenser_1")])
+requires = Array[Resource]([SubResource("Resource_extra_seat_1"), SubResource("Resource_food_dispenser")])
 traits = Array[int]([2])
 tier = 1
 column = 1
 
-[sub_resource type="Resource" id="Resource_food_dispenser_2"]
-script = ExtResource("2_upgrade")
-title = "Food dispenser 2"
-description = "NOT IMPLEMENTED"
-icon = ExtResource("5_sandwich")
-credits = 45
-points = Dictionary[int, int]({
-1: 4
-})
-requires = Array[Resource]([SubResource("Resource_food_dispenser_1")])
-tier = 1
-column = 2
+[sub_resource type="Resource" id="Resource_portions_2_mod"]
+script = ExtResource("3_modifier")
+stat = 3
+kind = 1
+amount = 50.0
 
-[sub_resource type="Resource" id="Resource_entertainment_system"]
+[sub_resource type="Resource" id="Resource_portions_2"]
 script = ExtResource("2_upgrade")
-title = "Entertainment system"
-description = "Films on board: passengers are happier, and the ride feels shorter."
-icon = ExtResource("8_tv")
+title = "Bigger portions II"
+description = "Snacks and drinks last longer still."
+icon = ExtResource("11_ham")
 credits = 45
 points = Dictionary[int, int]({
 1: 4
 })
-requires = Array[Resource]([SubResource("Resource_gamepads")])
-traits = Array[int]([5])
+requires = Array[Resource]([SubResource("Resource_portions_1")])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_portions_2_mod")])
+tier = 1
+column = 3
+
+[sub_resource type="Resource" id="Resource_gaming_system"]
+script = ExtResource("2_upgrade")
+title = "Gaming system"
+description = "Games on board: passengers are happier still, and binge their shows for longer."
+icon = ExtResource("6_gamepad_2")
+credits = 45
+points = Dictionary[int, int]({
+1: 4
+})
+requires = Array[Resource]([SubResource("Resource_entertainment_system")])
+traits = Array[int]([4])
 tier = 1
 column = 4
 
@@ -141,17 +168,38 @@ traits = Array[int]([3])
 tier = 2
 column = 1
 
-[sub_resource type="Resource" id="Resource_catering_robot"]
+[sub_resource type="Resource" id="Resource_serving_robots"]
 script = ExtResource("2_upgrade")
-title = "Catering robot"
-description = "NOT IMPLEMENTED"
+title = "Serving robots"
+description = "Robots bring snacks and drinks to three passengers at a time, and quickly."
 icon = ExtResource("10_bot")
 credits = 90
 points = Dictionary[int, int]({
 1: 7
 })
-requires = Array[Resource]([SubResource("Resource_food_dispenser_2"), SubResource("Resource_entertainment_system")])
+requires = Array[Resource]([SubResource("Resource_food_dispenser"), SubResource("Resource_portions_2")])
 hidden = true
+traits = Array[int]([7])
+tier = 2
+column = 2
+
+[sub_resource type="Resource" id="Resource_portions_3_mod"]
+script = ExtResource("3_modifier")
+stat = 3
+kind = 1
+amount = 100.0
+
+[sub_resource type="Resource" id="Resource_portions_3"]
+script = ExtResource("2_upgrade")
+title = "Bigger portions III"
+description = "Snacks and drinks last a long while."
+icon = ExtResource("11_ham")
+credits = 90
+points = Dictionary[int, int]({
+1: 7
+})
+requires = Array[Resource]([SubResource("Resource_portions_2")])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_portions_3_mod")])
 tier = 2
 column = 3
 
@@ -175,4 +223,4 @@ tier = 3
 
 [resource]
 script = ExtResource("1_tree")
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_extra_seat_1"), SubResource("Resource_food_dispenser_1"), SubResource("Resource_gamepads"), SubResource("Resource_extra_seat_2"), SubResource("Resource_pillows"), SubResource("Resource_food_dispenser_2"), SubResource("Resource_entertainment_system"), SubResource("Resource_extra_seat_3"), SubResource("Resource_sleeping_pods"), SubResource("Resource_catering_robot"), SubResource("Resource_extra_seat_4")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_extra_seat_1"), SubResource("Resource_food_dispenser"), SubResource("Resource_portions_1"), SubResource("Resource_entertainment_system"), SubResource("Resource_extra_seat_2"), SubResource("Resource_pillows"), SubResource("Resource_portions_2"), SubResource("Resource_gaming_system"), SubResource("Resource_extra_seat_3"), SubResource("Resource_sleeping_pods"), SubResource("Resource_serving_robots"), SubResource("Resource_portions_3"), SubResource("Resource_extra_seat_4")])
