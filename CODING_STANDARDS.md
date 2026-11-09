@@ -118,6 +118,7 @@ Core systems emit on `Events` and declare no public signals of their own. Consum
 Build UI from Containers (`VBoxContainer`, `MarginContainer`, `CenterContainer`, …) styled by the shared Theme in `ui/`. Containers keep text edits to `.tscn` predictable and scale with the `canvas_items` stretch mode. Set anchors only on the root Control of a scene.
 
 - A Control that covers the 3D view, such as a HUD's root and its full-size Containers, sets `mouse_filter` to `IGNORE` (`mouse_filter = 2` in a `.tscn`). It is the only filter the docs say "will not block other controls" from getting the click; `PASS` takes the click and bubbles it up to the parent ([MouseFilter](https://docs.godotengine.org/en/4.7/classes/class_control.html#enum-control-mousefilter)).
+- A Control shows game state; it never holds the only copy. The player's credits, research points and ratings live in `Ledger` (`SolarSystem.get_ledger()`), and the resource bar's counters only show it, animating each change it signals. Game code reads and changes the ledger, never a counter. A new readout follows suit: its value in a plain object or node the game owns, and the Control given that owner.
 - To change a Theme StyleBox at runtime, `duplicate()` it and apply the copy with `add_theme_stylebox_override()`. The StyleBox is shared, so editing it in place changes every control that uses it ([add_theme_stylebox_override](https://docs.godotengine.org/en/4.7/classes/class_control.html#class-control-method-add-theme-stylebox-override)).
 
 ## Tweens

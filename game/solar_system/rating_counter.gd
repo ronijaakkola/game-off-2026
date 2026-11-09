@@ -6,7 +6,9 @@ extends HBoxContainer
 ## change they make to the average shows in a gain floating under the bar ("+0.2" in green,
 ## "-0.3" in red), which pops with each rating. Once [method commit] is called, after a
 ## short delay the average moves to its new value while the gain fades out drifting upward.
-## [method get_average] already counts every rating; only what shows waits.
+## It shows the ratings of its [member ledger] and animates each one the ledger signals; it
+## keeps no ratings of its own. The ledger already counts every rating; only what shows
+## waits.
 
 ## What shows before anyone has rated a ride.
 const NO_RATING := "–"
@@ -28,8 +30,22 @@ const UP_COLOR := Color(0.55, 0.85, 0.4)
 const DOWN_COLOR := Color(0.95, 0.3, 0.4)
 const SAME_COLOR := Color(1.0, 1.0, 1.0, 0.6)
 
-var _total := 0.0
-var _count := 0
+## The ratings it shows. Until one is set, or when set to null, it shows a ledger
+## of its own, so the scene runs by itself.
+var ledger: Ledger:
+	set(value):
+		if ledger:
+			ledger.rated.disconnect(_on_rated)
+		ledger = value if value else Ledger.new()
+		ledger.rated.connect(_on_rated)
+		if _fade:
+			_fade.kill()
+		_shown_average = ledger.get_average_rating()
+		_shown_count = ledger.get_rating_count()
+		if is_node_ready():
+			(%GainLabel as Label).modulate.a = 0.0
+			_show_average(_shown_average)
+
 # The average and the count the last commit showed.
 var _shown_average := 0.0
 var _shown_count := 0
@@ -41,6 +57,8 @@ var _pop: Tween
 
 
 func _ready() -> void:
+	if not ledger:
+		ledger = Ledger.new()
 	var average := %AverageLabel as Label
 	var font := average.get_theme_font(&"font")
 	var font_size := average.get_theme_font_size(&"font_size")
@@ -56,21 +74,18 @@ func _process(_delta: float) -> void:
 	_place_gain()
 
 
-## Adds a rating of [param stars], from 0 to [constant Passenger.MAX_STARS], to the
-## average. The gain shows how far the average has moved since the last commit and pops;
-## before the first commit there is nothing to move from, so it stays hidden. The average
-## shown waits for [method commit].
-func add(stars: float) -> void:
+# A rating, already in the ledger. The gain shows how far the average has moved since the
+# last commit and pops; before the first commit there is nothing to move from, so it stays
+# hidden. The average shown waits for [method commit].
+func _on_rated(_stars: float) -> void:
 	# A commit still under way finishes at once.
 	if _fade:
 		_fade.kill()
 	_show_average(_shown_average)
-	_total += clampf(stars, 0.0, Passenger.MAX_STARS)
-	_count += 1
 	if _shown_count == 0:
 		return
 	var label := %GainLabel as Label
-	var change := get_average() - _shown_average
+	var change := ledger.get_average_rating() - _shown_average
 	label.text = gain_text(change)
 	label.add_theme_color_override(&"font_color", gain_color(change))
 	label.modulate.a = 1.0
@@ -82,12 +97,12 @@ func add(stars: float) -> void:
 ## it moves to its new value while the gain fades out drifting upward. The first one pops
 ## the average instead. Nothing happens without a new rating.
 func commit() -> void:
-	if _count == _shown_count:
+	if ledger.get_rating_count() == _shown_count:
 		return
 	var from := _shown_average
 	var first := _shown_count == 0
-	_shown_average = get_average()
-	_shown_count = _count
+	_shown_average = ledger.get_average_rating()
+	_shown_count = ledger.get_rating_count()
 	if _fade:
 		_fade.kill()
 	_fade = create_tween()
@@ -106,17 +121,6 @@ func commit() -> void:
 		. set_ease(Tween.EASE_OUT)
 		. set_trans(Tween.TRANS_QUAD)
 	)
-
-
-## The mean of every rating so far, from 0 to [constant Passenger.MAX_STARS], those not
-## yet shown included. 0 before the first; [method get_count] tells the two apart.
-func get_average() -> float:
-	return _total / _count if _count > 0 else 0.0
-
-
-## How many rides have been rated.
-func get_count() -> int:
-	return _count
 
 
 ## The gain for a [param change] to the average, to one decimal, with its sign.

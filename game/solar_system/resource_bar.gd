@@ -1,8 +1,9 @@
 class_name ResourceBar
 extends PanelContainer
 ## The resource bar in the top right corner: the player's credits, research points and
-## average rating in a frosted-glass pill. Each is its own counter, which keeps the value
-## and animates its changes; the solar system reaches them through the getters.
+## average rating in a frosted-glass pill. Each is its own counter, which shows the
+## [member ledger]'s value and animates its changes; the bar keeps no values itself.
+## Earnings wait to show until [method commit].
 ## When a number gains or loses a digit, the pill's width glides to fit, its right edge
 ## staying put, while the items stay pinned to that edge; under Reduce motion it changes
 ## at once. The glass shader draws the pill, and needs the panel's size to find its edge,
@@ -10,6 +11,14 @@ extends PanelContainer
 
 ## Seconds the pill takes to reach its new width.
 const WIDTH_SECONDS := 0.3
+
+## What the bar shows. Until one is set, its counters each show a ledger of their own, so
+## the scene runs by itself.
+var ledger: Ledger:
+	set(value):
+		ledger = value
+		if is_node_ready():
+			_show_ledger()
 
 # The width the pill is heading to, and the tween taking it there.
 var _target_width := 0.0
@@ -25,18 +34,21 @@ func _ready() -> void:
 	_target_width = items.get_combined_minimum_size().x
 	_set_width(_target_width)
 	_on_resized()
+	if ledger:
+		_show_ledger()
 
 
-func get_credits() -> CreditsCounter:
-	return %CreditsCounter as CreditsCounter
+## Shows the credits and ratings earned since the last commit: the total counts up and the
+## average moves to include them.
+func commit() -> void:
+	(%CreditsCounter as CreditsCounter).commit()
+	(%RatingCounter as RatingCounter).commit()
 
 
-func get_research() -> ResearchCounter:
-	return %ResearchCounter as ResearchCounter
-
-
-func get_rating() -> RatingCounter:
-	return %RatingCounter as RatingCounter
+func _show_ledger() -> void:
+	(%CreditsCounter as CreditsCounter).ledger = ledger
+	(%ResearchCounter as ResearchCounter).ledger = ledger
+	(%RatingCounter as RatingCounter).ledger = ledger
 
 
 func _on_items_resized() -> void:

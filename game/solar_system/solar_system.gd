@@ -66,6 +66,8 @@ const DEBUG_STATS_GROUP := "Stats"
 const DEBUG_TRAITS_GROUP := "Traits"
 
 var _planets: Array[Planet] = []
+# The player's credits, research points and ratings. The resource bar shows them.
+var _ledger := Ledger.new()
 # 1 with no planet open, 0 once one is open and the fade is done.
 var _fade := 1.0
 # The planet whose hover border fades: the open one, and after it closes, until the fade
@@ -209,6 +211,11 @@ func close_planet() -> void:
 	(%CameraRig as CameraRig).release_focus()
 
 
+## The player's credits, research points and ratings.
+func get_ledger() -> Ledger:
+	return _ledger
+
+
 ## The open planet, or null.
 func get_open_planet() -> Planet:
 	return (%PlanetPanel as PlanetPanel).get_planet()
@@ -286,8 +293,8 @@ func _start_passengers() -> void:
 	cabin.delivered.connect(_on_delivered)
 	cabin.kicked.connect(_on_kicked)
 	var bar := %ResourceBar as ResourceBar
-	cabin.unloaded.connect(bar.get_credits().commit)
-	cabin.unloaded.connect(bar.get_rating().commit)
+	bar.ledger = _ledger
+	cabin.unloaded.connect(bar.commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
@@ -333,8 +340,7 @@ func _on_bus_ran_out_of_fuel() -> void:
 
 
 func _on_bus_towed(_planet: Planet) -> void:
-	var counter := (%ResourceBar as ResourceBar).get_credits()
-	counter.spend(mini(TOW_FEE, counter.credits))
+	_ledger.spend(mini(TOW_FEE, _ledger.credits))
 
 
 # Runs the fuel pump at the planet the bus is docked at while the dock panel's fuel
@@ -343,27 +349,26 @@ func _on_bus_towed(_planet: Planet) -> void:
 func _run_fuel_pump(delta: float) -> void:
 	var bus := %Bus as FrameshiftBus
 	var tank := bus.get_fuel_tank()
-	var counter := (%ResourceBar as ResourceBar).get_credits()
 	var pump := %FuelPump as FuelPump
 	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
 	var open := get_open_planet()
 	var panel := %PlanetPanel as PlanetPanel
 	var dock_panel := %DockPanel as DockPanel
-	var stop := pump.get_stop(docked, tank, counter) if docked else ""
+	var stop := pump.get_stop(docked, tank, _ledger) if docked else ""
 	var fill_cost := ceili((tank.capacity - tank.fuel) * docked.fuel_price) if docked else 0
 	var can_fuel := docked != null and stop.is_empty()
 	dock_panel.show_fuel(tank.get_fraction(), fill_cost, can_fuel, stop.trim_suffix("."))
 	if docked:
 		var held := dock_panel.is_fuel_held() or (open == docked and panel.is_refuel_held())
-		pump.run(delta, docked, held, tank, counter)
+		pump.run(delta, docked, held, tank, _ledger)
 	else:
-		pump.stop(counter)
+		pump.stop(_ledger)
 	if not open:
 		return
 	var open_stop := stop if open == docked else "Dock here to refuel."
 	if not open.sells_fuel:
 		open_stop = "No fuel sold here."
-	var note := open_stop if open_stop else "%d credits" % counter.credits
+	var note := open_stop if open_stop else "%d credits" % _ledger.credits
 	var full_tank_cost := ceili(tank.capacity * open.fuel_price)
 	panel.show_fuel(tank.get_fraction(), full_tank_cost, open_stop.is_empty(), note)
 
@@ -376,9 +381,8 @@ func _debug_empty_fuel() -> void:
 
 # The debug panel's Add credits, shown as a gain that counts into the total, like a fare.
 func _debug_add_credits() -> void:
-	var counter := (%ResourceBar as ResourceBar).get_credits()
-	counter.add(DEBUG_CREDITS)
-	counter.commit()
+	_ledger.earn(DEBUG_CREDITS)
+	(%ResourceBar as ResourceBar).commit()
 
 
 # A pair of buttons for the type stat on the debug panel's Stats card, "+20% top speed"
@@ -414,10 +418,9 @@ func _debug_toggle_trait(type: BusTraits.Type) -> void:
 
 
 func _on_delivered(passenger: Passenger, payout: int) -> void:
-	var bar := %ResourceBar as ResourceBar
-	bar.get_credits().add(payout)
-	bar.get_rating().add(passenger.get_rating())
-	bar.get_research().add(passenger.race)
+	_ledger.earn(payout)
+	_ledger.rate(passenger.get_rating())
+	_ledger.earn_research(passenger.race)
 
 
 func _on_kicked(passenger: Passenger) -> void:

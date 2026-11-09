@@ -3,7 +3,9 @@ extends HBoxContainer
 ## The player's research points in the resource bar: for each [Race], a flask in its skin
 ## colour and how many points of it the player has. Delivering a passenger earns one point
 ## of their race, whatever their rating; the count pops as it goes up. Each count has room
-## for [constant ROOM], so the bar keeps its width until one passes 99.
+## for [constant ROOM], so the bar keeps its width until one passes 99. It shows the points
+## of its [member ledger] and pops each count the ledger signals; it keeps no points of its
+## own.
 
 ## The flask's size, in pixels.
 const ICON_SIZE := 14.0
@@ -15,7 +17,16 @@ const POP_SCALE := 1.35
 const POP_UP_SECONDS := 0.06
 const POP_DOWN_SECONDS := 0.14
 
-var _points: Dictionary[Race.Type, int] = {}
+## The points it shows. Until one is set, or when set to null, it shows a ledger
+## of its own, so the scene runs by itself.
+var ledger: Ledger:
+	set(value):
+		if ledger:
+			ledger.research_earned.disconnect(_on_earned)
+		ledger = value if value else Ledger.new()
+		ledger.research_earned.connect(_on_earned)
+		_show_counts()
+
 var _labels: Dictionary[Race.Type, Label] = {}
 var _pops: Dictionary[Race.Type, Tween] = {}
 
@@ -23,7 +34,6 @@ var _pops: Dictionary[Race.Type, Tween] = {}
 func _ready() -> void:
 	for value: int in Race.Type.values():
 		var race := value as Race.Type
-		_points[race] = 0
 		var entry := HBoxContainer.new()
 		entry.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		entry.add_theme_constant_override(&"separation", 5)
@@ -47,15 +57,24 @@ func _ready() -> void:
 		label.custom_minimum_size.x = (
 			font.get_string_size(ROOM, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 		)
+	if not ledger:
+		ledger = Ledger.new()
+	_show_counts()
 
 
-## Adds [param amount] points of [param race], and pops its count.
-func add(race: Race.Type, amount := 1) -> void:
-	_points[race] = get_points(race) + amount
+# Every count as the ledger has it. Before _ready() there are no labels yet, and _ready()
+# shows them.
+func _show_counts() -> void:
+	for race: Race.Type in _labels:
+		_labels[race].text = str(ledger.get_research(race))
+
+
+# Points of [param race] came in, already in the ledger: shows the new count and pops it.
+func _on_earned(race: Race.Type, _amount: int) -> void:
 	var label := _labels.get(race) as Label
 	if not label:
 		return
-	label.text = str(_points[race])
+	label.text = str(ledger.get_research(race))
 	label.pivot_offset = label.get_combined_minimum_size() * 0.5
 	if _pops.has(race):
 		_pops[race].kill()
@@ -68,8 +87,3 @@ func add(race: Race.Type, amount := 1) -> void:
 		. set_ease(Tween.EASE_OUT)
 	)
 	_pops[race] = pop
-
-
-## How many points of [param race] the player has.
-func get_points(race: Race.Type) -> int:
-	return _points.get(race, 0)

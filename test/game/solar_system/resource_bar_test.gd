@@ -17,4 +17,4 @@ func test_the_preview_shows_each_bar_count_to_its_values() -> void:
 
 
 func _total(bar: Node) -> String:
-	return ((bar as ResourceBar).get_credits().find_child("TotalLabel") as Label).text
+	return ((bar as ResourceBar).find_child("TotalLabel", true, false) as Label).text
