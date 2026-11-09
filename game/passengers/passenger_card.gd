@@ -145,13 +145,18 @@ func _process(delta: float) -> void:
 	_fit_slot()
 
 
-## Starts the card past the left edge of the screen and slides it into place.
+## Starts the card past the left edge of the screen and slides it into place. Under Reduce
+## motion it fades in in place instead.
 func slide_in() -> void:
 	if _motion:
 		_motion.kill()
 	var panel := %Panel as Control
-	panel.position.x = _off_left()
 	_motion = create_tween()
+	if Settings.reduce_motion:
+		panel.modulate.a = 0.0
+		_motion.tween_property(panel, ^"modulate:a", 1.0, SLIDE_IN_SECONDS)
+		return
+	panel.position.x = _off_left()
 	(
 		_motion
 		. tween_property(panel, ^"position:x", 0.0, SLIDE_IN_SECONDS)
@@ -194,7 +199,7 @@ func show_rating(stars: float) -> void:
 		_rating_swap
 		. tween_property(trip, ^"position:y", drop, SWAP_SECONDS)
 		. set_trans(Tween.TRANS_QUAD)
-		. set_ease(Tween.EASE_IN)
+		. set_ease(Tween.EASE_OUT)
 	)
 	_rating_swap.tween_property(rating, ^"modulate:a", 1.0, SWAP_SECONDS).set_delay(SWAP_STAGGER)
 	(
@@ -216,7 +221,8 @@ func is_rated() -> bool:
 
 
 ## Slides the card out past the left edge of the screen, then folds its height away, and
-## emits [signal left]. After [method show_rating], it first waits until the rating has
+## emits [signal left]. Under Reduce motion it fades out in place instead of sliding.
+## After [method show_rating], it first waits until the rating has
 ## shown for [constant LINGER_SECONDS]. The serve button stops working at once.
 func leave() -> void:
 	if _motion:
@@ -229,12 +235,15 @@ func leave() -> void:
 	_motion = create_tween()
 	if _linger_left > 0.0:
 		_motion.tween_interval(_linger_left)
-	(
-		_motion
-		. tween_property(panel, ^"position:x", _off_left(), SLIDE_OUT_SECONDS)
-		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_IN)
-	)
+	if Settings.reduce_motion:
+		_motion.tween_property(panel, ^"modulate:a", 0.0, SLIDE_OUT_SECONDS)
+	else:
+		(
+			_motion
+			. tween_property(panel, ^"position:x", _off_left(), SLIDE_OUT_SECONDS)
+			. set_trans(Tween.TRANS_CUBIC)
+			. set_ease(Tween.EASE_OUT)
+		)
 	_motion.tween_method(_set_fold, 1.0, 0.0, FOLD_SECONDS).set_trans(Tween.TRANS_QUAD)
 	_motion.tween_callback(left.emit)
 
@@ -292,7 +301,7 @@ func _slide_options(open: bool) -> void:
 		_options_slide
 		. tween_property(self, ^"_reveal", target, OPTIONS_SECONDS * absf(target - _reveal))
 		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_OUT if open else Tween.EASE_IN)
+		. set_ease(Tween.EASE_OUT)
 	)
 
 

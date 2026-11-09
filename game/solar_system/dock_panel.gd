@@ -130,7 +130,7 @@ func _slide_to(offset: float) -> void:
 		_slide
 		. tween_property(self, ^"_offset", offset, SLIDE_SECONDS * absf(_offset - offset))
 		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_OUT if offset == 0.0 else Tween.EASE_IN)
+		. set_ease(Tween.EASE_OUT)
 	)
 	if offset > 0.0:
 		_slide.tween_callback(_on_slid_out)
@@ -222,7 +222,10 @@ func _lay_out() -> void:
 	var inner := Vector2(maxf(size.x, custom_minimum_size.x) - margins.x, needed.y)
 	var card := %Card as Control
 	card.size = inner + margins
-	card.position = Vector2(_offset * (card.size.x + OFF_RIGHT), -card.size.y)
+	# Under Reduce motion the card stays in place and fades instead of sliding.
+	var still := Settings.reduce_motion
+	card.position = Vector2(0.0 if still else _offset * (card.size.x + OFF_RIGHT), -card.size.y)
+	card.modulate.a = 1.0 - _offset if still else 1.0
 	var clip := %Clip as Control
 	clip.position = style.get_offset()
 	clip.size = inner

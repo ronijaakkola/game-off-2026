@@ -59,10 +59,11 @@ func open(bus: FrameshiftBus) -> void:
 	slide_in()
 
 
-## Slides out past the right edge, then hides.
-func close() -> void:
+## Slides out past the right edge, then hides: fast with [param swapped], when another
+## panel takes its place.
+func close(swapped := false) -> void:
 	_open = false
-	slide_out()
+	slide_out(swapped)
 
 
 ## Whether it is open: from [method open] until [method close], while it slides out too.

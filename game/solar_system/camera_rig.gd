@@ -66,6 +66,9 @@ var _pointer_position := Vector2.ZERO
 var _focus_target: Node3D
 var _focus_radius := 0.0
 var _focus_reach := 0.0
+# The blend both shots use, and the seconds it takes as the scene sets it.
+var _blend: PhantomCameraTween
+var _focus_seconds := 0.0
 
 
 func _ready() -> void:
@@ -73,7 +76,13 @@ func _ready() -> void:
 	_target_distance = clampf(distance, min_distance, max_distance)
 	distance = _target_distance
 	_place_shot()
-	(%FocusShot as PhantomCamera3D).tween_completed.connect(focus_blend_finished.emit)
+	var focus_shot := %FocusShot as PhantomCamera3D
+	# The rig's own copy, since the scene's is shared by every rig made from it.
+	_blend = focus_shot.tween_resource.duplicate() as PhantomCameraTween
+	focus_shot.tween_resource = _blend
+	(%Shot as PhantomCamera3D).tween_resource = _blend
+	_focus_seconds = _blend.duration
+	focus_shot.tween_completed.connect(focus_blend_finished.emit)
 	get_window().mouse_exited.connect(_on_pointer_lost)
 	get_window().focus_exited.connect(_on_pointer_lost)
 
@@ -124,7 +133,8 @@ func _process(delta: float) -> void:
 
 ## Hands the camera to %FocusShot, which follows [param target], a body of
 ## [param radius] whose widest part, such as rings, reaches [param reach] from its centre.
-## Focusing on another target moves the shot on to it.
+## Focusing on another target moves the shot on to it. The camera blends there, or cuts
+## under Reduce motion.
 func focus(target: Node3D, radius: float, reach: float) -> void:
 	_focus_target = target
 	_focus_radius = radius
@@ -132,12 +142,14 @@ func focus(target: Node3D, radius: float, reach: float) -> void:
 	var shot := %FocusShot as PhantomCamera3D
 	shot.follow_target = target
 	_place_focus_shot()
+	_set_blend()
 	shot.priority = FOCUSED_PRIORITY
 
 
 ## Gives the camera back to %Shot, which is where it was before [method focus].
 func release_focus() -> void:
 	_focus_target = null
+	_set_blend()
 	(%FocusShot as PhantomCamera3D).priority = 0
 
 
@@ -154,8 +166,12 @@ func get_focus_fill(radius: float) -> float:
 
 ## Seconds the camera takes to blend in to a focused target.
 func get_focus_seconds() -> float:
-	var blend := (%FocusShot as PhantomCamera3D).tween_resource
-	return blend.duration if blend else 0.0
+	return _focus_seconds
+
+
+# The blend between the shots is a cut under Reduce motion.
+func _set_blend() -> void:
+	_blend.duration = 0.0 if Settings.reduce_motion else _focus_seconds
 
 
 # Back along the rig's angle as far as the farther of two needs: the body filling its

@@ -78,7 +78,8 @@ func is_hovered() -> bool:
 	return hovered != null and (hovered == panel or panel.is_ancestor_of(hovered))
 
 
-## Slides the row out past the right edge, closes up its place, and frees it.
+## Slides the row out past the right edge, closes up its place, and frees it. Under Reduce
+## motion it fades out in place instead of sliding.
 func leave() -> void:
 	if _leaving:
 		return
@@ -88,12 +89,15 @@ func leave() -> void:
 		_slide.kill()
 	var panel := %Panel as Control
 	_slide = create_tween()
-	(
-		_slide
-		. tween_property(panel, ^"position:x", size.x + OFF_RIGHT, SLIDE_OUT_SECONDS)
-		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_IN)
-	)
+	if Settings.reduce_motion:
+		_slide.tween_property(panel, ^"modulate:a", 0.0, SLIDE_OUT_SECONDS)
+	else:
+		(
+			_slide
+			. tween_property(panel, ^"position:x", size.x + OFF_RIGHT, SLIDE_OUT_SECONDS)
+			. set_trans(Tween.TRANS_CUBIC)
+			. set_ease(Tween.EASE_OUT)
+		)
 	(
 		_slide
 		. tween_property(self, ^"custom_minimum_size:y", 0.0, CLOSE_SECONDS)

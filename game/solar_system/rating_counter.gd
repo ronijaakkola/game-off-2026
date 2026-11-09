@@ -117,7 +117,9 @@ func commit() -> void:
 	(
 		_fade
 		. parallel()
-		. tween_method(_set_rise, 0.0, RISE_PIXELS, FADE_OUT_SECONDS)
+		. tween_method(
+			_set_rise, 0.0, 0.0 if Settings.reduce_motion else RISE_PIXELS, FADE_OUT_SECONDS
+		)
 		. set_ease(Tween.EASE_OUT)
 		. set_trans(Tween.TRANS_QUAD)
 	)
@@ -152,6 +154,9 @@ func _pop_label(label: Label) -> void:
 	label.pivot_offset = label.size * 0.5
 	if _pop:
 		_pop.kill()
+	if Settings.reduce_motion:
+		label.scale = Vector2.ONE
+		return
 	_pop = create_tween()
 	_pop.tween_property(label, ^"scale", Vector2.ONE * POP_SCALE, POP_UP_SECONDS)
 	(
