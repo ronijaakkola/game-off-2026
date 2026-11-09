@@ -52,8 +52,8 @@ const FELT_MAX := 3.5
 ## picks it.
 const RADIUS := 0.45
 ## Where the door is, from the bus: on its -X side, which faces the planet when docked,
-## near the front.
-const DOOR := Vector3(-0.18, 0.03, 0.3)
+## at the front of the cabin, just behind the nose.
+const DOOR := Vector3(-0.19, 0.03, 0.095)
 
 ## Where the bus starts docked. None starts it holding where it stands.
 @export var start_planet: Planet
