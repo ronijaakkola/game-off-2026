@@ -73,7 +73,7 @@ func is_refuel_held() -> bool:
 func show_fuel(fraction: float, full_tank_cost: int, can_refuel: bool, note: String) -> void:
 	(%FuelBar as ProgressBar).value = fraction
 	_set_text(%FuelAmount, "%d%%" % ceili(fraction * 100.0))
-	_show_fuel_low(fraction <= BusStatusPanel.FUEL_LOW)
+	_show_fuel_low(fraction <= BusControlPanel.FUEL_LOW)
 	_set_text(%PriceLabel, "Full tank %d credits" % full_tank_cost)
 	_set_text(%FuelNote, note)
 	var button := %RefuelButton as Button
@@ -132,10 +132,10 @@ func _show_fuel_low(low: bool) -> void:
 	if low == _fuel_low:
 		return
 	_fuel_low = low
-	_fuel_fill.bg_color = BusStatusPanel.FUEL_LOW_COLOR if low else BusStatusPanel.FUEL_COLOR
+	_fuel_fill.bg_color = BusControlPanel.FUEL_LOW_COLOR if low else BusControlPanel.FUEL_COLOR
 	var amount := %FuelAmount as Label
 	if low:
-		amount.add_theme_color_override(&"font_color", BusStatusPanel.FUEL_LOW_COLOR)
+		amount.add_theme_color_override(&"font_color", BusControlPanel.FUEL_LOW_COLOR)
 	else:
 		amount.remove_theme_color_override(&"font_color")
 
