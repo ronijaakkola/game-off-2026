@@ -3,11 +3,11 @@ extends MarginContainer
 ## The bus's control panel at the bottom middle of the screen, a wide, low strip. On the
 ## left, what the bus is doing with the time left to the next planet, over a track from the
 ## planet it left to that one; then its fuel over a person for each seat, filled while
-## taken. On the right, the frameshift
-## button: held down, it charges the drive for the route ([member FrameshiftBus.drive_held]),
-## filling as the drive charges, and letting go before the bus leaves stops the charge.
-## While the bus flies under its own power, it is a red Emergency stop that cancels the
-## course at once. Off, it reads why. It reads [member bus] and [member cabin] every frame.
+## taken. On the right, the frameshift button: held down, it charges the drive for the
+## route ([member FrameshiftBus.drive_held]), filling as the drive charges, and letting go
+## before the bus leaves stops the charge. While the bus flies under its own power, it is a
+## red Emergency stop that cancels the course at once. Off, it reads why. It reads
+## [member bus] and [member cabin] every frame.
 
 enum Mode { FRAMESHIFT, STOP, OFF }
 
