@@ -53,7 +53,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GODOT_VERSION = "4.7.2"
 TIMEOUT = 300
+# 5 s of game time per scene (FIXED_FPS).
 SMOKE_FRAMES = "300"
+# Test and smoke run without a window, where Godot sleeps about 7 ms each frame and steps
+# by the wall-clock time since the last one, so a test waiting out a 2 s fade waited 2 s.
+# A fixed frame rate steps every frame by 1/60 s and runs the frames as fast as they come,
+# so timers and tweens finish in frames, not seconds, and the same each run: the full
+# test run went from about 2 min to 12 s. A test that needs a long frame raises
+# Engine.time_scale for it (test/core/scene_flow/scene_flow_test.gd).
+FIXED_FPS = ["--fixed-fps", "60"]
 # Smoke boots one Godot per scene, and the boot is most of each run, so several at once.
 SMOKE_WORKERS = max(1, min(8, (os.cpu_count() or 2) // 2))
 CAPTURE_FRAMES = 60
@@ -1251,7 +1259,7 @@ def run_test(files: list[str], verbose: bool):
     try:
         result = run_godot(
             [
-                "--headless", "--path", ".",
+                "--headless", "--path", ".", *FIXED_FPS,
                 "-s", "-d", "--remote-debug", "tcp://127.0.0.1:0",
                 "res://addons/gdUnit4/bin/GdUnitCmdTool.gd",
                 *adds, "-c", "-rd", "res://build/reports", "--ignoreHeadlessMode",
@@ -1383,7 +1391,7 @@ def run_smoke(scenes: list[str]):
         results = list(
             pool.map(
                 lambda scene: run_godot(
-                    ["--headless", "--path", ".", "--scene", scene, "--quit-after", SMOKE_FRAMES]
+                    ["--headless", "--path", ".", "--scene", scene, *FIXED_FPS, "--quit-after", SMOKE_FRAMES]
                 ),
                 scenes,
             )

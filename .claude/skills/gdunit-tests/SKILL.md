@@ -5,7 +5,7 @@ description: Decide whether a change needs a test (a feature still taking shape 
 
 # gdUnit4 tests
 
-gdUnit4 6.2.2, vendored in `addons/gdUnit4/`. While building, run only the suites for what you changed: `uv run tools/check.py test test/game/bus/`. The whole run (a minute and a half) is part of `check.py all`, once before handoff.
+gdUnit4 6.2.2, vendored in `addons/gdUnit4/`. While building, run only the suites for what you changed: `uv run tools/check.py test test/game/bus/`. The whole run (about 15 s) is part of `check.py all`, once the feature works.
 
 ## Which test, and when
 
@@ -168,7 +168,7 @@ Re-enable input only after the wait: input is SceneFlow's done flag, and setting
 
 ## Frame timing
 
-`check.py test` runs headless, locally and in CI, so neither draws a frame and a frame takes a few milliseconds. A run that draws, such as the editor's gdUnit panel, can take far longer per frame: on llvmpipe, a software renderer, a frame of the game scene takes 40–70 ms. A test whose result depends on frame time, such as a tween's step per frame, turns drawing off with `RenderingServer.render_loop_enabled = false` and turns it back on in `after_test()`. `test_fades_in_smoothly_after_a_slow_first_frame` in `test/core/scene_flow/scene_flow_test.gd` shows it.
+`check.py test` runs headless at a fixed 60 fps (`--fixed-fps`), locally and in CI: every frame steps 1/60 s of game time however long it took, and frames run as fast as they come. So `simulate_frames(10, 100)`, `await_millis(500)` and a 2 s tween take frames, not wall-clock time, and step the same on any machine. Wait out game time with them freely; it costs milliseconds. The editor's gdUnit panel runs in real time and draws, so a frame there can take far longer: on llvmpipe, a software renderer, a frame of the game scene takes 40–70 ms. A test whose result depends on frame time, such as a tween's step per frame, turns drawing off with `RenderingServer.render_loop_enabled = false` and turns it back on in `after_test()`. A test that needs a long frame can't make one with `OS.delay_msec()`, which the fixed rate ignores: it raises `Engine.time_scale` for that one frame instead. `test_fades_in_smoothly_after_a_slow_first_frame` in `test/core/scene_flow/scene_flow_test.gd` shows both.
 
 ## Reading a failure
 

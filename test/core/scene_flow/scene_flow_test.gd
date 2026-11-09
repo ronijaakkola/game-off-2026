@@ -4,6 +4,8 @@ const SceneFlowScript := preload("res://core/scene_flow/scene_flow.gd")
 const GAME := "res://game/game.tscn"
 const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
+## How long the simulated slow frame takes.
+const SLOW_FRAME_SECONDS := 0.4
 
 var _flow: SceneFlowScript
 var _runner_scene: Node
@@ -30,7 +32,10 @@ func before_test() -> void:
 func after_test() -> void:
 	if get_tree().process_frame.is_connected(_record_shown_alpha):
 		get_tree().process_frame.disconnect(_record_shown_alpha)
+	if get_tree().process_frame.is_connected(_end_slow_frame):
+		get_tree().process_frame.disconnect(_end_slow_frame)
 	_shown_alphas.clear()
+	Engine.time_scale = 1.0
 	RenderingServer.render_loop_enabled = true
 	# A failed transition must not leave input off for the rest of the suite.
 	get_tree().root.set_disable_input(false)
@@ -89,15 +94,28 @@ func test_fades_in_smoothly_after_a_slow_first_frame() -> void:
 	# fade. The step after has a long delta, which must not skip most of the fade in.
 	# Drawing stays off: CI draws on a software renderer, where each frame of the game
 	# scene alone is a step of about 0.25. The slow setup here is simulated anyway.
+	# check.py runs tests at a fixed frame rate, where a frame that takes long still has
+	# the usual delta, so the time scale makes the one long delta instead of a delay.
 	RenderingServer.render_loop_enabled = false
-	var set_up_slowly := func(_node: Node) -> void: OS.delay_msec(400)
+	var set_up_slowly := func(_node: Node) -> void:
+		Engine.time_scale = SLOW_FRAME_SECONDS / get_process_delta_time()
+		get_tree().process_frame.connect(_end_slow_frame)
 	get_tree().node_added.connect(set_up_slowly, CONNECT_ONE_SHOT)
 	get_tree().process_frame.connect(_record_shown_alpha)
 	await _flow.go_to(GAME)
+	# The fade's last step ends go_to in the same frame, so the next frame would show it.
+	_record_shown_alpha()
 	var largest_step := 0.0
 	for i: int in range(1, _shown_alphas.size()):
 		largest_step = maxf(largest_step, _shown_alphas[i - 1] - _shown_alphas[i])
 	assert_float(largest_step).is_less(0.25)
+
+
+# The time scale set in the frame that set up the scene stretches the next one.
+func _end_slow_frame() -> void:
+	if get_process_delta_time() >= SLOW_FRAME_SECONDS * 0.5:
+		Engine.time_scale = 1.0
+		get_tree().process_frame.disconnect(_end_slow_frame)
 
 
 func test_shows_loading_while_the_next_scene_loads() -> void:
