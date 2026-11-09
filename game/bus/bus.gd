@@ -582,8 +582,8 @@ func _animate_model(delta: float) -> void:
 		model.position += shake * charge_shake * charged
 	var lean := clampf(-_turn_rate * BANK, -0.5, 0.5)
 	model.rotation.z = lerp_angle(model.rotation.z, lean, 1.0 - exp(-8.0 * delta))
-	# The thrusters light up as the drive charges, burn in flight and fade after.
-	var thrust := 1.0 if state == State.FLYING else get_charge_progress()
+	# The thrusters light up as the drive charges, burn in flight (not towed) and fade after.
+	var thrust := 1.0 if state == State.FLYING and not _towing else get_charge_progress()
 	model.thrust = move_toward(model.thrust, thrust, delta * THRUST_FADE)
 
 

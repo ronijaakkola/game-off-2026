@@ -170,7 +170,7 @@ func kick(passenger: Passenger) -> bool:
 
 
 ## Everyone on board takes a shock of [param amount] ([method Passenger.shock]), such as
-## the scare of the tow hooking on.
+## the scare of running out of fuel.
 func shock(amount: float) -> void:
 	for passenger: Passenger in _passengers:
 		passenger.shock(amount)

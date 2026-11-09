@@ -13,7 +13,10 @@ extends Node
 ## its card shows. `-- Research green` and `-- Research orange` take Terra's and Giant's
 ## trees instead, and `away` after either opens the tree's own planet, away from the bus,
 ## so the tree is dimmed: `-- Research orange away`. `plain` leaves out the card,
-## and `dock` opens nothing, so the dock panel shows its Research button.
+## and `dock` opens nothing, so the dock panel shows its Research button. `-- Tow` opens
+## the bus, so the camera follows it, and sends it off with fuel for eight units, so it runs
+## dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
+## the whole tow takes about 32 s (`--frames 1900`).
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 
@@ -40,6 +43,17 @@ func _ready() -> void:
 		await get_tree().process_frame
 		var dock := system.find_child("DockPanel") as DockPanel
 		dock.pin(line.get_waiting(trip_bus.get_docked_planet())[0])
+		return
+	if planet_name == "Tow":
+		var tow_bus := system.find_child("Bus") as FrameshiftBus
+		var tank := tow_bus.get_fuel_tank()
+		tank.fuel = 8.0 * tank.burn_per_unit
+		system.get_ledger().credits = 60
+		tow_bus.plot_course(RouteStop.at_point(tow_bus.global_position + Vector3(16.0, 0.0, 8.0)))
+		system.open_bus()
+		await tow_bus.ran_out_of_fuel
+		await get_tree().create_timer(2.0).timeout
+		(system.find_child("TowOffer") as TowOffer).requested.emit()
 		return
 	if planet_name == "Kick":
 		var cabin := system.find_child("Cabin") as Cabin

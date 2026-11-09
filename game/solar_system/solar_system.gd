@@ -29,10 +29,10 @@ extends Node3D
 ## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
 ## open planet's panel: the [FuelPump] runs while they hold the fuel button. It stops when
 ## they let go, the tank is full or the credits run out.
-## When the bus runs out of fuel in space, a tow ship comes out from the nearest planet,
-## hitches on and pulls it there, where it docks with a full tank and the tow costs
-## [constant TOW_FEE] credits, or all the player has when that is less. Its hooking on
-## scares everyone on board ([constant TOW_SHOCK]).
+## Running out of fuel in space scares everyone on board ([constant OUT_OF_FUEL_SHOCK]),
+## and the [TowOffer] bar offers a tow for [constant TOW_FEE] credits. Requesting it pays,
+## into debt when the player has less, and a tow ship comes from the nearest planet and
+## pulls the bus there, where it docks with a full tank.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -52,9 +52,9 @@ const CAMERA_HOST_PRIORITY := 300
 ## Pixels between a planet's name and the marker for who waits there.
 const MARKER_GAP_PIXELS := 4.0
 ## What a tow costs, in credits.
-const TOW_FEE := 20
-## The scare everyone on board takes when the tow ship hooks on.
-const TOW_SHOCK := -15.0
+const TOW_FEE := 100
+## The scare everyone on board takes when the bus runs out of fuel in space.
+const OUT_OF_FUEL_SHOCK := -15.0
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 ## The percent of top speed, the fuel tank and portion size the debug panel's stat buttons
@@ -109,7 +109,7 @@ func _ready() -> void:
 	dock_panel.research_pressed.connect(_on_research_pressed)
 	var bus := %Bus as FrameshiftBus
 	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
-	bus.towed.connect(_on_bus_towed)
+	(%TowOffer as TowOffer).requested.connect(_on_tow_requested)
 	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
 	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self)
 	var percent := StatModifier.Kind.PERCENT
@@ -327,9 +327,15 @@ func _on_board_pressed(passenger: Passenger) -> void:
 	cabin.pick_up(passenger)
 
 
-# Sends a tow ship from the planet nearest to the bus now. Once it has hitched on, it tows
-# the bus there.
 func _on_bus_ran_out_of_fuel() -> void:
+	(%Cabin as Cabin).shock(OUT_OF_FUEL_SHOCK)
+	(%TowOffer as TowOffer).offer(TOW_FEE)
+
+
+# Bills the tow and sends a tow ship from the planet nearest to the bus, to tow it there.
+func _on_tow_requested() -> void:
+	(%TowOffer as TowOffer).close()
+	_ledger.spend(TOW_FEE)
 	var bus := %Bus as FrameshiftBus
 	var nearest: Planet
 	var nearest_distance := INF
@@ -343,12 +349,7 @@ func _on_bus_ran_out_of_fuel() -> void:
 	var ship := TOW_SHIP.instantiate() as TowShip
 	add_child(ship)
 	ship.hitched.connect(bus.tow_to.bind(nearest))
-	ship.hitched.connect((%Cabin as Cabin).shock.bind(TOW_SHOCK))
 	ship.come_for(bus, nearest)
-
-
-func _on_bus_towed(_planet: Planet) -> void:
-	_ledger.spend(mini(TOW_FEE, _ledger.credits))
 
 
 # Runs the fuel pump at the planet the bus is docked at while the dock panel's fuel
@@ -381,8 +382,7 @@ func _run_fuel_pump(delta: float) -> void:
 	panel.show_fuel(tank.get_fraction(), full_tank_cost, open_stop.is_empty(), note)
 
 
-# The debug panel's Empty fuel. Out in space the tow comes at once; at a planet the bus
-# stays until it refuels.
+# The debug panel's Empty fuel: in space the tow is offered; at a planet the bus must refuel.
 func _debug_empty_fuel() -> void:
 	(%Bus as FrameshiftBus).get_fuel_tank().drain()
 

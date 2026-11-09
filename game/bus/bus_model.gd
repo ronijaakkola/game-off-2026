@@ -8,9 +8,10 @@ const SHADER := preload("res://shared/two_tone.gdshader")
 const OUTLINE_SHADER := preload("res://game/bus/bus_outline.gdshader")
 ## The border's colour, the white of a hovered planet's.
 const BORDER_COLOR := Color.WHITE
-# The glb's node for the thrusters' exhaust, lit by thrust rather than by the star. Its
+# What the name of the glb's node for the thrusters' exhaust ends with: "ThrusterGlow", or
+# "TowThrusterGlow" in another model. It is lit by thrust rather than by the star, and its
 # origin is at the nozzles.
-const GLOW_NODE := &"ThrusterGlow"
+const GLOW_NODE := "ThrusterGlow"
 # How long the exhaust is with the drive off, as a share of its full length.
 const OFF_LENGTH := 0.1
 
@@ -55,7 +56,7 @@ func _ready() -> void:
 	_glow.stencil_reference = 1
 	for node: Node in find_children("*", "MeshInstance3D", true, false):
 		var part := node as MeshInstance3D
-		if part.name == GLOW_NODE:
+		if String(part.name).ends_with(GLOW_NODE):
 			part.material_override = _glow
 			_exhaust = part
 			continue
