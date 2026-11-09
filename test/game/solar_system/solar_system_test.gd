@@ -91,6 +91,14 @@ func test_the_pointer_on_a_waiting_row_shows_their_trip_and_a_click_pins_it() ->
 	await runner.simulate_frames(2)
 	assert_object(arc.get_destination()).is_same(row.passenger.destination)
 	assert_bool(row.highlighted).is_true()
+	# Both in their race's colour, not the destination's, which can come close to another
+	# race's.
+	var race_color := Race.SKIN_COLORS[row.passenger.race]
+	var arc_material := arc.mesh.surface_get_material(0) as ShaderMaterial
+	assert_object(arc_material.get_shader_parameter(&"color")).is_equal(race_color)
+	var panel := row.find_child("Panel", true, false) as Control
+	var style := panel.get_theme_stylebox(&"panel") as StyleBoxFlat
+	assert_object(style.border_color).is_equal(race_color)
 	_send_motion(away)
 	await runner.simulate_frames(2)
 	assert_object(arc.get_destination()).is_null()
