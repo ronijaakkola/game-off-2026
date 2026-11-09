@@ -229,6 +229,14 @@ func test_the_dock_panel_slides_out_once_the_bus_leaves() -> void:
 	assert_bool(panel.visible).is_true()
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, runner.find_child("Terra") as Planet))
+	var button := runner.find_child("FrameshiftButton") as Button
+	await runner.simulate_frames(2)
+	# Held down, never let go.
+	var at := _to_window(
+		runner.find_child("Camera") as Camera3D, button.get_global_rect().get_center()
+	)
+	_send_motion(at)
+	_send_click(MOUSE_BUTTON_LEFT, at)
 
 	# It stays while the drive charges, so the player can still pick passengers up.
 	await assert_func(bus, "get_charge_progress").wait_until(2000).is_not_equal(0.0)
@@ -467,6 +475,7 @@ func test_running_dry_in_space_sends_one_tow_ship() -> void:
 	await runner.simulate_frames(2)
 	var system := runner.scene() as SolarSystem
 	var bus := runner.find_child("Bus") as FrameshiftBus
+	bus.hold_to_charge = false
 	bus.plot_course(RouteStop.at_point(bus.global_position + Vector3(0.0, 0.0, 30.0)))
 	await assert_func(bus, "is_at_planet").wait_until(5000).is_false()
 

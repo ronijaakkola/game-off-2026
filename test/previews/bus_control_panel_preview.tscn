@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://r4rc1oo3o2xh"]
 
-[ext_resource type="Script" uid="uid://bbo2vs3c6vhsb" path="res://test/previews/bus_status_panel_preview.gd" id="1_preview"]
+[ext_resource type="Script" uid="uid://bbo2vs3c6vhsb" path="res://test/previews/bus_control_panel_preview.gd" id="1_preview"]
 [ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="2_system"]
 
-[node name="BusStatusPanelPreview" type="Node" unique_id=375181329]
+[node name="BusControlPanelPreview" type="Node" unique_id=375181329]
 script = ExtResource("1_preview")
 
 [node name="SolarSystem" parent="." unique_id=1590412956 instance=ExtResource("2_system")]

@@ -1,9 +1,15 @@
-class_name BusStatusPanel
+class_name BusControlPanel
 extends MarginContainer
-## The bus's status in the bottom right corner: what it is doing, a track from the planet
-## it left to the next one with the time left to it, its fuel, a person for each seat,
-## filled while taken, and a button that cancels the course while the bus charges or flies
-## under its own power. It reads [member bus] and [member cabin] every frame.
+## The bus's control panel at the bottom middle of the screen, a wide, low strip. On the
+## left, what the bus is doing with the time left to the next planet, over a track from the
+## planet it left to that one; then its fuel over a person for each seat, filled while
+## taken. On the right, the frameshift
+## button: held down, it charges the drive for the route ([member FrameshiftBus.drive_held]),
+## filling as the drive charges, and letting go before the bus leaves stops the charge.
+## While the bus flies under its own power, it is a red Emergency stop that cancels the
+## course at once. Off, it reads why. It reads [member bus] and [member cabin] every frame.
+
+enum Mode { FRAMESHIFT, STOP, OFF }
 
 const TRACK_COLOR := Color(1.0, 1.0, 1.0, 0.18)
 const ROUTE_COLOR := Color(1.0, 0.6, 0.22, 1.0)
@@ -16,8 +22,14 @@ const FUEL_COLOR := Color(0.6, 0.95, 1.0, 1.0)
 const FUEL_LOW_COLOR := Color(0.95, 0.3, 0.4, 1.0)
 # At or under this share of a full tank, the fuel shows in FUEL_LOW_COLOR.
 const FUEL_LOW := 0.25
+## The Emergency stop's colour, and its colour under the pointer and pressed.
+const STOP_COLOR := Color(0.78, 0.16, 0.22, 1.0)
+const STOP_HOVER_COLOR := Color(0.9, 0.22, 0.28, 1.0)
+const STOP_PRESSED_COLOR := Color(0.6, 0.1, 0.16, 1.0)
+## The charge's fill behind the frameshift button's label.
+const CHARGE_FILL_COLOR := Color(0.6, 0.95, 1.0, 0.35)
 
-## The bus whose status it shows.
+## The bus whose status it shows and whose drive it holds.
 @export var bus: FrameshiftBus
 ## The cabin whose seats it shows.
 @export var cabin: Cabin
@@ -34,6 +46,12 @@ var _seats_shown := Vector2i(-1, -1)
 # The fuel bar's fill, a copy of the scene's, so its colour can change.
 var _fuel_fill: StyleBoxFlat
 var _fuel_low := false
+var _mode := Mode.OFF
+# Whether the frameshift button is held down since it was pressed as the frameshift.
+var _held := false
+# The Emergency stop's look, by the button's stylebox names: copies of the theme's.
+var _stop_styles: Dictionary[StringName, StyleBoxFlat] = {}
+var _charge_style := StyleBoxFlat.new()
 
 
 func _ready() -> void:
@@ -42,11 +60,18 @@ func _ready() -> void:
 	bar.add_theme_stylebox_override(&"fill", _fuel_fill)
 	(%Track as Control).draw.connect(_draw_track)
 	(%Seats as Control).draw.connect(_draw_seats)
+	_make_button_styles()
 	_show()
 
 
 func _process(_delta: float) -> void:
 	_show()
+
+
+func _notification(what: int) -> void:
+	# Hidden while held, it may never see the release.
+	if what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree():
+		_held = false
 
 
 func _show() -> void:
@@ -57,17 +82,11 @@ func _show() -> void:
 	elif bus.state == FrameshiftBus.State.HOLDING:
 		_from_planet = null
 	var next := bus.get_next_planet()
-	var charging := bus.state == FrameshiftBus.State.CHARGING
 	_set_text(%StateLabel, _state_text(next))
 	_show_trip(next)
-	(%ChargeBar as ProgressBar).visible = charging
-	(%ChargeBar as ProgressBar).value = bus.get_charge_progress()
-	var button := %CancelButton as Button
-	var flying := bus.state == FrameshiftBus.State.FLYING
-	button.visible = charging or (flying and not bus.is_stopping() and not bus.is_towing())
-	_set_text(button, "Cancel" if charging else "Cancel route")
 	_show_fuel()
 	_show_seats()
+	_show_button()
 
 
 func _state_text(next: Planet) -> String:
@@ -96,10 +115,11 @@ func _flying_text(next: Planet) -> String:
 
 func _show_trip(next: Planet) -> void:
 	var shown := next != null and not bus.is_stopping()
-	(%Track as Control).visible = shown
-	(%Ends as Control).visible = shown
+	# Faded rather than hidden, so the panel keeps its height.
+	(%Ends as Control).modulate.a = 1.0 if shown else 0.0
 	if not shown:
 		_trip_planet = null
+		_set_text(%EtaLabel, "")
 		return
 	var time_left := bus.estimate_time_to_next_planet()
 	# Parking ends the flight, so the track carries on to the end.
@@ -147,6 +167,95 @@ func _show_seats() -> void:
 	seats.queue_redraw()
 
 
+# The frameshift button's mode, label, look and charge fill, and the drive's hold.
+func _show_button() -> void:
+	var mode := _button_mode()
+	if mode != _mode:
+		_mode = mode
+		# A hold that set the bus off doesn't carry over to the next stop.
+		_held = false
+		_set_stop_look(mode == Mode.STOP)
+	var button := %FrameshiftButton as Button
+	button.disabled = mode == Mode.OFF
+	if button.disabled:
+		_held = false
+	bus.drive_held = _held and mode == Mode.FRAMESHIFT
+	_set_text(%ButtonLabel, _button_text(mode))
+	(%ButtonLabel as Label).modulate.a = 0.5 if button.disabled else 1.0
+	var fill := %ChargeFill as Control
+	fill.position = Vector2.ZERO
+	fill.size = Vector2(button.size.x * bus.get_charge_progress(), button.size.y)
+
+
+func _button_mode() -> Mode:
+	var flying := bus.state == FrameshiftBus.State.FLYING
+	if bus.is_towing() or bus.get_fuel_tank().is_empty():
+		return Mode.OFF
+	if flying and not bus.is_stopping():
+		return Mode.STOP
+	if bus.state == FrameshiftBus.State.CHARGING and not bus.hold_to_charge:
+		return Mode.STOP
+	var waiting := bus.state != FrameshiftBus.State.PARKING and not flying
+	return Mode.FRAMESHIFT if waiting and bus.get_last_stop() else Mode.OFF
+
+
+func _button_text(mode: Mode) -> String:
+	match mode:
+		Mode.STOP:
+			return "Emergency stop"
+		Mode.FRAMESHIFT:
+			if bus.state == FrameshiftBus.State.CHARGING:
+				return "Frameshifting..."
+			return "Boarding..." if _held and bus.boarding else "Hold to frameshift"
+	return _off_text()
+
+
+# Why the button is off.
+func _off_text() -> String:
+	var text := "Set a course"
+	if bus.is_towing():
+		text = "Under tow"
+	elif bus.get_fuel_tank().is_empty():
+		text = "Out of fuel"
+	elif bus.is_stopping():
+		text = "Stopping"
+	elif bus.state == FrameshiftBus.State.PARKING:
+		text = "Docking"
+	return text
+
+
+func _make_button_styles() -> void:
+	var button := %FrameshiftButton as Button
+	var colors := {
+		&"normal": STOP_COLOR,
+		&"hover": STOP_HOVER_COLOR,
+		&"pressed": STOP_PRESSED_COLOR,
+		&"hover_pressed": STOP_PRESSED_COLOR,
+	}
+	for style_name: StringName in colors:
+		var style := button.get_theme_stylebox(style_name).duplicate() as StyleBoxFlat
+		if not style:
+			continue
+		style.bg_color = colors[style_name]
+		_stop_styles[style_name] = style
+	var normal := button.get_theme_stylebox(&"normal") as StyleBoxFlat
+	if normal:
+		for corner: int in 4:
+			_charge_style.set_corner_radius(corner, normal.get_corner_radius(corner))
+		_charge_style.corner_detail = normal.corner_detail
+	_charge_style.bg_color = CHARGE_FILL_COLOR
+	(%ChargeFill as Panel).add_theme_stylebox_override(&"panel", _charge_style)
+
+
+func _set_stop_look(stop: bool) -> void:
+	var button := %FrameshiftButton as Button
+	for style_name: StringName in _stop_styles:
+		if stop:
+			button.add_theme_stylebox_override(style_name, _stop_styles[style_name])
+		else:
+			button.remove_theme_stylebox_override(style_name)
+
+
 # A line from end to end, orange up to the bus, with a ring at each end.
 func _draw_track() -> void:
 	var track := %Track as Control
@@ -183,10 +292,16 @@ func _planet_name(planet: Planet) -> String:
 func _set_text(control: Control, text: String) -> void:
 	if control is Label and (control as Label).text != text:
 		(control as Label).text = text
-	elif control is Button and (control as Button).text != text:
-		(control as Button).text = text
 
 
-func _on_cancel_button_pressed() -> void:
-	if bus:
+# The Emergency stop acts on the press, so it never waits for a release, and a hold that
+# set the bus off can't trigger it by letting go.
+func _on_frameshift_button_down() -> void:
+	if _mode == Mode.STOP:
 		bus.cancel_course()
+	elif _mode == Mode.FRAMESHIFT:
+		_held = true
+
+
+func _on_frameshift_button_up() -> void:
+	_held = false
