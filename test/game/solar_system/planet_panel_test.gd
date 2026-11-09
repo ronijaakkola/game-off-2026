@@ -11,9 +11,11 @@ const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
 var _waiting: WaitingPassengers
 var _home: Planet
 var _away: Planet
+var _reduce_motion: bool
 
 
 func before_test() -> void:
+	_reduce_motion = Settings.reduce_motion
 	var space := auto_free(Node3D.new()) as Node3D
 	add_child(space)
 	_home = Planet.new()
@@ -30,6 +32,10 @@ func before_test() -> void:
 	# No one turns up by themselves during a test.
 	_waiting.set_process(false)
 	_waiting.set_planets([_home, _away])
+
+
+func after_test() -> void:
+	Settings.reduce_motion = _reduce_motion
 
 
 func test_opens_hidden_and_shows_the_planet_and_who_waits_there() -> void:
@@ -137,7 +143,7 @@ func test_close_button_asks_and_close_slides_out_and_hides() -> void:
 	assert_object(panel.get_planet()).is_same(_home)
 	panel.close()
 	assert_object(panel.get_planet()).is_null()
-	await await_millis(500)
+	await await_millis(900)
 	assert_bool(panel.visible).is_false()
 
 
@@ -153,9 +159,9 @@ func test_left_click_on_a_planet_opens_it_and_again_closes_it() -> void:
 	# Both panels slide in with the camera's blend.
 	assert_float(rig.get_focus_seconds()).is_greater(0.0)
 	var planet_panel := runner.find_child("PlanetPanel") as PlanetPanel
-	assert_float(planet_panel.slide_in_seconds).is_equal(rig.get_focus_seconds())
+	assert_float(planet_panel.slide_seconds).is_equal(rig.get_focus_seconds())
 	var bus_panel := runner.find_child("BusPanel") as BusPanel
-	assert_float(bus_panel.slide_in_seconds).is_equal(rig.get_focus_seconds())
+	assert_float(bus_panel.slide_seconds).is_equal(rig.get_focus_seconds())
 
 	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
 
@@ -179,8 +185,36 @@ func test_left_click_on_a_planet_opens_it_and_again_closes_it() -> void:
 	# Not while the panel slides out over it.
 	await runner.simulate_frames(1)
 	assert_bool((runner.find_child("HintBox") as Control).visible).is_false()
-	await await_millis(400)
+	await await_millis(900)
 	assert_bool((runner.find_child("HintBox") as Control).visible).is_true()
+
+
+func test_under_reduce_motion_the_camera_cuts_and_the_panel_fades_in_place() -> void:
+	Settings.reduce_motion = true
+	var runner := scene_runner(SOLAR_SYSTEM)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var camera := runner.find_child("Camera") as Camera3D
+	var panel := runner.find_child("PlanetPanel") as PlanetPanel
+	var shot := runner.find_child("FocusShot") as Node3D
+
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await runner.simulate_frames(3)
+
+	assert_float(camera.global_position.distance_to(shot.global_position)).is_less(0.1)
+	assert_float(panel.position.x).is_equal_approx(
+		panel.get_parent_area_size().x - panel.size.x, 0.5
+	)
+	await await_millis(400)
+	assert_float(panel.modulate.a).is_equal(1.0)
+
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await runner.simulate_frames(3)
+
+	var wide_shot := runner.find_child("Shot") as Node3D
+	assert_float(camera.global_position.distance_to(wide_shot.global_position)).is_less(0.1)
+	await await_millis(400)
+	assert_bool(panel.visible).is_false()
 
 
 func test_open_planet_sits_left_of_the_panel_and_left_click_on_space_closes_it() -> void:

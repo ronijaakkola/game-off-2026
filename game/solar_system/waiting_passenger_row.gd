@@ -31,7 +31,8 @@ func _ready() -> void:
 	_fit()
 
 
-## Starts the row past the right edge and slides it into place.
+## Starts the row past the right edge and slides it into place. Under Reduce motion it
+## fades in in place instead.
 func slide_in() -> void:
 	if _slide:
 		_slide.kill()
@@ -40,8 +41,13 @@ func slide_in() -> void:
 		# Just added: its list gives it a width later this frame. Out of sight till then.
 		panel.position.x = OFF_SCREEN
 		await resized
-	panel.position.x = size.x + OFF_RIGHT
 	_slide = create_tween()
+	if Settings.reduce_motion:
+		panel.position.x = 0.0
+		panel.modulate.a = 0.0
+		_slide.tween_property(panel, ^"modulate:a", 1.0, SLIDE_IN_SECONDS)
+		return
+	panel.position.x = size.x + OFF_RIGHT
 	(
 		_slide
 		. tween_property(panel, ^"position:x", 0.0, SLIDE_IN_SECONDS)

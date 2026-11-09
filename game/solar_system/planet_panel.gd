@@ -69,11 +69,12 @@ func open(planet: Planet) -> void:
 	slide_in()
 
 
-## Slides out past the right edge, then hides.
-func close() -> void:
+## Slides out past the right edge, then hides: fast with [param swapped], when another
+## panel takes its place.
+func close(swapped := false) -> void:
 	_planet = null
 	_refuel_held = false
-	slide_out()
+	slide_out(swapped)
 
 
 ## The planet shown, or null while closed.

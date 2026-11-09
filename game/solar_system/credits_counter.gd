@@ -95,6 +95,9 @@ func _on_earned(amount: int) -> void:
 	_rise = 0.0
 	if _pop:
 		_pop.kill()
+	if Settings.reduce_motion:
+		label.scale = Vector2.ONE
+		return
 	_pop = create_tween()
 	_pop.tween_property(label, ^"scale", Vector2.ONE * POP_SCALE, POP_UP_SECONDS)
 	(
@@ -128,21 +131,23 @@ func _on_spent(amount: int) -> void:
 	_loss_rise = 0.0
 	_place_gain()
 	var seconds := minf(_loss_amount * SECONDS_PER_CREDIT, MAX_COUNT_SECONDS)
+	var rise := 0.0 if Settings.reduce_motion else RISE_PIXELS
 	_loss = create_tween()
-	_loss.tween_property(label, ^"scale", Vector2.ONE * POP_SCALE, POP_UP_SECONDS)
-	(
-		_loss
-		. tween_property(label, ^"scale", Vector2.ONE, POP_DOWN_SECONDS)
-		. set_trans(Tween.TRANS_BACK)
-		. set_ease(Tween.EASE_OUT)
-	)
+	if not Settings.reduce_motion:
+		_loss.tween_property(label, ^"scale", Vector2.ONE * POP_SCALE, POP_UP_SECONDS)
+		(
+			_loss
+			. tween_property(label, ^"scale", Vector2.ONE, POP_DOWN_SECONDS)
+			. set_trans(Tween.TRANS_BACK)
+			. set_ease(Tween.EASE_OUT)
+		)
 	_loss.tween_interval(COMMIT_DELAY)
 	_loss.tween_method(_show_total, _loss_from, ledger.credits - _pending, seconds)
 	_loss.parallel().tween_property(label, ^"modulate:a", 0.0, FADE_OUT_SECONDS)
 	(
 		_loss
 		. parallel()
-		. tween_method(_set_loss_rise, 0.0, RISE_PIXELS, FADE_OUT_SECONDS)
+		. tween_method(_set_loss_rise, 0.0, rise, FADE_OUT_SECONDS)
 		. set_ease(Tween.EASE_OUT)
 		. set_trans(Tween.TRANS_QUAD)
 	)
@@ -170,7 +175,9 @@ func commit() -> void:
 	(
 		_fade
 		. parallel()
-		. tween_method(_set_rise, 0.0, RISE_PIXELS, FADE_OUT_SECONDS)
+		. tween_method(
+			_set_rise, 0.0, 0.0 if Settings.reduce_motion else RISE_PIXELS, FADE_OUT_SECONDS
+		)
 		. set_ease(Tween.EASE_OUT)
 		. set_trans(Tween.TRANS_QUAD)
 	)

@@ -87,6 +87,9 @@ func _on_earned(race: Race.Type, _amount: int) -> void:
 	label.pivot_offset = label.get_combined_minimum_size() * 0.5
 	if _pops.has(race):
 		_pops[race].kill()
+	if Settings.reduce_motion:
+		label.scale = Vector2.ONE
+		return
 	var pop := create_tween()
 	pop.tween_property(label, ^"scale", Vector2.ONE * POP_SCALE, POP_UP_SECONDS)
 	(

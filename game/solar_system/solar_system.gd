@@ -94,10 +94,10 @@ func _ready() -> void:
 	var panel := %PlanetPanel as PlanetPanel
 	panel.waiting = %WaitingPassengers as WaitingPassengers
 	panel.close_pressed.connect(close_planet)
-	panel.slide_in_seconds = (%CameraRig as CameraRig).get_focus_seconds()
+	panel.slide_seconds = (%CameraRig as CameraRig).get_focus_seconds()
 	var bus_panel := %BusPanel as BusPanel
 	bus_panel.close_pressed.connect(close_bus)
-	bus_panel.slide_in_seconds = panel.slide_in_seconds
+	bus_panel.slide_seconds = panel.slide_seconds
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.waiting = %WaitingPassengers as WaitingPassengers
 	markers.set_planets(_planets)
@@ -198,7 +198,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## panel.
 func open_planet(planet: Planet) -> void:
 	if is_bus_open():
-		(%BusPanel as BusPanel).close()
+		(%BusPanel as BusPanel).close(true)
 	(%PlanetPanel as PlanetPanel).open(planet)
 	var rig := %CameraRig as CameraRig
 	rig.focus_rect = _focus_rect()
@@ -227,7 +227,7 @@ func get_open_planet() -> Planet:
 ## right. It closes the open planet's panel.
 func open_bus() -> void:
 	if get_open_planet():
-		(%PlanetPanel as PlanetPanel).close()
+		(%PlanetPanel as PlanetPanel).close(true)
 	var bus := %Bus as FrameshiftBus
 	(%BusPanel as BusPanel).open(bus)
 	var rig := %CameraRig as CameraRig

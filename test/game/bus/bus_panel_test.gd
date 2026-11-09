@@ -106,7 +106,7 @@ func test_the_open_bus_sits_left_of_its_panel_and_opening_a_planet_closes_it() -
 	assert_bool(system.is_bus_open()).is_false()
 	assert_object(system.get_open_planet()).is_same(terra)
 	assert_bool(rig.is_focused()).is_true()
-	await await_millis(400)
+	await await_millis(900)
 	assert_bool(panel.visible).is_false()
 
 
