@@ -214,6 +214,7 @@ func test_an_amenity_serves_its_need_as_soon_as_it_is_asked_for() -> void:
 	_cabin.amenities = [dispenser]
 	var passenger := _passenger(_away, 0.5)
 	_cabin.board(passenger)
+	_cabin.docked = false
 
 	await await_millis(800)
 

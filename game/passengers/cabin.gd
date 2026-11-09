@@ -143,7 +143,8 @@ func shock(amount: float) -> void:
 
 
 ## Starts a stop at [param planet]. Everyone going there leaves their seat now, and their
-## happiness stops, so they pay by the mood they arrived in; they get off one at a time.
+## happiness stops, so they pay by the mood they arrived in, after any disappointment at a
+## request left unserved ([method Passenger.arrive]); they get off one at a time.
 ## The first one goes at once, and [signal stop_finished] comes [member step_seconds] after
 ## the last, or at once when nobody gets off or on.
 func stop_at(planet: Planet) -> void:
@@ -152,6 +153,7 @@ func stop_at(planet: Planet) -> void:
 		if passenger.destination == planet:
 			_passengers.erase(passenger)
 			_getting_off.append(passenger)
+			passenger.arrive()
 			_payouts.append(passenger.get_payout())
 			leaving.append(passenger)
 	for passenger: Passenger in leaving:

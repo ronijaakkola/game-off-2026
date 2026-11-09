@@ -32,8 +32,13 @@ const ON_TIME_BONUS := 12.0
 const WORN_OUT := -100.0
 ## What being woken by a shock adds to it.
 const WAKE_SHOCK := -10.0
-## While the bus is docked, their ride clock runs at this speed, and their happiness falls
-## at this much of its speed: a stop barely costs them.
+## The shock of arriving with a request still unserved, once it has been open at least
+## [constant REQUEST_GRACE] seconds of flying, so one asked just before arriving is no
+## fault of the player's.
+const UNSERVED_SHOCK := -10.0
+const REQUEST_GRACE := 5.0
+## While the bus is docked, their ride clock and their needs' timers run at this speed, and
+## their happiness falls at this much of its speed: a stop barely costs them.
 const DOCKED_RATE := 0.1
 ## A good ride makes them patient: while their happiness is at least this, they grant the
 ## bus leeway, [constant LEEWAY_RATE] seconds of it per second of their ride clock, added to
@@ -92,6 +97,10 @@ var _need_timers := PackedFloat32Array()
 var _departed := false
 # Seconds of the ride so far, on their clock, which timing reads.
 var _clock := 0.0
+# A request put on hold while the bus stops, which opens again once it flies on.
+var _held_request: Need
+# Seconds of flying the open or held request has gone unserved.
+var _request_age := 0.0
 
 
 ## A passenger of [param kind] going to [param to]. [param trip_seconds] is the direct
@@ -194,13 +203,33 @@ func depart() -> void:
 	_departed = true
 
 
+## They have reached their destination. A request they have had open, or on hold, for
+## [constant REQUEST_GRACE] seconds of flying or more disappoints them
+## ([constant UNSERVED_SHOCK]).
+func arrive() -> void:
+	if (request or _held_request) and _request_age >= REQUEST_GRACE:
+		shock(UNSERVED_SHOCK)
+
+
 ## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. Happiness and
-## the ride clock hold until [method depart], and while [param holds]. While [param docked]
-## the clock runs, and happiness falls, at [constant DOCKED_RATE] of their speed. The clock
-## runs as the comfort says while awake or asleep. Needs wait while they sleep, so a sleep
-## runs its length.
+## the ride clock hold until [method depart], and while [param holds] (the bus parks).
+## While [param docked] the clock and the needs' timers run, and happiness falls, at
+## [constant DOCKED_RATE] of their speed. The clock runs as the comfort says while awake or
+## asleep. Needs wait while they sleep, so a sleep runs its length. While the bus is docked
+## or parks, no request opens, and an open one goes on hold until the bus flies on.
 func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -> void:
 	var giving := comfort if comfort else _no_comfort
+	var stopped := docked or holds
+	if stopped and request:
+		_held_request = request
+		request = null
+		activity = ""
+		_activity_left = 0.0
+	elif not stopped and _held_request:
+		request = _held_request
+		_held_request = null
+		asleep = false
+		activity = request.request_line
 	if _departed and not holds:
 		var rate := giving.sleep_clock if asleep else giving.clock
 		var ride := delta * rate * (DOCKED_RATE if docked else 1.0)
@@ -213,20 +242,24 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 			speed = FALL_RATE * (DOCKED_RATE if docked else 1.0)
 		happiness = move_toward(happiness, target, speed * delta)
 	if request:
+		if _departed:
+			_request_age += delta
 		return
 	_activity_left -= delta
-	if not asleep:
+	if not asleep and not _held_request:
+		var need_step := delta * (DOCKED_RATE if docked else 1.0)
 		for i: int in _need_timers.size():
-			_need_timers[i] -= delta
+			_need_timers[i] -= need_step
 	if (_busy or asleep) and _activity_left > 0.0:
 		return
 	_busy = false
 	asleep = false
 	action = Need.Action.NONE
-	for i: int in _need_timers.size():
-		if _need_timers[i] <= 0.0:
-			_open(type.needs[i])
-			return
+	if not stopped and not _held_request:
+		for i: int in _need_timers.size():
+			if _need_timers[i] <= 0.0:
+				_open(type.needs[i])
+				return
 	if _activity_left <= 0.0:
 		_idle(giving)
 
@@ -248,6 +281,7 @@ func _open(need: Need) -> void:
 	request = need
 	asleep = false
 	activity = need.request_line
+	_request_age = 0.0
 
 
 func _close(line: String, seconds: float) -> void:
