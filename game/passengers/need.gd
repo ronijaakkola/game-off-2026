@@ -1,11 +1,11 @@
 class_name Need
 extends Resource
-## Something a passenger asks for during a ride, such as a snack or a drink. While the
-## request is open the passenger's happiness heads for 0, until the player serves it or an
-## [Amenity] on the bus does.
+## Something a passenger asks for during a ride, such as a snack, a drink or entertainment.
+## While the request is open the passenger's happiness heads for 0, until the player serves
+## it or an [Amenity] on the bus does.
 
 ## What a passenger's portrait acts out while the need is served.
-enum Action { NONE, EAT, DRINK }
+enum Action { NONE, EAT, DRINK, WATCH }
 
 ## Names the need, so an amenity can say which one it serves.
 @export var id: StringName

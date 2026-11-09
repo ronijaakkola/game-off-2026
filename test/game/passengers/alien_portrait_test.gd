@@ -207,13 +207,14 @@ func test_the_expression_preview_shows_each_head_in_each_expression_eating_and_d
 		joys.append(portrait.joy)
 		contents.append(portrait.content)
 		actions.append(portrait.action)
-	# Okay, happy, annoyed, furious, joyful, eating and drinking, for each of six heads.
-	var row_anger: Array[float] = [0.0, 0.0, 0.5, 1.0, 0.0, 0.0, 0.0]
-	var row_joy: Array[float] = [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
-	var row_content: Array[bool] = [false, true, false, false, false, false, false]
+	# Okay, happy, annoyed, furious, joyful, eating, drinking and watching, for each of six
+	# heads.
+	var row_anger: Array[float] = [0.0, 0.0, 0.5, 1.0, 0.0, 0.0, 0.0, 0.0]
+	var row_joy: Array[float] = [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+	var row_content: Array[bool] = [false, true, false, false, false, false, false, false]
 	var none := Need.Action.NONE
 	var row_action: Array[Need.Action] = [
-		none, none, none, none, none, Need.Action.EAT, Need.Action.DRINK
+		none, none, none, none, none, Need.Action.EAT, Need.Action.DRINK, Need.Action.WATCH
 	]
 	assert_array(angers).is_equal(_rows(row_anger))
 	assert_array(joys).is_equal(_rows(row_joy))
