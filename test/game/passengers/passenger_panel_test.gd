@@ -83,7 +83,7 @@ func test_a_boarding_card_slides_in_from_the_left() -> void:
 	assert_float(panel.position.x).is_equal(0.0)
 
 
-func test_clicking_serve_on_a_card_serves_the_request() -> void:
+func test_holding_serve_on_a_card_serves_the_request() -> void:
 	var runner := scene_runner(SCENE)
 	var cabin := _cabin(runner)
 	var passenger := _passenger(auto_free(Planet.new()), 0.05)
@@ -96,7 +96,14 @@ func test_clicking_serve_on_a_card_serves_the_request() -> void:
 	await runner.simulate_frames(2)
 	assert_bool(button.is_visible_in_tree()).is_true()
 	runner.set_mouse_position(button.get_global_rect().get_center())
-	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	runner.simulate_mouse_button_press(MOUSE_BUTTON_LEFT)
+	await runner.await_input_processed()
+	await runner.simulate_frames(10, 20)
+	# Held a moment, only part of it is served, and the button fills that far.
+	assert_object(passenger.request).is_not_null()
+	assert_float((button as ServeButton).progress).is_greater(0.0)
+	await runner.simulate_frames(20, 100)
+	runner.simulate_mouse_button_release(MOUSE_BUTTON_LEFT)
 	await runner.await_input_processed()
 
 	assert_object(passenger.request).is_null()

@@ -4,8 +4,9 @@ extends Control
 ## watching read: a row per head, race by race, and a column each for okay, happy,
 ## annoyed, furious, joyful, eating, drinking and watching. The first four get there by
 ## their mood, and happy ones beam now and then; the joyful ones' full joy is set on the
-## portrait, so their photo doesn't ride and set it by mood. The eating, drinking and
-## watching ones asked for a snack, a drink or entertainment and were served it. Pass
+## portrait, so their photo doesn't ride and set it by mood. The eating and
+## drinking ones asked for a snack or a drink and were served it, and the watching ones
+## watch a show, as on a bus with an entertainment system. Pass
 ## `big` to show them three times the size, and `swap` to give every head the other eye
 ## style.
 
@@ -19,7 +20,8 @@ const COLUMNS: Array[String] = [
 const HAPPINESS: Array[float] = [0.6, 0.9, 0.35, 0.0, 0.9, 0.6, 0.6, 0.6]
 const JOYFUL := 4
 # The need served to each column's passengers, by id, or none.
-const SERVED: Dictionary[int, StringName] = {5: &"snack", 6: &"drink", 7: &"entertainment"}
+const SERVED: Dictionary[int, StringName] = {5: &"snack", 6: &"drink"}
+const WATCHING := 7
 const CELL := Vector2(70.0, 62.0)
 const ORIGIN := Vector2(90.0, 40.0)
 
@@ -50,6 +52,8 @@ func _ready() -> void:
 			photo.passenger = _passenger(rows[row][0], rows[row][1], row, HAPPINESS[column], home)
 			if SERVED.has(column):
 				_serve(photo.passenger, SERVED[column])
+			elif column == WATCHING:
+				photo.passenger.action = Need.Action.WATCH
 			photo.riding = column != JOYFUL
 			photo.position = ORIGIN + Vector2(column * CELL.x, row * CELL.y)
 			add_child(photo)

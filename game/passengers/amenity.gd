@@ -1,12 +1,25 @@
 class_name Amenity
 extends Resource
-## Something on the bus that serves a [Need] by itself, such as a food dispenser: a request
-## for that need is served the moment it opens, so the player doesn't have to. Upgrades add
-## amenities to the [Cabin].
+## Something on the bus that serves food by itself, such as a food dispenser: once a
+## passenger asks for a snack or a drink ([member Need.food]), it fills the request over
+## [member seconds], for up to [member capacity] passengers at a time, and anyone else
+## asking waits for it to be free. The player can still serve by hand meanwhile, which adds
+## to its speed. The [Cabin] has it on board while the bus has [member bus_trait], which an
+## upgrade gives.
 
-## The [member Need.id] it serves.
-@export var need: StringName
-## The card's line while the passenger uses it.
-@export var line := "Using the amenity"
-## Seconds the passenger spends using it.
-@export_range(0.0, 60.0, 0.5) var seconds := 5.0
+## The trait the bus needs for it to be on board.
+@export var bus_trait := BusTraits.Type.FOOD_DISPENSER
+## The card's line while it serves a passenger, with [code]%s[/code] for the need's
+## [member Need.item]: "Getting %s from the dispenser".
+@export var line := "Getting %s"
+## The card's line while a passenger waits for it to be free.
+@export var waiting_line := "Waiting"
+## Seconds it takes to serve one request by itself.
+@export_range(0.1, 60.0, 0.1) var seconds := 4.0
+## How many passengers it serves at a time.
+@export_range(1, 12) var capacity := 1
+
+
+## The card's line while it serves [param need].
+func get_line(need: Need) -> String:
+	return line % need.item if line.contains("%s") else line

@@ -175,16 +175,13 @@ func test_a_happy_passenger_grants_leeway_up_to_a_limit() -> void:
 	assert_float(content.leeway).is_equal(0.0)
 
 
-func test_comfort_raises_the_target_and_fun_slows_the_clock() -> void:
+func test_comfort_raises_the_target() -> void:
 	var comfort := Comfort.new()
 	comfort.bonus = 20.0
-	comfort.clock = 0.5
 	var passenger := _departed()
 	assert_float(passenger.get_target(comfort)).is_equal(
 		Passenger.BASE_HAPPINESS + 20.0 + Passenger.ON_TIME_BONUS
 	)
-	passenger.tick(TRIP * 2.0, false, false, comfort)
-	assert_float(passenger.get_timing()).is_equal(Passenger.ON_TIME_BONUS)
 
 
 func test_a_shock_changes_happiness_at_once_and_it_climbs_back_slowly() -> void:
@@ -279,6 +276,51 @@ func test_their_clock_runs_as_slow_as_the_comfort_says_while_asleep() -> void:
 	passenger.tick(TRIP * 2.0, false, false, comfort)
 	assert_bool(passenger.asleep).is_true()
 	assert_float(passenger.get_timing()).is_equal(Passenger.ON_TIME_BONUS)
+
+
+func test_a_show_slows_their_clock_until_a_request_stops_it() -> void:
+	var snack := _need(Passenger.BOARDING_SECONDS + 5.0)
+	var kind := _type([snack])
+	kind.idle_lines = []
+	kind.watch_lines = ["Watching a show"]
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.depart()
+	var comfort := Comfort.new()
+	comfort.watch_min = 1000.0
+	comfort.watch_max = 1000.0
+	comfort.watch_clock = 0.25
+	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, false, false, comfort)
+	assert_bool(passenger.watching).is_true()
+	assert_int(passenger.action).is_equal(Need.Action.WATCH)
+	# Four seconds on a quarter-speed clock: still the direct trip time.
+	passenger.tick(4.0, false, false, comfort)
+	assert_bool(passenger.watching).is_true()
+	passenger.tick(1.0, false, false, comfort)
+	assert_object(passenger.request).is_same(snack)
+	assert_bool(passenger.watching).is_false()
+	assert_int(passenger.action).is_equal(Need.Action.NONE)
+
+
+func test_feeding_fills_the_request_and_holds_happiness_while_it_does() -> void:
+	var snack := _need(1.0)
+	snack.food = true
+	snack.served_seconds = 4.0
+	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
+	passenger.depart()
+	passenger.tick(1.0, false)
+	assert_object(passenger.request).is_same(snack)
+	var before := passenger.happiness
+	passenger.feed(0.5)
+	passenger.tick(1.0, false)
+	assert_float(passenger.happiness).is_equal(before)
+	assert_float(passenger.serving).is_equal(0.5)
+	# Bigger portions make the snack last longer.
+	passenger.feed(0.5, 2.0)
+	assert_object(passenger.request).is_null()
+	passenger.tick(7.9, false)
+	assert_str(passenger.activity).is_equal(snack.served_line)
+	passenger.tick(0.2, false)
+	assert_str(passenger.activity).is_not_equal(snack.served_line)
 
 
 func test_a_shock_wakes_a_sleeper_and_waking_costs_more() -> void:

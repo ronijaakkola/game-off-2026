@@ -20,9 +20,13 @@ const STAT_NAMES := {
 	BusStats.Type.MAX_SPEED: "Top speed",
 	BusStats.Type.FUEL_CAPACITY: "Fuel tank",
 	BusStats.Type.SEATS: "Seats",
+	BusStats.Type.PORTION_SIZE: "Portion size",
 }
 ## How each stat's value shows, by type. A stat missing here shows two decimals.
-const VALUE_FORMATS := {BusStats.Type.FUEL_CAPACITY: "%.0f"}
+const VALUE_FORMATS := {
+	BusStats.Type.FUEL_CAPACITY: "%.0f",
+	BusStats.Type.PORTION_SIZE: "%.1fx",
+}
 ## Each trait's name in its row, by [enum BusTraits.Type]. A trait missing here shows its
 ## type's name.
 const TRAIT_NAMES := {
@@ -30,8 +34,10 @@ const TRAIT_NAMES := {
 	BusTraits.Type.WAITING_MARKERS: "Waiting markers",
 	BusTraits.Type.PILLOWS: "Pillows",
 	BusTraits.Type.SLEEPING_PODS: "Sleeping pods",
-	BusTraits.Type.GAMEPADS: "Gamepads",
-	BusTraits.Type.ENTERTAINMENT_SYSTEM: "Entertainment system",
+	BusTraits.Type.GAMING_SYSTEM: "Space Invaders",
+	BusTraits.Type.ENTERTAINMENT_SYSTEM: "In-Flight Movies",
+	BusTraits.Type.FOOD_DISPENSER: "Food Replicator",
+	BusTraits.Type.SERVING_ROBOTS: "Waiter Droids",
 }
 
 var _bus: FrameshiftBus
