@@ -4,8 +4,8 @@ extends HBoxContainer
 ## colour and how many points of it the player has. Delivering a passenger earns one point
 ## of their race, whatever their rating; the count pops as it goes up. Each count has room
 ## for [constant ROOM], so the bar keeps its width until one passes 99. It shows the points
-## of its [member ledger] and pops each count the ledger signals; it keeps no points of its
-## own.
+## of its [member ledger] and pops each count the ledger signals as earned; a count spent
+## just changes. It keeps no points of its own.
 
 ## The flask's size, in pixels.
 const ICON_SIZE := 14.0
@@ -23,8 +23,10 @@ var ledger: Ledger:
 	set(value):
 		if ledger:
 			ledger.research_earned.disconnect(_on_earned)
+			ledger.research_spent.disconnect(_on_spent)
 		ledger = value if value else Ledger.new()
 		ledger.research_earned.connect(_on_earned)
+		ledger.research_spent.connect(_on_spent)
 		_show_counts()
 
 var _labels: Dictionary[Race.Type, Label] = {}
@@ -67,6 +69,13 @@ func _ready() -> void:
 func _show_counts() -> void:
 	for race: Race.Type in _labels:
 		_labels[race].text = str(ledger.get_research(race))
+
+
+# Points of [param race] went out, already gone from the ledger: shows the new count.
+func _on_spent(race: Race.Type, _amount: int) -> void:
+	var label := _labels.get(race) as Label
+	if label:
+		label.text = str(ledger.get_research(race))
 
 
 # Points of [param race] came in, already in the ledger: shows the new count and pops it.

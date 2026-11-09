@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="ResearchTree" format=3 uid="uid://dvf5hrj5x3iew"]
+
+[ext_resource type="Script" uid="uid://lkloudqqw7eo" path="res://game/research/research_tree.gd" id="1_tree"]
+[ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
+[ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
+[ext_resource type="Texture2D" uid="uid://b0bgevms180dy" path="res://game/research/icons/bell_ring.svg" id="4_bell_ring"]
+[ext_resource type="Texture2D" uid="uid://dqebesaunqcwx" path="res://game/research/icons/cctv.svg" id="5_cctv"]
+[ext_resource type="Texture2D" uid="uid://bloqie2x21ut0" path="res://game/research/icons/sofa.svg" id="6_sofa"]
+[ext_resource type="Texture2D" uid="uid://cj2v07igax8yq" path="res://game/research/icons/brain.svg" id="7_brain"]
+
+[sub_resource type="Resource" id="Resource_door_chime"]
+script = ExtResource("2_upgrade")
+title = "Door chime"
+description = "Shows how many passengers wait at each planet, under its name."
+icon = ExtResource("4_bell_ring")
+credits = 20
+points = Dictionary[int, int]({
+2: 2
+})
+traits = Array[int]([1])
+column = 1
+
+[sub_resource type="Resource" id="Resource_station_cameras"]
+script = ExtResource("2_upgrade")
+title = "Station cameras"
+description = "NOT IMPLEMENTED"
+icon = ExtResource("5_cctv")
+credits = 45
+points = Dictionary[int, int]({
+2: 4
+})
+requires = Array[Resource]([SubResource("Resource_door_chime")])
+tier = 1
+
+[sub_resource type="Resource" id="Resource_station_waiting_lounge"]
+script = ExtResource("2_upgrade")
+title = "Station waiting lounge"
+description = "NOT IMPLEMENTED"
+icon = ExtResource("6_sofa")
+credits = 45
+points = Dictionary[int, int]({
+2: 4
+})
+requires = Array[Resource]([SubResource("Resource_door_chime")])
+tier = 1
+column = 2
+
+[sub_resource type="Resource" id="Resource_mind_reading_machine"]
+script = ExtResource("2_upgrade")
+title = "Mind reading machine"
+description = "NOT IMPLEMENTED"
+icon = ExtResource("7_brain")
+credits = 90
+points = Dictionary[int, int]({
+2: 7
+})
+requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_station_waiting_lounge")])
+hidden = true
+tier = 2
+column = 1
+
+[resource]
+script = ExtResource("1_tree")
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_door_chime"), SubResource("Resource_station_cameras"), SubResource("Resource_station_waiting_lounge"), SubResource("Resource_mind_reading_machine")])

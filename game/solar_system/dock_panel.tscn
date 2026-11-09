@@ -58,6 +58,12 @@ text = "?"
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="ResearchButton" type="Button" parent="Card/Clip/Content" unique_id=1934796713]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Research"
+
 [node name="FuelRule" type="Panel" parent="Card/Clip/Content" unique_id=1536806567]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 1)
@@ -91,4 +97,5 @@ layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Board all"
 
+[connection signal="pressed" from="Card/Clip/Content/ResearchButton" to="." method="_on_research_button_pressed"]
 [connection signal="pressed" from="Card/Clip/Content/BoardAllButton" to="." method="_on_board_all_button_pressed"]

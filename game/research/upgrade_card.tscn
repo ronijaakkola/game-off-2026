@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://d0x3nbgyr33kg"]
+
+[ext_resource type="Script" uid="uid://dvmqrj4vmtly" path="res://game/research/upgrade_card.gd" id="1_card"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="UpgradeCard" type="PanelContainer" unique_id=61789250]
+custom_minimum_size = Vector2(240, 0)
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_type_variation = &"HoverCardPanel"
+script = ExtResource("1_card")
+
+[node name="Rows" type="VBoxContainer" parent="." unique_id=1839759716]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="Rows" unique_id=1753281866]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Upgrade"
+
+[node name="DescriptionLabel" type="Label" parent="Rows" unique_id=200741386]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(216, 0)
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+text = "What it does."
+autowrap_mode = 3
+
+[node name="CostRow" type="HBoxContainer" parent="Rows" unique_id=750296137]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12

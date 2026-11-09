@@ -124,6 +124,14 @@ _Avoid_: science, XP, tech points
 The pill in the top right corner showing the player's credits, research points and average rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
 _Avoid_: HUD (the whole overlay), top bar, wallet
 
+**Research tree**:
+The upgrades a planet offers, linked by which ones each needs first. Each planet has its own, or none, and the player researches from it only while the bus is docked or charging there. `Research` in code keeps which upgrades are researched.
+_Avoid_: tech tree, skill tree
+
+**Upgrade**:
+One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.
+_Avoid_: tech, node, perk, unlock
+
 **Need**:
 Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves.
 _Avoid_: want, demand, task
