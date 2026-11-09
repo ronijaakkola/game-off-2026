@@ -30,6 +30,7 @@
 [ext_resource type="Resource" uid="uid://dvf5hrj5x3iew" path="res://game/research/trees/green_tree.tres" id="96_green_tree"]
 [ext_resource type="Resource" uid="uid://dkaejvutk1bu4" path="res://game/research/trees/orange_tree.tres" id="97_orange_tree"]
 [ext_resource type="Script" uid="uid://b5uw1vk5r888r" path="res://game/research/research_lab.gd" id="98_lab"]
+[ext_resource type="PackedScene" uid="uid://ds46abpebov64" path="res://game/research/research_overview.tscn" id="99_overview"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -287,12 +288,13 @@ script = ExtResource("13_cabin")
 unique_name_in_owner = true
 script = ExtResource("27_pump")
 
-[node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "planet_panel")]
+[node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "planet_panel", "research_overview")]
 unique_name_in_owner = true
 script = ExtResource("98_lab")
 bus = NodePath("../Bus")
 resource_bar = NodePath("../Hud/ResourceBar")
 planet_panel = NodePath("../Hud/PlanetPanel")
+research_overview = NodePath("../Hud/ResearchOverview")
 
 [node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus")]
 unique_name_in_owner = true
@@ -351,6 +353,7 @@ cabin = NodePath("../../../../Cabin")
 
 [node name="ResourceBar" parent="Hud" unique_id=1204237600 instance=ExtResource("28_bar")]
 unique_name_in_owner = true
+anchors_preset = 1
 
 [node name="HintBox" type="MarginContainer" parent="Hud" unique_id=299227585]
 unique_name_in_owner = true
@@ -378,5 +381,7 @@ anchors_preset = 11
 [node name="BusPanel" parent="Hud" unique_id=1346201264 instance=ExtResource("24_bus_panel")]
 unique_name_in_owner = true
 anchors_preset = 11
+
+[node name="ResearchOverview" parent="Hud" unique_id=2033696468 instance=ExtResource("99_overview")]
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]

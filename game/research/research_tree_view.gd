@@ -10,9 +10,9 @@ extends VBoxContainer
 ## The player clicked [param upgrade], which is available, while the bus is docked here.
 signal upgrade_clicked(upgrade: Upgrade)
 
-## Pixels between two upgrades in a row.
+## Pixels between two upgrades in a row, unless [member column_gap] says otherwise.
 const COLUMN_GAP := 28
-## Pixels between two tiers, where the lines run.
+## Pixels between two tiers, where the lines run, unless [member tier_gap] says otherwise.
 const TIER_GAP := 20
 ## Pixels between an upgrade and its card.
 const CARD_GAP := 6.0
@@ -28,6 +28,14 @@ var tree: ResearchTree:
 		if is_node_ready():
 			_build()
 
+## Pixels between two upgrades in a row. Set it before the view enters the tree.
+var column_gap := COLUMN_GAP
+## Pixels between two tiers, where the lines run. Set it before the view enters the tree.
+var tier_gap := TIER_GAP
+## The side of each upgrade's tile, in pixels ([member UpgradeButton.tile_size]). Set it
+## before the view enters the tree.
+var tile_size := UpgradeButton.SIZE.x
+
 var _buttons: Array[UpgradeButton] = []
 var _hovered: UpgradeButton
 var _research: Research
@@ -37,7 +45,7 @@ var _can_research := false
 
 
 func _ready() -> void:
-	(%Tiers as VBoxContainer).add_theme_constant_override(&"separation", TIER_GAP)
+	(%Tiers as VBoxContainer).add_theme_constant_override(&"separation", tier_gap)
 	(%Tiers as Control).sort_children.connect(queue_redraw)
 	(%Card as Control).hide()
 	visibility_changed.connect(_on_visibility_changed)
@@ -87,18 +95,19 @@ func _build() -> void:
 		var row := HBoxContainer.new()
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
-		row.add_theme_constant_override(&"separation", COLUMN_GAP)
+		row.add_theme_constant_override(&"separation", column_gap)
 		tiers.add_child(row)
 		for column: int in column_count:
 			var upgrade := _upgrade_at(tier, column)
 			if not upgrade:
 				var gap := Control.new()
 				gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				gap.custom_minimum_size = UpgradeButton.SIZE
+				gap.custom_minimum_size = Vector2(tile_size, tile_size)
 				row.add_child(gap)
 				continue
 			var button := UpgradeButton.new()
 			button.upgrade = upgrade
+			button.tile_size = tile_size
 			button.hovered.connect(_on_button_hovered.bind(button))
 			button.unhovered.connect(_on_button_unhovered.bind(button))
 			button.clicked.connect(_on_button_clicked.bind(button))

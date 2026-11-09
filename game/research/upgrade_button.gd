@@ -17,12 +17,19 @@ signal unhovered
 ## It was clicked with the left button.
 signal clicked
 
-## Square. Its content must fit inside, margins included, or the tile grows taller: the
-## letter's line is 45 pixels high.
+## Square, unless [member tile_size] says otherwise. Its content must fit inside, margins
+## included, or the tile grows taller: the letter's line is 45 pixels high.
 const SIZE := Vector2(64, 64)
-## The icon's size in the tile, in pixels. Icons are imported at twice their 24 pixels, so
-## they stay sharp at this size.
+## The icon's size in a tile of [constant SIZE], in pixels; it scales with
+## [member tile_size]. Icons are imported at twice their 24 pixels, so they stay sharp at
+## this size.
 const ICON_SIZE := 32.0
+## The letter's font size in a tile of [constant SIZE], the HeadingLabel's; it scales with
+## [member tile_size].
+const LETTER_FONT_SIZE := 32
+## The margin round the icon and the corners' radius in a tile of [constant SIZE]; they
+## scale with [member tile_size].
+const MARGIN := 6.0
 ## The accent of an upgrade that costs no research points and so has no race.
 const RESEARCHED_COLOR := Color(0.6, 0.95, 1.0)
 const LACKING_COLOR := Color(1.0, 0.45, 0.42)
@@ -32,6 +39,13 @@ const DARK_COLOR := Color(0.1, 0.08, 0.17)
 const DISABLED_COLOR := Color(1, 1, 1, 0.04)
 
 var upgrade: Upgrade
+## The side of the square tile, in pixels: [constant SIZE] in a planet's panel, smaller
+## where many trees show at once. The icon, the letter, the margin and the corners scale
+## with it.
+var tile_size := SIZE.x:
+	set(value):
+		tile_size = value
+		_apply_size()
 
 var _state := Research.State.LOCKED
 var _style := StyleBoxFlat.new()
@@ -41,16 +55,12 @@ var _hover := false
 
 
 func _init() -> void:
-	custom_minimum_size = SIZE
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	_style.set_corner_radius_all(6)
 	_style.set_border_width_all(2)
-	_style.set_content_margin_all(6)
 	add_theme_stylebox_override(&"panel", _style)
 	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
 	_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	add_child(_icon)
@@ -60,6 +70,7 @@ func _init() -> void:
 	add_child(_letter)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
+	_apply_size()
 
 
 func _ready() -> void:
@@ -82,6 +93,16 @@ func _gui_input(event: InputEvent) -> void:
 	if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
 		accept_event()
 		clicked.emit()
+
+
+func _apply_size() -> void:
+	var scale_by := tile_size / SIZE.x
+	custom_minimum_size = Vector2(tile_size, tile_size)
+	_icon.custom_minimum_size = Vector2.ONE * roundf(ICON_SIZE * scale_by)
+	_letter.add_theme_font_size_override(&"font_size", roundi(LETTER_FONT_SIZE * scale_by))
+	var margin := maxi(roundi(MARGIN * scale_by), 2)
+	_style.set_corner_radius_all(margin)
+	_style.set_content_margin_all(margin)
 
 
 func _show_state() -> void:
