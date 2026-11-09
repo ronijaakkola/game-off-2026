@@ -29,10 +29,10 @@ extends Node3D
 ## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
 ## open planet's panel: the [FuelPump] runs while they hold the fuel button. It stops when
 ## they let go, the tank is full or the credits run out.
-## When the bus runs out of fuel in space, the [TowOffer] bar offers a tow for
-## [constant TOW_FEE] credits. Requesting it pays, into debt when the player has less, and
-## a tow ship comes from the nearest planet and pulls the bus there, where it docks with a
-## full tank. Its hooking on scares everyone on board ([constant TOW_SHOCK]).
+## Running out of fuel in space scares everyone on board ([constant OUT_OF_FUEL_SHOCK]),
+## and the [TowOffer] bar offers a tow for [constant TOW_FEE] credits. Requesting it pays,
+## into debt when the player has less, and a tow ship comes from the nearest planet and
+## pulls the bus there, where it docks with a full tank.
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -53,8 +53,8 @@ const CAMERA_HOST_PRIORITY := 300
 const MARKER_GAP_PIXELS := 4.0
 ## What a tow costs, in credits.
 const TOW_FEE := 100
-## The scare everyone on board takes when the tow ship hooks on.
-const TOW_SHOCK := -15.0
+## The scare everyone on board takes when the bus runs out of fuel in space.
+const OUT_OF_FUEL_SHOCK := -15.0
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 ## The percent of top speed, the fuel tank and portion size the debug panel's stat buttons
@@ -328,6 +328,7 @@ func _on_board_pressed(passenger: Passenger) -> void:
 
 
 func _on_bus_ran_out_of_fuel() -> void:
+	(%Cabin as Cabin).shock(OUT_OF_FUEL_SHOCK)
 	(%TowOffer as TowOffer).offer(TOW_FEE)
 
 
@@ -348,7 +349,6 @@ func _on_tow_requested() -> void:
 	var ship := TOW_SHIP.instantiate() as TowShip
 	add_child(ship)
 	ship.hitched.connect(bus.tow_to.bind(nearest))
-	ship.hitched.connect((%Cabin as Cabin).shock.bind(TOW_SHOCK))
 	ship.come_for(bus, nearest)
 
 
