@@ -162,6 +162,13 @@ func test_a_small_drop_leaves_no_trail_and_a_rise_takes_it_along() -> void:
 	assert_float(_trail(card).value).is_equal_approx(0.95, 0.001)
 
 
+func test_the_bar_moves_smoothly_rather_than_in_steps() -> void:
+	var card := _card(0.5)
+	card.passenger.happiness = 50.4
+	await await_idle_frame()
+	assert_float(_bar(card).value).is_equal_approx(0.504, 0.0001)
+
+
 func _card(happiness_fraction: float) -> PassengerCard:
 	var planet: Planet = auto_free(Planet.new())
 	var passenger := Passenger.new(COMMUTER, planet, 60.0, 40.0)

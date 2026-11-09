@@ -32,8 +32,15 @@ const ON_TIME_BONUS := 12.0
 const WORN_OUT := -100.0
 ## What being woken by a shock adds to it.
 const WAKE_SHOCK := -10.0
-## Their ride clock runs this much slower while the bus is docked.
-const DOCKED_CLOCK := 0.5
+## While the bus is docked, their ride clock runs at this speed, and their happiness falls
+## at this much of its speed: a stop barely costs them.
+const DOCKED_RATE := 0.1
+## A good ride makes them patient: while their happiness is at least this, they grant the
+## bus leeway, [constant LEEWAY_RATE] seconds of it per second of their ride clock, added to
+## the time they expect, up to [constant LEEWAY_MAX] trip times.
+const LEEWAY_HAPPINESS := 80.0
+const LEEWAY_RATE := 0.5
+const LEEWAY_MAX := 0.5
 ## How long an idle line shows before the next one, in seconds.
 const IDLE_MIN := 6.0
 const IDLE_MAX := 14.0
@@ -52,10 +59,13 @@ var destination: Planet
 var fare: float
 ## How content they are, from 0 to [constant MAX_HAPPINESS].
 var happiness := BASE_HAPPINESS
-## The direct trip time, and the time they expect the ride to take, the trip with the
-## type's slack, in seconds of their ride clock.
+## The direct trip time, and the time they expect the ride to take at boarding, the trip
+## with the type's slack, in seconds of their ride clock.
 var trip_seconds: float
 var expected_seconds: float
+## Seconds a good ride has added to the time they expect, up to [constant LEEWAY_MAX] trip
+## times.
+var leeway := 0.0
 ## The card's line: what they are doing now.
 var activity := ""
 ## The need they are asking for, or null.
@@ -143,17 +153,18 @@ func get_rating() -> float:
 
 
 ## What their ride's timing adds to the happiness they settle at, now: [constant
-## ON_TIME_BONUS] up to the direct trip time, falling to 0 at the expected time, then on
-## to [constant WORN_OUT] one more trip time after that.
+## ON_TIME_BONUS] up to the direct trip time, falling to 0 at the expected time with their
+## [member leeway], then on to [constant WORN_OUT] one more trip time after that.
 func get_timing() -> float:
 	if _clock <= trip_seconds:
 		return ON_TIME_BONUS
-	if _clock < expected_seconds:
-		return lerpf(ON_TIME_BONUS, 0.0, inverse_lerp(trip_seconds, expected_seconds, _clock))
-	var worn := expected_seconds + trip_seconds
+	var expected := expected_seconds + leeway
+	if _clock < expected:
+		return lerpf(ON_TIME_BONUS, 0.0, inverse_lerp(trip_seconds, expected, _clock))
+	var worn := expected + trip_seconds
 	if _clock >= worn:
 		return WORN_OUT
-	return lerpf(0.0, WORN_OUT, inverse_lerp(expected_seconds, worn, _clock))
+	return lerpf(0.0, WORN_OUT, inverse_lerp(expected, worn, _clock))
 
 
 ## The happiness they slide toward now, with the bus giving [param comfort]: 0 while a
@@ -184,16 +195,22 @@ func depart() -> void:
 
 
 ## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. Happiness and
-## the ride clock hold until [method depart], and while [param holds]. The clock runs at
-## half speed while [param docked], and as the comfort says while awake or asleep. Needs
-## wait while they sleep, so a sleep runs its length.
+## the ride clock hold until [method depart], and while [param holds]. While [param docked]
+## the clock runs, and happiness falls, at [constant DOCKED_RATE] of their speed. The clock
+## runs as the comfort says while awake or asleep. Needs wait while they sleep, so a sleep
+## runs its length.
 func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -> void:
 	var giving := comfort if comfort else _no_comfort
 	if _departed and not holds:
 		var rate := giving.sleep_clock if asleep else giving.clock
-		_clock += delta * rate * (DOCKED_CLOCK if docked else 1.0)
+		var ride := delta * rate * (DOCKED_RATE if docked else 1.0)
+		_clock += ride
+		if happiness >= LEEWAY_HAPPINESS:
+			leeway = minf(leeway + ride * LEEWAY_RATE, trip_seconds * LEEWAY_MAX)
 		var target := get_target(giving)
-		var speed := FALL_RATE if target < happiness else CLIMB_RATE
+		var speed := CLIMB_RATE
+		if target < happiness:
+			speed = FALL_RATE * (DOCKED_RATE if docked else 1.0)
 		happiness = move_toward(happiness, target, speed * delta)
 	if request:
 		return

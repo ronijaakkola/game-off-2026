@@ -136,6 +136,7 @@ size_flags_vertical = 4
 theme_override_styles/background = SubResource("StyleBoxFlat_track")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
 max_value = 1.0
+step = 0.0
 value = 1.0
 show_percentage = false
 
@@ -152,6 +153,7 @@ mouse_filter = 2
 theme_override_styles/background = SubResource("StyleBoxEmpty_trail_track")
 theme_override_styles/fill = SubResource("StyleBoxFlat_trail")
 max_value = 1.0
+step = 0.0
 value = 1.0
 show_percentage = false
 

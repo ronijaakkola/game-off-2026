@@ -85,13 +85,39 @@ func test_given_enough_time_anyone_reaches_0_however_comfortable() -> void:
 	assert_float(passenger.happiness).is_equal(0.0)
 
 
-func test_the_ride_clock_runs_at_half_speed_while_docked() -> void:
+func test_while_docked_the_clock_runs_and_happiness_falls_slowly() -> void:
 	var flying := _departed()
 	var docked := _departed()
 	flying.tick(TRIP + 20.0, false)
 	docked.tick(TRIP + 20.0, true)
 	assert_float(docked.get_timing()).is_equal(Passenger.ON_TIME_BONUS)
 	assert_float(flying.get_timing()).is_less(Passenger.ON_TIME_BONUS)
+
+	var snack := _need(1.0)
+	var asking := Passenger.new(_type([snack]), _planet, TRIP, FARE)
+	asking.depart()
+	asking.tick(1.0, true)
+	var before := asking.happiness
+	asking.tick(10.0, true)
+	assert_float(before - asking.happiness).is_equal_approx(
+		10.0 * Passenger.FALL_RATE * Passenger.DOCKED_RATE, 0.001
+	)
+
+
+func test_a_happy_passenger_grants_leeway_up_to_a_limit() -> void:
+	var comfort := Comfort.new()
+	comfort.bonus = 30.0
+	var happy := _departed()
+	happy.happiness = Passenger.LEEWAY_HAPPINESS
+	happy.tick(10.0, false, false, comfort)
+	assert_float(happy.leeway).is_equal_approx(10.0 * Passenger.LEEWAY_RATE, 0.001)
+	for i: int in 300:
+		happy.tick(1.0, false, false, comfort)
+	assert_float(happy.leeway).is_equal_approx(TRIP * Passenger.LEEWAY_MAX, 0.001)
+
+	var content := _departed()
+	content.tick(TRIP, false)
+	assert_float(content.leeway).is_equal(0.0)
 
 
 func test_comfort_raises_the_target_and_fun_slows_the_clock() -> void:
