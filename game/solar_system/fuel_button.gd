@@ -5,7 +5,7 @@ extends Button
 ## It reads "Hold to fuel" with what filling the tank costs, as "Hold to fuel (51 cr)";
 ## held, the label morphs into the fuel's percentage, which counts up as the tank fills,
 ## and back when let go. Off, it reads why instead. Low fuel fills in
-## the control panel's low colour, at the same share of a tank. The parent pumps while
+## the bus status's low colour, at the same share of a tank. The parent pumps while
 ## [method is_held] and sets what shows with [method show_fuel].
 ## The button's own text stays empty: a child label draws it, over the fill. The fill has
 ## the button's corners, so a full tank fills it exactly.
@@ -59,8 +59,8 @@ func show_fuel(fraction: float, cost: int, can_fuel: bool, reason: String) -> vo
 	disabled = not can_fuel
 	if not can_fuel:
 		_held = false
-	var low := _fraction <= BusControlPanel.FUEL_LOW
-	var color := BusControlPanel.FUEL_LOW_COLOR if low else BusControlPanel.FUEL_COLOR
+	var low := _fraction <= BusStatusPanel.FUEL_LOW
+	var color := BusStatusPanel.FUEL_LOW_COLOR if low else BusStatusPanel.FUEL_COLOR
 	_fill_style.bg_color = Color(color, FILL_ALPHA)
 	_place_fill()
 	var label := %Label as MorphLabel
