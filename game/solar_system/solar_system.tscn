@@ -16,7 +16,7 @@
 [ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="16_type"]
 [ext_resource type="PackedScene" uid="uid://lhx0mmtinvdx" path="res://game/passengers/passenger_panel.tscn" id="17_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="18_theme"]
-[ext_resource type="PackedScene" uid="uid://ciwv4teguvu2s" path="res://game/bus/bus_control_panel.tscn" id="19_status"]
+[ext_resource type="PackedScene" uid="uid://ciwv4teguvu2s" path="res://game/bus/bus_status_panel.tscn" id="19_status"]
 [ext_resource type="PackedScene" uid="uid://bnqjjd4k8w4nn" path="res://game/solar_system/planet_panel.tscn" id="21_planet_panel"]
 [ext_resource type="PackedScene" uid="uid://c4va8x2cf4kps" path="res://game/solar_system/waiting_markers.tscn" id="22_markers"]
 [ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="22_studio"]
@@ -271,7 +271,6 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
 unique_name_in_owner = true
 start_planet = NodePath("../Ember")
-hold_to_charge = true
 
 [node name="Cabin" type="Node" parent="." unique_id=1517490635]
 unique_name_in_owner = true
@@ -329,45 +328,34 @@ alignment = 2
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="BusStatusPanel" parent="Hud/Corner/Stack" unique_id=923292603 node_paths=PackedStringArray("bus", "cabin") instance=ExtResource("19_status")]
+layout_mode = 2
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
+bus = NodePath("../../../../Bus")
+cabin = NodePath("../../../../Cabin")
+
 [node name="ResourceBar" parent="Hud" unique_id=1204237600 instance=ExtResource("28_bar")]
 unique_name_in_owner = true
-anchors_preset = 1
 
-[node name="Bottom" type="MarginContainer" parent="Hud" unique_id=1091823961]
+[node name="HintBox" type="MarginContainer" parent="Hud" unique_id=299227585]
 unique_name_in_owner = true
-anchors_preset = 12
+anchors_preset = 7
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 theme = ExtResource("18_theme")
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_bottom = 20
 
-[node name="Stack" type="VBoxContainer" parent="Hud/Bottom" unique_id=690174906]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="HintBox" type="MarginContainer" parent="Hud/Bottom/Stack" unique_id=299227585]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 4
-mouse_filter = 2
-
-[node name="CourseHint" type="Label" parent="Hud/Bottom/Stack/HintBox" unique_id=1805317662]
+[node name="CourseHint" type="Label" parent="Hud/HintBox" unique_id=1805317662]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
 text = "Right-click planets or space to add stops. Backspace clears the route."
-
-[node name="BusControlPanel" parent="Hud/Bottom/Stack" unique_id=923292603 node_paths=PackedStringArray("bus", "cabin") instance=ExtResource("19_status")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 4
-bus = NodePath("../../../../Bus")
-cabin = NodePath("../../../../Cabin")
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
 unique_name_in_owner = true
