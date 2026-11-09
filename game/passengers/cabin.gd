@@ -78,8 +78,12 @@ func _process(delta: float) -> void:
 
 
 ## Makes [member seats] the base of [param stats]' SEATS stat, and from then on the seats
-## it makes, as upgrades change it. [member comfort] follows its traits.
+## it makes, as upgrades change it. [member comfort] follows its traits. Following other
+## stats stops following the ones before.
 func follow(stats: BusStats) -> void:
+	if _bus_stats:
+		_bus_stats.get_stat(BusStats.Type.SEATS).changed.disconnect(_on_seats_stat_changed)
+		_bus_stats.get_traits().changed.disconnect(_on_trait_changed)
 	_bus_stats = stats
 	var stat := stats.get_stat(BusStats.Type.SEATS)
 	stat.base = seats

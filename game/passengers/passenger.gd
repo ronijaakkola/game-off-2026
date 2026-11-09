@@ -38,7 +38,8 @@ const WAKE_SHOCK := -10.0
 const UNSERVED_SHOCK := -10.0
 const REQUEST_GRACE := 5.0
 ## While the bus is docked, their ride clock and their needs' timers run at this speed, and
-## their happiness falls at this much of its speed: a stop barely costs them.
+## their happiness falls at this much of its speed: a stop barely costs them. Climbing back
+## isn't slowed, so a stop is a fine place to recover.
 const DOCKED_RATE := 0.1
 ## A good ride makes them patient: while their happiness is at least this, they grant the
 ## bus leeway, [constant LEEWAY_RATE] seconds of it per second of their ride clock, added to
@@ -213,10 +214,11 @@ func arrive() -> void:
 
 ## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. Happiness and
 ## the ride clock hold until [method depart], and while [param holds] (the bus parks).
-## While [param docked] the clock and the needs' timers run, and happiness falls, at
-## [constant DOCKED_RATE] of their speed. The clock runs as the comfort says while awake or
-## asleep. Needs wait while they sleep, so a sleep runs its length. While the bus is docked
-## or parks, no request opens, and an open one goes on hold until the bus flies on.
+## While [param docked] the clock and the needs' timers run, and happiness falls (but not
+## climbs), at [constant DOCKED_RATE] of their speed. The clock runs as the comfort says
+## while awake or asleep. Needs wait while they sleep, so a sleep runs its length. While
+## the bus is docked or parks, no request opens, and an open one goes on hold until the
+## bus flies on.
 func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -> void:
 	var giving := comfort if comfort else _no_comfort
 	var stopped := docked or holds

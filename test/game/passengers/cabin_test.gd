@@ -70,6 +70,18 @@ func test_a_kick_scares_everyone_left_on_board() -> void:
 	assert_float(kicked.happiness).is_equal(Passenger.BASE_HAPPINESS)
 
 
+func test_following_other_stats_stops_following_the_first() -> void:
+	var first := BusStats.new()
+	var second := BusStats.new()
+	_cabin.follow(first)
+	_cabin.follow(second)
+
+	first.get_traits().add(BusTraits.Type.GAMEPADS)
+	assert_float(_cabin.comfort.bonus).is_equal(0.0)
+	second.get_traits().add(BusTraits.Type.GAMEPADS)
+	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMEPADS_BONUS)
+
+
 func test_comfort_follows_the_bus_s_traits() -> void:
 	var stats := BusStats.new()
 	_cabin.follow(stats)
