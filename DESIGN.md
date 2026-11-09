@@ -91,7 +91,7 @@ Built, in the solar system, which Play opens:
 | The planet panel's or bus panel's Close button | Close it |
 | Pointer over a passenger's card | Slide out its options to its right: a Kick button (Passengers › On board › Kicking off) |
 | A passenger card's Kick button | Kick them off the bus: a figure in their colour is thrown out of the door |
-| A waiting passenger's Board button, in the dock panel above the bus status | Pick them up (Passengers › Waiting and boarding) |
+| A waiting passenger's Board button, in the dock panel | Pick them up (Passengers › Waiting and boarding) |
 | Pointer over a waiting passenger's row in the dock panel | Show their trip: an arc to their destination (Passengers › Waiting and boarding) |
 | Left click a waiting passenger's row, off its Board button | Pin their trip's arc, so it stays when the pointer leaves. Click it again to unpin |
 | Right click a planet | Add it to the end of the route. When the route has no planet, it replaces the point in space the route ends at |
