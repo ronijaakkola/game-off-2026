@@ -30,7 +30,7 @@ modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_1
 
 [sub_resource type="Resource" id="Resource_food_dispenser"]
 script = ExtResource("2_upgrade")
-title = "Food dispenser"
+title = "Food Replicator"
 description = "Hungry passengers fetch their own snacks and drinks, one at a time."
 icon = ExtResource("5_sandwich")
 credits = 20
@@ -60,8 +60,8 @@ column = 3
 
 [sub_resource type="Resource" id="Resource_entertainment_system"]
 script = ExtResource("2_upgrade")
-title = "Entertainment system"
-description = "Shows on board: passengers are happier, and the ride flies by while they watch one."
+title = "In-Flight Movies"
+description = "Movies on board: passengers are happier, and the ride flies by while they watch one."
 icon = ExtResource("8_tv")
 credits = 20
 points = Dictionary[int, int]({
@@ -124,8 +124,8 @@ column = 3
 
 [sub_resource type="Resource" id="Resource_gaming_system"]
 script = ExtResource("2_upgrade")
-title = "Gaming system"
-description = "Games on board: passengers are happier still, and binge their shows for longer."
+title = "Space Invaders"
+description = "Arcade games on board: passengers are happier still, and binge their movies for longer."
 icon = ExtResource("6_gamepad_2")
 credits = 45
 points = Dictionary[int, int]({
@@ -170,8 +170,8 @@ column = 1
 
 [sub_resource type="Resource" id="Resource_serving_robots"]
 script = ExtResource("2_upgrade")
-title = "Serving robots"
-description = "Robots bring snacks and drinks to three passengers at a time, and quickly."
+title = "Waiter Droids"
+description = "Droids bring snacks and drinks to three passengers at a time, and quickly."
 icon = ExtResource("10_bot")
 credits = 90
 points = Dictionary[int, int]({

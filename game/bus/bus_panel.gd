@@ -34,10 +34,10 @@ const TRAIT_NAMES := {
 	BusTraits.Type.WAITING_MARKERS: "Waiting markers",
 	BusTraits.Type.PILLOWS: "Pillows",
 	BusTraits.Type.SLEEPING_PODS: "Sleeping pods",
-	BusTraits.Type.GAMING_SYSTEM: "Gaming system",
-	BusTraits.Type.ENTERTAINMENT_SYSTEM: "Entertainment system",
-	BusTraits.Type.FOOD_DISPENSER: "Food dispenser",
-	BusTraits.Type.SERVING_ROBOTS: "Serving robots",
+	BusTraits.Type.GAMING_SYSTEM: "Space Invaders",
+	BusTraits.Type.ENTERTAINMENT_SYSTEM: "In-Flight Movies",
+	BusTraits.Type.FOOD_DISPENSER: "Food Replicator",
+	BusTraits.Type.SERVING_ROBOTS: "Waiter Droids",
 }
 
 var _bus: FrameshiftBus

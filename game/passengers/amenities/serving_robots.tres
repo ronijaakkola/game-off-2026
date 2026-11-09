@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_amenity")
 bus_trait = 7
-line = "A robot brings %s"
-waiting_line = "Waiting for a robot"
+line = "A droid brings %s"
+waiting_line = "Waiting for a droid"
 seconds = 2.5
 capacity = 3
