@@ -72,7 +72,7 @@ func _show() -> void:
 
 func _state_text(next: Planet) -> String:
 	if bus.get_fuel_tank().is_empty() and not bus.is_towing():
-		return "Out of fuel: refuel here" if bus.is_at_planet() else "Out of fuel: tow on its way"
+		return "Out of fuel: refuel here" if bus.is_at_planet() else "Out of fuel"
 	match bus.state:
 		FrameshiftBus.State.DOCKED:
 			return "Docked"

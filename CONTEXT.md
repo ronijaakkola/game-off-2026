@@ -93,7 +93,7 @@ A feature on the bus that an upgrade unlocks, which the bus either has or doesn'
 _Avoid_: perk, flag, unlock (the purchase, not the thing)
 
 **Tow**:
-What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. A **tow ship** (`TowShip`) flies out from the planet, hitches on with a cable and leads the bus in, where it docks with a full tank, for a fee. `FrameshiftBus.tow_to()` moves the bus.
+What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. The player requests it from the tow offer (`TowOffer`) and pays its fee then. A **tow ship** (`TowShip`), a red tug with its own model, flies out from the planet, hitches on with a cable and leads the bus in, where it docks with its tank still empty. `FrameshiftBus.tow_to()` moves the bus.
 _Avoid_: rescue, respawn
 
 **Passenger**:

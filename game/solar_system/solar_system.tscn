@@ -31,6 +31,7 @@
 [ext_resource type="Resource" uid="uid://dkaejvutk1bu4" path="res://game/research/trees/orange_tree.tres" id="97_orange_tree"]
 [ext_resource type="Script" uid="uid://b5uw1vk5r888r" path="res://game/research/research_lab.gd" id="98_lab"]
 [ext_resource type="PackedScene" uid="uid://ds46abpebov64" path="res://game/research/research_overview.tscn" id="99_overview"]
+[ext_resource type="PackedScene" uid="uid://bahps38451xgx" path="res://game/solar_system/tow_offer.tscn" id="100_tow_offer"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -381,6 +382,9 @@ anchors_preset = 11
 [node name="BusPanel" parent="Hud" unique_id=1346201264 instance=ExtResource("24_bus_panel")]
 unique_name_in_owner = true
 anchors_preset = 11
+
+[node name="TowOffer" parent="Hud" unique_id=371962228 instance=ExtResource("100_tow_offer")]
+unique_name_in_owner = true
 
 [node name="ResearchOverview" parent="Hud" unique_id=2033696468 instance=ExtResource("99_overview")]
 

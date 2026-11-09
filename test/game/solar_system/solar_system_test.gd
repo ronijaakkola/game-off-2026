@@ -453,33 +453,44 @@ func _send_motion(to: Vector2) -> void:
 	Input.flush_buffered_events()
 
 
-func test_a_tow_costs_its_fee_or_all_the_player_has() -> void:
+func test_requesting_a_tow_costs_its_fee_or_all_the_player_has() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
-	var bus := runner.find_child("Bus") as FrameshiftBus
+	var offer := runner.find_child("TowOffer") as TowOffer
 	var ledger := (runner.scene() as SolarSystem).get_ledger()
 	ledger.credits = 50
 
-	bus.towed.emit(bus.get_docked_planet())
+	offer.requested.emit()
 	assert_int(ledger.credits).is_equal(50 - SolarSystem.TOW_FEE)
 	var loss := runner.find_child("LossLabel") as Label
 	assert_str(loss.text).is_equal("-%d" % SolarSystem.TOW_FEE)
 
 	ledger.credits = SolarSystem.TOW_FEE - 5
-	bus.towed.emit(bus.get_docked_planet())
+	offer.requested.emit()
 	assert_int(ledger.credits).is_equal(0)
 
 
-func test_running_dry_in_space_sends_one_tow_ship() -> void:
+func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var system := runner.scene() as SolarSystem
 	var bus := runner.find_child("Bus") as FrameshiftBus
+	var offer := runner.find_child("TowOffer") as TowOffer
+	var button := runner.find_child("RequestButton") as Button
 	bus.plot_course(RouteStop.at_point(bus.global_position + Vector3(0.0, 0.0, 30.0)))
 	await assert_func(bus, "is_at_planet").wait_until(5000).is_false()
+	assert_bool(offer.visible).is_false()
 
 	bus.get_fuel_tank().drain()
 	await runner.simulate_frames(1)
 
-	var ships := system.get_children().filter(func(node: Node) -> bool: return node is TowShip)
-	assert_int(ships.size()).is_equal(1)
+	var is_ship := func(node: Node) -> bool: return node is TowShip
+	assert_bool(offer.visible).is_true()
+	assert_str(button.text).is_equal("Request a tow (%d credits)" % system.get_ledger().credits)
+	assert_int(system.get_children().filter(is_ship).size()).is_equal(0)
+
+	button.pressed.emit()
+	await runner.simulate_frames(1)
+
+	assert_bool(offer.visible).is_false()
+	assert_int(system.get_children().filter(is_ship).size()).is_equal(1)
