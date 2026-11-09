@@ -19,6 +19,11 @@ signal changed(planet: Planet)
 @export_range(1.0, 300.0, 1.0) var max_interval := 20.0
 ## Credits per world unit from the origin to the destination, before the type's multiplier.
 @export_range(0.0, 50.0, 0.5) var fare_per_unit := 3.0
+## How many wait at each planet when the game starts, so the first route has somewhere to go.
+@export_range(0, 10) var starting_per_planet := 1
+## How many wait at the planet the bus starts docked at, whose clock holds while it is
+## there, so the first stop has someone to pick up.
+@export_range(0, 10) var starting_at_bus := 2
 
 var _rng := RandomNumberGenerator.new()
 var _planets: Array[Planet] = []
@@ -46,6 +51,16 @@ func set_planets(planets: Array[Planet]) -> void:
 	for planet: Planet in _planets:
 		_waiting[planet] = []
 		_until_next[planet] = _interval()
+
+
+## Puts the passengers who wait when the game starts in line: [member starting_at_bus] at
+## [param bus_planet] and [member starting_per_planet] at every other planet, each up to
+## [member max_per_planet].
+func add_starting_passengers(bus_planet: Planet) -> void:
+	for planet: Planet in _planets:
+		var count := starting_at_bus if planet == bus_planet else starting_per_planet
+		for i: int in count:
+			add(planet)
 
 
 ## Puts a new passenger in line at [param planet], unless [member max_per_planet] already
