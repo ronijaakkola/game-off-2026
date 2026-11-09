@@ -1,11 +1,15 @@
 class_name Cabin
 extends Node
 ## The inside of the bus: the passengers on board and the amenities that serve them. Each
-## frame it runs every passenger's ride, and an amenity serves a request for its need the
-## moment it opens. At a planet it runs a stop: the passengers going there get off one at
+## frame it runs every passenger's ride and serves their requests: the player serves one by
+## holding its card's serve button for [constant HAND_SECONDS] ([method hold_serve]), and
+## a food amenity starts on a request for food the moment it opens, while it has room for
+## one more, so the others asking wait their turn. The player's hold adds to the amenity's
+## speed. At a planet it runs a stop: the passengers going there get off one at
 ## a time and pay by their mood. Those the player picks up get on one at a time, after
 ## everyone getting off. Each takes [member step_seconds], so a busy stop takes longer.
-## The bus's comfort upgrades, as traits, set the [Comfort] every passenger rides with.
+## The bus's comfort upgrades, as traits, set the [Comfort] every passenger rides with and
+## which amenities are on board, and its PORTION_SIZE stat how long served food lasts.
 
 signal boarded(passenger: Passenger)
 ## [param passenger] left their seat at the stop [method stop_at] started, and will get off
@@ -25,12 +29,20 @@ signal stop_finished
 
 ## The scare everyone left on board takes when the player kicks someone off.
 const KICK_SHOCK := -25.0
+## Seconds the player holds a serve button to serve a request alone.
+const HAND_SECONDS := 1.2
+const FOOD_DISPENSER := preload("res://game/passengers/amenities/food_dispenser.tres")
+const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.tres")
 
 ## How many passengers fit on board: the base of the bus's SEATS stat once the cabin
 ## follows it ([method follow]). Taking seats away leaves anyone in them on board, with no
 ## seat free until enough of them get off.
 @export_range(1, 12) var seats := 4
-## What serves needs by itself. Upgrades add to it.
+## Every amenity upgrades can put on board, the one tried first first. Once the cabin
+## follows the bus ([method follow]), those whose trait the bus has are its
+## [member amenities].
+@export var fittings: Array[Amenity] = [SERVING_ROBOTS, FOOD_DISPENSER]
+## The amenities on board, which serve requests for food by themselves.
 @export var amenities: Array[Amenity] = []
 ## Seconds each passenger takes to get off or on at a stop.
 @export_range(0.0, 3.0, 0.05) var step_seconds := 0.6
@@ -52,6 +64,9 @@ var parking := false
 ## What the bus's comfort upgrades give everyone on board. It follows the bus's traits once
 ## the cabin follows the bus ([method follow]).
 var comfort := Comfort.new()
+## How long served food lasts, as a multiple of the need's time: the PORTION_SIZE stat once
+## the cabin follows the bus.
+var portion := 1.0
 
 var _passengers: Array[Passenger] = []
 # The stop under way: who still gets off, with what they pay, and who still gets on.
@@ -62,15 +77,16 @@ var _payouts: Array[int] = []
 var _getting_on: Array[Passenger] = []
 var _until_step := 0.0
 var _bus_stats: BusStats
+# The amenity serving each passenger's request now.
+var _served_by: Dictionary[Passenger, Amenity] = {}
+# The passengers whose serve button the player holds.
+var _hands: Dictionary[Passenger, bool] = {}
 
 
 func _process(delta: float) -> void:
 	for passenger: Passenger in _passengers:
 		passenger.tick(delta, docked, parking, comfort)
-		if passenger.request:
-			var amenity := _amenity_for(passenger.request)
-			if amenity:
-				passenger.serve_with(amenity)
+		_serve_request(passenger, delta)
 	if _stopping:
 		_until_step -= delta
 		while _stopping and _until_step <= 0.0:
@@ -79,17 +95,21 @@ func _process(delta: float) -> void:
 
 ## Makes [member seats] the base of [param stats]' SEATS stat, and from then on the seats
 ## it makes, as upgrades change it. [member comfort] follows its traits. Following other
-## stats stops following the ones before.
+## stats stops following the ones before. [member amenities] follow its traits, and
+## [member portion] its PORTION_SIZE stat.
 func follow(stats: BusStats) -> void:
 	if _bus_stats:
 		_bus_stats.get_stat(BusStats.Type.SEATS).changed.disconnect(_on_seats_stat_changed)
+		_bus_stats.get_stat(BusStats.Type.PORTION_SIZE).changed.disconnect(_on_portion_changed)
 		_bus_stats.get_traits().changed.disconnect(_on_trait_changed)
 	_bus_stats = stats
 	var stat := stats.get_stat(BusStats.Type.SEATS)
 	stat.base = seats
 	stat.changed.connect(_on_seats_stat_changed)
-	comfort = Comfort.from_traits(stats.get_traits())
+	stats.get_stat(BusStats.Type.PORTION_SIZE).changed.connect(_on_portion_changed)
+	_on_portion_changed()
 	stats.get_traits().changed.connect(_on_trait_changed)
+	_on_trait_changed(BusTraits.Type.FOOD_DISPENSER)
 
 
 ## The passengers on board, in the order they boarded. A copy. Those getting off at a stop
@@ -121,9 +141,18 @@ func board(passenger: Passenger) -> bool:
 	return true
 
 
-## The player serves [param passenger]'s open request.
-func serve(passenger: Passenger) -> void:
-	passenger.serve()
+## The player starts holding [param passenger]'s serve button down, with [param held]
+## true, or lets go, with it false. While held, their open request fills by hand.
+func hold_serve(passenger: Passenger, held: bool) -> void:
+	if held and passenger in _passengers:
+		_hands[passenger] = true
+	else:
+		_hands.erase(passenger)
+
+
+## The amenity serving [param passenger]'s request now, or null.
+func get_serving_amenity(passenger: Passenger) -> Amenity:
+	return _served_by.get(passenger)
 
 
 ## The player kicks [param passenger] off the bus: they leave their seat at once, wherever
@@ -134,6 +163,7 @@ func kick(passenger: Passenger) -> bool:
 	if passenger not in _passengers:
 		return false
 	_passengers.erase(passenger)
+	_forget(passenger)
 	shock(KICK_SHOCK)
 	kicked.emit(passenger)
 	return true
@@ -156,6 +186,7 @@ func stop_at(planet: Planet) -> void:
 	for passenger: Passenger in _passengers.duplicate():
 		if passenger.destination == planet:
 			_passengers.erase(passenger)
+			_forget(passenger)
 			_getting_off.append(passenger)
 			passenger.arrive()
 			_payouts.append(passenger.get_payout())
@@ -204,11 +235,53 @@ func _step() -> void:
 	stop_finished.emit()
 
 
-func _amenity_for(need: Need) -> Amenity:
-	for amenity: Amenity in amenities:
-		if amenity.need == need.id:
-			return amenity
-	return null
+# Feeds [param passenger]'s open request for [param delta] seconds: from the amenity serving
+# it, or the first with room once one has, and from the player's hand while held. Someone
+# waiting for an amenity to have room shows it. A hold ends with the request it served, so
+# the next one never starts filling by itself.
+func _serve_request(passenger: Passenger, delta: float) -> void:
+	var request := passenger.request
+	var amenity: Amenity = _served_by.get(passenger)
+	if not request or amenity not in amenities:
+		_served_by.erase(passenger)
+		amenity = null
+	if not request:
+		_hands.erase(passenger)
+		return
+	var waiting_for: Amenity = null
+	if not amenity and request.food:
+		for fitted: Amenity in amenities:
+			if _users(fitted) < fitted.capacity:
+				amenity = fitted
+				_served_by[passenger] = fitted
+				break
+			if not waiting_for:
+				waiting_for = fitted
+	var rate := 0.0
+	if amenity:
+		rate += 1.0 / amenity.seconds
+		passenger.show_request(amenity.get_line(request))
+	elif waiting_for:
+		passenger.show_request(waiting_for.waiting_line)
+	else:
+		passenger.show_request("")
+	if _hands.has(passenger):
+		rate += 1.0 / HAND_SECONDS
+	if rate > 0.0:
+		passenger.feed(rate * delta, portion)
+	if not passenger.request:
+		_served_by.erase(passenger)
+		_hands.erase(passenger)
+
+
+# How many requests [param amenity] serves now.
+func _users(amenity: Amenity) -> int:
+	return _served_by.values().count(amenity)
+
+
+func _forget(passenger: Passenger) -> void:
+	_served_by.erase(passenger)
+	_hands.erase(passenger)
 
 
 func _take_seat(passenger: Passenger) -> void:
@@ -220,5 +293,14 @@ func _on_seats_stat_changed() -> void:
 	seats = _bus_stats.get_seats()
 
 
+func _on_portion_changed() -> void:
+	portion = _bus_stats.get_stat(BusStats.Type.PORTION_SIZE).get_value()
+
+
 func _on_trait_changed(_type: BusTraits.Type) -> void:
-	comfort = Comfort.from_traits(_bus_stats.get_traits())
+	var traits := _bus_stats.get_traits()
+	comfort = Comfort.from_traits(traits)
+	amenities.clear()
+	for fitted: Amenity in fittings:
+		if traits.has(fitted.bus_trait):
+			amenities.append(fitted)

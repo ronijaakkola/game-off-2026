@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Amenity" format=3 uid="uid://jiaugpgfsq3k"]
+
+[ext_resource type="Script" uid="uid://b7iae21b6uc6y" path="res://game/passengers/amenity.gd" id="1_amenity"]
+
+[resource]
+script = ExtResource("1_amenity")
+line = "Getting %s from the replicator"
+waiting_line = "Waiting for the replicator"

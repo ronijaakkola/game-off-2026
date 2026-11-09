@@ -6,7 +6,8 @@ extends MarginContainer
 ## shows the stars its passenger rates the ride; once the passenger gets off and the
 ## rating has shown for a moment, the card slides back out to the left, while the cards
 ## below move up to fill the gap.
-## A card's serve button serves that passenger's request through the cabin, and its kick
+## A card's serve button, held down, serves that passenger's request through the cabin
+## ([method Cabin.hold_serve]), and its kick
 ## button kicks them off the bus, so their card slides out at once.
 
 const CARD := preload("res://game/passengers/passenger_card.tscn")
@@ -56,7 +57,7 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	var card := CARD.instantiate() as PassengerCard
 	card.portrait_studio = portrait_studio
 	card.passenger = passenger
-	card.serve_pressed.connect(func() -> void: cabin.serve(passenger))
+	card.serve_held.connect(func(held: bool) -> void: cabin.hold_serve(passenger, held))
 	card.kick_pressed.connect(func() -> void: cabin.kick(passenger))
 	card.left.connect(card.queue_free)
 	_cards[passenger] = card

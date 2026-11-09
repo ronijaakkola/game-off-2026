@@ -16,5 +16,8 @@ extends Resource
 ## Idle lines they show while asleep, with their eyes shut. Each comes up as often as any
 ## one idle line.
 @export var sleep_lines: Array[String] = []
+## Idle lines they show while watching a show, on a bus with an entertainment system. Each
+## comes up as often as any one idle line.
+@export var watch_lines: Array[String] = []
 ## The names a passenger of this type picks from.
 @export var names: Array[String] = ["Passenger"]
