@@ -1,14 +1,16 @@
 class_name CreditsCounter
 extends HBoxContainer
-## The player's credits in the resource bar, beside a dollar sign: 12,480. Payments collect
-## in a gain floating under the bar ("+15"), which pops bigger for a moment and shows the
-## new sum with each payment.
+## The player's credits in the resource bar, beside a dollar sign: 12,480. It shows the
+## credits of its [member ledger] and animates each change the ledger signals; it keeps no
+## credits of its own. Payments collect in a gain floating under the bar ("+15"), which pops
+## bigger for a moment and shows the new sum with each payment.
 ## Once [method commit] is called, after a short delay the total counts up to include it,
-## number by number, while the gain fades out drifting upward. [member credits] already
-## counts every payment; only what shows waits.
+## number by number, while the gain fades out drifting upward. The ledger already counts
+## every payment; only what shows waits.
 ## Spending shows the same way, in red ("-12"), at once: it pops, and after a short delay
 ## the total counts down while it fades out drifting upward. It shows in the gain's place,
-## or under the gain while one waits.
+## or under the gain while one waits. Credits set outright show at once and clear the gain
+## and the loss.
 ## A count makes room for its widest number before it starts, and gives back what it no
 ## longer needs once it ends, so the resource bar changes width once per count rather than
 ## at each digit it passes (0 to 1,000 passes three). The total sits right-aligned in that
@@ -33,25 +35,20 @@ const GAIN_DROP := 23.0
 ## The total always has room for this many digits.
 const ROOM := "000"
 
-## The credits the player has, payments not yet shown included. Setting it shows it at
-## once and clears the gain and the loss.
-var credits: int:
-	get:
-		return _credits
+## The credits it shows. Until one is set, it shows a ledger of its own, so the scene runs
+## by itself.
+var ledger: Ledger:
 	set(value):
-		_credits = value
-		_pending = 0
-		if _fade:
-			_fade.kill()
-		if _loss:
-			_loss.kill()
-		if is_node_ready():
-			(%GainLabel as Label).modulate.a = 0.0
-			(%LossLabel as Label).modulate.a = 0.0
-			_show_total(_credits)
-			_release_width()
+		if ledger:
+			ledger.credits_earned.disconnect(_on_earned)
+			ledger.credits_spent.disconnect(_on_spent)
+			ledger.credits_set.disconnect(_on_set)
+		ledger = value
+		ledger.credits_earned.connect(_on_earned)
+		ledger.credits_spent.connect(_on_spent)
+		ledger.credits_set.connect(_on_set)
+		_on_set()
 
-var _credits := 0
 # Paid since the last commit, so not yet in the total shown.
 var _pending := 0
 # How far the gain has drifted up, in pixels.
@@ -72,10 +69,9 @@ var _shown := 0
 
 
 func _ready() -> void:
-	(%GainLabel as Label).modulate.a = 0.0
-	(%LossLabel as Label).modulate.a = 0.0
-	_show_total(_credits)
-	_release_width()
+	if not ledger:
+		ledger = Ledger.new()
+	_on_set()
 	_place_gain()
 
 
@@ -83,17 +79,16 @@ func _process(_delta: float) -> void:
 	_place_gain()
 
 
-## Adds [param amount] to [member credits] and to the gain, which pops with the new sum.
-## The total shown waits for [method commit].
-func add(amount: int) -> void:
+# A payment of [param amount], already in the ledger: it joins the gain, which pops with
+# the new sum. The total shown waits for [method commit].
+func _on_earned(amount: int) -> void:
+	_pending += amount
 	# A commit or a spending still under way finishes at once, so the total stays right.
 	if _fade:
 		_fade.kill()
 	_finish_loss()
-	_show_total(_credits - _pending)
+	_show_total(ledger.credits - _pending)
 	_release_width()
-	_credits += amount
-	_pending += amount
 	var label := %GainLabel as Label
 	label.text = "+%d" % _pending
 	label.modulate.a = 1.0
@@ -110,12 +105,12 @@ func add(amount: int) -> void:
 	)
 
 
-## Takes [param amount] off [member credits] and shows it in the loss ("-12"), which pops;
-## after [constant COMMIT_DELAY] the total counts down to it while the loss fades out
-## drifting upward. While a loss still shows, it adds to it and pops again, and the count
-## down starts over from where it began. A count up under way finishes at once first; a
-## gain still waiting for [method commit] stays.
-func spend(amount: int) -> void:
+# A bill of [param amount], already in the ledger: it shows in the loss ("-12"), which pops;
+# after COMMIT_DELAY the total counts down to it while the loss fades out drifting upward.
+# While a loss still shows, it adds to it and pops again, and the count down starts over
+# from where it began. A count up under way finishes at once first; a gain still waiting
+# for commit() stays.
+func _on_spent(amount: int) -> void:
 	if _fade and _fade.is_running():
 		_fade.kill()
 		(%GainLabel as Label).modulate.a = 0.0
@@ -125,8 +120,7 @@ func spend(amount: int) -> void:
 		_loss_amount += amount
 	else:
 		_loss_amount = amount
-		_loss_from = _credits - _pending
-	_credits -= amount
+		_loss_from = ledger.credits + amount - _pending
 	_hold_width_for(maxi(_shown, _loss_from))
 	label.text = "-%d" % _loss_amount
 	label.modulate.a = 1.0
@@ -143,7 +137,7 @@ func spend(amount: int) -> void:
 		. set_ease(Tween.EASE_OUT)
 	)
 	_loss.tween_interval(COMMIT_DELAY)
-	_loss.tween_method(_show_total, _loss_from, _credits - _pending, seconds)
+	_loss.tween_method(_show_total, _loss_from, ledger.credits - _pending, seconds)
 	_loss.parallel().tween_property(label, ^"modulate:a", 0.0, FADE_OUT_SECONDS)
 	(
 		_loss
@@ -162,8 +156,8 @@ func commit() -> void:
 	if _pending == 0:
 		return
 	_finish_loss()
-	_hold_width_for(maxi(_shown, _credits))
-	var from := _credits - _pending
+	_hold_width_for(maxi(_shown, ledger.credits))
+	var from := ledger.credits - _pending
 	var seconds := minf(_pending * SECONDS_PER_CREDIT, MAX_COUNT_SECONDS)
 	_pending = 0
 	var label := %GainLabel as Label
@@ -171,7 +165,7 @@ func commit() -> void:
 		_fade.kill()
 	_fade = create_tween()
 	_fade.tween_interval(COMMIT_DELAY)
-	_fade.tween_method(_show_total, from, _credits, seconds)
+	_fade.tween_method(_show_total, from, ledger.credits, seconds)
 	_fade.parallel().tween_property(label, ^"modulate:a", 0.0, FADE_OUT_SECONDS)
 	(
 		_fade
@@ -181,6 +175,20 @@ func commit() -> void:
 		. set_trans(Tween.TRANS_QUAD)
 	)
 	_fade.tween_callback(_release_width)
+
+
+# The credits were set outright: shows them at once, and clears the gain and the loss.
+func _on_set() -> void:
+	_pending = 0
+	if _fade:
+		_fade.kill()
+	if _loss:
+		_loss.kill()
+	if is_node_ready():
+		(%GainLabel as Label).modulate.a = 0.0
+		(%LossLabel as Label).modulate.a = 0.0
+		_show_total(ledger.credits)
+		_release_width()
 
 
 ## [param value] with a comma between each group of three digits: 12,480.
@@ -207,7 +215,7 @@ func _finish_loss() -> void:
 		return
 	_loss.kill()
 	(%LossLabel as Label).modulate.a = 0.0
-	_show_total(_credits - _pending)
+	_show_total(ledger.credits - _pending)
 	_release_width()
 
 

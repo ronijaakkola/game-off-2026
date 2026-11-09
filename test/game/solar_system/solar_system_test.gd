@@ -35,17 +35,17 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	assert_bool(bus.boarding).is_false()
 	assert_int(cabin.get_passengers().size()).is_equal(0)
 	assert_int(waiting.count_at(passenger.destination)).is_equal(count)
+	var ledger := (runner.scene() as SolarSystem).get_ledger()
+	assert_int(ledger.credits).is_equal(payout)
 	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	assert_int(counter.credits).is_equal(payout)
 	var gain := counter.find_child("GainLabel", true, false) as Label
 	assert_str(gain.text).is_equal("+%d" % payout)
 	# Once they are off, the total counts up to include the fare.
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
 	assert_str(total).is_equal(CreditsCounter.group_digits(payout))
-	var rating := runner.find_child("RatingCounter") as RatingCounter
-	assert_int(rating.get_count()).is_equal(1)
-	assert_float(rating.get_average()).is_equal(passenger.get_rating())
+	assert_int(ledger.get_rating_count()).is_equal(1)
+	assert_float(ledger.get_average_rating()).is_equal(passenger.get_rating())
 	# Once they are off, the average shows their rating too.
 	var average := (runner.find_child("AverageLabel") as Label).text
 	assert_str(average).is_equal("%.1f" % passenger.get_rating())
@@ -492,17 +492,17 @@ func test_a_tow_costs_its_fee_or_all_the_player_has() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var bus := runner.find_child("Bus") as FrameshiftBus
-	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	counter.credits = 50
+	var ledger := (runner.scene() as SolarSystem).get_ledger()
+	ledger.credits = 50
 
 	bus.towed.emit(bus.get_docked_planet())
-	assert_int(counter.credits).is_equal(50 - SolarSystem.TOW_FEE)
+	assert_int(ledger.credits).is_equal(50 - SolarSystem.TOW_FEE)
 	var loss := runner.find_child("LossLabel") as Label
 	assert_str(loss.text).is_equal("-%d" % SolarSystem.TOW_FEE)
 
-	counter.credits = SolarSystem.TOW_FEE - 5
+	ledger.credits = SolarSystem.TOW_FEE - 5
 	bus.towed.emit(bus.get_docked_planet())
-	assert_int(counter.credits).is_equal(0)
+	assert_int(ledger.credits).is_equal(0)
 
 
 func test_running_dry_in_space_sends_one_tow_ship() -> void:

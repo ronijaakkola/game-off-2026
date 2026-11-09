@@ -26,23 +26,24 @@ func _ready() -> void:
 	var paid := _add_bar(stack, 990, [3, 2, 1], 4.0)
 	var billed := _add_bar(stack, 1005, [3, 2, 1], 4.0)
 	var debug := _add_bar(stack, 0, [3, 2, 1], 4.0)
-	paid.get_credits().add(15)
+	paid.ledger.earn(15)
 	await get_tree().create_timer(MOVE_AT).timeout
-	paid.get_credits().commit()
-	billed.get_credits().spend(15)
-	debug.get_credits().add(1000)
-	debug.get_credits().commit()
+	paid.commit()
+	billed.ledger.spend(15)
+	debug.ledger.earn(1000)
+	debug.commit()
 
 
 func _add_bar(stack: VBoxContainer, credits: int, research: Array, rating: float) -> ResourceBar:
-	var bar := BAR.instantiate() as ResourceBar
-	bar.size_flags_horizontal = Control.SIZE_SHRINK_END
-	stack.add_child(bar)
-	bar.get_credits().credits = credits
+	var ledger := Ledger.new()
+	ledger.credits = credits
 	for i: int in research.size():
 		if research[i] > 0:
-			bar.get_research().add(Race.Type.values()[i] as Race.Type, research[i])
+			ledger.earn_research(Race.Type.values()[i] as Race.Type, research[i])
 	if rating >= 0.0:
-		bar.get_rating().add(rating)
-		bar.get_rating().commit()
+		ledger.rate(rating)
+	var bar := BAR.instantiate() as ResourceBar
+	bar.size_flags_horizontal = Control.SIZE_SHRINK_END
+	bar.ledger = ledger
+	stack.add_child(bar)
 	return bar

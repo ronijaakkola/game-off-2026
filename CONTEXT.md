@@ -105,7 +105,7 @@ How much more riding a passenger will take, in seconds, starting at the direct t
 _Avoid_: frustration, timer, budget
 
 **Rating**:
-The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **average rating** is the mean of every rating so far, shown in the **resource bar**. `Passenger.get_rating()` and `RatingCounter` in code.
+The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **average rating** is the mean of every rating so far, shown in the **resource bar**. `Passenger.get_rating()`, and `Ledger.rate()` for the average, in code.
 _Avoid_: reputation, review, score
 
 **Portrait**:
@@ -117,11 +117,11 @@ Which kind of alien a passenger is: blue, orange or green, shown as their skin c
 _Avoid_: species, colour (that is how it shows), passenger type (fare, patience and needs)
 
 **Research point**:
-What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `ResearchCounter` in code.
+What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `Ledger.earn_research()` in code.
 _Avoid_: science, XP, tech points
 
 **Resource bar**:
-The pill in the top right corner showing the player's credits, research points and average rating, each counting to its new value. `ResourceBar` in code.
+The pill in the top right corner showing the player's credits, research points and average rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
 _Avoid_: HUD (the whole overlay), top bar, wallet
 
 **Need**:

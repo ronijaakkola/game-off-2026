@@ -13,8 +13,8 @@ func test_holding_refuel_at_the_docked_planet_buys_fuel_until_let_go() -> void:
 	var ember := bus.get_docked_planet()
 	var tank := bus.get_fuel_tank()
 	tank.fuel = tank.capacity * 0.5
-	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	counter.credits = 100
+	var ledger := (runner.scene() as SolarSystem).get_ledger()
+	ledger.credits = 100
 	system.open_planet(ember)
 	await await_millis(500)
 	var camera := runner.find_child("Camera") as Camera3D
@@ -30,7 +30,7 @@ func test_holding_refuel_at_the_docked_planet_buys_fuel_until_let_go() -> void:
 	assert_float(bought).is_greater(5.0)
 	assert_float(tank.fuel).is_less(tank.capacity)
 	# The bill goes once let go, in whole credits; the rest waits for the next refuel.
-	assert_int(counter.credits).is_equal(100 - floori(bought * ember.fuel_price))
+	assert_int(ledger.credits).is_equal(100 - floori(bought * ember.fuel_price))
 	var held_to := tank.fuel
 	await runner.simulate_frames(20, 30)
 	assert_float(tank.fuel).is_equal(held_to)
@@ -50,13 +50,13 @@ func test_refuel_is_off_away_from_the_docked_planet_without_credits_or_with_a_fu
 	assert_bool(button.disabled).is_true()
 	assert_str(note.text).is_equal("Dock here to refuel.")
 
-	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	counter.credits = 0
+	var ledger := (runner.scene() as SolarSystem).get_ledger()
+	ledger.credits = 0
 	system.open_planet(bus.get_docked_planet())
 	await runner.simulate_frames(2)
 	assert_bool(button.disabled).is_true()
 	assert_str(note.text).is_equal("Not enough credits.")
-	counter.credits = 100
+	ledger.credits = 100
 	await runner.simulate_frames(2)
 	assert_bool(button.disabled).is_false()
 	bus.get_fuel_tank().fill()
@@ -71,8 +71,8 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var tank := bus.get_fuel_tank()
 	tank.fuel = tank.capacity * 0.5
-	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	counter.credits = 100
+	var ledger := (runner.scene() as SolarSystem).get_ledger()
+	ledger.credits = 100
 	await await_millis(500)
 	var button := runner.find_child("FuelButton") as Button
 	var label := button.find_child("Label") as Label
@@ -88,13 +88,13 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	await runner.simulate_frames(30, 30)
 	# The label shows the fuel while held, at most a morph behind it, and the bill waits.
 	assert_str(label.text).ends_with("%")
-	assert_int(counter.credits).is_equal(100)
+	assert_int(ledger.credits).is_equal(100)
 	_send_release(MOUSE_BUTTON_LEFT, at)
 	await runner.simulate_frames(2)
 
 	var bought := tank.fuel - tank.capacity * 0.5
 	assert_float(bought).is_greater(5.0)
-	assert_int(counter.credits).is_less(100)
+	assert_int(ledger.credits).is_less(100)
 	var held_to := tank.fuel
 	await runner.simulate_frames(20, 30)
 	assert_float(tank.fuel).is_equal(held_to)

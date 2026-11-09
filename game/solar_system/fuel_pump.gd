@@ -21,42 +21,42 @@ var _owed := 0.0
 
 
 ## Why [param tank] can't take fuel at [param planet] now, or "" when it can.
-func get_stop(planet: Planet, tank: FuelTank, counter: CreditsCounter) -> String:
+func get_stop(planet: Planet, tank: FuelTank, ledger: Ledger) -> String:
 	if not planet.sells_fuel:
 		return "No fuel sold here."
 	if tank.fuel >= tank.capacity:
 		return "Tank full."
-	if _affordable(planet, counter) <= 0.0:
+	if _affordable(planet, ledger) <= 0.0:
 		return "Not enough credits."
 	return ""
 
 
 ## Pumps [param delta] seconds of fuel into [param tank] at [param planet] while
 ## [param held] and nothing stops it, adding to the bill. Otherwise the pump stops and pays
-## the bill from [param counter], and starts slow again next time.
-func run(delta: float, planet: Planet, held: bool, tank: FuelTank, counter: CreditsCounter) -> void:
-	if not held or not get_stop(planet, tank, counter).is_empty():
-		stop(counter)
+## the bill from [param ledger], and starts slow again next time.
+func run(delta: float, planet: Planet, held: bool, tank: FuelTank, ledger: Ledger) -> void:
+	if not held or not get_stop(planet, tank, ledger).is_empty():
+		stop(ledger)
 		return
 	_pump_time += delta
 	var ramp := clampf(_pump_time / RAMP_SECONDS, 0.0, 1.0)
-	var amount := minf(lerpf(START_RATE, MAX_RATE, ramp) * delta, _affordable(planet, counter))
+	var amount := minf(lerpf(START_RATE, MAX_RATE, ramp) * delta, _affordable(planet, ledger))
 	amount = minf(amount, tank.capacity - tank.fuel)
 	tank.refuel(amount)
 	_owed += amount * planet.fuel_price
 
 
-## Stops the pump, if it runs, and pays its bill from [param counter] in whole credits.
-func stop(counter: CreditsCounter) -> void:
+## Stops the pump, if it runs, and pays its bill from [param ledger] in whole credits.
+func stop(ledger: Ledger) -> void:
 	_pump_time = 0.0
 	var whole := floori(_owed)
 	if whole > 0:
-		counter.spend(whole)
+		ledger.spend(whole)
 		_owed -= whole
 
 
 # How much fuel the credits left buy at [param planet].
-func _affordable(planet: Planet, counter: CreditsCounter) -> float:
+func _affordable(planet: Planet, ledger: Ledger) -> float:
 	if planet.fuel_price <= 0.0:
 		return INF
-	return maxf(counter.credits - _owed, 0.0) / planet.fuel_price
+	return maxf(ledger.credits - _owed, 0.0) / planet.fuel_price
