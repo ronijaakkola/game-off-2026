@@ -30,13 +30,13 @@ const UP_COLOR := Color(0.55, 0.85, 0.4)
 const DOWN_COLOR := Color(0.95, 0.3, 0.4)
 const SAME_COLOR := Color(1.0, 1.0, 1.0, 0.6)
 
-## The ratings it shows. Until one is set, it shows a ledger of its own, so the scene runs
-## by itself.
+## The ratings it shows. Until one is set, or when set to null, it shows a ledger
+## of its own, so the scene runs by itself.
 var ledger: Ledger:
 	set(value):
 		if ledger:
 			ledger.rated.disconnect(_on_rated)
-		ledger = value
+		ledger = value if value else Ledger.new()
 		ledger.rated.connect(_on_rated)
 		if _fade:
 			_fade.kill()

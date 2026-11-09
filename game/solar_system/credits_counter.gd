@@ -35,15 +35,15 @@ const GAIN_DROP := 23.0
 ## The total always has room for this many digits.
 const ROOM := "000"
 
-## The credits it shows. Until one is set, it shows a ledger of its own, so the scene runs
-## by itself.
+## The credits it shows. Until one is set, or when set to null, it shows a ledger
+## of its own, so the scene runs by itself.
 var ledger: Ledger:
 	set(value):
 		if ledger:
 			ledger.credits_earned.disconnect(_on_earned)
 			ledger.credits_spent.disconnect(_on_spent)
 			ledger.credits_set.disconnect(_on_set)
-		ledger = value
+		ledger = value if value else Ledger.new()
 		ledger.credits_earned.connect(_on_earned)
 		ledger.credits_spent.connect(_on_spent)
 		ledger.credits_set.connect(_on_set)

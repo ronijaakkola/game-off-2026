@@ -17,16 +17,15 @@ const POP_SCALE := 1.35
 const POP_UP_SECONDS := 0.06
 const POP_DOWN_SECONDS := 0.14
 
-## The points it shows. Until one is set, it shows a ledger of its own, so the scene runs by
-## itself.
+## The points it shows. Until one is set, or when set to null, it shows a ledger
+## of its own, so the scene runs by itself.
 var ledger: Ledger:
 	set(value):
 		if ledger:
 			ledger.research_earned.disconnect(_on_earned)
-		ledger = value
+		ledger = value if value else Ledger.new()
 		ledger.research_earned.connect(_on_earned)
-		for race: Race.Type in _labels:
-			_labels[race].text = str(ledger.get_research(race))
+		_show_counts()
 
 var _labels: Dictionary[Race.Type, Label] = {}
 var _pops: Dictionary[Race.Type, Tween] = {}
@@ -60,6 +59,14 @@ func _ready() -> void:
 		)
 	if not ledger:
 		ledger = Ledger.new()
+	_show_counts()
+
+
+# Every count as the ledger has it. Before _ready() there are no labels yet, and _ready()
+# shows them.
+func _show_counts() -> void:
+	for race: Race.Type in _labels:
+		_labels[race].text = str(ledger.get_research(race))
 
 
 # Points of [param race] came in, already in the ledger: shows the new count and pops it.
