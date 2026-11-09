@@ -129,10 +129,12 @@ func _process(delta: float) -> void:
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
-	# The panel covers the bottom of the screen where the hint is, until it has slid out.
-	(%HintBox as Control).visible = not (
-		(%PlanetPanel as Control).visible or (%BusPanel as Control).visible
-	)
+	# A side panel covers the hint until it has slid out, and the control panel keeps to the
+	# space left of it as it slides.
+	var side := (%BusPanel if (%BusPanel as Control).visible else %PlanetPanel) as Control
+	(%HintBox as Control).visible = not side.visible
+	var covered := side.get_parent_area_size().x - side.position.x if side.visible else 0.0
+	(%Bottom as Control).offset_right = -maxf(covered, 0.0)
 	var mouse := get_viewport().get_mouse_position()
 	var over_hud := get_viewport().gui_get_hovered_control() != null
 	# What a left click would open shows the white border.

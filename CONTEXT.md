@@ -66,10 +66,14 @@ _Avoid_: selected planet, focused planet, planet view
 
 **Open bus**:
 The bus when the player left-clicked it to look at it: the camera follows it on the left of the screen, and its **bus panel** on the right shows its stats. Opening it closes the open planet, and opening a planet closes it. `SolarSystem.open_bus()`, `BusPanel` in code.
-_Avoid_: selected bus, bus view, bus status (that is the panel in the bottom right)
+_Avoid_: selected bus, bus view, control panel (that is the strip at the bottom middle)
+
+**Control panel**:
+The wide, low strip at the bottom middle of the screen with the bus's status (what it is doing, the trip to the next planet, fuel, seats) and its controls: for now the frameshift button, held to charge the drive and leave, which is the red Emergency stop in flight. More bus controls go here. `BusControlPanel` in code.
+_Avoid_: bus status, HUD, dashboard, bus panel (that is the open bus's)
 
 **Dock panel**:
-The panel just above the bus status while the bus is docked or charging, for what it can do at that planet: refuelling, and picking up the passengers waiting there, one by one or all at once. `DockPanel` in code.
+The panel in the bottom right while the bus is docked or charging, for what it can do at that planet: refuelling, and picking up the passengers waiting there, one by one or all at once. `DockPanel` in code.
 _Avoid_: boarding popup, station menu, planet panel (that is the open planet's)
 
 **Debug panel**:
@@ -77,7 +81,7 @@ A side panel of testing buttons, opened with F2, that each scene fills with its 
 _Avoid_: cheat menu, dev menu, dev console (that is LimboConsole's, F1)
 
 **Fuel**:
-What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the dock panel or the open planet's panel, at that planet's **fuel price**.
+What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the control panel. **Refuelling** is buying it at the planet the bus is docked at, from the dock panel or the open planet's panel, at that planet's **fuel price**.
 _Avoid_: energy, gas, charge (that is the frameshift drive's)
 
 **Stat**:
