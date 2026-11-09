@@ -9,9 +9,12 @@ extends PanelContainer
 ## The player clicked [param upgrade], which is available.
 signal upgrade_clicked(upgrade: Upgrade)
 
-## Pixels between two upgrades in a row, tighter than the planet panel's so three trees fit
-## the smallest window side by side.
-const COLUMN_GAP := 14
+## Each upgrade's tile, and the gaps between tiles, smaller than the planet panel's so
+## every tree fits the smallest window side by side with room to grow. Past that, it
+## scrolls.
+const TILE_SIZE := 40.0
+const COLUMN_GAP := 12
+const TIER_GAP := 14
 ## The line between two trees, as faint as the planet panel's rules.
 const DIVIDER_COLOR := Color(1, 1, 1, 0.1)
 const DIVIDER_WIDTH := 1.0
@@ -76,7 +79,9 @@ func _make_column(planet: Planet) -> Control:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(title)
 	var view := TREE_VIEW.instantiate() as ResearchTreeView
+	view.tile_size = TILE_SIZE
 	view.column_gap = COLUMN_GAP
+	view.tier_gap = TIER_GAP
 	view.tree = planet.research_tree
 	view.upgrade_clicked.connect(upgrade_clicked.emit)
 	column.add_child(view)
