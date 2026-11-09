@@ -67,14 +67,7 @@ func test_each_control_changes_only_its_own_setting() -> void:
 		assert_array(changed).override_failure_message(message).contains_exactly([setting])
 
 
-func test_back_hides_the_panel() -> void:
-	var runner := scene_runner(SCENE)
-	runner.invoke("open", _covered(runner))
-	(runner.find_child("BackButton") as Button).pressed.emit()
-	assert_bool(runner.scene().visible).is_false()
-
-
-func test_focus_stays_in_the_panel_and_goes_back_to_its_opener() -> void:
+func test_focus_stays_in_the_panel_and_back_hides_it_and_returns_focus() -> void:
 	var runner := scene_runner(SCENE)
 	var covered := _covered(runner)
 	var opener := covered.get_child(0) as Button
@@ -85,6 +78,7 @@ func test_focus_stays_in_the_panel_and_goes_back_to_its_opener() -> void:
 	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterVolume"))
 
 	back.pressed.emit()
+	assert_bool(runner.scene().visible).is_false()
 	assert_object(get_viewport().gui_get_focus_owner()).is_same(opener)
 
 

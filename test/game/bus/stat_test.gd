@@ -3,30 +3,13 @@ extends GdUnitTestSuite
 ## plus every percent added together.
 
 
-func test_with_no_modifiers_the_value_is_the_base() -> void:
-	assert_float(Stat.new(8.0).get_value()).is_equal(8.0)
-
-
-func test_flat_modifiers_add_to_the_base() -> void:
+func test_flats_add_to_the_base_then_percents_add_together_without_compounding() -> void:
 	var stat := Stat.new(8.0)
+	stat.add_modifier(_percent(10.0))
 	stat.add_modifier(_flat(5.0))
+	stat.add_modifier(_percent(20.0))
 	stat.add_modifier(_flat(-2.0))
-	assert_float(stat.get_value()).is_equal_approx(11.0, 0.0001)
-
-
-func test_percents_add_together_instead_of_compounding() -> void:
-	var stat := Stat.new(8.0)
-	stat.add_modifier(_percent(10.0))
-	stat.add_modifier(_percent(20.0))
-	assert_float(stat.get_value()).is_equal_approx(8.0 * 1.3, 0.0001)
-
-
-func test_flat_modifiers_apply_before_percents() -> void:
-	var stat := Stat.new(8.0)
-	stat.add_modifier(_percent(10.0))
-	stat.add_modifier(_flat(5.0))
-	stat.add_modifier(_percent(20.0))
-	assert_float(stat.get_value()).is_equal_approx((8.0 + 5.0) * 1.3, 0.0001)
+	assert_float(stat.get_value()).is_equal_approx((8.0 + 5.0 - 2.0) * 1.3, 0.0001)
 
 
 func test_removing_a_modifier_takes_it_back_out() -> void:

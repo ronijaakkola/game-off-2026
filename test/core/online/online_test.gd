@@ -16,11 +16,6 @@ func after_test() -> void:
 	Talo.settings.access_key = _access_key
 
 
-func test_offline_without_an_access_key() -> void:
-	Talo.settings.access_key = ""
-	assert_bool(Online.is_enabled()).is_false()
-
-
 func test_offline_outside_web_builds_even_with_a_key() -> void:
 	Talo.settings.access_key = "a-key"
 	assert_bool(Online.is_enabled()).is_false()

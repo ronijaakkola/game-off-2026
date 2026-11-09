@@ -8,29 +8,7 @@ const BUS := "res://game/bus/bus.tscn"
 const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
 
 
-func test_shows_each_stat_and_what_upgrades_add_as_they_change() -> void:
-	var bus := auto_free((load(BUS) as PackedScene).instantiate()) as FrameshiftBus
-	add_child(bus)
-	var runner := scene_runner(SCENE)
-	var panel := runner.scene() as BusPanel
-	assert_bool(panel.visible).is_false()
-
-	panel.open(bus)
-
-	assert_bool(panel.visible).is_true()
-	assert_str(_label(runner, "NameLabel").text).is_equal("Top speed")
-	assert_str(_label(runner, "ValueLabel").text).is_equal("1.20")
-	assert_bool(_label(runner, "BonusLabel").visible).is_false()
-
-	var boost := StatModifier.new(BusStats.Type.MAX_SPEED, StatModifier.Kind.PERCENT, 20.0)
-	bus.get_stats().add_modifier(boost)
-
-	assert_str(_label(runner, "ValueLabel").text).is_equal("1.44")
-	assert_str(_label(runner, "BonusLabel").text).is_equal("+20%")
-	assert_bool(_label(runner, "BonusLabel").visible).is_true()
-
-
-func test_seats_show_in_whole_seats_and_what_is_taken_away_shows_in_red() -> void:
+func test_shows_each_stat_and_what_upgrades_add_and_take_away_as_they_change() -> void:
 	var bus := auto_free((load(BUS) as PackedScene).instantiate()) as FrameshiftBus
 	add_child(bus)
 	var stats := bus.get_stats()
@@ -38,13 +16,17 @@ func test_seats_show_in_whole_seats_and_what_is_taken_away_shows_in_red() -> voi
 	stats.get_stat(BusStats.Type.SEATS).base = 4.0
 	var runner := scene_runner(SCENE)
 	var panel := runner.scene() as BusPanel
+	assert_bool(panel.visible).is_false()
 	panel.open(bus)
+	assert_bool(panel.visible).is_true()
+	var seats := _row(runner, BusStats.Type.SEATS)
+	assert_bool(_row_label(seats, "BonusLabel").visible).is_false()
 
 	stats.add_modifier(StatModifier.new(BusStats.Type.SEATS, StatModifier.Kind.FLAT, 1.0))
 	var smaller := StatModifier.new(BusStats.Type.FUEL_CAPACITY, StatModifier.Kind.PERCENT, -20.0)
 	stats.add_modifier(smaller)
 
-	var seats := _row(runner, BusStats.Type.SEATS)
+	assert_bool(_row_label(seats, "BonusLabel").visible).is_true()
 	assert_str(_row_label(seats, "NameLabel").text).is_equal("Seats")
 	assert_str(_row_label(seats, "ValueLabel").text).is_equal("5")
 	assert_str(_row_label(seats, "BonusLabel").text).is_equal("+1")
@@ -153,10 +135,6 @@ func test_the_pointer_over_the_bus_shows_its_border_unless_it_is_open() -> void:
 	_send_motion(_bus_screen_point(runner))
 	await runner.simulate_frames(1)
 	assert_bool(model.border).is_false()
-
-
-func _label(runner: GdUnitSceneRunner, label_name: String) -> Label:
-	return runner.find_child(label_name) as Label
 
 
 # The rows are in the order of BusStats.Type.

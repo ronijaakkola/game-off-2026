@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 ## A passenger card's mood name shakes for the low moods, and holds still under Reduce
 ## motion. When the mood changes, the name fades out and back in as the new one. Getting
-## off, the patience row gives way to the stars they rate the ride, which fill up, and the
-## card lingers before it slides out.
+## off, the patience row gives way to the stars they rate the ride, which fill up. The
+## card's linger-then-slide-out is tested in passenger_panel_test.gd.
 
 const SCENE := preload("res://game/passengers/passenger_card.tscn")
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
@@ -131,19 +131,6 @@ func test_once_rated_the_card_stops_following_the_passenger() -> void:
 	assert_str(_mood_label(card).text).is_equal("Happy")
 	var activity := card.find_child("ActivityLabel", true, false) as Label
 	assert_str(activity.text).is_equal("Getting off")
-
-
-func test_a_rated_card_lingers_before_it_slides_out() -> void:
-	var card := _card(1.0)
-	await await_idle_frame()
-	card.show_rating(2.0)
-	card.leave()
-	var panel := card.find_child("Panel", true, false) as Control
-
-	await get_tree().create_timer(PassengerCard.LINGER_SECONDS - 0.3).timeout
-	assert_float(panel.position.x).is_equal(0.0)
-	await assert_signal(card).wait_until(2000).is_emitted("left")
-	assert_float(panel.position.x).is_less(0.0)
 
 
 func _card(patience_fraction: float) -> PassengerCard:
