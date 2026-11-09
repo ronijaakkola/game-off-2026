@@ -30,9 +30,9 @@ extends Node3D
 ## open planet's panel: the [FuelPump] runs while they hold the fuel button. It stops when
 ## they let go, the tank is full or the credits run out.
 ## When the bus runs out of fuel in space, the [TowOffer] bar offers a tow for
-## [constant TOW_FEE] credits, or all the player has when that is less. Requesting it pays,
-## and a tow ship comes from the nearest planet and pulls the bus there, where it docks with
-## its tank still empty. Its hooking on scares everyone on board ([constant TOW_SHOCK]).
+## [constant TOW_FEE] credits. Requesting it pays, into debt when the player has less, and
+## a tow ship comes from the nearest planet and pulls the bus there, where it docks with a
+## full tank. Its hooking on scares everyone on board ([constant TOW_SHOCK]).
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -327,13 +327,13 @@ func _on_board_pressed(passenger: Passenger) -> void:
 
 
 func _on_bus_ran_out_of_fuel() -> void:
-	(%TowOffer as TowOffer).offer(mini(TOW_FEE, _ledger.credits))
+	(%TowOffer as TowOffer).offer(TOW_FEE)
 
 
 # Bills the tow and sends a tow ship from the planet nearest to the bus, to tow it there.
 func _on_tow_requested() -> void:
 	(%TowOffer as TowOffer).close()
-	_ledger.spend(mini(TOW_FEE, _ledger.credits))
+	_ledger.spend(TOW_FEE)
 	var bus := %Bus as FrameshiftBus
 	var nearest: Planet
 	var nearest_distance := INF

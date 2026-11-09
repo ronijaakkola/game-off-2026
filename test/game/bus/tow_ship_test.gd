@@ -77,7 +77,7 @@ func _assert_tows_to(target: Planet) -> void:
 	assert_bool(hitched).is_true()
 	assert_bool(docked).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(target)
-	assert_bool(_bus.get_fuel_tank().is_empty()).is_true()
+	assert_float(_bus.get_fuel_tank().fuel).is_equal(_bus.get_fuel_tank().capacity)
 	assert_float(closest).is_greater(target.get_body_radius())
 	assert_bool(ship.is_queued_for_deletion()).is_true()
 	await assert_signal(_bus).is_emitted("towed", [target])

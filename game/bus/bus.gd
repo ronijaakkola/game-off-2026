@@ -18,7 +18,7 @@ extends Node3D
 signal docked(planet: Planet)
 ## The tank ran dry in flight or in space. The route is cleared, so it coasts to a stop.
 signal ran_out_of_fuel
-## A tow from [method tow_to] docked at [param planet], its tank still empty. Emitted
+## A tow from [method tow_to] docked at [param planet] and the tank is full again. Emitted
 ## before [signal docked].
 signal towed(planet: Planet)
 
@@ -201,7 +201,7 @@ func remove_stop(stop: RouteStop) -> void:
 
 
 ## Tows the bus to [param planet], [member tow_speed] faster than the planet moves, where it
-## docks with whatever fuel it had.
+## docks with a full tank.
 ## The player can't change the route meanwhile.
 func tow_to(planet: Planet) -> void:
 	_towing = true
@@ -483,6 +483,7 @@ func _finish_docking() -> void:
 		Audio.play_sfx(dock_sound)
 	if _towing:
 		_towing = false
+		(%FuelTank as FuelTank).fill()
 		towed.emit(_dock_planet)
 	# Before charging, so a listener can set boarding and hold the charge.
 	docked.emit(_dock_planet)

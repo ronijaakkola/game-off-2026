@@ -373,7 +373,7 @@ func test_running_dry_in_flight_stops_the_bus_and_asks_for_a_tow() -> void:
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.HOLDING)
 
 
-func test_a_tow_takes_no_course_changes_and_docks_without_refuelling() -> void:
+func test_a_tow_takes_no_course_changes_and_docks_with_a_full_tank() -> void:
 	var tank := _bus.get_fuel_tank()
 	tank.fuel = 2.0 * tank.burn_per_unit
 	_bus.plot_course(RouteStop.at_planet(_far))
@@ -385,7 +385,7 @@ func test_a_tow_takes_no_course_changes_and_docks_without_refuelling() -> void:
 	assert_array(_bus.get_route_planets()).contains_exactly([_near])
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
-	assert_bool(tank.is_empty()).is_true()
+	assert_float(tank.fuel).is_equal(tank.capacity)
 	assert_bool(_bus.is_towing()).is_false()
 	await assert_signal(_bus).is_emitted("towed", [_near])
 
