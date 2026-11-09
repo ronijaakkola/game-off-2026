@@ -1,14 +1,13 @@
 extends Control
 ## Every head shape in its race's colour in each expression, as passenger photos at the
-## size their cards show them, for a visual check of how anger, joy, eating and drinking
-## read: a row per head, race by race,
-## and a column each for okay, happy, annoyed, furious, joyful, eating, drinking and
-## watching. The
-## first four get there by their mood, and happy ones beam now and then; the joyful ones'
-## full joy is set on the portrait, so their photo doesn't ride and set it by mood. The
-## eating, drinking and watching ones asked for a snack, a drink or entertainment and
-## were served it. Pass `big`
-## to show them three times the size, and `swap` to give every head the other eye style.
+## size their cards show them, for a visual check of how anger, joy, eating, drinking and
+## watching read: a row per head, race by race, and a column each for okay, happy,
+## annoyed, furious, joyful, eating, drinking and watching. The first four get there by
+## their mood, and happy ones beam now and then; the joyful ones' full joy is set on the
+## portrait, so their photo doesn't ride and set it by mood. The eating, drinking and
+## watching ones asked for a snack, a drink or entertainment and were served it. Pass
+## `big` to show them three times the size, and `swap` to give every head the other eye
+## style.
 
 const PHOTO := preload("res://game/passengers/passenger_photo.tscn")
 const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
