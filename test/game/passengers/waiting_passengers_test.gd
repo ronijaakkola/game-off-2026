@@ -41,6 +41,16 @@ func test_nobody_new_turns_up_where_the_bus_waits() -> void:
 	assert_int(_waiting.count_at(_away)).is_equal(2)
 
 
+func test_the_game_starts_with_more_waiting_where_the_bus_is() -> void:
+	_waiting.starting_at_bus = 2
+	_waiting.starting_per_planet = 1
+
+	_waiting.add_starting_passengers(_home)
+
+	assert_int(_waiting.count_at(_home)).is_equal(2)
+	assert_int(_waiting.count_at(_away)).is_equal(1)
+
+
 func test_take_removes_only_that_passenger_from_the_line() -> void:
 	_waiting.add(_home)
 	_waiting.add(_home)
