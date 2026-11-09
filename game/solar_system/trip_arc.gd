@@ -6,8 +6,8 @@ extends MeshInstance3D
 ## look like a straight line, so the more it points along the view, the more the arc also
 ## bows sideways on the orbit plane, to the side its rise already bends it toward on
 ## screen. That side is picked when the trip shows and kept, so the arc never flips over
-## while the planets orbit. It is a line of rounded dashes in the destination's icon
-## colour, with a thin dark outline so it reads over the star and the orbits, as wide on
+## while the planets orbit. It is a line of rounded dashes in the passenger's race colour,
+## with a thin dark outline so it reads over the star and the orbits, as wide on
 ## screen at any zoom. It leaves from the origin's edge on screen and ends at a ring round
 ## the destination, so it never crosses either planet. Shown, it grows out from the origin,
 ## and as it arrives the ring closes in. The dashes then flow toward the destination, and
@@ -60,6 +60,7 @@ var opacity := 1.0
 
 var _from: Planet
 var _to: Planet
+var _color := Color.WHITE
 var _showing := false
 # 0 hidden, 1 shown: the fade in and out.
 var _alpha := 0.0
@@ -90,14 +91,15 @@ func _ready() -> void:
 ## hides the arc when [param passenger] is null.
 func show_passenger(passenger: Passenger) -> void:
 	if passenger and passenger.origin and passenger.destination:
-		show_trip(passenger.origin, passenger.destination)
+		show_trip(passenger.origin, passenger.destination, Race.SKIN_COLORS[passenger.race])
 	else:
 		hide_trip()
 
 
-## Shows the arc from [param from] to [param to]. The same trip again, even while it fades
-## out, carries on without growing again.
-func show_trip(from: Planet, to: Planet) -> void:
+## Shows the arc from [param from] to [param to] in [param color]. The same trip again, even
+## while it fades out, carries on without growing again.
+func show_trip(from: Planet, to: Planet, color := Color.WHITE) -> void:
+	_color = color
 	if from != _from or to != _to:
 		_from = from
 		_to = to
@@ -131,8 +133,8 @@ func _process(delta: float) -> void:
 		_scroll = fmod(_scroll + flow_speed * delta, dash_pixels + gap_pixels)
 		if ring >= 1.0:
 			_pulse = fmod(_pulse + delta / pulse_seconds, 1.0)
-	_arc_material.set_shader_parameter(&"color", _to.icon_color)
-	_ring_material.set_shader_parameter(&"color", _to.icon_color)
+	_arc_material.set_shader_parameter(&"color", _color)
+	_ring_material.set_shader_parameter(&"color", _color)
 	_arc_material.set_shader_parameter(&"scroll", _scroll)
 	_draw_arc(grown)
 	if ring > 0.0:

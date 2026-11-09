@@ -10,7 +10,7 @@ extends Control
 ## and the gap under it, so it closes up without a jump when it shrinks.
 ## The pointer over the row, or a click on it, shows where they are going (the dock panel
 ## decides which), and the row whose trip shows is [member highlighted]: a border in their
-## destination's icon colour.
+## race's skin colour.
 
 ## The player pressed the button to pick up [member passenger].
 signal board_pressed(passenger: Passenger)
@@ -44,7 +44,7 @@ var can_board := true:
 ## Where the portrait is rendered. Set it before [member passenger].
 var portrait_studio: PortraitStudio
 
-## Whether the row's trip is the one shown: a border in the destination's icon colour.
+## Whether the row's trip is the one shown: a border in their race's skin colour.
 var highlighted := false:
 	set(value):
 		if value == highlighted:
@@ -124,7 +124,7 @@ func _show_highlight() -> void:
 	if not style:
 		return
 	style.set_border_width_all(HIGHLIGHT_BORDER)
-	style.border_color = passenger.destination.icon_color
+	style.border_color = Race.SKIN_COLORS[passenger.race]
 	style.bg_color.a += HIGHLIGHT_LIGHTEN
 	panel.add_theme_stylebox_override(&"panel", style)
 
