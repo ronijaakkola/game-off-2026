@@ -270,6 +270,21 @@ func test_the_player_s_hold_serves_by_hand_and_speeds_up_an_amenity() -> void:
 	assert_object(passenger.request).is_null()
 
 
+func test_a_hold_ends_with_the_request_it_served() -> void:
+	var passenger := _passenger(_away, 0.1)
+	_cabin.board(passenger)
+	_cabin.docked = false
+	_cabin._process(0.2)
+	# Never let go, as when the button hides under the pointer.
+	_cabin.hold_serve(passenger, true)
+	_run(Cabin.HAND_SECONDS + 0.1)
+	assert_object(passenger.request).is_null()
+
+	passenger.request = passenger.type.needs[0]
+	_run(1.0)
+	assert_float(passenger.serving).is_equal(0.0)
+
+
 func test_amenities_follow_the_bus_s_traits() -> void:
 	var stats := BusStats.new()
 	_cabin.follow(stats)

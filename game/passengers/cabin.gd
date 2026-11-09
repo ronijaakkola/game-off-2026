@@ -237,7 +237,8 @@ func _step() -> void:
 
 # Feeds [param passenger]'s open request for [param delta] seconds: from the amenity serving
 # it, or the first with room once one has, and from the player's hand while held. Someone
-# waiting for an amenity to have room shows it.
+# waiting for an amenity to have room shows it. A hold ends with the request it served, so
+# the next one never starts filling by itself.
 func _serve_request(passenger: Passenger, delta: float) -> void:
 	var request := passenger.request
 	var amenity: Amenity = _served_by.get(passenger)
@@ -245,6 +246,7 @@ func _serve_request(passenger: Passenger, delta: float) -> void:
 		_served_by.erase(passenger)
 		amenity = null
 	if not request:
+		_hands.erase(passenger)
 		return
 	var waiting_for: Amenity = null
 	if not amenity and request.food:
@@ -269,6 +271,7 @@ func _serve_request(passenger: Passenger, delta: float) -> void:
 		passenger.feed(rate * delta, portion)
 	if not passenger.request:
 		_served_by.erase(passenger)
+		_hands.erase(passenger)
 
 
 # How many requests [param amenity] serves now.
