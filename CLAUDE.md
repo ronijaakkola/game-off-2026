@@ -14,7 +14,7 @@ Ask the human before changing anything outside the repo, such as export template
 
 Run checks exactly as `uv run tools/check.py <command>`. That text is allowlisted, and the script owns every Godot flag.
 
-Keep the loop short while a feature takes shape: `load` (10 s) and the suites for what you touched. The full `test` and `smoke` take a minute and a half each, so they run once, in `all`, when the feature works. CI runs everything again on the PR.
+Keep the loop short while a feature takes shape: `load` (10 s) and the suites for what you touched (about 7 s). The full `test` and `smoke` take about 15 s each, so they run in `all` when the feature works, not after every edit. CI runs everything again on the PR.
 
 | Command | When |
 |---|---|
@@ -26,7 +26,7 @@ Keep the loop short while a feature takes shape: `load` (10 s) and the suites fo
 | `capture <scene> [--size WxH] [--frames N] [-- args]` | When a visual change is done, not after every tweak. Then open the last frame it names and look at it. `--size` scales the game as a browser window does (text and UI sharpness show only then); args after `--` reach the scene through `OS.get_cmdline_user_args()`. |
 | `evidence [frame]` | When a PR body needs a frame. Pushes the last capture frame, or the one given, to the `pr-evidence` branch and prints the image line to paste under Evidence. |
 | `api <query>` | Before using a Godot API you aren't sure exists in 4.7.2. `Class`, `Class.member`, or a word to search for. |
-| `all` | Once, before handoff, when the feature works. Runs `lint` and `load`, then `test` and `smoke` at the same time, which can take over the Bash tool's default 2 minutes: give it `timeout: 600000`. When it fails, fix it with the failing step on just what failed (`test <suite>`, `smoke <scene>`), then run `all` once more. |
+| `all` | Once, before handoff, when the feature works. Runs `lint` and `load`, then `test` and `smoke` at the same time, in about 20 s. Give it `timeout: 600000` anyway: a hung test stops only at the 300 s Godot timeout. When it fails, fix it with the failing step on just what failed (`test <suite>`, `smoke <scene>`), then run `all` once more. |
 | `export [--preview]` | After changes to export presets, `project.godot` or `addons/`. Exports Web to `build/web/` and boots it; `--preview` exports the preview build to `build/web-preview/` instead. |
 
 ## Handoff
