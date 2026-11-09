@@ -88,6 +88,7 @@ func test_clicking_serve_on_a_card_serves_the_request() -> void:
 	var cabin := _cabin(runner)
 	var passenger := _passenger(auto_free(Planet.new()), 0.05)
 	cabin.board(passenger)
+	cabin.docked = false
 	await runner.simulate_frames(10, 20)
 	assert_object(passenger.request).is_not_null()
 

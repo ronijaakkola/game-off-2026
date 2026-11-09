@@ -24,19 +24,19 @@ func test_boards_until_the_seats_are_full() -> void:
 	assert_int(_cabin.get_passengers().size()).is_equal(2)
 
 
-func test_patience_starts_running_down_when_the_bus_leaves() -> void:
+func test_the_ride_starts_when_the_bus_leaves() -> void:
 	var passenger := _passenger(_away)
 	_cabin.board(passenger)
 	passenger.tick(10.0, true)
-	assert_float(passenger.patience).is_equal(passenger.patience_max)
+	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS)
 
 	_cabin.docked = false
 	passenger.tick(10.0, false)
 
-	assert_float(passenger.patience_max - passenger.patience).is_equal_approx(10.0, 0.001)
+	assert_float(passenger.happiness).is_greater(Passenger.BASE_HAPPINESS)
 
 
-func test_boarding_on_the_frame_the_bus_arrives_still_holds_patience() -> void:
+func test_boarding_on_the_frame_the_bus_arrives_still_holds_happiness() -> void:
 	# On the frame the bus docks, docked is still false from before it moved.
 	_cabin.docked = false
 	var passenger := _passenger(_away)
@@ -45,17 +45,59 @@ func test_boarding_on_the_frame_the_bus_arrives_still_holds_patience() -> void:
 	_cabin.docked = true
 	passenger.tick(10.0, true)
 
-	assert_float(passenger.patience).is_equal(passenger.patience_max)
+	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS)
 
 
-func test_patience_holds_while_the_bus_parks() -> void:
+func test_happiness_holds_while_the_bus_parks() -> void:
 	var passenger := _passenger(_away)
 	_cabin.board(passenger)
 	_cabin.docked = false
 	_cabin.parking = true
 	_cabin._process(10.0)
 
-	assert_float(passenger.patience).is_equal(passenger.patience_max)
+	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS)
+
+
+func test_a_kick_scares_everyone_left_on_board() -> void:
+	var kicked := _passenger(_away)
+	var staying := _passenger(_away)
+	_cabin.board(kicked)
+	_cabin.board(staying)
+
+	assert_bool(_cabin.kick(kicked)).is_true()
+
+	assert_float(staying.happiness).is_equal(Passenger.BASE_HAPPINESS + Cabin.KICK_SHOCK)
+	assert_float(kicked.happiness).is_equal(Passenger.BASE_HAPPINESS)
+
+
+func test_following_other_stats_stops_following_the_first() -> void:
+	var first := BusStats.new()
+	var second := BusStats.new()
+	_cabin.follow(first)
+	_cabin.follow(second)
+
+	first.get_traits().add(BusTraits.Type.GAMEPADS)
+	assert_float(_cabin.comfort.bonus).is_equal(0.0)
+	second.get_traits().add(BusTraits.Type.GAMEPADS)
+	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMEPADS_BONUS)
+
+
+func test_comfort_follows_the_bus_s_traits() -> void:
+	var stats := BusStats.new()
+	_cabin.follow(stats)
+	assert_float(_cabin.comfort.bonus).is_equal(0.0)
+	assert_bool(_cabin.comfort.can_sleep()).is_false()
+
+	stats.get_traits().add(BusTraits.Type.GAMEPADS)
+	stats.get_traits().add(BusTraits.Type.PILLOWS)
+
+	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMEPADS_BONUS)
+	assert_float(_cabin.comfort.sleep_max).is_equal(Comfort.PILLOW_NAP_MAX)
+
+	stats.get_traits().add(BusTraits.Type.SLEEPING_PODS)
+
+	assert_float(_cabin.comfort.sleep_max).is_equal(Comfort.POD_SLEEP_MAX)
+	assert_float(_cabin.comfort.sleep_clock).is_equal(Comfort.POD_CLOCK)
 
 
 func test_only_passengers_going_there_get_off_and_pay() -> void:
@@ -184,6 +226,7 @@ func test_an_amenity_serves_its_need_as_soon_as_it_is_asked_for() -> void:
 	_cabin.amenities = [dispenser]
 	var passenger := _passenger(_away, 0.5)
 	_cabin.board(passenger)
+	_cabin.docked = false
 
 	await await_millis(800)
 

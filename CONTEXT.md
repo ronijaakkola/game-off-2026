@@ -97,12 +97,16 @@ What brings a bus that ran out of fuel in space to the nearest planet, slowly an
 _Avoid_: rescue, respawn
 
 **Passenger**:
-Someone riding the bus to a destination planet, with a fare, a patience that runs down during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
+Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
 _Avoid_: customer, rider, NPC
 
-**Patience**:
-How much more riding a passenger will take, in seconds, starting at the direct trip time with some slack.
-_Avoid_: frustration, timer, budget
+**Happiness**:
+How content a passenger is, from 0 to 100, sliding toward a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. It sets the mood and the rating. `Passenger.happiness` in code.
+_Avoid_: satisfaction, morale, frustration, patience (what it replaced)
+
+**Comfort**:
+What the bus's comfort upgrades give everyone on board: a bonus on the happiness they settle at, and how fast their ride's clock runs awake and asleep. `Comfort` in code, read off the bus's traits.
+_Avoid_: luxury, amenities (the things that serve needs)
 
 **Rating**:
 The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **average rating** is the mean of every rating so far, shown in the **resource bar**. `Passenger.get_rating()`, and `Ledger.rate()` for the average, in code.
@@ -114,7 +118,7 @@ _Avoid_: avatar, face, picture
 
 **Race**:
 Which kind of alien a passenger is: blue, orange or green, shown as their skin colour and the build of their head. Delivering them earns a research point of it. `Race.Type` in code.
-_Avoid_: species, colour (that is how it shows), passenger type (fare, patience and needs)
+_Avoid_: species, colour (that is how it shows), passenger type (fare, slack and needs)
 
 **Research point**:
 What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `Ledger.earn_research()` in code.

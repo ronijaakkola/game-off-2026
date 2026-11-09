@@ -6,8 +6,9 @@ extends Resource
 @export var display_name := "Passenger"
 ## Multiplies the trip's base fare.
 @export_range(0.0, 5.0, 0.05) var fare_multiplier := 1.0
-## Patience at boarding, as a multiple of the direct trip time.
-@export_range(1.0, 5.0, 0.05) var patience_slack := 1.5
+## How long they expect the ride to take, as a multiple of the direct trip time. Their
+## timing only starts to cost happiness past it.
+@export_range(1.0, 5.0, 0.05) var slack := 1.5
 ## What they ask for during a ride. Each need keeps its own timer.
 @export var needs: Array[Need] = []
 ## What the card says they are doing while nothing is asked for.

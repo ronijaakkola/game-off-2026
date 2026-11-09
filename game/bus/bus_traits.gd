@@ -16,6 +16,14 @@ enum Type {
 	FUEL_FORECAST,
 	## Shows how many passengers wait at each planet, under its name.
 	WAITING_MARKERS,
+	## Lets passengers take short naps ([Comfort]).
+	PILLOWS,
+	## Lets passengers sleep long, with their clock slower still. Beats pillows.
+	SLEEPING_PODS,
+	## A little fun on board: happier passengers, and a slightly slower clock.
+	GAMEPADS,
+	## More fun, on top of the gamepads'.
+	ENTERTAINMENT_SYSTEM,
 }
 
 # How many times each trait the bus has was added and not yet taken out.

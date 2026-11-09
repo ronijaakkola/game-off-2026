@@ -76,7 +76,7 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 		_cards.erase(passenger)
 		# Does nothing when getting_off already showed it, as at every stop. It covers a card
 		# that missed getting_off, such as one made after the stop began; the rating can't
-		# have changed, since patience stops when a passenger leaves their seat.
+		# have changed, since happiness stops when a passenger leaves their seat.
 		card.show_rating(passenger.get_rating())
 		card.leave()
 

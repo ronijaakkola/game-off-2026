@@ -31,7 +31,8 @@ extends Node3D
 ## they let go, the tank is full or the credits run out.
 ## When the bus runs out of fuel in space, a tow ship comes out from the nearest planet,
 ## hitches on and pulls it there, where it docks with a full tank and the tow costs
-## [constant TOW_FEE] credits, or all the player has when that is less.
+## [constant TOW_FEE] credits, or all the player has when that is less. Its hooking on
+## scares everyone on board ([constant TOW_SHOCK]).
 
 ## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
 ## small, far planet stays easy to hit.
@@ -52,6 +53,8 @@ const CAMERA_HOST_PRIORITY := 300
 const MARKER_GAP_PIXELS := 4.0
 ## What a tow costs, in credits.
 const TOW_FEE := 20
+## The scare everyone on board takes when the tow ship hooks on.
+const TOW_SHOCK := -15.0
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 ## The percent of top speed and of the fuel tank the debug panel's stat buttons add or take
@@ -108,6 +111,7 @@ func _ready() -> void:
 	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
 	bus.towed.connect(_on_bus_towed)
 	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
+	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self)
 	var percent := StatModifier.Kind.PERCENT
 	_add_debug_stat_buttons(BusStats.Type.MAX_SPEED, percent, DEBUG_STAT_PERCENT, "% top speed")
 	_add_debug_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, DEBUG_STAT_PERCENT, "% fuel tank")
@@ -338,6 +342,7 @@ func _on_bus_ran_out_of_fuel() -> void:
 	var ship := TOW_SHIP.instantiate() as TowShip
 	add_child(ship)
 	ship.hitched.connect(bus.tow_to.bind(nearest))
+	ship.hitched.connect((%Cabin as Cabin).shock.bind(TOW_SHOCK))
 	ship.come_for(bus, nearest)
 
 
@@ -407,6 +412,12 @@ func _debug_change_stat(type: BusStats.Type, kind: StatModifier.Kind, amount: in
 	if amount < 0 and stat.get_value() <= stat.minimum:
 		return
 	stats.add_modifier(StatModifier.new(type, kind, amount))
+
+
+# The debug panel's Scare passengers: everyone on board takes a kick's shock, without
+# anyone being kicked.
+func _debug_scare_passengers() -> void:
+	(%Cabin as Cabin).shock(Cabin.KICK_SHOCK)
 
 
 # The debug panel's trait buttons: gives the bus the trait, as an upgrade would, or takes

@@ -41,12 +41,13 @@ column = 2
 [sub_resource type="Resource" id="Resource_gamepads"]
 script = ExtResource("2_upgrade")
 title = "Gamepads"
-description = "NOT IMPLEMENTED"
+description = "Something to play: passengers are a little happier, and the ride feels a little shorter."
 icon = ExtResource("6_gamepad_2")
 credits = 20
 points = Dictionary[int, int]({
 1: 2
 })
+traits = Array[int]([4])
 column = 4
 
 [sub_resource type="Resource" id="Resource_extra_seat_2_mod"]
@@ -70,13 +71,14 @@ tier = 1
 [sub_resource type="Resource" id="Resource_pillows"]
 script = ExtResource("2_upgrade")
 title = "Pillows"
-description = "NOT IMPLEMENTED"
+description = "Passengers take short naps, and time passes slower while they doze."
 icon = ExtResource("7_bed_single")
 credits = 45
 points = Dictionary[int, int]({
 1: 4
 })
 requires = Array[Resource]([SubResource("Resource_extra_seat_1"), SubResource("Resource_food_dispenser_1")])
+traits = Array[int]([2])
 tier = 1
 column = 1
 
@@ -96,13 +98,14 @@ column = 2
 [sub_resource type="Resource" id="Resource_entertainment_system"]
 script = ExtResource("2_upgrade")
 title = "Entertainment system"
-description = "NOT IMPLEMENTED"
+description = "Films on board: passengers are happier, and the ride feels shorter."
 icon = ExtResource("8_tv")
 credits = 45
 points = Dictionary[int, int]({
 1: 4
 })
 requires = Array[Resource]([SubResource("Resource_gamepads")])
+traits = Array[int]([5])
 tier = 1
 column = 4
 
@@ -127,13 +130,14 @@ tier = 2
 [sub_resource type="Resource" id="Resource_sleeping_pods"]
 script = ExtResource("2_upgrade")
 title = "Sleeping pods"
-description = "NOT IMPLEMENTED"
+description = "Passengers sleep long and deep, and the ride flies by while they do."
 icon = ExtResource("9_bed_double")
 credits = 90
 points = Dictionary[int, int]({
 1: 7
 })
 requires = Array[Resource]([SubResource("Resource_extra_seat_2"), SubResource("Resource_pillows")])
+traits = Array[int]([3])
 tier = 2
 column = 1
 

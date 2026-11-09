@@ -15,8 +15,8 @@ const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const COLUMNS: Array[String] = [
 	"Okay", "Happy", "Annoyed", "Furious", "Joyful", "Eating", "Drinking", "Watching"
 ]
-# Patience left, as a fraction of the full amount, for each column.
-const PATIENCE: Array[float] = [0.45, 0.9, 0.2, 0.0, 0.9, 0.45, 0.45, 0.45]
+# Happiness, as a fraction of the most, for each column.
+const HAPPINESS: Array[float] = [0.6, 0.9, 0.35, 0.0, 0.9, 0.6, 0.6, 0.6]
 const JOYFUL := 4
 # The need served to each column's passengers, by id, or none.
 const SERVED: Dictionary[int, StringName] = {5: &"snack", 6: &"drink", 7: &"entertainment"}
@@ -47,7 +47,7 @@ func _ready() -> void:
 		for column: int in COLUMNS.size():
 			var photo := PHOTO.instantiate() as PassengerPhoto
 			photo.studio = _studio_with_room()
-			photo.passenger = _passenger(rows[row][0], rows[row][1], row, PATIENCE[column], home)
+			photo.passenger = _passenger(rows[row][0], rows[row][1], row, HAPPINESS[column], home)
 			if SERVED.has(column):
 				_serve(photo.passenger, SERVED[column])
 			photo.riding = column != JOYFUL
@@ -74,11 +74,11 @@ func _studio_with_room() -> PortraitStudio:
 
 # [param row]'s passenger, of [param race] with [param head]; rows take turns at eye style.
 func _passenger(
-	race: Race.Type, head: PackedScene, row: int, patience: float, home: Planet
+	race: Race.Type, head: PackedScene, row: int, happiness: float, home: Planet
 ) -> Passenger:
 	var passenger := Passenger.new(COMMUTER, home, 60.0, 40.0)
 	passenger.origin = home
-	passenger.patience = passenger.patience_max * patience
+	passenger.happiness = Passenger.MAX_HAPPINESS * happiness
 	passenger.look.head = head
 	var style := row + (1 if "swap" in OS.get_cmdline_user_args() else 0)
 	passenger.look.eye_style = AlienLook.EYE_STYLES[style % AlienLook.EYE_STYLES.size()]
