@@ -36,6 +36,8 @@
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="101_glass"]
 [ext_resource type="Script" uid="uid://b7b5a7k6hdr7s" path="res://game/solar_system/hud_layout.gd" id="102_hud"]
 [ext_resource type="Texture2D" uid="uid://qrc7n3h4glnm" path="res://game/solar_system/icons/info.svg" id="102_info"]
+[ext_resource type="Script" uid="uid://ddct1wfbig2em" path="res://game/solar_system/debug_buttons.gd" id="103_debug"]
+[ext_resource type="Script" uid="uid://g6mjlpc3bau8" path="res://game/goals/goal_tracker.gd" id="104_goals"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -291,6 +293,17 @@ start_planet = NodePath("../Ember")
 [node name="Cabin" type="Node" parent="." unique_id=1517490635]
 unique_name_in_owner = true
 script = ExtResource("13_cabin")
+
+[node name="Goals" type="Node" parent="." unique_id=695480791 node_paths=PackedStringArray("bus", "cabin")]
+unique_name_in_owner = true
+script = ExtResource("104_goals")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+
+[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin")]
+script = ExtResource("103_debug")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
 
 [node name="FuelPump" type="Node" parent="." unique_id=2138476615]
 unique_name_in_owner = true

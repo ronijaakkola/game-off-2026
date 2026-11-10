@@ -280,13 +280,18 @@ Three planets have a tree, each paid for with one race's points. The rest have n
 - **Orange, at Giant** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
   - Every upgrade in it is implemented.
 
-## Goal
+## Goals
 
-A temporary goal while the loop is tuned. *(not built)*
-
-- **Win:** deliver 30 passengers.
-- **Lose:** the happiness score stays at 0 for 20 s.
-- The **happiness score** is the average happiness of everyone on board. The countdown pauses while the bus is empty.
+- **Several at once.** The player can have any number of goals; each counts from when it is given, not from the start of the run.
+- **A milestone** is done once and stays done: deliver 50 passengers. Kicked passengers don't count.
+- **A standing goal** is met or not as things stand, and is never done: keep a 4.0 average rating. It isn't met until a set number of rides are rated (at least 1), so one lucky first ride doesn't meet it. Dropping below makes it unmet, not failed.
+- **A quest** is a goal about one passenger, and fails if they are kicked:
+  - Deliver them to their destination.
+  - Fly them past a planet: while they ride, the bus comes within 3 units of its surface in flight, having been out of reach since they boarded. Leaving the planet they boarded at isn't a flyby, coming back to it is, and flying in to dock there counts. It fails if they leave the bus first, however they leave.
+- **All met** means every milestone done and every standing goal holding.
+- **A run starts with two goals:** deliver 30 passengers, and keep a 4.0 average rating.
+- *(not built)* Quests turning up, and showing goals on screen.
+- *(not built)* A temporary win and lose while the loop is tuned. **Win:** every goal met at once. **Lose:** the happiness score, the average happiness of everyone on board, stays at 0 for 20 s; the countdown pauses while the bus is empty.
 
 ## Controls
 

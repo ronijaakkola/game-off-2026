@@ -15,7 +15,7 @@ Folders are by feature:
 | `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config, and Phantom Camera, vendored without its `examples/` folder. |
 | `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
-| `game/<feature>/` | The game, one folder per feature: `game/bus/`, `game/passengers/`, `game/research/`, `game/solar_system/`. |
+| `game/<feature>/` | The game, one folder per feature: `game/bus/`, `game/goals/`, `game/passengers/`, `game/research/`, `game/solar_system/`. |
 | `shared/` | Assets used by more than one feature, such as `shared/two_tone.gdshader`. |
 | `test/` | gdUnit4 tests, and preview scenes in `test/previews/` (Visual checks and previews). |
 | `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
