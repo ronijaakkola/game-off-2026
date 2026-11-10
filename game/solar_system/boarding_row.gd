@@ -124,7 +124,7 @@ func _show() -> void:
 	var photo := %PassengerPhoto as PassengerPhoto
 	photo.studio = portrait_studio
 	photo.passenger = passenger
-	(%NameLabel as Label).text = passenger.name
+	(%NameLabel as Label).text = passenger.get_title()
 	(%DestinationIcon as PlanetIcon).planet = passenger.destination
 	(%DestinationLabel as Label).text = _destination_name()
 	(%FareLabel as Label).text = "%d cr" % roundi(passenger.fare)

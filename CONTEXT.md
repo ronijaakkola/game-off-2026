@@ -122,7 +122,7 @@ What the bus's comfort upgrades give everyone on board: a bonus on the happiness
 _Avoid_: luxury, amenities (the things that serve needs)
 
 **Rating**:
-The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **average rating** is the mean of every rating so far, shown in the **resource bar**. `Passenger.get_rating()`, and `Ledger.rate()` for the average, in code.
+The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **recent rating** is the mean of the last 10, shown in the **resource bar**; its **band** sets how many of the passengers who turn up are Business (`RatingBand`). The **average rating** is the mean of every rating so far. `Passenger.get_rating()`, and `Ledger.rate()`, `Ledger.get_recent_rating()` in code.
 _Avoid_: review, score
 _Never_: reputation
 

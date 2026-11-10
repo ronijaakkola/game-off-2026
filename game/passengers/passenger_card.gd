@@ -353,7 +353,7 @@ func _show() -> void:
 		return
 	# A new passenger's lines appear at once; later changes morph.
 	var first := _mood == -1
-	_set_text(%NameLabel, passenger.name)
+	_set_text(%NameLabel, passenger.get_title())
 	var icon := %DestinationIcon as PlanetIcon
 	if icon.planet != passenger.destination:
 		icon.planet = passenger.destination
