@@ -34,21 +34,21 @@ import bmesh
 import bpy
 import library
 
-piece = library.model("piece", "game/board/models/piece.glb")  # new: placed beside the others
-library.clear(piece)  # rebuilding: start empty
+crate = library.model("crate", "game/bus/models/crate.glb")  # new: placed beside the others
+library.clear(crate)  # rebuilding: start empty
 
-mesh = bpy.data.meshes.new("Piece")
+mesh = bpy.data.meshes.new("Crate")
 bm = bmesh.new()
 bmesh.ops.create_cube(bm, size=1.0)
 bmesh.ops.scale(bm, vec=(0.8, 0.8, 0.4), verts=bm.verts)
 bmesh.ops.translate(bm, vec=(0, 0, 0.2), verts=bm.verts)  # origin at the bottom centre
 bm.to_mesh(mesh)
 bm.free()
-body = library.add(piece, bpy.data.objects.new("Piece", mesh))  # build at the origin, add() moves it into place
+body = library.add(crate, bpy.data.objects.new("Crate", mesh))  # build at the origin, add() moves it into place
 ...
 
 bpy.context.view_layer.update()
-assert sorted(o.name for o in piece.objects) == ["Piece", "Piece-colonly"]
+assert sorted(o.name for o in crate.objects) == ["Crate", "Crate-colonly"]
 assert tuple(round(d, 4) for d in body.dimensions) == (0.8, 0.8, 0.4), body.dimensions
 ```
 

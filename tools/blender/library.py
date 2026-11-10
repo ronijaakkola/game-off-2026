@@ -31,7 +31,7 @@ SPACING = 1.0
 
 def model(name: str, glb: str) -> bpy.types.Collection:
     """The collection for model `name`, exported to `glb`, a path from the project root
-    such as "game/models/piece.glb". A new one is placed beside the other models."""
+    such as "game/bus/models/tow_ship.glb". A new one is placed beside the other models."""
     collection = bpy.data.collections.get(name)
     if collection is None:
         collection = bpy.data.collections.new(name)

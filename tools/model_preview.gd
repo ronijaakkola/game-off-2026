@@ -1,7 +1,7 @@
 extends Node3D
 ## Shows the model given after `--` on the command line, framed from the front right.
 ## `uv run tools/blender.py export` captures it:
-## `godot --path . --scene res://tools/model_preview.tscn -- res://game/models/piece.glb`
+## `godot --path . --scene res://tools/model_preview.tscn -- res://game/bus/models/tow_ship.glb`
 
 ## Camera direction from the model: front (+Z), right and above.
 const VIEW := Vector3(1.0, 0.8, 1.6)
