@@ -16,7 +16,9 @@ extends Node
 ## and `dock` opens nothing, so the dock panel shows its Research button. `-- Tow` opens
 ## the bus, so the camera follows it, and sends it off with fuel for eight units, so it runs
 ## dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
-## the whole tow takes about 32 s (`--frames 1900`).
+## the whole tow takes about 32 s (`--frames 1900`). `-- Showcase` fills the cabin, every
+## planet's line, the credits, research and rating, and charges for Giant, for a busy
+## screenshot (`--frames 290`); `-- Showcase clean` hides the HUD.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 
