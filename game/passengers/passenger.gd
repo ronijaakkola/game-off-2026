@@ -148,6 +148,12 @@ func _init(
 	look = AlienLook.random(_rng, race)
 
 
+## Their name, after their type's tag when it has one: "Business · Vontti". The tag comes
+## first so that it still reads where a narrow row cuts the line short.
+func get_title() -> String:
+	return "%s · %s" % [type.tag, name] if type.tag else name
+
+
 ## The mood for [param value] of happiness: happy at 70 or more, okay at 50 or more,
 ## annoyed at 25 or more, furious below.
 static func mood_for(value: float) -> Mood:
@@ -379,7 +385,8 @@ func _idle(comfort: Comfort) -> void:
 
 
 func _interval(need: Need) -> float:
-	return _rng.randf_range(need.min_interval, maxf(need.min_interval, need.max_interval))
+	var seconds := _rng.randf_range(need.min_interval, maxf(need.min_interval, need.max_interval))
+	return seconds * type.need_interval_scale
 
 
 func _pick(lines: Array[String]) -> String:

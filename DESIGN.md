@@ -67,10 +67,32 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 ### Waiting
 
-- Each planet gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random.
+- Each planet gets a new passenger every 8 to 20 s, up to 3 waiting. Who they are is under Who turns up.
 - Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
 - Happiness holds while they wait.
 - **The start.** The bus is empty and docked at Ember, with 2 passengers waiting there and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go.
+
+### Who turns up
+
+- **Decided when first seen.** A waiting passenger is only a count until the player first sees the line, by docking at the planet or opening it. Then each undecided passenger in it gets a destination, a race and a type, one after another, and keeps them. Lines fill about 40 s before the bus arrives, so deciding late is what lets a line answer the bus as it is now.
+- Anything that shows a line from afar counts as seeing it. The waiting markers show only a count, so they don't.
+- **Destination** is a weighted roll among the other planets, each at weight 1: ×2.5 if someone on board is going there, ×1.5 if someone already in the line is.
+- **No more than two** in a line go to the same planet, so a line always holds a choice.
+- A match with who is on board is likely, never certain. A certain one stops being a reward, and turns the bus into a shuttle between two planets.
+- Destinations aren't dealt from a bag: dealing without repeats makes two going the same way rarer than chance does.
+- **Race** is dealt from one shuffled bag of six, two of each race, so no race stays away for long.
+- **Type** goes by the band the recent rating is in (Rating). Upgrades aren't read: a bare bus sits at about 3 to 3.3 stars, so the rating already tells what the bus has.
+
+| Recent rating | Commuter | Business |
+|---|---|---|
+| Under 3.5 | 95 % | 5 % |
+| 3.5 to 4.25 | 75 % | 25 % |
+| 4.25 and up | 55 % | 45 % |
+
+- **A full line has a Commuter:** at most one Business passenger in a line in the lowest band, two above it.
+- *(not built)* A type whose needs take an amenity doesn't turn up until the bus has it. No need takes one yet.
+- **Leaving.** Once a line has been seen, its longest-waiting passenger leaves after 60 s without being picked up, then the next after 60 s more, so a line the player passes over doesn't stay the same for good. Nobody leaves while the bus is docked there.
+- Leaving costs the player nothing. The place fills again on the planet's clock, with someone undecided.
 
 ### Stops and boarding
 
@@ -86,6 +108,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - Both come from the straight distance at boarding. Planets move, so they are estimates.
 - **Trip time** is the charge plus that distance at the bus's *base* top speed. **Expected time** is the trip time times the type's slack.
 - **Fare** is 3 credits per unit times the type's multiplier.
+- Both are set when the passenger is decided (Who turns up), from where the planets are then.
 - A faster bus gets passengers there before they expect it. Speed upgrades make passengers happier rather than more demanding.
 - **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing.
 
@@ -172,7 +195,11 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 ### Passenger types
 
 - A type is data: fare multiplier, slack, needs, and the lines and names it uses.
-- There is one, the Commuter.
+- There are two, the Commuter and Business.
+- **Business** pays more and is harder to please, through tighter slack and more frequent requests, never a lower starting happiness. On a bare bus a near-direct trip with requests served within a few seconds gets three stars and the full fare; four stars takes upgrades.
+- Business pays 1.6× with a slack of 1.2, and asks for the Commuter's snack and drink at 0.6 of the time between requests.
+- The Commuter's slack stays loose (1.5): it is the passenger that makes a route with several stops work.
+- The player can tell a Business passenger from a Commuter wherever they pick passengers and on board.
 - Race and type are independent: any race can be any type.
 
 ### Races and research points
@@ -186,7 +213,10 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 ### Rating
 
 - The player's **average rating** is the mean of every rating so far.
-- It changes nothing else yet (Open questions).
+- It changes nothing yet.
+- The **recent rating** is the mean of the last 10 ratings. It sets which types turn up (Who turns up), and it is the rating the player is shown, so the stars and what they explain are one number.
+- The star rating says which types the band attracts and what the next one brings, as bands, not odds.
+- *(not built)* The player is told the first time the recent rating reaches a new band, and not again on coming back to it.
 
 ## Research
 
@@ -303,7 +333,8 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 
 Features we will very probably build, but that need more design work first.
 
-- **Passenger types.** Around three, with different qualities. The prototype had Business (pays 1.6×, expects a fast ride), Tourist (pays 1×, in no hurry) and Student (pays 0.7×, in between). Types also differ in what they need on board, so a rich passenger might want a sleeping pod where a student wants only snacks.
+- **Business passengers' own needs.** Types can also differ in what they need on board, so a Business passenger might want a sleeping pod where a Commuter wants only snacks.
+- **VIPs.** Rare passengers who turn up as announced events once the recent rating is in the top band, outside the rules for who turns up, with requests of another kind, such as visiting planets.
 - **Environment.** How space affects the bus and passengers. A hot star makes passengers on a route near it hot; a big planet's gravity slows the bus down near it.
 - **Depots.** Whether fuel stays on sale at every planet.
 
@@ -312,11 +343,11 @@ Features we will very probably build, but that need more design work first.
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.
 - **How often passengers sleep.** Too short between sleeps and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since costs go by row.
-- **What the rating does.** Options: it sets how often passengers turn up or which types do, it gates upgrades, or it is the leaderboard score. Also whether the average should weigh recent rides more.
+- **What else the rating does.** Besides setting which types turn up: whether it gates upgrades, or is the leaderboard score.
 - **The tow's price and speed.** 100 credits, which can take the credits below zero, and 0.4 units a second over the planet's speed.
 - **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
-- **Race and type.** Whether they stay independent, or a race leans toward some types or planets, so the player can hunt for one kind of point.
+- **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
 - **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype.
 - **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
 

@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://ct4to1se3fvep" path="res://game/bus/bus.tscn" id="12_bus"]
 [ext_resource type="Script" uid="uid://ddec1r5comhsp" path="res://game/passengers/cabin.gd" id="13_cabin"]
 [ext_resource type="Script" uid="uid://oe3t6qyh76h4" path="res://game/passengers/waiting_passengers.gd" id="14_waiting"]
+[ext_resource type="Resource" uid="uid://60rsjhpcpto3" path="res://game/passengers/types/business.tres" id="15_business"]
 [ext_resource type="Resource" uid="uid://bbro62vlymeqe" path="res://game/passengers/types/commuter.tres" id="15_commuter"]
 [ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="16_type"]
 [ext_resource type="PackedScene" uid="uid://lhx0mmtinvdx" path="res://game/passengers/passenger_panel.tscn" id="17_panel"]
@@ -297,11 +298,13 @@ resource_bar = NodePath("../Hud/ResourceBar")
 planet_panel = NodePath("../Hud/PlanetPanel")
 research_overview = NodePath("../Hud/ResearchOverview")
 
-[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus")]
+[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus", "cabin")]
 unique_name_in_owner = true
 script = ExtResource("14_waiting")
 types = Array[ExtResource("16_type")]([ExtResource("15_commuter")])
+business = ExtResource("15_business")
 bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
 
 [node name="PortraitStudio" parent="." unique_id=1933731670 instance=ExtResource("22_studio")]
 unique_name_in_owner = true

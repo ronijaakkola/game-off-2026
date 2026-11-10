@@ -290,8 +290,7 @@ func _update_fade(delta: float) -> void:
 func _start_passengers() -> void:
 	var bus := %Bus as FrameshiftBus
 	var waiting := %WaitingPassengers as WaitingPassengers
-	waiting.set_planets(_planets)
-	waiting.add_starting_passengers(bus.get_docked_planet())
+	waiting.start(_planets, bus.get_docked_planet(), _ledger)
 	bus.docked.connect(_on_bus_docked)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)

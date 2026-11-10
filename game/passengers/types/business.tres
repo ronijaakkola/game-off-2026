@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PassengerType" format=3 uid="uid://60rsjhpcpto3"]
+
+[ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="1_type"]
+[ext_resource type="Resource" uid="uid://luqs0adq8oj6" path="res://game/passengers/needs/snack.tres" id="2_snack"]
+[ext_resource type="Resource" uid="uid://be5jdsgim3cu2" path="res://game/passengers/needs/drink.tres" id="3_drink"]
+[ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="4_need"]
+
+[resource]
+script = ExtResource("1_type")
+display_name = "Business"
+tag = "Business"
+fare_multiplier = 1.6
+slack = 1.2
+needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink")])
+need_interval_scale = 0.6
+idle_lines = Array[String](["Checking the time", "Reading reports", "Answering messages", "Going over the numbers", "Rehearsing a pitch"])
+sleep_lines = Array[String](["Sleeping..."])
+watch_lines = Array[String](["Watching a show", "Watching cat videos"])
+names = Array[String](["Vontti", "Tuomazus", "Ev'elinis", "Rasmusar", "Jen'na", "Auron", "Ar'tturi", "Aenna-marek", "Taepani", "Fil'ip", "Sufoi", "Vinkent", "Monno", "Iveel", "Isabelix", "Lenon", "Meoje", "Tommus", "Neeleth", "Zhen'nifer", "Reizhis", "Lileth", "Thajoni", "Zhoanna", "Evelinus", "Sisus", "Veisa", "Han'nes", "Viljanenus", "Autar"])

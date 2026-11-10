@@ -92,11 +92,11 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 ### Resource bar
 
-A frosted-glass pill: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the average rating, split by thin dividers.
+A frosted-glass pill: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
 
 - **Credits:** beside a gold dollar sign, with a comma between thousands (12,480).
 - **Research:** for each race a flask in its skin colour and its count.
-- **Rating:** the average to one decimal beside a yellow star, or a dash before the first.
+- **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: who that rating attracts, and from how many stars the next band starts.
 - **Gains and losses** float under the pill, taking no room in it: green "+15", red "-12". Each new payment at a stop pops the gain bigger and shows the new sum.
 - Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
 - The rating does the same: each one pops a gain with how far the average moved ("+0.2", "-0.3", "±0.0"). The very first just appears with a pop.
@@ -121,6 +121,7 @@ Shown while the bus is docked or charging. It stays in one place on screen, so i
 - The fuel button, where the planet sells fuel.
 - A Research button, where the planet has a tree. It opens the planet on its Research tab.
 - Who waits there, longest waiting first: portrait, name, destination, fare and a Board button. Or "Nobody waiting."
+- A Business passenger's name has their type before it, here, in the open planet's rows and on their card on board: "Business · Vontti". A Commuter's has nothing. Where the row is narrow the name is cut short, not the type.
 - After a row's destination, fainter, how many on board or picked up are going there too ("2 aboard"), so the player can group passengers.
 - A Board all button. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
 - **A row's trip.** The pointer over a row shows its trip arc. A click on the row pins it until the row is clicked again, the passenger boards or the bus leaves. The row whose trip shows has a border in their race's colour.
