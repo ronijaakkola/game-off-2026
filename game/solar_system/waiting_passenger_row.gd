@@ -1,7 +1,7 @@
 class_name WaitingPassengerRow
 extends Control
 ## One passenger waiting at a planet, as a row in its panel: their portrait (a
-## [PassengerPhoto]), their name with where they are going under it (an icon of the
+## [PassengerPhoto]), their name with where they are going under it (an arrow, an icon of the
 ## planet and its name), and their fare. It reads the passenger when [member passenger] is
 ## set; a passenger's details don't change while they wait.
 ## The root is a slot that holds the row's place in the list, and the panel moves inside it,
@@ -64,7 +64,7 @@ func _show() -> void:
 	photo.passenger = passenger
 	(%NameLabel as Label).text = passenger.name
 	(%DestinationIcon as PlanetIcon).planet = passenger.destination
-	(%DestinationLabel as Label).text = "To %s" % _destination_name()
+	(%DestinationLabel as Label).text = _destination_name()
 	(%FareLabel as Label).text = "%d credits" % roundi(passenger.fare)
 
 

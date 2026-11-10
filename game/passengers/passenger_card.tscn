@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://itg4wk4y13k" path="res://game/passengers/star_icon.gd" id="5_stars"]
 [ext_resource type="Texture2D" uid="uid://dis4faq8oc0vt" path="res://game/passengers/kick_icon.svg" id="6_kick"]
 [ext_resource type="Script" uid="uid://cucadeex8lgly" path="res://game/passengers/serve_button.gd" id="7_serve"]
+[ext_resource type="Texture2D" uid="uid://c1lifb3j2j53u" path="res://game/solar_system/icons/arrow_big_right.svg" id="20_arrow"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
 bg_color = Color(1, 1, 1, 0.12)
@@ -113,7 +114,27 @@ unique_name_in_owner = true
 layout_mode = 0
 theme_override_constants/separation = 6
 
-[node name="DestinationIcon" type="ColorRect" parent="Panel/Layout/Rows/Middle/Trip" unique_id=394251105]
+[node name="Where" type="HBoxContainer" parent="Panel/Layout/Rows/Middle/Trip" unique_id=257441111]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Arrow" type="TextureRect" parent="Panel/Layout/Rows/Middle/Trip/Where" unique_id=2036102848]
+self_modulate = Color(1, 1, 1, 0.6)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("20_arrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Planet" type="HBoxContainer" parent="Panel/Layout/Rows/Middle/Trip/Where" unique_id=712471595]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 3
+
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Layout/Rows/Middle/Trip/Where/Planet" unique_id=394251105]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(14, 14)
@@ -122,11 +143,11 @@ size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
 
-[node name="DestinationLabel" type="Label" parent="Panel/Layout/Rows/Middle/Trip" unique_id=624535876]
+[node name="DestinationLabel" type="Label" parent="Panel/Layout/Rows/Middle/Trip/Where/Planet" unique_id=624535876]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
-text = "To ?"
+text = "?"
 
 [node name="HappinessBar" type="ProgressBar" parent="Panel/Layout/Rows/Middle/Trip" unique_id=1379124599]
 unique_name_in_owner = true
