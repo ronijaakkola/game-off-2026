@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 
-const GAME := "res://game/game.tscn"
+const GAME := "res://game/solar_system/solar_system.tscn"
 
 var _runner_scene: Node
 

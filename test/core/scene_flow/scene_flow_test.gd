@@ -1,7 +1,6 @@
 extends GdUnitTestSuite
 
 const SceneFlowScript := preload("res://core/scene_flow/scene_flow.gd")
-const GAME := "res://game/game.tscn"
 const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 ## How long the simulated slow frame takes.
@@ -44,27 +43,27 @@ func after_test() -> void:
 
 
 func test_changes_the_current_scene_and_hides_the_loading_card() -> void:
-	await _flow.go_to(GAME)
-	assert_str(get_tree().current_scene.scene_file_path).is_equal(GAME)
+	await _flow.go_to(SOLAR_SYSTEM)
+	assert_str(get_tree().current_scene.scene_file_path).is_equal(SOLAR_SYSTEM)
 	assert_bool(_curtain().visible).is_false()
 
 
 func test_blocks_input_only_while_fading() -> void:
-	_flow.go_to(GAME)
+	_flow.go_to(SOLAR_SYSTEM)
 	assert_bool(get_tree().root.is_input_disabled()).is_true()
 	await assert_func(get_tree().root, "is_input_disabled").wait_until(2000).is_false()
 
 
 func test_ignores_a_call_during_a_transition() -> void:
-	_flow.go_to(GAME)
+	_flow.go_to(SOLAR_SYSTEM)
 	await _flow.go_to("res://does_not_exist.tscn")
 	await await_signal_on(get_tree(), "scene_changed", [], 2000)
-	assert_str(get_tree().current_scene.scene_file_path).is_equal(GAME)
+	assert_str(get_tree().current_scene.scene_file_path).is_equal(SOLAR_SYSTEM)
 
 
 func test_the_next_scene_starts_unpaused() -> void:
 	get_tree().paused = true
-	_flow.go_to(GAME)
+	_flow.go_to(SOLAR_SYSTEM)
 	var changed := await PauseProofWait.for_signal(get_tree().scene_changed, 2000)
 	assert_bool(changed).override_failure_message("SceneFlow never left the paused scene").is_true()
 	if is_failure():
@@ -85,7 +84,7 @@ func test_loads_only_after_a_black_frame_is_shown() -> void:
 	get_tree().current_scene = old_scene
 	old_scene.tree_exiting.connect(get_tree().process_frame.disconnect.bind(_record_shown_alpha))
 	get_tree().process_frame.connect(_record_shown_alpha)
-	await _flow.go_to(GAME)
+	await _flow.go_to(SOLAR_SYSTEM)
 	assert_float(_shown_alphas.back()).is_equal(1.0)
 
 
@@ -102,7 +101,7 @@ func test_fades_in_smoothly_after_a_slow_first_frame() -> void:
 		get_tree().process_frame.connect(_end_slow_frame)
 	get_tree().node_added.connect(set_up_slowly, CONNECT_ONE_SHOT)
 	get_tree().process_frame.connect(_record_shown_alpha)
-	await _flow.go_to(GAME)
+	await _flow.go_to(SOLAR_SYSTEM)
 	# The fade's last step ends go_to in the same frame, so the next frame would show it.
 	_record_shown_alpha()
 	var largest_step := 0.0
@@ -126,7 +125,7 @@ func test_shows_loading_while_the_next_scene_loads() -> void:
 	get_tree().current_scene = old_scene
 	var shown_during_load: Array[String] = []
 	old_scene.tree_exiting.connect(func() -> void: shown_during_load.append(_shown_text()))
-	await _flow.go_to(GAME)
+	await _flow.go_to(SOLAR_SYSTEM)
 	assert_array(shown_during_load).contains_exactly(["Loading…"])
 
 
