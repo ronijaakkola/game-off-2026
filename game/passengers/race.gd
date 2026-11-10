@@ -4,7 +4,7 @@ extends RefCounted
 ## which kind of research point delivering them earns. For now each passenger's is picked
 ## at random.
 
-enum Type { BLUE, ORANGE, GREEN }
+enum Type { BLUE = 0, ORANGE = 1, GREEN = 2 }
 
 ## Each race's skin colour. Their research points show in it. Orange is darker and green
 ## lighter, so the two stay apart for red-green colour blindness, where both turn yellow.

@@ -5,7 +5,7 @@ extends Resource
 ## it, holding the serve button, or a food [Amenity] on the bus does.
 
 ## What a passenger's portrait acts out while the need is served.
-enum Action { NONE, EAT, DRINK, WATCH }
+enum Action { NONE = 0, EAT = 1, DRINK = 2, WATCH = 3 }
 
 ## Names the need, so an amenity can say which one it serves.
 @export var id: StringName
