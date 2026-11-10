@@ -1,33 +1,47 @@
 class_name PortraitScreen
 extends RefCounted
 ## What a portrait shows while they watch something: the light of a screen just in front
-## of them on their face, cutting from one shot's colour to the next, and now and then a
-## laugh. The screen sits where the camera is, so its light falls on what faces the
-## camera. The [AlienPortrait] it belongs to adds [member light] to its materials, shows
-## [member laugh] as joy, and lifts and tips the head by [member bounce] and [member pitch].
+## of them on their face, cutting from one shot's colour to the next and moving across
+## the face as the picture does, and now and then a laugh. The screen sits just below
+## where the camera is, so its light falls from below on what faces the camera. The
+## [AlienPortrait] it belongs to gives its materials [member light] and [member side],
+## shows [member laugh] as joy, and lifts and tips the head by [member bounce] and
+## [member pitch].
 
 ## How fast the screen's light comes up and goes away, per second.
 const SHOW_SPEED := 2.0
-## How bright the light is on the face, added to its colour.
-const STRENGTH := 0.3
-## The colours of the shots, one picked at each cut, mostly a TV's cold blue. Each shot
-## is also brighter or darker than the last, which reads as a screen more than the hue.
+## How far the light lifts the face's colour toward white, at the most.
+const STRENGTH := 0.8
+## The colours of the shots, one picked at each cut, mostly a TV's cold blue and white.
+## They are strong and far apart, so the whole face changes colour at a cut: at a card's
+## size that is all that shows, and a pale light only reads as a steady glow. A skin
+## already full in a shot's colour, such as blue under blue, barely shows that shot, so
+## no skin's own colour makes up much of the list. Each shot is also brighter or darker
+## than the last.
 const SHOT_COLORS: Array[Color] = [
-	Color(0.3, 0.5, 1.0),
-	Color(0.3, 0.5, 1.0),
-	Color(0.35, 0.9, 1.0),
-	Color(1.0, 0.6, 0.3),
-	Color(0.85, 0.35, 1.0),
-	Color(0.9, 0.95, 1.0),
+	Color(0.25, 0.55, 1.0),
+	Color(0.25, 0.55, 1.0),
+	Color(0.2, 1.0, 0.9),
+	Color(1.0, 0.8, 0.2),
+	Color(1.0, 0.3, 0.9),
+	Color(1.0, 0.35, 0.3),
+	Color(1.0, 1.0, 1.0),
+	Color(1.0, 1.0, 1.0),
 ]
-const SHOT_BRIGHTNESS := Vector2(0.35, 1.2)
-## Seconds from one cut to the next: a range. At most about two cuts a second, well under
+const SHOT_BRIGHTNESS := Vector2(0.55, 1.0)
+## Seconds from one cut to the next: a range. At most two and a half cuts a second, under
 ## the three flashes a second that can set off photosensitive seizures.
-const SHOT_SECONDS := Vector2(0.5, 1.6)
+const SHOT_SECONDS := Vector2(0.4, 1.2)
 ## How fast the light blends into the next shot's colour, per second, so a cut is soft.
 const CUT_SPEED := 12.0
-## How much the light flickers within a shot, as a share of it.
-const FLICKER := 0.15
+## Within a shot the picture moves, so the light swells and dims, slowly and smoothly:
+## by how much, as a share of it, and how fast, in radians per second.
+const SWELL := 0.3
+const SWELL_SPEED := 4.5
+## The bright part of the picture sits to one side, and pans across within a shot: how
+## far to either side a shot starts, and how far it pans, from -1 to 1.
+const SIDE := 0.9
+const PAN := 0.8
 ## Seconds a laugh lasts, and the wait between laughs: a range each.
 const LAUGH_SECONDS := Vector2(0.9, 1.6)
 const LAUGH_WAIT := Vector2(2.0, 5.0)
@@ -43,6 +57,9 @@ var watching := false
 var may_laugh := true
 ## The light the screen throws on the face this frame.
 var light := Color.BLACK
+## Which side of the screen the light comes from this frame, from -1 at their right (the
+## photo's left) to 1.
+var side := 0.0
 ## How hard they laugh this frame, from 0 to 1.
 var laugh := 0.0
 ## How far the head lifts and tips forward this frame, for the portrait to add.
@@ -55,14 +72,17 @@ var _time := 0.0
 var _color: Color = SHOT_COLORS[0]
 var _shot: Color = SHOT_COLORS[0]
 var _cut_in := 0.0
+# Where the light comes from at the shot's start and end, and how long the shot is.
+var _pan := Vector2.ZERO
+var _shot_length := 1.0
 var _laugh_in := randf_range(0.8, 2.5)
 var _laugh_left := 0.0
 var _laugh_length := 1.0
 
 
 ## Moves the light and the laughs on by [param delta] seconds. With [param motion] 0, as
-## under Reduce motion, the light holds one steady colour and a laugh only shows on the
-## face.
+## under Reduce motion, the light holds one steady colour from straight ahead and a
+## laugh only shows on the face.
 func advance(delta: float, motion: float) -> void:
 	_time += delta
 	_on = move_toward(_on, 1.0 if watching else 0.0, delta * SHOW_SPEED)
@@ -70,10 +90,16 @@ func advance(delta: float, motion: float) -> void:
 	if _cut_in <= 0.0 and motion > 0.0:
 		_shot = SHOT_COLORS[randi() % SHOT_COLORS.size()]
 		_shot *= randf_range(SHOT_BRIGHTNESS.x, SHOT_BRIGHTNESS.y)
-		_cut_in = randf_range(SHOT_SECONDS.x, SHOT_SECONDS.y)
-	_color = _color.lerp(_shot, 1.0 - exp(-CUT_SPEED * delta))
-	var flicker := 1.0 + sin(_time * 21.0) * sin(_time * 7.3) * FLICKER * motion
-	var strength := ease(_on, -2.0) * STRENGTH * flicker
+		_shot_length = randf_range(SHOT_SECONDS.x, SHOT_SECONDS.y)
+		_cut_in = _shot_length
+		_pan.x = randf_range(-SIDE, SIDE)
+		_pan.y = clampf(_pan.x + randf_range(-PAN, PAN), -1.0, 1.0)
+	var blend := 1.0 - exp(-CUT_SPEED * delta)
+	_color = _color.lerp(_shot, blend)
+	var panned := lerpf(_pan.y, _pan.x, clampf(_cut_in / _shot_length, 0.0, 1.0))
+	side = lerpf(side, panned * motion, blend)
+	var swell := 1.0 + sin(_time * SWELL_SPEED) * sin(_time * SWELL_SPEED * 0.37) * SWELL * motion
+	var strength := ease(_on, -2.0) * STRENGTH * swell
 	light = Color(_color.r * strength, _color.g * strength, _color.b * strength)
 
 	_laugh_left -= delta

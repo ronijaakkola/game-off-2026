@@ -87,7 +87,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 | Left edge | Passenger cards |
 | Bottom right | Bus status, with the dock panel just above it while docked |
 | Lower half, across | Tow offer, when out of fuel |
-| Right side | The open planet's or bus's panel, over the credits, the dock panel and the bus status |
+| Right side | The open planet's or bus's panel, just below the resource bar and over the dock panel and the bus status |
 | Bottom left | Debug panel (F2) |
 
 ### Resource bar
@@ -176,8 +176,8 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 - **Eating and drinking.** The aliens have no mouths, so the food is held up just below the eyes, running off the bottom of the photo so it never floats.
   - A snack is a bar in a pink wrapper: every 1.5 s it rises to the face, the head dips to bite, then munches.
   - A drink is a tall white cup with a blue band and a yellow straw: every couple of seconds the head dips to sip.
-- **Watching a show,** a screen's light falls on the face, mostly a TV's cold blue, cutting softly to the next shot every half second to a second and a half. Every few seconds they laugh: the joyful face, head tipped back and bouncing. Not while angry.
-  - Cuts stay well under three a second, for photosensitive players. Under Reduce motion the light holds one colour.
+- **Watching a show,** a screen's light falls on the face from below, so the chin and cheeks glow and the top of the head stays in the skin's own colour. The light is strongly coloured: blue and white mostly, with cyan, yellow, pink and red shots between, so the whole face changes colour at a cut, which is what shows at a card's size. It only ever adds to the skin's colour, and the top of the head and the photo's background keep the race's colour. It never sits still, as from a moving picture: it cuts softly to the next shot about every half second to a second, each a different colour and brightness, and within a shot it swells and dims and pans from one side of the face toward the other. Every few seconds they laugh: the joyful face, head tipped back and bouncing. Not while angry.
+  - Cuts stay well under three a second, for photosensitive players. Under Reduce motion the light holds one colour, from straight ahead.
 - **Leaning.** While they ride, the bust leans with the push on board: back as the bus speeds up, forward as it brakes, toward the outside of a turn. Waiting at a planet, they don't lean.
 - Under Reduce motion only the eyes move, and food comes up and stays still.
 
@@ -193,7 +193,7 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 - The open planet's hover border fades out and stays off, so nothing sits on the close-up.
 - Closing blends the camera back to where it was while the panel slides out.
 - A panel that another replaces leaves fast, in 0.2 s, so the two don't cross.
-- Both panels are 480 px wide, so switching never changes the width.
+- Both panels are 480 px wide, so switching never changes the width. They sit just below the resource bar, so the credits and research points stay in view while the player researches.
 - Under Reduce motion the camera cuts and the panel fades.
 
 ### Planet panel
@@ -204,7 +204,7 @@ The planet's icon and name, and a Close button. A planet with a research tree ha
 - **Services:** a row for each passenger waiting there, longest waiting first (portrait, name over destination, fare), then the Fuel section. Anything else a planet offers goes here.
 - A passenger who turns up while it is open slides in from the right.
 - **Fuel section:** "Full tank 10 credits", the bus's fuel as a bar and a percentage, a "Hold to refuel" button ("Refuelling..." while held), and a note.
-- The note shows the player's credits, since the panel covers the credits, or why the button is off: "Dock here to refuel.", "Tank full.", "Not enough credits.", "No fuel sold here.".
+- The note shows the player's credits, or why the button is off: "Dock here to refuel.", "Tank full.", "Not enough credits.", "No fuel sold here.".
 
 ### Research tab
 

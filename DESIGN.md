@@ -300,6 +300,7 @@ A temporary goal while the loop is tuned. *(not built)*
 | Right click the last planet on the route | Remove it, along with the checkpoint before it |
 | Backspace or Delete | Clear the route |
 | W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
+| Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
 | Mouse wheel | Zoom toward the point under the pointer |
 | Esc | Pause |
 | F2 | The debug panel |
