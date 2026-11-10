@@ -11,7 +11,6 @@ visible = false
 script = ExtResource("1_pause")
 
 [node name="Root" type="PanelContainer" parent="." unique_id=1212393202]
-layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -23,28 +22,35 @@ theme_type_variation = &"DimPanel"
 [node name="Center" type="CenterContainer" parent="Root" unique_id=818951029]
 layout_mode = 2
 
-[node name="Items" type="VBoxContainer" parent="Root/Center" unique_id=1638955660]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 0)
+[node name="Column" type="VBoxContainer" parent="Root/Center" unique_id=469091894]
 layout_mode = 2
+theme_override_constants/separation = 28
 
-[node name="Title" type="Label" parent="Root/Center/Items" unique_id=670269238]
+[node name="Title" type="Label" parent="Root/Center/Column" unique_id=670269238]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
+theme_override_font_sizes/font_size = 40
 text = "Paused"
 horizontal_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="Root/Center/Items" unique_id=682729662]
+[node name="Items" type="VBoxContainer" parent="Root/Center/Column" unique_id=1638955660]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ResumeButton" type="Button" parent="Root/Center/Column/Items" unique_id=682729662]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"PrimaryButton"
 text = "Resume"
 
-[node name="SettingsButton" type="Button" parent="Root/Center/Items" unique_id=960285462]
+[node name="SettingsButton" type="Button" parent="Root/Center/Column/Items" unique_id=960285462]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Settings"
 
-[node name="MainMenuButton" type="Button" parent="Root/Center/Items" unique_id=2051010234]
+[node name="MainMenuButton" type="Button" parent="Root/Center/Column/Items" unique_id=2051010234]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Main menu"
@@ -54,6 +60,6 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[connection signal="pressed" from="Root/Center/Items/ResumeButton" to="." method="_on_resume_button_pressed"]
-[connection signal="pressed" from="Root/Center/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
-[connection signal="pressed" from="Root/Center/Items/MainMenuButton" to="." method="_on_main_menu_button_pressed"]
+[connection signal="pressed" from="Root/Center/Column/Items/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="Root/Center/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="Root/Center/Column/Items/MainMenuButton" to="." method="_on_main_menu_button_pressed"]

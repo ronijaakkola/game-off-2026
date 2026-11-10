@@ -1,16 +1,17 @@
 class_name PassengerPanel
 extends MarginContainer
-## The passenger cards down the left edge of the screen, one for each passenger in
-## [member cabin], in the order they boarded. A passenger who boards slides in from the
-## left at the bottom. When the bus stops at their destination, each card going there
-## shows the stars its passenger rates the ride; once the passenger gets off and the
+## The On board panel in the top left corner: how many seats are taken, then a card for each
+## passenger in [member cabin], in the order they boarded. A passenger who boards slides in
+## from the left at the bottom. When the bus stops at their destination, each card going
+## there shows the stars its passenger rates the ride; once the passenger gets off and the
 ## rating has shown for a moment, the card slides back out to the left, while the cards
-## below move up to fill the gap.
-## A card's serve button, held down, serves that passenger's request through the cabin
-## ([method Cabin.hold_serve]), and its kick
-## button kicks them off the bus, so their card slides out at once.
+## below move up to fill the gap. A card's serve button, held down, serves that passenger's
+## request through the cabin ([method Cabin.hold_serve]), and its kick button kicks them off
+## the bus, so their card slides out at once.
 
 const CARD := preload("res://game/passengers/passenger_card.tscn")
+## Pixels between the board's edge and a card's options, which sit outside it.
+const OPTIONS_GAP := 6.0
 
 ## The cabin whose passengers it shows. The cards for those already on board show at
 ## once, without sliding in.
@@ -34,10 +35,22 @@ const CARD := preload("res://game/passengers/passenger_card.tscn")
 var portrait_studio: PortraitStudio
 
 var _cards: Dictionary[Passenger, PassengerCard] = {}
+var _seats_shown := Vector2i(-1, -1)
 
 
 func _ready() -> void:
 	_show_all()
+
+
+func _process(_delta: float) -> void:
+	# An empty list would still leave its gap under the header.
+	(%Cards as Control).visible = (%Cards as Control).get_child_count() > 0
+	if not cabin:
+		return
+	var shown := Vector2i(cabin.get_passengers().size(), cabin.seats)
+	if shown != _seats_shown:
+		_seats_shown = shown
+		(%SeatLabel as Label).text = "%d/%d" % [shown.x, shown.y]
 
 
 func _show_all() -> void:
@@ -56,6 +69,8 @@ func _on_boarded(passenger: Passenger) -> void:
 func _add_card(passenger: Passenger) -> PassengerCard:
 	var card := CARD.instantiate() as PassengerCard
 	card.portrait_studio = portrait_studio
+	var board := $Board as Control
+	card.options_gap = board.get_theme_stylebox(&"panel").content_margin_right + OPTIONS_GAP
 	card.passenger = passenger
 	card.serve_held.connect(func(held: bool) -> void: cabin.hold_serve(passenger, held))
 	card.kick_pressed.connect(func() -> void: cabin.kick(passenger))

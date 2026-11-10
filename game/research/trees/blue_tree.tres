@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
 [ext_resource type="Texture2D" uid="uid://cskdmuwvt8g6f" path="res://game/research/icons/gauge.svg" id="4_gauge"]
-[ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://game/research/icons/fuel.svg" id="5_fuel"]
+[ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="5_fuel"]
 [ext_resource type="Texture2D" uid="uid://dkvmrjt67ew4c" path="res://game/research/icons/zap.svg" id="6_zap"]
 [ext_resource type="Texture2D" uid="uid://dt2n4hu26uayi" path="res://game/research/icons/thermometer_snowflake.svg" id="7_thermometer_snowflake"]
 [ext_resource type="Texture2D" uid="uid://cw6f520btgcas" path="res://game/research/icons/sun.svg" id="8_sun"]

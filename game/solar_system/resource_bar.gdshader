@@ -11,7 +11,7 @@ uniform sampler2D screen : hint_screen_texture, filter_linear_mipmap;
 // rounded ends.
 uniform vec2 size = vec2(0.0);
 uniform float blur_lod : hint_range(0.0, 6.0) = 4.0;
-uniform vec4 fill_color : source_color = vec4(0.078, 0.055, 0.18, 0.55);
+uniform vec4 fill_color : source_color = vec4(0.1216, 0.102, 0.2784, 0.72);
 uniform vec4 border_color : source_color = vec4(1.0, 1.0, 1.0, 0.12);
 uniform float border_width = 1.0;
 uniform vec4 shadow_color : source_color = vec4(0.0, 0.0, 0.0, 0.2);

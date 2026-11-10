@@ -2,20 +2,52 @@
 
 [ext_resource type="Script" uid="uid://bdqdklja7rgj" path="res://game/passengers/passenger_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 
 [node name="PassengerPanel" type="MarginContainer" unique_id=173000372]
-anchors_preset = 9
-anchor_bottom = 1.0
-grow_vertical = 2
 mouse_filter = 2
 theme = ExtResource("2_theme")
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 12
 script = ExtResource("1_panel")
 
-[node name="Cards" type="VBoxContainer" parent="." unique_id=1395485950]
+[node name="Board" type="PanelContainer" parent="." unique_id=592538534]
+material = ExtResource("3_glass")
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 0
+theme_type_variation = &"CardPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Board" unique_id=673343620]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Board/Rows" unique_id=1599956347]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Board/Rows/Header" unique_id=1698352196]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"StrongLabel"
+text = "On board"
+
+[node name="SeatNudge" type="MarginContainer" parent="Board/Rows/Header" unique_id=1063011807]
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="SeatLabel" type="Label" parent="Board/Rows/Header/SeatNudge" unique_id=1504153113]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallStrongLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+text = "0/0"
+
+[node name="Cards" type="VBoxContainer" parent="Board/Rows" unique_id=1395485950]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 10

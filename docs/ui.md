@@ -24,7 +24,18 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Names.** Each planet has its name just under it: small off-white text with the sky's lilac, a little see-through, with a thin navy outline. It faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
 - **Planet icons.** The UI shows a planet as a flat disc in its one icon colour, with the same purple night side, lit from the upper left. Rings show as a line at their tilt, behind the disc at the top and in front at the bottom. Each icon colour is set by hand to the colour the planet reads as from the camera.
 - **A destination** reads the same everywhere: an arrow, the planet's icon and its name.
-- **Type and icons.** Baloo 2 Bold, with Lucide icons.
+- **Icons.** Lucide. The fonts are under UI style.
+
+### UI style
+
+- **One surface:** frosted navy glass (`#1F1A47` at 72 % over the blurred screen) with a 1 px faint white border and 12 px corners. Rows inside it are a faint white tint.
+- **Colour only carries game meaning** (mood, race, fuel, route, credits, gain and loss); controls stay neutral.
+- **Buttons.** Each panel has one primary button, light with dark text; the rest are quiet tinted buttons.
+- Hover lightens a control one step and pressing dips it below its default, and nothing changes size.
+- **Fonts.** Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing.
+- **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the station (dock panel) top right, and the route and bus bars on the bottom edge, centred, with notices above them.
+- Spacing is on a 4 px scale.
+- The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
 
 ### Races
 
@@ -83,49 +94,61 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 | Where | What |
 |---|---|
-| Top right | Resource bar |
-| Left edge | Passenger cards |
-| Bottom right | Bus status, with the dock panel just above it while docked |
-| Lower half, across | Tow offer, when out of fuel |
-| Right side | The open planet's or bus's panel, just below the resource bar and over the dock panel and the bus status |
+| Top left | On board panel |
+| Top centre | Resource bar |
+| Top right | Dock panel (the planet's station), while docked or charging |
+| Bottom edge, centred | Bus status: the route bar over the bus bar |
+| Above the bus bars | Tow offer, when out of fuel |
+| Right side | The open planet's or bus's panel, over the dock panel |
 | Bottom left | Debug panel (F2) |
+
+- **While a planet's or the bus's panel is open,** the bus bars and the course hint hide, and the resource bar moves to stay centred between the On board panel and the open panel.
 
 ### Resource bar
 
 A frosted-glass pill: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
 
 - **Credits:** beside a gold dollar sign, with a comma between thousands (12,480).
-- **Research:** for each race a flask in its skin colour and its count.
+- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour.
 - **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: who that rating attracts, and from how many stars the next band starts.
 - **Gains and losses** float under the pill, taking no room in it: green "+15", red "-12". Each new payment at a stop pops the gain bigger and shows the new sum.
 - Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
 - The rating does the same: each one pops a gain with how far the average moved ("+0.2", "-0.3", "±0.0"). The very first just appears with a pop.
 - A research count pops as it goes up.
 - **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 284 px and first changes at 1,000 credits or 100 points.
-- When a number gains or loses a digit, the right edge stays put and the left edge glides to the new width in 0.3 s. A count makes room for its widest number before it starts, so the pill changes width once per count.
+- When a number gains or loses a digit, the pill stays centred and glides to the new width in 0.3 s, easing out. A count makes room for its widest number before it starts, so the pill changes width once per count.
 - Under Reduce motion nothing pops or drifts, and the width changes at once.
 
 ### Bus status
 
+Two bars on the bottom edge of the screen, centred: the route bar on top, the bus bar under it.
+
+- **The route bar** shows what the bus is doing, or the track while it is on a leg. With no course it reads "No course".
 - **What the bus is doing:** "Docked", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to a point in space", "Stopping", "Holding in space", "Out of fuel", "Out of fuel: refuel here", "Towed to Terra".
 - **A track** from the planet it left (or "Space") to the next planet on the route, with the time left. The track never moves back: a planet that moves away slows it instead.
+- **The bus bar** holds the fuel gauge and the bus's keys, the Frameshift key among them.
 - **Fuel gauge:** a pale cyan bar and the percentage, both red at a quarter of a tank or less.
-- **Seats:** a person for each, filled while taken, with the count ("3/4 seats").
-- **Cancel button** while the bus charges ("Cancel") or flies ("Cancel route"). Hidden when out of fuel.
+- **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
+- While the drive charges, the key latches down, its lamp lights and the bus's yellow fills it as the charge does. Pressing it then cancels the course and keeps the bus docked.
+- While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space.
+- Otherwise it is dim, its lamp off. Out of fuel, it is off.
+- Pressing the Frameshift key while it charges or as Stop clears the route, as Backspace does.
+- Pressing a bus key down plays a click.
 
 ### Dock panel
 
-Shown while the bus is docked or charging. It stays in one place on screen, so its buttons never move under the pointer.
+The planet's station: it hangs from the top right corner while the bus is docked or charging. It stays in one place on screen, so its buttons never move under the pointer.
 
-- Title: the planet's icon and name.
-- The fuel button, where the planet sells fuel.
-- A Research button, where the planet has a tree. It opens the planet on its Research tab.
-- Who waits there, longest waiting first: portrait, name, destination, fare and a Board button. Or "Nobody waiting."
+- Title: the planet's icon and name with "Station".
+- Who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's name has their type before it, here, in the open planet's rows and on their card on board: "Business · Vontti". A Commuter's has nothing. Where the row is narrow the name is cut short, not the type.
-- After a row's destination, fainter, how many on board or picked up are going there too ("2 aboard"), so the player can group passengers.
-- A Board all button. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
+- After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
+- Under the rows, a Board all button. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
+- Then a faint line and Services, each with its icon on a small tile:
+  - The fuel button, where the planet sells fuel.
+  - A Research button, where the planet has a tree. It opens the planet on its Research tab.
 - **A row's trip.** The pointer over a row shows its trip arc. A click on the row pins it until the row is clicked again, the passenger boards or the bus leaves. The row whose trip shows has a border in their race's colour.
-- It slides in from the right when the bus docks and out when it leaves. A passenger picked up slides out of it to the right, and it grows and shrinks smoothly to fit.
+- It slides in from the right when the bus docks and out when it leaves. A passenger picked up slides out of it to the right, and it grows and shrinks smoothly to fit, so it shrinks as rows leave.
 
 ### Fuel button
 
@@ -138,30 +161,30 @@ In the dock panel: "Hold to fuel (51 cr)", with what filling the tank costs ther
 
 ### Tow offer
 
-A bar across the lower half of the screen: "You ran out of fuel" at its left end, a "Request a tow (100 credits)" button at its right. It stays until pressed.
+A red warning notice above the bus bars: "You ran out of fuel" and a "Request a tow (100 credits)" button, with what the tow costs now. It stays until pressed.
 
-### Passenger cards
+### On board panel
 
-One per passenger on board, down the left edge.
+In the top left corner: how many seats are taken ("3/4") and, under it, a card for each passenger on board, a 48 px row.
 
-- **Shows:** portrait, name, destination, a happiness bar in their mood's colour, the mood's name, and an activity line ("Sleeping...", "Counting stars"). The line starts with "Finding their seat..." for a few seconds after boarding.
+- **A card shows:** portrait, their name with their destination beside it, a short activity line ("Sleeping...", "Counting stars"), and along the bottom a happiness bar in their mood's colour. The line starts with "Finding their seat..." for a few seconds after boarding.
+- **The mood has no name on the card:** the bar's colour says it. When the mood changes, the bar blends into the new colour, Reduce motion or not.
 - **The bar.** A big drop leaves a dark red trail that holds for half a second, then shrinks to the bar.
 - **Trend chevrons** on the bar show where happiness is heading, as the motive arrows on The Sims' bars do: `>` while it climbs, `<` while it falls.
   - One to three, by how much it will change over the next 10 s at its speed, no further than its target: 1.5 or more shows one, 8 two, 20 three. A chevron stays until the change drops 1 under its step, so it doesn't flicker.
   - They sit inside the fill at its end, dark so they read on every mood's colour. Once the fill is too short, they sit just past its end in the mood's colour.
   - Nothing shows while happiness holds or has reached its target. They fade over 0.2 s.
-- **The mood's name** shakes a little when annoyed and more when furious. When the mood changes, the name fades out and back in while the bar blends to the new colour.
 - **The activity line morphs** when it changes: a wave sweeps left to right, the old letters drift up and blur away and the new ones rise into focus, in about half a second. Under Reduce motion the lines crossfade.
-- **A request** shows on the line ("Hungry. Wants a snack") with a serve button ("Hand a snack"). A faint white fill sweeps across the button as it is held, or as an amenity serves.
+- **A request.** A serve button takes the place of the activity line, with the need's icon and label: "Hand a snack" with a sandwich, "Pour a drink" with a cup. A faint cyan fill sweeps across the button as it is held, or as an amenity serves.
   - Served: "Munching a snack".
   - Amenities have their own lines: "Getting a snack from the replicator", "Waiting for the replicator", "A droid brings a snack", "Waiting for a droid".
   - A request on hold at a stop shows them idling.
-- **Options.** The pointer over a card slides its options out from under it to the right in about a fifth of a second. There is one: Kick, with a kicking shoe icon. A card showing a rating has none.
+- **Options.** The pointer over a card fades its options in to the right of the On board panel, with no slide; Reduce motion keeps the fade. There is one: Kick, with a kicking shoe icon. A card showing a rating has none.
 - **Getting off.** When the bus docks, everyone going there shows their rating at once.
   - The middle row sinks a few pixels and fades out while five empty stars drop in from just above. Then the stars fill to the rating one after another, each swelling as it turns yellow. The line morphs to "Getting off".
   - The card lingers for 2.2 s from when the stop starts, long enough for five stars to fill and be read. Only then, and at their turn, does it slide out past the left edge.
   - Under Reduce motion the row crossfades and the stars only change colour.
-- **Cards slide** in at the bottom from past the left edge and out the same way, and the cards below move up into a gap.
+- **Cards slide** in at the bottom from past the left edge and out the same way, and the cards below move up into a gap, the panel shrinking with them.
 
 ### Portraits
 
@@ -193,7 +216,7 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 - The open planet's hover border fades out and stays off, so nothing sits on the close-up.
 - Closing blends the camera back to where it was while the panel slides out.
 - A panel that another replaces leaves fast, in 0.2 s, so the two don't cross.
-- Both panels are 480 px wide, so switching never changes the width. They sit just below the resource bar, so the credits and research points stay in view while the player researches.
+- Both panels are 480 px wide, so switching never changes the width. The resource bar moves to stay centred between the On board panel and the open panel, so the credits and research points stay in view while the player researches.
 - Under Reduce motion the camera cuts and the panel fades.
 
 ### Planet panel
@@ -244,6 +267,6 @@ F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handler
 ## Open questions
 
 - **Fuel and time on the map.** Each planet is meant to show the fuel cost and travel time to it *(not built)*. Whether a point in space and a checkpoint show them too.
-- **Passenger cards while a planet is open.** They stay down the left edge and can cover part of the open planet. Hide them, shrink them, or leave them?
+- **Passenger cards while a planet is open.** The On board panel stays in the top left corner and can cover part of the open planet. Hide it, shrink it, or leave it?
 - **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button, so the player closes it to pick anyone up.
 - **The charge ring** is temporary.

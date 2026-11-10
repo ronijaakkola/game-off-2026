@@ -1,27 +1,25 @@
 class_name DockPanel
 extends Control
-## What the bus can do at the planet it is docked at, just above the bus status in the
-## bottom right corner: the planet's icon and name, then, where the planet sells fuel, a
-## button to hold down to refuel, where it has a research tree, a button to open its
-## Research tab, and a faint line under them, then who waits there: a row
-## for each passenger, longest waiting first, with their portrait, how many on the bus are
-## going their way too, and a button to pick them up, and a button to pick up everyone that
-## fits. The parent sets [member planet] while the bus is docked or charging. The board
-## buttons are off while every seat is taken. It only asks: the parent picks the passenger
-## up, pumps the fuel while [method is_fuel_held], and turns the fuel button on or off with
-## [method show_fuel].
-## It slides in from the right when [member planet] is set and back out when it is
-## cleared. A row whose passenger boards slides out to the right, clipped by the card, then
-## closes up. The card fits what it holds every frame, so it shrinks as smoothly as the row
-## closes and Board all, at the bottom, stays put.
-## The root is a slot of no height that marks the panel's place just above the bus status,
-## and the card hangs upward from it. So the card's bottom edge stays put however its
-## height changes, with no container to re-sort a frame later and round the height to whole
-## pixels. "Nobody waiting." sits under the rows, so a row sliding out uncovers it and the
-## card only shrinks.
-## The pointer over a row shows that passenger's trip, and a click on a row pins it, so it
-## stays shown once the pointer leaves, until the row is clicked again, the passenger
-## boards or the bus leaves. The row whose trip shows is highlighted.
+## What the bus can do at the station of the planet it is docked at, in the top right
+## corner: the planet's icon and name, then who waits there: a row for each passenger,
+## longest waiting first, with their portrait, how many on the bus are going
+## their way too, and a button to pick them up, and a button to
+## pick up everyone that fits. Under a faint line, its services: where the planet sells
+## fuel, a button to hold down to refuel, and where it has a research tree, a button to open
+## its Research tab. The parent sets [member planet] while the bus is docked or charging.
+## The board buttons are off while every seat is taken. It only asks: the parent picks the
+## passenger up, pumps the fuel while [method is_fuel_held], and turns the fuel button on or
+## off with [method show_fuel]. It slides in from the right when [member planet] is set and
+## back out when it is cleared. A row whose passenger boards slides out to the right,
+## clipped by the card, then closes up. The card fits what it holds every frame, so it
+## shrinks as smoothly as the row closes. The root is a slot of no height that marks the
+## panel's place in the corner, and the card hangs down from it. So the card's top edge
+## stays put however its height changes, with no container to re-sort a frame later and
+## round the height to whole pixels. "Nobody waiting." sits under the rows, so a row sliding
+## out uncovers it and the card only shrinks. The pointer over a row shows that passenger's
+## trip, and a click on a row pins it, so it stays shown once the pointer leaves, until the
+## row is clicked again, the passenger boards or the bus leaves. The row whose trip shows is
+## highlighted.
 
 ## The player pressed the button to pick up [param passenger]. Board all presses it for
 ## each one waiting, longest waiting first; the parent stops once the seats are full.
@@ -154,9 +152,11 @@ func _rebuild() -> void:
 	if _shown:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
-		(%FuelButton as Control).visible = _shown.sells_fuel
+		(%FuelRow as Control).visible = _shown.sells_fuel
 		(%ResearchButton as Control).visible = _shown.research_tree != null
-		(%FuelRule as Control).visible = _shown.sells_fuel or _shown.research_tree != null
+		var services := _shown.sells_fuel or _shown.research_tree != null
+		(%FuelRule as Control).visible = services
+		(%ServicesLabel as Control).visible = services
 	_sync_rows()
 
 
@@ -212,7 +212,7 @@ func _show_buttons() -> void:
 	button.disabled = not free or _rows.is_empty()
 
 
-# Sizes the slot to the card's width, and hangs the card upward from the slot, as tall as
+# Sizes the slot to the card's width, and hangs the card down from the slot, as tall as
 # its content needs. The clip and the content are placed here too rather than by the card's
 # next sort, a frame later, which would leave them a frame behind the card.
 func _lay_out() -> void:
@@ -226,7 +226,7 @@ func _lay_out() -> void:
 	card.size = inner + margins
 	# Under Reduce motion the card stays in place and fades instead of sliding.
 	var still := Settings.reduce_motion
-	card.position = Vector2(0.0 if still else _offset * (card.size.x + OFF_RIGHT), -card.size.y)
+	card.position = Vector2(0.0 if still else _offset * (card.size.x + OFF_RIGHT), 0.0)
 	card.modulate.a = 1.0 - _offset if still else 1.0
 	var clip := %Clip as Control
 	clip.position = style.get_offset()

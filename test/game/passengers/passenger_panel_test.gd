@@ -163,6 +163,28 @@ func test_a_card_s_photo_background_takes_their_race_s_backdrop_colour() -> void
 	)
 
 
+func test_a_card_s_kick_button_fades_in_outside_the_board() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	cabin.board(_passenger(auto_free(Planet.new()), 1000.0))
+	await runner.simulate_frames(30, 30)
+
+	var panel := runner.find_child("Panel") as Control
+	runner.simulate_mouse_move(panel.get_global_rect().get_center())
+	await runner.await_input_processed()
+	await runner.simulate_frames(2)
+	var options := runner.find_child("Options") as Control
+	var kick := runner.find_child("KickButton") as Control
+	var start := options.position.x
+	await runner.simulate_frames(20, 20)
+	# It fades in where it stays, clear of the board's edge.
+	assert_bool(options.visible).is_true()
+	assert_float(options.modulate.a).is_equal(1.0)
+	assert_float(options.position.x).is_equal(start)
+	var board := runner.find_child("Board") as Control
+	assert_float(kick.global_position.x).is_greater(board.global_position.x + board.size.x)
+
+
 func _slid_out(panel: Control) -> bool:
 	return panel.position.x < 0.0
 

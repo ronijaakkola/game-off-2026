@@ -1,14 +1,18 @@
 class_name ResearchCounter
 extends HBoxContainer
-## The player's research points in the resource bar: for each [Race], a flask in its skin
-## colour and how many points of it the player has. Delivering a passenger earns one point
-## of their race, whatever their rating; the count pops as it goes up. Each count has room
-## for [constant ROOM], so the bar keeps its width until one passes 99. It shows the points
-## of its [member ledger] and pops each count the ledger signals as earned; a count spent
-## just changes. It keeps no points of its own.
+## The player's research points in the resource bar: for each [Race], a chip tinted in its
+## skin colour with a flask in that colour and how many points of it the player has.
+## Delivering a passenger earns one point of their race, whatever their rating; the count
+## pops as it goes up. Each count has room for [constant ROOM], so the bar keeps its width
+## until one passes 99. It shows the points of its [member ledger] and pops each count the
+## ledger signals as earned; a count spent just changes. It keeps no points of its own.
 
 ## The flask's size, in pixels.
-const ICON_SIZE := 14.0
+const ICON_SIZE := 12.0
+## How strongly the chip behind each count is tinted in its race's colour.
+const CHIP_TINT := 0.18
+## Each chip's height, in pixels. It sets the pill's height too.
+const CHIP_HEIGHT := 20.0
 const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
 ## Each count always has room for this many digits.
 const ROOM := "00"
@@ -36,9 +40,19 @@ var _pops: Dictionary[Race.Type, Tween] = {}
 func _ready() -> void:
 	for value: int in Race.Type.values():
 		var race := value as Race.Type
+		var chip := PanelContainer.new()
+		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		chip.custom_minimum_size.y = CHIP_HEIGHT
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(Race.SKIN_COLORS[race], CHIP_TINT)
+		style.set_corner_radius_all(8)
+		style.content_margin_left = 4.0
+		style.content_margin_right = 4.0
+		chip.add_theme_stylebox_override(&"panel", style)
 		var entry := HBoxContainer.new()
 		entry.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		entry.add_theme_constant_override(&"separation", 5)
+		entry.add_theme_constant_override(&"separation", 4)
+		chip.add_child(entry)
 		var icon := TextureRect.new()
 		icon.texture = FLASK
 		icon.self_modulate = Race.SKIN_COLORS[race]
@@ -51,9 +65,10 @@ func _ready() -> void:
 		var label := Label.new()
 		label.theme_type_variation = &"PillLabel"
 		label.text = "0"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		entry.add_child(label)
 		_labels[race] = label
-		add_child(entry)
+		add_child(chip)
 		var font := label.get_theme_font(&"font")
 		var font_size := label.get_theme_font_size(&"font_size")
 		label.custom_minimum_size.x = (

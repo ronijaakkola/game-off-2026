@@ -2,11 +2,10 @@
 
 [ext_resource type="Script" uid="uid://bkfcsbgql5rby" path="res://game/research/research_overview.gd" id="1_overview"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
-
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="90_glass"]
 
 [node name="ResearchOverview" type="PanelContainer" unique_id=1348107048]
 visible = false
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -24,6 +23,7 @@ theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 24
 
 [node name="Sheet" type="PanelContainer" parent="Margin" unique_id=1398909274]
+material = ExtResource("90_glass")
 layout_mode = 2
 theme_type_variation = &"SheetPanel"
 
@@ -49,7 +49,6 @@ text = "Debug: research from anywhere, still paying the cost."
 layout_mode = 2
 focus_mode = 0
 text = "Close"
-
 
 [node name="Scroll" type="ScrollContainer" parent="Margin/Sheet/Rows" unique_id=593334394]
 layout_mode = 2

@@ -4,10 +4,14 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="PackedScene" uid="uid://bbs2kxbdg7qyr" path="res://game/solar_system/fuel_button.tscn" id="4_fuel"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="5_glass"]
+[ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="7_flask"]
+[ext_resource type="Texture2D" uid="uid://bx5fr0dpvayyy" path="res://game/solar_system/icons/chevron_right.svg" id="8_chevron"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
 content_margin_top = 1.0
-bg_color = Color(1, 1, 1, 0.1)
+bg_color = Color(1, 1, 1, 0.1216)
 
 [node name="DockPanel" type="Control" unique_id=1953939187]
 visible = false
@@ -19,6 +23,7 @@ script = ExtResource("1_panel")
 
 [node name="Card" type="PanelContainer" parent="." unique_id=71083133]
 unique_name_in_owner = true
+material = ExtResource("5_glass")
 layout_mode = 0
 theme_type_variation = &"CardPanel"
 
@@ -32,17 +37,22 @@ mouse_filter = 2
 unique_name_in_owner = true
 layout_mode = 0
 mouse_filter = 2
-theme_override_constants/separation = 6
 
 [node name="Header" type="HBoxContainer" parent="Card/Clip/Content" unique_id=509452386]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
-[node name="PlanetIcon" type="ColorRect" parent="Card/Clip/Content/Header" unique_id=11877451]
+[node name="IconNudge" type="MarginContainer" parent="Card/Clip/Content/Header" unique_id=1198802136]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="PlanetIcon" type="ColorRect" parent="Card/Clip/Content/Header/IconNudge" unique_id=11877451]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(16, 16)
+custom_minimum_size = Vector2(14, 14)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -51,36 +61,31 @@ script = ExtResource("3_icon")
 [node name="NameLabel" type="Label" parent="Card/Clip/Content/Header" unique_id=864290337]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"SmallLabel"
+size_flags_horizontal = 3
+theme_type_variation = &"StrongLabel"
 text = "?"
 
-[node name="FuelButton" parent="Card/Clip/Content" unique_id=1671080909 instance=ExtResource("4_fuel")]
-unique_name_in_owner = true
+[node name="StationNudge" type="MarginContainer" parent="Card/Clip/Content/Header" unique_id=1494074128]
 layout_mode = 2
-
-[node name="ResearchButton" type="Button" parent="Card/Clip/Content" unique_id=1934796713]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"SmallButton"
-text = "Research"
-
-[node name="FuelRule" type="Panel" parent="Card/Clip/Content" unique_id=1536806567]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 1)
-layout_mode = 2
+size_flags_vertical = 0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+theme_override_constants/margin_top = 2
+
+[node name="StationLabel" type="Label" parent="Card/Clip/Content/Header/StationNudge" unique_id=1428465144]
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+text = "Station"
 
 [node name="List" type="MarginContainer" parent="Card/Clip/Content" unique_id=526103822]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/margin_bottom = -4
 
 [node name="EmptyLabel" type="Label" parent="Card/Clip/Content/List" unique_id=40552596]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 0
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.45)
+theme_type_variation = &"FaintLabel"
 text = "Nobody waiting."
 
 [node name="Rows" type="VBoxContainer" parent="Card/Clip/Content/List" unique_id=288850977]
@@ -94,8 +99,91 @@ theme_override_constants/separation = 0
 [node name="BoardAllButton" type="Button" parent="Card/Clip/Content" unique_id=294880964]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"SmallButton"
+theme_type_variation = &"SmallPrimaryButton"
 text = "Board all"
 
-[connection signal="pressed" from="Card/Clip/Content/ResearchButton" to="." method="_on_research_button_pressed"]
+[node name="FuelRule" type="Panel" parent="Card/Clip/Content" unique_id=1536806567]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+
+[node name="ServicesLabel" type="Label" parent="Card/Clip/Content" unique_id=1032200223]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+text = "Services"
+
+[node name="FuelRow" type="HBoxContainer" parent="Card/Clip/Content" unique_id=1395238122]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="FuelTile" type="PanelContainer" parent="Card/Clip/Content/FuelRow" unique_id=588193787]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"IconTilePanel"
+
+[node name="FuelIcon" type="TextureRect" parent="Card/Clip/Content/FuelRow/FuelTile" unique_id=1356843504]
+self_modulate = Color(0.6, 0.949, 1, 1)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("6_fuel")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FuelButton" parent="Card/Clip/Content/FuelRow" unique_id=1671080909 instance=ExtResource("4_fuel")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ResearchButton" type="Button" parent="Card/Clip/Content" unique_id=1934796713]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_type_variation = &"RowButton"
+
+[node name="Row" type="HBoxContainer" parent="Card/Clip/Content/ResearchButton" unique_id=1468555162]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ResearchTile" type="PanelContainer" parent="Card/Clip/Content/ResearchButton/Row" unique_id=515759577]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"IconTilePanel"
+
+[node name="ResearchIcon" type="TextureRect" parent="Card/Clip/Content/ResearchButton/Row/ResearchTile" unique_id=1875448864]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("7_flask")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ResearchLabel" type="Label" parent="Card/Clip/Content/ResearchButton/Row" unique_id=1408588537]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SmallLabel"
+text = "Research"
+
+[node name="Chevron" type="TextureRect" parent="Card/Clip/Content/ResearchButton/Row" unique_id=757989064]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("8_chevron")
+expand_mode = 1
+stretch_mode = 5
+
 [connection signal="pressed" from="Card/Clip/Content/BoardAllButton" to="." method="_on_board_all_button_pressed"]
+[connection signal="pressed" from="Card/Clip/Content/ResearchButton" to="." method="_on_research_button_pressed"]

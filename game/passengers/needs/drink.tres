@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="Need" format=3 uid="uid://be5jdsgim3cu2"]
 
 [ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="1_need"]
+[ext_resource type="Texture2D" uid="uid://mw5qb3dhqrxd" path="res://game/passengers/icons/cup_soda.svg" id="2_icon"]
 
 [resource]
 script = ExtResource("1_need")
@@ -9,6 +10,7 @@ food = true
 item = "a drink"
 request_line = "Thirsty. Wants a drink"
 serve_label = "Pour a drink"
+icon = ExtResource("2_icon")
 served_action = 2
 served_line = "Sipping a drink"
 max_interval = 50.0

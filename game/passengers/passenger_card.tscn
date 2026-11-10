@@ -8,34 +8,34 @@
 [ext_resource type="Script" uid="uid://itg4wk4y13k" path="res://game/passengers/star_icon.gd" id="5_stars"]
 [ext_resource type="Texture2D" uid="uid://dis4faq8oc0vt" path="res://game/passengers/kick_icon.svg" id="6_kick"]
 [ext_resource type="Script" uid="uid://cucadeex8lgly" path="res://game/passengers/serve_button.gd" id="7_serve"]
-[ext_resource type="Texture2D" uid="uid://c1lifb3j2j53u" path="res://game/solar_system/icons/arrow_big_right.svg" id="20_arrow"]
+[ext_resource type="Texture2D" uid="uid://5e4u8rlx68t4" path="res://shared/icons/arrow_right.svg" id="8_arrow"]
 [ext_resource type="Script" uid="uid://bqo5syprxwynd" path="res://game/passengers/trend_chevrons.gd" id="8_trend"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
-bg_color = Color(1, 1, 1, 0.12)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+bg_color = Color(1, 1, 1, 0.1412)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
-bg_color = Color(0.55, 0.85, 0.4, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+bg_color = Color(0.549, 0.851, 0.4, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_trail_track"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_trail"]
 bg_color = Color(0.6, 0.08, 0.16, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="PassengerCard" type="Control" unique_id=1751346549]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(216, 0)
 layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
@@ -46,7 +46,6 @@ script = ExtResource("1_card")
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
-theme_override_constants/margin_left = 6
 
 [node name="OptionButtons" type="VBoxContainer" parent="Options" unique_id=2002934006]
 layout_mode = 2
@@ -62,26 +61,27 @@ icon = ExtResource("6_kick")
 
 [node name="Panel" type="PanelContainer" parent="." unique_id=895231627]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(216, 0)
 layout_mode = 0
-theme_type_variation = &"CardPanel"
+theme_type_variation = &"BarePanel"
 
 [node name="Layout" type="HBoxContainer" parent="Panel" unique_id=1164246159]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="PassengerPhoto" parent="Panel/Layout" unique_id=384567202 instance=ExtResource("4_photo")]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 
 [node name="Rows" type="VBoxContainer" parent="Panel/Layout" unique_id=1669341052]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 2
+theme_override_constants/separation = 3
 
 [node name="Header" type="HBoxContainer" parent="Panel/Layout/Rows" unique_id=1604587981]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
 [node name="NameLabel" type="Label" parent="Panel/Layout/Rows/Header" unique_id=519713180]
 unique_name_in_owner = true
@@ -92,18 +92,76 @@ text = "Name"
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="MoodLabel" type="RichTextLabel" parent="Panel/Layout/Rows/Header" unique_id=1260888406]
-unique_name_in_owner = true
+[node name="Destination" type="MarginContainer" parent="Panel/Layout/Rows/Header" unique_id=1019280741]
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="Row" type="HBoxContainer" parent="Panel/Layout/Rows/Header/Destination" unique_id=763746236]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Marks" type="MarginContainer" parent="Panel/Layout/Rows/Header/Destination/Row" unique_id=461379002]
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/margin_top = 3
+
+[node name="Row" type="HBoxContainer" parent="Panel/Layout/Rows/Header/Destination/Row/Marks" unique_id=284781581]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Arrow" type="TextureRect" parent="Panel/Layout/Rows/Header/Destination/Row/Marks/Row" unique_id=1727482859]
+self_modulate = Color(0.957, 0.945, 1, 0.4)
+custom_minimum_size = Vector2(9, 9)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
-theme_type_variation = &"TinyRichTextLabel"
-bbcode_enabled = true
-text = "Happy"
-fit_content = true
-scroll_active = false
-autowrap_mode = 0
-horizontal_alignment = 2
+texture = ExtResource("8_arrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Layout/Rows/Header/Destination/Row/Marks/Row" unique_id=394251105]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3_icon")
+
+[node name="DestinationLabel" type="Label" parent="Panel/Layout/Rows/Header/Destination/Row" unique_id=624535876]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+text = "?"
+
+[node name="Activity" type="HBoxContainer" parent="Panel/Layout/Rows" unique_id=1257753859]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+
+[node name="ActivityLabel" type="Label" parent="Panel/Layout/Rows/Activity" unique_id=100637608]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"BodyTextLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+text = "Looking at empty space"
+clip_text = true
+text_overrun_behavior = 3
+script = ExtResource("4_morph")
+
+[node name="ServeButton" type="Button" parent="Panel/Layout/Rows/Activity" unique_id=818275599]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"ServeButton"
+script = ExtResource("7_serve")
 
 [node name="Middle" type="Control" parent="Panel/Layout/Rows" unique_id=730434983]
 unique_name_in_owner = true
@@ -113,46 +171,10 @@ mouse_filter = 2
 [node name="Trip" type="HBoxContainer" parent="Panel/Layout/Rows/Middle" unique_id=1965568126]
 unique_name_in_owner = true
 layout_mode = 0
-theme_override_constants/separation = 6
-
-[node name="Where" type="HBoxContainer" parent="Panel/Layout/Rows/Middle/Trip" unique_id=257441111]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 4
-
-[node name="Arrow" type="TextureRect" parent="Panel/Layout/Rows/Middle/Trip/Where" unique_id=2036102848]
-self_modulate = Color(1, 1, 1, 0.6)
-custom_minimum_size = Vector2(12, 12)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("20_arrow")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Planet" type="HBoxContainer" parent="Panel/Layout/Rows/Middle/Trip/Where" unique_id=712471595]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 3
-
-[node name="DestinationIcon" type="ColorRect" parent="Panel/Layout/Rows/Middle/Trip/Where/Planet" unique_id=394251105]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(14, 14)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-script = ExtResource("3_icon")
-
-[node name="DestinationLabel" type="Label" parent="Panel/Layout/Rows/Middle/Trip/Where/Planet" unique_id=624535876]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"TinyLabel"
-text = "?"
 
 [node name="HappinessBar" type="ProgressBar" parent="Panel/Layout/Rows/Middle/Trip" unique_id=1379124599]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -193,30 +215,6 @@ custom_minimum_size = Vector2(62, 11)
 anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("5_stars")
-
-[node name="Activity" type="HBoxContainer" parent="Panel/Layout/Rows" unique_id=1257753859]
-custom_minimum_size = Vector2(0, 20)
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="ActivityLabel" type="Label" parent="Panel/Layout/Rows/Activity" unique_id=100637608]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.75)
-text = "Looking at empty space"
-clip_text = true
-text_overrun_behavior = 3
-script = ExtResource("4_morph")
-
-[node name="ServeButton" type="Button" parent="Panel/Layout/Rows/Activity" unique_id=818275599]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_type_variation = &"SmallButton"
-text = "Serve"
-script = ExtResource("7_serve")
 
 [connection signal="pressed" from="Options/OptionButtons/KickButton" to="." method="_on_kick_button_pressed"]
 [connection signal="hold_changed" from="Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_hold_changed"]
