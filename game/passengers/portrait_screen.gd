@@ -11,19 +11,24 @@ extends RefCounted
 ## How fast the screen's light comes up and goes away, per second.
 const SHOW_SPEED := 2.0
 ## How far the light lifts the face's colour toward white, at the most.
-const STRENGTH := 0.85
-## The colours of the shots, one picked at each cut, mostly a TV's cold blue. None is
-## deep, so each lifts every skin colour: a deep blue is lost on a blue face. Each shot
-## is also brighter or darker than the last, which reads as a screen more than the hue.
+const STRENGTH := 0.8
+## The colours of the shots, one picked at each cut, mostly a TV's cold blue and white.
+## They are strong and far apart, so the whole face changes colour at a cut: at a card's
+## size that is all that shows, and a pale light only reads as a steady glow. A skin
+## already full in a shot's colour, such as blue under blue, barely shows that shot, so
+## no skin's own colour makes up much of the list. Each shot is also brighter or darker
+## than the last.
 const SHOT_COLORS: Array[Color] = [
-	Color(0.45, 0.7, 1.0),
-	Color(0.45, 0.7, 1.0),
-	Color(0.4, 1.0, 0.9),
-	Color(1.0, 0.75, 0.4),
-	Color(0.95, 0.5, 1.0),
-	Color(0.95, 0.97, 1.0),
+	Color(0.25, 0.55, 1.0),
+	Color(0.25, 0.55, 1.0),
+	Color(0.2, 1.0, 0.9),
+	Color(1.0, 0.8, 0.2),
+	Color(1.0, 0.3, 0.9),
+	Color(1.0, 0.35, 0.3),
+	Color(1.0, 1.0, 1.0),
+	Color(1.0, 1.0, 1.0),
 ]
-const SHOT_BRIGHTNESS := Vector2(0.25, 1.0)
+const SHOT_BRIGHTNESS := Vector2(0.55, 1.0)
 ## Seconds from one cut to the next: a range. At most two and a half cuts a second, under
 ## the three flashes a second that can set off photosensitive seizures.
 const SHOT_SECONDS := Vector2(0.4, 1.2)

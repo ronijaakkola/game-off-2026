@@ -20,11 +20,11 @@ uniform vec3 screen_light : source_color = vec3(0.0);
 uniform float screen_side = 0.0;
 // Toward the screen, in view space, and how far to the side its light swings.
 const vec3 SCREEN_DIRECTION = vec3(0.0, -0.5, 0.866);
-const float SCREEN_SWING = 0.7;
+const float SCREEN_SWING = 0.5;
 
 void fragment() {
 	ALBEDO = two_tone_light(color, NORMAL, VERTEX, INV_VIEW_MATRIX, 0.0);
 	vec3 to_screen = normalize(SCREEN_DIRECTION + vec3(screen_side * SCREEN_SWING, 0.0, 0.0));
-	float facing = smoothstep(0.15, 0.85, dot(normalize(NORMAL), to_screen));
+	float facing = smoothstep(-0.1, 0.7, dot(normalize(NORMAL), to_screen));
 	ALBEDO += (1.0 - ALBEDO) * screen_light * facing;
 }
