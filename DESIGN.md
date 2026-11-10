@@ -353,10 +353,10 @@ Features we will very probably build, but that need more design work first.
 - **The tow's price and speed.** 100 credits, which can take the credits below zero, and 0.4 units a second over the planet's speed.
 - **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit, so it is never short and refuelling is automatic.
 - **Green points.** A third of all research points are green, and the green tree has one built upgrade, so they pile up unspent.
-- **The rating goal.** It reads the all-time average, while the player is shown the recent rating. The first rides on a bare bus weigh the average down for the whole run.
+- **The rating goal.** It reads the all-time average, which the goal panel shows, while the resource bar shows the recent rating: two ratings on screen. The first rides on a bare bus weigh the average down for the whole run, so a player who reaches 4.5 recent can still sit under 4.0 for minutes.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
 - **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
-- **Seats and waiting passengers.** 4 seats and up to 4 waiting per planet. With all five Extra seats the bus still leaves with about one seat in six empty; 5 waiting would fill them, if the dock panel has room for the rows.
+- **Seats and waiting passengers.** 4 seats and up to 4 waiting per planet. With all five Extra seats the bus still leaves with about one seat in six empty; 5 waiting would fill them, but the open planet's panel has room for 4 rows at the smallest window.
 - **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
 
 UI questions are in `docs/ui.md`.
