@@ -4,9 +4,10 @@ extends VBoxContainer
 ## shows the leg the bus is on, as a track from the planet it left to the next one with the
 ## time left to it, or what the bus is doing when it has no leg. The bus bar under it shows
 ## its fuel, two small keys that are blank placeholders for now, and the Frameshift key
-## ([FrameshiftKey]): the key fills as the drive charges and
-## cancels the course when pressed, turns into Stop while the bus flies under its own power,
-## and is off otherwise. It reads [member bus] every frame.
+## ([FrameshiftKey]). With a course set and the bus waiting, holding the key charges the
+## drive and the key fills as it does; let go, the charge drains. Charged, the key pops up
+## by itself as the bus leaves. While the bus flies under its own power the key is Stop, and
+## it is off otherwise. It reads [member bus] every frame.
 
 const TRACK_COLOR := Color(1.0, 1.0, 1.0, 0.1412)
 const ROUTE_COLOR := Color(1.0, 0.6, 0.22, 1.0)
@@ -31,6 +32,8 @@ var _from_planet: Planet
 # The fuel bar's fill, a copy of the scene's, so its colour can change.
 var _fuel_fill: StyleBoxFlat
 var _fuel_low := false
+# Whether the drive charged last frame, to pop the key up the moment the bus leaves.
+var _was_charging := false
 
 
 func _ready() -> void:
@@ -55,12 +58,15 @@ func _show() -> void:
 	var next := bus.get_next_planet()
 	var charging := bus.state == FrameshiftBus.State.CHARGING
 	_set_text(%StateLabel, _state_text(next))
-	_show_trip(next)
+	_show_trip(next if not _is_ready() else null)
 	var key := %FrameshiftKey as FrameshiftKey
 	var flying := bus.state == FrameshiftBus.State.FLYING
 	var can_stop := flying and not bus.is_stopping() and not bus.is_towing()
-	key.disabled = not (charging or can_stop)
+	key.disabled = not (charging or can_stop or _is_ready())
 	key.stop = can_stop
+	if _was_charging and flying:
+		key.release()
+	_was_charging = charging
 	# A charge that hasn't moved yet, as while passengers board, still latches the key.
 	key.charge = maxf(bus.get_charge_progress(), 0.02) if charging else 0.0
 	_show_fuel()
@@ -69,6 +75,8 @@ func _show() -> void:
 func _state_text(next: Planet) -> String:
 	if bus.get_fuel_tank().is_empty() and not bus.is_towing():
 		return "Out of fuel: refuel here" if bus.is_at_planet() else "Out of fuel"
+	if _is_ready():
+		return "Hold Frameshift to leave"
 	match bus.state:
 		FrameshiftBus.State.DOCKED:
 			return "No course"
@@ -88,6 +96,13 @@ func _flying_text(next: Planet) -> String:
 	if bus.is_towing():
 		verb = "Towed to"
 	return "%s %s" % [verb, _planet_name(next)]
+
+
+# Whether the bus waits, docked or holding in space, with a course for the drive to charge
+# for. A course always has fuel, and a tow is in flight.
+func _is_ready() -> bool:
+	var waiting := bus.state in [FrameshiftBus.State.DOCKED, FrameshiftBus.State.HOLDING]
+	return waiting and bus.get_last_stop() != null
 
 
 func _show_trip(next: Planet) -> void:
@@ -160,6 +175,16 @@ func _set_text(label: Label, text: String) -> void:
 		label.text = text
 
 
-func _on_frameshift_key_pressed() -> void:
-	if bus:
+# Stop acts at once. Otherwise the drive charges while the key stays down.
+func _on_frameshift_key_button_down() -> void:
+	if not bus:
+		return
+	if (%FrameshiftKey as FrameshiftKey).stop:
 		bus.cancel_course()
+	else:
+		bus.frameshift_held = true
+
+
+func _on_frameshift_key_button_up() -> void:
+	if bus:
+		bus.frameshift_held = false

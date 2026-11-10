@@ -190,4 +190,5 @@ theme_type_variation = &"KeyButton"
 disabled = true
 script = ExtResource("4_key")
 
-[connection signal="pressed" from="BusBar/Row/Controls/FrameshiftKey" to="." method="_on_frameshift_key_pressed"]
+[connection signal="button_down" from="BusBar/Row/Controls/FrameshiftKey" to="." method="_on_frameshift_key_button_down"]
+[connection signal="button_up" from="BusBar/Row/Controls/FrameshiftKey" to="." method="_on_frameshift_key_button_up"]
