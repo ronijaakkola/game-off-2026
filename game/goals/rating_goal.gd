@@ -15,7 +15,7 @@ func _init(stars: float, min_rated_rides := 1) -> void:
 
 
 func get_text() -> String:
-	return "Keep a %.1f-star rating" % target
+	return "Maintain %.1f rating" % target
 
 
 ## How close the average is to the target, and 0 until enough rides are rated.

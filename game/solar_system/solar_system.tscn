@@ -38,6 +38,7 @@
 [ext_resource type="Texture2D" uid="uid://qrc7n3h4glnm" path="res://game/solar_system/icons/info.svg" id="102_info"]
 [ext_resource type="Script" uid="uid://ddct1wfbig2em" path="res://game/solar_system/debug_buttons.gd" id="103_debug"]
 [ext_resource type="Script" uid="uid://g6mjlpc3bau8" path="res://game/goals/goal_tracker.gd" id="104_goals"]
+[ext_resource type="PackedScene" uid="uid://cw1q7e1gbejto" path="res://game/goals/goal_panel.tscn" id="105_goal_panel"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -355,7 +356,17 @@ mouse_filter = 2
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 
-[node name="DockPanel" parent="Hud/TopRight" unique_id=609881460 instance=ExtResource("23_dock")]
+[node name="Stack" type="VBoxContainer" parent="Hud/TopRight" unique_id=1425910200]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="GoalPanel" parent="Hud/TopRight/Stack" unique_id=693263101 node_paths=PackedStringArray("tracker") instance=ExtResource("105_goal_panel")]
+layout_mode = 2
+size_flags_horizontal = 8
+tracker = NodePath("../../../../Goals")
+
+[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 instance=ExtResource("23_dock")]
 unique_name_in_owner = true
 layout_mode = 2
 

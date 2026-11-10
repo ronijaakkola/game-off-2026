@@ -522,6 +522,17 @@ opentype_features = {
 spacing_top = -2
 spacing_bottom = -4
 
+[sub_resource type="FontVariation" id="FontVariation_600_goal"]
+base_font = ExtResource("1_baloo")
+variation_opentype = {
+2003265652: 600
+}
+opentype_features = {
+1953396077: 1
+}
+spacing_top = -3
+spacing_bottom = -3
+
 [resource]
 default_font = SubResource("FontVariation_600")
 default_font_size = 13
@@ -576,6 +587,9 @@ FaintLabel/fonts/font = SubResource("FontVariation_600_small")
 FaintLabel/base_type = &"Label"
 FaintLabel/colors/font_color = Color(0.957, 0.945, 1, 0.4)
 FaintLabel/font_sizes/font_size = 11
+GoalLabel/base_type = &"Label"
+GoalLabel/font_sizes/font_size = 13
+GoalLabel/fonts/font = SubResource("FontVariation_600_goal")
 HSlider/constants/center_grabber = 0
 HSlider/icons/grabber = ExtResource("7_knob")
 HSlider/icons/grabber_highlight = ExtResource("8_knob_highlight")
