@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://game/solar_system/icons/star.svg" id="4_star"]
 
 [node name="RatingCounter" type="HBoxContainer" unique_id=976470558]
-mouse_filter = 2
+mouse_filter = 0
 theme = ExtResource("3_theme")
 theme_override_constants/separation = 4
 script = ExtResource("1_counter")

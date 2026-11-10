@@ -1,8 +1,13 @@
 # Design
 
-What the game is. Read this before gameplay work and update it when the design changes.
+The design decisions the game logic follows: the rules, the numbers that are decisions, and why. Read it before gameplay work.
 
-**Frameshift Bus.** The core loop below is the design. Built so far: the bus docks, charges and flies routes in the solar system (steps 1 to 4: docking, charging, flying and rerouting, without the planets' cost and time labels), with passengers, fuel, refuelling and the tow. What Play opens today is that solar system (Scenes and flow). The example game scene is still in the repo and shows the patterns to copy.
+Keeping it that way:
+
+- **What goes here:** a rule or a number someone needs to write the game logic, and couldn't guess. One rule per bullet.
+- **What doesn't:** how it looks, sounds or animates (`docs/ui.md`), and anything the code already says (file paths, class names, node layout).
+- **Change, don't append.** When a rule changes, rewrite its bullet. No history: git has it. A reason stays only while it still stops someone undoing the decision.
+- **Status.** Everything here is built unless it says *(not built)*. All numbers are starting points for playtests.
 
 ## Pitch
 
@@ -10,113 +15,302 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 ## Core loop
 
-1. **Docked.** The bus starts docked at a planet. Passengers wait at planets, each with a destination planet, a fare and an expected trip time. While docked (or charging), the player picks passengers up into the bus's seats.
-2. **Set course.** Right-clicking a planet adds it to the end of the route. Each planet shows the fuel cost and travel time to it, both from the distance right now. Right-clicking empty space adds a point in space instead: with a planet on the route it is a **checkpoint**, which goes in just before the first planet on the route, so it bends the way to where the bus is headed rather than going on after it. There is one checkpoint before that planet: a new one replaces the one already there. With no planet on the route, the point replaces the one the bus is flying to, so a route in open space is one point, and right-clicking a planet then replaces that point with the planet. Clicking one planet after another builds a route of several stops; Backspace, or the Frameshift key in the bus bar, clears it. No modifier keys: Firefox opens its own context menu on Shift + right-click, and a page can't stop it. Left click is for selecting things, such as opening a planet. The route is drawn as a line from the bus through each point.
-3. **Charge.** The frameshift drive charges for 3 s before the bus leaves a planet, and the bus turns toward its next stop meanwhile. While it charges, the player can cancel, or change the route.
-4. **Fly.** The bus flies the route point by point. The player can reroute at any time from wherever the bus is, the same way as setting a course, with no charge-up and no extra fuel cost: fuel burns by distance flown, so a reroute costs only the distance it adds. The same goes for a course set from a stop in space within 1 s of the bus coming to rest (`warm_time`), so a short stop costs nothing. After that the drive has gone cold, and a new course charges it for the full 3 s first, as at a planet: the ring fills, the bus turns toward its first stop and shakes, and the player can cancel, which leaves it holding in space.
-5. **Arrive.** At a planet, passengers going there get off and pay by their mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing.
-6. **Refuel.** For now every planet sells fuel, each at its own price. Docked at one, the player holds a button down in the dock panel, or in the planet's panel when they open it, to pump fuel in, paying as it flows. If the bus runs out of fuel in space, the player can request a tow to the nearest planet, paying for it up front. The tow fills the tank. It costs money, and the time it takes costs the passengers' happiness, on top of the scare running dry gave them.
+1. **Docked.** The bus starts docked at a planet. Passengers wait at planets, each with a destination, a fare and an expected trip time. While docked or charging, the player picks passengers up into the bus's seats.
+2. **Set course.** The player adds planets and points in space to the route.
+3. **Charge.** The frameshift drive charges before the bus leaves a planet. The player can cancel or change the route meanwhile.
+4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
+5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
+6. **Refuel and research.** Docked, the player buys fuel and researches upgrades from that planet's tree.
 
-**Fuel, as built.** A full tank holds 100 fuel and the bus burns 2.5 per unit flown, so a tank flies 40 units: about one trip from Ember to Frost and back, which are 12 to 23 units apart as they orbit. Only flying burns fuel; charging, parking and the float while docked don't. A bus can only be at a planet with an empty tank if something empties it there, such as the debug panel: it stays docked ("Out of fuel: refuel here"), a charge under way stops, and no course can be set until it refuels. Running dry: the moment the tank runs dry in flight, the route is cleared and the bus coasts to a stop ("Out of fuel"). Nothing comes by itself: a red warning notice above the bus bars (`game/solar_system/tow_offer.tscn`) reads "You ran out of fuel" and has a "Request a tow (100 credits)" button, showing what the tow costs now. It stays until the player presses the button, which takes the fee and hides the notice. Then a tow ship (`game/bus/tow_ship.tscn`, with `game/bus/models/tow_ship.glb` from the model library: a stubby coral-red tug, so it never reads as the bus, with a cab at the bow, a push bumper, a winch and an A-frame tow boom over the stern, an oversized engine out on a stub wing each side so the exhaust passes either side of the cable, and a blinking orange beacon on its roof) frameshifts in along the edge of the planet nearest to the bus, to a point just off it, and flies out to the bus, stopping just ahead of it, toward the planet. There it swings its stern round to the bus and shoots a pale cable from its boom to the bus's nose, with a small clamp at the cable's end, which takes about a second in all; the tow starts once the cable latches on. The ship hitches on 0.22 units closer than it tows from, so the cable starts slack, hanging in a bow; the ship pulls ahead over half a second until it is taut, when the cable twangs, and from then on the cable's middle swings a little behind the ship's turns. Under Reduce motion the cable only bows. The bus's own thrusters stay dark while it is towed, since its tank is empty. The ship leans into its turns, as the bus does, and it leads the bus there 0.4 units a second faster than that planet moves at the time, up to the bus's top speed, so the tow always catches its planet: planets move at 0.34 (Frost) to 0.47 (Ember) units a second, and the Moon at up to about 0.87 as it circles Terra. A tow is still slow, so riders' happiness suffers on the way, and when it hitches on everyone on board takes a −15 scare (Research, Happiness). It never goes closer to the planet than where it shifted in, so near the planet it moves round to the bus's side. Once the bus starts to park, the ship lets go and reels the cable in over a third of a second, and veers off away from the bus and the planet and frameshifts out. A frameshift jump takes 0.3 s and 2.5 units: the ship stretches long and thin along its heading (squeezing back to its shape as it lands when it shifts in), and a thin white-cyan streak along the jump fades over half a second. The player can't set, change or cancel a course from running dry until the bus has docked. It docks there as usual (a stop, with passengers getting off), with a full tank, so a tow never leaves the player stuck at a planet without fuel or the credits for it. The tow costs 100 credits, paid when it is requested; with fewer, the credits go below zero and the player owes the rest. A full tank costs 6 to 15 credits, so a tow is many times the price of refuelling in time.
+## The solar system
 
-**Refuelling, as built.** Every planet sells fuel at its own price (`fuel_price` on the planet, credits per unit of fuel; `sells_fuel` turns it off for a planet, and none has it off yet): a full tank from empty costs 6 credits at Giant, 8 at Frost, 10 at Ember, 12 at Terra and 15 at the Moon. The open planet's panel has a Fuel section under the waiting passengers: "Full tank 10 credits", the bus's fuel as a bar and a percentage (red at a quarter of a tank or less, as in the bus status, so it turns back to cyan as it fills), a "Hold to refuel" button, and a note under it. The note shows the player's credits, since the panel covers the counter, or why the button is off: "Dock here to refuel." when the bus isn't docked or charging at that planet, "Tank full." or "Not enough credits.". Holding the button down is the minigame: fuel flows from 12 a second, speeding up to 60 a second over 1.5 s, so a short tap tops up a little and a long hold fills fast; the button reads "Refuelling..." meanwhile. It stops when the player lets go, the tank is full or the credits run out. The dock panel has the same button, "Hold to fuel" with what filling the tank costs there, as "Hold to fuel (51 cr)", between its title and the passengers, so the player can refuel without opening the planet (`game/solar_system/fuel_button.tscn`). It is the tank's gauge too: a faint fill with the button's corners behind the label, as wide as the share of a full tank the bus holds, in the fuel's colour (red at a quarter of a tank or less), grows as fuel flows in. Held, the label morphs into the fuel's percentage (the passenger card's morph), which counts up as the tank fills, and morphs back when let go. When it is off, it reads why: "Tank full" or "Not enough credits". The bill is paid when the pump stops (let go, tank full, credits run out or the bus leaves), not as fuel flows: the whole credits it adds up to come off at once, in a red "-12" under the credits that pops, then the total counts down while it fades out drifting upward, as a fare's gain counts up. What is left under a credit carries over to the next refuel. It isn't there at a planet that sells no fuel, and the open planet's note reads "No fuel sold here.". Fuel is cheap next to fares for now (about 0.25 credits of fuel per unit flown, against fares of 3 per unit); tune both in playtests.
+- A star and four planets on circular orbits, one with a moon and one with rings. The Moon counts as a planet for passengers, fuel and docking.
+- Planets orbit at 0.34 (Frost) to 0.47 (Ember) units a second; the Moon moves at up to about 0.87 as it circles Terra. Every planet moves at under 40 % of the bus's speed, so the bus catches one without a long chase.
+- Ember and Frost are 12 to 23 units apart as they orbit.
 
-A passenger's happiness holds until the bus leaves the planet they boarded at, and while the bus parks at a planet. On the ride it slides toward what their needs, the bus's comfort and their timing allow, so a straight trip with every request served keeps them content and detours wear them down (Research, Happiness). Mood comes from happiness: happy at 70 or more, okay at 50 or more, annoyed at 25 or more, furious below. The fare grows with the distance to the destination.
+## Route and flight
 
-### On board
+- **Stops.** A route is an ordered list of stops, each a planet or a point in space. The bus docks at every planet on the route and passes through points in space. It holds still at a point in space that ends the route.
+- **A planet stop** is the planet's near side, so the bus chases a moving planet.
+- **Checkpoint.** With a planet on the route, a point in space goes in just before the first planet on the route, so it bends the way there rather than going on after it. There is one checkpoint before that planet: a new one replaces it.
+- **Open space.** With no planet on the route, a point in space replaces the one the bus is flying to, so a route in open space is one point. Adding a planet then replaces that point.
+- **Round trips.** A planet earlier on the route can be added again. The planet the bus is docked at can be added as the last stop when the route already has a planet.
+- **No modifier keys** in the route controls: Firefox opens its own context menu on Shift + right-click, and a page can't stop it.
+- **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
+- **Charge.** Leaving a planet charges the drive for 3 s first. The bus turns toward its next stop meanwhile. Cancelling keeps it docked.
+- **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
+- **Warm drive.** A course set from a stop in space within 1 s of coming to rest leaves at once, so a short stop costs nothing. After that the drive is cold and charges for the full 3 s; cancelling leaves the bus holding in space.
+- **Parking.** Near a planet the bus glides the last half unit in and swings side-on, door toward the planet. It has docked only once it is parked. A course set while it parks charges once it has.
+- **Clearing the route** stops a charging drive, and makes a flying bus coast to a stop.
 
-The On board panel in the top left corner shows how many seats are taken ("3/4") and, under it, a 48 px row for each passenger on board: their portrait, their name with their destination beside it (an arrow, a small flat icon of the planet and its name), a short line saying what they are doing, and along the bottom a happiness bar in their mood's colour, which blends into the new colour when the mood changes, Reduce motion or not (a big drop, such as a scare, leaves a dark red trail on it that holds for half a second, then shrinks to the bar). The mood has no name on the card: the bar's colour says it. The line says what they are doing ("Sleeping...", "Counting stars"), starting with "Finding their seat..." for a few seconds after boarding. When the line changes, it morphs: a wave sweeps left to right, the old letters drift up and blur away and the new ones rise into focus behind it, in about half a second. Under Reduce motion nothing moves: the old line fades out and the new one fades in on the spot. Built in `game/passengers/`, and running in the solar system:
+## Fuel
 
-- **Waiting and boarding (first phase).** Each planet, the Moon included, gets a new passenger every 8 to 20 s, up to 3 waiting, each going to another planet at random. Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing. Their happiness holds while they wait. Once the bus has the waiting markers trait (Research, Traits, as built), under the name of each planet where someone waits, a small person and a number say how many, so the player can see who waits where while planning a route; they fade with the names while a planet is open. They also show in the open planet's panel (Controls). Whenever the bus docks at a planet, it makes a stop there: the passengers going there get off one at a time and pay. Nobody boards by themselves: while the bus is docked or charging, the dock panel (the planet's station) hangs from the top right corner. Its title is the planet's icon and name with "Station". Under the waiting rows and Board all, a faint line and Services, each with its icon on a small tile: where the planet sells fuel, the "Hold to fuel" button (Refuelling, as built), and where the planet has a research tree a Research button, which opens the planet zoomed in on its Research tab (Research, Research tree). It lists who waits there, longest waiting first, each with their portrait, name, destination, how many already on board go there ("· 2 aboard") and a Board button, or "Nobody waiting.", and under them a Board all button that picks up everyone that fits, longest waiting first. While every seat is taken or promised, it reads "Bus full 4/4" (the bus's capacity) and is off, as are the Board buttons. It stays in one place on screen, so the buttons never move under the pointer. The pointer over a passenger's row shows where they want to go (`game/solar_system/trip_arc.gd`): an arc from the planet to their destination, in their race's skin colour, rising off the orbit plane like a hop so it never reads as part of the flat route, and bowing sideways too where the trip points along the view, so it never looks straight. It is a line of rounded dashes with a thin dark outline, as wide on screen at any zoom, that leaves from the planet's edge and ends at a ring round the destination. It grows out from the planet in half a second, the ring closing in as it arrives; then the dashes flow toward the destination and the ring sends out a slow pulse. Under Reduce motion it fades in whole and holds still. A click on the row pins the arc, so it stays once the pointer leaves, until the row is clicked again, that passenger boards or the bus leaves; the row whose trip shows has a border in their race's colour. Both used to take the destination's icon colour, but Terra's green and the Giant's orange come too close to the races' and read as a race. The arc fades with the planets' names while a planet or the bus is open. It slides in from the right when the bus docks and back out when it leaves; a passenger picked up slides out of it to the right, cut off at its edge, and it grows and shrinks smoothly to fit. Under Reduce motion the panel and a passenger picked up fade in place instead of sliding. It is where whatever else the planet offers goes. Board picks a passenger up: they get on after anyone still getting off or picked up before them. The buttons are off while every one of the 4 seats is taken or promised to someone picked up. Getting off or on takes 0.6 s each, so a busy stop takes longer and an empty one none. The drive can't charge until the stop is over: a course set during it charges once the last passenger is on, and picking someone up while it charges holds the charge where it is until they are on. With a course set before docking, the drive starts charging once everyone going there is off, so the player has the 3 s charge to pick passengers up, or longer by picking them one after another. A passenger getting off pays by the mood they arrived in. Their card shows their rating first (Rating, below), then slides out past the left edge of the screen and the cards below move up into the gap, the panel shrinking with them; one boarding slides in at the bottom from past the left edge. Under Reduce motion a card fades in and out in place instead of sliding; the cards below still move up. The game starts with the bus empty, docked at Ember, with 2 passengers waiting there and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go; since Ember's clock holds while the bus is docked there, it would otherwise start with nobody.
-- **Portraits.** A small photo on the left of the card (and of their row in a planet's panel while they wait), in a thin white frame tilted very slightly at random, of the passenger's alien head and shoulders over a blurred background in a deep shade of their race's colour, so the whole photo shows the race and the lighter skin stands out from it. It used to take the colours of the planet they boarded at, which said nothing the card needed and could hide a skin in its own colour. Each passenger has one of their race's two head shapes (`game/passengers/models/head_*.glb`; Research points, below), one of two eye styles (Googly, Bead) and their race's skin colour. The head and eyes are picked at random for now. Eye style is variety only, not a sign of race: at a card's size the eyes are a few pixels and already show the mood. The head sways and breathes slightly, the eyes blink and glance around (drawn in Godot, on markers in each model), and stalks wobble. Asleep (an idle line from the type's sleep lines, such as "Sleeping...", which comes up only on a bus with Pillows or Sleeping pods), the eyes drift shut to a curved line, the head nods forward and to one side and breathes slower, until a request wakes them. Their face shows their mood while they ride: annoyed, the lids slant down toward the middle of the face like a frown over smaller pupils; furious, more so, and a red cartoon anger mark (four short curved strokes with a dark outline) grows in at the head's upper right and pulses, and the head trembles. The skin never changes colour with mood, since it is what shows their race (Research points, below); an all-over red flush made every race read the same once furious. Under Reduce motion the mark holds still. Happy, they beam now and then, about as often as a few blinks: for a second or two, lower lids rise so the eyes smile into crescents, the pupils look up and the head bobs. A single eye in the middle of the face (the Blob) shows both off the eye instead, since any curve cut into one eye there reads as a mouth at a card's size: angry, a thick dark brow comes down over it, flat when annoyed and in a sharp V when furious, pushing the lid down below it with a strip of skin between; beaming, its shine turns into a four-pointed star, its pupil grows and pink blush ovals show on its cheeks. A beam rather than a constant half-smile, since a partly raised lid reads as a squint or a frown at a card's size, and a constant full grin would stop meaning anything. A portrait can also hold that joyful face, but nothing holds it yet; a laugh while watching a show (below) shows it for a moment. While a served snack or drink lasts, they eat or drink it in the photo. The aliens have no mouths, so the food is held up in front of where one would be, just below the eyes, and their eyes look down at it. The food always runs off the bottom of the photo, as if held from below, so it never floats. A snack is a bar held upright, its top bare and the rest in a pink wrapper: every 1.5 s it rises to the face, the head dips to bite, then munches. A drink is a tall white cup with a blue band under the rim and a short yellow straw up to the face: it stays put, and every couple of seconds the head dips to sip. The food rises into the photo from below when served and drops out again when it ends. Under Reduce motion, the food comes up and stays still. While they watch a show (on a bus with In-Flight Movies, below), they watch a screen just in front of them, where the camera is: its light falls on the face, blending in a soft cut every half second to a second and a half to the next shot's colour and brightness, mostly a TV's cold blue, with a slight flicker. Cuts stay well under three a second, for photosensitive players. Their eyes stay on the screen, and every few seconds they laugh for about a second: the joyful face, the head tipped back and bouncing quickly up and down. Not while angry. Under Reduce motion the light holds one steady colour and a laugh shows only on the face. A served need's data says what they eat or drink (`Need.served_action`), so it acts out the same however it was served. While they ride, the bust leans with the push felt on board: back as the bus speeds up, forward as it brakes (twice as far as sideways, and the head dips and comes closer, since a lean toward the camera barely shows), easing off as the bus glides in to park, and toward the outside of a turn; it sways back past upright when the push stops, and stalks trail behind. Waiting at a planet, they don't lean. Under Reduce motion only the eyes move. One offscreen view in the solar system renders every portrait on screen in a single pass (`PortraitStudio`, 12 slots), and each photo (`PassengerPhoto`) shows its own tile of it.
-- **Trip time and fare** come from the straight distance at boarding: the trip time is the charge plus that distance at the bus's top speed, and the fare is 3 credits per unit times the type's multiplier. Planets move, so it is only an estimate.
-- **Research points.** Every passenger is one of three races (`game/passengers/race.gd`), picked at random for now. A race shows in two ways, so it reads without colour too: its skin colour, and the build both its head shapes share, which differ in a detail so a race doesn't look the same every time. The portrait fits every head to its photo, so a build reads as a body type rather than a height. Getting off at their destination earns one research point of their race, whatever their rating. The points show in the resource bar (below): for each race a flask in its skin colour and how many the player has, which pops as it goes up. Researching an upgrade spends them (Research, Research tree). Each race's points are meant for one part of the bus: blue for its performance, orange for comfort on board, green for the stops.
-  - **Blue** (long): tall, smooth heads with the eyes in the face. The Dome and the Bean, which has antennae.
-  - **Orange** (short): low mounds with no neck, sitting straight on the shoulders. The Blob, with one big eye, and the Mound, wider and flatter with two eyes and two nubs on top.
-  - **Green** (middle): a thin neck, with the eyes out on the ends of things. Stalks, eyes on two stalks, and the Hammer, eyes on the ends of a bar.
-  - **Colours.** Blue `#6699ff`, orange `#fa8033` and green `#99e673`. With red-green colour blindness, orange and green both turn yellowish, and they stay apart only because the orange is darker and the green lighter, so their builds are the most different pair: no neck against a thin one. Blue stays blue. The planets' hues aren't final: the Giant (orange) and Terra (green) now come close to the races' colours. The photo backgrounds are deep shades of the same three: blue `#2e3d8c`, orange `#9e401a` and green `#296138`.
-- **Credits** show in the resource bar, beside a dollar sign, with a comma between thousands (12,480). Payments at a stop collect in a green gain floating under the bar ("+15"): with each one it pops bigger for a moment and shows the new sum. Once everyone going there is off, after a short delay the total counts up to include it one credit at a time, while the gain fades out drifting upward.
-- **Resource bar** (`game/solar_system/resource_bar.tscn`): a frosted-glass pill at the top centre with the credits, the three research counts (each on a chip tinted in its race's colour) and the average rating, split by thin dividers, in Baloo 2 Bold with Lucide icons (`ui/fonts/`, `game/solar_system/icons/`). What is behind it shows blurred under a translucent fill. Every digit is the same width, so a count never makes it wobble: it only widens or narrows by a digit when a number gains or loses one (999 to 1,000). It stays centred and glides to the new width in 0.3 s, easing out; under Reduce motion it changes at once. A count of the credits makes room for its widest number before it starts, and gives back what it no longer needs once it ends, so the pill changes width once per count rather than at each digit it passes (0 to 1,000 passes three); the total sits right-aligned in that room, so new digits appear on its left. So the start of a game doesn't move it either, each number always has room for what it shows early on: the credits for three digits (up to 999), each research count for two, and the rating for "0.0" while it shows a dash. The bar starts at that width, 284 px as in the design, and first changes when the credits reach 1,000 or a research count 100. Gains and losses float under the pill, taking no room in it, and fade out just under its edge as they drift up. A number that pops swells and settles. Under Reduce motion nothing pops or drifts: gains and losses fade out where they are.
-- **Rating.** A passenger getting off rates the ride in stars by the happiness they arrived with: their happiness ÷ 20, to the nearest whole star, so a bare bus gives 3 and now and then 4, and 5 takes comfort upgrades (Research, Happiness). When the bus docks at their planet, everyone going there shows it on their card at once. The name and mood stay. The middle row, where they are going and their happiness bar, sinks a few pixels and fades out while five empty stars drop in from just above and fade in, a moment behind it; then the stars fill up to their rating one after another, each swelling and settling as it turns yellow. The activity line morphs to "Getting off". Under Reduce motion the row only crossfades and the stars only change colour. The card stops following them and lingers for 2.2 s, counted from when the stop starts, long enough for five stars to fill and be read, and only after that and their turn to get off does it slide out. The player's average rating, the mean of every rating so far to one decimal, shows at the right end of the resource bar beside a yellow star, or a dash before the first. Like the credits, it waits for the stop: each rating pops a gain under the bar with how far the average has moved ("+0.2" in green, "-0.3" in red, "±0.0"), and once everyone going there is off, after a short delay the average moves to its new value while the gain fades out drifting upward. The very first rating has nothing to move from, so the average just appears with a pop. It changes nothing else yet (Open questions).
-- **Bus status** sits on the bottom edge of the screen, centred, as two bars (`game/bus/bus_status_panel.tscn`). The route bar on top shows what the bus is doing ("Docked", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to waypoint", "Stopping", "Holding in space"), or, while it is on a leg, a track from the planet it left (or "Space") to the next planet on the route with the time left to it. The bus bar under it holds a fuel gauge (a pale cyan bar and the percentage left, both red at a quarter of a tank or less) and the Frameshift key. Out of fuel in space, it reads "Out of fuel", then "Towed to Terra" once the tow ship has hitched on, and the key is off. Docking is the braking at the end of a flight to a planet and the parking after it. The time left is an estimate from the distance now: the charge left, the route's straight legs at top speed, speeding up and braking. The track never moves back, so a planet that moves away slows it instead. The Frameshift key is a physical key: its cap sits proud in a dark well and sinks while pressed. While the drive charges, the key latches down, its lamp lights and the bus's yellow fills it as the charge does; pressing it then cancels the course and keeps the bus docked. While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space. Otherwise it is dim, its lamp off. While a planet's or the bus's panel is open, the bus bars and the course hint hide, and the resource bar moves to stay centred between the On board panel and the open panel.
+- **Tank.** A full tank holds 100 fuel. The bus burns 2.5 per unit flown, so a tank flies 40 units: about one trip from Ember to Frost and back.
+- **Only flying burns fuel.** Charging, parking and floating while docked don't.
+- **Prices.** For now every planet sells fuel, each at its own price per unit. A full tank from empty costs 6 credits at Giant, 8 at Frost, 10 at Ember, 12 at Terra and 15 at the Moon. A planet can be set to sell none; none is yet.
+- **Refuelling is a hold.** While the bus is docked or charging at the planet, holding the button pumps fuel from 12 a second, speeding up to 60 a second over 1.5 s. It stops when the player lets go, the tank is full or the credits run out.
+- **The bill** is paid when the pump stops, not as fuel flows: the whole credits it adds up to come off at once, and what is left under a credit carries over to the next refuel.
+- **Fuel is cheap next to fares** for now: about 0.25 credits of fuel per unit flown, against fares of 3 per unit.
+- **An empty tank at a planet** (only the debug panel causes it) keeps the bus docked: a charge under way stops and no course can be set until it refuels.
 
-- **Needs.** Each passenger type has a few needs: the Commuter's are a snack and a drink, both food (`Need.food`). Entertainment used to be a third need the player served with "Put on a show"; it is now something In-Flight Movies gives (Research, Happiness), so a bare bus has no shows. Each need asks again a random while after the last one was served. While a request is open, a button to serve it takes the place of the card's activity line, with the need's icon and label ("Hand a snack" with a sandwich, "Pour a drink" with a cup), and their happiness heads for 0 until it is served. **Serving is a hold**, like refuelling: holding the button down serves the request over 1.2 s (`Cabin.HAND_SECONDS`), a faint cyan fill sweeping across the button as it does, and letting go keeps what was served so far. While anything is serving it, by hand or by an amenity, their happiness holds rather than falling, since they can see it coming. Once full, the served line shows for the need's time. Stops are quiet: no request opens while the bus is docked or parking, the needs' timers run at a tenth of their speed while it is docked, and a request open when the bus stops goes on hold (the card shows them idling instead) and opens again once the bus flies on. Arriving with a request that has been open, or on hold, for 5 s of flying or more disappoints them (Research, Happiness); one asked just before arriving, or during parking, is forgiven. A request stays open until it is served, never expiring, since a request that expired would make ignoring a passenger cheaper than serving them. One request at a time, and the other needs' timers wait while it is open, so serving one doesn't set off the rest at once. A served need shows its own line ("Munching a snack") for a few seconds.
-- **Amenities.** Something on the bus that serves food by itself (`game/passengers/amenity.gd`, `game/passengers/amenities/`), on board while the bus has its trait. The moment someone asks for food, an amenity with room starts serving them, filling their serve button by itself over its time, with its own line; anyone else asking waits for it, with its waiting line, and their happiness heads for 0 meanwhile. The player can still hold the button: the hand's speed adds to the amenity's, so a passenger already at the replicator gets served sooner. Two so far: the **Food Replicator** (a food dispenser, `FOOD_DISPENSER`) serves one at a time, 4 s each ("Getting a snack from the replicator", "Waiting for the replicator"), and **Waiter Droids** (serving robots, `SERVING_ROBOTS`) serve three at a time, 2.5 s each ("A droid brings a snack", "Waiting for a droid"). With both, the droids are tried first, then the replicator, so four can be served at once.
-- **Kicking off.** The pointer over a passenger's card slides its options out from under the card to its right, in about a fifth of a second, and back under once the pointer leaves the card and them; under Reduce motion they only fade. For now there is one, a "Kick" button with a kicking shoe icon in front of the word (`game/passengers/kick_icon.svg`, from the design file's Kick Passenger icon). It kicks them off the bus at once, wherever it is, docked or in flight: their seat frees up, they pay nothing and rate nothing, everyone left on board takes a −25 scare (Research, Happiness), and their card slides out past the left edge as when someone gets off, without the rating. Out of the bus's door, which is near the front of the side that faces the planet when docked, a small, soft human figure in a star jump, arms up and out and legs apart, all in their skin colour is thrown out and up, slowing as it goes and tumbling slowly, as if weightless, and after 4 s it shrinks away. It lets out a quiet Wilhelm scream as it is thrown, which fades out fast, as if it flew away from the bus (`game/passengers/wilhelm_scream.ogg`). Under Reduce motion it doesn't tumble. A card showing a rating, getting off, has no options. Built in `game/passengers/kicked_passenger.tscn`; the cabin's `kick()` takes them off.
-- **Passenger types** are data (a `PassengerType` resource): fare multiplier, slack (how long they expect the ride to take, as a multiple of the trip time), needs, idle lines, sleep lines and names. There is one, the Commuter.
+### Running dry and the tow
+
+- The moment the tank runs dry in flight, the route is cleared, the bus coasts to a stop, and everyone on board takes a −15 shock.
+- Nothing comes by itself: the player requests a tow, and pays for it then.
+- **The tow costs 100 credits.** With fewer, the credits go below zero and the player owes the rest. A full tank costs 6 to 15, so a tow is many times the price of refuelling in time.
+- A tow ship flies out from the nearest planet, hitches on and leads the bus there. It flies 0.4 units a second faster than that planet moves, up to the bus's top speed, so the tow always catches its planet.
+- A tow is slow, so happiness suffers on the way.
+- The player can't set, change or cancel a course from running dry until the bus has docked.
+- The bus docks as usual (a stop, with passengers getting off) **with a full tank**, so a tow never leaves the player stuck at a planet without fuel or the credits for it.
+
+## Passengers
+
+### Waiting
+
+- Each planet gets a new passenger every 8 to 20 s, up to 3 waiting. Who they are is under Who turns up.
+- Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
+- Happiness holds while they wait.
+- **The start.** The bus is empty and docked at Ember, with 2 passengers waiting there and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go.
+
+### Who turns up
+
+- **Decided when first seen.** A waiting passenger is only a count until the player first sees the line, by docking at the planet or opening it. Then each undecided passenger in it gets a destination, a race and a type, one after another, and keeps them. Lines fill about 40 s before the bus arrives, so deciding late is what lets a line answer the bus as it is now.
+- Anything that shows a line from afar counts as seeing it. The waiting markers show only a count, so they don't.
+- **Destination** is a weighted roll among the other planets, each at weight 1: ×2.5 if someone on board is going there, ×1.5 if someone already in the line is.
+- **No more than two** in a line go to the same planet, so a line always holds a choice.
+- A match with who is on board is likely, never certain. A certain one stops being a reward, and turns the bus into a shuttle between two planets.
+- Destinations aren't dealt from a bag: dealing without repeats makes two going the same way rarer than chance does.
+- **Race** is dealt from one shuffled bag of six, two of each race, so no race stays away for long.
+- **Type** goes by the band the recent rating is in (Rating). Upgrades aren't read: a bare bus sits at about 3 to 3.3 stars, so the rating already tells what the bus has.
+
+| Recent rating | Commuter | Business |
+|---|---|---|
+| Under 3.5 | 95 % | 5 % |
+| 3.5 to 4.25 | 75 % | 25 % |
+| 4.25 and up | 55 % | 45 % |
+
+- **A full line has a Commuter:** at most one Business passenger in a line in the lowest band, two above it.
+- *(not built)* A type whose needs take an amenity doesn't turn up until the bus has it. No need takes one yet.
+- **Leaving.** Once a line has been seen, its longest-waiting passenger leaves after 60 s without being picked up, then the next after 60 s more, so a line the player passes over doesn't stay the same for good. Nobody leaves while the bus is docked there.
+- Leaving costs the player nothing. The place fills again on the planet's clock, with someone undecided.
+
+### Stops and boarding
+
+- Whenever the bus docks at a planet it makes a **stop**: the passengers going there get off one at a time.
+- **Nobody boards by themselves.** While the bus is docked or charging, the player picks waiting passengers up one by one, or all that fit at once, longest waiting first.
+- **Seats.** The bus has 4. No one can be picked up while every seat is taken or promised to someone picked up.
+- Getting off or on takes 0.6 s each, in order: those getting off first, then those picked up, in the order picked.
+- **The drive can't charge until the stop is over.** A course set during it charges once the last passenger is on. Picking someone up while it charges holds the charge where it is until they are on.
+- With a course set before docking, the drive starts charging once everyone going there is off, so the player has the 3 s charge to pick passengers up, or longer by picking them one after another.
+
+### Trip time, fare and payment
+
+- Both come from the straight distance at boarding. Planets move, so they are estimates.
+- **Trip time** is the charge plus that distance at the bus's *base* top speed. **Expected time** is the trip time times the type's slack.
+- **Fare** is 3 credits per unit times the type's multiplier.
+- Both are set when the passenger is decided (Who turns up), from where the planets are then.
+- A faster bus gets passengers there before they expect it. Speed upgrades make passengers happier rather than more demanding.
+- **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing.
+
+### Happiness
+
+Happiness replaced patience, so a long ride isn't the only thing that matters: what a passenger needs, and how well the bus gives it, does too.
+
+- Each passenger on board has a happiness from 0 to 100, starting at 60.
+- Every frame it slides toward a **target**, falling at 3 a second and climbing at 1. It never jumps, and bad moments take a while to wear off.
+- **Mood:** happy from 70, okay from 50, annoyed from 25, furious below.
+- **Rating** on getting off: happiness ÷ 20, to the nearest whole star.
+- **It holds** until the bus leaves the planet they boarded at, and while the bus parks.
+- **Docked,** it falls at a tenth of its speed, so a stop (boarding, refuelling, charging) barely costs anyone.
+
+**The target** is worked out fresh every frame:
+
+- 60 for a bus that does its job, plus the comfort bonuses (no higher than 100 together), plus timing.
+- While a request is open, the target is 0. Ignoring a request must always cost more than serving it.
+- While anything is serving the request, happiness holds rather than falling, since they can see it coming.
+
+**Timing** is one line along the ride:
+
+- +12 if they arrive in the direct trip time, 0 at the expected time, then down to −100 one more trip time after that.
+- It runs on the passenger's own **clock**: real time in flight, a tenth of it while docked, and slower while they sleep or watch a show.
+- **Leeway.** While happiness is 80 or more, every second of their clock adds half a second to the time they expect, up to half a trip time. It never grows past that, so a long enough ride still wears out anyone.
+- Getting there sooner (routing, speed, never needing a tow) is the main way to beat timing. Comfort only buys a little.
+
+**Shocks** change happiness at once and leave the target alone, so it climbs back at 1 a second:
+
+| Shock | Amount | Why |
+|---|---|---|
+| Someone is kicked | −25 to everyone else | Otherwise kicking the angriest passenger would raise the average for free |
+| The bus runs out of fuel | −15 to everyone | Less than a kick, since the wait and the tow cost time on top |
+| Arriving unserved | −10 to them, before they rate | A request open or on hold for 5 s of flying or more. One asked just before arriving, or during parking, is forgiven |
+| Woken by a shock | a further −10 | Every shock wakes anyone asleep, so a kick or a tow is worse on a bus that sleeps |
+
+There are no good shocks: one would fall away at 3 a second, gone in seconds.
+
+**What a bus can reach.** A bare bus gives 3 stars and a rare 4: a direct trip with every request served at once ends at 60 + 12 = 72. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+
+### Needs and serving
+
+- Each passenger type has a few needs. The Commuter's are a snack and a drink, both food.
+- A need asks again a random while after the last one's served activity ends. An open one is a **request**.
+- **One request at a time.** The other needs' timers wait while one is open, so serving one doesn't set off the rest.
+- **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
+- **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s, and letting go keeps what was served so far.
+- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers run at a tenth of their speed while docked. A request open when the bus stops goes on hold and opens again once it flies on.
+- Fun and sleep aren't needs that ask: upgrades give them.
+- *(not built)* **Food and drink become one need,** so the player isn't asked to tell them apart: one request, served as a snack or a drink at random.
+
+### Amenities
+
+An amenity serves food by itself. Automation shortens a request rather than removing it, so needs stay on the cards on a fully upgraded bus, and more seats need more delivery.
+
+- The moment someone asks for food, an amenity with room starts serving them. Anyone else asking waits, and their happiness heads for 0 meanwhile.
+- The player can still hold the button: the hand's speed adds to the amenity's.
+- **Food Replicator:** one passenger at a time, 4 s each.
+- **Waiter Droids:** three at a time, 2.5 s each.
+- With both, the droids are tried first, then the replicator, so four can be served at once.
+
+### Comfort
+
+What the comfort upgrades give everyone on board. Each line has one main job:
+
+| Line | What it does |
+|---|---|
+| Food delivery | Shortens requests: the amenities above |
+| Portions | A served snack or drink lasts longer, by hand or by machine, so the next request comes later. Helps before any replicator |
+| Fun | Raises the target all ride long: In-Flight Movies +12, Space Invaders +8. Passengers also watch shows, and their clock runs at 70 % while they do |
+| Sleep | The clock runs a lot slower while asleep, and nothing is asked for |
+
+- **Shows.** With In-Flight Movies, a passenger now and then watches a show instead of idling, for 8 to 12 s. Space Invaders makes each a binge of 15 to 25 s. A request stops the show.
+- **Sleep.** Now and then, with nothing asked for, a passenger dozes off. Pillows allow naps of 4 to 8 s with the clock at 60 %; Sleeping pods give sleeps of 15 to 25 s at 40 %. The ranges never overlap, so a pod always beats a pillow. Without either, nobody sleeps.
+- Hunger waits while they sleep, so a sleep is cut short only by a shock.
+- Sleep is strong, so pods are priced well above the rest of their row and naps stay short. Staying awake a while between sleeps is what keeps a long route costing something.
+
+### Kicking
+
+- The player can kick a passenger off the bus at once, wherever it is.
+- Their seat frees up, they pay nothing, rate nothing and earn no research point, and everyone left on board takes the kick's shock.
+- A passenger who is getting off can't be kicked.
+
+### Passenger types
+
+- A type is data: fare multiplier, slack, needs, and the lines and names it uses.
+- There are two, the Commuter and Business.
+- **Business** pays more and is harder to please, through tighter slack and more frequent requests, never a lower starting happiness. On a bare bus a near-direct trip with requests served within a few seconds gets three stars and the full fare; four stars takes upgrades.
+- Business pays 1.6× with a slack of 1.2, and asks for the Commuter's snack and drink at 0.6 of the time between requests.
+- The Commuter's slack stays loose (1.5): it is the passenger that makes a route with several stops work.
+- The player can tell a Business passenger from a Commuter wherever they pick passengers and on board.
+- Race and type are independent: any race can be any type.
+
+### Races and research points
+
+- Every passenger is one of three races, picked at random: blue, orange or green.
+- Getting off at their destination earns one **research point** of their race, whatever their rating.
+- Each race's points are meant for one part of the bus: blue for its performance, orange for comfort on board, green for the stops.
+- A race must read without colour too, by the build of its head (`docs/ui.md`): with red-green colour blindness, orange and green come close.
+- Skin colour never changes with mood, since it is what shows the race.
+
+### Rating
+
+- The player's **average rating** is the mean of every rating so far.
+- It changes nothing yet.
+- The **recent rating** is the mean of the last 10 ratings. It sets which types turn up (Who turns up), and it is the rating the player is shown, so the stars and what they explain are one number.
+- The star rating says which types the band attracts and what the next one brings, as bands, not odds.
+- *(not built)* The player is told the first time the recent rating reaches a new band, and not again on coming back to it.
+
+## Research
+
+Upgrades for the bus, bought with credits and research points.
+
+- **Each planet can have a research tree** of its own: the upgrades it offers, linked by what each needs first.
+- **Researching happens only while the bus is docked or charging at that planet,** as refuelling does, so routing to a planet is how the player gets at its tree.
+- **An upgrade** has a cost in credits and research points, usually of the one race whose points are for the part of the bus it improves, so a tree can send the player looking for that race.
+- It needs *all* the upgrades it lists, from the same tree.
+- Each is researched once. A bigger step of the same thing is its own upgrade after it (Tank I, then Tank II).
+- Once researched it puts modifiers on the bus's stats, gives it traits, or both.
+
+An upgrade is in one of five states:
+
+| State | When |
+|---|---|
+| Hidden | Marked hidden, and not everything it needs is researched. Its name, description and cost don't show |
+| Locked | Something it needs isn't researched |
+| Available | Everything it needs is researched and the player can pay |
+| Can't afford | Available but for the cost |
+| Researched | Its effects are on the bus |
+
+### Stats and modifiers
+
+- A **stat** is a base value with modifiers on top, each flat or a percent. The flat ones add to the base, then the percents add together and scale the sum: a base of 8 with +5, +10 % and +20 % is (8 + 5) × 1.3, in any order.
+- Each stat has a floor however much modifiers take away, so the bus always moves, holds fuel and has a seat.
+
+| Stat | Base | Floor | Notes |
+|---|---|---|---|
+| Top speed | 1.2 | 0.1 | Trip times and fares still use the base |
+| Fuel tank | 100 | 1 | A bigger tank's new room starts empty; a smaller one spills what no longer fits |
+| Seats | 4 | 1 | Rounded to the nearest whole seat. Fewer seats than passengers leaves everyone on board, and nobody else boards until enough have got off |
+| Portion size | 1 | 0.1 | How long a served snack or drink lasts, as a multiple of its need's time |
+
+- *(not built)* Saves will store which upgrades were bought and apply their modifiers again on load.
+
+### Traits
+
+- A **trait** is a feature the bus either has or doesn't. The feature shows or works only while it does.
+- Two upgrades can give the same trait; it stays until both take it back.
+- **Waiting markers:** how many wait at each planet shows on the map. Without them, the player finds out by opening a planet.
+- **Fuel forecast:** how much of the tank the whole course burns shows on the route. It counts the straight legs as everything is now, short of each planet by where the bus starts to park, so it is an estimate.
+- The comfort and food traits: Pillows, Sleeping pods, In-Flight Movies, Space Invaders, Food Replicator, Waiter Droids.
+
+### The trees
+
+Three planets have a tree, each paid for with one race's points. The rest have none.
+
+- They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a hidden capstone that needs two branches.
+- **Costs go by row,** the same in every tree for now: 20 credits and 2 points in the top row, then 45 and 4, 90 and 7, 150 and 10, and 250 and 14.
+- An upgrade that isn't implemented says so on its card and changes nothing when researched.
+
+"A ← B" means A needs B.
+
+- **Blue, at Frost** (performance). Speed 1 and Fuel tank 1 at the top. Speed 2 ← Speed 1; Frameshift 1 ← Speed 1 and Fuel tank 1; Fuel forecast ← Fuel tank 1; Fuel tank 2 ← Fuel tank 1. Speed 3, Frameshift 2 and Fuel tank 3 each ← the one above. Extra insulation ← Frameshift 2 and Fuel tank 3. Capstone: Sunscreen ← Speed 3 and Extra insulation.
+  - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
+  - *(not built)* Frameshift (a shorter charge), Extra insulation, Sunscreen.
+- **Green, at Terra** (the stops). Door chime; Station cameras and Station waiting lounge ← Door chime; capstone Mind reading machine ← both.
+  - Door chime gives the waiting markers.
+  - *(not built)* The other three.
+- **Orange, at Giant** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
+  - Every upgrade in it is implemented.
 
 ## Goal
 
-A temporary goal while the loop is tuned:
+A temporary goal while the loop is tuned. *(not built)*
 
 - **Win:** deliver 30 passengers.
 - **Lose:** the happiness score stays at 0 for 20 s.
-
-The happiness score is designed but not built (Research, Happiness).
-
-## Look
-
-Flat and cartoony, like a picture book of the solar system: solid colours with crisp edges, no textures, no realistic light. Everything is generated from shaders and meshes in code, so there are no image assets to make.
-
-- **Camera.** Looks down at the orbit plane at an angle, with a narrow field of view (30°), so the system reads almost like a map but the planets still look round.
-- **Planets** (`planet.gdshader`). Each is a sphere with up to three colour bands with hard edges: noise blobs for rocky planets (continents, craters), wobbly horizontal stripes for gas giants, and optional polar caps. The pattern turns with the planet's spin. Light is two tones only: a lit side in the planet's own colours, and a night side tinted by the same purple multiply on every planet, split by a line about a pixel wide at any zoom. The star's distance and the ambient light don't change a planet's colours.
-- **Colours.** Soft, warm and saturated, never dark: sandy orange, leaf green, a pale lilac moon, an orange-striped gas giant with lilac rings, a pink ice planet with white caps. Planets are told apart by colour first, so each new one needs its own hue.
-- **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom or glow pass.
-- **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is drawn as a thin, faint lilac line, so the player can see where each planet is going.
-- **Planet icons** (`planet_icon.gdshader`). The UI shows a planet as a flat disc in its one icon colour, with the same purple night side as in the world, lit from the upper left. A planet with rings shows them as a line at its tilt, passing behind the disc at the top and in front at the bottom; its disc is smaller, so the rings fit at any tilt. Each planet's icon colour is set by hand to the colour it reads as from the camera.
-- **Names.** Each planet and moon has its name just under it: small off-white text with the sky's lilac, a little see-through, with a thin navy outline so it still reads where it crosses an orbit line. The text faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
-- **Sky** (`SpaceSky`). A deep navy-violet background with faint coloured fog and two layers of small stars. It is dim on purpose, so the planets stand out. It doesn't light the planets.
-
-- **Bus** (`game/bus/models/bus.glb`, from the model library). A flat yellow space bus with faceted edges, shaped to read when it is small: a short tapered nose in front of a taller cabin, and a thruster pod out past each side at the back. It has a sloped windscreen, a door and three large side windows over a white band, a white roof with a wide stripe down its length, and a hull underneath (no wheels). The windows, stripe, hull and nozzles are a mid lilac, lighter than the sky, so they don't vanish into it. It is lit with the planets' two tones in the colours it was made with. The thrusters are dark while it is docked. As the drive charges, a pale cyan exhaust cone grows out of each one, full length in flight, and shrinks back after it docks. In flight the bus leaves a flat pale cyan trail on the orbit plane that narrows and fades out over 2.5 s. Under the pointer it has a white border as wide on screen as a planet's: only past its silhouette, never over its own roof, vents or nozzles (`bus_outline.gdshader`, drawn where the bus hasn't marked the stencil).
-
-- **UI** (`ui/theme.tres`). One surface: frosted navy glass (`#1F1A47` at 72 % over the blurred screen, `ui/glass.gdshader`) with a 1 px faint white border and 12 px corners. Rows inside it are a faint white tint. Colour only carries game meaning (mood, race, fuel, route, credits, gain and loss); controls stay neutral. Each panel has one primary button, light with dark text; the rest are quiet tinted buttons. Hover lightens a control one step and pressing dips it below its default, and nothing changes size. Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing. Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the station (dock panel) top right, and the route and bus bars on the bottom edge, centred, with notices above them. Spacing is on a 4 px scale. The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
-
-Anything new (passengers, UI) follows the same rules: flat colour, hard edges, a two-tone shade at most, no textures. It keeps the scene cheap on the web too: no post-processing so far, since each effect adds a full-screen pass (`docs/web-constraints.md`).
+- The **happiness score** is the average happiness of everyone on board. The countdown pauses while the bus is empty.
 
 ## Controls
 
-Planned for the core loop, not built yet: the open planet's panel will also show the fuel cost and time to get there.
-
-Esc stays pause only. In browser fullscreen the browser takes Esc to leave fullscreen and the game never sees it, so Esc can't close a panel the same way in a window and in fullscreen.
-
-Built, in the solar system, which Play opens:
-
 | Input | Action |
 |---|---|
-| Pointer over a planet | Shows a white border round it (over its orange route border). Over the HUD, the pointer picks nothing |
-| Pointer over the bus | Shows a white border round it, as round a planet, except while the bus is open. Where the bus and a planet overlap, only the one a left click would open shows it |
-| Left click a planet | Open it (below). Opening another planet while one is open moves on to it |
-| Left click the bus | Open it: the camera follows it and the bus panel shows its stats (Opening the bus, below). It closes the open planet. Where the bus and a planet overlap, as when it is docked, whichever centre is nearer the pointer opens |
-| Left click the open planet or bus, or empty space | Close it |
-| The planet panel's or bus panel's Close button | Close it |
-| Pointer over a passenger's card | Slide out its options to its right: a Kick button (Passengers › On board › Kicking off) |
-| Hold a passenger card's serve button ("Hand a snack") | Serve their request by hand, filling the button; it fills faster while an amenity serves them too (Passengers › On board › Needs) |
-| A passenger card's Kick button | Kick them off the bus: a figure in their colour is thrown out of the door |
-| A waiting passenger's Board button, in the dock panel | Pick them up (Passengers › Waiting and boarding) |
-| Pointer over a waiting passenger's row in the dock panel | Show their trip: an arc to their destination (Passengers › Waiting and boarding) |
-| Left click a waiting passenger's row, off its Board button | Pin their trip's arc, so it stays when the pointer leaves. Click it again to unpin |
-| The planet panel's Services and Research tabs | Switch between what the planet offers and its research tree. Only a planet with a tree has the tabs |
-| Pointer over an upgrade in the Research tab | Show its card: name, what it does, cost and whether it can be researched |
-| Left click an available upgrade in the Research tab | Research it, while the bus is docked or charging at that planet |
-| Right click a planet | Add it to the end of the route. When the route has no planet, it replaces the point in space the route ends at |
-| Right click empty space | Add that point on the orbit plane: as the checkpoint just before the first planet on the route, replacing the one there, or with no planet on the route as the one stop, replacing the point there |
-| Right click a point in space on the route | Remove it, wherever it is on the route. With no stop left, the course is cancelled |
-| Right click the last planet on the route | Remove it, when it is the last stop, along with the checkpoint before it. Right-clicking a planet earlier on the route adds it again, so a route can come back to a planet. With no stop left, the course is cancelled |
-| Right click the planet the bus is docked at | With a planet on the route, add it as the last stop: a round trip. With only a point in space on the route, it replaces the point, which cancels the course. With no route, nothing |
-| Backspace or Delete | Clear the route: a charging drive stops, a flying bus coasts to a stop. Right-clicking a stop straight after sets off again without losing much speed |
-| The Frameshift key in the bus bar, while charging or as Stop | Cancel the course while the bus charges or flies. A flying bus slows to a stop in space |
-| W A S D, the arrow keys, or the pointer at a window edge | Pan the camera across the orbit plane. The look-at point stops at the outermost orbit. The Edge pan setting turns the window edges off |
-| Mouse wheel | Zoom in and out toward the point under the pointer, between a closest and a farthest distance |
-| F2 | Open or close the debug panel in the bottom left corner (CODING_STANDARDS.md, Debug panel). In the solar system: Empty fuel, which empties the tank: out in space the tow is offered at once, and at a planet the bus can't leave until it refuels; View research tree, which opens a modal over almost the whole screen, below the resource bar, with Terra's, the Giant's and Frost's trees side by side under their names, a faint line between each two (`game/research/research_overview.tscn`), drawn as on the Research tab but with smaller tiles (40 pixels rather than 64), so trees can grow and more can join before it has to scroll, which it then does; a click on an available upgrade researches it, paying its cost, wherever the bus is, docked or not, and Close, Esc or a click outside it closes it; Resources, which opens a card of its own with Add 1000 credits, which counts them in like a fare, and Add 100 research of each, which gives 100 points of every race; Stats, which opens and closes a second card to the right of the first with a + and a − button for each of the bus's stats (+20% / −20% top speed, +20% / −20% fuel tank, +1 / −1 seat, +20% / −20% portions), each adding a modifier like an upgrade would, another with each click. Once a stat is at its floor, the − button does nothing; and Traits, which opens a card of its own the same way, with a button for each trait that gives it to the bus or takes it away (Toggle fuel forecast, Toggle waiting markers, and the comfort and food traits) |
-| Esc | Open or close the pause menu. In browser fullscreen, Esc leaves fullscreen and the pause menu opens |
+| Left click a planet or the bus | Open it. One thing is open at a time. Where the bus and a planet overlap, whichever centre is nearer the pointer opens |
+| Left click the open thing, or empty space | Close it |
+| Right click a planet | Add it to the end of the route |
+| Right click empty space | Add a point in space (Route and flight) |
+| Right click a point in space on the route | Remove it |
+| Right click the last planet on the route | Remove it, along with the checkpoint before it |
+| Backspace or Delete | Clear the route |
+| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
+| Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
+| Mouse wheel | Zoom toward the point under the pointer |
+| Esc | Pause |
+| F2 | The debug panel |
 
-The bus flies on the orbit plane at 1.2 units a second, a little faster than the mockup's trip times: a planet orbits at under 40 % of the bus's speed, so the bus catches one without a long chase. Docked, it floats beside its planet (a barely visible bob and sway) and moves with it. Leaving a planet charges the drive first: a white ring round the bus fills clockwise (temporary), and the bus shakes slightly, unless Reduce motion is on. While it charges, the bus turns toward its next stop, so it leaves already facing it, and speeds up as it goes. Flying to a planet, it slows down as it nears it, then parks: it glides the last half unit in close to the planet and swings side-on, with its door toward it, so passengers get off from the side. Passengers' happiness holds while it parks, and it has docked (the bell rings and the stop starts) only once it is parked. A course set while it parks charges once it has. Charging, it pulls out a little from the planet as it turns, so its tail clears it. It passes through points in space, docks at every planet on the route and charges again before leaving each one, and holds still at a point in space that ends the route. A course set from there within 1 s of stopping leaves at once; later, the drive has cooled and charges first. A planet stop is the planet's near side, so the bus chases a moving planet. Right-clicking the planet it is docked at adds it as the last stop, so a route can end where it started; with no route, it does nothing. Until the player first sets a course, a hint at the bottom of the screen says how: "Right-click planets or space to add stops. Backspace clears the route." The route is a flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border, so planets read as part of the route. Under the pointer, the last stop's diamond turns white, as a planet's border does, and right-clicking it removes it. Diamonds earlier on the route stay orange.
-
-**Opening a planet.** The camera blends in to the planet, from the same angle, and follows it along its orbit. Under Reduce motion it cuts there and back, and the panel fades in and out in place. A bigger planet fills more of the screen's height, from about a third for the Moon to half for the Giant, so sizes still compare; and the camera stays far enough back that rings fit across the space beside the panel. The rings are why the Giant can't come closer: they are 2.2 times its radius. It sits in the middle of the space left of the panel, which slides in down the right side of the screen in step with the camera, arriving as the zoom completes (`game/solar_system/planet_panel.tscn`): the planet's icon and name, a row for each passenger waiting there, longest waiting first, with their portrait, their name over their destination, and their fare, kept up to date as they arrive and board, and under them the Fuel section (Core loop, Refuelling, as built). A passenger who turns up while the panel is open slides in from its right edge, or fades in under Reduce motion; the rows already there stay as they are. The panel covers the dock panel while open, the bus bars and the course hint hide, and the resource bar moves aside. The planets' names fade out, and the open planet's white hover border fades out and stays off while it is open, so nothing sits on the close-up; both fade back in when it closes. Pan and zoom do nothing while a planet is open; closing it blends the camera back to where it was, and the panel slides back out over the same time. A panel that another takes the place of (the bus's when a planet opens, or the other way round) leaves fast instead, in 0.2 s, so the two don't cross. Right click still sets the course as usual.
-
-**Opening the bus.** Works like opening a planet: the camera blends in to the bus and follows it, docked or in flight, framed in the space left of the bus panel (`game/bus/bus_panel.tscn`), which slides in down the right side the same way. The panel is titled "Frameshift Bus" and lists the bus's stats (Research, Stats, as built), one row each: its name, its value, and once upgrades change it, how much they add in all in green ("Top speed 1.44 +20%"), or take away in red ("Fuel tank 80 -20%"). Seats show in whole seats, and what they add as seats ("Seats 5 +1"). Under them, a Traits section names each trait the bus has ("Fuel forecast"), or reads "None yet.". Rows update as modifiers and traits come and go. Only one of the bus and a planet is open at a time.
-
-WASD reads physical key positions, so it sits in the same place on every keyboard layout. Edge pan starts only once the pointer has moved inside the game, and stops when it leaves the window or the window loses focus, so a pointer that left through an edge doesn't keep the camera moving. In the example game scene, a left click on the board or a piece's top places a piece.
+- **Left click selects, right click routes.**
+- **Esc stays pause only.** In browser fullscreen the browser takes Esc and the game never sees it, so Esc can't close a panel the same way in a window and in fullscreen.
+- Removing the last stop cancels the course.
+- WASD reads physical key positions, so it sits in the same place on every keyboard layout.
+- Pan and zoom do nothing while a planet or the bus is open. Right click still sets the course.
+- Each panel's own buttons are in `docs/ui.md`.
 
 ## Scenes and flow
 
@@ -126,73 +320,39 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
     └──Settings──▶ settings panel ◀──────────Settings
 ```
 
-- **Main menu** (`ui/main_menu/`): the main scene. Title, Play, Settings, Quit (Quit hidden on web). On web, a title card (game title, "Click to start") comes first, and that click starts the menu music.
-- **Example game** (`game/game.tscn`): no longer reached from the menu; its tests still load it. The camera with one Phantom Camera shot (`BoardShot`), one shadowed sun, the soft-look environment, the board, and the HUD (`game/hud.tscn`) with the placed count. Placing a piece emits `Events.piece_placed`, and the HUD listens. Placing a piece calls `Feedback.shake`, which does nothing when Reduce motion is on. It instances the pause menu.
-- **Pause menu** (`ui/pause_menu/`): Resume, Settings, Main menu. Pauses the tree; music keeps playing. Also opens when the player leaves browser fullscreen.
-- **Settings panel** (`ui/settings/`): Master, Music and SFX volume, Reduce motion, and Edge pan (on by default; off, only the keys pan the camera). Shared by the main menu and the pause menu.
-- **Solar system** (`game/solar_system/`): what Play opens. A yellow star and four flat, toon-lit planets (one with a moon, one with rings) on circular orbits, over the `SpaceSky` with parallax on (its star and fog layers drift slightly as the camera moves, and hold still under Reduce motion), seen through an RTS camera rig (`camera_rig.tscn`): one Phantom Camera shot that pans and zooms within limits set on the rig. The scene's script turns the pointer into planet hover, opening planets and course clicks for the bus (`game/bus/bus.tscn`), which starts docked at Ember. It also runs the passengers (a `Cabin`, `WaitingPassengers`, and the HUD with the passenger cards and the resource bar). It instances the pause menu.
-
-Scene changes go through `SceneFlow.go_to`, which fades to a black loading card ("Loading…" over a bar) while the next scene loads, then back in. The bar counts the real work in steps, so it moves on the single-threaded web build too: loading the scene's files one by one, then drawing the scene the first time one new material a frame, which compiles their shaders and is most of the wait on the web.
+- The game is one scene, the solar system.
+- Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
+- **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
+- On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
 
 ## Scope
 
-- **In:** the core loop, the temporary goal, one kind of passenger, fuel and depots. Already built: the scenes above, ambient menu music, UI and placement SFX, settings saved across sessions.
-- **Out for now:** everything under Research until it is designed (the research tree is designed: Research, Research tree), saving progress, dialogue, positional or adaptive audio.
+- **Out for now:** saving progress, dialogue, positional or adaptive audio.
 
-## Research
+## Not designed yet
 
 Features we will very probably build, but that need more design work first.
 
-- **Research tree.** Upgrades for the bus, bought with credits and research points. Each race gives its own kind of research point (Passengers, Research points, as built), so an upgrade can ask for points of one race.
-  - **Trees, as designed.** Each planet can have a research tree of its own: the upgrades it offers, linked by what each needs first. An upgrade has a cost in credits and research points, usually of the one race whose points are for the part of the bus it improves (Passengers, Research points), so a planet's tree can send the player looking for that race; the upgrades that must be researched before it, all of them, from the same planet's tree; and what it does once researched: modifiers on the bus's stats (Stats, as built), traits (Traits, as built), or both. Each upgrade is researched once, and a bigger step of the same thing is its own upgrade after it in the tree (Tank I, then Tank II). Researching happens only while the bus is docked or charging at that planet, as refuelling does, so routing to a planet is how the player gets at its tree. An upgrade is in one of five states:
-    - **Hidden:** a "?" in place of its icon, with "???" for its name and description and no cost. Only an upgrade marked hidden is, and only until everything it needs is researched; then it shows like any other.
-    - **Locked:** shown dimmed; the lines to it show what it needs.
-    - **Available:** everything it needs is researched and the player can pay for it.
-    - **Can't afford:** available but for the cost, which shows in red.
-    - **Researched:** filled in, its effects on the bus.
-  - **In the planet panel, as built.** The open planet's panel has two tabs: **Services**, the waiting passengers and Fuel (Opening a planet), and where anything else a planet offers goes; and **Research**, only at a planet with a tree (`research_tree` on the planet). With one tab, there is no tab bar. It opens on Services; opening another planet straight from an open one keeps the Research tab when the new planet has one. The dock panel's Research button opens the docked planet straight on its Research tab. The Research tab draws the tree top to bottom (`game/research/research_tree_view.tscn`): a row for each tier, each upgrade a square tile in its column showing only its icon (`icon` on the upgrade: a white Lucide icon, like the resource bar's, from `game/research/icons/`; a tile without one shows its title's first letter), and a line from each upgrade up to each one it requires, faint until that one is researched, then in its race's skin colour. A tile shows one of three looks, in its upgrade's race's skin colour as the accent (the race whose points it costs most, `Upgrade.get_race()`; an upgrade that costs no points takes cyan): **available** (everything it needs is researched, whether or not the player can pay yet) is a dark tile with an accent border and a white icon; **researched** is filled with the accent, the icon in the race's deep photo-background colour; **not available** (locked or hidden) is a flat, dim tile with a dim icon, a hidden one showing "?" in place of its icon. The pointer over any upgrade shows its card just under it (`upgrade_card.tscn`), or above it where there's no room: its name, a short line on what it does, and its cost with the resource bar's icons and font (the gold dollar sign and the credits, then a flask in each race's colour and its points), with what the player lacks in red. A hidden one shows "???" for its name and description and no cost, and a researched one no cost. A click on an available upgrade researches it at once (`ResearchLab`): the credits come off as a red loss under the credits, the points come off their counts, and its modifiers and traits go on the bus. Away from that planet, the whole tree draws at half strength, the cards still show, and "Dock here to research." reads over it. The planet panel and the bus panel are both 480 pixels wide, so switching between them never changes it.
-  - **Trees, as built.** Three planets have a tree (`game/research/trees/`), each in one race's colour and paid for with that race's points, and the rest have none. They branch and join like talent trees rather than running in separate columns: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a capstone that needs two branches and is hidden until both are researched. Costs go by tier, the same in every tree for now: 20 credits and 2 points in the top row, then 45 and 4, 90 and 7, 150 and 10, and 250 and 14. Only the upgrades on a stat or a trait do anything yet; the rest read "NOT IMPLEMENTED" on their card and change nothing when researched. "A ← B" below means A needs B.
-    - **Blue, at Frost** (the bus's performance), five rows: Speed 1 and Fuel tank 1 at the top. Speed 2 ← Speed 1, Frameshift 1 ← Speed 1 and Fuel tank 1, Fuel forecast ← Fuel tank 1 (the fuel forecast trait), Fuel tank 2 ← Fuel tank 1. Speed 3, Frameshift 2 and Fuel tank 3 each ← the one above. Extra insulation ← Frameshift 2 and Fuel tank 3. Capstone: Sunscreen ← Speed 3 and Extra insulation. Speed is +10 % top speed a step, Fuel tank +25 % fuel tank a step; Frameshift (a shorter charge), Extra insulation and Sunscreen aren't implemented.
-    - **Green, at Terra** (the stops), a diamond: Door chime, then Station cameras and Station waiting lounge ← Door chime, and the capstone Mind reading machine ← both. Only Door chime is implemented: it gives the waiting markers trait.
-    - **Orange, at Giant** (comfort on board), four rows: Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats down the left, each ← the one above (+1 seat each). Pillows ← the first Extra seat and the Food Replicator, Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III each ← the one above (+50 %, +50 % and +100 % portion size, so 3× in all), Space Invaders ← In-Flight Movies, and the capstone Waiter Droids ← the Food Replicator and Bigger portions II. Every upgrade in it is implemented: the seats and portions as modifiers, the rest as traits (Research, Happiness). Bigger portions keeps its plain name for now.
-    - The icons are Lucide's: gauge, zap, fuel, route (Fuel forecast), thermometer-snowflake and sun; bell-ring, cctv, brain and sofa; armchair, sandwich, ham (Bigger portions), bot, bed-single, bed-double, gamepad-2 and tv. A chain repeats its icon. The debug panel's trait toggles take a trait away even when an upgrade gave it, while the upgrade still reads "Researched".
-  - **Stats, as built.** An upgrade that makes the bus better at something, rather than adding an amenity, is a modifier on one of the bus's stats (`game/bus/stat.gd`). A stat is a base value with modifiers on top, each flat or a percent: the flat ones add to the base, then the percents add together and scale the sum, so a base of 8 with +5, +10 % and +20 % is (8 + 5) × 1.3, in any order. Saves will store which upgrades were bought and apply their modifiers again on load. The stats so far: top speed (base 1.2), fuel tank (base 100, the fuel a full tank holds), seats (base 4, rounded to the nearest whole seat) and portion size (base 1, how long a served snack or drink lasts as a multiple of its need's time, so the next request for it comes that much later; shown as "1.5x"). Each has a floor however much modifiers take away (0.1 top speed, 1 fuel, 1 seat, 0.1 portion), so the bus always moves, holds fuel and has a seat. A bigger tank's new room starts empty, and a smaller one spills what no longer fits. Fewer seats than riders leaves everyone on board, someone already picked up still gets on, and nobody else boards until enough have got off. Passengers' expected times and fares still come from the base top speed, so a faster bus gets them there before they expect it, which makes for happier passengers rather than more demanding ones.
-  - **Traits, as built.** An upgrade that unlocks a feature, rather than making a number bigger, gives the bus a trait (`game/bus/bus_traits.gd`): the bus either has it or doesn't, and the feature shows or works only while it does. Two upgrades can give the same trait; it stays until both take it back. There are eight so far, each sold by an upgrade (Research tree, Trees, as built): Door chime in the green tree gives the waiting markers, Fuel forecast in the blue tree the fuel forecast, and Pillows, Sleeping pods, Space Invaders, In-Flight Movies, the Food Replicator and Waiter Droids in the orange tree the comfort and food traits of the same names (Research, Happiness; Passengers, On board, Amenities). The debug panel's Traits card turns each on too. **Waiting markers** show how many wait at each planet, under its name (Passengers, Waiting and boarding); without them, the player finds out by opening a planet. The **fuel forecast** (`game/solar_system/fuel_forecast.tscn`): over the route's last stop, just above the planet or the diamond, how much of the tank the whole course burns ("-22% fuel"), in the planets' names' off-white, or in low fuel's red when the bus hasn't that much left. It counts the straight legs from the bus through each stop as everything is now, short of each planet by where the bus starts to park (parking burns none), so with planets moving it is an estimate. It hides with no course and during a tow, and fades with the planets' names while a planet is open.
-- **Happiness.** Replaced patience, so a long ride isn't the only thing that matters: what a passenger needs, and how well the bus gives it, does too. Built (`game/passengers/passenger.gd`, `comfort.gd`, `cabin.gd`): the target, timing, shocks, the fun and sleep upgrades, food delivery and portions. Not built yet: food and drink as one need, the happiness score. Each passenger on board has a happiness from 0 to 100, starting at 60 when they board. Every frame it slides toward a **target**, falling at 3 a second and climbing back at 1, so the bar never jumps (it moves smoothly, not in steps) and bad moments take a while to wear off. Their rating on getting off is their happiness ÷ 20, to the nearest whole star, and their mood follows it: happy from 70 (4 stars and up), okay 50 to 69, annoyed 25 to 49, furious below 25. Fares stay tied to the mood. All the numbers here are starting points for playtests.
-  - **The target** is worked out fresh every frame: 60 for a bus that does its job, plus the comfort upgrades' bonuses (no higher than 100 together), plus **timing**. While a request is open, the target is 0, so a passenger left waiting heads for 0 and ignoring a request still costs more than serving it.
-  - **Timing** is one line along the ride: +12 if they arrive in the direct trip time, 0 at the expected time (the trip time times the type's slack), then down to −100 one more trip time after that. A ride that runs to schedule doesn't hurt, an early one earns a little, and enough lateness wears out anyone, however well the bus is equipped. It runs on the passenger's own **clock**, which runs at real time, at a tenth of it while the bus is docked, and slower while they sleep or have fun on board (below). While docked, happiness also falls at a tenth of its speed, so a stop (boarding, refuelling, charging) barely costs anyone; an upgrade could change that later. **Leeway:** a good ride makes passengers patient. While a passenger's happiness is 80 or more, which takes comfort upgrades and prompt service, every second of their ride clock adds half a second to the time they expect, up to half a trip time, moving the whole decline later. It never grows past that, so a long enough ride still wears out anyone. The expected time comes from the base top speed at boarding, so a faster bus gets passengers there before they expect it, which works as extra slack. Getting them there sooner (routing, speed, never needing a tow) is the main way to beat timing; comfort only buys a little.
-  - **A bare bus** gives 3 stars, and a rare 4: a direct trip with every request served at once ends at 60 + 12 = 72, which is 4 stars, and any detour or wait for food drops it to 3. 5 stars takes about 90, which only the comfort upgrades reach.
-  - **Shocks** change happiness at once by their own amount and leave the target alone, so happiness climbs back at 1 a second: a −25 lingers for about 25 s. A **kick** gives everyone else on board −25 (an upgrade could soften it). Without that, kicking the angriest passenger would raise the average on board for free. **Running out of fuel** in space gives everyone −15, less than a kick's −25, since the wait and the tow cost time on top. The debug panel's Scare passengers gives everyone on board a kick's −25 without kicking anyone. **Arriving unserved:** a passenger who gets off with a request open, or on hold, for 5 s of flying or more takes −10 before they rate the ride. Every shock wakes anyone asleep, and being woken by one costs them a further −10, so a kick or a tow is worse on a bus that sleeps. A good shock would fall away at 3 a second, gone in seconds, so there are none until one needs a fade of its own.
-  - **Food and drink are one need** (not built: snacks and drinks are still two needs), so the player isn't asked to tell them apart: one request ("Hungry"), one delivery line and one quality line. Served, it is a snack or a drink at random, which the portrait acts out as now. Fun and sleep aren't needs that ask; the bus's upgrades give them.
-  - **Comfort upgrades** (the orange tree, comfort on board) come in four lines, each with one main job:
-
-    | Line | Main effect | Also |
-    |---|---|---|
-    | Food delivery | Shortens requests: automation (Food Replicator), then throughput (Waiter Droids) | |
-    | Portions | Longer between requests (Bigger portions I to III) | |
-    | Food quality | Raises happiness (+8 to +12 a tier) | Longer between requests |
-    | Fun | Raises happiness (In-Flight Movies +12, Space Invaders +8) | Shows to watch, the clock at 70 % while watching (In-Flight Movies: 8 to 12 s; with Space Invaders, binges of 15 to 25 s) |
-    | Sleep | Clock a lot slower while asleep (Pillows: short naps at 60 %; Sleeping pods: long sleeps at 40 %) | |
-
-    **Delivery:** the Food Replicator serves a request for food by itself over 4 s, one passenger at a time, and anyone else asking waits for it ("Waiting for the replicator"); the player can still serve them by hand, or hold the button of the one at the replicator to speed them up. Waiter Droids serve three at a time in 2.5 s each. Automation shortens a request rather than removing it, so needs stay on the cards on a fully upgraded bus, and more seats need more delivery. **Portions** make every snack and drink last longer, by hand or by machine, so it helps before any replicator: a request's next ask is timed from the end of the served activity. The old design's food quality line (a happiness bonus per tier) is left out for now: portions took its tiles. Fun, sleep and delivery are built as traits the upgrades give (`Comfort.from_traits()`, `Cabin.amenities`), and portions as a stat. **Fun:** the bonus lasts all ride long; on top, with In-Flight Movies passengers now and then watch a show instead of idling (a watch line, such as "Watching cat videos", comes up as often as any one idle line), their portrait lit by the screen, and their clock runs at 70 % while they watch. A request stops the show. The Space Invaders makes each show a binge, so more of the ride runs on the slow clock. **Sleep** works only while a passenger sleeps: now and then, with nothing asked for, they doze off (the sleep lines and shut eyes, as now), and their clock runs slower until they wake. Each sleep lasts a random while: Pillows only allow short naps, 4 to 8 s; Sleeping pods give long sleeps, 15 to 25 s, and slow the clock more. The two ranges never overlap, so a pod always beats a pillow. Without either, nobody sleeps. Hunger waits while they sleep, as the other needs' timers wait while a request is open, so a sleep is never cut short by bad luck, only by a shock (above). Sleep is strong (a slower clock and nothing asked for), so pods are priced well above the rest of their row and pillow naps stay short; staying awake a while between sleeps is what keeps a long route costing something. A fully upgraded bus sits at about 100 before timing, so 5 stars on time, and its passengers sleep through a good part of a long ride.
-  - **The happiness score** of the goal is the average happiness of everyone on board, and the 20 s countdown pauses while the bus is empty.
-- **Passenger types.** Around three types with different qualities. The prototype had Business (pays 1.6×, little patience), Tourist (pays 1×, lots of patience) and Student (pays 0.7×, in between). Types also differ in what they need on board, so a rich passenger might want a sleeping pod where a student wants only snacks.
+- **Business passengers' own needs.** Types can also differ in what they need on board, so a Business passenger might want a sleeping pod where a Commuter wants only snacks.
+- **VIPs.** Rare passengers who turn up as announced events once the recent rating is in the top band, outside the rules for who turns up, with requests of another kind, such as visiting planets.
 - **Environment.** How space affects the bus and passengers. A hot star makes passengers on a route near it hot; a big planet's gravity slows the bus down near it.
+- **Depots.** Whether fuel stays on sale at every planet.
 
-### Open questions
+## Open questions
 
-- **Food quality.** Bigger portions took the tiles the old design's quality line would have had, and the user asked for longer servings rather than happier ones. Whether a quality line (a happiness bonus per tier) still comes, or portions are enough.
-- **Fun is mostly a flat bonus.** In-Flight Movies' +12 and Space Invaders' +8 apply all ride long, whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs once the show ends. Whether watching should matter more, such as a shock-proof mood or a "Playing games" activity of its own for Space Invaders.
-- **How often passengers sleep.** How long they stay awake between sleeps, with Pillows or pods: too short and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since tree costs go by row for now (Research tree, Trees, as built).
-- **What the rating does.** It is only shown so far. Options: it sets how often passengers turn up or which types do, it gates upgrades, or it is the leaderboard score. Also whether a run's average should weigh recent rides more, since one ride barely moves the mean of fifty.
-- **Tow.** Requested by the player, and it fills the tank. Set for now at 100 credits, which can take the credits below zero, and 0.4 units a second faster than the planet it goes to (Core loop, Fuel, as built). Tune both in playtests. It shows as a red "-100" under the credits, as refuelling's bill does.
-- **Fuel shown for a free point and for checkpoints.** Whether the route line shows the total fuel and time like a planet does.
-- **Passenger cards while a planet is open.** The On board panel stays in the top left corner and can cover part of the open planet. Hide them, shrink them, or leave them?
-- **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button, so the player closes it to pick anyone up. Add Board buttons to the planet panel while the bus is docked there, or leave it?
-- **Research points and rating.** A delivery earns its point whatever the rating, so a furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up), or stay out of research and only count for credits.
-- **Race and type.** Race and passenger type are separate for now: any race can be any type. Whether they stay independent, or a race leans toward some types or some planets, so the player can hunt for one kind of point.
-- **Seats and waiting passengers.** The prototype had 4 seats and up to 3 waiting per planet; keep them until playtests say otherwise.
+- **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
+- **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.
+- **How often passengers sleep.** Too short between sleeps and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since costs go by row.
+- **What else the rating does.** Besides setting which types turn up: whether it gates upgrades, or is the leaderboard score.
+- **The tow's price and speed.** 100 credits, which can take the credits below zero, and 0.4 units a second over the planet's speed.
+- **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit.
+- **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
+- **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
+- **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype.
+- **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
+
+UI questions are in `docs/ui.md`.
 
 ## Online
 
-Online services run on Talo (`docs/online.md`), picked over Firestore in issue #5: analytics events, stats and play sessions now, leaderboards once there's a score. The example tracks one event, `piece_placed`. Uploaded replays (ghosts of other players' runs) don't fit Talo; a player's own ghost can stay in `user://`.
+Online services run on Talo (`docs/online.md`), picked over Firestore in issue #5: analytics events, stats and play sessions now, leaderboards once there's a score. Nothing is tracked yet. Uploaded replays (ghosts of other players' runs) don't fit Talo; a player's own ghost can stay in `user://`.

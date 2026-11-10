@@ -2,9 +2,9 @@ class_name BoardingRow
 extends Control
 ## One passenger waiting at the planet the bus is docked at, as a row in the dock panel:
 ## their portrait (a [PassengerPhoto]), their name with where they are going under it (an
-## arrow, an icon of the planet and its name, and how many on board already go there), and
-## a button that picks them up. It reads the passenger when [member passenger] is set; a
-## passenger's details don't change while they wait.
+## arrow, an icon of the planet and its name, then, fainter, how many on the bus are going
+## there too, from [member along]), and a button that picks them up. It reads the passenger
+## when [member passenger] is set; a passenger's details don't change while they wait.
 ## The root is a slot that holds the row's place in the list, and the panel moves inside it,
 ## so the row can slide out to the right once they board. The slot is as tall as the panel
 ## and the gap under it, so it closes up without a jump when it shrinks.
@@ -41,14 +41,14 @@ var can_board := true:
 		if is_node_ready():
 			_show_button()
 
-## How many passengers on board go where this one does. The dock panel sets it.
-var aboard := 0:
+## How many on board or picked up are going where [member passenger] is. None shows nothing.
+var along := 0:
 	set(value):
-		if value == aboard:
+		if value == along:
 			return
-		aboard = value
+		along = value
 		if is_node_ready():
-			_show_aboard()
+			_show_along()
 
 ## Where the portrait is rendered. Set it before [member passenger].
 var portrait_studio: PortraitStudio
@@ -70,8 +70,8 @@ func _ready() -> void:
 	resized.connect(_fit)
 	(%Panel as Control).minimum_size_changed.connect(_fit)
 	_show()
-	_show_aboard()
 	_show_button()
+	_show_along()
 	_fit()
 
 
@@ -123,15 +123,9 @@ func _show() -> void:
 	var photo := %PassengerPhoto as PassengerPhoto
 	photo.studio = portrait_studio
 	photo.passenger = passenger
-	(%NameLabel as Label).text = passenger.name
+	(%NameLabel as Label).text = passenger.get_title()
 	(%DestinationIcon as PlanetIcon).planet = passenger.destination
 	(%DestinationLabel as Label).text = _destination_name()
-
-
-func _show_aboard() -> void:
-	var label := %AboardLabel as Label
-	label.visible = aboard > 0
-	label.text = "·  %d aboard" % aboard
 
 
 func _show_highlight() -> void:
@@ -146,6 +140,12 @@ func _show_highlight() -> void:
 	style.border_color = Race.SKIN_COLORS[passenger.race]
 	style.bg_color.a += HIGHLIGHT_LIGHTEN
 	panel.add_theme_stylebox_override(&"panel", style)
+
+
+func _show_along() -> void:
+	var label := %AlongLabel as Label
+	label.visible = along > 0
+	label.text = "·  %d aboard" % along
 
 
 func _show_button() -> void:

@@ -127,6 +127,15 @@ func get_free_seats() -> int:
 	return maxi(seats - _passengers.size() - _getting_on.size(), 0)
 
 
+## How many on board or picked up are going to [param planet].
+func count_going_to(planet: Planet) -> int:
+	var count := 0
+	for passenger: Passenger in _passengers + _getting_on:
+		if passenger.destination == planet:
+			count += 1
+	return count
+
+
 ## Whether a stop is under way: passengers are still getting off or on.
 func is_stopping() -> bool:
 	return _stopping

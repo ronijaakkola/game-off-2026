@@ -60,7 +60,7 @@ func test_opens_hidden_and_shows_the_planet_and_who_waits_there() -> void:
 	assert_array(shown).contains_exactly(_waiting.get_waiting(_home))
 	assert_bool((runner.find_child("EmptyLabel") as Label).visible).is_false()
 	var first := rows[0] as WaitingPassengerRow
-	assert_str((first.find_child("DestinationLabel") as Label).text).is_equal("To Away")
+	assert_str((first.find_child("DestinationLabel") as Label).text).is_equal("Away")
 
 
 func test_each_row_shows_a_portrait_and_gives_it_back_when_the_passenger_boards() -> void:

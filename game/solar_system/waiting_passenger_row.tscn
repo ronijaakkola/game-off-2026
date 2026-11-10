@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="5_photo"]
+[ext_resource type="Texture2D" uid="uid://c1lifb3j2j53u" path="res://game/solar_system/icons/arrow_big_right.svg" id="20_arrow"]
 
 [node name="WaitingPassengerRow" type="Control" unique_id=1646157411]
 layout_mode = 3
@@ -47,7 +48,27 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 6
 
-[node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination" unique_id=1310667037]
+[node name="Where" type="HBoxContainer" parent="Panel/Columns/Who/Destination" unique_id=493035923]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Arrow" type="TextureRect" parent="Panel/Columns/Who/Destination/Where" unique_id=1950350937]
+self_modulate = Color(1, 1, 1, 0.6)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("20_arrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Planet" type="HBoxContainer" parent="Panel/Columns/Who/Destination/Where" unique_id=1338901022]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 3
+
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination/Where/Planet" unique_id=1310667037]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(14, 14)
@@ -56,11 +77,11 @@ size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
 
-[node name="DestinationLabel" type="Label" parent="Panel/Columns/Who/Destination" unique_id=1605523246]
+[node name="DestinationLabel" type="Label" parent="Panel/Columns/Who/Destination/Where/Planet" unique_id=1605523246]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
-text = "To ?"
+text = "?"
 
 [node name="FareLabel" type="Label" parent="Panel/Columns" unique_id=343032844]
 unique_name_in_owner = true

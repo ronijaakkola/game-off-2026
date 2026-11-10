@@ -93,7 +93,7 @@ layout_mode = 2
 theme_type_variation = &"TinyLabel"
 text = "?"
 
-[node name="AboardLabel" type="Label" parent="Panel/Columns/Who/Destination" unique_id=1313613275]
+[node name="AlongLabel" type="Label" parent="Panel/Columns/Who/Destination" unique_id=1313613275]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2

@@ -187,7 +187,7 @@ func test_a_checkpoint_is_flown_through_before_docking() -> void:
 		if _bus.state == FrameshiftBus.State.DOCKED and _bus.get_docked_planet() == _near:
 			break
 	assert_object(_bus.get_docked_planet()).is_same(_near)
-	assert_float(closest).is_less(_bus.waypoint_radius + 0.05)
+	assert_float(closest).is_less(_bus.pass_radius + 0.05)
 
 
 func test_removing_a_planet_takes_its_checkpoint_along() -> void:

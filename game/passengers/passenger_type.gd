@@ -4,6 +4,9 @@ extends Resource
 ## patient they are, what they ask for on the ride and what they do in between.
 
 @export var display_name := "Passenger"
+## What shows before their name wherever the player meets them, so a kind that asks more
+## of the bus can be told apart. Empty for the ordinary kind.
+@export var tag := ""
 ## Multiplies the trip's base fare.
 @export_range(0.0, 5.0, 0.05) var fare_multiplier := 1.0
 ## How long they expect the ride to take, as a multiple of the direct trip time. Their
@@ -11,6 +14,8 @@ extends Resource
 @export_range(1.0, 5.0, 0.05) var slack := 1.5
 ## What they ask for during a ride. Each need keeps its own timer.
 @export var needs: Array[Need] = []
+## Multiplies the time between a need's requests: under 1 they ask more often.
+@export_range(0.1, 3.0, 0.05) var need_interval_scale := 1.0
 ## What the card says they are doing while nothing is asked for.
 @export var idle_lines: Array[String] = ["Looking at empty space"]
 ## Idle lines they show while asleep, with their eyes shut. Each comes up as often as any

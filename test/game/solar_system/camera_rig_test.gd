@@ -215,6 +215,30 @@ func test_a_bigger_body_fills_more_of_the_height() -> void:
 	assert_float(rig.get_focus_fill(5.0)).is_equal(rig.focus_fill_max)
 
 
+func test_dragging_with_the_middle_button_keeps_the_grabbed_point_under_the_pointer() -> void:
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	var camera := runner.find_child("Camera") as Camera3D
+	await runner.simulate_frames(2, FRAME_MS)
+	var grabbed := _plane_point(camera, Vector2(300, 350))
+
+	_send_button(MOUSE_BUTTON_MIDDLE, true, Vector2(300, 350))
+	_send_motion(Vector2(250, 350))
+	await runner.simulate_frames(3, FRAME_MS)
+	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(250, 350))).is_less(1.0)
+
+	# At the window edge, where edge pan would take over, the drag carries on by itself.
+	_send_motion(Vector2(4, 350))
+	await runner.simulate_frames(3, FRAME_MS)
+	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(4, 350))).is_less(1.0)
+
+	_send_button(MOUSE_BUTTON_MIDDLE, false, Vector2(4, 350))
+	var position_after := rig.position
+	_send_motion(Vector2(300, 100))
+	await runner.simulate_frames(3, FRAME_MS)
+	assert_vector(rig.position).is_equal_approx(position_after, Vector3.ONE * 0.001)
+
+
 func test_pan_and_zoom_do_nothing_while_focused() -> void:
 	var runner := scene_runner(SOLAR_SYSTEM)
 	var rig := runner.find_child("CameraRig") as CameraRig
@@ -257,6 +281,16 @@ func _send_wheel(button: MouseButton, at := Vector2(576, 324)) -> void:
 	event.global_position = at
 	event.factor = 1.0
 	event.pressed = true
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
+func _send_button(button: MouseButton, pressed: bool, at: Vector2) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = button
+	event.position = at
+	event.global_position = at
+	event.pressed = pressed
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
 

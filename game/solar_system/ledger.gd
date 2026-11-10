@@ -16,11 +16,15 @@ signal credits_set
 signal research_earned(race: Race.Type, amount: int)
 ## [param amount] research points of [param race] went out, as on researching an upgrade.
 signal research_spent(race: Race.Type, amount: int)
-## A passenger rated the ride [param stars], already counted in [method get_average_rating].
+## A passenger rated the ride [param stars], already counted in [method get_average_rating]
+## and [method get_recent_rating].
 signal rated(stars: float)
 
 ## The credits the player has. Setting it outright emits [signal credits_set]; earn and
 ## spend with [method earn] and [method spend].
+## How many of the latest ratings [method get_recent_rating] is the mean of.
+const RECENT_RATINGS := 10
+
 var credits: int:
 	get:
 		return _credits
@@ -32,6 +36,7 @@ var _credits := 0
 var _research: Dictionary[Race.Type, int] = {}
 var _rating_total := 0.0
 var _rating_count := 0
+var _recent: Array[float] = []
 
 
 ## Adds [param amount] credits, as a fare.
@@ -79,6 +84,9 @@ func rate(stars: float) -> void:
 	var clamped := clampf(stars, 0.0, Passenger.MAX_STARS)
 	_rating_total += clamped
 	_rating_count += 1
+	_recent.append(clamped)
+	if _recent.size() > RECENT_RATINGS:
+		_recent.pop_front()
 	rated.emit(clamped)
 
 
@@ -86,6 +94,15 @@ func rate(stars: float) -> void:
 ## first; [method get_rating_count] tells the two apart.
 func get_average_rating() -> float:
 	return _rating_total / _rating_count if _rating_count > 0 else 0.0
+
+
+## The mean of the last [constant RECENT_RATINGS] ratings, which is the rating the player is
+## shown and what sets who turns up ([RatingBand]). 0 before the first.
+func get_recent_rating() -> float:
+	var total := 0.0
+	for stars: float in _recent:
+		total += stars
+	return total / _recent.size() if not _recent.is_empty() else 0.0
 
 
 ## How many rides have been rated.

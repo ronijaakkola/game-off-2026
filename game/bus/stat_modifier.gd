@@ -5,9 +5,9 @@ extends Resource
 
 enum Kind {
 	## [member amount] is added to the stat's base, in the stat's own units.
-	FLAT,
+	FLAT = 0,
 	## [member amount] is a percent of the base plus the flat modifiers: 20 is +20 %.
-	PERCENT,
+	PERCENT = 1,
 }
 
 ## The stat it changes.

@@ -49,6 +49,8 @@ const DOCKED_RATE := 0.1
 const LEEWAY_HAPPINESS := 80.0
 const LEEWAY_RATE := 0.5
 const LEEWAY_MAX := 0.5
+## How far ahead, in seconds, [member trend] looks.
+const TREND_SECONDS := 10.0
 ## How long an idle line shows before the next one, in seconds.
 const IDLE_MIN := 6.0
 const IDLE_MAX := 14.0
@@ -67,6 +69,10 @@ var destination: Planet
 var fare: float
 ## How content they are, from 0 to [constant MAX_HAPPINESS].
 var happiness := BASE_HAPPINESS
+## Where their happiness is heading, as of the last [method tick]: how much it will
+## change over the next [constant TREND_SECONDS] at its current speed, no further than its
+## target, so positive while it climbs and negative while it falls. 0 while it holds.
+var trend := 0.0
 ## The direct trip time, and the time they expect the ride to take at boarding, the trip
 ## with the type's slack, in seconds of their ride clock.
 var trip_seconds: float
@@ -140,6 +146,12 @@ func _init(
 	_activity_left = BOARDING_SECONDS
 	race = Race.random(_rng)
 	look = AlienLook.random(_rng, race)
+
+
+## Their name, after their type's tag when it has one: "Business · Vontti". The tag comes
+## first so that it still reads where a narrow row cuts the line short.
+func get_title() -> String:
+	return "%s · %s" % [type.tag, name] if type.tag else name
 
 
 ## The mood for [param value] of happiness: happy at 70 or more, okay at 50 or more,
@@ -251,6 +263,7 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		activity = request.request_line
 	var fed := _fed and request != null
 	_fed = false
+	trend = 0.0
 	if _departed and not holds:
 		var rate := 1.0
 		if asleep:
@@ -266,6 +279,8 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		var speed := CLIMB_RATE
 		if target < happiness:
 			speed = FALL_RATE * (DOCKED_RATE if docked else 1.0)
+		var reach := speed * TREND_SECONDS
+		trend = clampf(target - happiness, -reach, reach)
 		happiness = move_toward(happiness, target, speed * delta)
 	if request:
 		if _departed:
@@ -370,7 +385,8 @@ func _idle(comfort: Comfort) -> void:
 
 
 func _interval(need: Need) -> float:
-	return _rng.randf_range(need.min_interval, maxf(need.min_interval, need.max_interval))
+	var seconds := _rng.randf_range(need.min_interval, maxf(need.min_interval, need.max_interval))
+	return seconds * type.need_interval_scale
 
 
 func _pick(lines: Array[String]) -> String:

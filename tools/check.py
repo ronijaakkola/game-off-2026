@@ -231,6 +231,8 @@ USER_FILES = "CODING_STANDARDS.md, Saved files"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
+SCRIPT_SIZE = "CODING_STANDARDS.md, Script size"
+GLOSSARY = "CONTEXT.md"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
 NODE_EXPORTS = ".claude/skills/edit-tscn/SKILL.md, References"
@@ -245,6 +247,10 @@ LINTED = (".gd", ".tscn", ".gdshader")
 NOT_OURS_AT_ROOT = {"addons", "android", "art"}
 NOT_OURS_ANYWHERE = {"build", "reports", "__pycache__"}
 ASSET_LIMIT_MB = 10
+# gdlint fails a script past max-file-lines in gdlintrc. The warning starts here, while
+# there is still room to split by job instead of shaving lines to fit.
+SCRIPT_LINES_LIMIT = 600
+SCRIPT_LINES_WARNING = 500
 # A comment, or a string literal (group 2). One pattern, so a # inside a string isn't
 # a comment and a quote inside a comment doesn't start a string.
 GD_COMMENT_OR_STRING = re.compile(
@@ -252,6 +258,11 @@ GD_COMMENT_OR_STRING = re.compile(
 )
 # Godot's untyped_declaration warning skips loop variables, so `for i in 3:` loads.
 UNTYPED_LOOP_VARIABLE = re.compile(r"^[ \t]*for[ \t]+(\w+)[ \t]+in\b", re.MULTILINE)
+CLASS_NAME = re.compile(r"^class_name[ \t]+(\w+)", re.MULTILINE)
+ENUM = re.compile(r"\benum[ \t]+(\w+)[ \t]*\{([^}]*)\}")
+# An @export var line, up to its end: the names in it are its type and its default.
+EXPORT_LINE = re.compile(r"^[ \t]*@export\w*\b[^\n]*", re.MULTILINE)
+DOTTED_NAME = re.compile(r"(?<![\w.])([A-Z]\w*)(?:\.([A-Z]\w*))?")
 # A member set or read by a name written as a literal, which a typo or a rename turns into
 # a no-op: Object.set() ignores a name the object doesn't have, and get() returns null.
 DYNAMIC_MEMBER = re.compile(r"\.\s*(set|set_deferred|get)\s*\(")
@@ -408,6 +419,8 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
             rules += scene_problems(path)
         elif path.endswith(".gdshader"):
             rules += shader_problems(path)
+        if path.endswith((".gd", ".tscn", ".tres")):
+            rules += glossary_problems(path)
         if path.endswith((".tscn", ".tres")):
             rules += wrong_uid_problems(path)
         # The hook leaves this out: a scene is missing its ids for as long as it is being
@@ -426,8 +439,69 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
         if linter.returncode != 0:
             problems.append(lint_output.rstrip())
         problems += formatting_problems(formatter, gdlint_failed=linter.returncode != 0)
-    warnings = [] if hook else asset_size_warnings(paths)
+    warnings = [] if hook else asset_size_warnings(paths) + script_size_warnings(scripts)
     return problems + rules, warnings
+
+
+def script_size_warnings(scripts: list[str]) -> list[str]:
+    """A warning before gdlint's limit fails the script: at the limit the cheap way out is
+    to shave lines, which leaves the script doing as many jobs as before."""
+    warnings = []
+    for path in scripts:
+        # A suite mirrors its script, so it splits when the script does.
+        if path.startswith("test/"):
+            continue
+        lines = len(Path(path).read_text(encoding="utf-8", errors="replace").splitlines())
+        if lines >= SCRIPT_LINES_WARNING:
+            warnings.append(
+                f"{path}: Warning: {lines} lines, and lint fails past {SCRIPT_LINES_LIMIT}. "
+                "If your change adds to it, move one job out to a component node, a static "
+                "helper or a Resource in the same change. Don't trim comments or pack lines "
+                f"to fit. (script-size; {SCRIPT_SIZE})"
+            )
+    return warnings
+
+
+def never_terms() -> list[tuple[re.Pattern, str, str]]:
+    """Each term CONTEXT.md lists after _Never_, as a pattern over normalised text, with
+    the term and the glossary entry to use instead."""
+    global _never_terms
+    if _never_terms is None:
+        _never_terms = []
+        entry = ""
+        for line in Path("CONTEXT.md").read_text(encoding="utf-8").splitlines():
+            if heading := re.match(r"\*\*(.+?)\*\*:", line):
+                entry = heading.group(1)
+            elif line.startswith("_Never_:"):
+                for term in line.split(":", 1)[1].split(","):
+                    words = re.sub(r"\(.*?\)", "", term).lower().split()
+                    if words:
+                        pattern = r"\b" + r"\s+".join(map(re.escape, words)) + r"(?:s|es)?\b"
+                        _never_terms.append((re.compile(pattern), " ".join(words), entry))
+    return _never_terms
+
+
+_never_terms: list[tuple[re.Pattern, str, str]] | None = None
+
+
+def glossary_problems(path: str) -> list[str]:
+    """A term the glossary rules out, in an identifier, a node name or text the player
+    reads. Comments are left alone: they may say what a thing used to be called."""
+    text = Path(path).read_text(encoding="utf-8", errors="replace")
+    if path.endswith(".gd"):
+        code, strings = split_gdscript(text)
+        lines = list(enumerate(code.splitlines(), 1)) + strings
+    else:
+        lines = list(enumerate(text.splitlines(), 1))
+    problems = []
+    for number, line in sorted(lines):
+        # waypoint_radius, WaypointRadius and "way point" read alike once split into words.
+        words = re.sub(r"(?<=[a-z0-9])(?=[A-Z])|_", " ", line).lower()
+        for pattern, term, entry in never_terms():
+            if pattern.search(words):
+                message = f'"{term}" is not this project\'s word. The glossary\'s is {entry}.'
+                problems.append(problem(path, number, "glossary-term", message, GLOSSARY))
+    return problems
 
 
 def problem(path: str, line: int | None, rule: str, message: str, doc: str) -> str:
@@ -474,6 +548,8 @@ def script_problems(path: str, hook: bool) -> list[str]:
     if not (outside or path.startswith(AUDIO_FOLDER)):
         problems += bus_name_problems(path, code, source)
     problems += user_path_problems(path, strings, outside)
+    if not outside:
+        problems += saved_enum_problems(path, code)
     # The hook leaves this out: a script may name a scene before it is written.
     if not (outside or hook):
         problems += missing_path_problems(path, strings)
@@ -666,6 +742,110 @@ def missing_path_problems(path: str, strings: list[tuple[int, str]]) -> list[str
         )
         problems.append(problem(path, line, "path-exists", message, SCENE_COMPOSITION))
     return problems
+
+
+def saved_enum_problems(path: str, code: str) -> list[str]:
+    """A .tres or .tscn saves an exported enum as its member's number, and Godot counts
+    unnumbered members from 0 in order. A member added or moved above another renumbers
+    it, and every saved value then loads as its neighbour, with no error: an upgrade gives
+    the wrong trait. So an exported enum numbers every member. Flagged on the enum, and on
+    an export in another script, so the hook sees it either way."""
+    problems = []
+    for name, line, unnumbered in script_enums(path):
+        exporter = exported_enums().get((path, name))
+        if not exporter or not unnumbered:
+            continue
+        problems.append(saved_enum_problem(path, line, path, name, unnumbered, exporter))
+    for m in EXPORT_LINE.finditer(code):
+        for enum_path, name in export_enum_refs(path, m.group(0)):
+            if enum_path == path:
+                continue
+            for enum_name, enum_line, unnumbered in script_enums(enum_path):
+                if enum_name == name and unnumbered:
+                    line = line_at(code, m.start())
+                    where = f"{path}:{line}"
+                    problems.append(
+                        saved_enum_problem(path, line, enum_path, name, unnumbered, where)
+                    )
+    return problems
+
+
+def saved_enum_problem(
+    path: str, line: int, enum_path: str, name: str, unnumbered: list[str], exporter: str
+) -> str:
+    owner = script_classes().get(enum_path)
+    full = f"{owner}.{name}" if owner else name
+    message = (
+        f"enum {full} ({enum_path}) is exported ({exporter}), so scenes and resources save "
+        f"it as a number, and {', '.join(unnumbered)} get theirs from their place: adding "
+        "or moving a member renumbers the ones after it, and every saved value silently "
+        "means another member. Write each member's number: an existing one keeps its "
+        "place's (from 0), and a new one takes the next unused number."
+    )
+    return problem(path, line, "saved-enum", message, STATIC_TYPING)
+
+
+@cache
+def script_enums(path: str) -> list[tuple[str, int, list[str]]]:
+    """Each enum a script declares: its name, line, and the members without a number."""
+    source = Path(path).read_text(encoding="utf-8", errors="replace")
+    code = split_gdscript(source)[0]
+    enums = []
+    for m in ENUM.finditer(code):
+        members = [member.strip() for member in m.group(2).split(",")]
+        unnumbered = [member for member in members if member and "=" not in member]
+        enums.append((m.group(1), line_at(code, m.start()), unnumbered))
+    return enums
+
+
+@cache
+def game_scripts() -> list[str]:
+    """Every project script outside test/ and tools/."""
+    paths = [file.removeprefix("./") for file in project_files() if file.endswith(".gd")]
+    return [path for path in paths if path.split("/")[0] not in ("test", "tools")]
+
+
+@cache
+def script_classes() -> dict[str, str]:
+    """Each game script with a class_name, and that name. Tests and tools are left out."""
+    classes = {}
+    for path in game_scripts():
+        source = Path(path).read_text(encoding="utf-8", errors="replace")
+        if m := CLASS_NAME.search(source):
+            classes[path] = m.group(1)
+    return classes
+
+
+def export_enum_refs(path: str, export: str) -> list[tuple[str, str]]:
+    """The enums an @export line names, by the script that declares each: its own, as
+    Kind, or another class's, as BusTraits.Type, in a type or a default. Each once, though
+    a line names it as both."""
+    by_class = {name: script for script, name in script_classes().items()}
+    own = {name for name, _, _ in script_enums(path)}
+    refs = []
+    for m in DOTTED_NAME.finditer(export):
+        first, second = m.group(1), m.group(2)
+        if first in own:
+            refs.append((path, first))
+        elif second and first in by_class:
+            script = by_class[first]
+            if any(name == second for name, _, _ in script_enums(script)):
+                refs.append((script, second))
+    return list(dict.fromkeys(refs))
+
+
+@cache
+def exported_enums() -> dict[tuple[str, str], str]:
+    """Each enum some game script exports, by its script and name, with the first export
+    that names it, as path:line."""
+    exported: dict[tuple[str, str], str] = {}
+    for path in game_scripts():
+        source = Path(path).read_text(encoding="utf-8", errors="replace")
+        code = split_gdscript(source)[0]
+        for m in EXPORT_LINE.finditer(code):
+            for ref in export_enum_refs(path, m.group(0)):
+                exported.setdefault(ref, f"{path}:{line_at(code, m.start())}")
+    return exported
 
 
 @cache

@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
 
 const AudioScript := preload("res://core/audio/audio.gd")
-const MUSIC := preload("res://ui/audio/menu_music.ogg")
+const MUSIC := preload("res://ui/audio/bg.ogg")
 const SFX := preload("res://ui/audio/ui_click.ogg")
-const OTHER_SFX := preload("res://game/audio/piece_placed.ogg")
+const OTHER_SFX := preload("res://game/bus/dock_bell.ogg")
 
 var _audio: AudioScript
 

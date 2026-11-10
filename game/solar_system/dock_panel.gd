@@ -2,7 +2,8 @@ class_name DockPanel
 extends Control
 ## What the bus can do at the station of the planet it is docked at, in the top right
 ## corner: the planet's icon and name, then who waits there: a row for each passenger,
-## longest waiting first, with their portrait and a button to pick them up, and a button to
+## longest waiting first, with their portrait, how many on the bus are going
+## their way too, and a button to pick them up, and a button to
 ## pick up everyone that fits. Under a faint line, its services: where the planet sells
 ## fuel, a button to hold down to refuel, and where it has a research tree, a button to open
 ## its Research tab. The parent sets [member planet] while the bus is docked or charging.
@@ -203,13 +204,9 @@ func _preview() -> void:
 
 func _show_buttons() -> void:
 	var free := cabin.get_free_seats() > 0 if cabin else true
-	var aboard: Dictionary[Planet, int] = {}
-	if cabin:
-		for rider: Passenger in cabin.get_passengers():
-			aboard[rider.destination] = aboard.get(rider.destination, 0) + 1
-	for passenger: Passenger in _rows:
-		_rows[passenger].can_board = free
-		_rows[passenger].aboard = aboard.get(passenger.destination, 0)
+	for row: BoardingRow in _rows.values():
+		row.can_board = free
+		row.along = cabin.count_going_to(row.passenger.destination) if cabin else 0
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()

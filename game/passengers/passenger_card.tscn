@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://dis4faq8oc0vt" path="res://game/passengers/kick_icon.svg" id="6_kick"]
 [ext_resource type="Script" uid="uid://cucadeex8lgly" path="res://game/passengers/serve_button.gd" id="7_serve"]
 [ext_resource type="Texture2D" uid="uid://5e4u8rlx68t4" path="res://shared/icons/arrow_right.svg" id="8_arrow"]
+[ext_resource type="Script" uid="uid://bqo5syprxwynd" path="res://game/passengers/trend_chevrons.gd" id="8_trend"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
 bg_color = Color(1, 1, 1, 0.1412)
@@ -200,6 +201,12 @@ max_value = 1.0
 step = 0.0
 value = 1.0
 show_percentage = false
+
+[node name="HappinessTrend" type="Control" parent="Panel/Layout/Rows/Middle/Trip/HappinessBar" unique_id=1924373784]
+unique_name_in_owner = true
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("8_trend")
 
 [node name="RatingStars" type="Control" parent="Panel/Layout/Rows/Middle" unique_id=1668521579]
 unique_name_in_owner = true
