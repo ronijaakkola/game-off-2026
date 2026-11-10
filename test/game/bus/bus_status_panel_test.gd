@@ -53,6 +53,30 @@ func test_holding_the_key_charges_and_letting_go_drains_and_keeps_the_course() -
 	assert_bool(key.disabled).is_false()
 
 
+func test_the_key_pops_up_once_charged_and_its_release_doesnt_stop_the_bus() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	bus.charge_time = 0.2
+	bus.plot_course(RouteStop.at_planet(runner.find_child("Terra") as Planet))
+	await runner.simulate_frames(2)
+	var key := runner.find_child("FrameshiftKey") as FrameshiftKey
+	runner.set_mouse_position(key.get_global_rect().get_center())
+	runner.simulate_mouse_button_press(MOUSE_BUTTON_LEFT)
+	await runner.await_input_processed()
+
+	await assert_func(bus, "is_at_planet").wait_until(2000).is_false()
+	await runner.simulate_frames(1)
+
+	assert_bool(key.stop).is_true()
+	assert_bool(key.is_pressed()).is_false()
+	runner.simulate_mouse_button_release(MOUSE_BUTTON_LEFT)
+	await runner.await_input_processed()
+	await runner.simulate_frames(1)
+	assert_bool(bus.is_stopping()).is_false()
+	assert_array(bus.get_route_planets()).has_size(1)
+
+
 func test_shows_the_fuel_left_and_says_when_it_runs_out_at_a_planet() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)

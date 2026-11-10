@@ -5,8 +5,9 @@ extends VBoxContainer
 ## time left to it, or what the bus is doing when it has no leg. The bus bar under it shows
 ## its fuel, two small keys that are blank placeholders for now, and the Frameshift key
 ## ([FrameshiftKey]). With a course set and the bus waiting, holding the key charges the
-## drive and the key fills as it does; let go, the charge drains. While the bus flies under
-## its own power the key is Stop, and it is off otherwise. It reads [member bus] every frame.
+## drive and the key fills as it does; let go, the charge drains. Charged, the key pops up
+## by itself as the bus leaves. While the bus flies under its own power the key is Stop, and
+## it is off otherwise. It reads [member bus] every frame.
 
 const TRACK_COLOR := Color(1.0, 1.0, 1.0, 0.1412)
 const ROUTE_COLOR := Color(1.0, 0.6, 0.22, 1.0)
@@ -31,6 +32,8 @@ var _from_planet: Planet
 # The fuel bar's fill, a copy of the scene's, so its colour can change.
 var _fuel_fill: StyleBoxFlat
 var _fuel_low := false
+# Whether the drive charged last frame, to pop the key up the moment the bus leaves.
+var _was_charging := false
 
 
 func _ready() -> void:
@@ -61,6 +64,9 @@ func _show() -> void:
 	var can_stop := flying and not bus.is_stopping() and not bus.is_towing()
 	key.disabled = not (charging or can_stop or _is_ready())
 	key.stop = can_stop
+	if _was_charging and flying:
+		key.release()
+	_was_charging = charging
 	# A charge that hasn't moved yet, as while passengers board, still latches the key.
 	key.charge = maxf(bus.get_charge_progress(), 0.02) if charging else 0.0
 	_show_fuel()

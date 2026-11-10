@@ -3,7 +3,8 @@ extends BusKey
 ## The Frameshift key in the bus bar, a [BusKey] with a lamp and a label. The bus status
 ## sets what it shows: [member charge], how far the drive has charged, fills the cap in the
 ## bus's yellow and latches the key down with its lamp lit; [member stop] turns it into the
-## red Stop key, lit; disabled, the cap is dim and its lamp off.
+## red Stop key, lit; disabled, the cap is dim and its lamp off. [method release] pops it
+## up while the pointer still holds it down.
 
 const SIZE := Vector2(104.0, 44.0)
 const STOP_SIDE_COLOR := Color(0.639, 0.169, 0.251)
@@ -67,6 +68,17 @@ func _draw() -> void:
 		font_size,
 		ink
 	)
+
+
+## Pops the key up as if let go, while the pointer still holds it, so its release does
+## nothing more. Disabling a button is the only way to drop its press.
+func release() -> void:
+	if not is_pressed():
+		return
+	var was_disabled := disabled
+	disabled = true
+	disabled = was_disabled
+	queue_redraw()
 
 
 func _is_down() -> bool:
