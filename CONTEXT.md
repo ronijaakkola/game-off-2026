@@ -136,6 +136,14 @@ Which kind of alien a passenger is: blue, orange or green, shown as their skin c
 _Avoid_: colour (that is how it shows), passenger type (fare, slack and needs)
 _Never_: species
 
+**Goal**:
+Something the player is asked to do and the game tracks, several at a time: a **milestone** done once (deliver 50 passengers), or a **standing** goal met or not as things stand (keep a 4.0 rating). `Goal` in code, tracked by the `GoalTracker`.
+_Avoid_: objective, mission, achievement (a one-off reward, not something asked)
+
+**Quest**:
+A goal about one passenger, such as delivering them, or a **flyby**: flying them past a planet (`FlybyGoal`). It fails if they are kicked.
+_Avoid_: task, errand
+
 **Research point**:
 What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `Ledger.earn_research()` in code.
 _Avoid_: science, XP, tech points
