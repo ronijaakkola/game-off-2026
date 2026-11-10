@@ -4,11 +4,12 @@ extends Control
 ## bottom right corner: the planet's icon and name, then, where the planet sells fuel, a
 ## button to hold down to refuel, where it has a research tree, a button to open its
 ## Research tab, and a faint line under them, then who waits there: a row
-## for each passenger, longest waiting first, with their portrait and a button to pick them
-## up, and a button to pick up everyone that fits. The parent sets [member planet] while
-## the bus is docked or charging. The board buttons are off while every seat is taken. It
-## only asks: the parent picks the passenger up, pumps the fuel while
-## [method is_fuel_held], and turns the fuel button on or off with [method show_fuel].
+## for each passenger, longest waiting first, with their portrait, how many on the bus are
+## going their way too, and a button to pick them up, and a button to pick up everyone that
+## fits. The parent sets [member planet] while the bus is docked or charging. The board
+## buttons are off while every seat is taken. It only asks: the parent picks the passenger
+## up, pumps the fuel while [method is_fuel_held], and turns the fuel button on or off with
+## [method show_fuel].
 ## It slides in from the right when [member planet] is set and back out when it is
 ## cleared. A row whose passenger boards slides out to the right, clipped by the card, then
 ## closes up. The card fits what it holds every frame, so it shrinks as smoothly as the row
@@ -205,6 +206,7 @@ func _show_buttons() -> void:
 	var free := cabin.get_free_seats() > 0 if cabin else true
 	for row: BoardingRow in _rows.values():
 		row.can_board = free
+		row.along = cabin.count_going_to(row.passenger.destination) if cabin else 0
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()

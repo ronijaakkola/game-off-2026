@@ -6,8 +6,9 @@ extends Node
 ## bonus, a penalty and a seat, and the fuel forecast trait. `-- Forecast` opens nothing,
 ## and gives the bus the fuel forecast and waiting markers traits, a course to Terra and
 ## someone waiting there, so the forecast shows over it and the marker under it. `-- Trip`
-## opens nothing, puts two passengers in line at Ember, where the bus is docked, and pins
-## the first one's row in the dock panel, so their trip arc shows. `-- Research` opens
+## opens nothing, puts two passengers in line at Ember, where the bus is docked, boards one
+## going where the first one is, so their row shows "1 aboard", and pins the first one's
+## row in the dock panel, so their trip arc shows. `-- Research` opens
 ## Ember, where the bus is docked, on its Research tab with Frost's blue tree, with credits
 ## and points to spend and the first upgrade researched, and the pointer over the second so
 ## its card shows. `-- Research green` and `-- Research orange` take Terra's and Giant's
@@ -41,8 +42,11 @@ func _ready() -> void:
 		# The dock panel lists the line once it has shown the planet, a frame in.
 		await get_tree().process_frame
 		await get_tree().process_frame
+		var first := line.get_waiting(trip_bus.get_docked_planet())[0]
+		var cabin := system.find_child("Cabin") as Cabin
+		cabin.board(Passenger.new(COMMUTER, first.destination, 60.0, 40.0))
 		var dock := system.find_child("DockPanel") as DockPanel
-		dock.pin(line.get_waiting(trip_bus.get_docked_planet())[0])
+		dock.pin(first)
 		return
 	if planet_name == "Tow":
 		var tow_bus := system.find_child("Bus") as FrameshiftBus

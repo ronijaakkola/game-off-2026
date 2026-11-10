@@ -1,6 +1,6 @@
 class_name PassengerCard
 extends Control
-## One passenger's card: their name, where they are going (an icon of the
+## One passenger's card: their name, where they are going (an arrow, an icon of the
 ## planet and its name), their happiness as a bar in their mood's colour, and what they
 ## are doing. A big drop in happiness, such as a scare, leaves a red trail on the bar
 ## that holds a moment, then shrinks to it. While they ask for something, a button held
@@ -357,7 +357,7 @@ func _show() -> void:
 	var icon := %DestinationIcon as PlanetIcon
 	if icon.planet != passenger.destination:
 		icon.planet = passenger.destination
-	_set_text(%DestinationLabel, "To %s" % _destination_name())
+	_set_text(%DestinationLabel, _destination_name())
 	var value := passenger.get_happiness_fraction()
 	(%HappinessBar as ProgressBar).value = value
 	if first:
