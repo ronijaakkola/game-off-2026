@@ -17,7 +17,7 @@ extends Node
 ## the bus, so the camera follows it, and sends it off with fuel for eight units, so it runs
 ## dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
 ## the whole tow takes about 32 s (`--frames 1900`). `-- Showcase` fills the cabin, every
-## planet's line, the credits, research and rating, and charges for Giant, for a busy
+## planet's line, the credits, research and rating, and plots a course to Giant, for a busy
 ## screenshot (`--frames 290`); `-- Showcase clean` hides the HUD.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
@@ -136,8 +136,8 @@ func _showcase(system: SolarSystem, clean: bool) -> void:
 		var rider := line.create(home)
 		rider.happiness = [92.0, 64.0, 38.0][i]
 		cabin.board(rider)
-	for name: String in ["Ember", "Terra", "Giant", "Frost"]:
-		var planet := system.find_child(name) as Planet
+	for planet_name: String in ["Ember", "Terra", "Giant", "Frost"]:
+		var planet := system.find_child(planet_name) as Planet
 		for i: int in line.max_per_planet:
 			line.add(planet)
 	var ledger := system.get_ledger()
