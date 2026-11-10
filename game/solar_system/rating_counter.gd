@@ -1,14 +1,14 @@
 class_name RatingCounter
 extends HBoxContainer
-## The player's average rating in the resource bar: a star and the mean of every rating
-## passengers gave on getting off, to one decimal, or a dash before the first, in the room
-## a rating takes so the bar keeps its width. Like the credits, ratings collect first: the
-## change they make to the average shows in a gain floating under the bar ("+0.2" in green,
-## "-0.3" in red), which pops with each rating. Once [method commit] is called, after a
-## short delay the average moves to its new value while the gain fades out drifting upward.
-## It shows the ratings of its [member ledger] and animates each one the ledger signals; it
-## keeps no ratings of its own. The ledger already counts every rating; only what shows
-## waits.
+## The player's recent rating in the resource bar: a star and the mean of the last ratings
+## passengers gave on getting off ([method Ledger.get_recent_rating]), to one decimal, or a
+## dash before the first, in the room a rating takes so the bar keeps its width. Like the
+## credits, ratings collect first: the change they make to the average shows in a gain floating
+## under the bar ("+0.2" in green, "-0.3" in red), which pops with each rating. Once [method
+## commit] is called, after a short delay the average moves to its new value while the gain
+## fades out drifting upward. It shows the ratings of its [member ledger] and animates each one
+## the ledger signals; it keeps no ratings of its own. The ledger already counts every rating;
+## only what shows waits. The pointer over it shows who that rating attracts ([RatingBand]).
 
 ## What shows before anyone has rated a ride.
 const NO_RATING := "–"
@@ -40,7 +40,7 @@ var ledger: Ledger:
 		ledger.rated.connect(_on_rated)
 		if _fade:
 			_fade.kill()
-		_shown_average = ledger.get_average_rating()
+		_shown_average = ledger.get_recent_rating()
 		_shown_count = ledger.get_rating_count()
 		if is_node_ready():
 			(%GainLabel as Label).modulate.a = 0.0
@@ -59,12 +59,6 @@ var _pop: Tween
 func _ready() -> void:
 	if not ledger:
 		ledger = Ledger.new()
-	var average := %AverageLabel as Label
-	var font := average.get_theme_font(&"font")
-	var font_size := average.get_theme_font_size(&"font_size")
-	average.custom_minimum_size.x = (
-		font.get_string_size("0.0", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
-	)
 	(%GainLabel as Label).modulate.a = 0.0
 	_show_average(_shown_average)
 	_place_gain()
@@ -85,7 +79,7 @@ func _on_rated(_stars: float) -> void:
 	if _shown_count == 0:
 		return
 	var label := %GainLabel as Label
-	var change := ledger.get_average_rating() - _shown_average
+	var change := ledger.get_recent_rating() - _shown_average
 	label.text = gain_text(change)
 	label.add_theme_color_override(&"font_color", gain_color(change))
 	label.modulate.a = 1.0
@@ -101,7 +95,7 @@ func commit() -> void:
 		return
 	var from := _shown_average
 	var first := _shown_count == 0
-	_shown_average = ledger.get_average_rating()
+	_shown_average = ledger.get_recent_rating()
 	_shown_count = ledger.get_rating_count()
 	if _fade:
 		_fade.kill()
@@ -148,6 +142,9 @@ func _show_average(value: float) -> void:
 	var text := "%.1f" % value if _shown_count > 0 else NO_RATING
 	if label.text != text:
 		label.text = text
+	var tip := RatingBand.describe(_shown_average)
+	if tooltip_text != tip:
+		tooltip_text = tip
 
 
 func _pop_label(label: Label) -> void:

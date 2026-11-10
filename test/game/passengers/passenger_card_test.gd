@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
-## A passenger card's mood name shakes for the low moods, and holds still under Reduce
-## motion. When the mood changes, the name fades out and back in as the new one. Getting
-## off, the trip row gives way to the stars they rate the ride, which fill up. The
+## A passenger card's happiness bar shows their mood's colour, and blends into the new
+## mood's when it changes. Getting off, the bar's row gives way to the stars they rate the
+## ride, which fill up. The
 ## card's linger-then-slide-out is tested in passenger_panel_test.gd.
 
 const SCENE := preload("res://game/passengers/passenger_card.tscn")
@@ -20,60 +20,30 @@ func after_test() -> void:
 		Settings.reduce_motion = _reduce_motion
 
 
-func test_an_annoyed_passengers_mood_shakes() -> void:
-	_set_reduce_motion(false)
-	var card := _card(0.3)
-	assert_str(_mood_label(card).text).starts_with("[shake")
-
-
-func test_reduce_motion_holds_the_mood_still() -> void:
-	_set_reduce_motion(true)
-	var card := _card(0.3)
-	assert_str(_mood_label(card).text).is_equal("Annoyed")
-	assert_str(_mood_label(card).get_parsed_text()).is_equal("Annoyed")
-
-
-func test_turning_on_reduce_motion_stops_a_shaking_mood() -> void:
-	_set_reduce_motion(false)
-	var card := _card(0.0)
-	assert_str(_mood_label(card).text).contains("[shake")
-
-	_set_reduce_motion(true)
-	await await_idle_frame()
-
-	assert_str(_mood_label(card).text).is_equal("Furious")
-
-
-func test_a_new_passengers_mood_shows_at_once() -> void:
+func test_a_new_passengers_bar_shows_their_mood_at_once() -> void:
 	var card := _card(1.0)
-	assert_str(_mood_label(card).text).is_equal("Happy")
-	assert_float(_mood_label(card).modulate.a).is_equal(1.0)
 	assert_that(_fill(card).bg_color).is_equal(PassengerCard.MOOD_COLORS[Passenger.Mood.HAPPY])
 
 
-func test_a_mood_change_fades_the_name_out_and_back_in_as_the_new_mood() -> void:
-	_set_reduce_motion(true)
+func test_a_mood_change_blends_the_bar_into_the_new_mood() -> void:
 	var card := _card(1.0)
 	card.passenger.happiness = Passenger.MAX_HAPPINESS * 0.5
 	await await_idle_frame()
 	await await_idle_frame()
 
-	# Still the old name while it fades out.
-	assert_str(_mood_label(card).text).is_equal("Happy")
-	assert_float(_mood_label(card).modulate.a).is_less(1.0)
+	# Still on its way while it blends.
+	var okay := PassengerCard.MOOD_COLORS[Passenger.Mood.OKAY]
+	assert_that(_fill(card).bg_color).is_not_equal(okay)
 
 	await get_tree().create_timer(PassengerCard.MOOD_FADE_SECONDS + 0.1).timeout
 
-	assert_str(_mood_label(card).text).is_equal("Okay")
-	assert_float(_mood_label(card).modulate.a).is_equal(1.0)
-	assert_that(_fill(card).bg_color).is_equal(PassengerCard.MOOD_COLORS[Passenger.Mood.OKAY])
+	assert_that(_fill(card).bg_color).is_equal(okay)
 
 
 func test_showing_the_rating_swaps_the_trip_row_for_stars_that_fill_up() -> void:
 	_set_reduce_motion(false)
 	var card := _card(0.1)
 	await await_idle_frame()
-	var mood_text := _mood_label(card).text
 
 	card.show_rating(2.0)
 	var stars := card.find_child("RatingStars", true, false) as StarIcon
@@ -100,8 +70,8 @@ func test_showing_the_rating_swaps_the_trip_row_for_stars_that_fill_up() -> void
 	var activity := card.find_child("ActivityLabel", true, false) as Label
 	assert_str(activity.text).is_equal("Getting off")
 	# The top row stays as it was.
-	assert_bool(_mood_label(card).visible).is_true()
-	assert_str(_mood_label(card).text).is_equal(mood_text)
+	var name_label := card.find_child("NameLabel", true, false) as Label
+	assert_str(name_label.text).is_equal(card.passenger.name)
 	assert_bool(card.is_rated()).is_true()
 
 
@@ -128,7 +98,7 @@ func test_once_rated_the_card_stops_following_the_passenger() -> void:
 	card.passenger.activity = "Something else"
 	await get_tree().create_timer(PassengerCard.MOOD_FADE_SECONDS + 0.1).timeout
 
-	assert_str(_mood_label(card).text).is_equal("Happy")
+	assert_that(_fill(card).bg_color).is_equal(PassengerCard.MOOD_COLORS[Passenger.Mood.HAPPY])
 	var activity := card.find_child("ActivityLabel", true, false) as Label
 	assert_str(activity.text).is_equal("Getting off")
 
@@ -177,10 +147,6 @@ func _card(happiness_fraction: float) -> PassengerCard:
 	card.passenger = passenger
 	add_child(card)
 	return card
-
-
-func _mood_label(card: PassengerCard) -> RichTextLabel:
-	return card.find_child("MoodLabel") as RichTextLabel
 
 
 func _fill(card: PassengerCard) -> StyleBoxFlat:

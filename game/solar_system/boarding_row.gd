@@ -3,15 +3,14 @@ extends Control
 ## One passenger waiting at the planet the bus is docked at, as a row in the dock panel:
 ## their portrait (a [PassengerPhoto]), their name with where they are going under it (an
 ## arrow, an icon of the planet and its name, then, fainter, how many on the bus are going
-## there too, from [member along]), their fare, and a button that picks them up. It reads
-## the passenger when [member passenger] is set; a passenger's details don't change while
-## they wait.
+## there too, from [member along]), and a button that picks them up. It reads the passenger
+## when [member passenger] is set; a passenger's details don't change while they wait.
 ## The root is a slot that holds the row's place in the list, and the panel moves inside it,
 ## so the row can slide out to the right once they board. The slot is as tall as the panel
 ## and the gap under it, so it closes up without a jump when it shrinks.
 ## The pointer over the row, or a click on it, shows where they are going (the dock panel
-## decides which), and the row whose trip shows is [member highlighted]: a border in their
-## race's skin colour.
+## decides which), and the row whose trip shows is [member highlighted]: a step lighter,
+## with a border in their race's skin colour.
 
 ## The player pressed the button to pick up [member passenger].
 signal board_pressed(passenger: Passenger)
@@ -27,7 +26,7 @@ const CLOSE_SECONDS := 0.2
 const OFF_RIGHT := 32.0
 ## The highlighted row's border width, in pixels, and how much lighter its background is.
 const HIGHLIGHT_BORDER := 2
-const HIGHLIGHT_LIGHTEN := 0.06
+const HIGHLIGHT_LIGHTEN := 0.0706
 
 var passenger: Passenger:
 	set(value):
@@ -124,10 +123,9 @@ func _show() -> void:
 	var photo := %PassengerPhoto as PassengerPhoto
 	photo.studio = portrait_studio
 	photo.passenger = passenger
-	(%NameLabel as Label).text = passenger.name
+	(%NameLabel as Label).text = passenger.get_title()
 	(%DestinationIcon as PlanetIcon).planet = passenger.destination
 	(%DestinationLabel as Label).text = _destination_name()
-	(%FareLabel as Label).text = "%d cr" % roundi(passenger.fare)
 
 
 func _show_highlight() -> void:
@@ -147,7 +145,7 @@ func _show_highlight() -> void:
 func _show_along() -> void:
 	var label := %AlongLabel as Label
 	label.visible = along > 0
-	label.text = "%d aboard" % along
+	label.text = "·  %d aboard" % along
 
 
 func _show_button() -> void:

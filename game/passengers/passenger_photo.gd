@@ -7,7 +7,14 @@ extends Control
 ## a studio or a passenger the frame stays empty. While the passenger rides, it shows on
 ## the portrait every frame whether they are asleep, how angry or content their mood makes
 ## them, what they are eating or drinking, and the push they feel on the bus.
+## The framed photo is drawn at [constant FRAME_SIZE] and scaled to the photo's minimum
+## size, so a scene can make it smaller. With [member flat] on, it is a flat square with
+## rounded corners instead, as big as the minimum size, with no frame and no tilt.
 
+## The framed photo's size as laid out in its scene, in pixels.
+const FRAME_SIZE := 50.0
+## The flat photo's corner radius, in pixels.
+const FLAT_RADIUS := 8
 ## The photo's tilt, in degrees either way.
 const TILT_MIN := 0.5
 const TILT_MAX := 2.0
@@ -17,6 +24,9 @@ const MOOD_ANGER: Dictionary[Passenger.Mood, float] = {
 	Passenger.Mood.FURIOUS: 1.0,
 }
 
+## Whether the photo is a flat rounded square rather than a tilted, framed print. Set it
+## in the scene that uses the photo; it applies once, when the photo is ready.
+@export var flat := false
 ## Whether the passenger rides the bus, so their portrait leans with its pushes. Their
 ## card sets it; while they wait at a planet it stays off, and so does the portrait.
 var riding := false:
@@ -44,8 +54,15 @@ var _photo: AtlasTexture
 
 func _ready() -> void:
 	set_process(riding)
-	var tilt := randf_range(TILT_MIN, TILT_MAX) * (1.0 if randf() < 0.5 else -1.0)
-	(%Frame as Control).rotation = deg_to_rad(tilt)
+	if flat:
+		_flatten()
+	else:
+		var tilt := randf_range(TILT_MIN, TILT_MAX) * (1.0 if randf() < 0.5 else -1.0)
+		var frame := %Frame as Control
+		frame.rotation = deg_to_rad(tilt)
+		# Scaled about its centre, which is also where it tilts.
+		frame.scale = Vector2.ONE * custom_minimum_size.x / FRAME_SIZE
+		frame.position = (custom_minimum_size - Vector2.ONE * FRAME_SIZE) * 0.5
 	_backdrop().set_shader_parameter(&"seed", randf() * 100.0)
 	_show()
 
@@ -89,6 +106,21 @@ func _give_back() -> void:
 	_photo = null
 	if is_node_ready():
 		(%Photo as TextureRect).texture = null
+
+
+# The frame becomes a rounded mask as big as the photo, and the backdrop and portrait fill
+# it, clipped to its corners.
+func _flatten() -> void:
+	var frame := %Frame as Control
+	var mask := StyleBoxFlat.new()
+	mask.set_corner_radius_all(FLAT_RADIUS)
+	frame.add_theme_stylebox_override(&"panel", mask)
+	frame.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+	frame.position = Vector2.ZERO
+	frame.size = custom_minimum_size
+	for child: Control in [%Backdrop, %Photo]:
+		child.position = Vector2.ZERO
+		child.size = custom_minimum_size
 
 
 func _backdrop() -> ShaderMaterial:

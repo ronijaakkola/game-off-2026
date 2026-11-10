@@ -173,7 +173,7 @@ func test_left_click_on_a_planet_opens_it_and_again_closes_it() -> void:
 	assert_int(rows.get_child_count()).is_equal(waiting.count_at(terra))
 	# A left click only opens it: setting a course is the right button's.
 	assert_array((runner.find_child("Bus") as FrameshiftBus).get_route_planets()).is_empty()
-	assert_bool((runner.find_child("CourseHint") as Label).visible).is_true()
+	assert_bool((runner.find_child("CourseHint") as Control).visible).is_true()
 	await runner.simulate_frames(1)
 	assert_bool((runner.find_child("HintBox") as Control).visible).is_false()
 

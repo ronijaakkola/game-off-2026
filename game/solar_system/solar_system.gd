@@ -118,10 +118,6 @@ func _process(delta: float) -> void:
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
-	# The panel covers the bottom of the screen where the hint is, until it has slid out.
-	(%HintBox as Control).visible = not (
-		(%PlanetPanel as Control).visible or (%BusPanel as Control).visible
-	)
 	var mouse := get_viewport().get_mouse_position()
 	var over_hud := get_viewport().gui_get_hovered_control() != null
 	# What a left click would open shows the white border.
@@ -174,7 +170,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not stop:
 			return
 		bus.plot_course(stop, true)
-		(%CourseHint as Label).hide()
+		(%CourseHint as Control).hide()
 	get_viewport().set_input_as_handled()
 
 
@@ -274,8 +270,7 @@ func _update_fade(delta: float) -> void:
 func _start_passengers() -> void:
 	var bus := %Bus as FrameshiftBus
 	var waiting := %WaitingPassengers as WaitingPassengers
-	waiting.set_planets(_planets)
-	waiting.add_starting_passengers(bus.get_docked_planet())
+	waiting.start(_planets, bus.get_docked_planet(), _ledger)
 	bus.docked.connect(_on_bus_docked)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://yakxyy06fm1i" path="res://game/solar_system/tow_offer.gd" id="1_offer"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 
 [node name="TowOffer" type="Control" unique_id=1194510144]
 layout_mode = 3
@@ -15,35 +16,32 @@ theme = ExtResource("2_theme")
 script = ExtResource("1_offer")
 
 [node name="Card" type="PanelContainer" parent="." unique_id=1494639463]
-custom_minimum_size = Vector2(560, 0)
+material = ExtResource("3_glass")
 layout_mode = 1
-anchors_preset = -1
+anchors_preset = 7
 anchor_left = 0.5
-anchor_top = 0.72
+anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 0.72
+anchor_bottom = 1.0
+offset_top = -96.0
+offset_bottom = -96.0
 grow_horizontal = 2
-grow_vertical = 2
-theme_type_variation = &"CardPanel"
+grow_vertical = 0
+theme_type_variation = &"WarningNoticePanel"
 
-[node name="Margin" type="MarginContainer" parent="Card" unique_id=1435297]
+[node name="Row" type="HBoxContainer" parent="Card" unique_id=46021662]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+theme_override_constants/separation = 8
 
-[node name="Row" type="HBoxContainer" parent="Card/Margin" unique_id=46021662]
-layout_mode = 2
-theme_override_constants/separation = 32
-
-[node name="Label" type="Label" parent="Card/Margin/Row" unique_id=632016521]
+[node name="Label" type="Label" parent="Card/Row" unique_id=632016521]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"BodyTextLabel"
 text = "You ran out of fuel"
 
-[node name="RequestButton" type="Button" parent="Card/Margin/Row" unique_id=355835265]
+[node name="RequestButton" type="Button" parent="Card/Row" unique_id=355835265]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
+theme_type_variation = &"PrimaryButton"
 text = "Request a tow"

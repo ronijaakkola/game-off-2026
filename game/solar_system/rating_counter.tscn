@@ -5,14 +5,14 @@
 [ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://game/solar_system/icons/star.svg" id="4_star"]
 
 [node name="RatingCounter" type="HBoxContainer" unique_id=976470558]
-mouse_filter = 2
+mouse_filter = 0
 theme = ExtResource("3_theme")
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 script = ExtResource("1_counter")
 
 [node name="Star" type="TextureRect" parent="." unique_id=747188646]
 self_modulate = Color(1, 0.831, 0.361, 1)
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(13, 13)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -21,11 +21,12 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="AverageLabel" type="Label" parent="." unique_id=1318600619]
+custom_minimum_size = Vector2(20, 0)
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"PillLabel"
 text = "–"
-horizontal_alignment = 1
+horizontal_alignment = 2
 
 [node name="GainSlot" type="Control" parent="AverageLabel" unique_id=532588972]
 unique_name_in_owner = true

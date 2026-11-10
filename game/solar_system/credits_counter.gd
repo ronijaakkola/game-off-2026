@@ -11,11 +11,8 @@ extends HBoxContainer
 ## the total counts down while it fades out drifting upward. It shows in the gain's place,
 ## or under the gain while one waits. Credits set outright show at once and clear the gain
 ## and the loss.
-## A count makes room for its widest number before it starts, and gives back what it no
-## longer needs once it ends, so the resource bar changes width once per count rather than
-## at each digit it passes (0 to 1,000 passes three). The total sits right-aligned in that
-## room, so new digits appear on its left. It always has room for [constant ROOM], so the
-## first fares of a game don't change the bar's width either.
+## The total sits right-aligned in a slot of fixed width, so the resource bar keeps its
+## width whatever the credits: exact up to 9,999, then shortened to 12.4k, 125k or 1.25M.
 
 ## Seconds from [method commit] to the total starting to count up.
 const COMMIT_DELAY := 0.25
@@ -32,8 +29,8 @@ const RISE_PIXELS := 14.0
 ## How far under the total the gain starts, in pixels: clear of the resource bar's pill, so
 ## that drifting up it fades out just under the pill's edge.
 const GAIN_DROP := 23.0
-## The total always has room for this many digits.
-const ROOM := "000"
+## The most credits shown exactly; more are shortened.
+const MAX_EXACT := 9999
 
 ## The credits it shows. Until one is set, or when set to null, it shows a ledger
 ## of its own, so the scene runs by itself.
@@ -64,8 +61,6 @@ var _loss: Tween
 # the first of them.
 var _loss_amount := 0
 var _loss_from := 0
-# The total showing now.
-var _shown := 0
 
 
 func _ready() -> void:
@@ -88,7 +83,6 @@ func _on_earned(amount: int) -> void:
 		_fade.kill()
 	_finish_loss()
 	_show_total(ledger.credits - _pending)
-	_release_width()
 	var label := %GainLabel as Label
 	label.text = "+%d" % _pending
 	label.modulate.a = 1.0
@@ -124,7 +118,6 @@ func _on_spent(amount: int) -> void:
 	else:
 		_loss_amount = amount
 		_loss_from = ledger.credits + amount - _pending
-	_hold_width_for(maxi(_shown, _loss_from))
 	label.text = "-%d" % _loss_amount
 	label.modulate.a = 1.0
 	label.scale = Vector2.ONE
@@ -151,7 +144,6 @@ func _on_spent(amount: int) -> void:
 		. set_ease(Tween.EASE_OUT)
 		. set_trans(Tween.TRANS_QUAD)
 	)
-	_loss.tween_callback(_release_width)
 
 
 ## Moves the gain into the total: after [constant COMMIT_DELAY], the total counts up one
@@ -161,7 +153,6 @@ func commit() -> void:
 	if _pending == 0:
 		return
 	_finish_loss()
-	_hold_width_for(maxi(_shown, ledger.credits))
 	var from := ledger.credits - _pending
 	var seconds := minf(_pending * SECONDS_PER_CREDIT, MAX_COUNT_SECONDS)
 	_pending = 0
@@ -181,7 +172,6 @@ func commit() -> void:
 		. set_ease(Tween.EASE_OUT)
 		. set_trans(Tween.TRANS_QUAD)
 	)
-	_fade.tween_callback(_release_width)
 
 
 # The credits were set outright: shows them at once, and clears the gain and the loss.
@@ -195,7 +185,6 @@ func _on_set() -> void:
 		(%GainLabel as Label).modulate.a = 0.0
 		(%LossLabel as Label).modulate.a = 0.0
 		_show_total(ledger.credits)
-		_release_width()
 
 
 ## [param value] with a comma between each group of three digits: 12,480.
@@ -208,10 +197,25 @@ static func group_digits(value: int) -> String:
 	return ("-" if value < 0 else "") + digits
 
 
+## [param value] as the total shows it: exact up to [constant MAX_EXACT], then three digits
+## and a unit, rounded down: 12.4k, 125k, 1.25M.
+static func format_credits(value: int) -> String:
+	var amount := absi(value)
+	if amount <= MAX_EXACT:
+		return group_digits(value)
+	var unit := "k" if amount < 1_000_000 else "M"
+	var unit_digits := 3 if unit == "k" else 6
+	var digits := str(amount)
+	var whole := digits.length() - unit_digits
+	var text := digits.left(whole)
+	if whole < 3:
+		text += "." + digits.substr(whole, 3 - whole)
+	return ("-" if value < 0 else "") + text + unit
+
+
 func _show_total(value: int) -> void:
-	_shown = value
 	var label := %TotalLabel as Label
-	var text := group_digits(value)
+	var text := format_credits(value)
 	if label.text != text:
 		label.text = text
 
@@ -223,25 +227,6 @@ func _finish_loss() -> void:
 	_loss.kill()
 	(%LossLabel as Label).modulate.a = 0.0
 	_show_total(ledger.credits - _pending)
-	_release_width()
-
-
-# Keeps the total as wide as [param value] shows, however few digits it shows meanwhile.
-func _hold_width_for(value: int) -> void:
-	var held := maxf(_text_width(group_digits(value)), _text_width(ROOM))
-	(%TotalLabel as Label).custom_minimum_size.x = held
-
-
-# Lets the total be as wide as what it shows, with room for ROOM at least.
-func _release_width() -> void:
-	(%TotalLabel as Label).custom_minimum_size.x = _text_width(ROOM)
-
-
-func _text_width(text: String) -> float:
-	var label := %TotalLabel as Label
-	var font := label.get_theme_font(&"font")
-	var font_size := label.get_theme_font_size(&"font_size")
-	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 
 func _set_loss_rise(value: float) -> void:

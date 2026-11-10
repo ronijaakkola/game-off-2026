@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="Need" format=3 uid="uid://luqs0adq8oj6"]
 
 [ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="1_need"]
+[ext_resource type="Texture2D" uid="uid://2uvj2c14gptt" path="res://shared/icons/sandwich.svg" id="2_icon"]
 
 [resource]
 script = ExtResource("1_need")
@@ -9,6 +10,7 @@ food = true
 item = "a snack"
 request_line = "Hungry. Wants a snack"
 serve_label = "Hand a snack"
+icon = ExtResource("2_icon")
 served_action = 1
 served_line = "Munching a snack"
 served_seconds = 6.0

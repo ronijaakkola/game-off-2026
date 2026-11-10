@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://2uvj2c14gptt"
-path="res://.godot/imported/sandwich.svg-234dcd12415e9be9cb435944f7ef4a38.ctex"
+path="res://.godot/imported/sandwich.svg-7b8b616cdc5860c48daa9eead1b67f72.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/sandwich.svg"
-dest_files=["res://.godot/imported/sandwich.svg-234dcd12415e9be9cb435944f7ef4a38.ctex"]
+source_file="res://shared/icons/sandwich.svg"
+dest_files=["res://.godot/imported/sandwich.svg-7b8b616cdc5860c48daa9eead1b67f72.ctex"]
 
 [params]
 

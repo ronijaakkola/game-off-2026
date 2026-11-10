@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
 [ext_resource type="Texture2D" uid="uid://b2tr2vqubstcy" path="res://game/research/icons/armchair.svg" id="4_armchair"]
-[ext_resource type="Texture2D" uid="uid://2uvj2c14gptt" path="res://game/research/icons/sandwich.svg" id="5_sandwich"]
+[ext_resource type="Texture2D" uid="uid://2uvj2c14gptt" path="res://shared/icons/sandwich.svg" id="5_sandwich"]
 [ext_resource type="Texture2D" uid="uid://ucxtgyvtytk" path="res://game/research/icons/gamepad_2.svg" id="6_gamepad_2"]
 [ext_resource type="Texture2D" uid="uid://bkc8k2wj0xgik" path="res://game/research/icons/bed_single.svg" id="7_bed_single"]
 [ext_resource type="Texture2D" uid="uid://bcj82dtecmwyg" path="res://game/research/icons/tv.svg" id="8_tv"]
