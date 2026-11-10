@@ -1,6 +1,7 @@
 extends Node
 ## A full cabin for capturing the passenger cards: eight passengers on the Commuter type,
-## one in each mood and some in between, three of them asking for something. The cabin
+## one in each mood and some in between, three of them asking for something, their
+## happiness heading every which way. The cabin
 ## stands still, so every frame shows the same state. `-- Kick` puts the pointer over the
 ## second card, so its options slide out. `-- Scare` gives everyone a kick's scare a few
 ## frames in, so the bars drop and leave their red trail.
@@ -19,6 +20,9 @@ const ICON_COLORS: Array[Color] = [
 const RINGED := 3
 # Happiness, as a fraction of the most, one per seat.
 const HAPPINESS: Array[float] = [0.9, 0.5, 0.2, 0.0, 0.75, 0.62, 0.35, 0.1]
+# Where each seat's happiness is heading (Passenger.trend), so the bars show every count of
+# chevrons both ways, inside the fill and, on the short ones, past its end.
+const TRENDS: Array[float] = [5.0, -30.0, 10.0, 10.0, -30.0, 0.0, -3.0, -12.0]
 # The seats whose passenger has a request open.
 const ASKING: Array[int] = [1, 4, 6]
 
@@ -41,6 +45,7 @@ func _ready() -> void:
 		add_child(destination)
 		var passenger := Passenger.new(COMMUTER, destination, 60.0, 40.0, rng)
 		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]
+		passenger.trend = TRENDS[seat]
 		if seat in ASKING:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line
