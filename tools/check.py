@@ -749,7 +749,8 @@ def script_classes() -> dict[str, str]:
 
 def export_enum_refs(path: str, export: str) -> list[tuple[str, str]]:
     """The enums an @export line names, by the script that declares each: its own, as
-    Kind, or another class's, as BusTraits.Type, in a type or a default."""
+    Kind, or another class's, as BusTraits.Type, in a type or a default. Each once, though
+    a line names it as both."""
     by_class = {name: script for script, name in script_classes().items()}
     own = {name for name, _, _ in script_enums(path)}
     refs = []
@@ -761,7 +762,7 @@ def export_enum_refs(path: str, export: str) -> list[tuple[str, str]]:
             script = by_class[first]
             if any(name == second for name, _, _ in script_enums(script)):
                 refs.append((script, second))
-    return refs
+    return list(dict.fromkeys(refs))
 
 
 @cache
