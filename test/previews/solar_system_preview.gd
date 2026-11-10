@@ -64,8 +64,11 @@ func _ready() -> void:
 		await get_tree().create_timer(1.0).timeout
 		cabin.kick(cabin.get_passengers()[1])
 		return
-	if planet_name == "Research":
-		await _open_research(system, name_given)
+	if planet_name in ["Research", "Showcase"]:
+		if planet_name == "Research":
+			await _open_research(system, name_given)
+		else:
+			await _showcase(system, "clean" in name_given)
 		return
 	if planet_name == "Bus":
 		var bus := system.find_child("Bus") as FrameshiftBus
@@ -115,3 +118,41 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 		var button := node as UpgradeButton
 		if button.upgrade == tree.upgrades[1]:
 			button.mouse_entered.emit()
+
+
+# A busy mid-game moment for a screenshot: a full-ish cabin, people waiting at every planet,
+# credits, research and a rating, a course plotted, and one waiting trip's arc pinned.
+# `clean` hides the HUD.
+func _showcase(system: SolarSystem, clean: bool) -> void:
+	var bus := system.find_child("Bus") as FrameshiftBus
+	bus.get_stats().get_traits().add(BusTraits.Type.WAITING_MARKERS)
+	bus.get_stats().get_traits().add(BusTraits.Type.FUEL_FORECAST)
+	var line := system.find_child("WaitingPassengers") as WaitingPassengers
+	var cabin := system.find_child("Cabin") as Cabin
+	var home := bus.get_docked_planet()
+	for i: int in 3:
+		var rider := line.create(home)
+		rider.happiness = [92.0, 64.0, 38.0][i]
+		cabin.board(rider)
+	for name: String in ["Ember", "Terra", "Giant", "Frost"]:
+		var planet := system.find_child(name) as Planet
+		for i: int in line.max_per_planet:
+			line.add(planet)
+	var ledger := system.get_ledger()
+	ledger.credits = 1240
+	ledger.earn_research(Race.Type.BLUE, 7)
+	ledger.earn_research(Race.Type.ORANGE, 4)
+	ledger.earn_research(Race.Type.GREEN, 11)
+	for stars: float in [5.0, 4.0, 5.0, 4.5, 3.5]:
+		ledger.rate(stars)
+	(system.find_child("RatingCounter") as RatingCounter).commit()
+	# Long enough for the riders to settle in and start doing something.
+	await get_tree().create_timer(3.5).timeout
+	bus.plot_course(RouteStop.at_planet(system.find_child("Giant") as Planet))
+	if clean:
+		(system.find_child("Hud") as CanvasLayer).visible = false
+		return
+	# Pin a trip that stays clear of the panels on the right, where Frost can sit.
+	var shown := line.get_waiting(home)[0]
+	shown.destination = system.find_child("Terra") as Planet
+	(system.find_child("DockPanel") as DockPanel).pin(shown)
