@@ -54,6 +54,7 @@ func _ready() -> void:
 		tank.fuel = 8.0 * tank.burn_per_unit
 		system.get_ledger().credits = 60
 		tow_bus.plot_course(RouteStop.at_point(tow_bus.global_position + Vector3(16.0, 0.0, 8.0)))
+		tow_bus.frameshift_held = true
 		system.open_bus()
 		await tow_bus.ran_out_of_fuel
 		await get_tree().create_timer(2.0).timeout

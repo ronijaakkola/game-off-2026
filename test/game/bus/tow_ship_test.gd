@@ -24,6 +24,7 @@ func before_test() -> void:
 	_bus.start_planet = _home
 	_space.add_child(_bus)
 	_bus.set_process(false)
+	_bus.frameshift_held = true
 
 
 func after_test() -> void:

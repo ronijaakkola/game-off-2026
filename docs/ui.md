@@ -124,15 +124,16 @@ A frosted-glass pill: what is behind it shows blurred under a translucent fill. 
 Two bars on the bottom edge of the screen, centred: the route bar on top, the bus bar under it.
 
 - **The route bar** shows what the bus is doing, or the track while it is on a leg. With no course it reads "No course".
-- **What the bus is doing:** "Docked", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to a point in space", "Stopping", "Holding in space", "Out of fuel", "Out of fuel: refuel here", "Towed to Terra".
-- **A track** from the planet it left (or "Space") to the next planet on the route, with the time left. The track never moves back: a planet that moves away slows it instead.
+- **What the bus is doing:** "Docked", "Hold Frameshift to leave", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to a point in space", "Stopping", "Holding in space", "Out of fuel", "Out of fuel: refuel here", "Towed to Terra".
+- **A track** from the planet it left (or "Space") to the next planet on the route, with the time left, once the drive charges. The track never moves back: a planet that moves away slows it instead.
+- **With a course set and the bus waiting** for a charge, at a planet or in space, the route bar reads "Hold Frameshift to leave" instead of the track.
 - **The bus bar** holds the fuel gauge and the bus's keys, the Frameshift key among them.
 - **Fuel gauge:** a pale cyan bar and the percentage, both red at a quarter of a tank or less.
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
-- While the drive charges, the key latches down, its lamp lights and the bus's yellow fills it as the charge does. Pressing it then cancels the course and keeps the bus docked.
+- With a course set and the bus waiting, the key is up and ready. Held, the drive charges: the key stays down, its lamp lights and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down, lit, until it is empty.
 - While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space.
 - Otherwise it is dim, its lamp off. Out of fuel, it is off.
-- Pressing the Frameshift key while it charges or as Stop clears the route, as Backspace does.
+- Pressing the Frameshift key as Stop clears the route, as Backspace does. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.
 - Pressing a bus key down plays a click.
 
 ### Dock panel

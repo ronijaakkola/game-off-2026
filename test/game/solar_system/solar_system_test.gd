@@ -250,6 +250,7 @@ func test_the_dock_panel_slides_out_once_the_bus_leaves() -> void:
 	assert_bool(panel.visible).is_true()
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, runner.find_child("Terra") as Planet))
+	bus.frameshift_held = true
 
 	# It stays while the drive charges, so the player can still pick passengers up.
 	await assert_func(bus, "get_charge_progress").wait_until(2000).is_not_equal(0.0)
@@ -494,6 +495,7 @@ func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() 
 	var passenger := waiting.create(bus.get_docked_planet())
 	(runner.find_child("Cabin") as Cabin).board(passenger)
 	bus.plot_course(RouteStop.at_point(bus.global_position + Vector3(0.0, 0.0, 30.0)))
+	bus.frameshift_held = true
 	await assert_func(bus, "is_at_planet").wait_until(5000).is_false()
 	assert_bool(offer.visible).is_false()
 

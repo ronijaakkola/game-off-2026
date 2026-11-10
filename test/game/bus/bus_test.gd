@@ -27,6 +27,8 @@ func before_test() -> void:
 	space.add_child(_bus)
 	# The test steps the bus itself.
 	_bus.set_process(false)
+	# The player holds the Frameshift key until the bus leaves, unless a test says otherwise.
+	_bus.frameshift_held = true
 
 
 func after_test() -> void:
@@ -53,6 +55,57 @@ func test_a_course_from_a_planet_charges_then_flies_and_docks_at_the_moving_plan
 	assert_bool(docked).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
 	assert_array(_bus.get_route_planets()).is_empty()
+
+
+func test_a_course_waits_docked_until_the_frameshift_key_is_held() -> void:
+	_bus.frameshift_held = false
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(_bus.charge_time + 1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+
+	_bus.frameshift_held = true
+
+	_step_for(STEP)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	assert_bool(_step_until(FrameshiftBus.State.FLYING)).is_true()
+	assert_bool(_bus.frameshift_held).is_false()
+
+
+func test_letting_go_drains_the_charge_and_keeps_the_course() -> void:
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(1.0)
+	var progress := _bus.get_charge_progress()
+	assert_float(progress).is_greater(0.0)
+
+	_bus.frameshift_held = false
+
+	_step_for(0.2)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	assert_float(_bus.get_charge_progress()).is_less(progress)
+	_step_for(1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_float(_bus.get_charge_progress()).is_equal(0.0)
+	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+	# Held again, it charges from empty.
+	_bus.frameshift_held = true
+	_step_for(_bus.charge_time - 0.5)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+
+
+func test_a_course_from_space_waits_for_a_charge_once_the_drive_is_cold() -> void:
+	_bus.plot_course(RouteStop.at_point(Vector3(-3.0, 0.0, 0.0)))
+	assert_bool(_step_until(FrameshiftBus.State.HOLDING)).is_true()
+	_step_for(_bus.warm_time + 0.5)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.HOLDING)
+
+	_bus.frameshift_held = true
+
+	_step_for(STEP)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	assert_bool(_step_until(FrameshiftBus.State.FLYING)).is_true()
 
 
 func test_the_bus_pulls_out_and_turns_toward_its_next_stop_while_charging() -> void:
@@ -103,16 +156,22 @@ func test_a_flight_leaves_a_trail_that_fades_after_it_arrives() -> void:
 	assert_bool(trail.is_empty()).is_true()
 
 
-func test_each_planet_on_the_route_docks_and_charges_again() -> void:
+func test_each_planet_on_the_route_docks_and_waits_for_a_new_charge() -> void:
 	var docked_at: Array[Planet] = []
 	_bus.docked.connect(func(planet: Planet) -> void: docked_at.append(planet))
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_planet(_far), true)
 	assert_array(_bus.get_route_planets()).contains_exactly([_near, _far])
 	_step_for(_bus.charge_time + STEP)
-	assert_bool(_step_until(FrameshiftBus.State.CHARGING)).is_true()
+	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
 	assert_array(_bus.get_route_planets()).contains_exactly([_far])
+	# Leaving let go of the key, so it waits for the player.
+	_step_for(_bus.charge_time + 1.0)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+
+	_bus.frameshift_held = true
+
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_far)
 	assert_array(docked_at).contains_exactly([_near, _far])
@@ -127,6 +186,7 @@ func test_boarding_holds_a_charge_from_starting_and_a_charge_under_way() -> void
 
 	_bus.boarding = false
 
+	_step_for(STEP)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 	_step_for(_bus.charge_time - 0.5)
 	var progress := _bus.get_charge_progress()
@@ -145,11 +205,13 @@ func test_boarding_set_on_docking_holds_the_charge_to_the_next_stop() -> void:
 	_bus.plot_course(RouteStop.at_planet(_far), true)
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
+	_bus.frameshift_held = true
 	_step_for(_bus.charge_time + 1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
 
 	_bus.boarding = false
 
+	_step_for(STEP)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 
@@ -198,6 +260,7 @@ func test_removing_a_planet_takes_its_checkpoint_along() -> void:
 	# The checkpoint before Near isn't Far's, so it stays.
 	assert_array(_bus.get_route_stops()).has_size(2)
 	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+	_step_for(STEP)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 	# Near takes its checkpoint along, and with no stop left the charge stops.
 	_bus.remove_stop(_bus.get_last_stop())
@@ -337,7 +400,7 @@ func test_on_board_speeding_up_pushes_back_a_turn_pushes_out_and_braking_forward
 	assert_float(least.y).is_less(-1.0)
 	assert_float(most.x).is_greater(0.5)
 	# Braking at its rate, then the glide easing off, capped.
-	assert_float(most.y).is_between(_bus.acceleration, FrameshiftBus.FELT_MAX)
+	assert_float(most.y).is_between(_bus.acceleration, FeltPush.MAX)
 	_step_for(2.0)
 	assert_vector(_bus.get_felt_acceleration()).is_equal_approx(Vector2.ZERO, Vector2.ONE * 0.01)
 

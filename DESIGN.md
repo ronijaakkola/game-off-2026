@@ -17,7 +17,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 1. **Docked.** The bus starts docked at a planet. Passengers wait at planets, each with a destination, a fare and an expected trip time. While docked or charging, the player picks passengers up into the bus's seats.
 2. **Set course.** The player adds planets and points in space to the route.
-3. **Charge.** The frameshift drive charges before the bus leaves a planet. The player can cancel or change the route meanwhile.
+3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
 5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
 6. **Refuel and research.** Docked, the player buys fuel and researches upgrades from that planet's tree.
@@ -37,10 +37,11 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Round trips.** A planet earlier on the route can be added again. The planet the bus is docked at can be added as the last stop when the route already has a planet.
 - **No modifier keys** in the route controls: Firefox opens its own context menu on Shift + right-click, and a page can't stop it.
 - **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
-- **Charge.** Leaving a planet charges the drive for 3 s first. The bus turns toward its next stop meanwhile. Cancelling keeps it docked.
+- **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. The player charges the drive by holding the Frameshift key for 3 s, at every planet the bus leaves. The bus turns toward its next stop meanwhile.
+- **Letting go** drains the charge twice as fast as it built and keeps the course; holding again charges from what is left. Cancelling keeps the bus docked.
 - **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
-- **Warm drive.** A course set from a stop in space within 1 s of coming to rest leaves at once, so a short stop costs nothing. After that the drive is cold and charges for the full 3 s; cancelling leaves the bus holding in space.
-- **Parking.** Near a planet the bus glides the last half unit in and swings side-on, door toward the planet. It has docked only once it is parked. A course set while it parks charges once it has.
+- **Warm drive.** A course set from a stop in space within 1 s of coming to rest leaves at once, so a short stop costs nothing. After that the drive is cold and the bus waits for a charge, as at a planet; cancelling leaves it holding in space.
+- **Parking.** Near a planet the bus glides the last half unit in and swings side-on, door toward the planet. It has docked only once it is parked, and only then can the drive charge.
 - **Clearing the route** stops a charging drive, and makes a flying bus coast to a stop.
 
 ## Fuel
@@ -100,8 +101,8 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Nobody boards by themselves.** While the bus is docked or charging, the player picks waiting passengers up one by one, or all that fit at once, longest waiting first.
 - **Seats.** The bus has 4. No one can be picked up while every seat is taken or promised to someone picked up.
 - Getting off or on takes 0.6 s each, in order: those getting off first, then those picked up, in the order picked.
-- **The drive can't charge until the stop is over.** A course set during it charges once the last passenger is on. Picking someone up while it charges holds the charge where it is until they are on.
-- With a course set before docking, the drive starts charging once everyone going there is off, so the player has the 3 s charge to pick passengers up, or longer by picking them one after another.
+- **The drive can't charge until the stop is over.** Holding the key during it charges nothing until the last passenger is on. Picking someone up while it charges holds the charge where it is until they are on.
+- The bus waits at every planet until the player charges the drive, so picking passengers up takes as long as the player likes.
 
 ### Trip time, fare and payment
 
