@@ -379,6 +379,37 @@ func test_a_passenger_has_one_of_their_race_s_heads_in_its_colour() -> void:
 		assert_that(passenger.look.skin_color).is_equal(Race.SKIN_COLORS[passenger.race])
 
 
+func test_the_trend_is_where_happiness_gets_to_in_the_next_seconds() -> void:
+	var climbing := _departed()
+	climbing.tick(0.01, false)
+	assert_float(climbing.trend).is_greater(0.0)
+	_expect_trend_comes_true(climbing)
+
+	var snack := _need(1.0)
+	var asking := Passenger.new(_type([snack]), _planet, TRIP, FARE)
+	asking.depart()
+	asking.tick(1.0, false)
+	asking.tick(0.01, false)
+	assert_object(asking.request).is_same(snack)
+	assert_float(asking.trend).is_less(0.0)
+	_expect_trend_comes_true(asking)
+
+
+func test_the_trend_is_0_while_happiness_holds() -> void:
+	var waiting := Passenger.new(_type(), _planet, TRIP, FARE)
+	waiting.tick(1.0, false)
+	assert_float(waiting.trend).override_failure_message("before departing").is_equal(0.0)
+
+	var parked := _departed()
+	parked.tick(1.0, false, true)
+	assert_float(parked.trend).override_failure_message("while parked").is_equal(0.0)
+
+	var settled := _departed()
+	settled.tick(60.0, false)
+	settled.tick(1.0, false)
+	assert_float(settled.trend).override_failure_message("at the target").is_equal(0.0)
+
+
 # A passenger whose bus has left, so their ride runs.
 func _departed() -> Passenger:
 	var passenger := Passenger.new(_type(), _planet, TRIP, FARE)
@@ -409,3 +440,13 @@ func _need(interval: float) -> Need:
 	need.min_interval = interval
 	need.max_interval = interval
 	return need
+
+
+# Runs [constant Passenger.TREND_SECONDS] of the ride and checks [param passenger]'s
+# happiness moved by the trend they had at the start.
+func _expect_trend_comes_true(passenger: Passenger) -> void:
+	var start := passenger.happiness
+	var trend := passenger.trend
+	for i: int in roundi(Passenger.TREND_SECONDS * 10.0):
+		passenger.tick(0.1, false)
+	assert_float(passenger.happiness - start).is_equal_approx(trend, 0.1)
