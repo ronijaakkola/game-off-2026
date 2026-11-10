@@ -64,13 +64,11 @@ layout_mode = 2
 theme_type_variation = &"TinyLabel"
 text = "To ?"
 
-[node name="AlongLabel" type="Label" parent="Panel/Columns/Who/Destination" unique_id=19768508]
+[node name="AlongLabel" type="Label" parent="Panel/Columns/Who" unique_id=19768508]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.4)
-text = "0 aboard"
 
 [node name="Deal" type="VBoxContainer" parent="Panel/Columns" unique_id=604143323]
 layout_mode = 2
