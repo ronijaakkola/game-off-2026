@@ -53,6 +53,9 @@ const CAMERA_HOST_PRIORITY := 300
 const MARKER_GAP_PIXELS := 4.0
 ## What a tow costs, in credits.
 const TOW_FEE := 100
+## The goals a run starts with: deliver this many passengers, and keep this average rating.
+const START_DELIVERIES := 30
+const START_RATING := 4.0
 ## The scare everyone on board takes when the bus runs out of fuel in space.
 const OUT_OF_FUEL_SHOCK := -15.0
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
@@ -279,7 +282,10 @@ func _start_passengers() -> void:
 	cabin.kicked.connect(_on_kicked)
 	var bar := %ResourceBar as ResourceBar
 	bar.ledger = _ledger
-	(%Goals as GoalTracker).ledger = _ledger
+	var goals := %Goals as GoalTracker
+	goals.ledger = _ledger
+	goals.add(DeliveryCountGoal.new(START_DELIVERIES))
+	goals.add(RatingGoal.new(START_RATING))
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
 	lab.planets = _planets

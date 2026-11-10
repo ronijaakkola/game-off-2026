@@ -49,8 +49,10 @@ func add(goal: Goal) -> void:
 	if goal in _goals:
 		return
 	_goals.append(goal)
+	# Methods of this node rather than bound signal emits, so freeing the tracker
+	# disconnects them, and the goals they bind are freed with it.
 	var relays: Array[Callable] = [
-		goal_changed.emit.bind(goal), goal_completed.emit.bind(goal), goal_failed.emit.bind(goal)
+		_on_goal_changed.bind(goal), _on_goal_completed.bind(goal), _on_goal_failed.bind(goal)
 	]
 	goal.changed.connect(relays[0])
 	goal.completed.connect(relays[1])
@@ -103,3 +105,15 @@ func _on_rated(_stars: float) -> void:
 	var count := ledger.get_rating_count()
 	for goal: Goal in _goals.duplicate():
 		goal.rating_changed(average, count)
+
+
+func _on_goal_changed(goal: Goal) -> void:
+	goal_changed.emit(goal)
+
+
+func _on_goal_completed(goal: Goal) -> void:
+	goal_completed.emit(goal)
+
+
+func _on_goal_failed(goal: Goal) -> void:
+	goal_failed.emit(goal)
