@@ -9,26 +9,26 @@ extends RefCounted
 ## The bus gained or lost [param type]: [method has] for it changed.
 signal changed(type: Type)
 
-## A feature an upgrade unlocks. A [code].tres[/code] saves a type as its number, so add
-## new ones only at the end.
+## A feature an upgrade unlocks. A [code].tres[/code] saves a type as its number, so each
+## keeps its own: a new one takes the next unused number.
 enum Type {
 	## Shows how much fuel the course will burn.
-	FUEL_FORECAST,
+	FUEL_FORECAST = 0,
 	## Shows how many passengers wait at each planet, under its name.
-	WAITING_MARKERS,
+	WAITING_MARKERS = 1,
 	## Lets passengers take short naps ([Comfort]).
-	PILLOWS,
+	PILLOWS = 2,
 	## Lets passengers sleep long, with their clock slower still. Beats pillows.
-	SLEEPING_PODS,
+	SLEEPING_PODS = 3,
 	## Games on board: happier passengers, and longer shows on the entertainment system.
-	GAMING_SYSTEM,
+	GAMING_SYSTEM = 4,
 	## Shows on board: happier passengers, who now and then watch one, their clock slower
 	## while they do.
-	ENTERTAINMENT_SYSTEM,
+	ENTERTAINMENT_SYSTEM = 5,
 	## Hungry passengers fetch their own food from it, one at a time ([Amenity]).
-	FOOD_DISPENSER,
+	FOOD_DISPENSER = 6,
 	## Robots bring hungry passengers their food, several at a time ([Amenity]).
-	SERVING_ROBOTS,
+	SERVING_ROBOTS = 7,
 }
 
 # How many times each trait the bus has was added and not yet taken out.
