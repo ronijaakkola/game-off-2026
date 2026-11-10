@@ -351,6 +351,7 @@ func _watch(delta: float, motion: float) -> void:
 	_screen.advance(delta, motion)
 	for material: ShaderMaterial in _materials.values():
 		material.set_shader_parameter(&"screen_light", _screen.light)
+		material.set_shader_parameter(&"screen_side", _screen.side)
 
 
 # The skin colour on the body and the eyelids.
