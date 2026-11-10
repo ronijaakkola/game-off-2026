@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://b6xec5q3uumqw"]
+
+[ext_resource type="Script" uid="uid://dq32pt56sg4a7" path="res://test/previews/goal_panel_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="2_system"]
+
+[node name="GoalPanelPreview" type="Node" unique_id=528840051]
+script = ExtResource("1_preview")
+
+[node name="SolarSystem" parent="." unique_id=22249307 instance=ExtResource("2_system")]
