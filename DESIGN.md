@@ -287,7 +287,7 @@ Three planets have a tree, each paid for with one race's points. The rest have n
 - **A standing goal** is met or not as things stand, and is never done: keep a 4.0 average rating. It isn't met until a set number of rides are rated (at least 1), so one lucky first ride doesn't meet it. Dropping below makes it unmet, not failed.
 - **A quest** is a goal about one passenger, and fails if they are kicked:
   - Deliver them to their destination.
-  - Fly them past a planet: while they ride, the bus comes within 3 units of its surface in flight, having been out of reach since they boarded. Leaving the planet they boarded at isn't a flyby, coming back to it is, and flying in to dock there counts. It fails if they get off first.
+  - Fly them past a planet: while they ride, the bus comes within 3 units of its surface in flight, having been out of reach since they boarded. Leaving the planet they boarded at isn't a flyby, coming back to it is, and flying in to dock there counts. It fails if they leave the bus first, however they leave.
 - **All met** means every milestone done and every standing goal holding.
 - **A run starts with two goals:** deliver 30 passengers, and keep a 4.0 average rating.
 - *(not built)* Quests turning up, and showing goals on screen.
