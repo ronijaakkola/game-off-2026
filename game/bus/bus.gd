@@ -81,7 +81,7 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 ## from its dock so it has room to turn without its tail going through the planet.
 @export_range(0.0, 5.0, 0.01) var charge_gap := 0.6
 ## How close the bus passes a stop before it heads for the next one.
-@export_range(0.05, 5.0, 0.01) var waypoint_radius := 0.3
+@export_range(0.05, 5.0, 0.01) var pass_radius := 0.3
 
 @export_group("Float")
 ## How far the bus bobs up and down while still.
@@ -462,7 +462,7 @@ func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
 		return distance < DOCK_DISTANCE
 	if last:
 		return distance < STOP_DISTANCE
-	return distance < waypoint_radius
+	return distance < pass_radius
 
 
 func _arrive(stop: RouteStop) -> void:

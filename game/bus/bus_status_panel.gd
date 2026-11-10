@@ -87,7 +87,7 @@ func _flying_text(next: Planet) -> String:
 	if bus.is_stopping():
 		return "Stopping"
 	if not next:
-		return "Heading to waypoint"
+		return "Heading to a point in space"
 	var verb := "Docking to" if bus.is_docking() else "Travelling to"
 	if bus.is_towing():
 		verb = "Towed to"

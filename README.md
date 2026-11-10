@@ -1,6 +1,6 @@
-# Godot Jam Boilerplate
+# Frameshift Bus
 
-Godot 4.7.2 GDScript project, web (itch.io) first, Compatibility renderer.
+A game about driving a bus around a small solar system (`DESIGN.md`). Godot 4.7.2 GDScript project, web (itch.io) first, Compatibility renderer.
 
 ## Setup
 

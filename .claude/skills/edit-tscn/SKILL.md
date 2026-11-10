@@ -7,7 +7,7 @@ description: Hand-edit Godot .tscn scenes and .tres resources as text. Use when 
 
 You may edit any scene or resource as text, visual properties included. Godot 4.7 normalises the file the next time the editor saves it, so keep edits minimal and in Godot's own shape.
 
-Finish every edit with `uv run tools/check.py load`. It loads every scene and fails on parse errors and missing dependencies. After a visual change, also run `uv run tools/check.py capture <scene>` and look at the frame it names.
+Finish every edit with `uv run tools/check.py load`. It loads every scene and fails on parse errors and missing dependencies. After a visual change, capture it (`CODING_STANDARDS.md`, Visual checks and previews).
 
 ## File shape
 
@@ -79,7 +79,7 @@ Without `node_paths`, Godot leaves the export null at runtime with no error, so 
 
 ## UI scenes
 
-Build UI from Containers styled by the shared Theme in `ui/`:
+`CODING_STANDARDS.md`, UI, has the rules (Containers, the shared Theme, `mouse_filter`). In a `.tscn` they come out as:
 
 - The root Control fills the screen with the full-rect block shown above (`layout_mode = 3`, `anchors_preset = 15`, anchors 1.0, grow 2) and carries `theme = ExtResource(...)`.
 - A child of a Container gets `layout_mode = 2` and no anchors or offsets: the Container places it.
@@ -92,4 +92,4 @@ For bulk generation (dozens of nodes, a grid of tiles), write a `-s` SceneTree s
 
 ## Merge conflicts
 
-Take one side whole: `git checkout --ours <file>` or `git checkout --theirs <file>`. Redo the other side's change by hand as a fresh edit, then run `uv run tools/check.py load`.
+Never merge a scene or resource by hand: ids and uids on both sides look alike and mean different things. Take one side whole: `git checkout --ours <file>` or `git checkout --theirs <file>`. Redo the other side's change as a fresh edit, then run `uv run tools/check.py load`.

@@ -9,7 +9,7 @@ gdUnit4 6.2.2, vendored in `addons/gdUnit4/`. While building, run only the suite
 
 ## Which test, and when
 
-**When.** A flow gets tests once it's settled: the human says so, or the ticket asks for them. Boilerplate work counts as settled. A new feature is not settled, so the change that builds it adds no tests, even for logic that would be easy to test: in a jam, features change shape after the first playtest, and their tests get rewritten with them. Until then the load check, the smoke run and the human's visual check cover it, and your handoff names each untested flow the change touched. A fixed bug is the exception: it gets a regression test right away, at whichever kind reproduces it.
+**When.** A flow gets tests once it's settled: the human says so, or the ticket asks for them. Work on a core system or a menu counts as settled. A new feature is not settled, so the change that builds it adds no tests, even for logic that would be easy to test: in a jam, features change shape after the first playtest, and their tests get rewritten with them. Until then the load check, the smoke run and the human's visual check cover it, and your handoff names each untested flow the change touched. A fixed bug is the exception: it gets a regression test right away, at whichever kind reproduces it.
 
 Existing tests that a change breaks get fixed in that change, whether or not the flow is settled.
 
@@ -33,10 +33,7 @@ Test against the real scene, or a fresh instance of a core system (see Core syst
 
 ## Placement
 
-A test mirrors the `res://` path of what it tests, named `<name>_test.gd`:
-
-- `core/settings/settings.gd` → `test/core/settings/settings_test.gd`
-- `ui/pause_menu/pause_menu.tscn` → `test/ui/pause_menu/pause_menu_test.gd`
+A test mirrors the `res://` path of what it tests, named `<name>_test.gd` (`CODING_STANDARDS.md`, Tests, which lint enforces): `ui/pause_menu/pause_menu.tscn` → `test/ui/pause_menu/pause_menu_test.gd`.
 
 ## A suite
 
@@ -79,9 +76,9 @@ await runner.await_input_processed()
 
 Keys and actions have their own calls, `simulate_key_pressed(KEY_ESCAPE)` and `simulate_action_pressed("pause")`, with one trap (below). Ignore the startup warning that input events aren't transported in headless mode; the cases above pass headless.
 
-A click on the 3D view works headless when the scene casts its own ray from the click, as the example game scene does. Aim with `camera.unproject_position(world_point)`, send the click through `Input` alone (below), and wait for the result: the ray is cast in the next physics frame. `test/game/game_test.gd` shows it. Physics picking through `CollisionObject3D.input_event` is unverified.
+A click on the 3D view works headless when the scene works out what is under the pointer itself, as the solar system does from each planet's place on screen. Aim with `camera.unproject_position(world_point)`, scaled to the window, and send the click through `Input` alone (below). `test/game/solar_system/solar_system_test.gd` shows it. A scene that casts a ray casts it in the next physics frame, so wait for that before asserting. Physics picking through `CollisionObject3D.input_event` is unverified.
 
-The runner's key, action and mouse calls deliver each event twice to the scene root's `_unhandled_input`: once through the viewport and once by calling it directly. A root that toggles on a key (the pause menu on Esc) toggles back, and a root that acts on a click (the game placing a piece) acts twice. For those, send the event through `Input` alone, as `test/ui/pause_menu/pause_menu_test.gd` does:
+The runner's key, action and mouse calls deliver each event twice to the scene root's `_unhandled_input`: once through the viewport and once by calling it directly. A root that toggles on a key (the pause menu on Esc) toggles back, and a root that acts on a click (the solar system adding a stop) acts twice. For those, send the event through `Input` alone, as `test/ui/pause_menu/pause_menu_test.gd` does:
 
 ```gdscript
 var event := InputEventKey.new()
@@ -107,7 +104,7 @@ runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 await assert_signal(runner.scene()).is_emitted("clicked", [1])
 ```
 
-Bus events work the same way: `monitor_signals(Events)` then `await assert_signal(Events).is_emitted("piece_placed", [Vector3.ZERO])`.
+Bus events work the same way: `monitor_signals(Events)` then `await assert_signal(Events).is_emitted("passenger_delivered", [5])`.
 
 A signal that fires **later** (after a timer or a tween) can be awaited directly: `await runner.await_signal("faded_in")`, or `await await_signal_on(node, "finished", [], 2000)` for any object. Both time out after 2 s by default and fail the test.
 
