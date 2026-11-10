@@ -13,7 +13,7 @@ script = ExtResource("2_upgrade")
 title = "Door chime"
 description = "Shows how many passengers wait at each planet, under its name."
 icon = ExtResource("4_bell_ring")
-credits = 20
+credits = 150
 points = Dictionary[int, int]({
 2: 2
 })
@@ -25,7 +25,7 @@ script = ExtResource("2_upgrade")
 title = "Station cameras"
 description = "NOT IMPLEMENTED"
 icon = ExtResource("5_cctv")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 2: 4
 })
@@ -37,7 +37,7 @@ script = ExtResource("2_upgrade")
 title = "Station waiting lounge"
 description = "NOT IMPLEMENTED"
 icon = ExtResource("6_sofa")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 2: 4
 })
@@ -50,7 +50,7 @@ script = ExtResource("2_upgrade")
 title = "Mind reading machine"
 description = "NOT IMPLEMENTED"
 icon = ExtResource("7_brain")
-credits = 90
+credits = 550
 points = Dictionary[int, int]({
 2: 7
 })

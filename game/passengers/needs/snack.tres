@@ -14,4 +14,5 @@ icon = ExtResource("2_icon")
 served_action = 1
 served_line = "Munching a snack"
 served_seconds = 6.0
-min_interval = 15.0
+max_interval = 20.0
+min_interval = 8.0

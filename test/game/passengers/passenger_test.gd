@@ -409,3 +409,18 @@ func _need(interval: float) -> Need:
 	need.min_interval = interval
 	need.max_interval = interval
 	return need
+
+
+func test_taking_a_seat_starts_them_where_the_bus_settles_them() -> void:
+	var comfort := Comfort.new()
+	comfort.bonus = 20.0
+	var passenger := Passenger.new(_type(), null, 30.0, 10.0)
+
+	passenger.settle(comfort)
+
+	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS + 20.0)
+	# Once the ride has started, their happiness is the ride's.
+	passenger.depart()
+	passenger.happiness = 40.0
+	passenger.settle(comfort)
+	assert_float(passenger.happiness).is_equal(40.0)

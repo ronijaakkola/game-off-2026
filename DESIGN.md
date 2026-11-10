@@ -68,7 +68,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 ### Waiting
 
-- Each planet gets a new passenger every 8 to 20 s, up to 3 waiting. Who they are is under Who turns up.
+- Each planet gets a new passenger every 8 to 20 s, up to 4 waiting. With 3, a bus with more than six seats left a planet with three of them empty. Who they are is under Who turns up.
 - Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
 - Happiness holds while they wait.
 - **The start.** The bus is empty and docked at Ember, with 2 passengers waiting there and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go.
@@ -117,8 +117,8 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 Happiness replaced patience, so a long ride isn't the only thing that matters: what a passenger needs, and how well the bus gives it, does too.
 
-- Each passenger on board has a happiness from 0 to 100, starting at 60.
-- Every frame it slides toward a **target**, falling at 3 a second and climbing at 1. It never jumps, and bad moments take a while to wear off.
+- Each passenger on board has a happiness from 0 to 100. It starts where the bus settles them before timing: 60 plus the comfort bonuses. Most rides last 10 to 25 s, so one who started lower would rate how long the ride was, not the bus.
+- Every frame it slides toward a **target**, falling at 3 a second and climbing at 1.5. It never jumps, and bad moments take a while to wear off.
 - **Mood:** happy from 70, okay from 50, annoyed from 25, furious below.
 - **Rating** on getting off: happiness ÷ 20, to the nearest whole star.
 - **It holds** until the bus leaves the planet they boarded at, and while the bus parks.
@@ -137,7 +137,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 - **Leeway.** While happiness is 80 or more, every second of their clock adds half a second to the time they expect, up to half a trip time. It never grows past that, so a long enough ride still wears out anyone.
 - Getting there sooner (routing, speed, never needing a tow) is the main way to beat timing. Comfort only buys a little.
 
-**Shocks** change happiness at once and leave the target alone, so it climbs back at 1 a second:
+**Shocks** change happiness at once and leave the target alone, so it climbs back at 1.5 a second:
 
 | Shock | Amount | Why |
 |---|---|---|
@@ -148,12 +148,12 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
 
-**What a bus can reach.** A bare bus gives 3 stars and a rare 4: a direct trip with every request served at once ends at 60 + 12 = 72. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+**What a bus can reach.** A bare bus gives 3 or 4 stars: a direct trip of 8 s or more with every request served at once ends at 60 + 12 = 72, and a shorter or slower one under 70. Five stars takes about 90, which only the comfort upgrades reach: with both Fun upgrades a passenger boards at 80 and a direct ride lifts them to 92. A direct ride must never rate lower than the same ride with a stop added.
 
 ### Needs and serving
 
 - Each passenger type has a few needs. The Commuter's are a snack and a drink, both food.
-- A need asks again a random while after the last one's served activity ends. An open one is a **request**.
+- A need asks again a random while after the last one's served activity ends: 8 to 20 s for a snack, 10 to 25 s for a drink. An open one is a **request**. The times are short because rides are: about half of all rides should hold a request, or the food upgrades answer nothing.
 - **One request at a time.** The other needs' timers wait while one is open, so serving one doesn't set off the rest.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
 - **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s, and letting go keeps what was served so far.
@@ -267,7 +267,7 @@ An upgrade is in one of five states:
 Three planets have a tree, each paid for with one race's points. The rest have none.
 
 - They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a hidden capstone that needs two branches.
-- **Costs go by row,** the same in every tree for now: 20 credits and 2 points in the top row, then 45 and 4, 90 and 7, 150 and 10, and 250 and 14.
+- **Costs go by row,** the same in every tree for now: 150 credits and 2 points in the top row, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Credits come in at about 400 a minute and points of one race at 2.5, so at these costs either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
 "A ← B" means A needs B.
@@ -351,10 +351,12 @@ Features we will very probably build, but that need more design work first.
 - **How often passengers sleep.** Too short between sleeps and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since costs go by row.
 - **What else the rating does.** Besides setting which types turn up: whether it gates upgrades, or is the leaderboard score.
 - **The tow's price and speed.** 100 credits, which can take the credits below zero, and 0.4 units a second over the planet's speed.
-- **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit.
+- **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit, so it is never short and refuelling is automatic.
+- **Green points.** A third of all research points are green, and the green tree has one built upgrade, so they pile up unspent.
+- **The rating goal.** It reads the all-time average, while the player is shown the recent rating. The first rides on a bare bus weigh the average down for the whole run.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
 - **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
-- **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype.
+- **Seats and waiting passengers.** 4 seats and up to 4 waiting per planet. With all five Extra seats the bus still leaves with about one seat in six empty; 5 waiting would fill them, if the dock panel has room for the rows.
 - **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
 
 UI questions are in `docs/ui.md`.

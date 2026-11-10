@@ -332,13 +332,15 @@ func test_open_planet_shows_no_hover_border_but_keeps_its_route_border() -> void
 	assert_int(terra.border).is_equal(Planet.Border.ROUTE)
 
 
-func test_the_preview_opens_terra_with_three_waiting() -> void:
+func test_the_preview_opens_terra_with_a_full_line() -> void:
 	var runner := scene_runner("res://test/previews/solar_system_preview.tscn")
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var system := runner.find_child("SolarSystem") as SolarSystem
 	assert_object(system.get_open_planet()).is_same(terra)
-	assert_int((runner.find_child("WaitingRows") as Node).get_child_count()).is_equal(3)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	var rows := (runner.find_child("WaitingRows") as Node).get_child_count()
+	assert_int(rows).is_equal(waiting.max_per_planet)
 
 
 func _rows(runner: GdUnitSceneRunner) -> Array[Node]:

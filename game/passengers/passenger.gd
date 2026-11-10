@@ -22,11 +22,12 @@ const PAY: Dictionary[Mood, float] = {
 const MAX_STARS := 5.0
 ## Happiness runs from 0 to this.
 const MAX_HAPPINESS := 100.0
-## The happiness a bus that does its job settles them at, and where they start.
+## The happiness a bare bus that does its job settles them at, and where they start on one
+## ([method settle]).
 const BASE_HAPPINESS := 60.0
 ## How fast happiness falls toward a lower target, and climbs toward a higher one, a second.
 const FALL_RATE := 3.0
-const CLIMB_RATE := 1.0
+const CLIMB_RATE := 1.5
 ## Timing's bonus while the ride takes no longer than the direct trip.
 const ON_TIME_BONUS := 12.0
 ## Where timing ends up, one more trip time after the expected time: low enough that
@@ -222,6 +223,14 @@ func shock(amount: float) -> void:
 		asleep = false
 		_activity_left = 0.0
 	happiness = clampf(happiness + amount, 0.0, MAX_HAPPINESS)
+
+
+## They take a seat on a bus giving [param comfort]: until the ride starts, their happiness
+## is where such a bus settles them, before timing. A ride is often shorter than the climb
+## there would take, so starting lower would have them rate its length, not the bus.
+func settle(comfort: Comfort) -> void:
+	if not _departed:
+		happiness = minf(BASE_HAPPINESS + comfort.bonus, MAX_HAPPINESS)
 
 
 ## The bus has left the planet they boarded at, so their ride, and their happiness, start.

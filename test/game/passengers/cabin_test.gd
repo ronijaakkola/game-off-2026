@@ -82,6 +82,17 @@ func test_following_other_stats_stops_following_the_first() -> void:
 	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMING_BONUS)
 
 
+func test_boarding_a_comfortable_bus_starts_them_happier() -> void:
+	var stats := BusStats.new()
+	_cabin.follow(stats)
+	stats.get_traits().add(BusTraits.Type.GAMING_SYSTEM)
+	var passenger := Passenger.new(PassengerType.new(), null, 30.0, 10.0)
+
+	_cabin.board(passenger)
+
+	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS + Comfort.GAMING_BONUS)
+
+
 func test_comfort_follows_the_bus_s_traits() -> void:
 	var stats := BusStats.new()
 	_cabin.follow(stats)

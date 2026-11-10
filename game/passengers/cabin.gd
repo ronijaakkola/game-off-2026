@@ -295,6 +295,7 @@ func _forget(passenger: Passenger) -> void:
 
 func _take_seat(passenger: Passenger) -> void:
 	_passengers.append(passenger)
+	passenger.settle(comfort)
 	boarded.emit(passenger)
 
 
