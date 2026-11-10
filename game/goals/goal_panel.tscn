@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://cw1q7e1gbejto"]
+
+[ext_resource type="Script" uid="uid://b8jwrka6cihjg" path="res://game/goals/goal_panel.gd" id="1_panel"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+
+[node name="GoalPanel" type="PanelContainer" unique_id=835696988]
+visible = false
+material = ExtResource("3_glass")
+custom_minimum_size = Vector2(264, 0)
+theme = ExtResource("2_theme")
+theme_type_variation = &"CardPanel"
+script = ExtResource("1_panel")
+
+[node name="Rows" type="VBoxContainer" parent="." unique_id=297790849]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Header" type="Label" parent="Rows" unique_id=832714428]
+layout_mode = 2
+theme_type_variation = &"PillLabel"
+text = "To get promotion"

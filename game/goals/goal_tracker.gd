@@ -4,6 +4,10 @@ extends Node
 ## [Ledger] and the bus, and says when one changes, is completed or fails. Goals stay in it
 ## once completed or failed, until removed.
 
+## Started tracking [param goal], before it is told how things stand.
+signal goal_added(goal: Goal)
+## Stopped tracking [param goal].
+signal goal_removed(goal: Goal)
 ## [param goal]'s progress, whether it is met, or its state changed.
 signal goal_changed(goal: Goal)
 signal goal_completed(goal: Goal)
@@ -58,6 +62,7 @@ func add(goal: Goal) -> void:
 	goal.completed.connect(relays[1])
 	goal.failed.connect(relays[2])
 	_relays[goal] = relays
+	goal_added.emit(goal)
 	if ledger:
 		goal.rating_changed(ledger.get_average_rating(), ledger.get_rating_count())
 
@@ -72,6 +77,7 @@ func remove(goal: Goal) -> void:
 	goal.completed.disconnect(relays[1])
 	goal.failed.disconnect(relays[2])
 	_relays.erase(goal)
+	goal_removed.emit(goal)
 
 
 ## Every goal tracked, in the order added. A copy.

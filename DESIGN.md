@@ -290,7 +290,7 @@ Three planets have a tree, each paid for with one race's points. The rest have n
   - Fly them past a planet: while they ride, the bus comes within 3 units of its surface in flight, having been out of reach since they boarded. Leaving the planet they boarded at isn't a flyby, coming back to it is, and flying in to dock there counts. It fails if they leave the bus first, however they leave.
 - **All met** means every milestone done and every standing goal holding.
 - **A run starts with two goals:** deliver 30 passengers, and keep a 4.0 average rating.
-- *(not built)* Quests turning up, and showing goals on screen.
+- *(not built)* Quests turning up.
 - *(not built)* A temporary win and lose while the loop is tuned. **Win:** every goal met at once. **Lose:** the happiness score, the average happiness of everyone on board, stays at 0 for 20 s; the countdown pauses while the bus is empty.
 
 ## Controls

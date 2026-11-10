@@ -33,7 +33,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Buttons.** Each panel has one primary button, light with dark text; the rest are quiet tinted buttons.
 - Hover lightens a control one step and pressing dips it below its default, and nothing changes size.
 - **Fonts.** Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing.
-- **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the station (dock panel) top right, and the route and bus bars on the bottom edge, centred, with notices above them.
+- **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
 - Spacing is on a 4 px scale.
 - The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
 
@@ -96,7 +96,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 |---|---|
 | Top left | On board panel |
 | Top centre | Resource bar |
-| Top right | Dock panel (the planet's station), while docked or charging |
+| Top right | Goal panel, with the dock panel (the planet's station) under it while docked or charging |
 | Bottom edge, centred | Bus status: the route bar over the bus bar |
 | Above the bus bars | Tow offer, when out of fuel |
 | Right side | The open planet's or bus's panel, over the dock panel |
@@ -135,9 +135,19 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - Pressing the Frameshift key while it charges or as Stop clears the route, as Backspace does.
 - Pressing a bus key down plays a click.
 
+### Goal panel
+
+In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promotion" and a row for each goal, in the order given. Hidden with no goals.
+
+- **A row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
+- **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
+- **Deliver 50 passengers:** the count ("12/50"), and the bar fills with it.
+- **Maintain 4.0 rating:** the average ("4.2", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
+- A quest shows its text and icon only *(no design yet)*.
+
 ### Dock panel
 
-The planet's station: it hangs from the top right corner while the bus is docked or charging. It stays in one place on screen, so its buttons never move under the pointer.
+The planet's station: it hangs under the goal panel in the top right corner while the bus is docked or charging. It stays in one place on screen, so its buttons never move under the pointer.
 
 - Title: the planet's icon and name with "Station".
 - Who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."

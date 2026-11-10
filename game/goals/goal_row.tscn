@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://bv0128uanpb8j"]
+
+[ext_resource type="Script" uid="uid://b4sjhjtuh7ukn" path="res://game/goals/goal_row.gd" id="1_row"]
+[ext_resource type="Texture2D" uid="uid://d3m3waisgmnv2" path="res://game/goals/icons/circle.svg" id="2_circle"]
+
+[node name="GoalRow" type="VBoxContainer" unique_id=793273329]
+mouse_filter = 2
+theme_override_constants/separation = 4
+script = ExtResource("1_row")
+
+[node name="Label" type="HBoxContainer" parent="." unique_id=1693733756]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Label" unique_id=1157365299]
+unique_name_in_owner = true
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_circle")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextLabel" type="Label" parent="Label" unique_id=257998614]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"GoalLabel"
+text = "Deliver 50 passengers"
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="ValueLabel" type="Label" parent="Label" unique_id=116625175]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallStrongLabel"
+text = "12/50"
+vertical_alignment = 1
+
+[node name="Bar" type="ProgressBar" parent="." unique_id=253379605]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+mouse_filter = 2
+max_value = 1.0
+step = 0.0
+value = 0.24
+show_percentage = false
+
+[node name="Marker" type="ColorRect" parent="Bar" unique_id=1238338423]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.8
+anchor_right = 0.8
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_top = -3.0
+offset_right = 1.0
+offset_bottom = 3.0
+mouse_filter = 2
+color = Color(0.957, 0.945, 1, 1)
