@@ -2,25 +2,27 @@ class_name PortraitScreen
 extends RefCounted
 ## What a portrait shows while they watch something: the light of a screen just in front
 ## of them on their face, cutting from one shot's colour to the next, and now and then a
-## laugh. The screen sits where the camera is, so its light falls on what faces the
-## camera. The [AlienPortrait] it belongs to adds [member light] to its materials, shows
-## [member laugh] as joy, and lifts and tips the head by [member bounce] and [member pitch].
+## laugh. The screen sits just below where the camera is, so its light falls from below
+## on what faces the camera. The [AlienPortrait] it belongs to gives its materials
+## [member light], shows [member laugh] as joy, and lifts and tips the head by
+## [member bounce] and [member pitch].
 
 ## How fast the screen's light comes up and goes away, per second.
 const SHOW_SPEED := 2.0
-## How bright the light is on the face, added to its colour.
-const STRENGTH := 0.3
-## The colours of the shots, one picked at each cut, mostly a TV's cold blue. Each shot
+## How far the light lifts the face's colour toward white, at the most.
+const STRENGTH := 0.85
+## The colours of the shots, one picked at each cut, mostly a TV's cold blue. All are
+## pale, so each lifts every skin colour: a deep blue is lost on a blue face. Each shot
 ## is also brighter or darker than the last, which reads as a screen more than the hue.
 const SHOT_COLORS: Array[Color] = [
-	Color(0.3, 0.5, 1.0),
-	Color(0.3, 0.5, 1.0),
-	Color(0.35, 0.9, 1.0),
-	Color(1.0, 0.6, 0.3),
-	Color(0.85, 0.35, 1.0),
-	Color(0.9, 0.95, 1.0),
+	Color(0.6, 0.8, 1.0),
+	Color(0.6, 0.8, 1.0),
+	Color(0.6, 1.0, 1.0),
+	Color(1.0, 0.85, 0.6),
+	Color(0.95, 0.65, 1.0),
+	Color(0.95, 0.97, 1.0),
 ]
-const SHOT_BRIGHTNESS := Vector2(0.35, 1.2)
+const SHOT_BRIGHTNESS := Vector2(0.5, 1.0)
 ## Seconds from one cut to the next: a range. At most about two cuts a second, well under
 ## the three flashes a second that can set off photosensitive seizures.
 const SHOT_SECONDS := Vector2(0.5, 1.6)
