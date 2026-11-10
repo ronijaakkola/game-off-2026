@@ -50,7 +50,12 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 6
 
-[node name="Arrow" type="TextureRect" parent="Panel/Columns/Who/Destination" unique_id=1587653057]
+[node name="Where" type="HBoxContainer" parent="Panel/Columns/Who/Destination" unique_id=959822304]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Arrow" type="TextureRect" parent="Panel/Columns/Who/Destination/Where" unique_id=1587653057]
 self_modulate = Color(1, 1, 1, 0.6)
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
@@ -60,12 +65,12 @@ texture = ExtResource("6_arrow")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Planet" type="HBoxContainer" parent="Panel/Columns/Who/Destination" unique_id=1624721217]
+[node name="Planet" type="HBoxContainer" parent="Panel/Columns/Who/Destination/Where" unique_id=1624721217]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 3
 
-[node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination/Planet" unique_id=746353628]
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination/Where/Planet" unique_id=746353628]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(14, 14)
@@ -74,7 +79,7 @@ size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
 
-[node name="DestinationLabel" type="Label" parent="Panel/Columns/Who/Destination/Planet" unique_id=802791631]
+[node name="DestinationLabel" type="Label" parent="Panel/Columns/Who/Destination/Where/Planet" unique_id=802791631]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
