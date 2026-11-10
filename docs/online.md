@@ -65,7 +65,7 @@ func _on_player_died(level: int) -> void:
 | Want | Call | Dashboard setup |
 |---|---|---|
 | Count what players do, broken down by props (which level, how long) | `Online.track(event_name, props)` | None. Name it after its bus event. |
-| A running total per player and across all players (deaths, pieces placed) | `Online.add_stat(internal_name, change)` | Create the stat first: internal name in kebab-case, **Global** on for an all-players total. Leave **Min time between updates** at 0. |
+| A running total per player and across all players (deaths, passengers delivered) | `Online.add_stat(internal_name, change)` | Create the stat first: internal name in kebab-case, **Global** on for an all-players total. Leave **Min time between updates** at 0. |
 | A high score table | `await Online.submit_score(leaderboard, score, props)` returns the entry; `entry.position` is the rank from 0 | Create the leaderboard: internal name, sort mode, **Unique** on to keep one best entry per player. |
 | Show the table | `await Online.get_scores(leaderboard, limit)`; `entry.player_alias.display_name`, `entry.score`, `Online.is_own(entry)` | |
 | The player's name on leaderboards | `Online.set_player_name(name)`, `Online.get_player_name()` | The display name prop key (Setup, step 4). |

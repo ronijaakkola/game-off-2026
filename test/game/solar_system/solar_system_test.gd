@@ -478,15 +478,15 @@ func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() 
 	var offer := runner.find_child("TowOffer") as TowOffer
 	var button := runner.find_child("RequestButton") as Button
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
-	var rider := waiting.create(bus.get_docked_planet())
-	(runner.find_child("Cabin") as Cabin).board(rider)
+	var passenger := waiting.create(bus.get_docked_planet())
+	(runner.find_child("Cabin") as Cabin).board(passenger)
 	bus.plot_course(RouteStop.at_point(bus.global_position + Vector3(0.0, 0.0, 30.0)))
 	await assert_func(bus, "is_at_planet").wait_until(5000).is_false()
 	assert_bool(offer.visible).is_false()
 
-	var before := rider.happiness
+	var before := passenger.happiness
 	bus.get_fuel_tank().drain()
-	assert_float(rider.happiness).is_equal(before + SolarSystem.OUT_OF_FUEL_SHOCK)
+	assert_float(passenger.happiness).is_equal(before + SolarSystem.OUT_OF_FUEL_SHOCK)
 	await runner.simulate_frames(1)
 
 	var is_ship := func(node: Node) -> bool: return node is TowShip

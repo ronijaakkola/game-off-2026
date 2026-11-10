@@ -5,7 +5,17 @@ description: Make or change a 3D model in Blender and export it into the project
 
 # Blender models
 
-Every model lives in the **model library**, `art/models.blend`: one collection per model, named after its `.glb` (`piece` → `game/models/piece.glb`), side by side with the others and a `reference` collection (a 1 m cube and a 1.7 m person). Only the exported `.glb` is committed. Build to the conventions in `CODING_STANDARDS.md` › Models.
+Every model lives in the **model library**, `art/models.blend`: one collection per model, named after its `.glb` (`tow_ship` → `game/bus/models/tow_ship.glb`), side by side with the others and a `reference` collection (a 1 m cube and a 1.7 m person). Only the exported `.glb` is committed. Where the `.glb` goes is in `CODING_STANDARDS.md`, Models.
+
+## Conventions
+
+Every model follows these:
+
+- 1 Blender unit = 1 m, transforms applied, origin at the bottom centre (it sits on the ground at y = 0), front facing Blender −Y (Godot's +Z).
+- PascalCase object and material names. Objects become node names.
+- Colour from flat Principled materials, about 4 per model at most: each is a draw call per mesh, and Compatibility has no automatic instancing. No vertex colours: they show darker than in Blender. An image texture, when one is needed, is 1024 px at most.
+- Collision as a separate simple mesh named `<Name>-colonly`, which Godot imports as a `StaticBody3D`. No other name hints; other import settings go in the `.glb.import`.
+- Godot's default import settings.
 
 ## Live or headless
 
@@ -24,7 +34,7 @@ import bmesh
 import bpy
 import library
 
-piece = library.model("piece", "game/models/piece.glb")  # new: placed beside the others
+piece = library.model("piece", "game/board/models/piece.glb")  # new: placed beside the others
 library.clear(piece)  # rebuilding: start empty
 
 mesh = bpy.data.meshes.new("Piece")
@@ -57,4 +67,4 @@ Live, two more rules hold, since edits through the MCP neither mark the file dir
 2. `uv run tools/blender.py export <model>` exports the `.glb` with the fixed settings, imports it into Godot, sets any extracted textures to VRAM Compressed, and captures the model in `tools/model_preview.tscn`. Check the facts it prints against the conventions (materials, a `-colonly` node, extensions `none`), then open the capture it names. The capture is the colour check, since Blender and Godot's Compatibility renderer disagree on colour.
 3. `uv run tools/check.py load`, then commit the `.glb`, its `.glb.import` and any `<model>_<image>.png` with its `.png.import`.
 
-To use the model in a scene, instance the `.glb` with the uid from its `.glb.import` (the `edit-tscn` skill). When a model's look matters, end the handoff with "Needs a visual check:" and the scene that uses it, or the capture frame if no scene does yet.
+To use the model in a scene, instance the `.glb` with the uid from its `.glb.import` (the `edit-tscn` skill). A model's look is a change of feel (`CLAUDE.md`, Handoff): name the scene that uses it, or the capture frame if no scene does yet.

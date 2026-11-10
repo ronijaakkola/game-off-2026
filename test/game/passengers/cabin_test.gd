@@ -182,7 +182,7 @@ func test_picks_up_only_while_a_seat_is_free_for_them() -> void:
 	assert_array(_cabin.get_passengers()).contains([picked])
 
 
-func test_the_seats_follow_the_bus_stat_and_cutting_them_leaves_riders_on_board() -> void:
+func test_the_seats_follow_the_bus_stat_and_cutting_them_leaves_passengers_on_board() -> void:
 	_cabin.seats = 2
 	var stats := BusStats.new()
 
@@ -240,15 +240,15 @@ func test_a_dispenser_serves_one_at_a_time_while_the_next_waits() -> void:
 
 func test_robots_serve_several_at_once() -> void:
 	_cabin.amenities = [_dispenser(3)]
-	var riders: Array[Passenger] = []
+	var passengers: Array[Passenger] = []
 	for i: int in 3:
-		riders.append(_passenger(_away, 0.1))
-		_cabin.board(riders[i])
+		passengers.append(_passenger(_away, 0.1))
+		_cabin.board(passengers[i])
 	_cabin.docked = false
 	_run(4.3)
 
-	for rider: Passenger in riders:
-		assert_object(rider.request).is_null()
+	for passenger: Passenger in passengers:
+		assert_object(passenger.request).is_null()
 
 
 func test_the_player_s_hold_serves_by_hand_and_speeds_up_an_amenity() -> void:

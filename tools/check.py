@@ -231,6 +231,8 @@ USER_FILES = "CODING_STANDARDS.md, Saved files"
 ASSETS = "CODING_STANDARDS.md, Assets"
 FORMATTING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
+SCRIPT_SIZE = "CODING_STANDARDS.md, Script size"
+GLOSSARY = "CONTEXT.md"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
 NODE_EXPORTS = ".claude/skills/edit-tscn/SKILL.md, References"
@@ -245,6 +247,10 @@ LINTED = (".gd", ".tscn", ".gdshader")
 NOT_OURS_AT_ROOT = {"addons", "android", "art"}
 NOT_OURS_ANYWHERE = {"build", "reports", "__pycache__"}
 ASSET_LIMIT_MB = 10
+# gdlint fails a script past max-file-lines in gdlintrc. The warning starts here, while
+# there is still room to split by job instead of shaving lines to fit.
+SCRIPT_LINES_LIMIT = 600
+SCRIPT_LINES_WARNING = 500
 # A comment, or a string literal (group 2). One pattern, so a # inside a string isn't
 # a comment and a quote inside a comment doesn't start a string.
 GD_COMMENT_OR_STRING = re.compile(
@@ -413,6 +419,8 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
             rules += scene_problems(path)
         elif path.endswith(".gdshader"):
             rules += shader_problems(path)
+        if path.endswith((".gd", ".tscn", ".tres")):
+            rules += glossary_problems(path)
         if path.endswith((".tscn", ".tres")):
             rules += wrong_uid_problems(path)
         # The hook leaves this out: a scene is missing its ids for as long as it is being
@@ -431,8 +439,69 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
         if linter.returncode != 0:
             problems.append(lint_output.rstrip())
         problems += formatting_problems(formatter, gdlint_failed=linter.returncode != 0)
-    warnings = [] if hook else asset_size_warnings(paths)
+    warnings = [] if hook else asset_size_warnings(paths) + script_size_warnings(scripts)
     return problems + rules, warnings
+
+
+def script_size_warnings(scripts: list[str]) -> list[str]:
+    """A warning before gdlint's limit fails the script: at the limit the cheap way out is
+    to shave lines, which leaves the script doing as many jobs as before."""
+    warnings = []
+    for path in scripts:
+        # A suite mirrors its script, so it splits when the script does.
+        if path.startswith("test/"):
+            continue
+        lines = len(Path(path).read_text(encoding="utf-8", errors="replace").splitlines())
+        if lines >= SCRIPT_LINES_WARNING:
+            warnings.append(
+                f"{path}: Warning: {lines} lines, and lint fails past {SCRIPT_LINES_LIMIT}. "
+                "If your change adds to it, move one job out to a component node, a static "
+                "helper or a Resource in the same change. Don't trim comments or pack lines "
+                f"to fit. (script-size; {SCRIPT_SIZE})"
+            )
+    return warnings
+
+
+def never_terms() -> list[tuple[re.Pattern, str, str]]:
+    """Each term CONTEXT.md lists after _Never_, as a pattern over normalised text, with
+    the term and the glossary entry to use instead."""
+    global _never_terms
+    if _never_terms is None:
+        _never_terms = []
+        entry = ""
+        for line in Path("CONTEXT.md").read_text(encoding="utf-8").splitlines():
+            if heading := re.match(r"\*\*(.+?)\*\*:", line):
+                entry = heading.group(1)
+            elif line.startswith("_Never_:"):
+                for term in line.split(":", 1)[1].split(","):
+                    words = re.sub(r"\(.*?\)", "", term).lower().split()
+                    if words:
+                        pattern = r"\b" + r"\s+".join(map(re.escape, words)) + r"(?:s|es)?\b"
+                        _never_terms.append((re.compile(pattern), " ".join(words), entry))
+    return _never_terms
+
+
+_never_terms: list[tuple[re.Pattern, str, str]] | None = None
+
+
+def glossary_problems(path: str) -> list[str]:
+    """A term the glossary rules out, in an identifier, a node name or text the player
+    reads. Comments are left alone: they may say what a thing used to be called."""
+    text = Path(path).read_text(encoding="utf-8", errors="replace")
+    if path.endswith(".gd"):
+        code, strings = split_gdscript(text)
+        lines = list(enumerate(code.splitlines(), 1)) + strings
+    else:
+        lines = list(enumerate(text.splitlines(), 1))
+    problems = []
+    for number, line in sorted(lines):
+        # waypoint_radius, WaypointRadius and "way point" read alike once split into words.
+        words = re.sub(r"(?<=[a-z0-9])(?=[A-Z])|_", " ", line).lower()
+        for pattern, term, entry in never_terms():
+            if pattern.search(words):
+                message = f'"{term}" is not this project\'s word. The glossary\'s is {entry}.'
+                problems.append(problem(path, number, "glossary-term", message, GLOSSARY))
+    return problems
 
 
 def problem(path: str, line: int | None, rule: str, message: str, doc: str) -> str:

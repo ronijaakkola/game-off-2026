@@ -2,11 +2,15 @@
 
 Godot 4.7.2, GDScript only, Compatibility renderer, played on the web (itch.io) first.
 
-- `CODING_STANDARDS.md`: layout, naming, typing, autoloads, scene composition, signals, merges. Read it before writing code or adding or moving any file.
-- `DESIGN.md`: what the game is. Read it before gameplay work, and update it when the design changes.
-- `CONTEXT.md`: the glossary. Use its terms in code and handoffs.
+- `CODING_STANDARDS.md`: layout, naming, typing, autoloads, scene composition, signals, script size, merges. Read it before writing code or adding or moving any file.
+- `DESIGN.md`: the design decisions the game logic follows. Read it before gameplay work. When a rule or one of its numbers changes, rewrite its bullet; how a thing looks or moves doesn't go there.
+- `docs/ui.md`: the look, and what each part of the screen shows and how it moves. Read it before work on the look, the HUD, a panel or an animation, and rewrite its bullet when that changes.
+- `CONTEXT.md`: the glossary. Use its terms in code, UI text and handoffs; `lint` fails on the ones it lists as _Never_.
 - `docs/web-constraints.md`: read it before touching shaders, environment, lighting, loading or audio.
+- `docs/cameras.md`: read it before touching a camera, a shot, or anything placed from the camera.
 - `docs/online.md`: read it before wiring analytics, stats or leaderboards.
+
+Both design docs hold the current state only: change a bullet in place, never append what happened, and leave out what the code already says.
 
 Ask the human before changing anything outside the repo, such as export templates, editor settings or global git config.
 
@@ -33,14 +37,8 @@ Keep the loop short while a feature takes shape: `load` (10 s) and the suites fo
 
 - Paste the result lines of `uv run tools/check.py all` exactly as printed, failing step included.
 - When a change is about feel (the soft look, lighting, camera, motion, sound), end with "Needs a visual check: `<scene>`".
-- When a check can't run (Godot not found, no window for `capture`), say which ones didn't run and name the editor equivalent for the human:
-
-  | Check | In the editor |
-  |---|---|
-  | `load` | The Output panel's errors after opening the project, or F5 |
-  | `test` | The gdUnit panel's run button |
-  | `smoke` | F5 (main scene) or F6 (current scene), then the Output panel |
-  | `capture` | Run the scene and look at it |
+- When `lint` warned that a script you added to is near its size limit (`script-size`), say which job you moved out, or the split you would make and why it didn't come out cleanly.
+- When a check can't run (Godot not found, no window for `capture`), say which ones didn't run and name the editor equivalent for the human, from the last column of README.md, Checks.
 
 ## Issues
 
