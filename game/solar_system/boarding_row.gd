@@ -2,7 +2,7 @@ class_name BoardingRow
 extends Control
 ## One passenger waiting at the planet the bus is docked at, as a row in the dock panel:
 ## their portrait (a [PassengerPhoto]), their name with where they are going under it (an
-## icon of the planet and its name, then under it, fainter, how many on the bus are going
+## arrow, an icon of the planet and its name, then, fainter, how many on the bus are going
 ## there too, from [member along]), their fare, and a button that picks them up. It reads
 ## the passenger when [member passenger] is set; a passenger's details don't change while
 ## they wait.
@@ -126,7 +126,7 @@ func _show() -> void:
 	photo.passenger = passenger
 	(%NameLabel as Label).text = passenger.name
 	(%DestinationIcon as PlanetIcon).planet = passenger.destination
-	(%DestinationLabel as Label).text = "To %s" % _destination_name()
+	(%DestinationLabel as Label).text = _destination_name()
 	(%FareLabel as Label).text = "%d cr" % roundi(passenger.fare)
 
 
@@ -145,8 +145,9 @@ func _show_highlight() -> void:
 
 
 func _show_along() -> void:
-	# The line stays when empty, so every row is as tall and nothing moves when it shows.
-	(%AlongLabel as Label).text = "%d aboard" % along if along > 0 else ""
+	var label := %AlongLabel as Label
+	label.visible = along > 0
+	label.text = "%d aboard" % along
 
 
 func _show_button() -> void:

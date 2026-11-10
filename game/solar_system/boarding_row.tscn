@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="5_photo"]
+[ext_resource type="Texture2D" uid="uid://c1lifb3j2j53u" path="res://game/solar_system/icons/arrow_big_right.svg" id="6_arrow"]
 
 [node name="BoardingRow" type="Control" unique_id=2017478593]
 layout_mode = 3
@@ -49,6 +50,16 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 6
 
+[node name="Arrow" type="TextureRect" parent="Panel/Columns/Who/Destination" unique_id=1587653057]
+self_modulate = Color(1, 1, 1, 0.6)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_arrow")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination" unique_id=746353628]
 unique_name_in_owner = true
 visible = false
@@ -62,10 +73,11 @@ script = ExtResource("3_icon")
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
-text = "To ?"
+text = "?"
 
-[node name="AlongLabel" type="Label" parent="Panel/Columns/Who" unique_id=19768508]
+[node name="AlongLabel" type="Label" parent="Panel/Columns/Who/Destination" unique_id=19768508]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 theme_override_colors/font_color = Color(1, 1, 1, 0.4)
