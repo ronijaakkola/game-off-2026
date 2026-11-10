@@ -9,17 +9,17 @@ extends RefCounted
 ## doesn't, rather than numbers.
 
 ## Which stat a [StatModifier] changes. A [code].tres[/code] saves a type as its number, so
-## add new ones only at the end.
+## each keeps its own: a new one takes the next unused number.
 enum Type {
 	## Top speed, in units per second.
-	MAX_SPEED,
+	MAX_SPEED = 0,
 	## How much fuel a full tank holds.
-	FUEL_CAPACITY,
+	FUEL_CAPACITY = 1,
 	## How many passengers fit on board, to the nearest whole seat ([method get_seats]).
-	SEATS,
+	SEATS = 2,
 	## How long a served snack or drink lasts, as a multiple of the need's own time: the
 	## next request for it waits that much longer.
-	PORTION_SIZE,
+	PORTION_SIZE = 3,
 }
 
 ## The base of each stat no node of the bus sets: a stat missing here starts at 0.
