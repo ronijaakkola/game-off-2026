@@ -2,7 +2,8 @@ class_name BoardingRow
 extends Control
 ## One passenger waiting at the planet the bus is docked at, as a row in the dock panel:
 ## their portrait (a [PassengerPhoto]), their name with where they are going under it (an
-## icon of the planet and its name), their fare, and a button that picks them up. It reads
+## icon of the planet and its name, then, fainter, how many on the bus are going there
+## too, from [member along]), their fare, and a button that picks them up. It reads
 ## the passenger when [member passenger] is set; a passenger's details don't change while
 ## they wait.
 ## The root is a slot that holds the row's place in the list, and the panel moves inside it,
@@ -41,6 +42,15 @@ var can_board := true:
 		if is_node_ready():
 			_show_button()
 
+## How many on board or picked up are going where [member passenger] is. None shows nothing.
+var along := 0:
+	set(value):
+		if value == along:
+			return
+		along = value
+		if is_node_ready():
+			_show_along()
+
 ## Where the portrait is rendered. Set it before [member passenger].
 var portrait_studio: PortraitStudio
 
@@ -62,6 +72,7 @@ func _ready() -> void:
 	(%Panel as Control).minimum_size_changed.connect(_fit)
 	_show()
 	_show_button()
+	_show_along()
 	_fit()
 
 
@@ -131,6 +142,12 @@ func _show_highlight() -> void:
 	style.border_color = Race.SKIN_COLORS[passenger.race]
 	style.bg_color.a += HIGHLIGHT_LIGHTEN
 	panel.add_theme_stylebox_override(&"panel", style)
+
+
+func _show_along() -> void:
+	var label := %AlongLabel as Label
+	label.visible = along > 0
+	label.text = "%d aboard" % along
 
 
 func _show_button() -> void:
