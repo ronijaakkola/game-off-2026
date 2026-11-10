@@ -12,7 +12,7 @@ extends Button
 
 const IDLE_TEXT := "Hold to fuel (%d cr)"
 ## How opaque the fill is, so the label stays readable over a full tank.
-const FILL_ALPHA := 0.3
+const FILL_ALPHA := 0.35
 
 var _held := false
 var _fraction := 1.0

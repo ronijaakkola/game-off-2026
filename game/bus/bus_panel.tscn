@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d4h6peo1d1no0" path="res://game/bus/bus_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="90_glass"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
 content_margin_top = 1.0
@@ -21,6 +22,7 @@ theme_override_constants/margin_bottom = 12
 script = ExtResource("1_panel")
 
 [node name="Sheet" type="PanelContainer" parent="." unique_id=760002739]
+material = ExtResource("90_glass")
 custom_minimum_size = Vector2(480, 0)
 clip_contents = true
 layout_mode = 2

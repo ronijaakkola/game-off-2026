@@ -1,9 +1,9 @@
 class_name TowOffer
 extends Control
-## The bar across the lower half of the screen once the bus has run out of fuel in space:
-## "You ran out of fuel" at one end and a button to request a tow, with its price, at the
-## other. [method offer] shows it and [method close] hides it; the button emits
-## [signal requested] and nothing else, so the owner sends the tow and closes the bar.
+## A warning notice above the bus bars once the bus has run out of fuel in space: "You
+## ran out of fuel" and a button to request a tow, with its price. [method offer] shows it
+## and [method close] hides it; the button emits [signal requested] and nothing else, so the
+## owner sends the tow and closes the notice.
 
 ## The player pressed the button.
 signal requested

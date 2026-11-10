@@ -59,12 +59,6 @@ var _pop: Tween
 func _ready() -> void:
 	if not ledger:
 		ledger = Ledger.new()
-	var average := %AverageLabel as Label
-	var font := average.get_theme_font(&"font")
-	var font_size := average.get_theme_font_size(&"font_size")
-	average.custom_minimum_size.x = (
-		font.get_string_size("0.0", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
-	)
 	(%GainLabel as Label).modulate.a = 0.0
 	_show_average(_shown_average)
 	_place_gain()

@@ -135,3 +135,12 @@ func test_spending_during_a_count_up_ends_it_at_the_new_total() -> void:
 
 	assert_int(counter.ledger.credits).is_equal(35)
 	assert_str(total.text).is_equal("35")
+
+
+func test_credits_show_exactly_up_to_9999_then_shortened_and_rounded_down() -> void:
+	assert_str(CreditsCounter.format_credits(40)).is_equal("40")
+	assert_str(CreditsCounter.format_credits(9999)).is_equal("9,999")
+	assert_str(CreditsCounter.format_credits(12480)).is_equal("12.4k")
+	assert_str(CreditsCounter.format_credits(124800)).is_equal("124k")
+	assert_str(CreditsCounter.format_credits(1250000)).is_equal("1.25M")
+	assert_str(CreditsCounter.format_credits(-5)).is_equal("-5")

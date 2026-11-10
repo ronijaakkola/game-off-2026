@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="5_photo"]
+[ext_resource type="Texture2D" uid="uid://5e4u8rlx68t4" path="res://shared/icons/arrow_right.svg" id="6_arrow"]
 
 [node name="BoardingRow" type="Control" unique_id=2017478593]
 layout_mode = 3
@@ -26,6 +27,7 @@ theme_override_constants/separation = 8
 
 [node name="PassengerPhoto" parent="Panel/Columns" unique_id=432194477 instance=ExtResource("5_photo")]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 
 [node name="Who" type="VBoxContainer" parent="Panel/Columns" unique_id=2035152658]
@@ -33,12 +35,18 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 4
 
-[node name="NameLabel" type="Label" parent="Panel/Columns/Who" unique_id=1068321505]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+[node name="NameRow" type="HBoxContainer" parent="Panel/Columns/Who" unique_id=679623599]
 layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="Panel/Columns/Who/NameRow" unique_id=1068321505]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"SmallLabel"
 text = "Name"
 clip_text = true
@@ -47,12 +55,33 @@ text_overrun_behavior = 3
 [node name="Destination" type="HBoxContainer" parent="Panel/Columns/Who" unique_id=1992867181]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
-[node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination" unique_id=746353628]
+[node name="Marks" type="MarginContainer" parent="Panel/Columns/Who/Destination" unique_id=1547023236]
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/margin_top = 3
+
+[node name="Row" type="HBoxContainer" parent="Panel/Columns/Who/Destination/Marks" unique_id=780585556]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Arrow" type="TextureRect" parent="Panel/Columns/Who/Destination/Marks/Row" unique_id=1432859917]
+self_modulate = Color(0.957, 0.945, 1, 0.4)
+custom_minimum_size = Vector2(9, 9)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_arrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DestinationIcon" type="ColorRect" parent="Panel/Columns/Who/Destination/Marks/Row" unique_id=746353628]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(14, 14)
+custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -62,27 +91,21 @@ script = ExtResource("3_icon")
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
-text = "To ?"
+text = "?"
 
-[node name="Deal" type="VBoxContainer" parent="Panel/Columns" unique_id=604143323]
+[node name="AboardLabel" type="Label" parent="Panel/Columns/Who/Destination" unique_id=1313613275]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"FaintLabel"
+text = "·  0 aboard"
+
+[node name="BoardButton" type="Button" parent="Panel/Columns" unique_id=998031172]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
-mouse_filter = 2
-theme_override_constants/separation = 2
-
-[node name="FareLabel" type="Label" parent="Panel/Columns/Deal" unique_id=1301313441]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.6)
-text = "0 cr"
-horizontal_alignment = 2
-
-[node name="BoardButton" type="Button" parent="Panel/Columns/Deal" unique_id=998031172]
-unique_name_in_owner = true
-layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Board"
 
 [connection signal="gui_input" from="Panel" to="." method="_on_panel_gui_input"]
-[connection signal="pressed" from="Panel/Columns/Deal/BoardButton" to="." method="_on_board_button_pressed"]
+[connection signal="pressed" from="Panel/Columns/BoardButton" to="." method="_on_board_button_pressed"]

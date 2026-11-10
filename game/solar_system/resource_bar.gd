@@ -1,13 +1,12 @@
 class_name ResourceBar
 extends PanelContainer
-## The resource bar in the top right corner: the player's credits, research points and
-## average rating in a frosted-glass pill. Each is its own counter, which shows the
-## [member ledger]'s value and animates its changes; the bar keeps no values itself.
-## Earnings wait to show until [method commit].
-## When a number gains or loses a digit, the pill's width glides to fit, its right edge
-## staying put, while the items stay pinned to that edge; under Reduce motion it changes
-## at once. The glass shader draws the pill, and needs the panel's size to find its edge,
-## so each bar gets its own copy of the material.
+## The resource bar at the top centre: the player's credits, research points and average
+## rating in a frosted-glass pill. Each is its own counter, which shows the [member
+## ledger]'s value and animates its changes; the bar keeps no values itself. Earnings wait
+## to show until [method commit]. When a number gains or loses a digit, the pill's width
+## glides to fit, staying centred, while the items stay centred in it; under Reduce motion
+## it changes at once. The glass shader draws the pill, and needs the panel's size to find
+## its edge, so each bar gets its own copy of the material.
 
 ## Seconds the pill takes to reach its new width.
 const WIDTH_SECONDS := 0.3
@@ -77,13 +76,13 @@ func _set_width(width: float) -> void:
 	(%Track as Control).custom_minimum_size = Vector2(width, height)
 
 
-# The items keep their own width and sit against the track's right edge, so while the pill
-# grows, they reach a little into its padding on the left until it catches up.
+# The items keep their own width and sit in the middle of the track, so while the pill
+# grows, they reach a little into its padding on both sides until it catches up.
 func _place_items() -> void:
 	var items := %Items as HBoxContainer
 	var track := %Track as Control
 	items.size = items.get_combined_minimum_size()
-	items.position = Vector2(track.size.x - items.size.x, 0.0)
+	items.position = Vector2((track.size.x - items.size.x) * 0.5, 0.0)
 
 
 func _on_resized() -> void:

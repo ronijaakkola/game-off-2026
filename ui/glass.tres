@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cti4ji4gh5xnp"]
+
+[ext_resource type="Shader" uid="uid://6ppgi64epc31" path="res://ui/glass.gdshader" id="1_glass"]
+
+[resource]
+shader = ExtResource("1_glass")
+shader_parameter/blur_lod = null
+shader_parameter/fill_opacity = null

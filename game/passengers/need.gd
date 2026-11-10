@@ -17,6 +17,8 @@ enum Action { NONE, EAT, DRINK, WATCH }
 @export var item := "something"
 ## The serve button's text on the card.
 @export var serve_label := "Serve"
+## The serve button's icon on the card, white so the button tints it.
+@export var icon: Texture2D
 ## What their portrait acts out while it is served, by the player or an amenity.
 @export var served_action := Action.NONE
 ## The card's line while the player's service lasts.

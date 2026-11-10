@@ -5,7 +5,6 @@
 [ext_resource type="PackedScene" uid="uid://du1swv634nyif" path="res://ui/settings/settings_menu.tscn" id="3_settings"]
 
 [node name="MainMenu" type="MarginContainer" unique_id=1815156436]
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -13,31 +12,42 @@ grow_vertical = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_menu")
 
+[node name="Background" type="PanelContainer" parent="." unique_id=1509656223]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"SpacePanel"
+
 [node name="Center" type="CenterContainer" parent="." unique_id=463875649]
 layout_mode = 2
 
-[node name="Items" type="VBoxContainer" parent="Center" unique_id=579640886]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 0)
+[node name="Column" type="VBoxContainer" parent="Center" unique_id=1668939052]
 layout_mode = 2
+theme_override_constants/separation = 28
 
-[node name="Title" type="Label" parent="Center/Items" unique_id=952514897]
+[node name="Title" type="Label" parent="Center/Column" unique_id=952514897]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 text = "Jam Game"
 horizontal_alignment = 1
 
-[node name="PlayButton" type="Button" parent="Center/Items" unique_id=1142676507]
+[node name="Items" type="VBoxContainer" parent="Center/Column" unique_id=579640886]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="PlayButton" type="Button" parent="Center/Column/Items" unique_id=1142676507]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"PrimaryButton"
 text = "Play"
 
-[node name="SettingsButton" type="Button" parent="Center/Items" unique_id=1148331793]
+[node name="SettingsButton" type="Button" parent="Center/Column/Items" unique_id=1148331793]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Settings"
 
-[node name="QuitButton" type="Button" parent="Center/Items" unique_id=479414804]
+[node name="QuitButton" type="Button" parent="Center/Column/Items" unique_id=479414804]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Quit"
@@ -51,7 +61,7 @@ layout_mode = 2
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_type_variation = &"BlackPanel"
+theme_type_variation = &"SpacePanel"
 
 [node name="Center" type="CenterContainer" parent="StartOverlay" unique_id=2123297052]
 layout_mode = 2
@@ -60,6 +70,7 @@ mouse_filter = 2
 [node name="Items" type="VBoxContainer" parent="StartOverlay/Center" unique_id=2015960449]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 28
 
 [node name="Title" type="Label" parent="StartOverlay/Center/Items" unique_id=335360452]
 layout_mode = 2
@@ -69,14 +80,16 @@ horizontal_alignment = 1
 
 [node name="Label" type="Label" parent="StartOverlay/Center/Items" unique_id=2085566611]
 layout_mode = 2
+theme_type_variation = &"DimLabel"
+theme_override_font_sizes/font_size = 13
 text = "Click to start"
 horizontal_alignment = 1
 
 [node name="BuildMargin" type="MarginContainer" parent="." unique_id=1616412392]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 6
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
 [node name="BuildLabel" type="Label" parent="BuildMargin" unique_id=1974554180]
 unique_name_in_owner = true
@@ -86,7 +99,7 @@ size_flags_horizontal = 8
 size_flags_vertical = 8
 theme_type_variation = &"FaintLabel"
 
-[connection signal="pressed" from="Center/Items/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="pressed" from="Center/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
-[connection signal="pressed" from="Center/Items/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="Center/Column/Items/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="Center/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="Center/Column/Items/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]

@@ -1,22 +1,24 @@
 class_name PassengerCard
 extends Control
-## One passenger's card: their name, where they are going (an icon of the
-## planet and its name), their happiness as a bar in their mood's colour, and what they
-## are doing. A big drop in happiness, such as a scare, leaves a red trail on the bar
-## that holds a moment, then shrinks to it. While they ask for something, a button held
-## down serves it ([ServeButton]), filling as it is served. It only reads the passenger;
+## One passenger's row in the On board panel: their name with where they are going beside
+## it (an arrow, an icon of the planet and its name), what they are doing, and their
+## happiness as a bar along the bottom in their mood's colour, which blends into the next
+## mood's as it changes. A big drop in happiness, such as a scare, leaves a red trail on the
+## bar that holds a moment, then shrinks to it. While they ask for something, a button held
+## down serves it ([ServeButton]) in the activity's place, with the need's icon, filling
+## as it is served. It only reads the passenger;
 ## the [Cabin] runs the ride.
 ## Their portrait sits on the left, as a [PassengerPhoto].
 ## The card slides in from past the left edge of the screen when the passenger boards.
-## When the bus stops at their destination, [method show_rating] swaps the middle row,
-## where they are going and their happiness, for the stars they rate the ride, which fill
+## When the bus stops at their destination, [method show_rating] swaps the bottom row,
+## their happiness, for the stars they rate the ride, which fill
 ## up one by one, and the activity reads "Getting off". The card lingers like that, and
 ## only then [method leave] slides it back out past the left edge and folds its height
 ## away so the cards below it move up. The root is a slot that holds
 ## the card's place in the list, and the panel moves inside it.
-## The pointer over the card slides its options out from under it to its right: for now
-## one button, which kicks the passenger off the bus. They slide back under once the
-## pointer leaves both, and stay away once the card shows the rating or leaves.
+## The pointer over the card fades its options in to its right: for now one button, which
+## kicks the passenger off the bus. They fade out once the pointer leaves both, and stay
+## away once the card shows the rating or leaves.
 
 ## The serve button for [member passenger]'s open request was pressed down, with
 ## [param held] true, or let go, with it false.
@@ -38,17 +40,17 @@ const TRAIL_JUMP := 0.05
 ## bars a second. A slow slide it follows at once, so it never shows.
 const TRAIL_HOLD_SECONDS := 0.5
 const TRAIL_SHRINK_RATE := 0.5
-## Seconds the mood name takes to fade out and back in as the new mood, and the bar's
-## colour to blend into the new mood's. A fade is no motion, so Reduce motion keeps it.
+## Seconds the bar's colour takes to blend into the new mood's. A blend is no motion, so
+## Reduce motion keeps it.
 const MOOD_FADE_SECONDS := 0.3
-## Seconds the middle row takes to swap the happiness bar for the stars: the bar sinks and
+## Seconds the bottom row takes to swap the happiness bar for the stars: the bar sinks and
 ## fades out while the stars drop in from above and fade in, a little behind it.
 const SWAP_SECONDS := 0.3
 const SWAP_STAGGER := 0.1
 ## How far the bar sinks and the stars drop, in pixels. Reduce motion only fades them.
 const SWAP_PIXELS := 6.0
-## Seconds the options take to slide out from under the card, or back under it. Under
-## Reduce motion they only fade.
+## Seconds the options take to fade in, or out. A fade is no motion, so Reduce motion keeps
+## it.
 const OPTIONS_SECONDS := 0.18
 ## Seconds each star takes to fill once the stars are in.
 const STAR_FILL_SECONDS := 0.18
@@ -57,23 +59,16 @@ const STAR_FILL_SECONDS := 0.18
 const LINGER_SECONDS := 2.2
 
 const MOOD_COLORS: Dictionary[Passenger.Mood, Color] = {
-	Passenger.Mood.HAPPY: Color(0.55, 0.85, 0.4),
+	Passenger.Mood.HAPPY: Color(0.549, 0.851, 0.4),
 	Passenger.Mood.OKAY: Color(0.98, 0.8, 0.38),
-	Passenger.Mood.ANNOYED: Color(0.98, 0.55, 0.3),
-	Passenger.Mood.FURIOUS: Color(0.95, 0.3, 0.4),
+	Passenger.Mood.ANNOYED: Color(0.98, 0.549, 0.302),
+	Passenger.Mood.FURIOUS: Color(0.949, 0.302, 0.4),
 }
-const MOOD_NAMES: Dictionary[Passenger.Mood, String] = {
-	Passenger.Mood.HAPPY: "Happy",
-	Passenger.Mood.OKAY: "Okay",
-	Passenger.Mood.ANNOYED: "Annoyed",
-	Passenger.Mood.FURIOUS: "Furious",
-}
-## How the mood name shakes, as the `[shake]` tag's rate and level, for the moods that
-## shake at all. Reduce motion holds it still.
-const MOOD_SHAKES: Dictionary[Passenger.Mood, Vector2] = {
-	Passenger.Mood.ANNOYED: Vector2(10.0, 4.0),
-	Passenger.Mood.FURIOUS: Vector2(18.0, 8.0),
-}
+
+## How far right of the card its options sit. The panel the card is in sets it, so they
+## clear its edge. The gap still counts as the card for the pointer, so the options stay
+## while it crosses.
+var options_gap := 6.0
 
 var passenger: Passenger:
 	set(value):
@@ -96,14 +91,11 @@ var _shown_happiness := 1.0
 var _trail_hold := 0.0
 # The mood shown, so the colours change only when it does. -1 before the first show.
 var _mood := -1
-# Whether Reduce motion was on when the mood name was last written.
-var _still := false
 # How much of the card's height the slot keeps: 1 in the list, 0 folded away.
 var _fold := 1.0
 # The one tween that moves the panel and folds the slot, in turn.
 var _motion: Tween
-# The mood name's fade out and in, and the bar's blend into the new mood's colour.
-var _mood_fade: Tween
+# The bar's blend into the new mood's colour.
 var _fill_fade: Tween
 # Whether the card shows the rating: the passenger is getting off, so it stops following
 # them.
@@ -114,11 +106,11 @@ var _linger_left := 0.0
 var _rating_swap: Tween
 # Whether the card is on its way out, after leave().
 var _leaving := false
-# How far the options have slid out: 0 under the card, 1 out to its right.
+# How far the options have faded in: 0 gone, 1 shown.
 var _reveal := 0.0
 # Whether the options are out, or on their way out.
 var _options_open := false
-var _options_slide: Tween
+var _options_fade: Tween
 
 
 func _ready() -> void:
@@ -132,6 +124,7 @@ func _ready() -> void:
 	photo.riding = true
 	photo.studio = portrait_studio
 	photo.passenger = passenger
+	(%Options as Control).add_theme_constant_override(&"margin_left", roundi(options_gap))
 	_show()
 	_fit_slot()
 
@@ -141,7 +134,7 @@ func _process(delta: float) -> void:
 	if not _rated:
 		_show()
 		_follow_trail(delta)
-	_slide_options(_wants_options())
+	_fade_options(_wants_options())
 	_fit_slot()
 
 
@@ -166,10 +159,10 @@ func slide_in() -> void:
 
 
 ## Shows that the passenger is getting off and rated the ride [param stars] out of
-## [constant Passenger.MAX_STARS]. The middle row swaps: the happiness bar, and where they
-## are going, sink and fade out while empty stars drop in from above and fade in, then the
-## stars fill up to the rating one after another, each swelling as it fills. The activity
-## morphs to "Getting off", and the serve button goes. The name and mood stay. The card
+## [constant Passenger.MAX_STARS]. The bottom row swaps: the happiness bar sinks and fades
+## out while empty stars drop in from above and fade in, then the stars fill up to the
+## rating one after another, each swelling as it fills. The activity morphs to "Getting
+## off", and the serve button goes. The name and destination stay. The card
 ## stops following the passenger. Under Reduce motion the row only crossfades and the
 ## stars only change colour. Only the first call counts.
 func show_rating(stars: float) -> void:
@@ -181,6 +174,7 @@ func show_rating(stars: float) -> void:
 	button.release()
 	button.disabled = true
 	button.visible = false
+	(%ActivityLabel as Control).visible = true
 	var still := Settings.reduce_motion
 	var drop := 0.0 if still else SWAP_PIXELS
 	var trip := %Trip as Control
@@ -259,7 +253,7 @@ func _set_fold(value: float) -> void:
 
 
 # The slot is as tall as the card, times the fold, and the panel fills its width. The
-# middle row's slot is as tall as the trip row, which fills its width; the swap moves
+# bottom row's slot is as tall as the bar's row, which fills its width; the swap moves
 # the row and the stars inside it.
 func _fit_slot() -> void:
 	var middle := %Middle as Control
@@ -288,26 +282,24 @@ func _wants_options() -> bool:
 	return hovered != null and is_ancestor_of(hovered)
 
 
-# Slides the options out from under the card, or back under it, when [param open] changes.
-func _slide_options(open: bool) -> void:
+# Fades the options in, or out, when [param open] changes.
+func _fade_options(open: bool) -> void:
 	if open == _options_open:
 		return
 	_options_open = open
-	if _options_slide:
-		_options_slide.kill()
+	if _options_fade:
+		_options_fade.kill()
 	var target := 1.0 if open else 0.0
-	_options_slide = create_tween()
+	_options_fade = create_tween()
 	(
-		_options_slide
+		_options_fade
 		. tween_property(self, ^"_reveal", target, OPTIONS_SECONDS * absf(target - _reveal))
 		. set_trans(Tween.TRANS_CUBIC)
 		. set_ease(Tween.EASE_OUT)
 	)
 
 
-# The options sit beside the panel, centred on it: tucked under its right edge when in, and
-# just past it when out. They fade as they go, since the card is see-through. Under Reduce
-# motion they stay out and only fade.
+# The options sit right of the card, past [member options_gap], centred on the panel.
 func _place_options() -> void:
 	var options := %Options as Control
 	options.visible = _reveal > 0.0
@@ -315,11 +307,8 @@ func _place_options() -> void:
 		return
 	var panel := %Panel as Control
 	options.size = options.get_combined_minimum_size()
-	var slide := 1.0 if Settings.reduce_motion else _reveal
-	var tucked := panel.size.x - options.size.x
 	options.position = Vector2(
-		panel.position.x + lerpf(tucked, panel.size.x, slide),
-		panel.position.y + (panel.size.y - options.size.y) * 0.5
+		panel.position.x + size.x, panel.position.y + (panel.size.y - options.size.y) * 0.5
 	)
 	options.modulate.a = _reveal
 
@@ -333,7 +322,7 @@ func _show() -> void:
 	var icon := %DestinationIcon as PlanetIcon
 	if icon.planet != passenger.destination:
 		icon.planet = passenger.destination
-	_set_text(%DestinationLabel, "To %s" % _destination_name())
+	_set_text(%DestinationLabel, _destination_name())
 	var value := passenger.get_happiness_fraction()
 	(%HappinessBar as ProgressBar).value = value
 	if first:
@@ -343,28 +332,21 @@ func _show() -> void:
 	var mood := passenger.get_mood()
 	if mood != _mood:
 		_mood = mood
-		_still = Settings.reduce_motion
+		if _fill_fade:
+			_fill_fade.kill()
 		if first:
-			if _mood_fade:
-				_mood_fade.kill()
-			if _fill_fade:
-				_fill_fade.kill()
-			(%MoodLabel as RichTextLabel).modulate.a = 1.0
-			_write_mood()
 			_fill.bg_color = MOOD_COLORS[mood]
 		else:
-			_fade_mood()
-	elif Settings.reduce_motion != _still:
-		_still = Settings.reduce_motion
-		# A fade under way writes the name when it's out of sight, with the setting as it is.
-		if not _is_mood_fading():
-			_write_mood()
+			_fill_fade = create_tween()
+			_fill_fade.tween_property(_fill, ^"bg_color", MOOD_COLORS[mood], MOOD_FADE_SECONDS)
 	_morph_text(%ActivityLabel, passenger.activity, first)
 	var button := %ServeButton as ServeButton
 	button.visible = passenger.request != null
+	# The button takes the activity's place, across the card.
+	(%ActivityLabel as Control).visible = not button.visible
 	button.progress = passenger.serving
-	if passenger.request and button.text != passenger.request.serve_label:
-		button.text = passenger.request.serve_label
+	if passenger.request:
+		button.show_request(passenger.request.serve_label, passenger.request.icon)
 
 
 # The trail behind the bar: a drop of TRAIL_JUMP or more holds it where it was for
@@ -382,42 +364,6 @@ func _follow_trail(delta: float) -> void:
 		_trail_hold -= delta
 	else:
 		trail.value = move_toward(trail.value, value, TRAIL_SHRINK_RATE * delta)
-
-
-# Fades the mood name out, writes the new one, and fades it back in, while the bar blends
-# into the new colour. A fade under way carries on from where it is.
-func _fade_mood() -> void:
-	var label := %MoodLabel as RichTextLabel
-	var half := MOOD_FADE_SECONDS * 0.5
-	if _mood_fade:
-		_mood_fade.kill()
-	_mood_fade = create_tween()
-	_mood_fade.tween_property(label, ^"modulate:a", 0.0, half * label.modulate.a)
-	_mood_fade.tween_callback(_write_mood)
-	_mood_fade.tween_property(label, ^"modulate:a", 1.0, half)
-	if _fill_fade:
-		_fill_fade.kill()
-	_fill_fade = create_tween()
-	_fill_fade.tween_property(_fill, ^"bg_color", MOOD_COLORS[_mood], MOOD_FADE_SECONDS)
-
-
-func _is_mood_fading() -> bool:
-	return _mood_fade != null and _mood_fade.is_running()
-
-
-# Writes the shown mood's name and colour.
-func _write_mood() -> void:
-	var label := %MoodLabel as RichTextLabel
-	label.text = _mood_text(_mood as Passenger.Mood)
-	label.add_theme_color_override(&"default_color", MOOD_COLORS[_mood])
-
-
-# The mood's name as BBCode, shaking for the low moods unless Reduce motion is on.
-func _mood_text(mood: Passenger.Mood) -> String:
-	if Settings.reduce_motion or not MOOD_SHAKES.has(mood):
-		return MOOD_NAMES[mood]
-	var shake := MOOD_SHAKES[mood]
-	return "[shake rate=%s level=%s]%s[/shake]" % [shake.x, shake.y, MOOD_NAMES[mood]]
 
 
 func _destination_name() -> String:

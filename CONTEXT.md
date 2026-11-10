@@ -66,10 +66,10 @@ _Avoid_: selected planet, focused planet, planet view
 
 **Open bus**:
 The bus when the player left-clicked it to look at it: the camera follows it on the left of the screen, and its **bus panel** on the right shows its stats. Opening it closes the open planet, and opening a planet closes it. `SolarSystem.open_bus()`, `BusPanel` in code.
-_Avoid_: selected bus, bus view, bus status (that is the panel in the bottom right)
+_Avoid_: selected bus, bus view, bus status (that is the route bar and bus bar on the bottom edge)
 
 **Dock panel**:
-The panel just above the bus status while the bus is docked or charging, for what it can do at that planet: refuelling, and picking up the passengers waiting there, one by one or all at once. `DockPanel` in code.
+The station panel in the top right corner while the bus is docked or charging, for what it can do at that planet: refuelling, and picking up the passengers waiting there, one by one or all at once. `DockPanel` in code.
 _Avoid_: boarding popup, station menu, planet panel (that is the open planet's)
 
 **Debug panel**:
@@ -125,7 +125,7 @@ What delivering a passenger earns, one of their race's kind per delivery whateve
 _Avoid_: science, XP, tech points
 
 **Resource bar**:
-The pill in the top right corner showing the player's credits, research points and average rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
+The pill at the top centre showing the player's credits, research points and average rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
 _Avoid_: HUD (the whole overlay), top bar, wallet
 
 **Research tree**:

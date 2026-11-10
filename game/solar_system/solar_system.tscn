@@ -32,6 +32,9 @@
 [ext_resource type="Script" uid="uid://b5uw1vk5r888r" path="res://game/research/research_lab.gd" id="98_lab"]
 [ext_resource type="PackedScene" uid="uid://ds46abpebov64" path="res://game/research/research_overview.tscn" id="99_overview"]
 [ext_resource type="PackedScene" uid="uid://bahps38451xgx" path="res://game/solar_system/tow_offer.tscn" id="100_tow_offer"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="101_glass"]
+[ext_resource type="Script" uid="uid://b7b5a7k6hdr7s" path="res://game/solar_system/hud_layout.gd" id="102_hud"]
+[ext_resource type="Texture2D" uid="uid://qrc7n3h4glnm" path="res://game/solar_system/icons/info.svg" id="102_info"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -48,27 +51,27 @@ size = Vector2(7.7, 7.7)
 render_priority = -1
 shader = ExtResource("5_halo")
 shader_parameter/halo_color = Color(1, 0.7, 0.3, 0.4)
-shader_parameter/ring_count = null
+shader_parameter/ring_count = 2
 shader_parameter/inner_radius = 0.78
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ember"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/light_source = null
-shader_parameter/light_is_directional = null
-shader_parameter/shadow_color = null
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
 shader_parameter/base_color = Color(0.82, 0.58, 0.4, 1)
 shader_parameter/mid_color = Color(0.66, 0.43, 0.3, 1)
 shader_parameter/top_color = Color(0.94, 0.78, 0.58, 1)
 shader_parameter/mid_threshold = 0.55
 shader_parameter/top_threshold = 0.68
 shader_parameter/noise_scale = 2.6
-shader_parameter/stripes = null
-shader_parameter/stripe_count = null
-shader_parameter/cap_color = null
-shader_parameter/cap_size = null
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
 shader_parameter/seed = 3.0
-shader_parameter/terminator_softness = null
+shader_parameter/terminator_softness = 0.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orbit"]
 transparency = 1
@@ -79,47 +82,47 @@ albedo_color = Color(0.8, 0.8, 1, 0.3)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_terra"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/light_source = null
-shader_parameter/light_is_directional = null
-shader_parameter/shadow_color = null
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
 shader_parameter/base_color = Color(0.5, 0.82, 0.34, 1)
 shader_parameter/mid_color = Color(0.84, 0.95, 0.56, 1)
 shader_parameter/top_color = Color(0.36, 0.71, 0.35, 1)
 shader_parameter/mid_threshold = 0.5
 shader_parameter/top_threshold = 0.54
 shader_parameter/noise_scale = 1.8
-shader_parameter/stripes = null
-shader_parameter/stripe_count = null
-shader_parameter/cap_color = null
-shader_parameter/cap_size = null
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
 shader_parameter/seed = 11.0
-shader_parameter/terminator_softness = null
+shader_parameter/terminator_softness = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_moon"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/light_source = null
-shader_parameter/light_is_directional = null
-shader_parameter/shadow_color = null
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
 shader_parameter/base_color = Color(0.95, 0.93, 1, 1)
 shader_parameter/mid_color = Color(0.8, 0.78, 0.95, 1)
 shader_parameter/top_color = Color(0.8, 0.78, 0.95, 1)
 shader_parameter/mid_threshold = 0.6
 shader_parameter/top_threshold = 1.0
 shader_parameter/noise_scale = 3.0
-shader_parameter/stripes = null
-shader_parameter/stripe_count = null
-shader_parameter/cap_color = null
-shader_parameter/cap_size = null
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
 shader_parameter/seed = 5.0
-shader_parameter/terminator_softness = null
+shader_parameter/terminator_softness = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_giant"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/light_source = null
-shader_parameter/light_is_directional = null
-shader_parameter/shadow_color = null
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
 shader_parameter/base_color = Color(1, 0.6, 0.25, 1)
 shader_parameter/mid_color = Color(0.95, 0.42, 0.22, 1)
 shader_parameter/top_color = Color(1, 0.8, 0.5, 1)
@@ -128,38 +131,38 @@ shader_parameter/top_threshold = 0.8
 shader_parameter/noise_scale = 1.4
 shader_parameter/stripes = 1.0
 shader_parameter/stripe_count = 5.0
-shader_parameter/cap_color = null
-shader_parameter/cap_size = null
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
 shader_parameter/seed = 21.0
-shader_parameter/terminator_softness = null
+shader_parameter/terminator_softness = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_giant_rings"]
 render_priority = 0
 shader = ExtResource("4_rings")
 shader_parameter/color_a = Color(0.72, 0.72, 1, 1)
 shader_parameter/color_b = Color(0.56, 0.56, 0.92, 1)
-shader_parameter/band_count = null
-shader_parameter/gap = null
-shader_parameter/opacity = null
+shader_parameter/band_count = 3.0
+shader_parameter/gap = 0.12
+shader_parameter/opacity = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_frost"]
 render_priority = 0
 shader = ExtResource("3_surface")
-shader_parameter/light_source = null
-shader_parameter/light_is_directional = null
-shader_parameter/shadow_color = null
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
 shader_parameter/base_color = Color(1, 0.62, 0.74, 1)
 shader_parameter/mid_color = Color(1, 0.76, 0.84, 1)
 shader_parameter/top_color = Color(1, 0.92, 0.95, 1)
 shader_parameter/mid_threshold = 0.5
 shader_parameter/top_threshold = 0.66
 shader_parameter/noise_scale = 2.2
-shader_parameter/stripes = null
-shader_parameter/stripe_count = null
-shader_parameter/cap_color = null
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
 shader_parameter/cap_size = 0.22
 shader_parameter/seed = 37.0
-shader_parameter/terminator_softness = null
+shader_parameter/terminator_softness = 0.0
 
 [node name="SolarSystem" type="Node3D" unique_id=1939531791]
 script = ExtResource("11_system")
@@ -175,10 +178,13 @@ parallax = true
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1555607591]
 unique_name_in_owner = true
-transform = Transform3D(0.939693, -0.210569, 0.269516, 0, 0.788011, 0.615661, -0.34202, -0.578533, 0.740488, 11.5892, 26.4734, 31.841)
+transform = Transform3D(0.939693, -0.210569, 0.269516, 0, 0.788011, 0.615661, -0.34202, -0.578533, 0.740488, 10.78064, 24.626442, 29.61952)
+top_level = true
 fov = 30.0
 
 [node name="PhantomCameraHost" type="Node" parent="Camera" unique_id=583792244]
+process_priority = 300
+process_physics_priority = 300
 script = ExtResource("6_pcam_host")
 
 [node name="CameraRig" parent="." unique_id=1977612620 instance=ExtResource("10_rig")]
@@ -293,7 +299,7 @@ script = ExtResource("27_pump")
 unique_name_in_owner = true
 script = ExtResource("98_lab")
 bus = NodePath("../Bus")
-resource_bar = NodePath("../Hud/ResourceBar")
+resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
 planet_panel = NodePath("../Hud/PlanetPanel")
 research_overview = NodePath("../Hud/ResearchOverview")
 
@@ -311,6 +317,7 @@ unique_name_in_owner = true
 camera = NodePath("../Camera")
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
+script = ExtResource("102_hud")
 
 [node name="WaitingMarkers" parent="Hud" unique_id=1789310111 instance=ExtResource("22_markers")]
 unique_name_in_owner = true
@@ -323,38 +330,31 @@ camera = NodePath("../../Camera")
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
 
-[node name="Corner" type="MarginContainer" parent="Hud" unique_id=1847091064]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 0
-grow_vertical = 0
-mouse_filter = 2
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="Stack" type="VBoxContainer" parent="Hud/Corner" unique_id=737879991]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-alignment = 2
-
-[node name="DockPanel" parent="Hud/Corner/Stack" unique_id=609881460 instance=ExtResource("23_dock")]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="BusStatusPanel" parent="Hud/Corner/Stack" unique_id=923292603 node_paths=PackedStringArray("bus", "cabin") instance=ExtResource("19_status")]
-layout_mode = 2
-theme_override_constants/margin_right = 0
-theme_override_constants/margin_bottom = 0
-bus = NodePath("../../../../Bus")
-cabin = NodePath("../../../../Cabin")
-
-[node name="ResourceBar" parent="Hud" unique_id=1204237600 instance=ExtResource("28_bar")]
-unique_name_in_owner = true
+[node name="TopRight" type="MarginContainer" parent="Hud" unique_id=304030688]
 anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+
+[node name="DockPanel" parent="Hud/TopRight" unique_id=609881460 instance=ExtResource("23_dock")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TopCentre" type="MarginContainer" parent="Hud" unique_id=1703736930]
+unique_name_in_owner = true
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/margin_top = 12
+
+[node name="ResourceBar" parent="Hud/TopCentre" unique_id=1204237600 instance=ExtResource("28_bar")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="HintBox" type="MarginContainer" parent="Hud" unique_id=299227585]
 unique_name_in_owner = true
@@ -367,13 +367,39 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 theme = ExtResource("18_theme")
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_bottom = 96
 
-[node name="CourseHint" type="Label" parent="Hud/HintBox" unique_id=1805317662]
+[node name="CourseHint" type="PanelContainer" parent="Hud/HintBox" unique_id=1777921169]
 unique_name_in_owner = true
+material = ExtResource("101_glass")
+custom_minimum_size = Vector2(438, 32)
 layout_mode = 2
-theme_type_variation = &"SmallLabel"
+theme_type_variation = &"NoticePanel"
+
+[node name="Row" type="HBoxContainer" parent="Hud/HintBox/CourseHint" unique_id=2116448379]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Hud/HintBox/CourseHint/Row" unique_id=741794951]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(13, 13)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("102_info")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Hud/HintBox/CourseHint/Row" unique_id=1805317662]
+layout_mode = 2
+theme_type_variation = &"BodyTextLabel"
 text = "Right-click planets or space to add stops. Backspace clears the route."
+
+[node name="BusStatusPanel" parent="Hud" unique_id=923292603 node_paths=PackedStringArray("bus") instance=ExtResource("19_status")]
+unique_name_in_owner = true
+anchors_preset = 7
+bus = NodePath("../../Bus")
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
 unique_name_in_owner = true
@@ -387,5 +413,6 @@ anchors_preset = 11
 unique_name_in_owner = true
 
 [node name="ResearchOverview" parent="Hud" unique_id=2033696468 instance=ExtResource("99_overview")]
+anchors_preset = 15
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]

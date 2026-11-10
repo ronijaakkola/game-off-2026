@@ -11,12 +11,10 @@ The upgrade icons are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0
 | `bot.svg` | `bot` | ISC (`LICENSE.txt`) |
 | `brain.svg` | `brain` | ISC (`LICENSE.txt`) |
 | `cctv.svg` | `cctv` | ISC (`LICENSE.txt`) |
-| `fuel.svg` | `fuel` | ISC (`LICENSE.txt`) |
 | `gamepad_2.svg` | `gamepad-2` | ISC (`LICENSE.txt`) |
 | `gauge.svg` | `gauge` | ISC (`LICENSE.txt`) |
 | `ham.svg` | `ham` | ISC (`LICENSE.txt`) |
 | `route.svg` | `route` | ISC (`LICENSE.txt`) |
-| `sandwich.svg` | `sandwich` | ISC (`LICENSE.txt`) |
 | `sofa.svg` | `sofa` | ISC (`LICENSE.txt`) |
 | `sun.svg` | `sun` | ISC (`LICENSE.txt`) |
 | `thermometer_snowflake.svg` | `thermometer-snowflake` | ISC (`LICENSE.txt`) |

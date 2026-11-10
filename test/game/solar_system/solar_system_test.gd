@@ -35,7 +35,7 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	# Once they are off, the total counts up to include the fare.
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
-	assert_str(total).is_equal(CreditsCounter.group_digits(payout))
+	assert_str(total).is_equal(CreditsCounter.format_credits(payout))
 	assert_int(ledger.get_rating_count()).is_equal(1)
 	assert_float(ledger.get_average_rating()).is_equal(passenger.get_rating())
 	# Once they are off, the average shows their rating too.
@@ -154,7 +154,22 @@ func test_waiting_markers_show_only_while_the_bus_has_the_trait() -> void:
 	assert_bool(markers.is_shown(terra)).is_false()
 
 
-func test_the_dock_panel_shrinks_with_its_bottom_edge_and_board_all_in_place() -> void:
+func test_a_right_click_on_the_bus_bar_sets_no_course() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var camera := runner.find_child("Camera") as Camera3D
+	var bar := runner.find_child("BusBar", true, false) as Control
+	var at := _to_window(camera, bar.get_global_rect().position + Vector2(8.0, 8.0))
+	_send_motion(at)
+	await runner.simulate_frames(1)
+
+	_send_click(MOUSE_BUTTON_RIGHT, at)
+	await runner.simulate_frames(1)
+
+	assert_array((runner.find_child("Bus") as FrameshiftBus).get_route_stops()).is_empty()
+
+
+func test_the_dock_panel_shrinks_with_its_top_edge_in_place() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
@@ -164,24 +179,22 @@ func test_the_dock_panel_shrinks_with_its_bottom_edge_and_board_all_in_place() -
 	await runner.simulate_frames(3)
 	await await_millis(500)
 	var card := runner.find_child("Card", true, false) as Control
-	var bottom := card.get_global_rect().end.y
 	var top := card.get_global_rect().position.y
+	var bottom := card.get_global_rect().end.y
 	var camera := runner.find_child("Camera") as Camera3D
 	var button := runner.find_child("BoardAllButton", true, false) as Button
-	var button_at := button.get_global_rect().position.y
 
 	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
 
-	# Every frame while the rows slide out and the card shrinks: the bottom edge and Board
-	# all stay, and the top edge only ever moves down.
+	# Every frame while the rows slide out and the card shrinks: the top edge stays, and the
+	# bottom edge only ever moves up.
 	for frame: int in 90:
 		await runner.simulate_frames(1)
 		var rect := card.get_global_rect()
-		assert_float(rect.end.y).is_equal_approx(bottom, 0.01)
-		assert_float(button.get_global_rect().position.y).is_equal_approx(button_at, 0.01)
-		assert_float(rect.position.y).is_greater_equal(top - 0.01)
-		top = rect.position.y
-	assert_float(top).is_greater(bottom - 200.0)
+		assert_float(rect.position.y).is_equal_approx(top, 0.01)
+		assert_float(rect.end.y).is_less_equal(bottom + 0.01)
+		bottom = rect.end.y
+	assert_float(bottom).is_less(top + 200.0)
 
 
 func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() -> void:
@@ -260,7 +273,7 @@ func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
-	var hint := runner.find_child("CourseHint") as Label
+	var hint := runner.find_child("CourseHint") as Control
 	assert_bool(hint.visible).is_true()
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))

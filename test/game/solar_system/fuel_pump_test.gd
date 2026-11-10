@@ -113,7 +113,7 @@ func test_the_dock_panel_has_no_fuel_button_where_no_fuel_is_sold() -> void:
 	await runner.simulate_frames(3)
 	var button := runner.find_child("FuelButton") as Button
 	assert_bool((runner.find_child("DockPanel") as Control).visible).is_true()
-	assert_bool(button.visible).is_false()
+	assert_bool(button.is_visible_in_tree()).is_false()
 	assert_bool((runner.find_child("FuelRule") as Control).visible).is_false()
 
 

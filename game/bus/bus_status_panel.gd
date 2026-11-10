@@ -1,17 +1,17 @@
 class_name BusStatusPanel
-extends MarginContainer
-## The bus's status in the bottom right corner: what it is doing, a track from the planet
-## it left to the next one with the time left to it, its fuel, a person for each seat,
-## filled while taken, and a button that cancels the course while the bus charges or flies
-## under its own power. It reads [member bus] and [member cabin] every frame.
+extends VBoxContainer
+## The bus's status on the bottom edge of the screen, in two bars. The route bar on top
+## shows the leg the bus is on, as a track from the planet it left to the next one with the
+## time left to it, or what the bus is doing when it has no leg. The bus bar under it shows
+## its fuel, two small keys that are blank placeholders for now, and the Frameshift key
+## ([FrameshiftKey]): the key fills as the drive charges and
+## cancels the course when pressed, turns into Stop while the bus flies under its own power,
+## and is off otherwise. It reads [member bus] every frame.
 
-const TRACK_COLOR := Color(1.0, 1.0, 1.0, 0.18)
+const TRACK_COLOR := Color(1.0, 1.0, 1.0, 0.1412)
 const ROUTE_COLOR := Color(1.0, 0.6, 0.22, 1.0)
 const BUS_COLOR := Color(0.96, 0.78, 0.29, 1.0)
-const END_FILL := Color(0.2, 0.16, 0.32, 1.0)
-const SEAT_EMPTY := Color(1.0, 1.0, 1.0, 0.18)
-# The gap between people, in pixels.
-const SEAT_GAP := 2.0
+const END_FILL := Color(0.2, 0.161, 0.322, 1.0)
 const FUEL_COLOR := Color(0.6, 0.95, 1.0, 1.0)
 const FUEL_LOW_COLOR := Color(0.95, 0.3, 0.4, 1.0)
 # At or under this share of a full tank, the fuel shows in FUEL_LOW_COLOR.
@@ -19,8 +19,6 @@ const FUEL_LOW := 0.25
 
 ## The bus whose status it shows.
 @export var bus: FrameshiftBus
-## The cabin whose seats it shows.
-@export var cabin: Cabin
 
 # The trip the track shows: the planet it runs to, its estimated time when the bus set off,
 # and how far along it the bus is, from 0 to 1. The track never moves back, so a planet
@@ -30,7 +28,6 @@ var _trip_time := 0.0
 var _progress := 0.0
 # The planet the bus left last, where the track starts. Null for a point in space.
 var _from_planet: Planet
-var _seats_shown := Vector2i(-1, -1)
 # The fuel bar's fill, a copy of the scene's, so its colour can change.
 var _fuel_fill: StyleBoxFlat
 var _fuel_low := false
@@ -41,7 +38,6 @@ func _ready() -> void:
 	_fuel_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate() as StyleBoxFlat
 	bar.add_theme_stylebox_override(&"fill", _fuel_fill)
 	(%Track as Control).draw.connect(_draw_track)
-	(%Seats as Control).draw.connect(_draw_seats)
 	_show()
 
 
@@ -60,14 +56,14 @@ func _show() -> void:
 	var charging := bus.state == FrameshiftBus.State.CHARGING
 	_set_text(%StateLabel, _state_text(next))
 	_show_trip(next)
-	(%ChargeBar as ProgressBar).visible = charging
-	(%ChargeBar as ProgressBar).value = bus.get_charge_progress()
-	var button := %CancelButton as Button
+	var key := %FrameshiftKey as FrameshiftKey
 	var flying := bus.state == FrameshiftBus.State.FLYING
-	button.visible = charging or (flying and not bus.is_stopping() and not bus.is_towing())
-	_set_text(button, "Cancel" if charging else "Cancel route")
+	var can_stop := flying and not bus.is_stopping() and not bus.is_towing()
+	key.disabled = not (charging or can_stop)
+	key.stop = can_stop
+	# A charge that hasn't moved yet, as while passengers board, still latches the key.
+	key.charge = maxf(bus.get_charge_progress(), 0.02) if charging else 0.0
 	_show_fuel()
-	_show_seats()
 
 
 func _state_text(next: Planet) -> String:
@@ -75,7 +71,7 @@ func _state_text(next: Planet) -> String:
 		return "Out of fuel: refuel here" if bus.is_at_planet() else "Out of fuel"
 	match bus.state:
 		FrameshiftBus.State.DOCKED:
-			return "Docked"
+			return "No course"
 		FrameshiftBus.State.CHARGING:
 			return "Charging frameshift"
 		FrameshiftBus.State.FLYING, FrameshiftBus.State.PARKING:
@@ -96,8 +92,10 @@ func _flying_text(next: Planet) -> String:
 
 func _show_trip(next: Planet) -> void:
 	var shown := next != null and not bus.is_stopping()
-	(%Track as Control).visible = shown
-	(%Ends as Control).visible = shown
+	for part: Control in [%RouteNudge, %StateLabel]:
+		part.visible = not shown
+	for part: Control in [%FromLabel, %Track, %ToLabel, %EtaLabel]:
+		part.visible = shown
 	if not shown:
 		_trip_planet = null
 		return
@@ -132,21 +130,6 @@ func _show_fuel() -> void:
 		amount.remove_theme_color_override(&"font_color")
 
 
-func _show_seats() -> void:
-	if not cabin:
-		return
-	var shown := Vector2i(cabin.get_passengers().size(), cabin.seats)
-	if shown == _seats_shown:
-		return
-	_seats_shown = shown
-	_set_text(%SeatLabel, "%d/%d seats" % [shown.x, shown.y])
-	var seats := %Seats as Control
-	seats.custom_minimum_size = Vector2(
-		shown.y * PersonIcon.SIZE.x + maxi(shown.y - 1, 0) * SEAT_GAP, PersonIcon.SIZE.y
-	)
-	seats.queue_redraw()
-
-
 # A line from end to end, orange up to the bus, with a ring at each end.
 func _draw_track() -> void:
 	var track := %Track as Control
@@ -165,14 +148,6 @@ func _draw_track() -> void:
 	track.draw_rect(Rect2(at - bus_size * 0.5, bus_size), BUS_COLOR)
 
 
-# A person for each seat, filled while the seat is taken.
-func _draw_seats() -> void:
-	var seats := %Seats as Control
-	for seat: int in _seats_shown.y:
-		var color := BUS_COLOR if seat < _seats_shown.x else SEAT_EMPTY
-		PersonIcon.draw_person(seats, Vector2(seat * (PersonIcon.SIZE.x + SEAT_GAP), 0.0), color)
-
-
 func _planet_name(planet: Planet) -> String:
 	if not planet:
 		return "?"
@@ -180,13 +155,11 @@ func _planet_name(planet: Planet) -> String:
 
 
 # Sets text only when it changes, since this runs every frame.
-func _set_text(control: Control, text: String) -> void:
-	if control is Label and (control as Label).text != text:
-		(control as Label).text = text
-	elif control is Button and (control as Button).text != text:
-		(control as Button).text = text
+func _set_text(label: Label, text: String) -> void:
+	if label.text != text:
+		label.text = text
 
 
-func _on_cancel_button_pressed() -> void:
+func _on_frameshift_key_pressed() -> void:
 	if bus:
 		bus.cancel_course()

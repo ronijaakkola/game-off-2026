@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
-## The bus status panel in the solar system: it says what the bus is doing and how many
-## seats are taken and how much fuel is left, and its button cancels the course.
+## The bus status panel in the solar system: it says what the bus is doing and how much
+## fuel is left, and its Frameshift key cancels the course.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -26,8 +26,9 @@ func test_cancel_while_charging_keeps_the_bus_docked() -> void:
 	await runner.simulate_frames(2)
 	assert_str(_text(runner, "StateLabel")).is_equal("Charging frameshift")
 	assert_str(_text(runner, "ToLabel")).is_equal("Terra")
-	var button := runner.find_child("CancelButton") as Button
-	assert_bool(button.visible).is_true()
+	var button := runner.find_child("FrameshiftKey") as FrameshiftKey
+	assert_bool(button.disabled).is_false()
+	assert_float(button.charge).is_greater(0.0)
 
 	runner.set_mouse_position(button.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
@@ -35,8 +36,9 @@ func test_cancel_while_charging_keeps_the_bus_docked() -> void:
 	await runner.simulate_frames(1)
 
 	assert_int(bus.state).is_equal(FrameshiftBus.State.DOCKED)
-	assert_str(_text(runner, "StateLabel")).is_equal("Docked")
-	assert_bool(button.visible).is_false()
+	assert_str(_text(runner, "StateLabel")).is_equal("No course")
+	assert_bool(button.disabled).is_true()
+	assert_float(button.charge).is_equal(0.0)
 
 
 func test_shows_the_fuel_left_and_says_when_it_runs_out_at_a_planet() -> void:
@@ -59,9 +61,11 @@ func _text(runner: GdUnitSceneRunner, label: String) -> String:
 	return (runner.find_child(label) as Label).text
 
 
-func test_the_preview_shows_the_bus_travelling_with_three_of_eight_seats() -> void:
+func test_the_preview_shows_the_bus_travelling_with_three_of_eight_seats_taken() -> void:
 	var runner := scene_runner("res://test/previews/bus_status_panel_preview.tscn")
 	await runner.simulate_frames(10)
 	assert_str(_text(runner, "StateLabel")).is_equal("Travelling to Terra")
-	assert_str(_text(runner, "SeatLabel")).is_equal("3/8 seats")
-	assert_bool((runner.find_child("CancelButton") as Button).visible).is_true()
+	assert_str(_text(runner, "SeatLabel")).is_equal("3/8")
+	var key := runner.find_child("FrameshiftKey") as FrameshiftKey
+	assert_bool(key.disabled).is_false()
+	assert_bool(key.stop).is_true()

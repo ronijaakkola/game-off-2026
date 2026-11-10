@@ -2,164 +2,192 @@
 
 [ext_resource type="Script" uid="uid://d2yxgbv6dmo38" path="res://game/bus/bus_status_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
-bg_color = Color(1, 1, 1, 0.12)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_charge"]
-bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
-content_margin_top = 1.0
-bg_color = Color(1, 1, 1, 0.1)
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="Script" uid="uid://bf21dpk28ap5b" path="res://game/bus/frameshift_key.gd" id="4_key"]
+[ext_resource type="Texture2D" uid="uid://bv3he6oofkmxy" path="res://game/bus/icons/route.svg" id="5_route"]
+[ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
+[ext_resource type="Script" uid="uid://djxl2kxm0tghb" path="res://game/bus/bus_key.gd" id="7_bus_key"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuel"]
-bg_color = Color(0.6, 0.95, 1, 1)
+bg_color = Color(0.6, 0.949, 1, 1)
 corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
-[node name="BusStatusPanel" type="MarginContainer" unique_id=1252999255]
-anchor_left = 1.0
+[node name="BusStatusPanel" type="VBoxContainer" unique_id=1252999255]
+custom_minimum_size = Vector2(438, 0)
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -40.0
-offset_top = -40.0
-grow_horizontal = 0
+grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 theme = ExtResource("2_theme")
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/separation = 0
 script = ExtResource("1_panel")
 
-[node name="Card" type="PanelContainer" parent="." unique_id=1436012681]
-custom_minimum_size = Vector2(240, 0)
+[node name="RouteBar" type="PanelContainer" parent="." unique_id=1056280419]
+material = ExtResource("3_glass")
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
-theme_type_variation = &"CardPanel"
+theme_type_variation = &"RouteBarPanel"
 
-[node name="Rows" type="VBoxContainer" parent="Card" unique_id=1952930612]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="StateLabel" type="Label" parent="Card/Rows" unique_id=196512966]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"SmallLabel"
-text = "Docked"
-
-[node name="Track" type="Control" parent="Card/Rows" unique_id=647450832]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 14)
+[node name="Row" type="HBoxContainer" parent="RouteBar" unique_id=432325167]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 8
 
-[node name="Ends" type="HBoxContainer" parent="Card/Rows" unique_id=1038929083]
+[node name="RouteNudge" type="MarginContainer" parent="RouteBar/Row" unique_id=1448027967]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 4
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
 
-[node name="FromLabel" type="Label" parent="Card/Rows/Ends" unique_id=218105738]
+[node name="RouteIcon" type="TextureRect" parent="RouteBar/Row/RouteNudge" unique_id=1737471946]
+self_modulate = Color(0.957, 0.945, 1, 0.4)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("5_route")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StateLabel" type="Label" parent="RouteBar/Row" unique_id=196512966]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+theme_type_variation = &"StrongLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+text = "No course"
+
+[node name="FromLabel" type="Label" parent="RouteBar/Row" unique_id=218105738]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
 text = "From"
 
-[node name="ToLabel" type="Label" parent="Card/Rows/Ends" unique_id=1048281388]
+[node name="Track" type="Control" parent="RouteBar/Row" unique_id=647450832]
 unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.55)
-text = "To"
-
-[node name="EtaLabel" type="Label" parent="Card/Rows/Ends" unique_id=635715567]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"TinyLabel"
-text = "0 s"
-
-[node name="ChargeBar" type="ProgressBar" parent="Card/Rows" unique_id=1973779213]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 6)
-layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_track")
-theme_override_styles/fill = SubResource("StyleBoxFlat_charge")
-max_value = 1.0
-show_percentage = false
-
-[node name="Rule" type="Panel" parent="Card/Rows" unique_id=1369199533]
-custom_minimum_size = Vector2(0, 1)
-layout_mode = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
-
-[node name="FuelRow" type="HBoxContainer" parent="Card/Rows" unique_id=1784337636]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="FuelLabel" type="Label" parent="Card/Rows/FuelRow" unique_id=492183118]
-layout_mode = 2
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.55)
-text = "Fuel"
-
-[node name="FuelBar" type="ProgressBar" parent="Card/Rows/FuelRow" unique_id=1218609742]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 6)
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
-theme_override_styles/background = SubResource("StyleBoxFlat_track")
-theme_override_styles/fill = SubResource("StyleBoxFlat_fuel")
-max_value = 1.0
-value = 1.0
-show_percentage = false
+mouse_filter = 2
 
-[node name="FuelAmount" type="Label" parent="Card/Rows/FuelRow" unique_id=2031955704]
+[node name="ToLabel" type="Label" parent="RouteBar/Row" unique_id=1048281388]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(34, 0)
+custom_minimum_size = Vector2(44, 0)
 layout_mode = 2
-theme_type_variation = &"TinyLabel"
+theme_type_variation = &"StrongLabel"
+text = "To"
+
+[node name="EtaLabel" type="Label" parent="RouteBar/Row" unique_id=635715567]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+theme_type_variation = &"SmallStrongLabel"
+text = "0 s"
+horizontal_alignment = 2
+
+[node name="BusBar" type="PanelContainer" parent="." unique_id=1889564419]
+material = ExtResource("3_glass")
+layout_mode = 2
+theme_type_variation = &"BusBarPanel"
+
+[node name="Row" type="HBoxContainer" parent="BusBar" unique_id=752414464]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="FuelGauge" type="VBoxContainer" parent="BusBar/Row" unique_id=812908986]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="FuelRow" type="HBoxContainer" parent="BusBar/Row/FuelGauge" unique_id=1784337636]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="FuelNudge" type="MarginContainer" parent="BusBar/Row/FuelGauge/FuelRow" unique_id=1652748653]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="FuelIcon" type="TextureRect" parent="BusBar/Row/FuelGauge/FuelRow/FuelNudge" unique_id=1211769540]
+self_modulate = Color(0.6, 0.949, 1, 1)
+custom_minimum_size = Vector2(11, 11)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_fuel")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FuelLabel" type="Label" parent="BusBar/Row/FuelGauge/FuelRow" unique_id=492183118]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"DimLabel"
+text = "Fuel"
+
+[node name="FuelAmount" type="Label" parent="BusBar/Row/FuelGauge/FuelRow" unique_id=2031955704]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallStrongLabel"
 text = "100%"
 horizontal_alignment = 2
 
-[node name="SeatRow" type="HBoxContainer" parent="Card/Rows" unique_id=813470893]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Seats" type="Control" parent="Card/Rows/SeatRow" unique_id=1390725535]
+[node name="FuelBar" type="ProgressBar" parent="BusBar/Row/FuelGauge" unique_id=1218609742]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_fuel")
+max_value = 1.0
+show_percentage = false
+
+[node name="Divider" type="ColorRect" parent="BusBar/Row" unique_id=2105485791]
+custom_minimum_size = Vector2(1, 30)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
+color = Color(1, 1, 1, 0.1216)
 
-[node name="SeatLabel" type="Label" parent="Card/Rows/SeatRow" unique_id=957891417]
+[node name="Controls" type="HBoxContainer" parent="BusBar/Row" unique_id=413320870]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="WindowsKey" type="Button" parent="BusBar/Row/Controls" unique_id=609719169]
+custom_minimum_size = Vector2(42, 44)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"KeyButton"
+script = ExtResource("7_bus_key")
+
+[node name="HonkKey" type="Button" parent="BusBar/Row/Controls" unique_id=1020392020]
+custom_minimum_size = Vector2(42, 44)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"KeyButton"
+script = ExtResource("7_bus_key")
+
+[node name="FrameshiftKey" type="Button" parent="BusBar/Row/Controls" unique_id=1574264474]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"TinyLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.55)
-text = "0/0 seats"
-horizontal_alignment = 2
+size_flags_vertical = 4
+theme_type_variation = &"KeyButton"
+disabled = true
+script = ExtResource("4_key")
 
-[node name="CancelButton" type="Button" parent="Card/Rows" unique_id=1574264474]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_type_variation = &"SmallButton"
-text = "Cancel route"
-
-[connection signal="pressed" from="Card/Rows/CancelButton" to="." method="_on_cancel_button_pressed"]
+[connection signal="pressed" from="BusBar/Row/Controls/FrameshiftKey" to="." method="_on_frameshift_key_pressed"]
