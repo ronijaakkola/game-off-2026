@@ -1,10 +1,10 @@
 extends Node
 ## A full cabin for capturing the passenger cards: eight passengers on the Commuter type,
 ## one in each mood and some in between, three of them asking for something, their
-## happiness heading every which way. The cabin
-## stands still, so every frame shows the same state. `-- Kick` puts the pointer over the
-## second card, so its options slide out. `-- Scare` gives everyone a kick's scare a few
-## frames in, so the bars drop and leave their red trail.
+## happiness heading every which way. The cabin stands still, so every frame shows the same
+## state. `-- Kick` puts the pointer over the second card, so its options slide out.
+## `-- Scare` gives everyone a kick's scare a few frames in, so the bars drop and leave
+## their red trail.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const DESTINATIONS: Array[String] = ["Ember", "Terra", "Moon", "Giant", "Frost"]
