@@ -1,7 +1,8 @@
 class_name CameraRig
 extends Node3D
 ## An RTS camera. WASD, the arrow keys or the pointer at a window edge (unless
-## [code]Settings.edge_pan[/code] is off) pan it across the orbit plane, and the mouse
+## [code]Settings.edge_pan[/code] is off) pan it across the orbit plane, holding the
+## middle mouse button drags it (the point under the pointer stays under it), and the mouse
 ## wheel zooms it toward the point under the pointer. This node sits at the point the
 ## camera looks at, and its rotation is the viewing angle; its shot,
 ## %Shot, sits [member distance] back along that angle, and the scene's PhantomCameraHost
@@ -63,6 +64,10 @@ var _pan_velocity := Vector3.ZERO
 # unknown, and after it leaves, the last position may sit on the edge it left through.
 var _pointer_inside := false
 var _pointer_position := Vector2.ZERO
+# While the drag button is held, the point on the orbit plane that was under the pointer
+# when it went down, which the drag keeps under the pointer.
+var _dragging := false
+var _grab_point := Vector3.ZERO
 var _focus_target: Node3D
 var _focus_radius := 0.0
 var _focus_reach := 0.0
@@ -84,15 +89,21 @@ func _ready() -> void:
 	_focus_seconds = _blend.duration
 	focus_shot.tween_completed.connect(focus_blend_finished.emit)
 	get_window().mouse_exited.connect(_on_pointer_lost)
-	get_window().focus_exited.connect(_on_pointer_lost)
+	get_window().focus_exited.connect(_on_focus_lost)
 
 
-# _input, not _unhandled_input: a Control under the pointer must not hide where it is.
+# _input, not _unhandled_input: a Control under the pointer must not hide where it is, or
+# take the drag's motion and its release from it.
 func _input(event: InputEvent) -> void:
 	var motion := event as InputEventMouseMotion
 	if motion:
 		_pointer_inside = true
 		_pointer_position = motion.position
+		if _dragging:
+			_drag_to(motion.position)
+	var button := event as InputEventMouseButton
+	if button and not button.pressed and button.is_action(&"camera_drag"):
+		_dragging = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -101,7 +112,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	# A touchpad sends fractions of a notch in factor; a wheel sends 1 or 0.
 	var notches := wheel.factor if wheel.factor > 0.0 else 1.0
-	if event.is_action(&"camera_zoom_in"):
+	if event.is_action(&"camera_drag"):
+		_start_drag(wheel.position)
+	elif event.is_action(&"camera_zoom_in"):
 		_zoom(1.0 - zoom_step * notches, wheel.position)
 	elif event.is_action(&"camera_zoom_out"):
 		_zoom(1.0 + zoom_step * notches, wheel.position)
@@ -205,7 +218,7 @@ func _place_focus_shot() -> void:
 
 # Screen directions to pan in, -1, 0 or 1 on each axis, from the pointer at the edges.
 func _edge_pan_input() -> Vector2:
-	if not Settings.edge_pan or edge_pan_margin <= 0.0 or not _pointer_inside:
+	if not Settings.edge_pan or edge_pan_margin <= 0.0 or not _pointer_inside or _dragging:
 		return Vector2.ZERO
 	var rect := get_viewport().get_visible_rect()
 	var direction := Vector2.ZERO
@@ -218,6 +231,31 @@ func _edge_pan_input() -> Vector2:
 	elif _pointer_position.y > rect.end.y - edge_pan_margin:
 		direction.y = 1.0
 	return direction
+
+
+# Grabs the plane point under screen_point. While the button is held the window keeps
+# getting the pointer's motion past its edge, so a drag doesn't stop there.
+func _start_drag(screen_point: Vector2) -> void:
+	var offset: Variant = _plane_offset(screen_point)
+	if offset == null:
+		return
+	var per_distance: Vector3 = offset
+	_grab_point = position + per_distance * distance
+	_dragging = true
+
+
+# Moves the look-at point, and its target with it, so the grabbed point is under
+# screen_point again. Against the bounds, the grab holds still: coming back into range
+# picks the drag up where the pointer is.
+func _drag_to(screen_point: Vector2) -> void:
+	var offset: Variant = _plane_offset(screen_point)
+	if is_focused() or offset == null:
+		_dragging = false
+		return
+	var per_distance: Vector3 = offset
+	var shift := _grab_point - per_distance * distance - position
+	position = _clamp_to_bounds(position + shift)
+	_target_position = _clamp_to_bounds(_target_position + shift)
 
 
 # Keeps what the player sees under screen_point under it once the zoom settles. Seen from
@@ -253,6 +291,12 @@ func _plane_offset(screen_point: Vector2) -> Variant:
 
 func _on_pointer_lost() -> void:
 	_pointer_inside = false
+
+
+# The window never sees the button come up once it has lost focus.
+func _on_focus_lost() -> void:
+	_pointer_inside = false
+	_dragging = false
 
 
 func _clamp_to_bounds(point: Vector3) -> Vector3:
