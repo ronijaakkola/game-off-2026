@@ -53,6 +53,26 @@ func test_holding_the_key_charges_and_letting_go_drains_and_keeps_the_course() -
 	assert_bool(key.disabled).is_false()
 
 
+# Space used to work the key only once a click had given it focus.
+func test_space_charges_without_clicking_the_key_first() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	bus.plot_course(RouteStop.at_planet(runner.find_child("Terra") as Planet))
+	await runner.simulate_frames(2)
+
+	runner.simulate_key_press(KEY_SPACE)
+	await runner.await_input_processed()
+	await runner.simulate_frames(5)
+
+	assert_int(bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	assert_float((runner.find_child("FrameshiftKey") as FrameshiftKey).charge).is_greater(0.0)
+
+	runner.simulate_key_release(KEY_SPACE)
+	await runner.await_input_processed()
+	assert_bool(bus.frameshift_held).is_false()
+
+
 func test_the_key_pops_up_once_charged_and_its_release_doesnt_stop_the_bus() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
