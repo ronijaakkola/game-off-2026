@@ -412,6 +412,14 @@ func test_the_trend_is_where_happiness_gets_to_in_the_next_seconds() -> void:
 	_expect_trend_comes_true(asking)
 
 
+func test_the_trend_shows_a_late_ride_wearing_them_down() -> void:
+	var late := _departed()
+	late.tick(TRIP, false)
+	late.tick(0.1, false)
+	assert_float(late.trend).is_less(0.0)
+	_expect_trend_comes_true(late)
+
+
 func test_the_trend_is_0_while_happiness_holds() -> void:
 	var waiting := Passenger.new(_type(), _planet, TRIP, FARE)
 	waiting.tick(1.0, false)

@@ -51,7 +51,7 @@ const DOCKED_RATE := 0.1
 const LEEWAY_HAPPINESS := 80.0
 const LEEWAY_RATE := 0.5
 const LEEWAY_MAX := 0.5
-## How far ahead, in seconds, [member trend] looks.
+## The seconds of change [member trend] gives.
 const TREND_SECONDS := 10.0
 ## How long an idle line shows before the next one, in seconds.
 const IDLE_MIN := 6.0
@@ -71,9 +71,9 @@ var destination: Planet
 var fare: float
 ## How content they are, from 0 to [constant MAX_HAPPINESS].
 var happiness := BASE_HAPPINESS
-## Where their happiness is heading, as of the last [method tick]: how much it will
-## change over the next [constant TREND_SECONDS] at its current speed, no further than its
-## target, so positive while it climbs and negative while it falls. 0 while it holds.
+## How their happiness is changing, as of the last [method tick]: how much it changes in
+## [constant TREND_SECONDS] at the speed it moved then, so positive while it climbs and
+## negative while it falls, and larger the faster it goes. 0 while it holds.
 var trend := 0.0
 ## The direct trip time, and the time they expect the ride to take at boarding, the trip
 ## with the type's slack, in seconds of their ride clock.
@@ -296,9 +296,10 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		var speed := CLIMB_RATE
 		if target < happiness:
 			speed = FALL_RATE * (DOCKED_RATE if docked else 1.0)
-		var reach := speed * TREND_SECONDS
-		trend = clampf(target - happiness, -reach, reach)
+		var before := happiness
 		happiness = move_toward(happiness, target, speed * delta)
+		if delta > 0.0:
+			trend = (happiness - before) / delta * TREND_SECONDS
 	if request:
 		if _departed:
 			_request_age += delta
