@@ -39,6 +39,7 @@
 [ext_resource type="Script" uid="uid://ddct1wfbig2em" path="res://game/solar_system/debug_buttons.gd" id="103_debug"]
 [ext_resource type="Script" uid="uid://g6mjlpc3bau8" path="res://game/goals/goal_tracker.gd" id="104_goals"]
 [ext_resource type="PackedScene" uid="uid://cw1q7e1gbejto" path="res://game/goals/goal_panel.tscn" id="105_goal_panel"]
+[ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -309,6 +310,7 @@ cabin = NodePath("../Cabin")
 [node name="FuelPump" type="Node" parent="." unique_id=2138476615]
 unique_name_in_owner = true
 script = ExtResource("27_pump")
+sound = ExtResource("106_fuel_sound")
 
 [node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "planet_panel", "research_overview")]
 unique_name_in_owner = true
