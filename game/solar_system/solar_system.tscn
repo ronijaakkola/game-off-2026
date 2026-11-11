@@ -38,6 +38,7 @@
 [ext_resource type="PackedScene" uid="uid://cw1q7e1gbejto" path="res://game/goals/goal_panel.tscn" id="105_goal_panel"]
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 [ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
+[ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -311,10 +312,21 @@ script = ExtResource("107_low_fuel")
 bus = NodePath("../Bus")
 notices = NodePath("../Hud/Notices")
 
-[node name="FuelPump" type="Node" parent="." unique_id=2138476615]
+[node name="FuelPump" type="Node" parent="." unique_id=2138476615 node_paths=PackedStringArray("bus", "dock_panel", "planet_panel")]
 unique_name_in_owner = true
 script = ExtResource("27_pump")
 sound = ExtResource("106_fuel_sound")
+bus = NodePath("../Bus")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+planet_panel = NodePath("../Hud/PlanetPanel")
+
+[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "cabin", "goals", "research_lab")]
+unique_name_in_owner = true
+script = ExtResource("108_saver")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+goals = NodePath("../Goals")
+research_lab = NodePath("../ResearchLab")
 
 [node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "planet_panel", "research_overview")]
 unique_name_in_owner = true

@@ -10,7 +10,7 @@ Each entry is the project's word for a thing. Use it in code, UI text, docs and 
 ## Language
 
 **Core system**:
-A game-wide service that outlives scene changes and has one instance: the signal bus, audio, scene flow, settings, feedback and online.
+A game-wide service that outlives scene changes and has one instance: the signal bus, audio, scene flow, settings, save game, feedback and online.
 _Avoid_: manager, global
 _Never_: singleton
 
@@ -57,7 +57,7 @@ The player's preferences (volumes, mouse sensitivity and similar), kept across s
 _Avoid_: options, config, preferences file
 
 **Save game**:
-The player's progress in the game itself. Not built: a run starts fresh each time.
+The player's run in the game itself, kept so it can be continued from the main menu: one run, saved at checkpoints while the bus waits at a planet. Named `SaveGame` in code, and `GameSaver` is what writes the run into it and puts it back.
 _Avoid_: settings, save file (ambiguous)
 
 **Online**:

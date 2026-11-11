@@ -71,6 +71,17 @@ func bus_moved(position: Vector3, on_board: Array[Passenger], in_flight: bool) -
 		_on_bus_moved(position, on_board, in_flight)
 
 
+## Its progress, for a save game. A kind of goal with progress of its own adds it.
+func to_save() -> Dictionary:
+	return {"state": state}
+
+
+## Puts back the progress [method to_save] gave, and says it changed.
+func load_save(saved: Dictionary) -> void:
+	state = int(saved.get("state", state)) as State
+	changed.emit()
+
+
 func _on_delivered(_passenger: Passenger) -> void:
 	pass
 

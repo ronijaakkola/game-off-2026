@@ -27,8 +27,7 @@ extends Node3D
 ## A passenger kicked off from their card is thrown out of the bus's door as a small figure
 ## in their skin colour.
 ## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
-## open planet's panel: the [FuelPump] runs while they hold the fuel button. It stops when
-## they let go, the tank is full or the credits run out.
+## open planet's panel ([FuelPump]).
 ## Running out of fuel in space scares everyone on board ([constant OUT_OF_FUEL_SHOCK]),
 ## and a notice offers a tow for [constant TOW_FEE] credits. Requesting it pays,
 ## into debt when the player has less, and a tow ship comes from the nearest planet and
@@ -87,12 +86,18 @@ var _orbit_speed := 1.0
 var _course_hint: Notice
 
 
+# Before the planets and the bus are ready, so a continued run starts where it was saved.
+func _enter_tree() -> void:
+	if _planets.is_empty():
+		_collect_planets(self)
+		(%GameSaver as GameSaver).place_world(_planets, _ledger)
+
+
 func _ready() -> void:
 	# After the planets, the bus and the camera have moved this frame, so the names and
 	# the waiting markers follow where they are now, not where they were a frame
 	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
 	process_priority = CAMERA_HOST_PRIORITY + 1
-	_collect_planets(self)
 	_orbit_speed = 1.0 if _is_frameshifting() else idle_orbit_speed
 	_run_orbits(0.0)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
@@ -122,7 +127,9 @@ func _ready() -> void:
 	dock_panel.research_pressed.connect(_on_research_pressed)
 	var bus := %Bus as FrameshiftBus
 	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
-	_course_hint = (%Notices as NoticeStack).push(COURSE_HINT, Notice.Kind.TUTORIAL)
+	# A continued run has set courses before.
+	if not (%GameSaver as GameSaver).is_continued():
+		_course_hint = (%Notices as NoticeStack).push(COURSE_HINT, Notice.Kind.TUTORIAL)
 
 
 func _process(delta: float) -> void:
@@ -133,7 +140,6 @@ func _process(delta: float) -> void:
 	(%PortraitStudio as PortraitStudio).felt_acceleration = felt
 	_place_labels()
 	_update_fade(delta)
-	_run_fuel_pump(delta)
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
@@ -309,6 +315,10 @@ func _start_passengers() -> void:
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
+	(%FuelPump as FuelPump).ledger = _ledger
+	var saver := %GameSaver as GameSaver
+	saver.waiting = waiting
+	saver.start()
 
 
 func _on_bus_docked(planet: Planet) -> void:
@@ -347,36 +357,6 @@ func _on_tow_requested() -> void:
 	add_child(ship)
 	ship.hitched.connect(bus.tow_to.bind(nearest))
 	ship.come_for(bus, nearest)
-
-
-# Runs the fuel pump at the planet the bus is docked at while the dock panel's fuel
-# button is held, or the open planet's refuel button when that is the same planet. Shows in
-# both panels whether it can, and in the open planet's the fuel, the price and what stops it.
-func _run_fuel_pump(delta: float) -> void:
-	var bus := %Bus as FrameshiftBus
-	var tank := bus.get_fuel_tank()
-	var pump := %FuelPump as FuelPump
-	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
-	var open := get_open_planet()
-	var panel := %PlanetPanel as PlanetPanel
-	var dock_panel := %DockPanel as DockPanel
-	var stop := pump.get_stop(docked, tank, _ledger) if docked else ""
-	var fill_cost := ceili((tank.capacity - tank.fuel) * docked.fuel_price) if docked else 0
-	var can_fuel := docked != null and stop.is_empty()
-	dock_panel.show_fuel(tank.get_fraction(), fill_cost, can_fuel, stop.trim_suffix("."))
-	if docked:
-		var held := dock_panel.is_fuel_held() or (open == docked and panel.is_refuel_held())
-		pump.run(delta, docked, held, tank, _ledger)
-	else:
-		pump.stop(_ledger)
-	if not open:
-		return
-	var open_stop := stop if open == docked else "Dock here to refuel."
-	if not open.sells_fuel:
-		open_stop = "No fuel sold here."
-	var note := open_stop if open_stop else "%d credits" % _ledger.credits
-	var full_tank_cost := ceili(tank.capacity * open.fuel_price)
-	panel.show_fuel(tank.get_fraction(), full_tank_cost, open_stop.is_empty(), note)
 
 
 # The dock panel's Research button: opens the planet on its Research tab.
