@@ -10,3 +10,8 @@ The icons are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0), with 
 | `star.svg` | `star` | ISC (`LICENSE.txt`) |
 | `chevron_right.svg` | `chevron-right` | ISC (`LICENSE.txt`) |
 | `info.svg` | `info` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `circle_help.svg` | `circle-help` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `triangle_alert.svg` | `triangle-alert` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `circle_alert.svg` | `circle-alert` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `phone_call.svg` | `phone-call` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `x.svg` | `x` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |

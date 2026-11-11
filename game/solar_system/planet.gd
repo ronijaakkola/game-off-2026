@@ -249,6 +249,19 @@ func get_body_velocity() -> Vector3:
 
 ## A flat ring in the XZ plane, facing up, from [param inner] to [param outer]. UV.x runs
 ## 0 at the inner edge to 1 at the outer one.
+## The planet in [param planets] whose body is nearest [param point], or null when there
+## are none.
+static func nearest_to(point: Vector3, planets: Array[Planet]) -> Planet:
+	var nearest: Planet
+	var nearest_distance := INF
+	for planet: Planet in planets:
+		var distance := point.distance_to(planet.get_body_global_position())
+		if distance < nearest_distance:
+			nearest = planet
+			nearest_distance = distance
+	return nearest
+
+
 static func make_annulus(inner: float, outer: float, segments := SEGMENTS) -> ArrayMesh:
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
