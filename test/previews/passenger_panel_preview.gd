@@ -1,12 +1,16 @@
 extends Node
-## A full cabin for capturing the passenger cards: eight passengers on the Commuter type,
-## one in each mood and some in between, three of them asking for something, their
-## happiness heading every which way. The cabin stands still, so every frame shows the same
-## state. `-- Kick` puts the pointer over the second card, so its options slide out.
+## A full cabin for capturing the passenger cards: eight passengers, Commuters but for two
+## Business passengers, so their badge shows, one in each mood and some in between, three
+## of them asking for something, their happiness heading every which way. The cabin stands
+## still, so every frame shows the same state. `-- Kick` puts the pointer over the second
+## card, so its options slide out.
 ## `-- Scare` gives everyone a kick's scare a few frames in, so the bars drop and leave
 ## their red trail.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
+const BUSINESS := preload("res://game/passengers/types/business.tres")
+# The seats whose passenger is Business.
+const BUSINESS_SEATS: Array[int] = [1, 5]
 const DESTINATIONS: Array[String] = ["Ember", "Terra", "Moon", "Giant", "Frost"]
 # Each destination's icon colour, copied by hand from game/solar_system/solar_system.tscn,
 # so update both when a planet's colour changes. Giant has rings, also as copied.
@@ -43,7 +47,8 @@ func _ready() -> void:
 			destination.icon_ring_color = Color(0.72, 0.72, 1.0)
 			destination.tilt = 18.0
 		add_child(destination)
-		var passenger := Passenger.new(COMMUTER, destination, 60.0, 40.0, rng)
+		var type := BUSINESS if seat in BUSINESS_SEATS else COMMUTER
+		var passenger := Passenger.new(type, destination, 60.0, 40.0, rng)
 		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]
 		passenger.trend = TRENDS[seat]
 		if seat in ASKING:
