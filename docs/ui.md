@@ -181,10 +181,10 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 - **A card shows:** portrait, their name with their destination beside it, a short activity line ("Sleeping...", "Counting stars"), and along the bottom a happiness bar in their mood's colour. The line starts with "Finding their seat..." for a few seconds after boarding.
 - **The mood has no name on the card:** the bar's colour says it. When the mood changes, the bar blends into the new colour, Reduce motion or not.
 - **The bar.** A big drop leaves a dark red trail that holds for half a second, then shrinks to the bar.
-- **Trend chevrons** on the bar show where happiness is heading, as the motive arrows on The Sims' bars do: `>` while it climbs, `<` while it falls.
-  - One to three, by how much it will change over the next 10 s at its speed, no further than its target: 1.5 or more shows one, 8 two, 20 three. A chevron stays until the change drops 1 under its step, so it doesn't flicker.
+- **Trend chevrons** on the bar show which way happiness is moving and how fast, as the motive arrows on The Sims' bars do: `>` while it climbs, `<` while it falls.
+  - One to three, by how much it changes in 10 s at the speed it is moving now, whatever moves it (a request, a late ride, recovering): 1.5 or more shows one, 8 two, 20 three. A chevron stays until the change drops 1 under its step, so it doesn't flicker.
   - They sit inside the fill at its end, dark so they read on every mood's colour. Once the fill is too short, they sit just past its end in the mood's colour.
-  - Nothing shows while happiness holds or has reached its target. They fade over 0.2 s.
+  - Nothing shows while happiness holds still. They fade over 0.2 s.
 - **The activity line morphs** when it changes: a wave sweeps left to right, the old letters drift up and blur away and the new ones rise into focus, in about half a second. Under Reduce motion the lines crossfade.
 - **A request.** A serve button takes the place of the activity line, with the need's icon and label: "Hand a snack" with a sandwich, "Pour a drink" with a cup. A faint cyan fill sweeps across the button as it is held, or as an amenity serves.
   - Served: "Munching a snack".

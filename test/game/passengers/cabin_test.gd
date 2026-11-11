@@ -1,6 +1,9 @@
 extends GdUnitTestSuite
 ## Boarding, picking up, amenities and getting off, through Cabin's public calls.
 
+# Where a passenger starts the ride on a bare bus.
+const START := Passenger.BASE_HAPPINESS + Passenger.ON_TIME_BONUS
+
 var _cabin: Cabin
 var _home: Planet
 var _away: Planet
@@ -24,16 +27,35 @@ func test_boards_until_the_seats_are_full() -> void:
 	assert_int(_cabin.get_passengers().size()).is_equal(2)
 
 
-func test_the_ride_starts_when_the_bus_leaves() -> void:
+func test_they_take_their_seat_at_the_target_and_the_ride_starts_when_the_bus_leaves() -> void:
 	var passenger := _passenger(_away)
 	_cabin.board(passenger)
-	passenger.tick(10.0, true)
-	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS)
+	assert_float(passenger.happiness).is_equal(START)
+	passenger.tick(passenger.expected_seconds * 2.0, true)
+	assert_float(passenger.happiness).is_equal(START)
 
 	_cabin.docked = false
-	passenger.tick(10.0, false)
+	passenger.tick(passenger.trip_seconds, false)
+	assert_float(passenger.happiness).is_equal(START)
+	passenger.tick(passenger.expected_seconds, false)
 
-	assert_float(passenger.happiness).is_greater(Passenger.BASE_HAPPINESS)
+	assert_float(passenger.happiness).is_less(START)
+
+
+func test_comfort_added_at_the_stop_counts_for_those_who_just_boarded() -> void:
+	var stats := BusStats.new()
+	_cabin.follow(stats)
+	var riding := _passenger(_away)
+	_cabin.board(riding)
+	_cabin.docked = false
+	_cabin.docked = true
+	var boarding := _passenger(_away)
+	_cabin.board(boarding)
+
+	stats.get_traits().add(BusTraits.Type.ENTERTAINMENT_SYSTEM)
+
+	assert_float(boarding.happiness).is_equal(START + Comfort.ENTERTAINMENT_BONUS)
+	assert_float(riding.happiness).is_equal(START)
 
 
 func test_boarding_on_the_frame_the_bus_arrives_still_holds_happiness() -> void:
@@ -45,7 +67,7 @@ func test_boarding_on_the_frame_the_bus_arrives_still_holds_happiness() -> void:
 	_cabin.docked = true
 	passenger.tick(10.0, true)
 
-	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS)
+	assert_float(passenger.happiness).is_equal(START)
 
 
 func test_happiness_holds_while_the_bus_parks() -> void:
@@ -53,9 +75,10 @@ func test_happiness_holds_while_the_bus_parks() -> void:
 	_cabin.board(passenger)
 	_cabin.docked = false
 	_cabin.parking = true
+	passenger.happiness = 30.0
 	_cabin._process(10.0)
 
-	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS)
+	assert_float(passenger.happiness).is_equal(30.0)
 
 
 func test_a_kick_scares_everyone_left_on_board() -> void:
@@ -66,8 +89,11 @@ func test_a_kick_scares_everyone_left_on_board() -> void:
 
 	assert_bool(_cabin.kick(kicked)).is_true()
 
-	assert_float(staying.happiness).is_equal(Passenger.BASE_HAPPINESS + Cabin.KICK_SHOCK)
-	assert_float(kicked.happiness).is_equal(Passenger.BASE_HAPPINESS)
+	assert_float(staying.happiness).is_equal(START + Cabin.KICK_SHOCK)
+	assert_float(kicked.happiness).is_equal(START)
+	# The scare stays with them as the bus leaves.
+	_cabin.docked = false
+	assert_float(staying.happiness).is_equal(START + Cabin.KICK_SHOCK)
 
 
 func test_following_other_stats_stops_following_the_first() -> void:

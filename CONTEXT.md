@@ -113,7 +113,7 @@ Someone riding the bus to a destination planet, with a fare, a **happiness** tha
 _Never_: customer, rider, NPC
 
 **Happiness**:
-How content a passenger is, from 0 to 100, sliding toward a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. It sets the mood and the rating. `Passenger.happiness` in code.
+How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. It sets the mood and the rating. `Passenger.happiness` in code.
 _Avoid_: satisfaction, frustration
 _Never_: morale, patience (what it replaced)
 
