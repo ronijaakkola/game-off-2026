@@ -35,6 +35,11 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Fonts.** Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing.
 - **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
 - Spacing is on a 4 px scale.
+- **Tooltips** name a counter or an icon-only key: a dark card (`#0B0920` at 85 %) with the surface's border and 8 px corners, no shadow, dark enough to read over the map and over glass. A name and, when it helps, one sentence in fainter running text, at most 200 px wide.
+  - It sits 8 px from its target's panel, centred on the target: below the resource bar, above the bus bar. Near a side edge of the screen it stays 8 px inside it, and still grows from the target's centre.
+  - It opens once the pointer has rested on the target for 0.3 s, and closes when the pointer leaves.
+  - Going from one tooltip to the next, within 0.3 s of the last one closing, another target shows its tooltip at once with no motion, and the one closing goes at once.
+  - It comes from its target: opening, it slides 6 px out from the target into place while fading in and growing from 94 % out of the edge facing it, in 0.15 s, easing out. Closing, it only fades and shrinks back, in 0.1 s. A pointer that leaves while it opens, or comes back while it closes, turns it round from where it is. Under Reduce motion it only fades. When the game pauses it closes at once.
 - The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
 
 ### Races
@@ -108,9 +113,9 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 A frosted-glass pill: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
 
-- **Credits:** beside a gold dollar sign, with a comma between thousands (12,480).
-- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour.
-- **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: who that rating attracts, and from how many stars the next band starts.
+- **Credits:** beside a gold dollar sign, with a comma between thousands (12,480). The pointer over it shows a tooltip: "Credits", "Fares you have earned. Fuel and tows cost credits."
+- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour. The pointer over them shows a tooltip: "Research points", "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
+- **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: "Recent rating", "Your last 10 rides. A higher rating brings more Business passengers."
 - **Gains and losses** float under the pill, taking no room in it: green "+15", red "-12". Each new payment at a stop pops the gain bigger and shows the new sum.
 - Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
 - The rating does the same: each one pops a gain with how far the average moved ("+0.2", "-0.3", "±0.0"). The very first just appears with a pop.
@@ -202,7 +207,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 A small photo on the left of a card or a waiting row: the passenger's head and shoulders over a blurred background in a deep shade of their race's colour, in a thin white frame tilted very slightly at random.
 
 - Each passenger has one of their race's two heads and one of two eye styles (Googly, Bead). Eye style is variety only, not a sign of race.
-- **Badges.** A passenger's type can put badges on the photo: dark discs with a faint light rim and a white icon, in a row that starts on the top left corner, reaching a little past it, and runs right, tilted with the photo. A disc is 15 px on a 32 px photo, reaching 4 px past the corner, and both grow half as fast as the photo: 19 px on a card's 48 px one. A type can have several. Business has one, a briefcase. A Commuter has none.
+- **Badges.** A passenger's type can put badges on the photo: dark discs with a faint light rim and a white icon, in a row that starts on the top left corner, reaching a little past it, and runs right, tilted with the photo. A disc is 15 px on a 32 px photo, reaching 4 px past the corner, and both grow half as fast as the photo: 19 px on a card's 48 px one. A type can have several. Business has one, a briefcase. A Commuter has none. The pointer over a badge shows a tooltip with the type's name and a line about it: "Business", "These passengers are more demanding but pay more."
 - **Alive:** the head sways and breathes, the eyes blink and glance around, stalks wobble.
 - **Mood shows on the face, never the skin.** Annoyed, the lids slant down toward the middle like a frown over smaller pupils. Furious, more so, a red cartoon anger mark grows in at the upper right and pulses, and the head trembles.
 - **Happy,** they beam now and then for a second or two: lower lids rise so the eyes smile into crescents, the pupils look up, the head bobs. A beam rather than a constant half-smile, which reads as a squint at a card's size.

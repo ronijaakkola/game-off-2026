@@ -10,6 +10,7 @@
 script = ExtResource("1_type")
 display_name = "Business"
 badges = Array[Texture2D]([ExtResource("5_briefcase")])
+description = "These passengers are more demanding but pay more."
 fare_multiplier = 1.6
 slack = 1.2
 needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink")])

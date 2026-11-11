@@ -218,7 +218,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 - The player's **average rating** is the mean of every rating so far.
 - It changes nothing yet.
 - The **recent rating** is the mean of the last 10 ratings. It sets which types turn up (Who turns up), and it is the rating the player is shown, so the stars and what they explain are one number.
-- The star rating says which types the band attracts and what the next one brings, as bands, not odds.
+- The star rating says only that a higher rating brings more Business passengers: no bands, no odds.
 - *(not built)* The player is told the first time the recent rating reaches a new band, and not again on coming back to it.
 
 ## Research
