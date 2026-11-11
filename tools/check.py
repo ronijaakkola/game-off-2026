@@ -1281,7 +1281,7 @@ def run_load():
         raise CheckFailed("the load check script did not run")
     if result.returncode != 0 or summary.group(2) != "0":
         print(result.stdout, end="")
-        raise CheckFailed(f"{summary.group(2)} of {summary.group(1)} files failed to load")
+        raise CheckFailed(f"{summary.group(2)} of {summary.group(1)} files failed the load check")
     # A scene with a missing dependency still loads, but logs an error.
     if ERROR_LINE.search(result.stdout):
         print(result.stdout, end="")

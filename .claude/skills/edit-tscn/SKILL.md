@@ -7,7 +7,7 @@ description: Hand-edit Godot .tscn scenes and .tres resources as text. Use when 
 
 You may edit any scene or resource as text, visual properties included. Godot 4.7 normalises the file the next time the editor saves it, so keep edits minimal and in Godot's own shape.
 
-Finish every edit with `uv run tools/check.py load`. It loads every scene and fails on parse errors and missing dependencies. After a visual change, capture it (`CODING_STANDARDS.md`, Visual checks and previews).
+Finish every edit with `uv run tools/check.py load`. It loads every scene and fails on parse errors, missing dependencies and a stored property its node or resource no longer has. After a visual change, capture it (`CODING_STANDARDS.md`, Visual checks and previews).
 
 ## File shape
 
