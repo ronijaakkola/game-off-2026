@@ -79,7 +79,7 @@ Every check is a `tools/check.py` subcommand, and works the same on Windows, Mac
 |---|---|---|
 | `uv run tools/check.py lint [files]` | `gdlint`, `gdformat --check` and the rules in `CODING_STANDARDS.md` that need no Godot, on the given files or the whole project, skipping `addons/`. Runs on every commit and after every Claude Code edit. No Godot needed. | The pre-commit hook does it for you |
 | `uv run tools/check.py format [files]` | Applies `gdformat` to the given scripts or every script outside `addons/`. Fixes what `lint` reports as formatting. | The same command |
-| `uv run tools/check.py load` | Loads every script, scene and resource. Fails on parse and type errors and missing dependencies. | Errors in the Output panel, or F5 |
+| `uv run tools/check.py load` | Loads every script, scene and resource. Fails on parse and type errors, missing dependencies, and a property a scene or resource stores that its node or resource no longer has. | Errors in the Output panel, or F5 |
 | `uv run tools/check.py test [files]` | Runs the gdUnit4 tests in `test/`, or the given suites and folders. Reports go to `build/reports/`. | The gdUnit panel's run button |
 | `uv run tools/check.py smoke [scenes]` | Runs every scene the game reaches from the main scene and the autoloads, each on its own and several at once, the main scene first (or the given ones), headless for 300 frames each (5 s of game time at a fixed 60 fps) and fails if any error is logged. | F5 or F6, then the Output panel |
 | `uv run tools/check.py capture <scene>` | Renders a second of the scene in a window and saves the frames to `build/capture/`. | Run the scene and look |

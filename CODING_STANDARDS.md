@@ -43,6 +43,8 @@ Reach another script's members through its type, not by name. `node.set(&"cabin"
 
 An enum that an `@export` names, as a type or a default, numbers every member: `enum Type { BLUE = 0, ORANGE = 1, GREEN = 2 }`. A `.tres` or `.tscn` saves an exported enum as its number (`traits = Array[int]([6])`), and Godot counts unnumbered members from 0 in order, so a member added or moved above another renumbers it and every saved value loads as its neighbour, with no error anywhere. A new member takes the next unused number, wherever it sits. `check.py lint` fails on an unnumbered member of an exported enum (`saved-enum`), on the enum and on an export in another script.
 
+Renaming or removing an `@export` leaves every value a `.tscn` or `.tres` saved under the old name behind: Godot skips a property the node or resource doesn't have, with no error, and it runs on the script's default. Rename the property in every file that stores it in the same change, as the glossary's terms make you do. `check.py load` fails on a scene or resource that stores a property its node, sub-resource or resource doesn't have (`stale-property`), naming the file, the node or sub-resource, and the script.
+
 ```gdscript
 var speed := 4.0
 var target: Node3D
