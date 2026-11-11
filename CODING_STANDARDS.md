@@ -13,7 +13,7 @@ Folders are by feature:
 | Folder | What goes there |
 |---|---|
 | `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config, and Phantom Camera, vendored without its `examples/` folder. |
-| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`. |
+| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/save_game/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/<feature>/` | The game, one folder per feature: `game/bus/`, `game/goals/`, `game/passengers/`, `game/research/`, `game/solar_system/`. |
 | `shared/` | Assets used by more than one feature, such as `shared/two_tone.gdshader`. |
@@ -69,7 +69,8 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `Events` | `core/events/` | The **signal bus**: every **bus event**, declared in `events.gd`. |
 | `Audio` | `core/audio/` | Music crossfade and pooled SFX: `play_music(stream)`, `stop_music()`, `play_sfx(stream)`. It owns the buses: code names one as an `Audio.Bus`, so `set_volume(Audio.Bus.MUSIC, linear)`, and a player's bus is `Audio.BUS_NAMES[Audio.Bus.SFX]`. A wrong bus name plays on Master without an error. |
 | `SceneFlow` | `core/scene_flow/` | Moves between top-level scenes with a fade: `await SceneFlow.go_to(path)`. |
-| `Settings` | `core/settings/` | The player's **settings**, applied on every change and saved to `user://settings.cfg` once changes stop for a moment. |
+| `Settings` | `core/settings/` | The player's **settings**, applied on every change and saved to `user://settings.cfg` once changes stop for a moment. `reset()` puts them all back to their defaults. |
+| `SaveGame` | `core/save_game/` | The player's **save game** in `user://save_game.json`, one run as a plain Dictionary. The main menu starts a run with `start_new()` or `continue_saved()`, and the game scene takes it with `claim_run()`; only a claimed run is written, so tests and F6 runs never touch the save. Tests run in the player's own user folder, so a test that starts a run from the menu points `SaveGame.path` at a file of its own first. It knows nothing of the game: `GameSaver` in the solar system builds and applies the Dictionary. |
 | `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
 | `Talo` | `addons/talo/` | The Talo plugin's autoload. Only `core/online/` names it; see Online. |
 | `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |

@@ -95,6 +95,31 @@ func test_a_change_while_paused_is_saved() -> void:
 
 
 # A value unlike the default, so a setting that isn't saved comes back different.
+# Every setting changed, then reset: each is its declared default again, on the buses too,
+# and the defaults last into the next session.
+func test_reset_puts_every_setting_back_to_its_default() -> void:
+	var declared_defaults: SettingsScript = auto_free(SettingsScript.new())
+	var settings := _new_session()
+	for setting: String in settings.get_names():
+		settings.set(setting, _other_value(settings.get(setting)))
+	await _wait_for_save()
+
+	settings.reset()
+
+	for setting: String in settings.get_names():
+		var message := "%s isn't its declared default after a reset" % setting
+		var declared: Variant = declared_defaults.get(setting)
+		assert_that(settings.get(setting)).override_failure_message(message).is_equal(declared)
+	assert_float(Audio.get_volume(Audio.Bus.MASTER)).is_equal_approx(settings.master_volume, 0.001)
+	await _wait_for_save()
+	for setting: String in settings.get_names():
+		var message := "%s's reset didn't last into the next session" % setting
+		var declared: Variant = declared_defaults.get(setting)
+		assert_that(_new_session().get(setting)).override_failure_message(message).is_equal(
+			declared
+		)
+
+
 func _other_value(value: Variant) -> Variant:
 	match typeof(value):
 		TYPE_BOOL:

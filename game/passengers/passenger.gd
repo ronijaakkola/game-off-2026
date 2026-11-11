@@ -152,6 +152,41 @@ func _init(
 	look = AlienLook.random(_rng, race)
 
 
+## A passenger [method to_save] gave, with their [member type] found by its resource path
+## in [param types] and their planets by name in [param planets]. Null when either isn't
+## there. What they were doing isn't kept: they start a new idle line, and a request open
+## or on hold is put back on hold, as at a stop.
+static func from_save(
+	saved: Dictionary, types: Dictionary[String, PassengerType], planets: Dictionary[String, Planet]
+) -> Passenger:
+	var kind: PassengerType = types.get(saved.get("type", ""))
+	var to: Planet = planets.get(saved.get("destination", ""))
+	if not kind or not to:
+		return null
+	var passenger := Passenger.new(kind, to, float(saved.get("trip_seconds", 0.0)), 0.0)
+	passenger.origin = planets.get(saved.get("origin", ""))
+	passenger.name = saved.get("name", passenger.name)
+	passenger.fare = float(saved.get("fare", 0.0))
+	passenger.expected_seconds = float(saved.get("expected_seconds", passenger.expected_seconds))
+	passenger.race = int(saved.get("race", passenger.race)) as Race.Type
+	passenger.look = AlienLook.from_save(saved.get("look", {}), passenger.race)
+	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
+	passenger.leeway = float(saved.get("leeway", 0.0))
+	passenger.activity = ""
+	passenger._activity_left = 0.0
+	passenger._departed = bool(saved.get("departed", false))
+	passenger._shaken = bool(saved.get("shaken", false))
+	passenger._clock = float(saved.get("clock", 0.0))
+	var timers: Array = saved.get("need_timers", [])
+	for i: int in mini(timers.size(), passenger._need_timers.size()):
+		passenger._need_timers[i] = float(timers[i])
+	var held := int(saved.get("held_need", -1))
+	if held >= 0 and held < kind.needs.size():
+		passenger._held_request = kind.needs[held]
+		passenger._request_age = float(saved.get("request_age", 0.0))
+	return passenger
+
+
 ## The mood for [param value] of happiness: happy at 70 or more, okay at 50 or more,
 ## annoyed at 25 or more, furious below.
 static func mood_for(value: float) -> Mood:
@@ -317,6 +352,31 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 				return
 	if _activity_left <= 0.0:
 		_idle(giving)
+
+
+## Who they are and how their ride stands, for a save game ([method from_save]). Planets
+## go by name, and their type by its resource path.
+func to_save() -> Dictionary:
+	var held := request if request else _held_request
+	return {
+		"type": type.resource_path,
+		"name": name,
+		"origin": String(origin.name) if origin else "",
+		"destination": String(destination.name),
+		"fare": fare,
+		"trip_seconds": trip_seconds,
+		"expected_seconds": expected_seconds,
+		"race": race,
+		"look": look.to_save(race),
+		"happiness": happiness,
+		"leeway": leeway,
+		"departed": _departed,
+		"shaken": _shaken,
+		"clock": _clock,
+		"need_timers": Array(_need_timers),
+		"held_need": type.needs.find(held) if held else -1,
+		"request_age": _request_age,
+	}
 
 
 ## Serves the open request at once, all of it, as [method feed] would once full. Does

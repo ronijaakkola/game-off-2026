@@ -255,7 +255,7 @@ An upgrade is in one of five states:
 | Seats | 4 | 1 | Rounded to the nearest whole seat. Fewer seats than passengers leaves everyone on board, and nobody else boards until enough have got off |
 | Portion size | 1 | 0.1 | How long a served snack or drink lasts, as a multiple of its need's time |
 
-- *(not built)* Saves will store which upgrades were bought and apply their modifiers again on load.
+- A continued run researches its saved upgrades again on load, so their modifiers and traits come from the same place as in play (Save game).
 
 ### Traits
 
@@ -324,7 +324,7 @@ Three planets have a tree, each paid for with one race's points. The rest have n
 ## Scenes and flow
 
 ```
-main menu ──Play──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
+main menu ──Play / Continue / New game──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
     │                                          │
     └──Settings──▶ settings panel ◀──────────Settings
 ```
@@ -334,9 +334,18 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
 
+## Save game
+
+- **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save at once, so it is held to confirm, like refuelling, and a stray click can't lose a run.
+- **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
+- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), and the goals' progress.
+- **What starts afresh:** the course, the charge, what each passenger was doing (a request comes back on hold, as at a stop), and the lines' clocks.
+- **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.
+- Only a run started from the main menu is saved, so tests and a scene run on its own never touch the save.
+
 ## Scope
 
-- **Out for now:** saving progress, dialogue, positional or adaptive audio.
+- **Out for now:** more than one save slot, dialogue, positional or adaptive audio.
 
 ## Not designed yet
 

@@ -141,10 +141,12 @@ var label_pixel_size := 0.001:
 ## How fast the body moves along its orbit, from 0 (held still) to 1 (its
 ## [member orbit_period]). Its spin keeps going. The solar system sets it on every planet.
 var orbit_speed := 1.0
+## How far the body has gone along its orbit, in seconds at full orbit speed. Its place on
+## the orbit comes from it alone, however the speed changed on the way, so a save game keeps
+## it to put the planet back. Set before the planet is ready, it starts there.
+var orbit_time := 0.0
 
 var _time := 0.0
-# How far the body has gone along its orbit, in seconds at full orbit speed.
-var _orbit_time := 0.0
 # How fast the orbit's centre moves, in global space: a moon's planet's body velocity.
 var _center_velocity := Vector3.ZERO
 # Internal nodes: the scene doesn't own them, so the editor never saves them.
@@ -188,7 +190,7 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	_time += delta
-	_orbit_time += delta * orbit_speed
+	orbit_time += delta * orbit_speed
 	_place_body()
 	if spin_period != 0.0:
 		_surface.rotation.y = TAU * _time / spin_period
@@ -241,7 +243,7 @@ func get_body_global_position() -> Vector3:
 func get_body_velocity() -> Vector3:
 	var velocity := Vector3.ZERO
 	if orbit_period != 0.0:
-		var angle := deg_to_rad(start_angle) + TAU * _orbit_time / orbit_period
+		var angle := deg_to_rad(start_angle) + TAU * orbit_time / orbit_period
 		var along := Vector3(-sin(angle), 0.0, -cos(angle))
 		velocity = global_basis * along * orbit_radius * TAU / orbit_period * orbit_speed
 	return velocity + _center_velocity
@@ -292,7 +294,7 @@ func _rebuild() -> void:
 func _place_body() -> void:
 	var angle := deg_to_rad(start_angle)
 	if orbit_period != 0.0:
-		angle += TAU * _orbit_time / orbit_period
+		angle += TAU * orbit_time / orbit_period
 	# Counter-clockwise seen from above, as the planets go.
 	_body.position = Vector3(cos(angle), 0.0, -sin(angle)) * orbit_radius
 	for child: Node in get_children():
