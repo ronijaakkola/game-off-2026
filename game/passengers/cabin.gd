@@ -8,6 +8,8 @@ extends Node
 ## speed. At a planet it runs a stop: the passengers going there get off one at
 ## a time and pay by their mood. Those the player picks up get on one at a time, after
 ## everyone getting off. Each takes [member step_seconds], so a busy stop takes longer.
+## Whoever takes a seat starts at the happiness the bus can give them
+## ([method Passenger.settle]).
 ## The bus's comfort upgrades, as traits, set the [Comfort] every passenger rides with and
 ## which amenities are on board, and its PORTION_SIZE stat how long served food lasts.
 
@@ -54,7 +56,7 @@ var docked := true:
 	set(value):
 		if docked and not value:
 			for passenger: Passenger in _passengers:
-				passenger.depart()
+				passenger.depart(comfort)
 		docked = value
 
 ## Whether the bus is parking at a planet, so everyone's happiness holds: the bus has
@@ -295,6 +297,7 @@ func _forget(passenger: Passenger) -> void:
 
 func _take_seat(passenger: Passenger) -> void:
 	_passengers.append(passenger)
+	passenger.settle(comfort)
 	boarded.emit(passenger)
 
 
@@ -309,6 +312,8 @@ func _on_portion_changed() -> void:
 func _on_trait_changed(_type: BusTraits.Type) -> void:
 	var traits := _bus_stats.get_traits()
 	comfort = Comfort.from_traits(traits)
+	for passenger: Passenger in _passengers:
+		passenger.settle(comfort)
 	amenities.clear()
 	for fitted: Amenity in fittings:
 		if traits.has(fitted.bus_trait):

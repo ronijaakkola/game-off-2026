@@ -82,7 +82,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - A match with who is on board is likely, never certain. A certain one stops being a reward, and turns the bus into a shuttle between two planets.
 - Destinations aren't dealt from a bag: dealing without repeats makes two going the same way rarer than chance does.
 - **Race** is dealt from one shuffled bag of six, two of each race, so no race stays away for long.
-- **Type** goes by the band the recent rating is in (Rating). Upgrades aren't read: a bare bus sits at about 3 to 3.3 stars, so the rating already tells what the bus has.
+- **Type** goes by the band the recent rating is in (Rating). Upgrades aren't read: a bare bus sits between 3 and 4 stars, by how clean its rides are, and only comfort upgrades take it past 4.
 
 | Recent rating | Commuter | Business |
 |---|---|---|
@@ -117,8 +117,10 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 Happiness replaced patience, so a long ride isn't the only thing that matters: what a passenger needs, and how well the bus gives it, does too.
 
-- Each passenger on board has a happiness from 0 to 100, starting at 60.
-- Every frame it slides toward a **target**, falling at 3 a second and climbing at 1. It never jumps, and bad moments take a while to wear off.
+- Each passenger on board has a happiness from 0 to 100.
+- **It starts at the target,** the most the bus can give them: set as they take their seat, and again as the bus leaves, so comfort researched at that stop counts. A quick ride keeps them there. Starting lower and climbing made a short ride end before they got there, so delivering quickly scored worse than taking long.
+- A shock before the bus leaves stays: they start that much under the target.
+- Every frame it slides toward the **target**, falling at 3 a second and climbing at 1. It never jumps, and bad moments take a while to wear off.
 - **Mood:** happy from 70, okay from 50, annoyed from 25, furious below.
 - **Rating** on getting off: happiness ÷ 20, to the nearest whole star.
 - **It holds** until the bus leaves the planet they boarded at, and while the bus parks.
@@ -148,7 +150,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
 
-**What a bus can reach.** A bare bus gives 3 stars and a rare 4: a direct trip with every request served at once ends at 60 + 12 = 72. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once ends where it started, at 60 + 12 = 72, and 4 stars takes 70, so a second of an open request near the end, or arriving a little late, costs the star. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
 
 ### Needs and serving
 
@@ -197,7 +199,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 
 - A type is data: fare multiplier, slack, needs, and the lines and names it uses.
 - There are two, the Commuter and Business.
-- **Business** pays more and is harder to please, through tighter slack and more frequent requests, never a lower starting happiness. On a bare bus a near-direct trip with requests served within a few seconds gets three stars and the full fare; four stars takes upgrades.
+- **Business** pays more and is harder to please, through tighter slack and more frequent requests, never a lower starting happiness. On a bare bus a near-direct trip with requests served within a few seconds gets three stars and the full fare; four stars takes a direct trip with every request served at once, or upgrades.
 - Business pays 1.6× with a slack of 1.2, and asks for the Commuter's snack and drink at 0.6 of the time between requests.
 - The Commuter's slack stays loose (1.5): it is the passenger that makes a route with several stops work.
 - The player can tell a Business passenger from a Commuter wherever they pick passengers and on board.
@@ -346,6 +348,7 @@ Features we will very probably build, but that need more design work first.
 
 ## Open questions
 
+- **Balance after starting at the target.** A clean bare-bus ride now gives 4 stars and 1.2× the fare, so the rating bands (Who turns up) may sit too low, a short hop is the safest ride there is, and requests come too late (15 s or more) to touch most direct trips. Lateness is meant to carry the difficulty; if it doesn't, tighten the Commuter's slack, then bring the first request forward.
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.
 - **How often passengers sleep.** Too short between sleeps and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since costs go by row.

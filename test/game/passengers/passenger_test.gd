@@ -4,6 +4,8 @@ extends GdUnitTestSuite
 
 const TRIP := 100.0
 const FARE := 50.0
+# Where a passenger starts the ride on a bare bus.
+const START := Passenger.BASE_HAPPINESS + Passenger.ON_TIME_BONUS
 
 var _planet: Planet
 
@@ -23,7 +25,7 @@ func test_mood_follows_happiness() -> void:
 	assert_int(Passenger.mood_for(0.0)).is_equal(Passenger.Mood.FURIOUS)
 
 
-func test_they_board_at_the_base_and_expect_the_trip_with_the_type_s_slack() -> void:
+func test_they_wait_at_the_base_and_expect_the_trip_with_the_type_s_slack() -> void:
 	var kind := _type()
 	kind.slack = 1.5
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
@@ -39,16 +41,30 @@ func test_happiness_holds_until_they_depart() -> void:
 	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS)
 
 
-func test_on_time_they_climb_slowly_toward_the_base_and_the_on_time_bonus() -> void:
+func test_they_start_the_ride_at_the_target_and_an_on_time_ride_keeps_them_there() -> void:
 	var passenger := _departed()
-	passenger.tick(5.0, false)
-	assert_float(passenger.happiness).is_equal_approx(
-		Passenger.BASE_HAPPINESS + 5.0 * Passenger.CLIMB_RATE, 0.001
-	)
-	passenger.tick(30.0, false)
-	assert_float(passenger.happiness).is_equal_approx(
-		Passenger.BASE_HAPPINESS + Passenger.ON_TIME_BONUS, 0.001
-	)
+	assert_float(passenger.happiness).is_equal(START)
+	passenger.tick(TRIP, false)
+	assert_float(passenger.happiness).is_equal(START)
+
+	var comfort := Comfort.new()
+	comfort.bonus = 20.0
+	var comfortable := Passenger.new(_type(), _planet, TRIP, FARE)
+	comfortable.depart(comfort)
+	assert_float(comfortable.happiness).is_equal(START + 20.0)
+
+
+func test_settling_does_nothing_after_a_shock_or_once_the_bus_has_left() -> void:
+	var scared := Passenger.new(_type(), _planet, TRIP, FARE)
+	scared.settle()
+	scared.shock(-25.0)
+	scared.depart()
+	assert_float(scared.happiness).is_equal(START - 25.0)
+
+	var riding := _departed()
+	riding.happiness = 40.0
+	riding.settle()
+	assert_float(riding.happiness).is_equal(40.0)
 
 
 func test_an_open_request_sends_them_toward_0_at_the_falling_rate() -> void:
@@ -187,10 +203,10 @@ func test_comfort_raises_the_target() -> void:
 func test_a_shock_changes_happiness_at_once_and_it_climbs_back_slowly() -> void:
 	var passenger := _departed()
 	passenger.shock(-25.0)
-	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS - 25.0)
+	assert_float(passenger.happiness).is_equal(START - 25.0)
 	passenger.tick(10.0, false)
 	assert_float(passenger.happiness).is_equal_approx(
-		Passenger.BASE_HAPPINESS - 25.0 + 10.0 * Passenger.CLIMB_RATE, 0.001
+		START - 25.0 + 10.0 * Passenger.CLIMB_RATE, 0.001
 	)
 	passenger.shock(-1000.0)
 	assert_float(passenger.happiness).is_equal(0.0)
@@ -381,6 +397,7 @@ func test_a_passenger_has_one_of_their_race_s_heads_in_its_colour() -> void:
 
 func test_the_trend_is_where_happiness_gets_to_in_the_next_seconds() -> void:
 	var climbing := _departed()
+	climbing.shock(-20.0)
 	climbing.tick(0.01, false)
 	assert_float(climbing.trend).is_greater(0.0)
 	_expect_trend_comes_true(climbing)

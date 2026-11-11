@@ -5,8 +5,9 @@ extends RefCounted
 ## board; the card only reads them.
 ## Happiness slides toward a target: [constant BASE_HAPPINESS], plus the bus's [Comfort]
 ## bonus, plus their timing (how their ride compares with the trip time), or 0 while a
-## request is open and nobody serves it. It falls fast and climbs back slowly. A
-## [method shock] changes it at once.
+## request is open and nobody serves it. They start the ride at that target
+## ([method settle]), so a quick ride keeps them there; it falls fast and climbs back
+## slowly. A [method shock] changes it at once.
 ## A request is served over time: the player's hold on the serve button and the bus's food
 ## amenities [method feed] it, and it closes once full.
 
@@ -22,7 +23,8 @@ const PAY: Dictionary[Mood, float] = {
 const MAX_STARS := 5.0
 ## Happiness runs from 0 to this.
 const MAX_HAPPINESS := 100.0
-## The happiness a bus that does its job settles them at, and where they start.
+## The happiness a bus that does its job settles them at, before comfort and timing, and
+## where they stand until they take a seat.
 const BASE_HAPPINESS := 60.0
 ## How fast happiness falls toward a lower target, and climbs toward a higher one, a second.
 const FALL_RATE := 3.0
@@ -111,6 +113,8 @@ var _busy := false
 var _need_timers := PackedFloat32Array()
 # Whether the bus has left the planet they boarded at. Happiness holds until it has.
 var _departed := false
+# Whether a shock reached them before the bus left, so they no longer start at the target.
+var _shaken := false
 # Seconds of the ride so far, on their clock, which timing reads.
 var _clock := 0.0
 # A request put on hold while the bus stops, which opens again once it flies on.
@@ -222,10 +226,23 @@ func shock(amount: float) -> void:
 		asleep = false
 		_activity_left = 0.0
 	happiness = clampf(happiness + amount, 0.0, MAX_HAPPINESS)
+	if not _departed:
+		_shaken = true
 
 
-## The bus has left the planet they boarded at, so their ride, and their happiness, start.
-func depart() -> void:
+## Puts their happiness at its target on a bus giving [param comfort]: where they start the
+## ride, as they take their seat and again as the bus leaves, so comfort added at the stop
+## counts. Does nothing once the bus has left, or once a [method shock] has reached them:
+## from then on happiness only slides.
+func settle(comfort: Comfort = null) -> void:
+	if not _departed and not _shaken:
+		happiness = get_target(comfort)
+
+
+## The bus, giving [param comfort], has left the planet they boarded at, so their ride
+## starts, with their happiness at its target ([method settle]).
+func depart(comfort: Comfort = null) -> void:
+	settle(comfort)
 	_departed = true
 
 
