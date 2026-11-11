@@ -148,12 +148,6 @@ func _init(
 	look = AlienLook.random(_rng, race)
 
 
-## Their name, after their type's tag when it has one: "Business · Vontti". The tag comes
-## first so that it still reads where a narrow row cuts the line short.
-func get_title() -> String:
-	return "%s · %s" % [type.tag, name] if type.tag else name
-
-
 ## The mood for [param value] of happiness: happy at 70 or more, okay at 50 or more,
 ## annoyed at 25 or more, furious below.
 static func mood_for(value: float) -> Mood:

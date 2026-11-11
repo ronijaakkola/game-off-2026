@@ -152,7 +152,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 
 - Title: the planet's icon and name with "Station".
 - Who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
-- A Business passenger's name has their type before it, here, in the open planet's rows and on their card on board: "Business · Vontti". A Commuter's has nothing. Where the row is narrow the name is cut short, not the type.
+- A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
 - After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
 - Under the rows, a Board all button. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
 - Then a faint line and Services, each with its icon on a small tile:
@@ -202,6 +202,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 A small photo on the left of a card or a waiting row: the passenger's head and shoulders over a blurred background in a deep shade of their race's colour, in a thin white frame tilted very slightly at random.
 
 - Each passenger has one of their race's two heads and one of two eye styles (Googly, Bead). Eye style is variety only, not a sign of race.
+- **Badges.** A passenger's type can put badges on the photo: dark discs with a faint light rim and a white icon, in a row that starts on the top left corner, reaching a little past it, and runs right, tilted with the photo. A disc is 15 px on a 32 px photo, reaching 4 px past the corner, and both grow half as fast as the photo: 19 px on a card's 48 px one. A type can have several. Business has one, a briefcase. A Commuter has none.
 - **Alive:** the head sways and breathes, the eyes blink and glance around, stalks wobble.
 - **Mood shows on the face, never the skin.** Annoyed, the lids slant down toward the middle like a frown over smaller pupils. Furious, more so, a red cartoon anger mark grows in at the upper right and pulses, and the head trembles.
 - **Happy,** they beam now and then for a second or two: lower lids rise so the eyes smile into crescents, the pupils look up, the head bobs. A beam rather than a constant half-smile, which reads as a squint at a card's size.
