@@ -173,9 +173,10 @@ func test_left_click_on_a_planet_opens_it_and_again_closes_it() -> void:
 	assert_int(rows.get_child_count()).is_equal(waiting.count_at(terra))
 	# A left click only opens it: setting a course is the right button's.
 	assert_array((runner.find_child("Bus") as FrameshiftBus).get_route_planets()).is_empty()
-	assert_bool((runner.find_child("CourseHint") as Control).visible).is_true()
+	var notices := runner.find_child("Notices") as NoticeStack
+	assert_str(notices.get_notices()[0].get_text()).is_equal(SolarSystem.COURSE_HINT)
 	await runner.simulate_frames(1)
-	assert_bool((runner.find_child("HintBox") as Control).visible).is_false()
+	assert_bool((runner.find_child("Notices") as Control).visible).is_false()
 
 	await runner.simulate_frames(2)
 	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
@@ -184,9 +185,9 @@ func test_left_click_on_a_planet_opens_it_and_again_closes_it() -> void:
 	assert_bool(rig.is_focused()).is_false()
 	# Not while the panel slides out over it.
 	await runner.simulate_frames(1)
-	assert_bool((runner.find_child("HintBox") as Control).visible).is_false()
+	assert_bool((runner.find_child("Notices") as Control).visible).is_false()
 	await await_millis(900)
-	assert_bool((runner.find_child("HintBox") as Control).visible).is_true()
+	assert_bool((runner.find_child("Notices") as Control).visible).is_true()
 
 
 func test_under_reduce_motion_the_camera_cuts_and_the_panel_fades_in_place() -> void:

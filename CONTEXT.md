@@ -104,9 +104,13 @@ A feature on the bus that an upgrade unlocks, which the bus either has or doesn'
 _Avoid_: perk, flag, unlock (the purchase, not the thing)
 
 **Tow**:
-What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. The player requests it from the tow offer (`TowOffer`) and pays its fee then. A **tow ship** (`TowShip`), a red tug with its own model, flies out from the planet, hitches on with a cable and leads the bus in, where it docks with a full tank. `FrameshiftBus.tow_to()` moves the bus.
+What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. The player requests it from the out of fuel notice (`NoticeStack.offer_tow()`) and pays its fee then. A **tow ship** (`TowShip`), a red tug with its own model, flies out from the planet, hitches on with a cable and leads the bus in, where it docks with a full tank. `FrameshiftBus.tow_to()` moves the bus.
 _Avoid_: rescue
 _Never_: respawn
+
+**Notice**:
+A card above the bus bars telling the player something: a tutorial, info, a warning, an error or an incoming call, optionally with an action button, a close button, or a time after which it closes by itself. `Notice` in code, pushed onto the `NoticeStack`, which returns it so its owner can dismiss it.
+_Avoid_: toast, notification, popup, alert, hint (one kind of notice is a tutorial)
 
 **Passenger**:
 Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.

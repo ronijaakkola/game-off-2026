@@ -1,0 +1,72 @@
+[gd_scene format=3 uid="uid://b4ovfnd5h6aox"]
+
+[ext_resource type="Script" uid="uid://iqd2d8u5jdnu" path="res://game/solar_system/notice.gd" id="1_notice"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="Texture2D" uid="uid://qrc7n3h4glnm" path="res://game/solar_system/icons/info.svg" id="4_info"]
+[ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://game/solar_system/icons/x.svg" id="5_x"]
+
+[node name="Notice" type="Control" unique_id=1231225418]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_notice")
+
+[node name="Card" type="PanelContainer" parent="." unique_id=175584207]
+unique_name_in_owner = true
+material = ExtResource("3_glass")
+custom_minimum_size = Vector2(434, 32)
+layout_mode = 0
+theme_type_variation = &"NoticePanel"
+
+[node name="Row" type="HBoxContainer" parent="Card" unique_id=474145420]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Card/Row" unique_id=349512228]
+unique_name_in_owner = true
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(13, 13)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("4_info")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Card/Row" unique_id=1269088313]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"BodyTextLabel"
+
+[node name="ActionButton" type="Button" parent="Card/Row" unique_id=140534814]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"SmallButton"
+
+[node name="CloseButton" type="Button" parent="Card/Row" unique_id=157112636]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Close"
+theme_type_variation = &"RowButton"
+theme_override_colors/icon_normal_color = Color(0.957, 0.945, 1, 0.651)
+theme_override_colors/icon_pressed_color = Color(0.957, 0.945, 1, 1)
+theme_override_colors/icon_hover_color = Color(0.957, 0.945, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0.957, 0.945, 1, 1)
+theme_override_constants/icon_max_width = 14
+icon = ExtResource("5_x")
+icon_alignment = 1
+
+[node name="End" type="Control" parent="Card/Row" unique_id=198339450]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2

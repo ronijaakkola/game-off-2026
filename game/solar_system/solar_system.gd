@@ -6,8 +6,8 @@ extends Node3D
 ## route: the planet under the pointer, or the point on the orbit plane under it. A right
 ## click on the route's last stop removes it, and the clear_route action clears the whole
 ## route. No modifier keys: Firefox opens its own context menu on Shift + right click
-## whatever the page does. Planets on the route show an orange border. A hint at the bottom
-## says how to set a course until the player first sets one, hidden while a planet is open.
+## whatever the page does. Planets on the route show an orange border. A tutorial notice
+## says how to set a course until the player first sets one.
 ## A left click on a planet opens it: the camera follows it on the left side of the screen
 ## and its panel opens on the right. A left click on the open planet or on empty space, or
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
@@ -29,7 +29,7 @@ extends Node3D
 ## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
 ## open planet's panel ([FuelPump]).
 ## Running out of fuel in space scares everyone on board ([constant OUT_OF_FUEL_SHOCK]),
-## and the [TowOffer] bar offers a tow for [constant TOW_FEE] credits. Requesting it pays,
+## and a notice offers a tow for [constant TOW_FEE] credits. Requesting it pays,
 ## into debt when the player has less, and a tow ship comes from the nearest planet and
 ## pulls the bus there, where it docks with a full tank.
 ## The planets orbit at full speed only while the bus frameshifts: they ease down to
@@ -63,6 +63,7 @@ const ORBIT_STOP_SECONDS := 1.2
 const ORBIT_START_SECONDS := 0.6
 ## The scare everyone on board takes when the bus runs out of fuel in space.
 const OUT_OF_FUEL_SHOCK := -15.0
+const COURSE_HINT := "Right-click planets or space to add stops. Backspace clears the route."
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 
@@ -81,6 +82,8 @@ var _faded_planet: Planet
 # How fast the planets orbit, from 0 to 1: full speed while the bus frameshifts,
 # idle_orbit_speed otherwise.
 var _orbit_speed := 1.0
+# How to set a course, until the player first sets one.
+var _course_hint: Notice
 
 
 # Before the planets and the bus are ready, so a continued run starts where it was saved.
@@ -124,7 +127,9 @@ func _ready() -> void:
 	dock_panel.research_pressed.connect(_on_research_pressed)
 	var bus := %Bus as FrameshiftBus
 	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
-	(%TowOffer as TowOffer).requested.connect(_on_tow_requested)
+	# A continued run has set courses before.
+	if not (%GameSaver as GameSaver).is_continued():
+		_course_hint = (%Notices as NoticeStack).push(COURSE_HINT, Notice.Kind.TUTORIAL)
 
 
 func _process(delta: float) -> void:
@@ -190,7 +195,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not stop:
 			return
 		bus.plot_course(stop, true)
-		(%CourseHint as Control).hide()
+		if _course_hint:
+			_course_hint.dismiss()
+			_course_hint = null
 	get_viewport().set_input_as_handled()
 
 
@@ -312,7 +319,6 @@ func _start_passengers() -> void:
 	var saver := %GameSaver as GameSaver
 	saver.waiting = waiting
 	saver.start()
-	(%CourseHint as Control).visible = not saver.is_continued()
 
 
 func _on_bus_docked(planet: Planet) -> void:
@@ -337,21 +343,14 @@ func _on_board_pressed(passenger: Passenger) -> void:
 
 func _on_bus_ran_out_of_fuel() -> void:
 	(%Cabin as Cabin).shock(OUT_OF_FUEL_SHOCK)
-	(%TowOffer as TowOffer).offer(TOW_FEE)
+	(%Notices as NoticeStack).offer_tow(TOW_FEE).action_pressed.connect(_on_tow_requested)
 
 
 # Bills the tow and sends a tow ship from the planet nearest to the bus, to tow it there.
 func _on_tow_requested() -> void:
-	(%TowOffer as TowOffer).close()
 	_ledger.spend(TOW_FEE)
 	var bus := %Bus as FrameshiftBus
-	var nearest: Planet
-	var nearest_distance := INF
-	for planet: Planet in _planets:
-		var distance := bus.global_position.distance_to(planet.get_body_global_position())
-		if distance < nearest_distance:
-			nearest = planet
-			nearest_distance = distance
+	var nearest := Planet.nearest_to(bus.global_position, _planets)
 	if not nearest:
 		return
 	var ship := TOW_SHIP.instantiate() as TowShip
