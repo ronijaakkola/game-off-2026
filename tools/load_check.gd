@@ -69,8 +69,18 @@ func _dropped_properties(path: String, loaded: Resource) -> PackedStringArray:
 	var target: Resource = null
 	var where := ""
 	var lines := text.split("\n")
+	# Where the line before left off: inside a quoted value, and how many brackets deep.
+	# A line that continues a value, such as one inside a multi-line string, is no key.
+	var quoted := false
+	var depth := 0
 	for number: int in lines.size():
 		var line := lines[number]
+		var continues := quoted or depth > 0
+		var after := _value_state(line, quoted, depth)
+		quoted = after.x == 1
+		depth = after.y
+		if continues:
+			continue
 		if line.begins_with("["):
 			target = null
 			var found := header.search(line)
@@ -89,6 +99,27 @@ func _dropped_properties(path: String, loaded: Resource) -> PackedStringArray:
 			var at := "%s:%d" % [path, number + 1]
 			dropped.append(_dropped_line(at, where, property.get_string(1), target))
 	return dropped
+
+
+# Whether [param line] ends inside a quoted value (x, 1 or 0) and how many brackets are open
+# after it (y), starting from [param quoted] and [param depth].
+func _value_state(line: String, quoted: bool, depth: int) -> Vector2i:
+	var escaped := false
+	for character: String in line:
+		if quoted:
+			if escaped:
+				escaped = false
+			elif character == "\\":
+				escaped = true
+			elif character == '"':
+				quoted = false
+		elif character == '"':
+			quoted = true
+		elif character in "([{":
+			depth += 1
+		elif character in ")]}":
+			depth = maxi(depth - 1, 0)
+	return Vector2i(1 if quoted else 0, depth)
 
 
 # The properties each node of [param scene] is stored with that the node doesn't have.
