@@ -33,10 +33,10 @@ extends Node3D
 ## and the [TowOffer] bar offers a tow for [constant TOW_FEE] credits. Requesting it pays,
 ## into debt when the player has less, and a tow ship comes from the nearest planet and
 ## pulls the bus there, where it docks with a full tank.
-## The planets orbit at full speed only while the bus frameshifts: they ease to a crawl
-## ([member idle_orbit_speed]) once it starts parking at a planet, comes to rest in space,
-## or starts coasting to a stop because its course was cleared or its tank ran dry, and
-## speed up again once it heads off.
+## The planets orbit at full speed only while the bus frameshifts: they ease down to
+## [member idle_orbit_speed] once it starts parking at a planet, comes to rest in space, or
+## starts coasting to a stop because its course was cleared or its tank ran dry, and speed
+## up again once it heads off.
 
 ## The border's width on screen, in pixels at the base window height.
 const OUTLINE_PIXELS := 3.0
@@ -57,9 +57,9 @@ const TOW_FEE := 100
 ## The goals a run starts with: deliver this many passengers, and keep this average rating.
 const START_DELIVERIES := 30
 const START_RATING := 4.0
-## Seconds for the planets to ease down to [member idle_orbit_speed] once the bus stops
-## frameshifting, and back up to full speed once it heads off. Linear in speed, so the
-## planets ease out as they slow.
+## How fast the planets' speed changes once the bus stops frameshifting, and once it heads
+## off: the seconds it would take to go all the way between full speed and still. Linear
+## in speed, so the planets ease out as they slow.
 const ORBIT_STOP_SECONDS := 1.2
 const ORBIT_START_SECONDS := 0.6
 ## The scare everyone on board takes when the bus runs out of fuel in space.
@@ -69,7 +69,7 @@ const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 
 ## How fast the planets orbit while the bus isn't frameshifting, from 0 (still) to 1 (full
 ## speed).
-@export_range(0.0, 1.0, 0.01) var idle_orbit_speed := 0.05
+@export_range(0.0, 1.0, 0.01) var idle_orbit_speed := 0.5
 
 var _planets: Array[Planet] = []
 # The player's credits, research points and ratings. The resource bar shows them.
@@ -463,9 +463,9 @@ func _planet_at(screen_point: Vector2) -> Planet:
 	return ScreenPick.planet_at(%Camera as Camera3D, _planets, screen_point)
 
 
-# The planets orbit at full speed only while the bus frameshifts, and ease down to a crawl
-# once it stops: the trip takes far longer than it looks, and the time spent stopped is
-# wound back.
+# The planets orbit at full speed only while the bus frameshifts, and ease down to
+# idle_orbit_speed once it stops: the trip takes far longer than it looks, and the time
+# spent stopped is partly wound back.
 func _run_orbits(delta: float) -> void:
 	var shifting := _is_frameshifting()
 	var seconds := ORBIT_START_SECONDS if shifting else ORBIT_STOP_SECONDS
