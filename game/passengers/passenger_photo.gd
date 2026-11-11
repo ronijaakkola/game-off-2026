@@ -9,13 +9,13 @@ extends Control
 ## them, what they are eating or drinking, and the push they feel on the bus.
 ## The framed photo is drawn at [constant FRAME_SIZE] and scaled to the photo's minimum
 ## size, so a scene can make it smaller. Their type's badges ([member PassengerType.badges])
-## sit in a row on the photo's bottom right corner, a little past it, tilted with it. With
+## sit in a row from the photo's top left corner, a little past it, tilted with it. With
 ## [member flat] on, it is a flat square with rounded corners instead, as big as the minimum
 ## size, with no frame and no tilt.
 
 const BADGE := preload("res://game/passengers/photo_badge.tscn")
 ## A badge's size, the gap between its rim and its icon, and how far the badges reach past
-## the photo's bottom right corner, in pixels, on a photo [constant BADGE_PHOTO_SIZE] wide.
+## the photo's top left corner, in pixels, on a photo [constant BADGE_PHOTO_SIZE] wide.
 ## On a bigger photo they all grow, [constant BADGE_GROWTH] as fast as the photo.
 const BADGE_SIZE := 15.0
 const BADGE_PAD := 3.0
@@ -129,9 +129,7 @@ func _show_badges() -> void:
 		icon.texture = texture
 		badges.add_child(badge)
 	badges.size = badges.get_combined_minimum_size()
-	badges.position = (
-		custom_minimum_size + Vector2.ONE * roundf(BADGE_OVERHANG * grow) - badges.size
-	)
+	badges.position = -Vector2.ONE * roundf(BADGE_OVERHANG * grow)
 	# They turn about the photo's centre, as the frame does, so they stay on its corner.
 	badges.pivot_offset = custom_minimum_size * 0.5 - badges.position
 	badges.rotation = (%Frame as Control).rotation
