@@ -1,7 +1,7 @@
 extends Node
-## The solar system's buttons on the debug panel: emptying the fuel tank, scaring the
-## passengers, and a card each of buttons that change the bus's stats and turn its traits
-## on or off, as upgrades would.
+## The solar system's buttons on the debug panel: emptying or lowering the fuel, scaring the
+## passengers, showing notices, and a card each of buttons that change the bus's stats and
+## turn its traits on or off, as upgrades would.
 
 ## The percent of top speed, the fuel tank and portion size the stat buttons add or take
 ## away, and the seats, on every click.
@@ -14,11 +14,15 @@ const TRAITS_GROUP := "Traits"
 
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
+@export var notices: NoticeStack
 
 
 func _ready() -> void:
 	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
+	DebugPanel.add_button("Low fuel", _debug_low_fuel, self)
 	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self)
+	DebugPanel.add_button("Incoming transmission", _debug_incoming_transmission, self)
+	DebugPanel.add_button("Test notices", _debug_test_notices, self)
 	var percent := StatModifier.Kind.PERCENT
 	_add_stat_buttons(BusStats.Type.MAX_SPEED, percent, STAT_PERCENT, "% top speed")
 	_add_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, STAT_PERCENT, "% fuel tank")
@@ -46,9 +50,29 @@ func _debug_empty_fuel() -> void:
 	bus.get_fuel_tank().drain()
 
 
+# Low fuel: a fifth of a tank, under where the low fuel warning shows.
+func _debug_low_fuel() -> void:
+	var tank := bus.get_fuel_tank()
+	tank.fuel = tank.capacity * 0.2
+
+
 # Scare passengers: everyone on board takes a kick's shock, without anyone being kicked.
 func _debug_scare_passengers() -> void:
 	cabin.shock(Cabin.KICK_SHOCK)
+
+
+# Incoming transmission: the call notice. Nothing answers it yet, so Answer only closes it.
+func _debug_incoming_transmission() -> void:
+	notices.announce_transmission()
+
+
+# Test notices: one of each other kind, the info closing by itself and the warning with a
+# close button.
+func _debug_test_notices() -> void:
+	notices.push("Right-click a planet to add it to the route.", Notice.Kind.TUTORIAL, true)
+	notices.push("The tank is full.", Notice.Kind.INFO, false, 4.0)
+	notices.push("Fuel is running low.", Notice.Kind.WARNING, true)
+	notices.push("Not enough credits.", Notice.Kind.ERROR, false, 4.0)
 
 
 # The stat buttons, each a modifier like an upgrade's, another with every click. Once the
