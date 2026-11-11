@@ -173,6 +173,8 @@ func dismiss() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	# One that never came in stays out: showing the stack mustn't bring it back.
+	_postponed = false
 	if _life:
 		_life.kill()
 	(%Card as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
