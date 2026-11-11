@@ -139,6 +139,47 @@ func test_the_bar_moves_smoothly_rather_than_in_steps() -> void:
 	assert_float(_bar(card).value).is_equal_approx(0.504, 0.0001)
 
 
+func test_chevrons_show_how_fast_and_which_way_happiness_is_heading() -> void:
+	var card := _card(0.5)
+	var steps := PassengerCard.TREND_STEPS
+
+	card.passenger.trend = steps[steps.size() - 1]
+	await await_millis(400)
+	assert_int(_chevrons(card).count).is_equal(steps.size())
+	assert_bool(_chevrons(card).rising).is_true()
+	assert_float(_chevrons(card).modulate.a).is_equal(1.0)
+
+	card.passenger.trend = -steps[0]
+	await await_millis(50)
+	assert_int(_chevrons(card).count).is_equal(1)
+	assert_bool(_chevrons(card).rising).is_false()
+
+	card.passenger.trend = 0.0
+	await await_millis(400)
+	assert_int(_chevrons(card).count).is_equal(0)
+
+
+func test_a_chevron_shown_holds_until_the_trend_drops_clearly_under_its_step() -> void:
+	var card := _card(0.5)
+	var step := PassengerCard.TREND_STEPS[1]
+	card.passenger.trend = step
+	await await_millis(50)
+	assert_int(_chevrons(card).count).is_equal(2)
+
+	card.passenger.trend = step - PassengerCard.TREND_MARGIN * 0.5
+	await await_millis(50)
+	assert_int(_chevrons(card).count).is_equal(2)
+
+	card.passenger.trend = step - PassengerCard.TREND_MARGIN * 1.5
+	await await_millis(50)
+	assert_int(_chevrons(card).count).is_equal(1)
+
+	# A turn starts afresh: falling just under the step shows one, not two.
+	card.passenger.trend = -(step - PassengerCard.TREND_MARGIN * 0.5)
+	await await_millis(50)
+	assert_int(_chevrons(card).count).is_equal(1)
+
+
 func _card(happiness_fraction: float) -> PassengerCard:
 	var planet: Planet = auto_free(Planet.new())
 	var passenger := Passenger.new(COMMUTER, planet, 60.0, 40.0)
@@ -165,3 +206,7 @@ func _bar(card: PassengerCard) -> ProgressBar:
 
 func _trail(card: PassengerCard) -> ProgressBar:
 	return card.find_child("HappinessTrail") as ProgressBar
+
+
+func _chevrons(card: PassengerCard) -> TrendChevrons:
+	return card.find_child("HappinessTrend") as TrendChevrons
