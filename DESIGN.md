@@ -27,7 +27,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - A star and four planets on circular orbits, one with a moon and one with rings. The Moon counts as a planet for passengers, fuel and docking.
 - Planets orbit at 0.34 (Frost) to 0.47 (Ember) units a second; the Moon moves at up to about 0.87 as it circles Terra. Every planet moves at under 40 % of the bus's speed, so the bus catches one without a long chase.
 - Ember and Frost are 12 to 23 units apart as they orbit.
-- **Time stands still at a planet.** The planets halt from when the bus starts parking until it leaves, and orbit at full speed only while it is away from a planet: in flight, towed, or holding in space. A trip takes far longer than it looks, and the time spent at a planet is wound back. They take 1.2 s to stop and 0.6 s to get going again, so nothing jumps. Their spin and the passengers' clocks keep running.
+- **Time stands still unless the bus frameshifts.** The planets orbit at full speed only while the bus flies a course, towed or not. They halt once it starts parking at a planet, comes to rest in space, or starts coasting to a stop after the course is cleared or the tank runs dry, and stay still while it waits or charges. A trip takes far longer than it looks, and the time spent stopped is wound back. They take 1.2 s to stop and 0.6 s to get going again, so nothing jumps. Their spin and the passengers' clocks keep running.
 
 ## Route and flight
 
