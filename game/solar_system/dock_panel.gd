@@ -1,12 +1,13 @@
 class_name DockPanel
 extends Control
 ## What the bus can do at the station of the planet it is docked at, in the top right
-## corner: the planet's icon and name, then who waits there: a row for each passenger,
-## longest waiting first, with their portrait, how many on the bus are going
-## their way too, and a button to pick them up, and a button to
-## pick up everyone that fits. Under a faint line, its services: where the planet sells
-## fuel, a button to hold down to refuel, and where it has a lab, a button to open the
-## research screen. The parent sets [member planet] while the bus is docked or charging.
+## corner: the planet's icon and name, then its services: where the planet sells fuel, a
+## button to hold down to refuel, and where it has a lab, a button to open the research
+## screen. Under a faint line, who waits there: a button to pick up everyone that
+## fits, and a row for each passenger, longest waiting first, with their portrait, how many
+## on the bus are going their way too, and a button to pick them up. The services and Board
+## all sit above the rows, so they stay in place as the rows come and go. The parent sets
+## [member planet] while the bus is docked or charging.
 ## The board buttons are off while every seat is taken. It only asks: the parent picks the
 ## passenger up, pumps the fuel while [method is_fuel_held], and turns the fuel button on or
 ## off with [method show_fuel]. It slides in from the right when [member planet] is set and
@@ -156,7 +157,6 @@ func _rebuild() -> void:
 		(%ResearchButton as Control).visible = _shown.has_lab
 		var services := _shown.sells_fuel or _shown.has_lab
 		(%FuelRule as Control).visible = services
-		(%ServicesLabel as Control).visible = services
 	_sync_rows()
 
 

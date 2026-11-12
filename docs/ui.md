@@ -154,16 +154,16 @@ In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get
 
 ### Dock panel
 
-The planet's station: it hangs under the goal panel in the top right corner while the bus is docked or charging. It stays in one place on screen, so its buttons never move under the pointer.
+The planet's station: it hangs under the goal panel in the top right corner while the bus is docked or charging. It stays in one place on screen. The services and Board all sit above the passengers, so they never move when a passenger boards and the list shrinks.
 
 - Title: the planet's icon and name with "Station".
-- Who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
-- A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
-- After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
-- Under the rows, a Board all button. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
-- Then a faint line and Services, each with its icon on a small tile:
+- Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
   - A Research button, where the planet has a lab. It opens the research screen.
+- Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
+- Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
+- A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
+- After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
 - **A row's trip.** The pointer over a row shows its trip arc. A click on the row pins it until the row is clicked again, the passenger boards or the bus leaves. The row whose trip shows has a border in their race's colour.
 - It slides in from the right when the bus docks and out when it leaves. A passenger picked up slides out of it to the right, and it grows and shrinks smoothly to fit, so it shrinks as rows leave.
 

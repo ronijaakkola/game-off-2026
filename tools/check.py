@@ -274,6 +274,12 @@ DOC_DECLARATION = re.compile(
 DECLARED_PARAM = re.compile(r",\s*(?:\.\.\.)?(\w+)")
 DOC_PARAM = re.compile(r"\[param (\w+)\]")
 OWN_GET_PARENT = re.compile(r"(?<![\w.])get_parent\s*\(|\bself\s*\.\s*get_parent\s*\(")
+# A node looked up by path under another node, the way into another scene's insides. The
+# root's own children are autoloads and LimboConsole (Dev console), so they are left alone.
+# The match starts right after the word before the dot, so a space there can't slip past.
+FOREIGN_NODE_PATH = re.compile(
+    r"(?<!\bself)(?<!\broot)(?<!\s)\s*\.\s*(get_node|get_node_or_null|has_node)\s*\("
+)
 SHADER_DIRECTIVE = re.compile(
     r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
 )
@@ -638,7 +644,8 @@ def dynamic_member_problems(path: str, code: str, source: str) -> list[str]:
 
 
 def surroundings_problems(path: str, code: str, strings: list[tuple[int, str]]) -> list[str]:
-    """Scenes stay unaware of their surroundings. Only the node's own get_parent() is
+    """Scenes stay unaware of their surroundings, and of the insides of the scenes they
+    hold: another node's get_node() is flagged. Only the node's own get_parent() is
     flagged: body.get_parent() (on a body that entered an Area3D, say) looks into
     another scene, not out of this one."""
     out = (
@@ -656,6 +663,17 @@ def surroundings_problems(path: str, code: str, strings: list[tuple[int, str]]) 
     found += [
         (line_at(code, m.start()), "no-root-path", f"$/root {absolute}")
         for m in re.finditer(r"\$\s*/root\b", code)
+    ]
+    found += [
+        (
+            line_at(code, m.start()),
+            "no-foreign-node-path",
+            f"{m.group(1)}() on another node reaches into that scene's own nodes, so "
+            "renaming or moving one there breaks this script with no error until the line "
+            "runs. Give that scene's script a class_name and a method that sets what you "
+            "need, as PhotoBadge.show_icon() does, and call it on the scene's root.",
+        )
+        for m in FOREIGN_NODE_PATH.finditer(code)
     ]
     for line, text in strings:
         if re.match(r"\.\.(/|$)", text):
