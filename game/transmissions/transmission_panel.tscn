@@ -1,0 +1,295 @@
+[gd_scene format=3 uid="uid://dt5lffwqtfh1"]
+
+[ext_resource type="Script" uid="uid://bytcuuc2peqfw" path="res://game/transmissions/transmission_panel.gd" id="1_panel"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="PackedScene" uid="uid://bvv0a8fkf5k1v" path="res://game/transmissions/transmission_screen.tscn" id="4_screen"]
+[ext_resource type="Texture2D" uid="uid://d4jplluyhkbyv" path="res://game/transmissions/icons/phone_call.svg" id="5_phone"]
+[ext_resource type="Texture2D" uid="uid://5e4u8rlx68t4" path="res://shared/icons/arrow_right.svg" id="6_arrow"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="7_planet"]
+[ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://game/transmissions/icons/flag.svg" id="8_flag"]
+[ext_resource type="Texture2D" uid="uid://b2w4upsxpmhrb" path="res://game/solar_system/icons/dollar_sign.svg" id="9_dollar"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0.0706)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="TransmissionPanel" type="CanvasLayer" unique_id=1127721247]
+process_mode = 3
+layer = 5
+script = ExtResource("1_panel")
+
+[node name="Root" type="Control" parent="." unique_id=1548843942]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+
+[node name="Scrim" type="ColorRect" parent="Root" unique_id=1464776713]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.043, 0.035, 0.125, 0.6)
+
+[node name="Center" type="CenterContainer" parent="Root" unique_id=968147444]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Modal" type="PanelContainer" parent="Root/Center" unique_id=1767434276]
+unique_name_in_owner = true
+material = ExtResource("3_glass")
+custom_minimum_size = Vector2(552, 256)
+layout_mode = 2
+theme_type_variation = &"CardPanel"
+
+[node name="Row" type="HBoxContainer" parent="Root/Center/Modal" unique_id=1438922528]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Screen" parent="Root/Center/Modal/Row" unique_id=336306541 instance=ExtResource("4_screen")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Call" type="VBoxContainer" parent="Root/Center/Modal/Row" unique_id=1311232230]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="Inset" type="Control" parent="Root/Center/Modal/Row/Call" unique_id=779163467]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Request" type="VBoxContainer" parent="Root/Center/Modal/Row/Call" unique_id=1055663394]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Request" unique_id=1823744314]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PhoneIcon" type="TextureRect" parent="Root/Center/Modal/Row/Call/Request/Header" unique_id=1653632861]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(13, 13)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("5_phone")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="Root/Center/Modal/Row/Call/Request/Header" unique_id=601228604]
+layout_mode = 2
+theme_type_variation = &"StrongLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+text = "Incoming transmission"
+
+[node name="Caller" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Request" unique_id=1268990401]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CallerName" type="Label" parent="Root/Center/Modal/Row/Call/Request/Caller" unique_id=89096767]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 24
+text = "Caller"
+text_overrun_behavior = 3
+
+[node name="Destination" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Request/Caller" unique_id=1970942977]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Marks" type="MarginContainer" parent="Root/Center/Modal/Row/Call/Request/Caller/Destination" unique_id=1449539201]
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/margin_top = 3
+
+[node name="Row" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Request/Caller/Destination/Marks" unique_id=102755886]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Arrow" type="TextureRect" parent="Root/Center/Modal/Row/Call/Request/Caller/Destination/Marks/Row" unique_id=217428816]
+self_modulate = Color(0.957, 0.945, 1, 0.4)
+custom_minimum_size = Vector2(9, 9)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_arrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DestinationIcon" type="ColorRect" parent="Root/Center/Modal/Row/Call/Request/Caller/Destination/Marks/Row" unique_id=971244615]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("7_planet")
+
+[node name="DestinationLabel" type="Label" parent="Root/Center/Modal/Row/Call/Request/Caller/Destination" unique_id=1252517148]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+
+[node name="Message" type="Label" parent="Root/Center/Modal/Row/Call/Request" unique_id=2061123179]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"BodyTextLabel"
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 3
+visible_characters_behavior = 1
+
+[node name="Quest" type="PanelContainer" parent="Root/Center/Modal/Row/Call/Request" unique_id=345780034]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_quest")
+
+[node name="Row" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Request/Quest" unique_id=1703549940]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FlagIconNudge" type="MarginContainer" parent="Root/Center/Modal/Row/Call/Request/Quest/Row" unique_id=1443153333]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="FlagIcon" type="TextureRect" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/FlagIconNudge" unique_id=1953886732]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(13, 13)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("8_flag")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuestLabel" type="Label" parent="Root/Center/Modal/Row/Call/Request/Quest/Row" unique_id=644755231]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+
+[node name="QuestPlanet" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Request/Quest/Row" unique_id=2070424824]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="QuestPlanetIconNudge" type="MarginContainer" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/QuestPlanet" unique_id=1659203251]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 4
+
+[node name="QuestPlanetIcon" type="ColorRect" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/QuestPlanet/QuestPlanetIconNudge" unique_id=1744363756]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("7_planet")
+
+[node name="QuestPlanetLabel" type="Label" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/QuestPlanet" unique_id=1935913217]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+
+[node name="Spacer" type="Control" parent="Root/Center/Modal/Row/Call" unique_id=1451633414]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Answer" type="VBoxContainer" parent="Root/Center/Modal/Row/Call" unique_id=1218566125]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Reward" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Answer" unique_id=1855094945]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="RewardLabel" type="Label" parent="Root/Center/Modal/Row/Call/Answer/Reward" unique_id=776151468]
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+text = "Reward"
+
+[node name="Credits" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Answer/Reward" unique_id=2026848260]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="DollarIcon" type="TextureRect" parent="Root/Center/Modal/Row/Call/Answer/Reward/Credits" unique_id=1148730915]
+self_modulate = Color(1, 0.831, 0.361, 1)
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("9_dollar")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CreditsLabel" type="Label" parent="Root/Center/Modal/Row/Call/Answer/Reward/Credits" unique_id=1395621654]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"StrongLabel"
+theme_override_colors/font_color = Color(0.549, 0.851, 0.4, 1)
+
+[node name="ResearchChips" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Answer/Reward" unique_id=596884348]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Buttons" type="HBoxContainer" parent="Root/Center/Modal/Row/Call/Answer" unique_id=1968298693]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DeclineButton" type="Button" parent="Root/Center/Modal/Row/Call/Answer/Buttons" unique_id=1901052649]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 32)
+layout_mode = 2
+text = "No"
+
+[node name="AcceptButton" type="Button" parent="Root/Center/Modal/Row/Call/Answer/Buttons" unique_id=580243355]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"PrimaryButton"
+text = "Got it"
+
+[connection signal="gui_input" from="Root/Center/Modal" to="." method="_on_modal_gui_input"]
+[connection signal="pressed" from="Root/Center/Modal/Row/Call/Answer/Buttons/DeclineButton" to="." method="_on_decline_button_pressed"]
+[connection signal="pressed" from="Root/Center/Modal/Row/Call/Answer/Buttons/AcceptButton" to="." method="_on_accept_button_pressed"]

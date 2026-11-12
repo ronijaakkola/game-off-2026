@@ -197,6 +197,23 @@ func test_the_dock_panel_shrinks_with_its_top_edge_in_place() -> void:
 	assert_float(bottom).is_less(top + 200.0)
 
 
+func test_the_dock_panel_shows_nobody_waiting_whole() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	var ember := (runner.find_child("Bus") as FrameshiftBus).get_docked_planet()
+	for passenger: Passenger in waiting.get_waiting(ember).duplicate():
+		waiting.take(ember, passenger)
+	await runner.simulate_frames(3)
+	await await_millis(800)
+	var label := runner.find_child("EmptyLabel", true, false) as Control
+	var clip := runner.find_child("Clip", true, false) as Control
+
+	assert_bool(label.visible).is_true()
+	var text_bottom := label.get_global_rect().position.y + (label as Label).get_line_height()
+	assert_float(text_bottom).is_less_equal(clip.get_global_rect().end.y + 0.01)
+
+
 func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
@@ -274,14 +291,15 @@ func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
-	var hint := runner.find_child("CourseHint") as Control
-	assert_bool(hint.visible).is_true()
+	var hint := (runner.find_child("Notices") as NoticeStack).get_notices()[0]
+	assert_str(hint.get_text()).is_equal(SolarSystem.COURSE_HINT)
+	assert_bool(hint.is_leaving()).is_false()
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_array(bus.get_route_planets()).contains_exactly([terra])
-	assert_bool(hint.visible).is_false()
+	assert_bool(hint.is_leaving()).is_true()
 
 
 func test_right_click_on_the_last_planet_removes_it() -> void:
@@ -411,8 +429,9 @@ func _wait_for_a_boarding_row(runner: GdUnitSceneRunner) -> BoardingRow:
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
 	waiting.add((runner.find_child("Bus") as FrameshiftBus).get_docked_planet())
-	await runner.simulate_frames(3)
-	await await_millis(500)
+	# Half a second of game time at the 60 fps the tests run at, not of the wall clock, so
+	# the dock panel has slid in however slowly a machine draws the frames.
+	await runner.simulate_frames(33)
 	return runner.find_child("BoardingRow", true, false) as BoardingRow
 
 
@@ -470,17 +489,20 @@ func _send_motion(to: Vector2) -> void:
 func test_requesting_a_tow_costs_its_fee_even_into_debt() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
-	var offer := runner.find_child("TowOffer") as TowOffer
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var notices := runner.find_child("Notices") as NoticeStack
 	var ledger := (runner.scene() as SolarSystem).get_ledger()
 	ledger.credits = 50
 
-	offer.requested.emit()
+	bus.ran_out_of_fuel.emit()
+	notices.get_notices()[0].action_pressed.emit()
 	assert_int(ledger.credits).is_equal(50 - SolarSystem.TOW_FEE)
 	var loss := runner.find_child("LossLabel") as Label
 	assert_str(loss.text).is_equal("-%d" % SolarSystem.TOW_FEE)
 
 	ledger.credits = SolarSystem.TOW_FEE - 5
-	offer.requested.emit()
+	bus.ran_out_of_fuel.emit()
+	notices.get_notices()[0].action_pressed.emit()
 	assert_int(ledger.credits).is_equal(-5)
 
 
@@ -489,15 +511,15 @@ func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() 
 	await runner.simulate_frames(2)
 	var system := runner.scene() as SolarSystem
 	var bus := runner.find_child("Bus") as FrameshiftBus
-	var offer := runner.find_child("TowOffer") as TowOffer
-	var button := runner.find_child("RequestButton") as Button
+	var notices := runner.find_child("Notices") as NoticeStack
+	var is_tow := func(notice: Notice) -> bool: return notice.get_text() == "You ran out of fuel"
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	var passenger := waiting.create(bus.get_docked_planet())
 	(runner.find_child("Cabin") as Cabin).board(passenger)
 	bus.plot_course(RouteStop.at_point(bus.global_position + Vector3(0.0, 0.0, 30.0)))
 	bus.frameshift_held = true
 	await assert_func(bus, "is_at_planet").wait_until(5000).is_false()
-	assert_bool(offer.visible).is_false()
+	assert_array(notices.get_notices().filter(is_tow)).is_empty()
 
 	var before := passenger.happiness
 	bus.get_fuel_tank().drain()
@@ -505,12 +527,13 @@ func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() 
 	await runner.simulate_frames(1)
 
 	var is_ship := func(node: Node) -> bool: return node is TowShip
-	assert_bool(offer.visible).is_true()
-	assert_str(button.text).is_equal("Request a tow (%d credits)" % SolarSystem.TOW_FEE)
+	var offer := notices.get_notices().filter(is_tow)[0] as Notice
+	var button := offer.find_child("ActionButton") as Button
+	assert_str(button.text).is_equal("Tow (%d credits)" % SolarSystem.TOW_FEE)
 	assert_int(system.get_children().filter(is_ship).size()).is_equal(0)
 
 	button.pressed.emit()
 	await runner.simulate_frames(1)
 
-	assert_bool(offer.visible).is_false()
+	assert_bool(offer.is_leaving()).is_true()
 	assert_int(system.get_children().filter(is_ship).size()).is_equal(1)

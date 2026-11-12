@@ -3,9 +3,10 @@
 [ext_resource type="Script" uid="uid://bxjw01o5x1fj8" path="res://game/solar_system/credits_counter.gd" id="1_counter"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Texture2D" uid="uid://b2w4upsxpmhrb" path="res://game/solar_system/icons/dollar_sign.svg" id="3_dollar"]
+[ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="4_tooltip"]
 
 [node name="CreditsCounter" type="HBoxContainer" unique_id=15544917]
-mouse_filter = 2
+mouse_filter = 0
 theme = ExtResource("2_theme")
 theme_override_constants/separation = 4
 script = ExtResource("1_counter")
@@ -21,8 +22,8 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="TotalLabel" type="Label" parent="." unique_id=1751940342]
-custom_minimum_size = Vector2(38, 0)
 unique_name_in_owner = true
+custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 theme_type_variation = &"PillLabel"
 text = "0"
@@ -46,3 +47,10 @@ layout_mode = 0
 theme_type_variation = &"PillGainLabel"
 theme_override_colors/font_color = Color(0.95, 0.3, 0.4, 1)
 text = "-0"
+
+[node name="Tooltip" parent="." unique_id=1708742256 node_paths=PackedStringArray("target") instance=ExtResource("4_tooltip")]
+layout_mode = 2
+target = NodePath("..")
+title = "Credits"
+sentence = "Fares you have earned. Fuel and tows cost credits."
+gap = 14.0

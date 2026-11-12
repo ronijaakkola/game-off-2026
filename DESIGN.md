@@ -11,7 +11,7 @@ Keeping it that way:
 
 ## Pitch
 
-You drive a bus around a small solar system. Pick up passengers, plot a route through space and get them to their planet before the ride wears them out. The planets keep orbiting, so a route that is short now may not be short in a few seconds.
+You drive a bus around a small solar system. Pick up passengers, plot a route through space and get them to their planet before the ride wears them out. The planets orbit while the bus flies, so a route that looks short at the dock may not be short by the time the bus gets there.
 
 ## Core loop
 
@@ -20,13 +20,14 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
 5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
-6. **Refuel and research.** Docked, the player buys fuel and researches upgrades from that planet's tree.
+6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every tree.
 
 ## The solar system
 
 - A star and four planets on circular orbits, one with a moon and one with rings. The Moon counts as a planet for passengers, fuel and docking.
 - Planets orbit at 0.34 (Frost) to 0.47 (Ember) units a second; the Moon moves at up to about 0.87 as it circles Terra. Every planet moves at under 40 % of the bus's speed, so the bus catches one without a long chase.
 - Ember and Frost are 12 to 23 units apart as they orbit.
+- **Time slows unless the bus frameshifts.** The planets orbit at full speed only while the bus flies a course, towed or not. They slow to half of it once it starts parking at a planet, comes to rest in space, or starts coasting to a stop after the course is cleared or the tank runs dry, and stay that slow while it waits or charges. A trip takes far longer than it looks, and the time spent stopped is wound back. Half speed keeps the system moving while docked, so a long stop still costs some of a route's shape. They take about 0.6 s to slow and 0.6 s to get going again, so nothing jumps. Their spin and the passengers' clocks keep running.
 
 ## Route and flight
 
@@ -150,12 +151,12 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
 
-**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once ends where it started, at 60 + 12 = 72, and 4 stars takes 70, so a second of an open request near the end, or arriving a little late, costs the star. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once ends where it started, at 60 + 12 = 72, and 4 stars takes 70, so a second of an open request near the end, or arriving a little late, costs the star. Over many rides a bare bus averages about 3.5: 3.6 with quick hands, 3.0 with slow ones and a full bus. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
 
 ### Needs and serving
 
 - Each passenger type has a few needs. The Commuter's are a snack and a drink, both food.
-- A need asks again a random while after the last one's served activity ends. An open one is a **request**.
+- A need asks again a random while after the last one's served activity ends: 8 to 20 s for a snack, 10 to 25 s for a drink. An open one is a **request**. The times are short because rides are (about 20 s): half of all rides should hold a request, or serving decides nothing and the food upgrades answer nothing.
 - **One request at a time.** The other needs' timers wait while one is open, so serving one doesn't set off the rest.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
 - **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s, and letting go keeps what was served so far.
@@ -218,17 +219,19 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 - The player's **average rating** is the mean of every rating so far.
 - It changes nothing yet.
 - The **recent rating** is the mean of the last 10 ratings. It sets which types turn up (Who turns up), and it is the rating the player is shown, so the stars and what they explain are one number.
-- The star rating says which types the band attracts and what the next one brings, as bands, not odds.
+- The star rating says only that a higher rating brings more Business passengers: no bands, no odds.
 - *(not built)* The player is told the first time the recent rating reaches a new band, and not again on coming back to it.
 
 ## Research
 
 Upgrades for the bus, bought with credits and research points.
 
-- **Each planet can have a research tree** of its own: the upgrades it offers, linked by what each needs first.
-- **Researching happens only while the bus is docked or charging at that planet,** as refuelling does, so routing to a planet is how the player gets at its tree.
+- **Research trees aren't tied to planets.** Each is the upgrades for one part of the bus, linked by what each needs first.
+- **Researching happens only while the bus is docked or charging at a planet with a lab,** as refuelling does, and there the player researches from every tree.
+- **Each tree splits into three stages** by row: rows 1 and 2, rows 3 and 4, and the rest. The first stage is open from the start, and each **promotion** opens the next. *(not built)* What earns a promotion; for now only the debug panel gives one.
+- **The game is paused** while the player researches.
 - **An upgrade** has a cost in credits and research points, usually of the one race whose points are for the part of the bus it improves, so a tree can send the player looking for that race.
-- It needs *all* the upgrades it lists, from the same tree.
+- It needs *all* the upgrades it lists, from the same tree, and its stage open.
 - Each is researched once. A bigger step of the same thing is its own upgrade after it (Tank I, then Tank II).
 - Once researched it puts modifiers on the bus's stats, gives it traits, or both.
 
@@ -236,6 +239,7 @@ An upgrade is in one of five states:
 
 | State | When |
 |---|---|
+| Needs promotion | Its stage isn't open. Its name, description and cost don't show |
 | Hidden | Marked hidden, and not everything it needs is researched. Its name, description and cost don't show |
 | Locked | Something it needs isn't researched |
 | Available | Everything it needs is researched and the player can pay |
@@ -254,7 +258,7 @@ An upgrade is in one of five states:
 | Seats | 4 | 1 | Rounded to the nearest whole seat. Fewer seats than passengers leaves everyone on board, and nobody else boards until enough have got off |
 | Portion size | 1 | 0.1 | How long a served snack or drink lasts, as a multiple of its need's time |
 
-- *(not built)* Saves will store which upgrades were bought and apply their modifiers again on load.
+- A continued run researches its saved upgrades again on load, so their modifiers and traits come from the same place as in play (Save game).
 
 ### Traits
 
@@ -266,21 +270,21 @@ An upgrade is in one of five states:
 
 ### The trees
 
-Three planets have a tree, each paid for with one race's points. The rest have none.
+There are three trees, each paid for with one race's points. Frost, Terra and Giant have a lab; the rest have none.
 
-- They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a hidden capstone that needs two branches.
-- **Costs go by row,** the same in every tree for now: 20 credits and 2 points in the top row, then 45 and 4, 90 and 7, 150 and 10, and 250 and 14.
+- They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a capstone that needs two branches. Only a stage that isn't open hides an upgrade; none is marked hidden.
+- **Costs go by row,** the same in every tree for now: 150 credits and 2 points in the top row, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
 "A ← B" means A needs B.
 
-- **Blue, at Frost** (performance). Speed 1 and Fuel tank 1 at the top. Speed 2 ← Speed 1; Frameshift 1 ← Speed 1 and Fuel tank 1; Fuel forecast ← Fuel tank 1; Fuel tank 2 ← Fuel tank 1. Speed 3, Frameshift 2 and Fuel tank 3 each ← the one above. Extra insulation ← Frameshift 2 and Fuel tank 3. Capstone: Sunscreen ← Speed 3 and Extra insulation.
+- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Speed 2 ← Speed 1; Frameshift 1 ← Speed 1 and Fuel tank 1; Fuel forecast ← Fuel tank 1; Fuel tank 2 ← Fuel tank 1. Speed 3, Frameshift 2 and Fuel tank 3 each ← the one above. Extra insulation ← Frameshift 2 and Fuel tank 3. Capstone: Sunscreen ← Speed 3 and Extra insulation.
   - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
   - *(not built)* Frameshift (a shorter charge), Extra insulation, Sunscreen.
-- **Green, at Terra** (the stops). Door chime; Station cameras and Station waiting lounge ← Door chime; capstone Mind reading machine ← both.
+- **Green** (the stops). Door chime; Station cameras and Station waiting lounge ← Door chime; capstone Mind reading machine ← both.
   - Door chime gives the waiting markers.
   - *(not built)* The other three.
-- **Orange, at Giant** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
+- **Orange** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
   - Every upgrade in it is implemented.
 
 ## Goals
@@ -292,7 +296,7 @@ Three planets have a tree, each paid for with one race's points. The rest have n
   - Deliver them to their destination.
   - Fly them past a planet: while they ride, the bus comes within 3 units of its surface in flight, having been out of reach since they boarded. Leaving the planet they boarded at isn't a flyby, coming back to it is, and flying in to dock there counts. It fails if they leave the bus first, however they leave.
 - **All met** means every milestone done and every standing goal holding.
-- **A run starts with two goals:** deliver 30 passengers, and keep a 4.0 average rating.
+- **A run starts with two goals:** deliver 30 passengers, and keep a 3.5 average rating. 3.5 is what a bare bus averages, so quick serving and direct routes meet it without research, and anyone else needs a first upgrade or two. Both are met after about 5 to 7 minutes, with half of the first stage researched.
 - *(not built)* Quests turning up.
 - *(not built)* A temporary win and lose while the loop is tuned. **Win:** every goal met at once. **Lose:** the happiness score, the average happiness of everyone on board, stays at 0 for 20 s; the countdown pauses while the bus is empty.
 
@@ -323,19 +327,29 @@ Three planets have a tree, each paid for with one race's points. The rest have n
 ## Scenes and flow
 
 ```
-main menu ──Play──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
+main menu ──Play / Continue / New game──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
     │                                          │
     └──Settings──▶ settings panel ◀──────────Settings
 ```
 
 - The game is one scene, the solar system.
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
+- **A transmission** pauses the game until the player answers it. Closing the pause menu over one leaves the game paused.
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
 
+## Save game
+
+- **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save at once, so it is held to confirm, like refuelling, and a stray click can't lose a run.
+- **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
+- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), and the goals' progress.
+- **What starts afresh:** the course, the charge, what each passenger was doing (a request comes back on hold, as at a stop), and the lines' clocks.
+- **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.
+- Only a run started from the main menu is saved, so tests and a scene run on its own never touch the save.
+
 ## Scope
 
-- **Out for now:** saving progress, dialogue, positional or adaptive audio.
+- **Out for now:** more than one save slot, dialogue, positional or adaptive audio.
 
 ## Not designed yet
 
@@ -348,7 +362,9 @@ Features we will very probably build, but that need more design work first.
 
 ## Open questions
 
-- **Balance after starting at the target.** A clean bare-bus ride now gives 4 stars and 1.2× the fare, so the rating bands (Who turns up) may sit too low, a short hop is the safest ride there is, and requests come too late (15 s or more) to touch most direct trips. Lateness is meant to carry the difficulty; if it doesn't, tighten the Commuter's slack, then bring the first request forward.
+- **Fun in the first stage.** In-Flight Movies and Space Invaders are both in the first two rows, so the first stage alone takes the recent rating to about 4.7 and half of all rides to 5 stars. A later stage's rating goal has little room above that unless Space Invaders moves down a row or the bonuses shrink.
+- **Orange points.** Past the first stage the orange tree is what the player waits for: it holds most of the built upgrades, while green points pile up unspent (the green tree has one built upgrade) and credits pass 2,000 by minute 20.
+- **The rating goal reads the all-time average,** so the first rides on a bare bus weigh on it for the whole run, while the resource bar shows the recent rating.
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.
 - **How often passengers sleep.** Too short between sleeps and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since costs go by row.
@@ -357,7 +373,7 @@ Features we will very probably build, but that need more design work first.
 - **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
 - **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
-- **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype.
+- **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype. With 6 seats or more a bus that keeps to two destinations leaves with one or two seats empty; 4 waiting delivers about a tenth more, and fills a bus that takes everyone with more destinations than it can serve well.
 - **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
 
 UI questions are in `docs/ui.md`.

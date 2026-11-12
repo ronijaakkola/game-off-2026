@@ -2,9 +2,17 @@
 
 [ext_resource type="Script" uid="uid://ofxrrnoq1asu" path="res://game/solar_system/research_counter.gd" id="1_counter"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="9_tooltip"]
 
 [node name="ResearchCounter" type="HBoxContainer" unique_id=351271388]
-mouse_filter = 2
+mouse_filter = 0
 theme = ExtResource("2_theme")
 theme_override_constants/separation = 4
 script = ExtResource("1_counter")
+
+[node name="Tooltip" parent="." unique_id=1954265833 node_paths=PackedStringArray("target") instance=ExtResource("9_tooltip")]
+layout_mode = 2
+target = NodePath("..")
+title = "Research points"
+sentence = "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
+gap = 14.0

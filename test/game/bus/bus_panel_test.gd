@@ -75,7 +75,7 @@ func test_left_click_on_the_bus_opens_it_and_again_closes_it() -> void:
 	assert_bool(rig.is_focused()).is_true()
 	assert_bool((runner.find_child("BusPanel") as Control).visible).is_true()
 	await runner.simulate_frames(1)
-	assert_bool((runner.find_child("HintBox") as Control).visible).is_false()
+	assert_bool((runner.find_child("Notices") as Control).visible).is_false()
 
 	await runner.simulate_frames(2)
 	_send_click(MOUSE_BUTTON_LEFT, _bus_screen_point(runner))

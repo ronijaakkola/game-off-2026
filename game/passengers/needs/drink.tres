@@ -13,4 +13,5 @@ serve_label = "Pour a drink"
 icon = ExtResource("2_icon")
 served_action = 2
 served_line = "Sipping a drink"
-max_interval = 50.0
+min_interval = 10.0
+max_interval = 25.0

@@ -77,6 +77,12 @@ func _process(delta: float) -> void:
 		_wait(planet, delta)
 
 
+## Makes every roll from here on, and those of the passengers decided after it, follow from
+## [param value], so a run can be played again: a balance run (`tools/balance.py`).
+func seed_dice(value: int) -> void:
+	_rng.seed = value
+
+
 ## The planets passengers wait at and travel between. Starts every planet empty.
 func set_planets(planets: Array[Planet]) -> void:
 	_planets = planets.duplicate()
@@ -135,6 +141,25 @@ func get_waiting(planet: Planet) -> Array[Passenger]:
 	var line: Array[Passenger] = []
 	line.assign(_waiting.get(planet, []))
 	return line
+
+
+## Who waits at [param planet] that the player has seen, longest waiting first, without
+## deciding anyone: [method count_at] less that many aren't decided yet.
+func get_seen(planet: Planet) -> Array[Passenger]:
+	var line: Array[Passenger] = []
+	line.assign(_waiting.get(planet, []))
+	return line
+
+
+## Puts the line at [param planet] back as a save game had it: [param seen] first, then
+## [param unseen] more not yet decided. The line's clocks start afresh.
+func restore(planet: Planet, seen: Array[Passenger], unseen: int) -> void:
+	if not _waiting.has(planet):
+		return
+	_waiting[planet] = seen.slice(0, max_per_planet)
+	_undecided[planet] = clampi(unseen, 0, max_per_planet - _waiting[planet].size())
+	_first.erase(planet)
+	changed.emit(planet)
 
 
 ## Takes [param passenger] out of the line at [param planet], as they are picked up. False

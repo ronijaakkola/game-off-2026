@@ -58,16 +58,9 @@ func add(look: AlienLook) -> AtlasTexture:
 	portrait.eye_style = look.eye_style
 	portrait.skin_color = look.skin_color
 	%Portraits.add_child(portrait)
-	var head := portrait.get_head_bounds()
-	var height := minf(head.size.y, MAX_HEAD)
-	var fit := minf(FILL_HEIGHT * SLOT / height, FILL_WIDTH * SLOT / head.size.x)
-	portrait.scale = Vector3.ONE * fit
 	var pitch := _pitch() * SLOT / TILE
-	# The head's top just under the tile's top, unless that leaves the base in view.
-	var y := minf(SLOT / 2.0 - HEADROOM * SLOT - head.end.y * fit, -SLOT / 2.0 - SINK)
-	portrait.position = Vector3(
-		(slot - (SLOTS - 1) / 2.0) * pitch - head.get_center().x * fit, y, 0.0
-	)
+	frame(portrait)
+	portrait.position.x += (slot - (SLOTS - 1) / 2.0) * pitch
 	_slots[slot] = portrait
 	var photo := AtlasTexture.new()
 	photo.atlas = get_texture()
@@ -75,6 +68,18 @@ func add(look: AlienLook) -> AtlasTexture:
 	_photos[photo] = portrait
 	_update_rendering()
 	return photo
+
+
+## Scales and places [param portrait], already in the tree, for a close-up of its head in
+## a square [constant SLOT] wide around the origin, facing a camera on +z.
+static func frame(portrait: AlienPortrait) -> void:
+	var head := portrait.get_head_bounds()
+	var height := minf(head.size.y, MAX_HEAD)
+	var fit := minf(FILL_HEIGHT * SLOT / height, FILL_WIDTH * SLOT / head.size.x)
+	portrait.scale = Vector3.ONE * fit
+	# The head's top just under the tile's top, unless that leaves the base in view.
+	var y := minf(SLOT / 2.0 - HEADROOM * SLOT - head.end.y * fit, -SLOT / 2.0 - SINK)
+	portrait.position = Vector3(-head.get_center().x * fit, y, 0.0)
 
 
 ## Takes down the portrait behind [param photo], freeing its slot.

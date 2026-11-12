@@ -9,11 +9,13 @@ extends Control
 ## them, what they are eating or drinking, and the push they feel on the bus.
 ## The framed photo is drawn at [constant FRAME_SIZE] and scaled to the photo's minimum
 ## size, so a scene can make it smaller. Their type's badges ([member PassengerType.badges])
-## sit in a row from the photo's top left corner, a little past it, tilted with it. With
+## sit in a row from the photo's top left corner, a little past it, tilted with it, and the
+## pointer over one shows a tooltip with the type's name and description. With
 ## [member flat] on, it is a flat square with rounded corners instead, as big as the minimum
 ## size, with no frame and no tilt.
 
 const BADGE := preload("res://game/passengers/photo_badge.tscn")
+const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 ## A badge's size, the gap between its rim and its icon, and how far the badges reach past
 ## the photo's top left corner, in pixels, on a photo [constant BADGE_PHOTO_SIZE] wide.
 ## On a bigger photo they all grow, [constant BADGE_GROWTH] as fast as the photo.
@@ -121,12 +123,18 @@ func _show_badges() -> void:
 	var grow := lerpf(1.0, custom_minimum_size.x / BADGE_PHOTO_SIZE, BADGE_GROWTH)
 	var side := roundf(BADGE_SIZE * grow)
 	for texture: Texture2D in passenger.type.badges:
-		var badge := BADGE.instantiate() as Control
-		badge.custom_minimum_size = Vector2.ONE * side
-		var icon := badge.get_node(^"%Icon") as TextureRect
+		var badge := BADGE.instantiate() as PhotoBadge
 		# Whole pixels each side, so the icon sits dead centre.
-		icon.custom_minimum_size = Vector2.ONE * (side - 2.0 * roundf(BADGE_PAD * grow))
-		icon.texture = texture
+		badge.show_icon(texture, side, roundf(BADGE_PAD * grow))
+		if not passenger.type.description.is_empty():
+			# It takes the pointer for its tooltip and passes it on, so the row or card
+			# under it still sees the pointer and its clicks.
+			badge.mouse_filter = Control.MOUSE_FILTER_PASS
+			var tooltip := TOOLTIP.instantiate() as Tooltip
+			tooltip.target = badge
+			tooltip.title = passenger.type.display_name
+			tooltip.sentence = passenger.type.description
+			badge.add_child(tooltip)
 		badges.add_child(badge)
 	badges.size = badges.get_combined_minimum_size()
 	badges.position = -Vector2.ONE * roundf(BADGE_OVERHANG * grow)

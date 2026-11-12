@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://bcagdrd7pm3gw"]
+
+[ext_resource type="Script" uid="uid://pocrukaygv4b" path="res://game/solar_system/notice_stack.gd" id="1_stack"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="NoticeStack" type="VBoxContainer" unique_id=2104529236]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_top = -88.0
+offset_bottom = -88.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_constants/separation = 0
+alignment = 2
+script = ExtResource("1_stack")

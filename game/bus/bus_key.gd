@@ -14,7 +14,7 @@ const SIDE_COLOR := Color(0.133, 0.118, 0.239)
 const FACE_COLOR := Color(0.227, 0.208, 0.361)
 const FACE_RAISED_COLOR := Color(0.271, 0.247, 0.431)
 const EDGE_COLOR := Color(1.0, 1.0, 1.0, 0.3)
-const CLICK := preload("res://game/bus/key_click.ogg")
+const CLICK := preload("res://ui/audio/key_click.ogg")
 
 var _face := StyleBoxFlat.new()
 # The cap's lit top edge: the face drawn a pixel higher in a lighter colour, under it.
