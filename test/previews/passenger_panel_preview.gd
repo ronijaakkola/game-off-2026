@@ -55,6 +55,10 @@ func _ready() -> void:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line
 		cabin.board(passenger)
+	# PROTOTYPE: `-- Serve:TIMING` shows that serve minigame on the asking cards.
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("Serve:"):
+			ServeMinigamePrototype.mode = ServeMinigamePrototype.Mode[arg.trim_prefix("Serve:")]
 	var panel := %PassengerPanel as PassengerPanel
 	panel.portrait_studio = %PortraitStudio as PortraitStudio
 	panel.cabin = cabin
