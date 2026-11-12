@@ -11,7 +11,7 @@ extends Control
 ## The player's move served [param amount] more of the request, as a fraction of all of it.
 signal fed(amount: float)
 
-enum Mode { HOLD, POUR, TIMING, SLIDE, SCRUB, MASH, CATCH, TRACK, BY_NEED }
+enum Mode { HOLD, POUR, TIMING, SLIDE, SCRUB, MASH, CATCH, TRACK, ORDER, BY_NEED }
 
 ## What each mode is called on the debug panel, and how it is played.
 const NAMES: Dictionary[Mode, String] = {
@@ -23,6 +23,7 @@ const NAMES: Dictionary[Mode, String] = {
 	Mode.MASH: "Mash",
 	Mode.CATCH: "Catch",
 	Mode.TRACK: "Track",
+	Mode.ORDER: "Order",
 	Mode.BY_NEED: "By need",
 }
 const HINTS: Dictionary[Mode, String] = {
@@ -34,6 +35,7 @@ const HINTS: Dictionary[Mode, String] = {
 	Mode.MASH: "Click five times.",
 	Mode.CATCH: "Click the chip three times, wherever it jumps.",
 	Mode.TRACK: "Hold with the pointer inside the drifting zone.",
+	Mode.ORDER: "Click 1, 2, 3, 4 in order. A wrong one starts over and shuffles them.",
 	Mode.BY_NEED: "A snack is a slide, a drink is a pour.",
 }
 
@@ -69,6 +71,9 @@ const TRACK_WIDTH := 0.3
 const TRACK_PERIOD := 2.2
 const TRACK_SECONDS := 1.0
 
+## Order: how many buttons there are to press in order.
+const ORDER_BUTTONS := 4
+
 const FLASH_SECONDS := 0.25
 const GOOD := Color(0.6, 1.0, 0.7)
 const BAD := Color(1.0, 0.45, 0.45)
@@ -94,6 +99,9 @@ var _grabbed := false
 # Timing: where the zone starts. Catch: where the chip starts. Shares of the button.
 var _spot := 0.5
 var _phase := 0.0
+# Order: the number on each button, left to right, and the number to press next.
+var _numbers: Array[int] = []
+var _next := 1
 var _flash := 0.0
 var _flash_color := GOOD
 var _box := StyleBoxFlat.new()
@@ -154,7 +162,7 @@ func get_label_alpha() -> float:
 			return 0.5
 		Mode.SLIDE:
 			return 0.6
-		Mode.CATCH:
+		Mode.CATCH, Mode.ORDER:
 			return 0.0
 	return 1.0
 
@@ -187,6 +195,7 @@ func _restart() -> void:
 	_clock = 0.0
 	_flash = 0.0
 	_phase = randf() * TAU
+	_shuffle()
 	_spot = randf_range(0.35, 1.0 - ZONE_WIDTH) if get_game() == Mode.TIMING else randf() * 0.8
 	queue_redraw()
 
@@ -225,6 +234,19 @@ func _press() -> void:
 				fed.emit(1.0 / CATCH_CLICKS)
 			else:
 				_flash_with(BAD)
+		Mode.ORDER:
+			var button := clampi(
+				int(_pointer_x / maxf(size.x, 1.0) * ORDER_BUTTONS), 0, ORDER_BUTTONS - 1
+			)
+			if _numbers[button] == _next:
+				_next += 1
+				if _next > ORDER_BUTTONS:
+					_flash_with(GOOD)
+					_shuffle()
+					fed.emit(1.0)
+			elif _numbers[button] > _next:
+				_flash_with(BAD)
+				_shuffle()
 
 
 func _let_go() -> void:
@@ -255,6 +277,13 @@ func _drag(from: float) -> void:
 				_level = to
 		Mode.SCRUB:
 			fed.emit(absf(_pointer_x - from) / (maxf(size.x, 1.0) * SCRUB_WIDTHS))
+
+
+# Order: numbers the buttons afresh, in a new order, with none pressed.
+func _shuffle() -> void:
+	_numbers.assign(range(1, ORDER_BUTTONS + 1))
+	_numbers.shuffle()
+	_next = 1
 
 
 func _in_track_zone() -> bool:
@@ -321,6 +350,25 @@ func _draw() -> void:
 			var inside := _pressed and _in_track_zone()
 			var zone := Rect2(_track_start() * w, 0.0, TRACK_WIDTH * w, h)
 			_draw_box(zone, Color(CYAN, 0.5) if inside else Color(1, 1, 1, 0.22))
+		Mode.ORDER:
+			var font := get_theme_font(&"font", &"SmallStrongLabel")
+			var font_size := get_theme_font_size(&"font_size", &"SmallStrongLabel")
+			var each := w / ORDER_BUTTONS
+			for button: int in ORDER_BUTTONS:
+				var done := _numbers[button] < _next
+				var box := Rect2(button * each + 1.0, 0.0, each - 2.0, h)
+				_draw_box(box, Color(CYAN, 0.45) if done else Color(1, 1, 1, 0.22))
+				var baseline := Vector2(box.position.x, h / 2.0 + font_size * 0.36)
+				var color := Color(1, 1, 1, 0.45 if done else 1.0)
+				draw_string(
+					font,
+					baseline,
+					str(_numbers[button]),
+					HORIZONTAL_ALIGNMENT_CENTER,
+					box.size.x,
+					font_size,
+					color
+				)
 	if _flash > 0.0:
 		_draw_box(Rect2(Vector2.ZERO, size), Color(_flash_color, 0.45 * _flash))
 
