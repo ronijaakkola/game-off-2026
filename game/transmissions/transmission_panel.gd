@@ -3,8 +3,8 @@ extends CanvasLayer
 ## The transmission modal: a [Transmission]'s caller on their screen beside what they say,
 ## in the middle of the screen over a dimmed, paused game. It holds the game paused while it
 ## shows, with the pause menu's [method PauseMenu.hold], so the pause menu closing over it
-## leaves the game paused. It processes always, so it animates while paused, and its layer
-## sits over the HUD and under the pause menu.
+## leaves the game paused, and muffles the music while it shows. It processes always, so
+## it animates while paused, and its layer sits over the HUD and under the pause menu.
 ## It opens in steps: the tube turns on, then the caller says their text a letter at a
 ## time at a speaking pace, a beat between words and a pause at each comma and full stop,
 ## talking as they do and falling quiet in the pauses. Only then do the quest, the reward
@@ -64,10 +64,11 @@ func _ready() -> void:
 	hide()
 
 
-# The pause is the modal's while it shows, so it goes with it.
+# The pause and the muffled music are the modal's while it shows, so they go with it.
 func _exit_tree() -> void:
 	if visible:
 		PauseMenu.release(self)
+		Audio.muffle_music(false)
 
 
 ## Whether a transmission shows.
@@ -79,6 +80,7 @@ func is_open() -> bool:
 func open(transmission: Transmission) -> void:
 	_transmission = transmission
 	PauseMenu.hold(self)
+	Audio.muffle_music(true)
 	_fill(transmission)
 	show()
 	var still := Settings.reduce_motion
@@ -153,6 +155,7 @@ func _on_decline_button_pressed() -> void:
 
 func _answer(accepted: bool) -> void:
 	_set_buttons_live(false)
+	Audio.muffle_music(false)
 	(%Screen as TransmissionScreen).turn_off()
 	if _fade:
 		_fade.kill()

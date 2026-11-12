@@ -68,7 +68,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | Autoload | Folder | What it does |
 |---|---|---|
 | `Events` | `core/events/` | The **signal bus**: every **bus event**, declared in `events.gd`. |
-| `Audio` | `core/audio/` | Music crossfade and pooled SFX: `play_music(stream)`, `stop_music()`, `play_sfx(stream)`. It owns the buses: code names one as an `Audio.Bus`, so `set_volume(Audio.Bus.MUSIC, linear)`, and a player's bus is `Audio.BUS_NAMES[Audio.Bus.SFX]`. A wrong bus name plays on Master without an error. |
+| `Audio` | `core/audio/` | Music crossfade and pooled SFX: `play_music(stream)`, `stop_music()`, `play_sfx(stream)`, `muffle_music(muffled)`. It owns the buses: code names one as an `Audio.Bus`, so `set_volume(Audio.Bus.MUSIC, linear)`, and a player's bus is `Audio.BUS_NAMES[Audio.Bus.SFX]`. A wrong bus name plays on Master without an error. |
 | `SceneFlow` | `core/scene_flow/` | Moves between top-level scenes with a fade: `await SceneFlow.go_to(path)`. |
 | `Settings` | `core/settings/` | The player's **settings**, applied on every change and saved to `user://settings.cfg` once changes stop for a moment. `reset()` puts them all back to their defaults. |
 | `SaveGame` | `core/save_game/` | The player's **save game** in `user://save_game.json`, one run as a plain Dictionary. The main menu starts a run with `start_new()` or `continue_saved()`, and the game scene takes it with `claim_run()`; only a claimed run is written, so tests and F6 runs never touch the save. Tests run in the player's own user folder, so a test that starts a run from the menu points `SaveGame.path` at a file of its own first. It knows nothing of the game: `GameSaver` in the solar system builds and applies the Dictionary. |
