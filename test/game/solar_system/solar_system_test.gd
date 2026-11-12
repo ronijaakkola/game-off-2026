@@ -412,8 +412,9 @@ func _wait_for_a_boarding_row(runner: GdUnitSceneRunner) -> BoardingRow:
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
 	waiting.add((runner.find_child("Bus") as FrameshiftBus).get_docked_planet())
-	await runner.simulate_frames(3)
-	await await_millis(500)
+	# Half a second of game time at the 60 fps the tests run at, not of the wall clock, so
+	# the dock panel has slid in however slowly a machine draws the frames.
+	await runner.simulate_frames(33)
 	return runner.find_child("BoardingRow", true, false) as BoardingRow
 
 
