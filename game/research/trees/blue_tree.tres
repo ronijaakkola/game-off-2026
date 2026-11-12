@@ -184,12 +184,6 @@ requires = Array[Resource]([SubResource("Resource_speed_2")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_3_mod")])
 tier = 4
 
-[sub_resource type="Resource" id="Resource_fuel_tank_3_mod"]
-script = ExtResource("3_modifier")
-stat = 1
-kind = 1
-amount = 25.0
-
 [sub_resource type="Resource" id="Resource_fuel_tank_3"]
 script = ExtResource("2_upgrade")
 title = "Solar fuel"
@@ -201,7 +195,6 @@ points = Dictionary[int, int]({
 0: 7
 })
 requires = Array[Resource]([SubResource("Resource_fuel_tank_2"), SubResource("Resource_efficient_burn")])
-modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_fuel_tank_3_mod")])
 tier = 4
 column = 3
 

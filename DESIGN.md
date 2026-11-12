@@ -279,8 +279,8 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 "A ← B" means A needs B; "A ← B or C" means either one opens it.
 
 - **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Fuel forecast and Fuel tank 2 ← Fuel tank 1. Speed 2 and Warm drive ← Speed 1; Speed 3 ← Speed 2. How is my driving? ← Warm drive. Pit crew ← Fuel tank 2; Tow loyalty card ← Pit crew. Efficient burn ← Fuel forecast. Solar fuel ← Fuel tank 2 or Efficient burn. Last row: Slingshot ← Warm drive or Speed 3; Warp gate ← Efficient burn or Solar fuel.
-  - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait. Solar fuel still holds Fuel tank 3's +25 %.
-  - *(not built)* Warm drive, Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel's star fuelling, Slingshot, Warp gate.
+  - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
+  - *(not built)* Warm drive, Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel, Slingshot, Warp gate.
 - **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras; Research grant ← Remote terminal. Last row: Bottomless complaints box ← Station cameras or Honk; Express service ← Passenger loyalty program or Business lounge.
   - Door chime gives the waiting markers.
   - *(not built)* The other thirteen.

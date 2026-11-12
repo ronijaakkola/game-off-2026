@@ -110,7 +110,8 @@ tier = 2
 [sub_resource type="Resource" id="Resource_earplugs"]
 script = ExtResource("2_upgrade")
 title = "Earplugs"
-description = "NOT IMPLEMENTED"
+description = "Sleeping passengers can't be woken up.
+NOT IMPLEMENTED"
 icon = ExtResource("9_bell_ring")
 credits = 550
 points = Dictionary[int, int]({
