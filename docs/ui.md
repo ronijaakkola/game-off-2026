@@ -36,7 +36,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Fonts.** Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing.
 - **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
 - Spacing is on a 4 px scale.
-- **Tooltips** name a counter or an icon-only key: a dark card (`#0B0920` at 85 %) with the surface's border and 8 px corners, no shadow, dark enough to read over the map and over glass. A name and, when it helps, one sentence in fainter running text, at most 200 px wide.
+- **Tooltips** name a counter or an icon-only key: a solid dark card (`#0B0920`) with the surface's border and 8 px corners, no shadow, so it reads over the map and over glass. A name and, when it helps, one sentence in fainter running text, at most 200 px wide.
   - It sits 8 px from its target's panel, centred on the target: below the resource bar, above the bus bar. A research tile's sits above the tile. Near a side edge of the screen it stays 8 px inside it, and still grows from the target's centre.
   - It opens once the pointer has rested on the target for 0.3 s, and closes when the pointer leaves. On a research tile it opens as the pointer arrives: the trees are read tile after tile, and a wait would feel sluggish.
   - Under the sentence it can hold one more row, such as a cost.
