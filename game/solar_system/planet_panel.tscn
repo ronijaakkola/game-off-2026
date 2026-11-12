@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://djgglreo0dvp4" path="res://game/solar_system/planet_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
-[ext_resource type="PackedScene" uid="uid://cjh1c4wmicyyv" path="res://game/research/research_tree_view.tscn" id="4_research"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="90_glass"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
@@ -73,15 +72,6 @@ custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
-
-[node name="Tabs" type="TabBar" parent="Sheet/Rows" unique_id=1950594210]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 15
-current_tab = 0
-tab_count = 2
-tab_0/title = "Services"
-tab_1/title = "Research"
 
 [node name="Services" type="VBoxContainer" parent="Sheet/Rows" unique_id=987650556]
 unique_name_in_owner = true
@@ -175,19 +165,11 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.55)
 text = "Dock here to refuel."
 horizontal_alignment = 1
 
-[node name="ResearchView" parent="Sheet/Rows" unique_id=722984581 instance=ExtResource("4_research")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_vertical = 3
-
 [node name="CloseButton" type="Button" parent="Sheet/Rows" unique_id=2026300211]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Close"
 
-[connection signal="tab_changed" from="Sheet/Rows/Tabs" to="." method="_on_tabs_tab_changed"]
 [connection signal="button_down" from="Sheet/Rows/Services/RefuelButton" to="." method="_on_refuel_button_down"]
 [connection signal="button_up" from="Sheet/Rows/Services/RefuelButton" to="." method="_on_refuel_button_up"]
-[connection signal="upgrade_clicked" from="Sheet/Rows/ResearchView" to="." method="_on_research_view_upgrade_clicked"]
 [connection signal="pressed" from="Sheet/Rows/CloseButton" to="." method="_on_close_button_pressed"]

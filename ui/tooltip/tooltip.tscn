@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://buwt7muuiolkm"]
+
+[ext_resource type="Script" uid="uid://crl17m0xkq6oh" path="res://ui/tooltip/tooltip.gd" id="1_tooltip"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="Tooltip" type="PanelContainer" unique_id=745819099]
+visible = false
+top_level = true
+z_index = 10
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_type_variation = &"TooltipCardPanel"
+script = ExtResource("1_tooltip")
+
+[node name="Rows" type="VBoxContainer" parent="." unique_id=1721951517]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="Rows" unique_id=685038464]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallStrongLabel"
+text = "Name"
+
+[node name="SentenceLabel" type="Label" parent="Rows" unique_id=1795591975]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TooltipSentenceLabel"
+text = "One sentence."
+autowrap_mode = 3
+
+[node name="RestTimer" type="Timer" parent="." unique_id=224523635]
+unique_name_in_owner = true
+wait_time = 0.3
+one_shot = true

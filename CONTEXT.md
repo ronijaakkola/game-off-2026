@@ -10,7 +10,7 @@ Each entry is the project's word for a thing. Use it in code, UI text, docs and 
 ## Language
 
 **Core system**:
-A game-wide service that outlives scene changes and has one instance: the signal bus, audio, scene flow, settings, feedback and online.
+A game-wide service that outlives scene changes and has one instance: the signal bus, audio, scene flow, settings, save game, feedback and online.
 _Avoid_: manager, global
 _Never_: singleton
 
@@ -57,7 +57,7 @@ The player's preferences (volumes, mouse sensitivity and similar), kept across s
 _Avoid_: options, config, preferences file
 
 **Save game**:
-The player's progress in the game itself. Not built: a run starts fresh each time.
+The player's run in the game itself, kept so it can be continued from the main menu: one run, saved at checkpoints while the bus waits at a planet. Named `SaveGame` in code, and `GameSaver` is what writes the run into it and puts it back.
 _Avoid_: settings, save file (ambiguous)
 
 **Online**:
@@ -104,16 +104,20 @@ A feature on the bus that an upgrade unlocks, which the bus either has or doesn'
 _Avoid_: perk, flag, unlock (the purchase, not the thing)
 
 **Tow**:
-What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. The player requests it from the tow offer (`TowOffer`) and pays its fee then. A **tow ship** (`TowShip`), a red tug with its own model, flies out from the planet, hitches on with a cable and leads the bus in, where it docks with a full tank. `FrameshiftBus.tow_to()` moves the bus.
+What brings a bus that ran out of fuel in space to the nearest planet, slowly and with the route out of the player's hands. The player requests it from the out of fuel notice (`NoticeStack.offer_tow()`) and pays its fee then. A **tow ship** (`TowShip`), a red tug with its own model, flies out from the planet, hitches on with a cable and leads the bus in, where it docks with a full tank. `FrameshiftBus.tow_to()` moves the bus.
 _Avoid_: rescue
 _Never_: respawn
+
+**Notice**:
+A card above the bus bars telling the player something: a tutorial, info, a warning, an error or an incoming call, optionally with an action button, a close button, or a time after which it closes by itself. `Notice` in code, pushed onto the `NoticeStack`, which returns it so its owner can dismiss it.
+_Avoid_: toast, notification, popup, alert, hint (one kind of notice is a tutorial)
 
 **Passenger**:
 Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
 _Never_: customer, rider, NPC
 
 **Happiness**:
-How content a passenger is, from 0 to 100, sliding toward a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. It sets the mood and the rating. `Passenger.happiness` in code.
+How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. It sets the mood and the rating. `Passenger.happiness` in code.
 _Avoid_: satisfaction, frustration
 _Never_: morale, patience (what it replaced)
 
@@ -154,8 +158,17 @@ _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
 
 **Research tree**:
-The upgrades a planet offers, linked by which ones each needs first. Each planet has its own, or none, and the player researches from it only while the bus is docked or charging there. `Research` in code keeps which upgrades are researched.
+The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. The player researches from every tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched and which stages are open.
 _Never_: tech tree, skill tree
+
+**Stage**:
+A band of rows across every research tree, opened one at a time: the first from the start, each next one by a **promotion**. `Research.get_stage()` in code.
+
+**Lab**:
+What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
+
+**Promotion**:
+What opens the next stage of research. Only a debug button gives one so far.
 
 **Upgrade**:
 One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.

@@ -22,7 +22,7 @@ script = ExtResource("2_upgrade")
 title = "Extra seat"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
-credits = 150
+credits = 20
 points = Dictionary[int, int]({
 1: 2
 })
@@ -33,7 +33,7 @@ script = ExtResource("2_upgrade")
 title = "Food Replicator"
 description = "Hungry passengers fetch their own snacks and drinks, one at a time."
 icon = ExtResource("5_sandwich")
-credits = 150
+credits = 20
 points = Dictionary[int, int]({
 1: 2
 })
@@ -51,7 +51,7 @@ script = ExtResource("2_upgrade")
 title = "Bigger portions I"
 description = "Snacks and drinks last longer, so passengers ask for them less often."
 icon = ExtResource("11_ham")
-credits = 150
+credits = 20
 points = Dictionary[int, int]({
 1: 2
 })
@@ -63,7 +63,7 @@ script = ExtResource("2_upgrade")
 title = "In-Flight Movies"
 description = "Movies on board: passengers are happier, and the ride flies by while they watch one."
 icon = ExtResource("8_tv")
-credits = 150
+credits = 20
 points = Dictionary[int, int]({
 1: 2
 })
@@ -80,7 +80,7 @@ script = ExtResource("2_upgrade")
 title = "Extra seat"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
-credits = 300
+credits = 45
 points = Dictionary[int, int]({
 1: 4
 })
@@ -93,7 +93,7 @@ script = ExtResource("2_upgrade")
 title = "Pillows"
 description = "Passengers take short naps, and time passes slower while they doze."
 icon = ExtResource("7_bed_single")
-credits = 300
+credits = 45
 points = Dictionary[int, int]({
 1: 4
 })
@@ -113,7 +113,7 @@ script = ExtResource("2_upgrade")
 title = "Bigger portions II"
 description = "Snacks and drinks last longer still."
 icon = ExtResource("11_ham")
-credits = 300
+credits = 45
 points = Dictionary[int, int]({
 1: 4
 })
@@ -127,7 +127,7 @@ script = ExtResource("2_upgrade")
 title = "Space Invaders"
 description = "Arcade games on board: passengers are happier still, and binge their movies for longer."
 icon = ExtResource("6_gamepad_2")
-credits = 300
+credits = 45
 points = Dictionary[int, int]({
 1: 4
 })
@@ -146,7 +146,7 @@ script = ExtResource("2_upgrade")
 title = "Extra seat"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
-credits = 550
+credits = 90
 points = Dictionary[int, int]({
 1: 7
 })
@@ -159,7 +159,7 @@ script = ExtResource("2_upgrade")
 title = "Sleeping pods"
 description = "Passengers sleep long and deep, and the ride flies by while they do."
 icon = ExtResource("9_bed_double")
-credits = 550
+credits = 90
 points = Dictionary[int, int]({
 1: 7
 })
@@ -173,12 +173,11 @@ script = ExtResource("2_upgrade")
 title = "Waiter Droids"
 description = "Droids bring snacks and drinks to three passengers at a time, and quickly."
 icon = ExtResource("10_bot")
-credits = 550
+credits = 90
 points = Dictionary[int, int]({
 1: 7
 })
 requires = Array[Resource]([SubResource("Resource_food_dispenser"), SubResource("Resource_portions_2")])
-hidden = true
 traits = Array[int]([7])
 tier = 2
 column = 2
@@ -194,7 +193,7 @@ script = ExtResource("2_upgrade")
 title = "Bigger portions III"
 description = "Snacks and drinks last a long while."
 icon = ExtResource("11_ham")
-credits = 550
+credits = 90
 points = Dictionary[int, int]({
 1: 7
 })
@@ -213,7 +212,7 @@ script = ExtResource("2_upgrade")
 title = "Extra seat"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
-credits = 800
+credits = 150
 points = Dictionary[int, int]({
 1: 10
 })
@@ -223,4 +222,5 @@ tier = 3
 
 [resource]
 script = ExtResource("1_tree")
+title = "Comfort"
 upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_extra_seat_1"), SubResource("Resource_food_dispenser"), SubResource("Resource_portions_1"), SubResource("Resource_entertainment_system"), SubResource("Resource_extra_seat_2"), SubResource("Resource_pillows"), SubResource("Resource_portions_2"), SubResource("Resource_gaming_system"), SubResource("Resource_extra_seat_3"), SubResource("Resource_sleeping_pods"), SubResource("Resource_serving_robots"), SubResource("Resource_portions_3"), SubResource("Resource_extra_seat_4")])

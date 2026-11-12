@@ -4,8 +4,12 @@ extends Node
 ## fuel flows slowly at first and faster the longer they hold, and costs the planet's fuel
 ## price. The bill is paid once the pump stops, when they let go, the tank is full, the
 ## credits run out or the bus leaves: the whole credits it adds up to come off the credits
-## together, and what is left under a credit carries over to the next refuel. The parent
-## says each frame whether a button is held.
+## together, and what is left under a credit carries over to the next refuel.
+## [member sound] plays from the moment fuel starts to flow until it stops, however that
+## happens.
+## The buttons are the dock panel's fuel button, and the open planet's refuel button when
+## that is the planet the bus is docked at. Each frame it shows in both panels whether it
+## can pump, and in the open planet's the fuel, the price and what stops it.
 
 ## Fuel a second the pump gives as the button goes down, the most it speeds up to, and the
 ## seconds it takes to get there.
@@ -13,11 +17,67 @@ const START_RATE := 12.0
 const MAX_RATE := 60.0
 const RAMP_SECONDS := 1.5
 
+## One cycle of the pump's sound. It repeats while the pump runs, so its import loops it
+## (a clip that loops cleanly), and its pitch rises the longer the pump runs: from
+## [member pitch_start] as fuel starts to flow to [member pitch_end] after
+## [member pitch_rise_seconds], slower than the flow itself speeds up. The sound fades out
+## over [member fade_seconds] when the pump stops, so it doesn't click.
+@export var sound: AudioStream
+@export_range(0.0, 1.0, 0.01) var sound_volume := 1.0
+@export_range(0.1, 4.0, 0.01) var pitch_start := 0.6
+@export_range(0.1, 4.0, 0.01) var pitch_end := 1.0
+@export_range(0.1, 10.0, 0.1, "or_greater") var pitch_rise_seconds := 2.0
+@export_range(0.0, 1.0, 0.01) var fade_seconds := 0.34
+## The bus whose tank it fills, at the planet it is docked at.
+@export var bus: FrameshiftBus
+## The panels whose fuel buttons it runs on.
+@export var dock_panel: DockPanel
+@export var planet_panel: PlanetPanel
+
+## The credits that pay for fuel. The parent sets it; without one, it does nothing.
+var ledger: Ledger
+
 # Seconds the pump has run since the button went down.
 var _pump_time := 0.0
 # Credits owed for fuel pumped but not yet paid: this refuel's bill while the pump runs,
 # and under one credit, carried over, once it has stopped.
 var _owed := 0.0
+var _player: AudioStreamPlayer
+var _sounding := false
+var _fade: Tween
+
+
+func _ready() -> void:
+	# Its own player, not Audio.play_sfx: the sound has to stop when the pump does.
+	_player = AudioStreamPlayer.new()
+	_player.stream = sound
+	_player.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
+	add_child(_player)
+
+
+func _process(delta: float) -> void:
+	if not bus or not ledger:
+		return
+	var tank := bus.get_fuel_tank()
+	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
+	var open := planet_panel.get_planet()
+	var reason := get_stop(docked, tank, ledger) if docked else ""
+	var fill_cost := ceili((tank.capacity - tank.fuel) * docked.fuel_price) if docked else 0
+	var can_fuel := docked != null and reason.is_empty()
+	dock_panel.show_fuel(tank.get_fraction(), fill_cost, can_fuel, reason.trim_suffix("."))
+	if docked:
+		var held := dock_panel.is_fuel_held() or (open == docked and planet_panel.is_refuel_held())
+		run(delta, docked, held, tank, ledger)
+	else:
+		stop(ledger)
+	if not open:
+		return
+	var open_reason := reason if open == docked else "Dock here to refuel."
+	if not open.sells_fuel:
+		open_reason = "No fuel sold here."
+	var note := open_reason if open_reason else "%d credits" % ledger.credits
+	var full_tank_cost := ceili(tank.capacity * open.fuel_price)
+	planet_panel.show_fuel(tank.get_fraction(), full_tank_cost, open_reason.is_empty(), note)
 
 
 ## Why [param tank] can't take fuel at [param planet] now, or "" when it can.
@@ -38,8 +98,11 @@ func run(delta: float, planet: Planet, held: bool, tank: FuelTank, ledger: Ledge
 	if not held or not get_stop(planet, tank, ledger).is_empty():
 		stop(ledger)
 		return
+	_set_sounding(true)
 	_pump_time += delta
 	var ramp := clampf(_pump_time / RAMP_SECONDS, 0.0, 1.0)
+	var rise := clampf(_pump_time / pitch_rise_seconds, 0.0, 1.0)
+	_player.pitch_scale = lerpf(pitch_start, pitch_end, rise)
 	var amount := minf(lerpf(START_RATE, MAX_RATE, ramp) * delta, _affordable(planet, ledger))
 	amount = minf(amount, tank.capacity - tank.fuel)
 	tank.refuel(amount)
@@ -49,10 +112,30 @@ func run(delta: float, planet: Planet, held: bool, tank: FuelTank, ledger: Ledge
 ## Stops the pump, if it runs, and pays its bill from [param ledger] in whole credits.
 func stop(ledger: Ledger) -> void:
 	_pump_time = 0.0
+	_set_sounding(false)
 	var whole := floori(_owed)
 	if whole > 0:
 		ledger.spend(whole)
 		_owed -= whole
+
+
+# Starts the sound from the top, or fades it out; asking for what it already does is
+# nothing, since the parent calls this every frame.
+func _set_sounding(on: bool) -> void:
+	if on == _sounding or not _player or not _player.stream:
+		return
+	_sounding = on
+	if _fade:
+		_fade.kill()
+		_fade = null
+	if on:
+		_player.volume_linear = sound_volume
+		_player.pitch_scale = pitch_start
+		_player.play()
+		return
+	_fade = create_tween()
+	_fade.tween_property(_player, ^"volume_linear", 0.0, fade_seconds)
+	_fade.tween_callback(_player.stop)
 
 
 # How much fuel the credits left buy at [param planet].

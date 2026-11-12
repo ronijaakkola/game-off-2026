@@ -38,3 +38,15 @@ func test_the_average_rating_is_the_mean_with_out_of_range_ratings_at_the_neares
 
 	assert_int(ledger.get_rating_count()).is_equal(3)
 	assert_float(ledger.get_average_rating()).is_equal_approx(3.0, 0.001)
+
+
+func test_the_recent_rating_is_the_mean_of_only_the_last_ratings() -> void:
+	var ledger := Ledger.new()
+	assert_float(ledger.get_recent_rating()).is_equal(0.0)
+	for i: int in Ledger.RECENT_RATINGS:
+		ledger.rate(1.0)
+	for i: int in Ledger.RECENT_RATINGS:
+		ledger.rate(5.0)
+
+	assert_float(ledger.get_recent_rating()).is_equal_approx(5.0, 0.001)
+	assert_float(ledger.get_average_rating()).is_equal_approx(3.0, 0.001)

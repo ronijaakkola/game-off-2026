@@ -28,7 +28,7 @@ const MAX_SAME_DESTINATION := 2
 @export var bus: FrameshiftBus
 ## Who is on board: destinations they are going to turn up more often.
 @export var cabin: Cabin
-@export_range(0, 10) var max_per_planet := 4
+@export_range(0, 10) var max_per_planet := 3
 ## Seconds between new passengers at one planet: a random value between these two.
 @export_range(1.0, 300.0, 1.0) var min_interval := 8.0
 @export_range(1.0, 300.0, 1.0) var max_interval := 20.0
@@ -75,12 +75,6 @@ func _process(delta: float) -> void:
 			_until_next[planet] = _interval()
 			add(planet)
 		_wait(planet, delta)
-
-
-## Makes every roll from here on, and those of the passengers decided after it, follow from
-## [param value], so a run can be played again: a test, or a balance run.
-func seed_dice(value: int) -> void:
-	_rng.seed = value
 
 
 ## The planets passengers wait at and travel between. Starts every planet empty.
@@ -141,6 +135,25 @@ func get_waiting(planet: Planet) -> Array[Passenger]:
 	var line: Array[Passenger] = []
 	line.assign(_waiting.get(planet, []))
 	return line
+
+
+## Who waits at [param planet] that the player has seen, longest waiting first, without
+## deciding anyone: [method count_at] less that many aren't decided yet.
+func get_seen(planet: Planet) -> Array[Passenger]:
+	var line: Array[Passenger] = []
+	line.assign(_waiting.get(planet, []))
+	return line
+
+
+## Puts the line at [param planet] back as a save game had it: [param seen] first, then
+## [param unseen] more not yet decided. The line's clocks start afresh.
+func restore(planet: Planet, seen: Array[Passenger], unseen: int) -> void:
+	if not _waiting.has(planet):
+		return
+	_waiting[planet] = seen.slice(0, max_per_planet)
+	_undecided[planet] = clampi(unseen, 0, max_per_planet - _waiting[planet].size())
+	_first.erase(planet)
+	changed.emit(planet)
 
 
 ## Takes [param passenger] out of the line at [param planet], as they are picked up. False

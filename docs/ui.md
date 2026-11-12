@@ -16,6 +16,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 
 - **Camera.** Looks down at the orbit plane at an angle, with a narrow field of view (30°), so the system reads almost like a map but the planets still look round.
 - **Planets.** A sphere with up to three colour bands with hard edges: noise blobs for rocky planets, wobbly horizontal stripes for gas giants, optional polar caps. The pattern turns with the planet's spin.
+- **Orbits slowing.** As the bus swings side-on to dock, or its frameshift ends in space, the planets slow to half speed with a soft ease-out, and ease back in as it heads off. Their spin never stops, so the system still looks alive while it waits.
 - **Light is two tones only:** a lit side in the planet's own colours, and a night side tinted by the same purple multiply on every planet, split by a line about a pixel wide at any zoom. The star's distance and the ambient light don't change a planet's colours.
 - **Colours.** Soft, warm and saturated, never dark: sandy orange, leaf green, a pale lilac moon, an orange-striped gas giant with lilac rings, a pink ice planet with white caps. Planets are told apart by colour first, so each new one needs its own hue.
 - **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom.
@@ -35,6 +36,12 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Fonts.** Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing.
 - **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
 - Spacing is on a 4 px scale.
+- **Tooltips** name a counter or an icon-only key: a dark card (`#0B0920` at 85 %) with the surface's border and 8 px corners, no shadow, dark enough to read over the map and over glass. A name and, when it helps, one sentence in fainter running text, at most 200 px wide.
+  - It sits 8 px from its target's panel, centred on the target: below the resource bar, above the bus bar. A research tile's sits above the tile. Near a side edge of the screen it stays 8 px inside it, and still grows from the target's centre.
+  - It opens once the pointer has rested on the target for 0.3 s, and closes when the pointer leaves. On a research tile it opens as the pointer arrives: the trees are read tile after tile, and a wait would feel sluggish.
+  - Under the sentence it can hold one more row, such as a cost.
+  - Going from one tooltip to the next, within 0.3 s of the last one closing, another target shows its tooltip at once with no motion, and the one closing goes at once.
+  - It comes from its target: opening, it slides 6 px out from the target into place while fading in and growing from 94 % out of the edge facing it, in 0.15 s, easing out. Closing, it only fades and shrinks back, in 0.1 s. A pointer that leaves while it opens, or comes back while it closes, turns it round from where it is. Under Reduce motion it only fades. When the game pauses it closes at once.
 - The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
 
 ### Races
@@ -81,14 +88,13 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 - **Hover.** The pointer over a planet shows a white border round it, over its orange route border. Where the bus and a planet overlap, only the one a left click would open shows it. Over the HUD, the pointer picks nothing.
 - **Route.** A flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border.
 - Under the pointer, the last stop's diamond turns white, as a planet's border does. Diamonds earlier on the route stay orange.
-- **Course hint.** Until the player first sets a course, a line at the bottom of the screen: "Right-click planets or space to add stops. Backspace clears the route."
 - **Waiting markers** (a trait). Under the name of each planet where someone waits, a small person and a number.
 - **Fuel forecast** (a trait). Just above the route's last stop, "-22% fuel" in the names' off-white, or in low fuel's red when the bus hasn't that much left. Hidden with no course and during a tow.
 - **Trip arc.** A waiting passenger's trip, shown from their row in the dock panel: an arc from the planet to their destination in their race's skin colour.
   - It rises off the orbit plane like a hop, so it never reads as part of the flat route, and bows sideways where the trip points along the view.
   - A line of rounded dashes with a thin dark outline, as wide on screen at any zoom, from the planet's edge to a ring round the destination.
   - It grows out in half a second, the ring closing in as it arrives; then the dashes flow toward the destination and the ring sends out a slow pulse. Under Reduce motion it fades in whole and holds still.
-- **While a planet or the bus is open,** the names, waiting markers, fuel forecast and trip arc fade out, and the course hint hides.
+- **While a planet or the bus is open,** the names, waiting markers, fuel forecast and trip arc fade out.
 
 ## The HUD
 
@@ -98,19 +104,19 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 | Top centre | Resource bar |
 | Top right | Goal panel, with the dock panel (the planet's station) under it while docked or charging |
 | Bottom edge, centred | Bus status: the route bar over the bus bar |
-| Above the bus bars | Tow offer, when out of fuel |
+| Above the bus bars | Notices |
 | Right side | The open planet's or bus's panel, over the dock panel |
 | Bottom left | Debug panel (F2) |
 
-- **While a planet's or the bus's panel is open,** the bus bars and the course hint hide, and the resource bar moves to stay centred between the On board panel and the open panel.
+- **While a planet's or the bus's panel is open,** the bus bars and the notices hide, and the resource bar moves to stay centred between the On board panel and the open panel.
 
 ### Resource bar
 
 A frosted-glass pill: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
 
-- **Credits:** beside a gold dollar sign, with a comma between thousands (12,480).
-- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour.
-- **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: who that rating attracts, and from how many stars the next band starts.
+- **Credits:** beside a gold dollar sign, with a comma between thousands (12,480). The pointer over it shows a tooltip: "Credits", "Fares you have earned. Fuel and tows cost credits."
+- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour. The pointer over them shows a tooltip: "Research points", "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
+- **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: "Recent rating", "Your last 10 rides. A higher rating brings more Business passengers."
 - **Gains and losses** float under the pill, taking no room in it: green "+15", red "-12". Each new payment at a stop pops the gain bigger and shows the new sum.
 - Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
 - The rating does the same: each one pops a gain with how far the average moved ("+0.2", "-0.3", "±0.0"). The very first just appears with a pop.
@@ -130,9 +136,9 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - **The bus bar** holds the fuel gauge and the bus's keys, the Frameshift key among them.
 - **Fuel gauge:** a pale cyan bar and the percentage, both red at a quarter of a tank or less.
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
-- With a course set and the bus waiting, the key is up and ready. Held, the drive charges: the key stays down, its lamp lights and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down, lit, until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
+- With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, with a thin, faint glow in the bus's yellow round it. Under Reduce motion both hold still. Held, the drive charges: the pulse and glow go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
 - While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space.
-- Otherwise it is dim, its lamp off. Out of fuel, it is off.
+- Otherwise it is dim. Out of fuel, it is off.
 - Pressing the Frameshift key as Stop clears the route, as Backspace does. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.
 - Pressing a bus key down plays a click.
 
@@ -148,16 +154,16 @@ In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get
 
 ### Dock panel
 
-The planet's station: it hangs under the goal panel in the top right corner while the bus is docked or charging. It stays in one place on screen, so its buttons never move under the pointer.
+The planet's station: it hangs under the goal panel in the top right corner while the bus is docked or charging. It stays in one place on screen. The services and Board all sit above the passengers, so they never move when a passenger boards and the list shrinks.
 
 - Title: the planet's icon and name with "Station".
-- Who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
-- A Business passenger's name has their type before it, here, in the open planet's rows and on their card on board: "Business · Vontti". A Commuter's has nothing. Where the row is narrow the name is cut short, not the type.
-- After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
-- Under the rows, a Board all button. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
-- Then a faint line and Services, each with its icon on a small tile:
+- Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
-  - A Research button, where the planet has a tree. It opens the planet on its Research tab.
+  - A Research button, where the planet has a lab. It opens the research screen.
+- Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
+- Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
+- A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
+- After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
 - **A row's trip.** The pointer over a row shows its trip arc. A click on the row pins it until the row is clicked again, the passenger boards or the bus leaves. The row whose trip shows has a border in their race's colour.
 - It slides in from the right when the bus docks and out when it leaves. A passenger picked up slides out of it to the right, and it grows and shrinks smoothly to fit, so it shrinks as rows leave.
 
@@ -170,9 +176,27 @@ In the dock panel: "Hold to fuel (51 cr)", with what filling the tank costs ther
 - Off, it reads why: "Tank full" or "Not enough credits".
 - The bill shows as a loss under the credits when the pump stops.
 
-### Tow offer
+### Notices
 
-A red warning notice above the bus bars: "You ran out of fuel" and a "Request a tow (100 credits)" button, with what the tow costs now. It stays until pressed.
+Cards stacked above the bus bars, centred, 434 px wide and 32 px tall, 8 px apart, the newest on top. Each has an icon and a line of text in Figtree, and can have an action button (small and quiet, so it never outweighs the card) and a close button (a dim ×) on the right.
+
+| Kind | Icon | Card |
+|---|---|---|
+| Tutorial, how to do something | Question mark in a circle, dim | The navy glass |
+| Info, something that happened | `i` in a circle, dim | The navy glass |
+| Warning | Triangle, amber (`#FACC61`) | Dark amber glass |
+| Error | `!` in a circle, red (`#F24D66`) | Dark red glass |
+| Incoming call | Phone, white | The navy glass |
+
+- **While a planet's or the bus's panel is open** the notices hide with the bus bars. One that arrives meanwhile waits and comes in when the panel closes, and those already showing stop counting down to closing by themselves, so none goes unseen.
+- A notice stays until its close or action button is pressed, unless it was given a time to close by itself, or until what it is about is over: a tutorial once the player does what it says, a warning once its cause is gone.
+- **Course hint.** Until the player first sets a course, a tutorial notice: "Right-click planets or space to add stops. Backspace clears the route."
+- **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
+- **Out of fuel.** An error notice: "You ran out of fuel" and a "Tow (100 credits)" button, with what the tow costs now.
+- **Incoming transmission.** A call: "Incoming transmission..." and an Answer button. Every 1.6 s the phone rattles: it tips side to side, wide first then dying out, for about 0.4 s. Nothing in the game calls yet; the debug panel does.
+- **Coming in,** a card rises 8 px into place, growing from 96 % and fading in, over 0.3 s with a strong ease-out. A new one goes on top, so the cards already showing never move.
+- **Leaving,** it fades out in 0.18 s, sinking 6 px toward the bus bars and shrinking to 97 %, the way it came in. Then the cards above it glide down into its place over 0.25 s, easing in and out. A card can leave while still coming in, from wherever it got to.
+- Under Reduce motion cards only fade in and out, the cards above close the gap at once, and the phone holds still.
 
 ### On board panel
 
@@ -181,10 +205,10 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 - **A card shows:** portrait, their name with their destination beside it, a short activity line ("Sleeping...", "Counting stars"), and along the bottom a happiness bar in their mood's colour. The line starts with "Finding their seat..." for a few seconds after boarding.
 - **The mood has no name on the card:** the bar's colour says it. When the mood changes, the bar blends into the new colour, Reduce motion or not.
 - **The bar.** A big drop leaves a dark red trail that holds for half a second, then shrinks to the bar.
-- **Trend chevrons** on the bar show where happiness is heading, as the motive arrows on The Sims' bars do: `>` while it climbs, `<` while it falls.
-  - One to three, by how much it will change over the next 10 s at its speed, no further than its target: 1.5 or more shows one, 8 two, 20 three. A chevron stays until the change drops 1 under its step, so it doesn't flicker.
+- **Trend chevrons** on the bar show which way happiness is moving and how fast, as the motive arrows on The Sims' bars do: `>` while it climbs, `<` while it falls.
+  - One to three, by how much it changes in 10 s at the speed it is moving now, whatever moves it (a request, a late ride, recovering): 1.5 or more shows one, 8 two, 20 three. A chevron stays until the change drops 1 under its step, so it doesn't flicker.
   - They sit inside the fill at its end, dark so they read on every mood's colour. Once the fill is too short, they sit just past its end in the mood's colour.
-  - Nothing shows while happiness holds or has reached its target. They fade over 0.2 s.
+  - Nothing shows while happiness holds still. They fade over 0.2 s.
 - **The activity line morphs** when it changes: a wave sweeps left to right, the old letters drift up and blur away and the new ones rise into focus, in about half a second. Under Reduce motion the lines crossfade.
 - **A request.** A serve button takes the place of the activity line, with the need's icon and label: "Hand a snack" with a sandwich, "Pour a drink" with a cup. A faint cyan fill sweeps across the button as it is held, or as an amenity serves.
   - Served: "Munching a snack".
@@ -202,6 +226,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 A small photo on the left of a card or a waiting row: the passenger's head and shoulders over a blurred background in a deep shade of their race's colour, in a thin white frame tilted very slightly at random.
 
 - Each passenger has one of their race's two heads and one of two eye styles (Googly, Bead). Eye style is variety only, not a sign of race.
+- **Badges.** A passenger's type can put badges on the photo: dark discs with a faint light rim and a white icon, in a row that starts on the top left corner, reaching a little past it, and runs right, tilted with the photo. A disc is 15 px on a 32 px photo, reaching 4 px past the corner, and both grow half as fast as the photo: 19 px on a card's 48 px one. A type can have several. Business has one, a briefcase. A Commuter has none. The pointer over a badge shows a tooltip with the type's name and a line about it: "Business", "These passengers are more demanding but pay more."
 - **Alive:** the head sways and breathes, the eyes blink and glance around, stalks wobble.
 - **Mood shows on the face, never the skin.** Annoyed, the lids slant down toward the middle like a frown over smaller pupils. Furious, more so, a red cartoon anger mark grows in at the upper right and pulses, and the head trembles.
 - **Happy,** they beam now and then for a second or two: lower lids rise so the eyes smile into crescents, the pupils look up, the head bobs. A beam rather than a constant half-smile, which reads as a squint at a card's size.
@@ -227,35 +252,46 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 - The open planet's hover border fades out and stays off, so nothing sits on the close-up.
 - Closing blends the camera back to where it was while the panel slides out.
 - A panel that another replaces leaves fast, in 0.2 s, so the two don't cross.
-- Both panels are 480 px wide, so switching never changes the width. The resource bar moves to stay centred between the On board panel and the open panel, so the credits and research points stay in view while the player researches.
+- Both panels are 480 px wide, so switching never changes the width. The resource bar moves to stay centred between the On board panel and the open panel, so the credits stay in view.
 - Under Reduce motion the camera cuts and the panel fades.
 
 ### Planet panel
 
-The planet's icon and name, and a Close button. A planet with a research tree has two tabs, Services and Research; one without has no tab bar.
+The planet's icon and name, and a Close button.
 
-- It opens on Services. Opening another planet from an open one keeps the Research tab when the new planet has one.
 - **Services:** a row for each passenger waiting there, longest waiting first (portrait, name over destination, fare), then the Fuel section. Anything else a planet offers goes here.
 - A passenger who turns up while it is open slides in from the right.
 - **Fuel section:** "Full tank 10 credits", the bus's fuel as a bar and a percentage, a "Hold to refuel" button ("Refuelling..." while held), and a note.
 - The note shows the player's credits, or why the button is off: "Dock here to refuel.", "Tank full.", "Not enough credits.", "No fuel sold here.".
 
-### Research tab
+### Research screen
 
-- The tree draws top to bottom: a row for each tier, each upgrade a square tile showing only its icon.
-- A line runs from each upgrade up to each one it needs, faint until that one is researched, then in the race's skin colour.
-- **The accent** is the skin colour of the race whose points the upgrade costs most; cyan when it costs none.
+A modal over the whole screen, the game paused and dimmed under it: one frosted sheet 24 px in from the edges.
+
+- **Header:** a flask and "Research", a "Game paused" tag with a pause icon, the resource bar in the middle, and a Close button with an ✕. Esc closes it too, unless the pause menu is open over it.
+- **Opening** fades it in over 0.2 s while the sheet grows from 97 % to full size in 0.25 s. **Closing** lets the game run at once and fades it out in 0.15 s. Under Reduce motion it only fades.
+- While it is open, the HUD's resource bar hides; the header has its own.
+- **The trees** stand side by side, each on a faint card with its name ("Performance", "Stops", "Comfort") and a chip in its race's colour counting what is researched ("3/11").
+- Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral in its top left corner.
+- **Stages.** The rows of every tree line up, with more room between two stages and a faint line across all the trees there. While the stage under it is shut, a "Requires promotion" tag with a lock sits in the middle of the line.
+- **A stage opening** shows the next time the screen is open, once it has faded in: the tag fades off the line in 0.2 s and the line closes up, and the stage's tiles fade in from silhouettes over 0.3 s, each row 40 ms after the one above.
+- A line runs from each upgrade to each one it needs, centre to centre: lit and glowing in the race's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
+- **The colours** are those of the race whose points the upgrade costs most.
 
 | Tile | Look |
 |---|---|
-| Available (whether or not the player can pay) | Dark, with an accent border and a white icon |
-| Researched | Filled with the accent, the icon in the race's photo-background colour |
-| Locked or hidden | Flat and dim; a hidden one shows "?" |
+| Researched | A gradient in the race's colour, light at the top, glowing; the icon and numeral in its deep shade |
+| Available | A dark gradient with a 2 px border in the race's colour and its glow; a white icon |
+| Can't afford | Flat and dark with a faint border in the race's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
+| Locked | Flat, darker and dim |
+| Hidden, or its stage shut | A dark silhouette of its icon |
 
-- **The card.** The pointer over an upgrade shows its card just under it, or above where there's no room: name, a line on what it does, and its cost with the resource bar's icons, what the player lacks in red.
-- A hidden one shows "???" and no cost. A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
-- A click on an available upgrade researches it at once: the credits come off as a loss under the bar and the points come off their counts.
-- Away from that planet, the tree draws at half strength, the cards still show, and "Dock here to research." reads over it.
+- **The tooltip.** The pointer over an upgrade opens its tooltip above it, so it covers neither the rows under it, which the upgrade opens, nor the tiles beside it: name, a line on what it does, then, 4 px further apart than the lines above it, its cost with the resource bar's icons, what the player lacks in red. Under the cost, one the player can't afford reads "Insufficient funds" in red.
+- A hidden one shows "???" and no cost; one whose stage is shut shows "???" and "Requires promotion.". A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
+- **Researching.** Holding an available tile sweeps the hold buttons' faint cyan fill up from its bottom, evenly; at the top, 0.6 s on, it is researched: the credits come off as a loss and the points come off their counts. The tile turns lit and pops as the research count does (to 106 % and back), while the fill fades off it in 0.15 s. Letting go or leaving first drains the fill in 0.2 s, fast at first.
+- **A press on a tile that can't be researched** flashes its border for 0.3 s; on one the player can't afford, the red badge pulses too.
+- **Sound.** A click as a hold completes, and a different click for a press on a tile that can't be researched. Both are placeholders.
+- Under Reduce motion nothing pops or pulses; the fills, fades and flashes stay.
 
 ### Bus panel
 
@@ -267,13 +303,13 @@ Titled "Frameshift Bus".
 
 ## Menus
 
-- **Main menu:** title, Play, Settings, Quit (hidden on web). On web a title card (the game's title, "Click to start") comes first.
-- **Pause menu:** Resume, Settings, Main menu.
+- **Main menu:** title, Play, Settings, Quit (hidden on web). With a save game, Continue comes first as the primary button and has focus, and a plain "New game" button takes Play's place, with no hint that it has to be held: held for 1.2 s, a faint fill growing across it, it starts over; let go early, the fill drains back twice as fast. On web a title card (the game's title, "Click to start") comes first. The debug panel's "Delete save" deletes the save, and the menu turns back to Play; its "Reset settings" puts every setting back to its default.
+- **Pause menu:** Resume, Settings, Main menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 
 ## Debug panel
 
-F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. View research tree opens every tree side by side with smaller tiles, and researches from anywhere.
+F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. Open research opens the research screen from anywhere, and Promote opens the next research stage.
 
 ## Open questions
 

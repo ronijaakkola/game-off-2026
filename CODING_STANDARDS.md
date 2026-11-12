@@ -13,12 +13,12 @@ Folders are by feature:
 | Folder | What goes there |
 |---|---|
 | `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config, and Phantom Camera, vendored without its `examples/` folder. |
-| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`. |
+| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/save_game/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/<feature>/` | The game, one folder per feature: `game/bus/`, `game/goals/`, `game/passengers/`, `game/research/`, `game/solar_system/`. |
 | `shared/` | Assets used by more than one feature, such as `shared/two_tone.gdshader`. |
 | `test/` | gdUnit4 tests, and preview scenes in `test/previews/` (Visual checks and previews). |
-| `tools/` | `check.py`, `blender.py`, `balance.py` and their helper scripts. Not exported. |
+| `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
 | `art/` | The **model library**, `art/models.blend`. Ignored by git and Godot. |
 | `docs/` | Docs for people and agents, and their figures in `docs/figures/`. Ignored by Godot. |
 
@@ -32,6 +32,7 @@ Follow the [Godot GDScript style guide](https://docs.godotengine.org/en/4.7/tuto
 - Signals are past tense: `docked`, `ran_out_of_fuel`.
 - A scene and its script share a base name and sit side by side: `main_menu.tscn` + `main_menu.gd`.
 - Add `class_name` only when another script refers to the type by name: a custom Resource, a component, an `is` check, a typed variable.
+- A `##` comment documents the `func`, `signal` or member right under it, and the editor shows it there. When you put a function between a comment and the function it belongs to, the comment silently becomes the new function's doc. Each `[param name]` in a comment above a `func` or `signal` must be one of its parameters: `check.py lint` fails on one that isn't (`doc-param`).
 
 `gdlint` enforces most of this, and `gdformat` sets the layout of every script. `uv run tools/check.py lint` runs both. `uv run tools/check.py format [files]` applies `gdformat`.
 
@@ -42,6 +43,8 @@ Every declaration is typed: variables, parameters, return types, loop variables.
 Reach another script's members through its type, not by name. `node.set(&"cabin", cabin)` loads, and once `cabin` is misspelled or renamed it sets nothing and `get()` returns null, with no error anywhere; a test that configures a scene that way then passes without testing what it says. Give the script a `class_name` (a typed variable is reason enough), cast to it and use the member: `(%PassengerPanel as PassengerPanel).cabin = cabin`. `check.py lint` fails on `set()` or `set_deferred()` with a literal name, and on `get()` with a `StringName` literal (`typed-member`). A name in a variable, as when binding controls by a setting's name, is fine.
 
 An enum that an `@export` names, as a type or a default, numbers every member: `enum Type { BLUE = 0, ORANGE = 1, GREEN = 2 }`. A `.tres` or `.tscn` saves an exported enum as its number (`traits = Array[int]([6])`), and Godot counts unnumbered members from 0 in order, so a member added or moved above another renumbers it and every saved value loads as its neighbour, with no error anywhere. A new member takes the next unused number, wherever it sits. `check.py lint` fails on an unnumbered member of an exported enum (`saved-enum`), on the enum and on an export in another script.
+
+Renaming or removing an `@export` leaves every value a `.tscn` or `.tres` saved under the old name behind: Godot skips a property the node or resource doesn't have, with no error, and it runs on the script's default. Rename the property in every file that stores it in the same change, as the glossary's terms make you do. `check.py load` fails on a scene or resource that stores a property its node, sub-resource or resource doesn't have (`stale-property`), naming the file, the node or sub-resource, and the script.
 
 ```gdscript
 var speed := 4.0
@@ -67,7 +70,8 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `Events` | `core/events/` | The **signal bus**: every **bus event**, declared in `events.gd`. |
 | `Audio` | `core/audio/` | Music crossfade and pooled SFX: `play_music(stream)`, `stop_music()`, `play_sfx(stream)`. It owns the buses: code names one as an `Audio.Bus`, so `set_volume(Audio.Bus.MUSIC, linear)`, and a player's bus is `Audio.BUS_NAMES[Audio.Bus.SFX]`. A wrong bus name plays on Master without an error. |
 | `SceneFlow` | `core/scene_flow/` | Moves between top-level scenes with a fade: `await SceneFlow.go_to(path)`. |
-| `Settings` | `core/settings/` | The player's **settings**, applied on every change and saved to `user://settings.cfg` once changes stop for a moment. |
+| `Settings` | `core/settings/` | The player's **settings**, applied on every change and saved to `user://settings.cfg` once changes stop for a moment. `reset()` puts them all back to their defaults. |
+| `SaveGame` | `core/save_game/` | The player's **save game** in `user://save_game.json`, one run as a plain Dictionary. The main menu starts a run with `start_new()` or `continue_saved()`, and the game scene takes it with `claim_run()`; only a claimed run is written, so tests and F6 runs never touch the save. Tests run in the player's own user folder, so a test that starts a run from the menu points `SaveGame.path` at a file of its own first. It knows nothing of the game: `GameSaver` in the solar system builds and applies the Dictionary. |
 | `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
 | `Talo` | `addons/talo/` | The Talo plugin's autoload. Only `core/online/` names it; see Online. |
 | `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |
@@ -86,6 +90,7 @@ Call down, signal up.
 - A scene reaches its own nodes through unique names: mark the node `unique_name_in_owner` and write `%Button`.
 - Dependencies from outside the scene come in through `@export` vars or a setter the parent calls.
 - Scenes stay unaware of their surroundings: no `get_parent()`, no `../` paths, no `/root/...` paths.
+- A scene's nodes are its own: a parent never looks one up inside a scene it holds (`badge.get_node(^"%Icon")`), since a rename there breaks only when the line runs. The held scene's script gets a `class_name` and a method that sets what the parent needs, such as `PhotoBadge.show_icon()`. `check.py lint` fails on `get_node()`, `get_node_or_null()` or `has_node()` called on another node in a game script (`no-foreign-node-path`); tests and `tools/` may reach anywhere.
 - Every scene instantiates on its own without errors, so it runs with F6 in the editor, `uv run tools/check.py smoke <scene>`, and a gdUnit4 `scene_runner`. `smoke` with no scenes runs every scene the game reaches: the main scene, and every scene a reached scene instances or a reached script names by path, such as a `SceneFlow.go_to` target. A sub-scene that errors outside its parent fails it; a scene nothing references yet is left out until something does, and so is every scene in `tools/` and `test/`. A path that names no file would drop its scene, and every scene only it leads to, so `check.py lint` fails on one in a game script (`path-exists`); a string with `%` or `{` is a template and is left alone. `export` boots the same scenes from the exported pack, which leaves out `test/`, `tools/`, the dev console and any file that isn't a resource.
 
 ## Script size
