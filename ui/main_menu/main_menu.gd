@@ -7,6 +7,8 @@ extends MarginContainer
 ## visit, and its Reset settings puts every setting back to its default.
 
 const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
+## PROTOTYPE: the lab for trying the serve minigames, opened from the debug panel.
+const SERVE_LAB_SCENE := "res://game/passengers/serve_minigame_lab_prototype.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
 # Written into exports by `check.py export`, so the editor has none.
 const BUILD_COMMIT := "res://ui/main_menu/build_commit.txt"
@@ -20,6 +22,7 @@ func _ready() -> void:
 	_show_save_buttons()
 	DebugPanel.add_button("Delete save", _debug_delete_save, self)
 	DebugPanel.add_button("Reset settings", Settings.reset, self)
+	DebugPanel.add_button("Serve games lab", SceneFlow.go_to.bind(SERVE_LAB_SCENE), self)
 	if FileAccess.file_exists(BUILD_COMMIT):
 		%BuildLabel.text = "Commit %s" % FileAccess.get_file_as_string(BUILD_COMMIT).strip_edges()
 		%BuildLabel.show()
