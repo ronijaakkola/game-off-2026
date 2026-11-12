@@ -170,9 +170,9 @@ An amenity serves food by itself. Automation shortens a request rather than remo
 
 - The moment someone asks for food, an amenity with room starts serving them. Anyone else asking waits, and their happiness heads for 0 meanwhile.
 - The player can still hold the button: the hand's speed adds to the amenity's.
-- **Food Replicator:** one passenger at a time, 4 s each.
+- **Food Dispenser:** one passenger at a time, 4 s each.
 - **Waiter Droids:** three at a time, 2.5 s each.
-- With both, the droids are tried first, then the replicator, so four can be served at once.
+- With both, the droids are tried first, then the dispenser, so four can be served at once.
 
 ### Comfort
 
@@ -181,7 +181,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 | Line | What it does |
 |---|---|
 | Food delivery | Shortens requests: the amenities above |
-| Portions | A served snack or drink lasts longer, by hand or by machine, so the next request comes later. Helps before any replicator |
+| Portions | A served snack or drink lasts longer, by hand or by machine, so the next request comes later. Helps before any dispenser |
 | Fun | Raises the target all ride long: In-Flight Movies +12, Space Invaders +8. Passengers also watch shows, and their clock runs at 70 % while they do |
 | Sleep | The clock runs a lot slower while asleep, and nothing is asked for |
 
@@ -266,26 +266,26 @@ An upgrade is in one of five states:
 - Two upgrades can give the same trait; it stays until both take it back.
 - **Waiting markers:** how many wait at each planet shows on the map. Without them, the player finds out by opening a planet.
 - **Fuel forecast:** how much of the tank the whole course burns shows on the route. It counts the straight legs as everything is now, short of each planet by where the bus starts to park, so it is an estimate.
-- The comfort and food traits: Pillows, Sleeping pods, In-Flight Movies, Space Invaders, Food Replicator, Waiter Droids.
+- The comfort and food traits: Pillows, Sleeping pods, In-Flight Movies, Space Invaders, Food Dispenser, Waiter Droids.
 
 ### The trees
 
 There are three trees, each paid for with one race's points. Frost, Terra and Giant have a lab; the rest have none.
 
-- They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a capstone that needs two branches. Only a stage that isn't open hides an upgrade; none is marked hidden.
-- **Costs go by row,** the same in every tree for now: 150 credits and 2 points in the top row, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
+- They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that need two branches. An upgrade can need nothing even below the top row, open once its stage is. Only a stage that isn't open hides an upgrade; none is marked hidden.
+- **Costs come in five levels,** the same in every tree: 150 credits and 2 points, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Speed 3 on row 5 costs 550 and 7, Station waiting lounge on row 1 costs 300 and 4. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
 "A ← B" means A needs B.
 
-- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Speed 2 ← Speed 1; Frameshift 1 ← Speed 1 and Fuel tank 1; Fuel forecast ← Fuel tank 1; Fuel tank 2 ← Fuel tank 1. Speed 3, Frameshift 2 and Fuel tank 3 each ← the one above. Extra insulation ← Frameshift 2 and Fuel tank 3. Capstone: Sunscreen ← Speed 3 and Extra insulation.
-  - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
-  - *(not built)* Frameshift (a shorter charge), Extra insulation, Sunscreen.
-- **Green** (the stops). Door chime; Station cameras and Station waiting lounge ← Door chime; capstone Mind reading machine ← both.
+- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Fuel forecast and Fuel tank 2 ← Fuel tank 1. Speed 2 and Warm drive ← Speed 1; Speed 3 ← Speed 2. How is my driving? ← Warm drive. Pit crew ← Fuel tank 2; Tow loyalty card ← Pit crew. Efficient burn ← Fuel forecast. Solar fuel ← Fuel tank 2 and Efficient burn. Last row: Slingshot ← Warm drive and Speed 3; Warp gate ← Efficient burn and Solar fuel.
+  - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait. Solar fuel still holds Fuel tank 3's +25 %.
+  - *(not built)* Warm drive, Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel's star fuelling, Slingshot, Warp gate.
+- **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras; Research grant ← Remote terminal. Last row: Bottomless complaints box ← Station cameras and Honk; Express service ← Passenger loyalty program and Business lounge.
   - Door chime gives the waiting markers.
-  - *(not built)* The other three.
-- **Orange** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
-  - Every upgrade in it is implemented.
+  - *(not built)* The other thirteen.
+- **Orange** (comfort). Extra seat, Pillows and Bigger portions I at the top. Four Extra seats in a chain (+1 seat each). In-Flight Movies ← Pillows; Space Invaders ← In-Flight Movies. Sleeping pods ← Pillows; Airlock ← Sleeping pods. Food Dispenser and Bigger portions II ← Bigger portions I; Waiter Droids ← Food Dispenser. Bigger portions I and II are +50 % portion size each, 2× in all. Earplugs needs nothing, in the second stage. Last row: Karaoke ← Space Invaders and Sleeping pods.
+  - *(not built)* Earplugs, Airlock, Karaoke. The rest is implemented.
 
 ## Goals
 

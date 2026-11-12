@@ -213,7 +213,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 - **The activity line morphs** when it changes: a wave sweeps left to right, the old letters drift up and blur away and the new ones rise into focus, in about half a second. Under Reduce motion the lines crossfade.
 - **A request.** A serve button takes the place of the activity line, with the need's icon and label: "Hand a snack" with a sandwich, "Pour a drink" with a cup. A faint cyan fill sweeps across the button as it is held, or as an amenity serves.
   - Served: "Munching a snack".
-  - Amenities have their own lines: "Getting a snack from the replicator", "Waiting for the replicator", "A droid brings a snack", "Waiting for a droid".
+  - Amenities have their own lines: "Getting a snack from the dispenser", "Waiting for the dispenser", "A droid brings a snack", "Waiting for a droid".
   - A request on hold at a stop shows them idling.
 - **Options.** The pointer over a card fades its options in to the right of the On board panel, with no slide; Reduce motion keeps the fade. There is one: Kick, with a kicking shoe icon. A card showing a rating has none.
 - **Getting off.** When the bus docks, everyone going there shows their rating at once.

@@ -36,7 +36,7 @@ const TRAIT_NAMES := {
 	BusTraits.Type.SLEEPING_PODS: "Sleeping pods",
 	BusTraits.Type.GAMING_SYSTEM: "Space Invaders",
 	BusTraits.Type.ENTERTAINMENT_SYSTEM: "In-Flight Movies",
-	BusTraits.Type.FOOD_DISPENSER: "Food Replicator",
+	BusTraits.Type.FOOD_DISPENSER: "Food Dispenser",
 	BusTraits.Type.SERVING_ROBOTS: "Waiter Droids",
 }
 
