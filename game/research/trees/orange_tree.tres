@@ -22,7 +22,7 @@ script = ExtResource("2_upgrade")
 title = "Extra seat"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
-credits = 20
+credits = 150
 points = Dictionary[int, int]({
 1: 2
 })
@@ -33,7 +33,7 @@ script = ExtResource("2_upgrade")
 title = "Food Replicator"
 description = "Hungry passengers fetch their own snacks and drinks, one at a time."
 icon = ExtResource("5_sandwich")
-credits = 20
+credits = 150
 points = Dictionary[int, int]({
 1: 2
 })
@@ -51,7 +51,7 @@ script = ExtResource("2_upgrade")
 title = "Bigger portions I"
 description = "Snacks and drinks last longer, so passengers ask for them less often."
 icon = ExtResource("11_ham")
-credits = 20
+credits = 150
 points = Dictionary[int, int]({
 1: 2
 })
@@ -63,7 +63,7 @@ script = ExtResource("2_upgrade")
 title = "In-Flight Movies"
 description = "Movies on board: passengers are happier, and the ride flies by while they watch one."
 icon = ExtResource("8_tv")
-credits = 20
+credits = 150
 points = Dictionary[int, int]({
 1: 2
 })
@@ -80,7 +80,7 @@ script = ExtResource("2_upgrade")
 title = "Extra seat"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 1: 4
 })
@@ -93,7 +93,7 @@ script = ExtResource("2_upgrade")
 title = "Pillows"
 description = "Passengers take short naps, and time passes slower while they doze."
 icon = ExtResource("7_bed_single")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 1: 4
 })
@@ -113,7 +113,7 @@ script = ExtResource("2_upgrade")
 title = "Bigger portions II"
 description = "Snacks and drinks last longer still."
 icon = ExtResource("11_ham")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 1: 4
 })
@@ -127,7 +127,7 @@ script = ExtResource("2_upgrade")
 title = "Space Invaders"
 description = "Arcade games on board: passengers are happier still, and binge their movies for longer."
 icon = ExtResource("6_gamepad_2")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 1: 4
 })
@@ -146,7 +146,7 @@ script = ExtResource("2_upgrade")
 title = "Extra seat"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
-credits = 90
+credits = 550
 points = Dictionary[int, int]({
 1: 7
 })
@@ -159,7 +159,7 @@ script = ExtResource("2_upgrade")
 title = "Sleeping pods"
 description = "Passengers sleep long and deep, and the ride flies by while they do."
 icon = ExtResource("9_bed_double")
-credits = 90
+credits = 550
 points = Dictionary[int, int]({
 1: 7
 })
@@ -173,7 +173,7 @@ script = ExtResource("2_upgrade")
 title = "Waiter Droids"
 description = "Droids bring snacks and drinks to three passengers at a time, and quickly."
 icon = ExtResource("10_bot")
-credits = 90
+credits = 550
 points = Dictionary[int, int]({
 1: 7
 })
@@ -193,7 +193,7 @@ script = ExtResource("2_upgrade")
 title = "Bigger portions III"
 description = "Snacks and drinks last a long while."
 icon = ExtResource("11_ham")
-credits = 90
+credits = 550
 points = Dictionary[int, int]({
 1: 7
 })
@@ -212,7 +212,7 @@ script = ExtResource("2_upgrade")
 title = "Extra seat"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
-credits = 150
+credits = 800
 points = Dictionary[int, int]({
 1: 10
 })

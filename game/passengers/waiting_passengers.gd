@@ -77,6 +77,12 @@ func _process(delta: float) -> void:
 		_wait(planet, delta)
 
 
+## Makes every roll from here on, and those of the passengers decided after it, follow from
+## [param value], so a run can be played again: a balance run (`tools/balance.py`).
+func seed_dice(value: int) -> void:
+	_rng.seed = value
+
+
 ## The planets passengers wait at and travel between. Starts every planet empty.
 func set_planets(planets: Array[Planet]) -> void:
 	_planets = planets.duplicate()

@@ -151,12 +151,12 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
 
-**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once ends where it started, at 60 + 12 = 72, and 4 stars takes 70, so a second of an open request near the end, or arriving a little late, costs the star. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once ends where it started, at 60 + 12 = 72, and 4 stars takes 70, so a second of an open request near the end, or arriving a little late, costs the star. Over many rides a bare bus averages about 3.5: 3.6 with quick hands, 3.0 with slow ones and a full bus. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
 
 ### Needs and serving
 
 - Each passenger type has a few needs. The Commuter's are a snack and a drink, both food.
-- A need asks again a random while after the last one's served activity ends. An open one is a **request**.
+- A need asks again a random while after the last one's served activity ends: 8 to 20 s for a snack, 10 to 25 s for a drink. An open one is a **request**. The times are short because rides are (about 20 s): half of all rides should hold a request, or serving decides nothing and the food upgrades answer nothing.
 - **One request at a time.** The other needs' timers wait while one is open, so serving one doesn't set off the rest.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
 - **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s, and letting go keeps what was served so far.
@@ -273,7 +273,7 @@ An upgrade is in one of five states:
 There are three trees, each paid for with one race's points. Frost, Terra and Giant have a lab; the rest have none.
 
 - They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a capstone that needs two branches. Only a stage that isn't open hides an upgrade; none is marked hidden.
-- **Costs go by row,** the same in every tree for now: 20 credits and 2 points in the top row, then 45 and 4, 90 and 7, 150 and 10, and 250 and 14.
+- **Costs go by row,** the same in every tree for now: 150 credits and 2 points in the top row, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
 "A ← B" means A needs B.
@@ -296,7 +296,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
   - Deliver them to their destination.
   - Fly them past a planet: while they ride, the bus comes within 3 units of its surface in flight, having been out of reach since they boarded. Leaving the planet they boarded at isn't a flyby, coming back to it is, and flying in to dock there counts. It fails if they leave the bus first, however they leave.
 - **All met** means every milestone done and every standing goal holding.
-- **A run starts with two goals:** deliver 30 passengers, and keep a 4.0 average rating.
+- **A run starts with two goals:** deliver 30 passengers, and keep a 3.5 average rating. 3.5 is what a bare bus averages, so quick serving and direct routes meet it without research, and anyone else needs a first upgrade or two. Both are met after about 5 to 7 minutes, with half of the first stage researched.
 - *(not built)* Quests turning up.
 - *(not built)* A temporary win and lose while the loop is tuned. **Win:** every goal met at once. **Lose:** the happiness score, the average happiness of everyone on board, stays at 0 for 20 s; the countdown pauses while the bus is empty.
 
@@ -362,7 +362,9 @@ Features we will very probably build, but that need more design work first.
 
 ## Open questions
 
-- **Balance after starting at the target.** A clean bare-bus ride now gives 4 stars and 1.2× the fare, so the rating bands (Who turns up) may sit too low, a short hop is the safest ride there is, and requests come too late (15 s or more) to touch most direct trips. Lateness is meant to carry the difficulty; if it doesn't, tighten the Commuter's slack, then bring the first request forward.
+- **Fun in the first stage.** In-Flight Movies and Space Invaders are both in the first two rows, so the first stage alone takes the recent rating to about 4.7 and half of all rides to 5 stars. A later stage's rating goal has little room above that unless Space Invaders moves down a row or the bonuses shrink.
+- **Orange points.** Past the first stage the orange tree is what the player waits for: it holds most of the built upgrades, while green points pile up unspent (the green tree has one built upgrade) and credits pass 2,000 by minute 20.
+- **The rating goal reads the all-time average,** so the first rides on a bare bus weigh on it for the whole run, while the resource bar shows the recent rating.
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.
 - **How often passengers sleep.** Too short between sleeps and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since costs go by row.
@@ -371,7 +373,7 @@ Features we will very probably build, but that need more design work first.
 - **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
 - **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
-- **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype.
+- **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype. With 6 seats or more a bus that keeps to two destinations leaves with one or two seats empty; 4 waiting delivers about a tenth more, and fills a bus that takes everyone with more destinations than it can serve well.
 - **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
 
 UI questions are in `docs/ui.md`.
