@@ -32,6 +32,7 @@ Follow the [Godot GDScript style guide](https://docs.godotengine.org/en/4.7/tuto
 - Signals are past tense: `docked`, `ran_out_of_fuel`.
 - A scene and its script share a base name and sit side by side: `main_menu.tscn` + `main_menu.gd`.
 - Add `class_name` only when another script refers to the type by name: a custom Resource, a component, an `is` check, a typed variable.
+- A `##` comment documents the `func`, `signal` or member right under it, and the editor shows it there. When you put a function between a comment and the function it belongs to, the comment silently becomes the new function's doc. Each `[param name]` in a comment above a `func` or `signal` must be one of its parameters: `check.py lint` fails on one that isn't (`doc-param`).
 
 `gdlint` enforces most of this, and `gdformat` sets the layout of every script. `uv run tools/check.py lint` runs both. `uv run tools/check.py format [files]` applies `gdformat`.
 
