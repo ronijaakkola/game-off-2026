@@ -208,9 +208,19 @@ func get_mood() -> Mood:
 	return mood_for(happiness)
 
 
-## The credits they pay on getting off now, by their mood.
-func get_payout() -> int:
-	return roundi(fare * PAY[get_mood()])
+## The credits they pay on getting off now, by their mood. Happy, they pay [param tip] times
+## that again: the Tip jar's.
+func get_payout(tip := 1.0) -> int:
+	var mood := get_mood()
+	return roundi(fare * PAY[mood] * (tip if mood == Mood.HAPPY else 1.0))
+
+
+## Puts off the first request for each of their needs: what is left of each wait to the
+## next one is [param scale] times as long. For someone just on board, as Free station
+## coffee does.
+func delay_requests(scale: float) -> void:
+	for i: int in _need_timers.size():
+		_need_timers[i] *= scale
 
 
 ## The stars they rate the ride on getting off now, from 0 to [constant MAX_STARS]: their

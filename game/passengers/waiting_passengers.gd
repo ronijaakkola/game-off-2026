@@ -1,8 +1,8 @@
 class_name WaitingPassengers
 extends Node
 ## The passengers waiting at each planet, shown in the open planet's panel and the dock
-## panel. Each planet gets a new one every so often, up to [member max_per_planet], except
-## the one the bus waits at: its clock holds until the bus leaves.
+## panel. Each planet gets a new one every so often, up to [method get_max_per_planet],
+## except the one the bus waits at: its clock holds until the bus leaves.
 ## Someone waiting is only a count until the player first sees the line
 ## ([method get_waiting]). Then each is decided, one after another: a destination that
 ## leans toward where those on board and those already in the line are going, a race dealt
@@ -17,6 +17,7 @@ signal changed(planet: Planet)
 ## How many of each race go into the bag the races are dealt from.
 const RACE_BAG_COPIES := 2
 ## How many in one line go to the same planet at most, so a line always holds a choice.
+## Fewer in a line too short for it to keep one: one fewer than its places.
 const MAX_SAME_DESTINATION := 2
 
 ## The ordinary kinds of passenger that turn up, picked at random.
@@ -28,7 +29,10 @@ const MAX_SAME_DESTINATION := 2
 @export var bus: FrameshiftBus
 ## Who is on board: destinations they are going to turn up more often.
 @export var cabin: Cabin
-@export_range(0, 10) var max_per_planet := 3
+## How many wait at each planet at most, before the Station waiting lounge.
+@export_range(0, 10) var max_per_planet := 2
+## The places the Station waiting lounge adds to every line.
+@export_range(0, 10) var lounge_places := 1
 ## Seconds between new passengers at one planet: a random value between these two.
 @export_range(1.0, 300.0, 1.0) var min_interval := 8.0
 @export_range(1.0, 300.0, 1.0) var max_interval := 20.0
@@ -43,6 +47,8 @@ const MAX_SAME_DESTINATION := 2
 ## someone already in the line is. Likelier, never certain.
 @export_range(1.0, 10.0, 0.1) var on_board_weight := 2.5
 @export_range(1.0, 10.0, 0.1) var in_line_weight := 1.5
+## [member in_line_weight] once the bus has Timetables.
+@export_range(1.0, 10.0, 0.1) var timetables_in_line_weight := 3.0
 ## Seconds the longest-waiting passenger of a line the player has seen stays before they
 ## leave.
 @export_range(1.0, 600.0, 1.0) var leave_seconds := 60.0
@@ -108,7 +114,7 @@ func start(planets: Array[Planet], bus_planet: Planet, ratings: Ledger) -> void:
 
 ## Puts the passengers who wait when the game starts in line: [member starting_at_bus] at
 ## [param bus_planet] and [member starting_per_planet] at every other planet, each up to
-## [member max_per_planet].
+## [method get_max_per_planet].
 func add_starting_passengers(bus_planet: Planet) -> void:
 	for planet: Planet in _planets:
 		var count := starting_at_bus if planet == bus_planet else starting_per_planet
@@ -117,12 +123,18 @@ func add_starting_passengers(bus_planet: Planet) -> void:
 
 
 ## Puts someone new in line at [param planet], not yet decided, unless
-## [member max_per_planet] already wait there.
+## [method get_max_per_planet] already wait there.
 func add(planet: Planet) -> void:
-	if not _waiting.has(planet) or count_at(planet) >= max_per_planet:
+	if not _waiting.has(planet) or count_at(planet) >= get_max_per_planet():
 		return
 	_undecided[planet] += 1
 	changed.emit(planet)
+
+
+## How many can wait at each planet: [member max_per_planet], and [member lounge_places]
+## more once the bus has the Station waiting lounge.
+func get_max_per_planet() -> int:
+	return max_per_planet + (lounge_places if _has(BusTraits.Type.WAITING_LOUNGE) else 0)
 
 
 ## How many wait at [param planet], seen or not.
@@ -156,8 +168,9 @@ func get_seen(planet: Planet) -> Array[Passenger]:
 func restore(planet: Planet, seen: Array[Passenger], unseen: int) -> void:
 	if not _waiting.has(planet):
 		return
-	_waiting[planet] = seen.slice(0, max_per_planet)
-	_undecided[planet] = clampi(unseen, 0, max_per_planet - _waiting[planet].size())
+	var places := get_max_per_planet()
+	_waiting[planet] = seen.slice(0, places)
+	_undecided[planet] = clampi(unseen, 0, places - _waiting[planet].size())
 	_first.erase(planet)
 	changed.emit(planet)
 
@@ -193,21 +206,23 @@ func create(origin: Planet) -> Passenger:
 
 
 # A weighted roll among the other planets: likelier where someone on board or in
-# [param line] is going, and never where MAX_SAME_DESTINATION of the line already go,
-# unless that leaves nowhere.
+# [param line] is going, and never where as many of the line go as a line may share
+# (MAX_SAME_DESTINATION, fewer in a short line), unless that leaves nowhere.
 func _pick_destination(origin: Planet, line: Array) -> Planet:
 	var others := _planets.filter(func(planet: Planet) -> bool: return planet != origin)
 	if others.is_empty():
 		return null
+	var most_same := clampi(get_max_per_planet() - 1, 1, MAX_SAME_DESTINATION)
+	var leaning := timetables_in_line_weight if _has(BusTraits.Type.TIMETABLES) else in_line_weight
 	var weights := PackedFloat32Array()
 	var total := 0.0
 	for planet: Planet in others:
 		var same := line.filter(func(p: Passenger) -> bool: return p.destination == planet).size()
 		var weight := 1.0
-		if same >= MAX_SAME_DESTINATION:
+		if same >= most_same:
 			weight = 0.0
 		elif same > 0:
-			weight *= in_line_weight
+			weight *= leaning
 		if cabin and cabin.count_going_to(planet) > 0:
 			weight *= on_board_weight
 		weights.append(weight)
@@ -224,7 +239,7 @@ func _pick_type(line: Array) -> PassengerType:
 	if not business:
 		return ordinary
 	var band := RatingBand.of(ledger.get_recent_rating() if ledger else 0.0)
-	var limit := mini(RatingBand.BUSINESS_PER_LINE[band], max_per_planet - 1)
+	var limit := mini(RatingBand.BUSINESS_PER_LINE[band], get_max_per_planet() - 1)
 	var count := line.filter(func(p: Passenger) -> bool: return p.type == business).size()
 	if count < limit and _rng.randf() < RatingBand.BUSINESS_SHARE[band]:
 		return business
@@ -265,6 +280,11 @@ func _trip_seconds(distance: float) -> float:
 	if not bus:
 		return distance
 	return bus.charge_time + distance / bus.max_speed + bus.max_speed / bus.acceleration
+
+
+# Whether the bus has [param type]: a station upgrade. Without a bus, nothing.
+func _has(type: BusTraits.Type) -> bool:
+	return bus != null and bus.get_stats().get_traits().has(type)
 
 
 func _interval() -> float:

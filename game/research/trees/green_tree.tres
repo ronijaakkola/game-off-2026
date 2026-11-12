@@ -26,53 +26,53 @@ column = 1
 [sub_resource type="Resource" id="Resource_station_waiting_lounge"]
 script = ExtResource("2_upgrade")
 title = "Station waiting lounge"
-description = "Up to 3 passengers wait at each planet, not 2.
-NOT IMPLEMENTED"
+description = "Up to 3 passengers wait at each planet, not 2."
 icon = ExtResource("5_sofa")
 credits = 300
 points = Dictionary[int, int]({
 2: 4
 })
+traits = Array[int]([8])
 column = 3
 
 [sub_resource type="Resource" id="Resource_tip_jar"]
 script = ExtResource("2_upgrade")
 title = "Tip jar"
-description = "Happy passengers pay 1.2x more.
-NOT IMPLEMENTED"
+description = "Happy passengers pay 1.2x more."
 icon = ExtResource("6_star")
 credits = 550
 points = Dictionary[int, int]({
 2: 7
 })
 requires = Array[Resource]([SubResource("Resource_door_chime")])
+traits = Array[int]([9])
 tier = 1
 
 [sub_resource type="Resource" id="Resource_free_station_coffee"]
 script = ExtResource("2_upgrade")
 title = "Free station coffee"
-description = "A passenger's first request comes 50% later.
-NOT IMPLEMENTED"
+description = "A passenger's first request comes 50% later."
 icon = ExtResource("7_sandwich")
 credits = 150
 points = Dictionary[int, int]({
 2: 2
 })
 requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
+traits = Array[int]([10])
 tier = 1
 column = 2
 
 [sub_resource type="Resource" id="Resource_timetables"]
 script = ExtResource("2_upgrade")
 title = "Timetables"
-description = "Increased chance that multiple waiting passengers have the same destination.
-NOT IMPLEMENTED"
+description = "Increased chance that multiple waiting passengers have the same destination."
 icon = ExtResource("8_flask_conical")
 credits = 300
 points = Dictionary[int, int]({
 2: 4
 })
 requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
+traits = Array[int]([11])
 tier = 1
 column = 4
 

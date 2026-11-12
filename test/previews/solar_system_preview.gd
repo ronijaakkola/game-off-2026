@@ -90,7 +90,7 @@ func _ready() -> void:
 	var planet := system.find_child(planet_name) as Planet
 	assert(planet != null, "no planet named %s" % planet_name)
 	var waiting := system.find_child("WaitingPassengers") as WaitingPassengers
-	for i: int in waiting.max_per_planet:
+	for i: int in waiting.get_max_per_planet():
 		waiting.add(planet)
 	system.open_planet(planet)
 

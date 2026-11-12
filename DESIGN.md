@@ -69,7 +69,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 ### Waiting
 
-- Each planet gets a new passenger every 8 to 20 s, up to 3 waiting. Who they are is under Who turns up. *(not built)* Up to 2 until Station waiting lounge is researched.
+- Each planet gets a new passenger every 8 to 20 s, up to 2 waiting, or 3 once Station waiting lounge is researched. Who they are is under Who turns up.
 - Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
 - Happiness holds while they wait.
 - **The start.** The bus is empty and docked at Ember, with 2 passengers waiting there and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go.
@@ -78,8 +78,8 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 - **Decided when first seen.** A waiting passenger is only a count until the player first sees the line, by docking at the planet or opening it. Then each undecided passenger in it gets a destination, a race and a type, one after another, and keeps them. Lines fill about 40 s before the bus arrives, so deciding late is what lets a line answer the bus as it is now.
 - Anything that shows a line from afar counts as seeing it. The waiting markers show only a count, so they don't.
-- **Destination** is a weighted roll among the other planets, each at weight 1: ×2.5 if someone on board is going there, ×1.5 if someone already in the line is.
-- **No more than two** in a line go to the same planet, so a line always holds a choice.
+- **Destination** is a weighted roll among the other planets, each at weight 1: ×2.5 if someone on board is going there, ×1.5 if someone already in the line is (×3 with Timetables).
+- **No more than two** in a line go to the same planet, and no more than one in a line of 2, so a full line always holds a choice.
 - A match with who is on board is likely, never certain. A certain one stops being a reward, and turns the bus into a shuttle between two planets.
 - Destinations aren't dealt from a bag: dealing without repeats makes two going the same way rarer than chance does.
 - **Race** is dealt from one shuffled bag of six, two of each race, so no race stays away for long.
@@ -112,7 +112,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Fare** is 3 credits per unit times the type's multiplier.
 - Both are set when the passenger is decided (Who turns up), from where the planets are then.
 - A faster bus gets passengers there before they expect it. Speed upgrades make passengers happier rather than more demanding.
-- **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing.
+- **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing. With the Tip jar, happy pays 1.2× that again.
 
 ### Happiness
 
@@ -267,6 +267,7 @@ An upgrade is in one of five states:
 - **Waiting markers:** how many wait at each planet shows on the map. Without them, the player finds out by opening a planet.
 - **Fuel forecast:** how much of the tank the whole course burns shows on the route. It counts the straight legs as everything is now, short of each planet by where the bus starts to park, so it is an estimate.
 - The comfort and food traits: Pillows, Sleeping pods, In-Flight Movies, Space Invaders, Food Dispenser, Waiter Droids.
+- The station traits: Station waiting lounge, Tip jar, Timetables (Waiting, Who turns up, Payment) and Free station coffee: someone picked up waits 1.5× as long for the first request of each need.
 
 ### The trees
 
@@ -282,8 +283,8 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
   - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
   - *(not built)* Warm drive, Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel, Slingshot, Warp gate.
 - **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras; Research grant ← Remote terminal. Last row: Bottomless complaints box ← Station cameras or Honk; Express service ← Passenger loyalty program or Business lounge.
-  - Door chime gives the waiting markers.
-  - *(not built)* The other thirteen.
+  - Door chime gives the waiting markers; Station waiting lounge, Tip jar, Free station coffee and Timetables their traits.
+  - *(not built)* The other nine.
 - **Orange** (comfort). Extra seat, Pillows and Bigger portions I at the top. Four Extra seats in a chain (+1 seat each). In-Flight Movies ← Pillows; Space Invaders ← In-Flight Movies. Sleeping pods ← Pillows; Airlock ← Sleeping pods. Food Dispenser and Bigger portions II ← Bigger portions I; Waiter Droids ← Food Dispenser. Bigger portions I and II are +50 % portion size each, 2× in all. Earplugs needs nothing, in the second stage. Last row: Karaoke ← Space Invaders or Sleeping pods.
   - *(not built)* Earplugs, Airlock, Karaoke. The rest is implemented.
 
@@ -373,7 +374,7 @@ Features we will very probably build, but that need more design work first.
 - **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
 - **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
-- **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype. With 6 seats or more a bus that keeps to two destinations leaves with one or two seats empty; 4 waiting delivers about a tenth more, and fills a bus that takes everyone with more destinations than it can serve well.
+- **Seats and waiting passengers.** 4 seats and up to 2 waiting per planet, 3 with the lounge; 2 is on trial. With 6 seats or more a bus that keeps to two destinations leaves with one or two seats empty; 4 waiting delivers about a tenth more, and fills a bus that takes everyone with more destinations than it can serve well.
 - **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
 
 UI questions are in `docs/ui.md`.

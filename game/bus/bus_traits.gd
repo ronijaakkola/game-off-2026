@@ -29,6 +29,15 @@ enum Type {
 	FOOD_DISPENSER = 6,
 	## Robots bring hungry passengers their food, several at a time ([Amenity]).
 	SERVING_ROBOTS = 7,
+	## One more place in every planet's line ([WaitingPassengers]).
+	WAITING_LOUNGE = 8,
+	## Happy passengers tip on top of what they pay ([Cabin]).
+	TIP_JAR = 9,
+	## Someone picked up asks for their first things later ([Cabin]).
+	FREE_COFFEE = 10,
+	## Those in a line lean harder toward a destination someone in it already has
+	## ([WaitingPassengers]).
+	TIMETABLES = 11,
 }
 
 # How many times each trait the bus has was added and not yet taken out.
