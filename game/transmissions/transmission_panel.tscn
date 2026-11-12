@@ -177,7 +177,13 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_quest")
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="FlagIcon" type="TextureRect" parent="Root/Center/Modal/Row/Call/Request/Quest/Row" unique_id=1953886732]
+[node name="FlagIconNudge" type="MarginContainer" parent="Root/Center/Modal/Row/Call/Request/Quest/Row" unique_id=1443153333]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="FlagIcon" type="TextureRect" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/FlagIconNudge" unique_id=1953886732]
 self_modulate = Color(0.957, 0.945, 1, 0.651)
 custom_minimum_size = Vector2(13, 13)
 layout_mode = 2
@@ -190,7 +196,6 @@ stretch_mode = 5
 [node name="QuestLabel" type="Label" parent="Root/Center/Modal/Row/Call/Request/Quest/Row" unique_id=644755231]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
 theme_type_variation = &"TinyLabel"
 theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
 
@@ -200,7 +205,13 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="QuestPlanetIcon" type="ColorRect" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/QuestPlanet" unique_id=1744363756]
+[node name="QuestPlanetIconNudge" type="MarginContainer" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/QuestPlanet" unique_id=1659203251]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 4
+
+[node name="QuestPlanetIcon" type="ColorRect" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/QuestPlanet/QuestPlanetIconNudge" unique_id=1744363756]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
@@ -211,7 +222,6 @@ script = ExtResource("7_planet")
 [node name="QuestPlanetLabel" type="Label" parent="Root/Center/Modal/Row/Call/Request/Quest/Row/QuestPlanet" unique_id=1935913217]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
 theme_type_variation = &"TinyLabel"
 
 [node name="Spacer" type="Control" parent="Root/Center/Modal/Row/Call" unique_id=1451633414]
