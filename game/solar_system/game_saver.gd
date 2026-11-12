@@ -14,6 +14,14 @@ extends Node
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
 
+## A save from before research trees left their planets keys each upgrade by the planet its
+## tree was at: the tree file each planet had then.
+const PLANET_TREES: Dictionary[String, String] = {
+	"Frost": "blue_tree",
+	"Terra": "green_tree",
+	"Giant": "orange_tree",
+}
+
 ## The bus whose planet, fuel and stats are kept.
 @export var bus: FrameshiftBus
 ## Who is on board.
@@ -130,8 +138,9 @@ func _restore() -> void:
 	var upgrades := _get_upgrades_by_key()
 	var research := research_lab.get_research()
 	for key: Variant in _saved.get("research", []):
-		if upgrades.has(str(key)):
-			research.research(upgrades[str(key)])
+		var found := _upgrade_key(str(key))
+		if upgrades.has(found):
+			research.research(upgrades[found])
 	for stage: int in range(1, int(_saved.get("research_stages", 1))):
 		research.open_next_stage()
 	var tank := bus.get_fuel_tank()
@@ -171,6 +180,14 @@ func _get_types_by_path() -> Dictionary[String, PassengerType]:
 		if type:
 			types[type.resource_path] = type
 	return types
+
+
+# [param key] as saved, with an older save's planet name turned into its tree's file name.
+func _upgrade_key(key: String) -> String:
+	var tree := key.get_slice("/", 0)
+	if PLANET_TREES.has(tree):
+		return PLANET_TREES[tree] + key.trim_prefix(tree)
+	return key
 
 
 # Every upgrade in every research tree, by its tree's file name and its place in the
