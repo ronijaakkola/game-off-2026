@@ -269,8 +269,9 @@ DYNAMIC_MEMBER = re.compile(r"\.\s*(set|set_deferred|get)\s*\(")
 OWN_GET_PARENT = re.compile(r"(?<![\w.])get_parent\s*\(|\bself\s*\.\s*get_parent\s*\(")
 # A node looked up by path under another node, the way into another scene's insides. The
 # root's own children are autoloads and LimboConsole (Dev console), so they are left alone.
+# The match starts right after the word before the dot, so a space there can't slip past.
 FOREIGN_NODE_PATH = re.compile(
-    r"(?<!\bself)(?<!\broot)\s*\.\s*(get_node|get_node_or_null|has_node)\s*\("
+    r"(?<!\bself)(?<!\broot)(?<!\s)\s*\.\s*(get_node|get_node_or_null|has_node)\s*\("
 )
 SHADER_DIRECTIVE = re.compile(
     r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
