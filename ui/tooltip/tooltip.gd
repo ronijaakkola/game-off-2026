@@ -16,8 +16,10 @@ extends PanelContainer
 ## It is top-level, so a Container holding it gives it no room, and it stays on screen:
 ## near an edge it moves along its target only as far as it must.
 
-## Which edge of the target it sits at.
-enum Side { BELOW = 0, ABOVE = 1 }
+## Which edge of the target it sits at. Beside is to the right where it fits on screen,
+## else to the left, centred on the target's height: for targets in a grid read from above,
+## such as the research trees, where a card below would cover what comes next.
+enum Side { BELOW = 0, ABOVE = 1, BESIDE = 2 }
 
 ## Seconds it takes to open, and to close: leaving is the faster of the two.
 const OPEN_SECONDS := 0.15
@@ -211,13 +213,16 @@ func _fit() -> void:
 	_place()
 
 
-# Centred on the target, or as near as the screen's side edges let it, on whole pixels
+# Centred on the target, or as near as the screen's edges let it, on whole pixels
 # once in place so the text stays sharp, slid toward the target by _slide, and scaling
 # from the point of the edge facing the target that is at the target's centre.
 func _place() -> void:
 	if not target:
 		return
 	var rect := target.get_global_rect()
+	if side == Side.BESIDE:
+		_place_beside(rect)
+		return
 	var below := side == Side.BELOW
 	var top := rect.end.y + gap if below else rect.position.y - gap - size.y
 	var toward := -SLIDE_PIXELS if below else SLIDE_PIXELS
@@ -229,3 +234,17 @@ func _place() -> void:
 	position = Vector2(left, top).round()
 	pivot_offset = Vector2(centre - position.x, 0.0 if below else size.y)
 	position.y += toward * _slide
+
+
+# Right of the target where the card fits on screen, else left of it, centred on its height
+# as far as the screen's top and bottom let it, scaling from the facing edge.
+func _place_beside(rect: Rect2) -> void:
+	var screen := get_viewport_rect().size
+	var right := rect.end.x + gap + size.x <= screen.x - SCREEN_MARGIN
+	var left := rect.end.x + gap if right else rect.position.x - gap - size.x
+	var centre := rect.get_center().y
+	var most := screen.y - size.y - SCREEN_MARGIN
+	var top := clampf(centre - size.y * 0.5, minf(SCREEN_MARGIN, most), most)
+	position = Vector2(left, top).round()
+	pivot_offset = Vector2(0.0 if right else size.x, centre - position.y)
+	position.x += (-SLIDE_PIXELS if right else SLIDE_PIXELS) * _slide

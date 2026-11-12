@@ -12,9 +12,10 @@ extends Control
 ## [constant HOLD_SECONDS] it tells its parent, which researches it, and once researched the
 ## fill fades off the lit tile as it pops. Letting go or leaving it first drains the fill.
 ## A press on one that can't be researched flashes its border, and pulses the badge of one
-## the player can't afford. [method reveal] fades it in from a silhouette, as a stage
+## the player can't afford. A click sounds as a hold completes, and another for a press it
+## can't act on. [method reveal] fades it in from a silhouette, as a stage
 ## opens. Under Reduce motion nothing pops or pulses; the fades and flashes stay. The pointer
-## over it opens its [Tooltip] at once, below it, or above it in the screen's lower half;
+## over it opens its [Tooltip] at once, beside it, so it never covers the rows under it;
 ## the parent fills it ([UpgradeTooltip]).
 
 ## It was held down long enough to research it.
@@ -89,6 +90,9 @@ const BADGE_ICON_SIZE := 10.0
 const DOLLAR := preload("res://game/solar_system/icons/dollar_sign.svg")
 const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
+## Placeholder clicks: once a hold completes, and for a press it can't act on.
+const HELD_SOUND := preload("res://ui/audio/ui_click.ogg")
+const REFUSED_SOUND := preload("res://ui/audio/key_click.ogg")
 const ROMAN := ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]
 
 var upgrade: Upgrade:
@@ -148,6 +152,8 @@ func _init() -> void:
 	# Read tile after tile, it can't keep the pointer waiting.
 	_tooltip.target = self
 	_tooltip.rest_seconds = 0.0
+	# Beside it, so the tooltip never covers the rows under it that this one opens.
+	_tooltip.side = Tooltip.Side.BESIDE
 	add_child(_tooltip)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
@@ -243,6 +249,7 @@ func _process(delta: float) -> void:
 	_holding = false
 	set_process(false)
 	_researching = true
+	Audio.play_sfx(HELD_SOUND)
 	held.emit()
 	_drain_fill(DONE_SECONDS)
 
@@ -312,6 +319,7 @@ func _pop_tile() -> void:
 # A press it can't act on: the border flashes, and the badge of one the player can't afford
 # pulses, so the player looks at what is lacking.
 func _nudge_tile() -> void:
+	Audio.play_sfx(REFUSED_SOUND)
 	if _nudge:
 		_nudge.kill()
 	_nudge = create_tween().set_parallel()
@@ -445,9 +453,6 @@ func _badge_center() -> Vector2:
 func _on_mouse_entered() -> void:
 	_hover = true
 	queue_redraw()
-	# Before the tooltip opens: it hears the pointer after this.
-	var lower := get_global_rect().get_center().y > get_viewport_rect().size.y * 0.5
-	_tooltip.side = Tooltip.Side.ABOVE if lower else Tooltip.Side.BELOW
 
 
 func _on_mouse_exited() -> void:
