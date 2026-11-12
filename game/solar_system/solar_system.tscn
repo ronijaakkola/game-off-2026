@@ -40,8 +40,12 @@
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 [ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
 [ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
+[ext_resource type="Script" uid="uid://dl6s4c30gtvik" path="res://game/solar_system/orbit_clock.gd" id="109_orbit_clock"]
 [ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="109_transmission"]
-[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="110_quests"]
+[ext_resource type="Script" uid="uid://h318eugw35ag" path="res://game/solar_system/map_zoom.gd" id="110_map_zoom"]
+[ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
+[ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
+[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="130_quests"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -201,23 +205,26 @@ min_distance = 8.0
 max_distance = 55.0
 distance = 43.0
 
-[node name="Star" type="Node3D" parent="." unique_id=1616161291]
+[node name="World" type="Node3D" parent="." unique_id=425802452]
+unique_name_in_owner = true
 
-[node name="Surface" type="MeshInstance3D" parent="Star" unique_id=600828084]
+[node name="Star" type="Node3D" parent="World" unique_id=1616161291]
+
+[node name="Surface" type="MeshInstance3D" parent="World/Star" unique_id=600828084]
 cast_shadow = 0
 mesh = SubResource("SphereMesh_star")
 surface_material_override/0 = SubResource("StandardMaterial3D_star")
 
-[node name="Halo" type="MeshInstance3D" parent="Star" unique_id=209002715]
+[node name="Halo" type="MeshInstance3D" parent="World/Star" unique_id=209002715]
 cast_shadow = 0
 mesh = SubResource("QuadMesh_halo")
 surface_material_override/0 = SubResource("ShaderMaterial_halo")
 
-[node name="Light" type="OmniLight3D" parent="Star" unique_id=1336476973]
+[node name="Light" type="OmniLight3D" parent="World/Star" unique_id=1336476973]
 omni_range = 200.0
 omni_attenuation = 0.0
 
-[node name="Ember" type="Node3D" parent="." unique_id=1760760661]
+[node name="Ember" type="Node3D" parent="World" unique_id=1760760661]
 script = ExtResource("2_planet")
 display_name = "Ember"
 radius = 0.39
@@ -229,7 +236,7 @@ surface_material = SubResource("ShaderMaterial_ember")
 icon_color = Color(0.82, 0.58, 0.4, 1)
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
-[node name="Terra" type="Node3D" parent="." unique_id=310922244]
+[node name="Terra" type="Node3D" parent="World" unique_id=310922244]
 script = ExtResource("2_planet")
 display_name = "Terra"
 radius = 0.5
@@ -244,12 +251,12 @@ fuel_price = 0.12
 has_lab = true
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
-[node name="Moon" type="Node3D" parent="Terra" unique_id=247044122]
+[node name="Moon" type="Node3D" parent="World/Terra" unique_id=247044122]
 script = ExtResource("2_planet")
 display_name = "Moon"
 radius = 0.15
 orbit_radius = 2.0
-start_angle = 40.0
+start_angle = 20.0
 spin_period = 0.0
 surface_material = SubResource("ShaderMaterial_moon")
 icon_color = Color(0.95, 0.93, 1, 1)
@@ -257,7 +264,7 @@ fuel_price = 0.15
 orbit_width = 0.03
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
-[node name="Giant" type="Node3D" parent="." unique_id=1488920163]
+[node name="Giant" type="Node3D" parent="World" unique_id=1488920163]
 script = ExtResource("2_planet")
 display_name = "Giant"
 orbit_radius = 13.2
@@ -275,7 +282,7 @@ ring_inner = 1.35
 ring_outer = 2.2
 icon_ring_color = Color(0.72, 0.72, 1, 1)
 
-[node name="Frost" type="Node3D" parent="." unique_id=2128267833]
+[node name="Frost" type="Node3D" parent="World" unique_id=2128267833]
 script = ExtResource("2_planet")
 display_name = "Frost"
 radius = 0.425
@@ -292,7 +299,39 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
 unique_name_in_owner = true
-start_planet = NodePath("../Ember")
+start_planet = NodePath("../World/Ember")
+
+[node name="OrbitClock" type="Node" parent="." unique_id=466363001 node_paths=PackedStringArray("bus", "map_zoom")]
+unique_name_in_owner = true
+script = ExtResource("109_orbit_clock")
+bus = NodePath("../Bus")
+map_zoom = NodePath("../MapZoom")
+
+[node name="MapZoom" type="Node" parent="." unique_id=1364752133 node_paths=PackedStringArray("world", "bus", "pivot", "rig")]
+unique_name_in_owner = true
+script = ExtResource("110_map_zoom")
+world = NodePath("../World")
+bus = NodePath("../Bus")
+pivot = NodePath("../World/Terra")
+rig = NodePath("../CameraRig")
+
+[node name="TowDispatch" type="Node" parent="." unique_id=1140975013 node_paths=PackedStringArray("bus", "cabin", "notices")]
+unique_name_in_owner = true
+script = ExtResource("111_tow")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+notices = NodePath("../Hud/Notices")
+
+[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "notices", "dock_panel", "trip_arc", "home", "destination")]
+unique_name_in_owner = true
+script = ExtResource("112_tutorial")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+notices = NodePath("../Hud/Notices")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+trip_arc = NodePath("../TripArc")
+home = NodePath("../World/Terra")
+destination = NodePath("../World/Terra/Moon")
 
 [node name="Cabin" type="Node" parent="." unique_id=1517490635]
 unique_name_in_owner = true
@@ -304,15 +343,15 @@ script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="Quests" type="Node" parent="." unique_id=1363079640 node_paths=PackedStringArray("bus", "cabin")]
+[node name="Quests" type="Node" parent="." unique_id=668166964 node_paths=PackedStringArray("bus", "cabin")]
 unique_name_in_owner = true
 script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="QuestGiver" type="Node" parent="." unique_id=1013702282 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quests")]
+[node name="QuestGiver" type="Node" parent="." unique_id=1899460635 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quests")]
 unique_name_in_owner = true
-script = ExtResource("110_quests")
+script = ExtResource("130_quests")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
@@ -326,8 +365,8 @@ cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
 quest_giver = NodePath("../QuestGiver")
-test_destination = NodePath("../Giant")
-test_flyby_planet = NodePath("../Frost")
+test_destination = NodePath("../World/Giant")
+test_flyby_planet = NodePath("../World/Frost")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")

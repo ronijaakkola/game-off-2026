@@ -13,6 +13,8 @@ extends Node
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
+## While [member holding], as through the tutorial, nothing is saved, so the save from
+## before stays until the run first saves after it.
 
 ## A save from before research trees left their planets keys each upgrade by the planet its
 ## tree was at: the tree file each planet had then.
@@ -34,6 +36,8 @@ const PLANET_TREES: Dictionary[String, String] = {
 
 ## Who waits at each planet. The parent sets it before [method start].
 var waiting: WaitingPassengers
+## Whether saving waits. Changes made meanwhile are saved at the first checkpoint after.
+var holding := false
 
 var _recording := false
 var _continued := false
@@ -45,7 +49,7 @@ var _dirty := false
 
 
 func _process(_delta: float) -> void:
-	if _recording and _dirty and bus.is_at_planet() and not cabin.is_stopping():
+	if _recording and _dirty and not holding and bus.is_at_planet() and not cabin.is_stopping():
 		_write()
 
 
@@ -74,6 +78,12 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 ## Whether this run continues a save.
 func is_continued() -> bool:
 	return _continued
+
+
+## Whether the main menu started this run afresh, rather than continuing a save or the
+## scene being run on its own.
+func is_new_run() -> bool:
+	return _recording and not _continued
 
 
 ## Once the scene has built its run: continuing one, puts back the upgrades, the fuel, the

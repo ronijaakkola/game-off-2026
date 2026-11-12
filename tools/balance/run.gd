@@ -396,7 +396,7 @@ func _on_delivered(passenger: Passenger, payout: int) -> void:
 
 func _on_ran_out_of_fuel() -> void:
 	_recorder.tows += 1
-	_recorder.news.append("Ran out of fuel and had to be towed for %d" % SolarSystem.TOW_FEE)
+	_recorder.news.append("Ran out of fuel and had to be towed for %d" % TowDispatch.TOW_FEE)
 	_tow_in = TOW_THINK
 	# The system offered the tow just before this: its notice is the newest.
 	var notices := (_system.get_node(^"%Notices") as NoticeStack).get_notices()

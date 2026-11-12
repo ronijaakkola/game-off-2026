@@ -1,6 +1,6 @@
 class_name Tooltip
 extends PanelContainer
-## A small dark card naming the thing under the pointer: a [member title] and, when it
+## A small solid dark card naming the thing under the pointer: a [member title] and, when it
 ## helps, one [member sentence], and under them, where the caller gives one, an
 ## [member extra] row such as a cost. It belongs to its [member target]: once the pointer has
 ## rested on that for [member rest_seconds] it opens, or as the pointer arrives where that is

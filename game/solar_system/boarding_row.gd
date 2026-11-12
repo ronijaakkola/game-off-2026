@@ -11,6 +11,10 @@ extends Control
 ## The pointer over the row, or a click on it, shows where they are going (the dock panel
 ## decides which), and the row whose trip shows is [member highlighted]: a step lighter,
 ## with a border in their race's skin colour.
+## A row that is [member beckoning] calls for its button to be pressed, as the tutorial
+## does: the whole row shows the highlight's border and the button turns primary. The
+## border glows and the button swells by [member beckon_glow], which the dock panel pulses;
+## under Reduce motion the button doesn't swell.
 
 ## The player pressed the button to pick up [member passenger].
 signal board_pressed(passenger: Passenger)
@@ -27,6 +31,12 @@ const OFF_RIGHT := 32.0
 ## The highlighted row's border width, in pixels, and how much lighter its background is.
 const HIGHLIGHT_BORDER := 2
 const HIGHLIGHT_LIGHTEN := 0.0706
+## How much the beckoning button swells at the height of a pulse.
+const BECKON_SCALE := 1.1
+## A beckoning row's border opacity between pulses, and how much lighter its background is
+## at the height of one, as a multiple of the highlight's.
+const BECKON_BORDER_LOW := 0.35
+const BECKON_LIGHTEN := 2.0
 
 var passenger: Passenger:
 	set(value):
@@ -62,6 +72,22 @@ var highlighted := false:
 		if is_node_ready():
 			_show_highlight()
 
+## Whether the button calls to be pressed: primary, and swelling by [member beckon_glow].
+var beckoning := false:
+	set(value):
+		if value == beckoning:
+			return
+		beckoning = value
+		if is_node_ready():
+			_show_beckon()
+
+## How strongly a beckoning row glows now, from 0 between pulses to 1 at the height of one.
+var beckon_glow := 1.0:
+	set(value):
+		beckon_glow = value
+		if is_node_ready() and beckoning:
+			_show_beckon()
+
 var _leaving := false
 var _slide: Tween
 
@@ -72,6 +98,7 @@ func _ready() -> void:
 	_show()
 	_show_button()
 	_show_along()
+	_show_beckon()
 	_fit()
 
 
@@ -94,6 +121,7 @@ func leave() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	beckoning = false
 	_show_button()
 	if _slide:
 		_slide.kill()
@@ -128,17 +156,23 @@ func _show() -> void:
 	(%DestinationLabel as Label).text = _destination_name()
 
 
+# The border in their race's skin colour while highlighted or beckoning; beckoning, it
+# glows by beckon_glow.
 func _show_highlight() -> void:
 	var panel := %Panel as Control
 	panel.remove_theme_stylebox_override(&"panel")
-	if not highlighted or not passenger or not passenger.destination:
+	if not (highlighted or beckoning) or not passenger or not passenger.destination:
 		return
 	var style := panel.get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
 	if not style:
 		return
 	style.set_border_width_all(HIGHLIGHT_BORDER)
 	style.border_color = Race.SKIN_COLORS[passenger.race]
-	style.bg_color.a += HIGHLIGHT_LIGHTEN
+	var lighten := HIGHLIGHT_LIGHTEN
+	if beckoning:
+		style.border_color.a = lerpf(BECKON_BORDER_LOW, 1.0, beckon_glow)
+		lighten = lerpf(HIGHLIGHT_LIGHTEN, HIGHLIGHT_LIGHTEN * BECKON_LIGHTEN, beckon_glow)
+	style.bg_color.a += lighten
 	panel.add_theme_stylebox_override(&"panel", style)
 
 
@@ -150,6 +184,15 @@ func _show_along() -> void:
 
 func _show_button() -> void:
 	(%BoardButton as Button).disabled = _leaving or not can_board
+
+
+func _show_beckon() -> void:
+	var button := %BoardButton as Button
+	button.theme_type_variation = &"SmallPrimaryButton" if beckoning else &"SmallButton"
+	var swell := beckon_glow if beckoning and not Settings.reduce_motion else 0.0
+	button.pivot_offset_ratio = Vector2(0.5, 0.5)
+	button.scale = Vector2.ONE * lerpf(1.0, BECKON_SCALE, swell)
+	_show_highlight()
 
 
 func _destination_name() -> String:
