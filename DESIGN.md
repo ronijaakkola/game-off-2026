@@ -293,7 +293,8 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 - **A milestone** is done once and stays done: deliver 50 passengers. Kicked passengers don't count.
 - **A standing goal** is met or not as things stand, and is never done: keep a 4.0 average rating. It isn't met until a set number of rides are rated (at least 1), so one lucky first ride doesn't meet it. Dropping below makes it unmet, not failed.
 - **A quest** is something one passenger asks for mid-ride, for a reward. It is tracked apart from the goals a promotion takes, so a quest under way or failed never stands in the way of all met.
-- **The call.** While the bus flies, a passenger on board calls: the first no sooner than 45 s into a run, the next 50 to 80 s after the last call or quest ended. One call or quest at a time. Nobody calls in the first 2 s of a flight, while asleep, or within 6 s of getting off.
+- **The call.** While the bus flies, a passenger on board calls: the first no sooner than 2 minutes into a run, the next 2.5 to 4 minutes after the last call or quest ended. Quests are rare, about one ride in nine, so each is an event and the pausing transmission never wears thin.
+- **One at a time.** Nobody calls while a call rings or a quest is under way, and the wait until the next call starts only once that one has ended. Nobody calls in the first 2 s of a flight, while asleep, or within 6 s of getting off.
 - **Answering** opens their transmission, with what they ask and the reward. The quest is worked out then, from where everything is.
 - **Declining costs the caller 5 happiness,** as a shock, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
 - **A done quest pays** 30 credits and 2 research points of the caller's race, on top of the delivery.

@@ -2,7 +2,8 @@ class_name QuestGiver
 extends Node
 ## Gives the player quests. Every so often while the bus flies, a passenger on board calls:
 ## an incoming transmission notice, whose Answer opens their [Quest]'s transmission. One
-## call or quest at a time.
+## call or quest at a time: nobody calls while a quest is under way, and the wait until
+## the next call starts only once it has ended.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
 ## passenger. A completed quest pays its reward; a failed one costs the passenger
 ## [constant FAIL_SHOCK] if they still ride, so nothing more when a kick failed it.
@@ -21,9 +22,10 @@ signal quest_removed(quest: Quest)
 
 ## Seconds into a run before the first call, and between one call or quest ending and the
 ## next call: a random value between the two.
-const FIRST_CALL_SECONDS := 45.0
-const CALL_MIN_SECONDS := 50.0
-const CALL_MAX_SECONDS := 80.0
+## Long waits: a quest is a rare event, about one ride in nine.
+const FIRST_CALL_SECONDS := 120.0
+const CALL_MIN_SECONDS := 150.0
+const CALL_MAX_SECONDS := 240.0
 ## Seconds before trying again when nobody on board could call.
 const RETRY_SECONDS := 3.0
 ## Seconds the bus has flown before anyone calls, so a call never lands on leaving.
