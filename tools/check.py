@@ -229,7 +229,7 @@ AUTOLOADS = "CODING_STANDARDS.md, Autoloads (core systems)"
 TESTS = "CODING_STANDARDS.md, Tests"
 USER_FILES = "CODING_STANDARDS.md, Saved files"
 ASSETS = "CODING_STANDARDS.md, Assets"
-FORMATTING = "CODING_STANDARDS.md, Naming"
+NAMING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
 SCRIPT_SIZE = "CODING_STANDARDS.md, Script size"
 GLOSSARY = "CONTEXT.md"
@@ -266,6 +266,13 @@ DOTTED_NAME = re.compile(r"(?<![\w.])([A-Z]\w*)(?:\.([A-Z]\w*))?")
 # A member set or read by a name written as a literal, which a typo or a rename turns into
 # a no-op: Object.set() ignores a name the object doesn't have, and get() returns null.
 DYNAMIC_MEMBER = re.compile(r"\.\s*(set|set_deferred|get)\s*\(")
+# A func or signal declaration up to the bracket that opens its parameters, the
+# parameters in one, and a [param name] in a ## comment.
+DOC_DECLARATION = re.compile(
+    r"^[ \t]*(?:static[ \t]+)?(?:func|signal)[ \t]+(\w+)[ \t]*\(", re.MULTILINE
+)
+DECLARED_PARAM = re.compile(r",\s*(?:\.\.\.)?(\w+)")
+DOC_PARAM = re.compile(r"\[param (\w+)\]")
 OWN_GET_PARENT = re.compile(r"(?<![\w.])get_parent\s*\(|\bself\s*\.\s*get_parent\s*\(")
 SHADER_DIRECTIVE = re.compile(
     r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
@@ -533,6 +540,7 @@ def script_problems(path: str, hook: bool) -> list[str]:
     problems = test_file_problems(path, check_target=not hook)
     problems += untyped_loop_problems(path, code)
     problems += dynamic_member_problems(path, code, source)
+    problems += doc_param_problems(path, code, source)
     # Tests and tools drive scenes from outside, so they may reach anywhere.
     outside = path.split("/")[0] in ("test", "tools")
     if not outside:
@@ -568,6 +576,43 @@ def untyped_loop_problems(path: str, code: str) -> list[str]:
         problems.append(
             problem(path, line_at(code, m.start()), "typed-loop-variable", message, STATIC_TYPING)
         )
+    return problems
+
+
+def doc_param_problems(path: str, code: str, source: str) -> list[str]:
+    """A ## comment right above a func or signal documents it, and Godot shows it for
+    that one. A [param name] it names that the declaration doesn't have means the comment
+    sits over the wrong one, as when a function is put in between a comment and its own,
+    or that a parameter was renamed and its doc left behind. Nothing else notices."""
+    source_lines = source.splitlines()
+    problems = []
+    for m in DOC_DECLARATION.finditer(code):
+        line = line_at(code, m.start())
+        above = line - 2
+        while above >= 0 and source_lines[above].lstrip().startswith("@"):
+            above -= 1
+        first = above
+        while first >= 0 and source_lines[first].lstrip().startswith("##"):
+            first -= 1
+        doc = "\n".join(source_lines[first + 1 : above + 1])
+        if not doc:
+            continue
+        # The parameter list, up to its closing bracket, which a default may nest.
+        depth, end = 1, m.end()
+        while end < len(code) and depth:
+            depth += {"(": 1, ")": -1}.get(code[end], 0)
+            end += 1
+        params = set(DECLARED_PARAM.findall("," + code[m.end() : end - 1]))
+        for name in dict.fromkeys(DOC_PARAM.findall(doc)):
+            if name in params:
+                continue
+            message = (
+                f"the ## comment above {m.group(1)} names [param {name}], which "
+                f"{m.group(1)} doesn't take ({', '.join(sorted(params)) or 'none'}). Move the "
+                "comment to the declaration it describes, or rename the [param] with the "
+                "parameter."
+            )
+            problems.append(problem(path, first + 2, "doc-param", message, NAMING))
     return problems
 
 
@@ -1147,7 +1192,7 @@ def formatting_problems(formatter: subprocess.Popen, gdlint_failed: bool) -> lis
     unformatted = WOULD_REFORMAT.findall(output)
     fix = "not laid out as gdformat would. Run: uv run tools/check.py format"
     problems = [
-        problem(path, None, "gdformat", f"{fix} {path}", FORMATTING) for path in unformatted
+        problem(path, None, "gdformat", f"{fix} {path}", NAMING) for path in unformatted
     ]
     # A script gdformat can't parse fails gdlint too, and gdlint says where.
     if formatter.returncode != 0 and not unformatted and not gdlint_failed:
