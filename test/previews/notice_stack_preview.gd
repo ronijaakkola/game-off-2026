@@ -10,7 +10,7 @@ func _ready() -> void:
 	notices.push("Right-click a planet to add it to the route.", Notice.Kind.TUTORIAL, true)
 	var info := notices.push("The tank is full.")
 	notices.push("Fuel is running low.", Notice.Kind.WARNING)
-	notices.offer_tow(SolarSystem.TOW_FEE)
+	notices.offer_tow(TowDispatch.TOW_FEE)
 	notices.announce_transmission()
 	if "dismiss" in OS.get_cmdline_user_args():
 		await get_tree().create_timer(1.0).timeout

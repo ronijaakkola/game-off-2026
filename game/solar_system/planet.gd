@@ -7,6 +7,8 @@ extends Node3D
 ## the planet's body.
 ## It builds its meshes in code as internal nodes, so the scene saves only its exports.
 ## The editor shows each body at its [member start_angle]; it moves only when the game runs.
+## It can sit in a scaled world, as on the tutorial's zoomed map: its sizes in global space
+## grow with the scale, but its orbit line keeps its width.
 
 enum Border { NONE, HOVER, ROUTE }
 
@@ -74,6 +76,7 @@ static var _sphere: SphereMesh
 	set(value):
 		show_orbit = value
 		_rebuild()
+## The line's width in global space, whatever the scale of the world the planet sits in.
 @export_range(0.005, 1.0, 0.005) var orbit_width := 0.05:
 	set(value):
 		orbit_width = value
@@ -123,7 +126,8 @@ var label_opacity := 1.0:
 var outline_width := 0.05:
 	set(value):
 		outline_width = value
-		_outline.scale = Vector3.ONE * (get_body_radius() + value) / _get_sphere().radius
+		var local := _get_local_radius() + value / get_world_scale()
+		_outline.scale = Vector3.ONE * local / _get_sphere().radius
 ## Where the name hangs from, in global space, from the body's centre. The solar system
 ## sets it each frame to just past the body's lower edge as the camera sees it.
 var label_offset := Vector3.ZERO:
@@ -136,7 +140,14 @@ var label_offset := Vector3.ZERO:
 var label_pixel_size := 0.001:
 	set(value):
 		label_pixel_size = value
-		_label.pixel_size = value
+		# The label is scaled with the world it sits in; this undoes it.
+		_label.pixel_size = value / get_world_scale()
+
+## How opaque the orbit line is, from 0 (hidden) to 1, for fading it in.
+var orbit_opacity := 1.0:
+	set(value):
+		orbit_opacity = clampf(value, 0.0, 1.0)
+		_show_orbit_line()
 
 ## How fast the body moves along its orbit, from 0 (held still) to 1 (its
 ## [member orbit_period]). Its spin keeps going. The solar system sets it on every planet.
@@ -158,6 +169,11 @@ var _surface := MeshInstance3D.new()
 var _rings := MeshInstance3D.new()
 var _outline := MeshInstance3D.new()
 var _label := Label3D.new()
+# The world scale the orbit line was last built for, so it keeps its width.
+var _line_scale := 1.0
+# This planet's own copy of the orbit material while the line is faded, so the fade
+# changes it alone. Null until it first fades.
+var _faded_orbit_material: StandardMaterial3D
 # This planet's own border material, so its colour and opacity change on it alone. Always
 # see-through, so a fade never switches it to another shader.
 var _border_material := _make_border_material()
@@ -191,6 +207,8 @@ func _process(delta: float) -> void:
 		return
 	_time += delta
 	orbit_time += delta * orbit_speed
+	if not is_equal_approx(get_world_scale(), _line_scale):
+		_build_orbit_line()
 	_place_body()
 	if spin_period != 0.0:
 		_surface.rotation.y = TAU * _time / spin_period
@@ -208,17 +226,33 @@ func get_body_position() -> Vector3:
 	return _pivot.position + _body.position
 
 
-## The body's radius as drawn. The sphere mesh's own radius is 0.5, so it is half of
-## [member radius].
+## The body's radius as drawn, in global space: [member radius] times the scale of the
+## world it sits in.
 func get_body_radius() -> float:
-	return radius * _get_sphere().radius
+	return _get_local_radius() * get_world_scale()
 
 
-## How far the planet reaches from the body's centre: its rings' outer edge when it has
-## rings, else its body's radius.
+## How much bigger the planet is drawn than its own units say: the scale of the world it
+## sits in, 1 unless the map is zoomed.
+func get_world_scale() -> float:
+	return global_basis.get_scale().x if is_inside_tree() else 1.0
+
+
+## Where the body is on its own orbit, from the orbit's centre, as [member orbit_time]
+## puts it. Right before the planet is ready, too.
+func get_orbit_point() -> Vector3:
+	var angle := deg_to_rad(start_angle)
+	if orbit_period != 0.0:
+		angle += TAU * orbit_time / orbit_period
+	# Counter-clockwise seen from above, as the planets go.
+	return Vector3(cos(angle), 0.0, -sin(angle)) * orbit_radius
+
+
+## How far the planet reaches from the body's centre, in global space: its rings' outer
+## edge when it has rings, else its body's radius.
 func get_extent() -> float:
 	if has_rings():
-		return maxf(get_body_radius(), radius * ring_outer)
+		return maxf(get_body_radius(), radius * ring_outer * get_world_scale())
 	return get_body_radius()
 
 
@@ -292,11 +326,7 @@ func _rebuild() -> void:
 	outline_width = outline_width
 	_surface.material_override = surface_material
 	_tilt.rotation.z = deg_to_rad(tilt)
-	_orbit_line.visible = show_orbit and orbit_radius > 0.0
-	if _orbit_line.visible:
-		var half := orbit_width * 0.5
-		_orbit_line.mesh = make_annulus(orbit_radius - half, orbit_radius + half)
-		_orbit_line.material_override = orbit_material
+	_build_orbit_line()
 	_rings.visible = ring_material != null
 	if _rings.visible:
 		_rings.mesh = make_annulus(radius * ring_inner, radius * ring_outer)
@@ -305,15 +335,37 @@ func _rebuild() -> void:
 
 
 func _place_body() -> void:
-	var angle := deg_to_rad(start_angle)
-	if orbit_period != 0.0:
-		angle += TAU * orbit_time / orbit_period
-	# Counter-clockwise seen from above, as the planets go.
-	_body.position = Vector3(cos(angle), 0.0, -sin(angle)) * orbit_radius
+	_body.position = get_orbit_point()
 	for child: Node in get_children():
 		var moon := child as Planet
 		if moon:
 			moon.set_orbit_center(get_body_position(), get_body_velocity())
+
+
+# The orbit line's mesh, as wide in global space as orbit_width at the world's scale now.
+func _build_orbit_line() -> void:
+	_line_scale = get_world_scale()
+	if show_orbit and orbit_radius > 0.0:
+		var half := orbit_width * 0.5 / _line_scale
+		_orbit_line.mesh = make_annulus(orbit_radius - half, orbit_radius + half)
+	_show_orbit_line()
+
+
+# Shows the orbit line at orbit_opacity, on a copy of the orbit material while faded.
+func _show_orbit_line() -> void:
+	_orbit_line.visible = show_orbit and orbit_radius > 0.0 and orbit_opacity > 0.0
+	var base := orbit_material as StandardMaterial3D
+	if orbit_opacity >= 1.0 or not base:
+		_orbit_line.material_override = orbit_material
+		return
+	if not _faded_orbit_material:
+		_faded_orbit_material = base.duplicate() as StandardMaterial3D
+	_faded_orbit_material.albedo_color.a = base.albedo_color.a * orbit_opacity
+	_orbit_line.material_override = _faded_orbit_material
+
+
+func _get_local_radius() -> float:
+	return radius * _get_sphere().radius
 
 
 # Faces the camera at a fixed size on screen, hanging down from its position. It draws

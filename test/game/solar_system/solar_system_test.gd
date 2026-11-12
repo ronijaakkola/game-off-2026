@@ -496,11 +496,11 @@ func test_requesting_a_tow_costs_its_fee_even_into_debt() -> void:
 
 	bus.ran_out_of_fuel.emit()
 	notices.get_notices()[0].action_pressed.emit()
-	assert_int(ledger.credits).is_equal(50 - SolarSystem.TOW_FEE)
+	assert_int(ledger.credits).is_equal(50 - TowDispatch.TOW_FEE)
 	var loss := runner.find_child("LossLabel") as Label
-	assert_str(loss.text).is_equal("-%d" % SolarSystem.TOW_FEE)
+	assert_str(loss.text).is_equal("-%d" % TowDispatch.TOW_FEE)
 
-	ledger.credits = SolarSystem.TOW_FEE - 5
+	ledger.credits = TowDispatch.TOW_FEE - 5
 	bus.ran_out_of_fuel.emit()
 	notices.get_notices()[0].action_pressed.emit()
 	assert_int(ledger.credits).is_equal(-5)
@@ -509,7 +509,7 @@ func test_requesting_a_tow_costs_its_fee_even_into_debt() -> void:
 func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
-	var system := runner.scene() as SolarSystem
+	var dispatch := runner.find_child("TowDispatch") as TowDispatch
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var notices := runner.find_child("Notices") as NoticeStack
 	var is_tow := func(notice: Notice) -> bool: return notice.get_text() == "You ran out of fuel"
@@ -523,17 +523,17 @@ func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() 
 
 	var before := passenger.happiness
 	bus.get_fuel_tank().drain()
-	assert_float(passenger.happiness).is_equal(before + SolarSystem.OUT_OF_FUEL_SHOCK)
+	assert_float(passenger.happiness).is_equal(before + TowDispatch.OUT_OF_FUEL_SHOCK)
 	await runner.simulate_frames(1)
 
 	var is_ship := func(node: Node) -> bool: return node is TowShip
 	var offer := notices.get_notices().filter(is_tow)[0] as Notice
 	var button := offer.find_child("ActionButton") as Button
-	assert_str(button.text).is_equal("Tow (%d credits)" % SolarSystem.TOW_FEE)
-	assert_int(system.get_children().filter(is_ship).size()).is_equal(0)
+	assert_str(button.text).is_equal("Tow (%d credits)" % TowDispatch.TOW_FEE)
+	assert_int(dispatch.get_children().filter(is_ship).size()).is_equal(0)
 
 	button.pressed.emit()
 	await runner.simulate_frames(1)
 
 	assert_bool(offer.is_leaving()).is_true()
-	assert_int(system.get_children().filter(is_ship).size()).is_equal(1)
+	assert_int(dispatch.get_children().filter(is_ship).size()).is_equal(1)

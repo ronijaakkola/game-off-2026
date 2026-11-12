@@ -96,6 +96,13 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
   - It grows out in half a second, the ring closing in as it arrives; then the dashes flow toward the destination and the ring sends out a slow pulse. Under Reduce motion it fades in whole and holds still.
 - **While a planet or the bus is open,** the names, waiting markers, fuel forecast and trip arc fade out.
 
+### The zoomed map
+
+- **Zoomed in** for the tutorial, Terra fills the middle of the screen and the Moon circles it on a thin orbit line, with the camera looking at Terra and kept near it. The star's body, the other planets and every other orbit line are hidden; the starlight still falls from where the star is.
+- Orbit lines and names keep their size on screen, so only the bodies look zoomed. The bus keeps its size too.
+- **The zoom out** takes 4 s, easing in and out. The world shrinks by the same factor in every equal step, so it reads as a steady pull back, while the camera glides to where it starts on the whole map. The star and the other planets come in from past the screen's edges, and the other orbit lines fade in.
+- Under Reduce motion it cuts to the whole map.
+
 ## The HUD
 
 | Where | What |
@@ -168,6 +175,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
 - **A row's trip.** The pointer over a row shows its trip arc. A click on the row pins it until the row is clicked again, the passenger boards or the bus leaves. The row whose trip shows has a border in their race's colour.
 - It slides in from the right when the bus docks and out when it leaves. A passenger picked up slides out of it to the right, and it grows and shrinks smoothly to fit, so it shrinks as rows leave.
+- **Calling for a pick-up** (the tutorial's first step). No trip shows yet. The card gets a 2 px white border, and every row the highlight's border in their race's colour. In a pulse every 1.3 s both borders brighten, the rows' backgrounds lighten and the Board buttons swell to 110 % over 0.3 s, then all of it fades back over 1 s. Board buttons turn primary and Board all turns plain, so the row's Board is the one thing to press. Under Reduce motion the borders hold bright and nothing swells. Once the passenger boards, the card goes back to plain and their trip's arc to the Moon shows until the bus leaves.
 
 ### Fuel button
 
@@ -192,7 +200,9 @@ Cards stacked above the bus bars, centred, 434 px wide and 32 px tall, 8 px apar
 
 - **While a planet's or the bus's panel is open** the notices hide with the bus bars. One that arrives meanwhile waits and comes in when the panel closes, and those already showing stop counting down to closing by themselves, so none goes unseen.
 - A notice stays until its close or action button is pressed, unless it was given a time to close by itself, or until what it is about is over: a tutorial once the player does what it says, a warning once its cause is gone.
-- **Course hint.** Until the player first sets a course, a tutorial notice: "Right-click planets or space to add stops. Backspace clears the route."
+- **Tutorial.** One tutorial notice at a time, each saying what to do next and with a "Skip tutorial" button. The next comes in once the player has done it.
+- **Map open.** Once the zoom out is over, an info notice for 8 s: "The whole solar system is open. Deliver passengers to get promotion."
+- **Course hint.** In a run without the tutorial, until the player first sets a course, a tutorial notice: "Right-click planets or space to add stops. Backspace clears the route."
 - **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
 - **Out of fuel.** An error notice: "You ran out of fuel" and a "Tow (100 credits)" button, with what the tow costs now.
 - **Incoming transmission.** A call: "Incoming transmission..." and an Answer button. Every 1.6 s the phone rattles: it tips side to side, wide first then dying out, for about 0.4 s. Nothing in the game calls yet; the debug panel does.
