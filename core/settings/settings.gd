@@ -68,6 +68,15 @@ func get_names() -> Array[String]:
 	return names
 
 
+## Puts every setting back to its default. Each is applied and saved as any change is.
+func reset() -> void:
+	# A fresh instance, never in the tree, holds the declared defaults and loads no file.
+	var defaults := (get_script() as GDScript).new() as Node
+	for key: String in get_names():
+		set(key, defaults.get(key))
+	defaults.free()
+
+
 # Quitting from the game, the web build included, writes a change still waiting.
 # Closing the browser tab doesn't.
 func _exit_tree() -> void:

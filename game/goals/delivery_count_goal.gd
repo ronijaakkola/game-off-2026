@@ -19,6 +19,17 @@ func get_progress() -> float:
 	return minf(float(delivered) / target, 1.0)
 
 
+func to_save() -> Dictionary:
+	var saved := super()
+	saved["delivered"] = delivered
+	return saved
+
+
+func load_save(saved: Dictionary) -> void:
+	delivered = int(saved.get("delivered", delivered))
+	super(saved)
+
+
 func _on_delivered(_passenger: Passenger) -> void:
 	delivered += 1
 	if delivered >= target:

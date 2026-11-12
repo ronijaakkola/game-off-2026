@@ -8,7 +8,7 @@ extends HBoxContainer
 ## commit] is called, after a short delay the average moves to its new value while the gain
 ## fades out drifting upward. It shows the ratings of its [member ledger] and animates each one
 ## the ledger signals; it keeps no ratings of its own. The ledger already counts every rating;
-## only what shows waits. The pointer over it shows who that rating attracts ([RatingBand]).
+## only what shows waits.
 
 ## What shows before anyone has rated a ride.
 const NO_RATING := "–"
@@ -142,9 +142,6 @@ func _show_average(value: float) -> void:
 	var text := "%.1f" % value if _shown_count > 0 else NO_RATING
 	if label.text != text:
 		label.text = text
-	var tip := RatingBand.describe(_shown_average)
-	if tooltip_text != tip:
-		tooltip_text = tip
 
 
 func _pop_label(label: Label) -> void:

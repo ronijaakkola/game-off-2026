@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dfx4k4gprcqgr"]
+
+[ext_resource type="Script" uid="uid://jxgjcmcau0t" path="res://game/passengers/photo_badge.gd" id="1_badge"]
+
+[node name="PhotoBadge" type="CenterContainer" unique_id=810233272]
+custom_minimum_size = Vector2(15, 15)
+mouse_filter = 2
+script = ExtResource("1_badge")
+
+[node name="Icon" type="TextureRect" parent="." unique_id=983220848]
+unique_name_in_owner = true
+modulate = Color(0.957, 0.945, 1, 1)
+custom_minimum_size = Vector2(9, 9)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

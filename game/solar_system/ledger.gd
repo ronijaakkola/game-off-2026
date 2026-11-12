@@ -108,3 +108,31 @@ func get_recent_rating() -> float:
 ## How many rides have been rated.
 func get_rating_count() -> int:
 	return _rating_count
+
+
+## Everything in it, for a save game.
+func to_save() -> Dictionary:
+	var research := {}
+	for race: Race.Type in _research:
+		research[str(race)] = _research[race]
+	return {
+		"credits": _credits,
+		"research": research,
+		"rating_total": _rating_total,
+		"rating_count": _rating_count,
+		"recent": _recent.duplicate(),
+	}
+
+
+## Puts back what [method to_save] gave, with no signals: load it before anything shows it.
+func load_save(saved: Dictionary) -> void:
+	_credits = int(saved.get("credits", 0))
+	_research.clear()
+	var research: Dictionary = saved.get("research", {})
+	for race: String in research:
+		_research[int(race) as Race.Type] = int(research[race])
+	_rating_total = float(saved.get("rating_total", 0.0))
+	_rating_count = int(saved.get("rating_count", 0))
+	_recent.clear()
+	for stars: Variant in saved.get("recent", []):
+		_recent.append(float(stars))

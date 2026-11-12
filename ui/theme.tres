@@ -196,6 +196,38 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip_card"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0431, 0.0353, 0.1255, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1216)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip_name"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.0431, 0.0353, 0.1255, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1216)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_tile"]
 content_margin_left = 6.0
 content_margin_top = 6.0
@@ -209,9 +241,9 @@ corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_notice"]
 content_margin_left = 12.0
-content_margin_top = 8.0
-content_margin_right = 12.0
-content_margin_bottom = 8.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
 bg_color = Color(0.1216, 0.102, 0.2784, 1)
 border_width_left = 1
 border_width_top = 1
@@ -506,17 +538,33 @@ variation_opentype = {
 spacing_top = -10
 spacing_bottom = -10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_warning"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_error"]
 content_margin_left = 12.0
-content_margin_top = 8.0
-content_margin_right = 8.0
-content_margin_bottom = 8.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
 bg_color = Color(0.29, 0.102, 0.239, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.949, 0.302, 0.4, 1)
+border_color = Color(0.375, 0.21, 0.33, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_warning"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.29, 0.227, 0.122, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.375, 0.32, 0.227, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
@@ -583,6 +631,8 @@ DimLabel/font_sizes/font_size = 11
 DimLabel/fonts/font = SubResource("FontVariation_600_small")
 DimPanel/base_type = &"PanelContainer"
 DimPanel/styles/panel = SubResource("StyleBoxFlat_dim")
+ErrorNoticePanel/base_type = &"PanelContainer"
+ErrorNoticePanel/styles/panel = SubResource("StyleBoxFlat_error")
 FaintLabel/base_type = &"Label"
 FaintLabel/colors/font_color = Color(0.957, 0.945, 1, 0.4)
 FaintLabel/font_sizes/font_size = 11
@@ -698,10 +748,19 @@ TinyRichTextLabel/fonts/normal_font = SubResource("FontVariation_600_small")
 TitleLabel/base_type = &"Label"
 TitleLabel/font_sizes/font_size = 64
 TitleLabel/fonts/font = SubResource("FontVariation_title")
+TooltipCardPanel/base_type = &"PanelContainer"
+TooltipCardPanel/styles/panel = SubResource("StyleBoxFlat_tooltip_card")
 TooltipLabel/colors/font_color = Color(0.957, 0.945, 1, 1)
 TooltipLabel/font_sizes/font_size = 11
 TooltipLabel/fonts/font = SubResource("FontVariation_700_small")
+TooltipNamePanel/base_type = &"PanelContainer"
+TooltipNamePanel/styles/panel = SubResource("StyleBoxFlat_tooltip_name")
 TooltipPanel/styles/panel = SubResource("StyleBoxFlat_tooltip")
+TooltipSentenceLabel/base_type = &"Label"
+TooltipSentenceLabel/colors/font_color = Color(0.957, 0.945, 1, 0.651)
+TooltipSentenceLabel/constants/line_spacing = 0
+TooltipSentenceLabel/font_sizes/font_size = 12
+TooltipSentenceLabel/fonts/font = SubResource("FontVariation_body")
 VBoxContainer/constants/separation = 8
 WarningNoticePanel/base_type = &"PanelContainer"
 WarningNoticePanel/styles/panel = SubResource("StyleBoxFlat_warning")

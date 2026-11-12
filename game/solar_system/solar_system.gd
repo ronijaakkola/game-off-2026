@@ -6,8 +6,8 @@ extends Node3D
 ## route: the planet under the pointer, or the point on the orbit plane under it. A right
 ## click on the route's last stop removes it, and the clear_route action clears the whole
 ## route. No modifier keys: Firefox opens its own context menu on Shift + right click
-## whatever the page does. Planets on the route show an orange border. A hint at the bottom
-## says how to set a course until the player first sets one, hidden while a planet is open.
+## whatever the page does. Planets on the route show an orange border. A tutorial notice
+## says how to set a course until the player first sets one.
 ## A left click on a planet opens it: the camera follows it on the left side of the screen
 ## and its panel opens on the right. A left click on the open planet or on empty space, or
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
@@ -27,16 +27,16 @@ extends Node3D
 ## A passenger kicked off from their card is thrown out of the bus's door as a small figure
 ## in their skin colour.
 ## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
-## open planet's panel: the [FuelPump] runs while they hold the fuel button. It stops when
-## they let go, the tank is full or the credits run out.
+## open planet's panel ([FuelPump]).
 ## Running out of fuel in space scares everyone on board ([constant OUT_OF_FUEL_SHOCK]),
-## and the [TowOffer] bar offers a tow for [constant TOW_FEE] credits. Requesting it pays,
+## and a notice offers a tow for [constant TOW_FEE] credits. Requesting it pays,
 ## into debt when the player has less, and a tow ship comes from the nearest planet and
 ## pulls the bus there, where it docks with a full tank.
+## The planets orbit at full speed only while the bus frameshifts: they ease down to
+## [member idle_orbit_speed] once it starts parking at a planet, comes to rest in space, or
+## starts coasting to a stop because its course was cleared or its tank ran dry, and speed
+## up again once it heads off.
 
-## How far past a planet's edge on screen, in pixels, the pointer still picks it, so a
-## small, far planet stays easy to hit.
-const PICK_MARGIN := 6.0
 ## The border's width on screen, in pixels at the base window height.
 const OUTLINE_PIXELS := 3.0
 ## How tall a planet's name is on screen, in pixels at the base window height.
@@ -56,10 +56,20 @@ const TOW_FEE := 100
 ## The goals a run starts with: deliver this many passengers, and keep this average rating.
 const START_DELIVERIES := 30
 const START_RATING := 4.0
+## How fast the planets' speed changes once the bus stops frameshifting, and once it heads
+## off: the seconds it would take to go all the way between full speed and still. Linear
+## in speed, so the planets ease out as they slow.
+const ORBIT_STOP_SECONDS := 1.2
+const ORBIT_START_SECONDS := 0.6
 ## The scare everyone on board takes when the bus runs out of fuel in space.
 const OUT_OF_FUEL_SHOCK := -15.0
+const COURSE_HINT := "Right-click planets or space to add stops. Backspace clears the route."
 const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
+
+## How fast the planets orbit while the bus isn't frameshifting, from 0 (still) to 1 (full
+## speed).
+@export_range(0.0, 1.0, 0.01) var idle_orbit_speed := 0.5
 
 var _planets: Array[Planet] = []
 # The player's credits, research points and ratings. The resource bar shows them.
@@ -69,6 +79,18 @@ var _fade := 1.0
 # The planet whose hover border fades: the open one, and after it closes, until the fade
 # is back to 1.
 var _faded_planet: Planet
+# How fast the planets orbit, from 0 to 1: full speed while the bus frameshifts,
+# idle_orbit_speed otherwise.
+var _orbit_speed := 1.0
+# How to set a course, until the player first sets one.
+var _course_hint: Notice
+
+
+# Before the planets and the bus are ready, so a continued run starts where it was saved.
+func _enter_tree() -> void:
+	if _planets.is_empty():
+		_collect_planets(self)
+		(%GameSaver as GameSaver).place_world(_planets, _ledger)
 
 
 func _ready() -> void:
@@ -76,7 +98,8 @@ func _ready() -> void:
 	# the waiting markers follow where they are now, not where they were a frame
 	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
 	process_priority = CAMERA_HOST_PRIORITY + 1
-	_collect_planets(self)
+	_orbit_speed = 1.0 if _is_frameshifting() else idle_orbit_speed
+	_run_orbits(0.0)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
 	for planet: Planet in _planets:
@@ -104,17 +127,19 @@ func _ready() -> void:
 	dock_panel.research_pressed.connect(_on_research_pressed)
 	var bus := %Bus as FrameshiftBus
 	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
-	(%TowOffer as TowOffer).requested.connect(_on_tow_requested)
+	# A continued run has set courses before.
+	if not (%GameSaver as GameSaver).is_continued():
+		_course_hint = (%Notices as NoticeStack).push(COURSE_HINT, Notice.Kind.TUTORIAL)
 
 
 func _process(delta: float) -> void:
+	_run_orbits(delta)
 	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
 	(%Cabin as Cabin).parking = (%Bus as FrameshiftBus).state == FrameshiftBus.State.PARKING
 	var felt := (%Bus as FrameshiftBus).get_felt_acceleration()
 	(%PortraitStudio as PortraitStudio).felt_acceleration = felt
 	_place_labels()
 	_update_fade(delta)
-	_run_fuel_pump(delta)
 	var rig := %CameraRig as CameraRig
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
@@ -170,7 +195,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not stop:
 			return
 		bus.plot_course(stop, true)
-		(%CourseHint as Control).hide()
+		if _course_hint:
+			_course_hint.dismiss()
+			_course_hint = null
 	get_viewport().set_input_as_handled()
 
 
@@ -287,6 +314,10 @@ func _start_passengers() -> void:
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
+	(%FuelPump as FuelPump).ledger = _ledger
+	var saver := %GameSaver as GameSaver
+	saver.waiting = waiting
+	saver.start()
 
 
 func _on_bus_docked(planet: Planet) -> void:
@@ -311,57 +342,20 @@ func _on_board_pressed(passenger: Passenger) -> void:
 
 func _on_bus_ran_out_of_fuel() -> void:
 	(%Cabin as Cabin).shock(OUT_OF_FUEL_SHOCK)
-	(%TowOffer as TowOffer).offer(TOW_FEE)
+	(%Notices as NoticeStack).offer_tow(TOW_FEE).action_pressed.connect(_on_tow_requested)
 
 
 # Bills the tow and sends a tow ship from the planet nearest to the bus, to tow it there.
 func _on_tow_requested() -> void:
-	(%TowOffer as TowOffer).close()
 	_ledger.spend(TOW_FEE)
 	var bus := %Bus as FrameshiftBus
-	var nearest: Planet
-	var nearest_distance := INF
-	for planet: Planet in _planets:
-		var distance := bus.global_position.distance_to(planet.get_body_global_position())
-		if distance < nearest_distance:
-			nearest = planet
-			nearest_distance = distance
+	var nearest := Planet.nearest_to(bus.global_position, _planets)
 	if not nearest:
 		return
 	var ship := TOW_SHIP.instantiate() as TowShip
 	add_child(ship)
 	ship.hitched.connect(bus.tow_to.bind(nearest))
 	ship.come_for(bus, nearest)
-
-
-# Runs the fuel pump at the planet the bus is docked at while the dock panel's fuel
-# button is held, or the open planet's refuel button when that is the same planet. Shows in
-# both panels whether it can, and in the open planet's the fuel, the price and what stops it.
-func _run_fuel_pump(delta: float) -> void:
-	var bus := %Bus as FrameshiftBus
-	var tank := bus.get_fuel_tank()
-	var pump := %FuelPump as FuelPump
-	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
-	var open := get_open_planet()
-	var panel := %PlanetPanel as PlanetPanel
-	var dock_panel := %DockPanel as DockPanel
-	var stop := pump.get_stop(docked, tank, _ledger) if docked else ""
-	var fill_cost := ceili((tank.capacity - tank.fuel) * docked.fuel_price) if docked else 0
-	var can_fuel := docked != null and stop.is_empty()
-	dock_panel.show_fuel(tank.get_fraction(), fill_cost, can_fuel, stop.trim_suffix("."))
-	if docked:
-		var held := dock_panel.is_fuel_held() or (open == docked and panel.is_refuel_held())
-		pump.run(delta, docked, held, tank, _ledger)
-	else:
-		pump.stop(_ledger)
-	if not open:
-		return
-	var open_stop := stop if open == docked else "Dock here to refuel."
-	if not open.sells_fuel:
-		open_stop = "No fuel sold here."
-	var note := open_stop if open_stop else "%d credits" % _ledger.credits
-	var full_tank_cost := ceili(tank.capacity * open.fuel_price)
-	panel.show_fuel(tank.get_fraction(), full_tank_cost, open_stop.is_empty(), note)
 
 
 # The dock panel's Research button: opens the research screen on every tree.
@@ -414,24 +408,13 @@ func _removable_stop_at(screen_point: Vector2) -> RouteStop:
 	return _marker_at(screen_point)
 
 
-# The point in space on the route whose diamond covers screen_point on screen, give or take
-# PICK_MARGIN. Where diamonds overlap, the one latest on the route. Null when there is
-# none.
+# The point in space on the route whose diamond covers screen_point on screen. Where
+# diamonds overlap, the one latest on the route. Null when there is none.
 func _marker_at(screen_point: Vector2) -> RouteStop:
 	var bus := %Bus as FrameshiftBus
-	var camera := %Camera as Camera3D
-	var stops := bus.get_route_stops()
-	stops.reverse()
-	for stop: RouteStop in stops:
-		if stop.planet or camera.is_position_behind(stop.point):
-			continue
-		var on_screen := camera.unproject_position(stop.point)
-		var edge := camera.unproject_position(
-			stop.point + camera.global_basis.x * bus.get_marker_size()
-		)
-		if on_screen.distance_to(screen_point) <= on_screen.distance_to(edge) + PICK_MARGIN:
-			return stop
-	return null
+	return ScreenPick.point_stop_at(
+		%Camera as Camera3D, bus.get_route_stops(), bus.get_marker_size(), screen_point
+	)
 
 
 # What a left click at screen_point opens: the bus, a planet, or null. Where the bus and a
@@ -439,12 +422,12 @@ func _marker_at(screen_point: Vector2) -> RouteStop:
 # planet stays easy to open.
 func _pick_at(screen_point: Vector2) -> Node3D:
 	var planet := _planet_at(screen_point)
-	if not _is_bus_at(screen_point):
-		return planet
 	var bus := %Bus as FrameshiftBus
+	var camera := %Camera as Camera3D
+	if not ScreenPick.covers(camera, bus.global_position, FrameshiftBus.RADIUS, screen_point):
+		return planet
 	if not planet:
 		return bus
-	var camera := %Camera as Camera3D
 	var to_bus := screen_point.distance_to(camera.unproject_position(bus.global_position))
 	var to_planet := screen_point.distance_to(
 		camera.unproject_position(planet.get_body_global_position())
@@ -452,36 +435,27 @@ func _pick_at(screen_point: Vector2) -> Node3D:
 	return bus if to_bus < to_planet else planet
 
 
-# Whether the bus covers screen_point on screen, give or take PICK_MARGIN.
-func _is_bus_at(screen_point: Vector2) -> bool:
-	var camera := %Camera as Camera3D
-	var center := (%Bus as FrameshiftBus).global_position
-	if camera.is_position_behind(center):
-		return false
-	var on_screen := camera.unproject_position(center)
-	var edge := camera.unproject_position(center + camera.global_basis.x * FrameshiftBus.RADIUS)
-	return on_screen.distance_to(screen_point) <= on_screen.distance_to(edge) + PICK_MARGIN
-
-
-# The nearest planet whose body covers screen_point on screen, give or take PICK_MARGIN.
 func _planet_at(screen_point: Vector2) -> Planet:
-	var camera := %Camera as Camera3D
-	var best: Planet
-	var best_depth := INF
+	return ScreenPick.planet_at(%Camera as Camera3D, _planets, screen_point)
+
+
+# The planets orbit at full speed only while the bus frameshifts, and ease down to
+# idle_orbit_speed once it stops: the trip takes far longer than it looks, and the time
+# spent stopped is partly wound back.
+func _run_orbits(delta: float) -> void:
+	var shifting := _is_frameshifting()
+	var seconds := ORBIT_START_SECONDS if shifting else ORBIT_STOP_SECONDS
+	var target := 1.0 if shifting else idle_orbit_speed
+	_orbit_speed = move_toward(_orbit_speed, target, delta / seconds)
 	for planet: Planet in _planets:
-		var center := planet.get_body_global_position()
-		if camera.is_position_behind(center):
-			continue
-		var on_screen := camera.unproject_position(center)
-		var edge := camera.unproject_position(
-			center + camera.global_basis.x * planet.get_body_radius()
-		)
-		var reach := on_screen.distance_to(edge) + PICK_MARGIN
-		var depth := camera.global_position.distance_to(center)
-		if on_screen.distance_to(screen_point) <= reach and depth < best_depth:
-			best = planet
-			best_depth = depth
-	return best
+		planet.orbit_speed = _orbit_speed
+
+
+# Whether the bus flies a course, towed or not, rather than waiting, parking, charging or
+# coasting to a stop.
+func _is_frameshifting() -> bool:
+	var bus := %Bus as FrameshiftBus
+	return bus.state == FrameshiftBus.State.FLYING and not bus.is_stopping()
 
 
 # Shows the dock panel for the planet the bus waits at, docked or charging, and puts each

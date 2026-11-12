@@ -11,7 +11,7 @@ Keeping it that way:
 
 ## Pitch
 
-You drive a bus around a small solar system. Pick up passengers, plot a route through space and get them to their planet before the ride wears them out. The planets keep orbiting, so a route that is short now may not be short in a few seconds.
+You drive a bus around a small solar system. Pick up passengers, plot a route through space and get them to their planet before the ride wears them out. The planets orbit while the bus flies, so a route that looks short at the dock may not be short by the time the bus gets there.
 
 ## Core loop
 
@@ -27,6 +27,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - A star and four planets on circular orbits, one with a moon and one with rings. The Moon counts as a planet for passengers, fuel and docking.
 - Planets orbit at 0.34 (Frost) to 0.47 (Ember) units a second; the Moon moves at up to about 0.87 as it circles Terra. Every planet moves at under 40 % of the bus's speed, so the bus catches one without a long chase.
 - Ember and Frost are 12 to 23 units apart as they orbit.
+- **Time slows unless the bus frameshifts.** The planets orbit at full speed only while the bus flies a course, towed or not. They slow to half of it once it starts parking at a planet, comes to rest in space, or starts coasting to a stop after the course is cleared or the tank runs dry, and stay that slow while it waits or charges. A trip takes far longer than it looks, and the time spent stopped is wound back. Half speed keeps the system moving while docked, so a long stop still costs some of a route's shape. They take about 0.6 s to slow and 0.6 s to get going again, so nothing jumps. Their spin and the passengers' clocks keep running.
 
 ## Route and flight
 
@@ -82,7 +83,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - A match with who is on board is likely, never certain. A certain one stops being a reward, and turns the bus into a shuttle between two planets.
 - Destinations aren't dealt from a bag: dealing without repeats makes two going the same way rarer than chance does.
 - **Race** is dealt from one shuffled bag of six, two of each race, so no race stays away for long.
-- **Type** goes by the band the recent rating is in (Rating). Upgrades aren't read: a bare bus sits at about 3 to 3.3 stars, so the rating already tells what the bus has.
+- **Type** goes by the band the recent rating is in (Rating). Upgrades aren't read: a bare bus sits between 3 and 4 stars, by how clean its rides are, and only comfort upgrades take it past 4.
 
 | Recent rating | Commuter | Business |
 |---|---|---|
@@ -117,8 +118,10 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 Happiness replaced patience, so a long ride isn't the only thing that matters: what a passenger needs, and how well the bus gives it, does too.
 
-- Each passenger on board has a happiness from 0 to 100, starting at 60.
-- Every frame it slides toward a **target**, falling at 3 a second and climbing at 1. It never jumps, and bad moments take a while to wear off.
+- Each passenger on board has a happiness from 0 to 100.
+- **It starts at the target,** the most the bus can give them: set as they take their seat, and again as the bus leaves, so comfort researched at that stop counts. A quick ride keeps them there. Starting lower and climbing made a short ride end before they got there, so delivering quickly scored worse than taking long.
+- A shock before the bus leaves stays: they start that much under the target.
+- Every frame it slides toward the **target**, falling at 3 a second and climbing at 1. It never jumps, and bad moments take a while to wear off.
 - **Mood:** happy from 70, okay from 50, annoyed from 25, furious below.
 - **Rating** on getting off: happiness ÷ 20, to the nearest whole star.
 - **It holds** until the bus leaves the planet they boarded at, and while the bus parks.
@@ -148,7 +151,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
 
-**What a bus can reach.** A bare bus gives 3 stars and a rare 4: a direct trip with every request served at once ends at 60 + 12 = 72. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once ends where it started, at 60 + 12 = 72, and 4 stars takes 70, so a second of an open request near the end, or arriving a little late, costs the star. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
 
 ### Needs and serving
 
@@ -197,7 +200,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 
 - A type is data: fare multiplier, slack, needs, and the lines and names it uses.
 - There are two, the Commuter and Business.
-- **Business** pays more and is harder to please, through tighter slack and more frequent requests, never a lower starting happiness. On a bare bus a near-direct trip with requests served within a few seconds gets three stars and the full fare; four stars takes upgrades.
+- **Business** pays more and is harder to please, through tighter slack and more frequent requests, never a lower starting happiness. On a bare bus a near-direct trip with requests served within a few seconds gets three stars and the full fare; four stars takes a direct trip with every request served at once, or upgrades.
 - Business pays 1.6× with a slack of 1.2, and asks for the Commuter's snack and drink at 0.6 of the time between requests.
 - The Commuter's slack stays loose (1.5): it is the passenger that makes a route with several stops work.
 - The player can tell a Business passenger from a Commuter wherever they pick passengers and on board.
@@ -216,7 +219,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 - The player's **average rating** is the mean of every rating so far.
 - It changes nothing yet.
 - The **recent rating** is the mean of the last 10 ratings. It sets which types turn up (Who turns up), and it is the rating the player is shown, so the stars and what they explain are one number.
-- The star rating says which types the band attracts and what the next one brings, as bands, not odds.
+- The star rating says only that a higher rating brings more Business passengers: no bands, no odds.
 - *(not built)* The player is told the first time the recent rating reaches a new band, and not again on coming back to it.
 
 ## Research
@@ -255,7 +258,7 @@ An upgrade is in one of five states:
 | Seats | 4 | 1 | Rounded to the nearest whole seat. Fewer seats than passengers leaves everyone on board, and nobody else boards until enough have got off |
 | Portion size | 1 | 0.1 | How long a served snack or drink lasts, as a multiple of its need's time |
 
-- *(not built)* Saves will store which upgrades were bought and apply their modifiers again on load.
+- A continued run researches its saved upgrades again on load, so their modifiers and traits come from the same place as in play (Save game).
 
 ### Traits
 
@@ -324,7 +327,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 ## Scenes and flow
 
 ```
-main menu ──Play──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
+main menu ──Play / Continue / New game──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
     │                                          │
     └──Settings──▶ settings panel ◀──────────Settings
 ```
@@ -334,9 +337,18 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
 
+## Save game
+
+- **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save at once, so it is held to confirm, like refuelling, and a stray click can't lose a run.
+- **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
+- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), and the goals' progress.
+- **What starts afresh:** the course, the charge, what each passenger was doing (a request comes back on hold, as at a stop), and the lines' clocks.
+- **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.
+- Only a run started from the main menu is saved, so tests and a scene run on its own never touch the save.
+
 ## Scope
 
-- **Out for now:** saving progress, dialogue, positional or adaptive audio.
+- **Out for now:** more than one save slot, dialogue, positional or adaptive audio.
 
 ## Not designed yet
 
@@ -349,6 +361,7 @@ Features we will very probably build, but that need more design work first.
 
 ## Open questions
 
+- **Balance after starting at the target.** A clean bare-bus ride now gives 4 stars and 1.2× the fare, so the rating bands (Who turns up) may sit too low, a short hop is the safest ride there is, and requests come too late (15 s or more) to touch most direct trips. Lateness is meant to carry the difficulty; if it doesn't, tighten the Commuter's slack, then bring the first request forward.
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.
 - **How often passengers sleep.** Too short between sleeps and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since costs go by row.

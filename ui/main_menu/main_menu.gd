@@ -1,6 +1,10 @@
 extends MarginContainer
-## The main scene: title, Play, Settings and Quit. On the web, a "Click to start"
-## title card comes first, because Safari starts audio only after a click in the game.
+## The main scene: title, Play, Settings and Quit. With a save game, Continue comes first
+## and New game takes Play's place: it starts over and replaces the save, so it has to be
+## held, and a stray click can't lose a run. On the web, a "Click to start" title card
+## comes first, because Safari starts audio only after a click in the game.
+## The debug panel's Delete save button deletes the save, so the menu shows as on a first
+## visit, and its Reset settings puts every setting back to its default.
 
 const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
@@ -13,6 +17,9 @@ static var _music_started := false
 
 func _ready() -> void:
 	%QuitButton.visible = not OS.has_feature("web")
+	_show_save_buttons()
+	DebugPanel.add_button("Delete save", _debug_delete_save, self)
+	DebugPanel.add_button("Reset settings", Settings.reset, self)
 	if FileAccess.file_exists(BUILD_COMMIT):
 		%BuildLabel.text = "Commit %s" % FileAccess.get_file_as_string(BUILD_COMMIT).strip_edges()
 		%BuildLabel.show()
@@ -21,7 +28,7 @@ func _ready() -> void:
 	else:
 		_start_music()
 		# Deferred, as the grab_focus docs advise for a call from _ready().
-		%PlayButton.grab_focus.call_deferred()
+		_first_button().grab_focus.call_deferred()
 
 
 func _start_music() -> void:
@@ -34,15 +41,45 @@ func _on_start_overlay_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		%StartOverlay.hide()
 		_start_music()
-		%PlayButton.grab_focus()
+		_first_button().grab_focus()
+
+
+# Continue and New game with a save, else Play.
+func _show_save_buttons() -> void:
+	var saved := SaveGame.has_save()
+	%ContinueButton.visible = saved
+	%NewGameButton.visible = saved
+	%PlayButton.visible = not saved
+
+
+# Continue when there is a save to continue, else Play.
+func _first_button() -> Button:
+	return %ContinueButton if %ContinueButton.visible else %PlayButton
+
+
+func _on_continue_button_pressed() -> void:
+	SaveGame.continue_saved()
+	SceneFlow.go_to(GAME_SCENE)
 
 
 func _on_play_button_pressed() -> void:
+	SaveGame.start_new()
 	SceneFlow.go_to(GAME_SCENE)
+
+
+func _on_new_game_button_confirmed() -> void:
+	_on_play_button_pressed()
 
 
 func _on_settings_button_pressed() -> void:
 	%SettingsMenu.open(%Items)
+
+
+# The debug panel's Delete save: the menu shows as with no save, Play focused.
+func _debug_delete_save() -> void:
+	SaveGame.delete()
+	_show_save_buttons()
+	_first_button().grab_focus()
 
 
 func _on_quit_button_pressed() -> void:

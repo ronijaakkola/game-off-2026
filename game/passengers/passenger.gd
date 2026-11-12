@@ -5,8 +5,9 @@ extends RefCounted
 ## board; the card only reads them.
 ## Happiness slides toward a target: [constant BASE_HAPPINESS], plus the bus's [Comfort]
 ## bonus, plus their timing (how their ride compares with the trip time), or 0 while a
-## request is open and nobody serves it. It falls fast and climbs back slowly. A
-## [method shock] changes it at once.
+## request is open and nobody serves it. They start the ride at that target
+## ([method settle]), so a quick ride keeps them there; it falls fast and climbs back
+## slowly. A [method shock] changes it at once.
 ## A request is served over time: the player's hold on the serve button and the bus's food
 ## amenities [method feed] it, and it closes once full.
 
@@ -22,7 +23,8 @@ const PAY: Dictionary[Mood, float] = {
 const MAX_STARS := 5.0
 ## Happiness runs from 0 to this.
 const MAX_HAPPINESS := 100.0
-## The happiness a bus that does its job settles them at, and where they start.
+## The happiness a bus that does its job settles them at, before comfort and timing, and
+## where they stand until they take a seat.
 const BASE_HAPPINESS := 60.0
 ## How fast happiness falls toward a lower target, and climbs toward a higher one, a second.
 const FALL_RATE := 3.0
@@ -49,7 +51,7 @@ const DOCKED_RATE := 0.1
 const LEEWAY_HAPPINESS := 80.0
 const LEEWAY_RATE := 0.5
 const LEEWAY_MAX := 0.5
-## How far ahead, in seconds, [member trend] looks.
+## The seconds of change [member trend] gives.
 const TREND_SECONDS := 10.0
 ## How long an idle line shows before the next one, in seconds.
 const IDLE_MIN := 6.0
@@ -69,9 +71,9 @@ var destination: Planet
 var fare: float
 ## How content they are, from 0 to [constant MAX_HAPPINESS].
 var happiness := BASE_HAPPINESS
-## Where their happiness is heading, as of the last [method tick]: how much it will
-## change over the next [constant TREND_SECONDS] at its current speed, no further than its
-## target, so positive while it climbs and negative while it falls. 0 while it holds.
+## How their happiness is changing, as of the last [method tick]: how much it changes in
+## [constant TREND_SECONDS] at the speed it moved then, so positive while it climbs and
+## negative while it falls, and larger the faster it goes. 0 while it holds.
 var trend := 0.0
 ## The direct trip time, and the time they expect the ride to take at boarding, the trip
 ## with the type's slack, in seconds of their ride clock.
@@ -111,6 +113,8 @@ var _busy := false
 var _need_timers := PackedFloat32Array()
 # Whether the bus has left the planet they boarded at. Happiness holds until it has.
 var _departed := false
+# Whether a shock reached them before the bus left, so they no longer start at the target.
+var _shaken := false
 # Seconds of the ride so far, on their clock, which timing reads.
 var _clock := 0.0
 # A request put on hold while the bus stops, which opens again once it flies on.
@@ -148,10 +152,39 @@ func _init(
 	look = AlienLook.random(_rng, race)
 
 
-## Their name, after their type's tag when it has one: "Business · Vontti". The tag comes
-## first so that it still reads where a narrow row cuts the line short.
-func get_title() -> String:
-	return "%s · %s" % [type.tag, name] if type.tag else name
+## A passenger [method to_save] gave, with their [member type] found by its resource path
+## in [param types] and their planets by name in [param planets]. Null when either isn't
+## there. What they were doing isn't kept: they start a new idle line, and a request open
+## or on hold is put back on hold, as at a stop.
+static func from_save(
+	saved: Dictionary, types: Dictionary[String, PassengerType], planets: Dictionary[String, Planet]
+) -> Passenger:
+	var kind: PassengerType = types.get(saved.get("type", ""))
+	var to: Planet = planets.get(saved.get("destination", ""))
+	if not kind or not to:
+		return null
+	var passenger := Passenger.new(kind, to, float(saved.get("trip_seconds", 0.0)), 0.0)
+	passenger.origin = planets.get(saved.get("origin", ""))
+	passenger.name = saved.get("name", passenger.name)
+	passenger.fare = float(saved.get("fare", 0.0))
+	passenger.expected_seconds = float(saved.get("expected_seconds", passenger.expected_seconds))
+	passenger.race = int(saved.get("race", passenger.race)) as Race.Type
+	passenger.look = AlienLook.from_save(saved.get("look", {}), passenger.race)
+	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
+	passenger.leeway = float(saved.get("leeway", 0.0))
+	passenger.activity = ""
+	passenger._activity_left = 0.0
+	passenger._departed = bool(saved.get("departed", false))
+	passenger._shaken = bool(saved.get("shaken", false))
+	passenger._clock = float(saved.get("clock", 0.0))
+	var timers: Array = saved.get("need_timers", [])
+	for i: int in mini(timers.size(), passenger._need_timers.size()):
+		passenger._need_timers[i] = float(timers[i])
+	var held := int(saved.get("held_need", -1))
+	if held >= 0 and held < kind.needs.size():
+		passenger._held_request = kind.needs[held]
+		passenger._request_age = float(saved.get("request_age", 0.0))
+	return passenger
 
 
 ## The mood for [param value] of happiness: happy at 70 or more, okay at 50 or more,
@@ -222,10 +255,23 @@ func shock(amount: float) -> void:
 		asleep = false
 		_activity_left = 0.0
 	happiness = clampf(happiness + amount, 0.0, MAX_HAPPINESS)
+	if not _departed:
+		_shaken = true
 
 
-## The bus has left the planet they boarded at, so their ride, and their happiness, start.
-func depart() -> void:
+## Puts their happiness at its target on a bus giving [param comfort]: where they start the
+## ride, as they take their seat and again as the bus leaves, so comfort added at the stop
+## counts. Does nothing once the bus has left, or once a [method shock] has reached them:
+## from then on happiness only slides.
+func settle(comfort: Comfort = null) -> void:
+	if not _departed and not _shaken:
+		happiness = get_target(comfort)
+
+
+## The bus, giving [param comfort], has left the planet they boarded at, so their ride
+## starts, with their happiness at its target ([method settle]).
+func depart(comfort: Comfort = null) -> void:
+	settle(comfort)
 	_departed = true
 
 
@@ -279,9 +325,10 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		var speed := CLIMB_RATE
 		if target < happiness:
 			speed = FALL_RATE * (DOCKED_RATE if docked else 1.0)
-		var reach := speed * TREND_SECONDS
-		trend = clampf(target - happiness, -reach, reach)
+		var before := happiness
 		happiness = move_toward(happiness, target, speed * delta)
+		if delta > 0.0:
+			trend = (happiness - before) / delta * TREND_SECONDS
 	if request:
 		if _departed:
 			_request_age += delta
@@ -305,6 +352,31 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 				return
 	if _activity_left <= 0.0:
 		_idle(giving)
+
+
+## Who they are and how their ride stands, for a save game ([method from_save]). Planets
+## go by name, and their type by its resource path.
+func to_save() -> Dictionary:
+	var held := request if request else _held_request
+	return {
+		"type": type.resource_path,
+		"name": name,
+		"origin": String(origin.name) if origin else "",
+		"destination": String(destination.name),
+		"fare": fare,
+		"trip_seconds": trip_seconds,
+		"expected_seconds": expected_seconds,
+		"race": race,
+		"look": look.to_save(race),
+		"happiness": happiness,
+		"leeway": leeway,
+		"departed": _departed,
+		"shaken": _shaken,
+		"clock": _clock,
+		"need_timers": Array(_need_timers),
+		"held_need": type.needs.find(held) if held else -1,
+		"request_age": _request_age,
+	}
 
 
 ## Serves the open request at once, all of it, as [method feed] would once full. Does

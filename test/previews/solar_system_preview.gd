@@ -59,7 +59,7 @@ func _ready() -> void:
 		system.open_bus()
 		await tow_bus.ran_out_of_fuel
 		await get_tree().create_timer(2.0).timeout
-		(system.find_child("TowOffer") as TowOffer).requested.emit()
+		(system.find_child("Notices") as NoticeStack).get_notices()[0].action_pressed.emit()
 		return
 	if planet_name == "Kick":
 		var cabin := system.find_child("Cabin") as Cabin

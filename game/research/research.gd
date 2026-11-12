@@ -70,6 +70,11 @@ func is_stage_open(stage: int) -> bool:
 	return stage < _open_stages
 
 
+## How many stages are open, counting the first.
+func get_open_stages() -> int:
+	return _open_stages
+
+
 ## Opens the next stage, as a promotion does. With every stage open, it does nothing.
 func open_next_stage() -> void:
 	if _open_stages >= STAGES:

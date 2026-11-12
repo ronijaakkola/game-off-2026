@@ -4,9 +4,12 @@ extends Resource
 ## patient they are, what they ask for on the ride and what they do in between.
 
 @export var display_name := "Passenger"
-## What shows before their name wherever the player meets them, so a kind that asks more
-## of the bus can be told apart. Empty for the ordinary kind.
-@export var tag := ""
+## The icons of the badges on their portrait wherever the player meets them, so a kind that
+## asks more of the bus can be told apart. None for the ordinary kind.
+@export var badges: Array[Texture2D] = []
+## What the player reads about this kind under its name, with the pointer over a badge.
+## Empty for no tooltip.
+@export var description := ""
 ## Multiplies the trip's base fare.
 @export_range(0.0, 5.0, 0.05) var fare_multiplier := 1.0
 ## How long they expect the ride to take, as a multiple of the direct trip time. Their

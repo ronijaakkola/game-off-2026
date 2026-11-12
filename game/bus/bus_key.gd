@@ -2,7 +2,7 @@ class_name BusKey
 extends Button
 ## A physical key in the bus bar: a cap that sits proud in a dark well and sinks while it is
 ## pressed. Disabled, the cap is dim. It draws itself; the button's own text and styles stay
-## empty. The small keys are blank caps for now; [FrameshiftKey] adds a lamp and a label.
+## empty. The small keys are blank caps for now; [FrameshiftKey] adds a label and a glow.
 ## Pressing it down clicks.
 
 # The well around the cap, and how far the cap sits above its sunk place.

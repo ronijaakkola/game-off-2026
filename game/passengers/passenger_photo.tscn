@@ -61,3 +61,9 @@ offset_bottom = 47.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
+
+[node name="Badges" type="HBoxContainer" parent="." unique_id=1860890714]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+theme_override_constants/separation = 2

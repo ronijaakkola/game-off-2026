@@ -4,11 +4,13 @@
 [ext_resource type="Resource" uid="uid://luqs0adq8oj6" path="res://game/passengers/needs/snack.tres" id="2_snack"]
 [ext_resource type="Resource" uid="uid://be5jdsgim3cu2" path="res://game/passengers/needs/drink.tres" id="3_drink"]
 [ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="4_need"]
+[ext_resource type="Texture2D" uid="uid://b3rsducjrugyu" path="res://game/passengers/icons/briefcase.svg" id="5_briefcase"]
 
 [resource]
 script = ExtResource("1_type")
 display_name = "Business"
-tag = "Business"
+badges = Array[Texture2D]([ExtResource("5_briefcase")])
+description = "These passengers are more demanding but pay more."
 fare_multiplier = 1.6
 slack = 1.2
 needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink")])
