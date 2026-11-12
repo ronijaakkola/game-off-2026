@@ -1,8 +1,7 @@
 class_name QuestRow
 extends VBoxContainer
-## One quest in the goal panel. On top, an icon, what it asks and the planet it is about,
-## with the seconds left at the right for a quest on a clock, over a thin bar that empties
-## with them. Under it, the passenger who asked, as a small portrait and their name, and
+## One quest in the goal panel. On top, an icon, what it asks and the planet it is about.
+## Under it, the passenger who asked, as a small portrait and their name, and
 ## the reward at the right: the credits by a gold dollar sign, and each race's research
 ## points by a flask in its colour.
 ## The icon is an empty circle while the quest is under way, a green tick once it is done,
@@ -62,13 +61,6 @@ func refresh() -> void:
 		icon.texture = CIRCLE_CHECK
 		icon.self_modulate = DONE_COLOR
 	(%Ask as Control).modulate.a = FAILED_OPACITY if failed else 1.0
-	var express := goal as ExpressGoal
-	var timed := express != null and goal.is_active()
-	(%ValueLabel as Label).visible = timed
-	(%Bar as ProgressBar).visible = timed
-	if timed:
-		(%ValueLabel as Label).text = "%d s" % ceili(express.seconds_left)
-		(%Bar as ProgressBar).value = goal.get_progress()
 	var who := quest.passenger.name if quest.passenger else ""
 	(%NameLabel as Label).text = goal.failure if failed and goal.failure else who
 	(%Reward as Control).visible = not failed

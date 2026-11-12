@@ -153,7 +153,7 @@ Something the player is asked to do and the game tracks, several at a time: a **
 _Avoid_: objective, mission, achievement (a one-off reward, not something asked)
 
 **Quest**:
-What one passenger asks of the player mid-ride, in a transmission, for a reward: an **express** quest has them change their destination and want to be there within a time. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each such as `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
+What one passenger asks of the player mid-ride, in a transmission, for a reward: an **express** quest has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each such as `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
 _Avoid_: task, errand, mission
 
 **Transmission**:

@@ -1,30 +1,24 @@
 class_name ExpressQuest
 extends Quest
-## A quest: the passenger changes their mind mid-ride and wants to be at another planet,
-## one that isn't on the route, within [member seconds]. Accepting it changes their
-## destination ([method Passenger.reroute]), so it is always a detour for everyone else on
-## board.
+## A quest: the passenger changes their mind mid-ride and wants another planet, one that
+## isn't on the route, to be the bus's next stop. Accepting it changes their destination
+## ([method Passenger.reroute]), so it is always a detour for everyone else on board.
 
 const KIND := "express"
-## The time allowed, as a multiple of the direct trip from where the bus is, parking
-## included: enough to turn round at once and go, not to make another stop first.
-const SLACK := 1.3
 ## Seconds the bus takes to park, on top of the flight.
 const PARK_SECONDS := 2.0
 ## What it pays: credits, and research points of the passenger's race.
 const REWARD_CREDITS := 30
 const REWARD_RESEARCH := 2
 const LINES: Array[String] = [
-	"Change of plans! I need to be on %s instead, and fast.",
-	"I just got a call. Can you get me to %s right away?",
-	"Wrong planet, my mistake. Take me to %s, quick as you can!",
+	"Change of plans! I need to be on %s instead. Can we go there next?",
+	"I just got a call. Can you take me straight to %s?",
+	"Wrong planet, my mistake. Make %s the next stop, please!",
 ]
 
 ## Where they want to go instead.
 var planet: Planet
-## The seconds allowed, the direct trip there in seconds, and the fare for it before the
-## type's multiplier.
-var seconds := 0.0
+## The direct trip there in seconds, and the fare for it before the type's multiplier.
 var trip_seconds := 0.0
 var base_fare := 0.0
 var _line := ""
@@ -56,7 +50,6 @@ func plan(
 	var flying := bus.state == FrameshiftBus.State.FLYING
 	var distance := _chase_distance(bus, planet)
 	trip_seconds = waiting.get_trip_seconds(distance, flying) + PARK_SECONDS
-	seconds = ceilf(trip_seconds * SLACK)
 	base_fare = distance * waiting.fare_per_unit
 	reward_credits = REWARD_CREDITS
 	reward_research = {who.race: REWARD_RESEARCH}
@@ -69,7 +62,7 @@ func plan(
 func restore(saved: Dictionary, who: Passenger) -> void:
 	passenger = who
 	planet = who.destination
-	goal = ExpressGoal.new(who, 1.0)
+	goal = ExpressGoal.new(who)
 	load_save(saved)
 
 
@@ -78,7 +71,7 @@ func get_kind() -> String:
 
 
 func get_ask() -> String:
-	return "Rush to"
+	return "Go straight to"
 
 
 func get_planet() -> Planet:
@@ -88,14 +81,14 @@ func get_planet() -> Planet:
 func get_transmission() -> Transmission:
 	var transmission := super()
 	transmission.text = _line % _planet_name()
-	transmission.quest = "Deliver within %d s to" % roundi(seconds)
+	transmission.quest = "Make the next stop"
 	transmission.quest_planet = planet
 	return transmission
 
 
 func accept() -> void:
 	passenger.reroute(planet, trip_seconds, base_fare)
-	goal = ExpressGoal.new(passenger, seconds)
+	goal = ExpressGoal.new(passenger)
 
 
 func _planet_name() -> String:

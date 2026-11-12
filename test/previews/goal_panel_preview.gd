@@ -1,9 +1,9 @@
 extends Node
 ## The solar system with the goal panel showing the design's state: 12 of 50 passengers
 ## delivered, and a 4.2 average against a 4.0 rating goal, so one goal is short and one
-## is met. With "Quest" after `--`, a passenger rides on an express quest with 12 of 20
-## seconds left, so the panel also shows "Quests" and their portrait wears the flag; with
-## "Failed" as well, that quest has run out of time.
+## is met. With "Quest" after `--`, a passenger rides on an express quest, so the panel
+## also shows "Quests" and their portrait wears the flag; with "Failed" as well, the bus
+## has stopped at another planet first.
 
 
 func _ready() -> void:
@@ -26,8 +26,7 @@ func _show_quest() -> void:
 	var bus := $SolarSystem/Bus as FrameshiftBus
 	var passenger := waiting.create(bus.get_docked_planet())
 	($SolarSystem/Cabin as Cabin).board(passenger)
-	var goal := ExpressGoal.new(passenger, 20.0)
-	goal.seconds_left = 12.0
+	var goal := ExpressGoal.new(passenger)
 	var quest := ExpressQuest.new()
 	quest.passenger = passenger
 	quest.planet = passenger.destination
@@ -37,7 +36,5 @@ func _show_quest() -> void:
 	var giver := $SolarSystem/QuestGiver as QuestGiver
 	giver.enabled = false
 	giver.take_on(quest)
-	# The time holds still for the frame.
-	($SolarSystem/Quests as GoalTracker).set_process(false)
 	if "Failed" in OS.get_cmdline_user_args():
-		goal.time_passed(12.0)
+		goal.bus_docked(bus.get_docked_planet())
