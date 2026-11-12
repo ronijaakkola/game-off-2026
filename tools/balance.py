@@ -45,10 +45,14 @@ def play_game(config: dict, project: Path = ROOT) -> None:
              "--scene", SCENE, "--", file.name],
             capture_output=True, text=True, timeout=1800,
         )
-        errors = [line for line in result.stdout.splitlines() + result.stderr.splitlines()
-                  if "SCRIPT ERROR" in line or "Compile Error" in line]
+        lines = result.stdout.splitlines() + result.stderr.splitlines()
+        errors = [line for line in lines if "SCRIPT ERROR" in line or "Compile Error" in line]
         if errors:
             raise SystemExit("the run logged errors:\n" + "\n".join(errors[:10]))
+        if result.returncode != 0:
+            raise SystemExit(
+                f"the run stopped with exit code {result.returncode}:\n" + "\n".join(lines[-10:])
+            )
     finally:
         os.unlink(file.name)
 

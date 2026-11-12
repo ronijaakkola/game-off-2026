@@ -59,7 +59,9 @@ func _pick_research(state: Dictionary) -> Array[String]:
 	var wanted: Variant = policy.get("research", "cheapest")
 	if wanted is String and wanted == "none":
 		return picked
-	var credits := int(state["credits"]) - int(policy.get("keep_credits", 15))
+	# The tank is filled before anything is researched, so its price is never research's.
+	var kept := maxi(int(policy.get("keep_credits", 15)), int(state["fuel"]["fill_costs"]))
+	var credits := int(state["credits"]) - kept
 	var points: Dictionary = (state["points"] as Dictionary).duplicate()
 	var done: Array[String] = []
 	var open: Array = (state["upgrades"] as Array).filter(

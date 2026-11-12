@@ -49,11 +49,12 @@ func board(passenger: Passenger, aboard: int) -> void:
 	_rides[passenger] = {"at": _time, "aboard": aboard, "stops": 0, "requests": 0}
 
 
-## The bus docked: everyone still on board has one more stop behind them.
-func dock(passengers: Array[Passenger]) -> void:
+## The bus docked at [param planet]: everyone on board who isn't getting off there has one
+## more stop behind them.
+func dock(planet: Planet, passengers: Array[Passenger]) -> void:
 	docks += 1
 	for passenger: Passenger in passengers:
-		if _rides.has(passenger):
+		if passenger.destination != planet and _rides.has(passenger):
 			_rides[passenger]["stops"] += 1
 
 

@@ -132,13 +132,22 @@ func _at_dock(delta: float) -> void:
 		decision = _player.decide(state)
 	_decision_count += 1
 	_recorder.news.clear()
-	_apply(decision)
+	if not _apply(decision):
+		# Nothing was plotted, so the bus would sit here until the run's time is up.
+		printerr('balance run: "next" must be another planet, not "%s"' % decision.get("next"))
+		get_tree().quit(3)
+		_system = null
+		return
 	_recorder.free_seats_total += _cabin.get_free_seats()
 	_decided = true
 
 
-func _apply(decision: Dictionary) -> void:
+# False when the decision names nowhere to fly to, and nothing of it was done.
+func _apply(decision: Dictionary) -> bool:
+	var next := _planet(str(decision.get("next", "")))
 	var planet := _bus.get_docked_planet()
+	if not next or next == planet:
+		return false
 	for passenger: Passenger in _cabin.get_passengers():
 		if passenger.name in decision.get("kick", []):
 			_cabin.kick(passenger)
@@ -152,9 +161,8 @@ func _apply(decision: Dictionary) -> void:
 	for id: String in decision.get("board", []):
 		if _ids.has(id):
 			panel.board_pressed.emit(_ids[id])
-	var next := _planet(str(decision.get("next", "")))
-	if next and next != planet:
-		_bus.plot_course(RouteStop.at_planet(next))
+	_bus.plot_course(RouteStop.at_planet(next))
+	return true
 
 
 # A full tank at the planet's price, or as much as the credits buy: what holding the fuel
@@ -370,9 +378,9 @@ func _write(path: String, data: Dictionary) -> void:
 	file.close()
 
 
-func _on_docked(_planet_docked: Planet) -> void:
+func _on_docked(planet: Planet) -> void:
 	_think_left = float(_player.policy.get("dock_think", 3.0))
-	_recorder.dock(_cabin.get_passengers())
+	_recorder.dock(planet, _cabin.get_passengers())
 
 
 func _on_boarded(passenger: Passenger) -> void:
