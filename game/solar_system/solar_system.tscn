@@ -402,11 +402,12 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="GoalPanel" parent="Hud/TopRight/Stack" unique_id=693263101 node_paths=PackedStringArray("tracker", "quests") instance=ExtResource("105_goal_panel")]
+[node name="GoalPanel" parent="Hud/TopRight/Stack" unique_id=693263101 node_paths=PackedStringArray("tracker", "quest_giver", "portrait_studio") instance=ExtResource("105_goal_panel")]
 layout_mode = 2
 size_flags_horizontal = 8
 tracker = NodePath("../../../../Goals")
-quests = NodePath("../../../../Quests")
+quest_giver = NodePath("../../../../QuestGiver")
+portrait_studio = NodePath("../../../../PortraitStudio")
 
 [node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 instance=ExtResource("23_dock")]
 unique_name_in_owner = true

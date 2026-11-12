@@ -2,7 +2,8 @@ extends Node
 ## The solar system with the goal panel showing the design's state: 12 of 50 passengers
 ## delivered, and a 4.2 average against a 4.0 rating goal, so one goal is short and one
 ## is met. With "Quest" after `--`, a passenger rides on an express quest with 12 of 20
-## seconds left, so the panel also shows "Quests" and their portrait wears the flag.
+## seconds left, so the panel also shows "Quests" and their portrait wears the flag; with
+## "Failed" as well, that quest has run out of time.
 
 
 func _ready() -> void:
@@ -27,8 +28,16 @@ func _show_quest() -> void:
 	($SolarSystem/Cabin as Cabin).board(passenger)
 	var goal := ExpressGoal.new(passenger, 20.0)
 	goal.seconds_left = 12.0
-	passenger.quest_line = goal.get_text()
-	var quests := $SolarSystem/Quests as GoalTracker
-	quests.add(goal)
+	var quest := ExpressQuest.new()
+	quest.passenger = passenger
+	quest.planet = passenger.destination
+	quest.goal = goal
+	quest.reward_credits = ExpressQuest.REWARD_CREDITS
+	quest.reward_research = {passenger.race: ExpressQuest.REWARD_RESEARCH}
+	var giver := $SolarSystem/QuestGiver as QuestGiver
+	giver.enabled = false
+	giver.take_on(quest)
 	# The time holds still for the frame.
-	quests.set_process(false)
+	($SolarSystem/Quests as GoalTracker).set_process(false)
+	if "Failed" in OS.get_cmdline_user_args():
+		goal.time_passed(12.0)

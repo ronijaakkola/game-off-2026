@@ -19,6 +19,17 @@ func get_kind() -> String:
 	return ""
 
 
+## What it asks, as a short line such as "Rush to", which [method get_planet]'s name
+## follows when there is one.
+func get_ask() -> String:
+	return ""
+
+
+## The planet it is about, or null.
+func get_planet() -> Planet:
+	return null
+
+
 ## The transmission that offers it: the passenger, what they say, what they ask and the
 ## reward.
 func get_transmission() -> Transmission:

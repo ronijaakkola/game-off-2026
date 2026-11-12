@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://b8jwrka6cihjg" path="res://game/goals/goal_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://shared/icons/flag.svg" id="4_flag"]
 
 [node name="GoalPanel" type="PanelContainer" unique_id=835696988]
 visible = false
@@ -12,20 +13,60 @@ theme = ExtResource("2_theme")
 theme_type_variation = &"CardPanel"
 script = ExtResource("1_panel")
 
-[node name="Rows" type="VBoxContainer" parent="." unique_id=297790849]
+[node name="Rows" type="VBoxContainer" parent="." unique_id=957470234]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Goals" type="VBoxContainer" parent="Rows" unique_id=1832644416]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Header" type="Label" parent="Rows" unique_id=832714428]
-unique_name_in_owner = true
+[node name="Header" type="Label" parent="Rows/Goals" unique_id=832714428]
 layout_mode = 2
 theme_type_variation = &"PillLabel"
 text = "To get promotion"
 
-[node name="QuestHeader" type="Label" parent="Rows" unique_id=1944368078]
+[node name="GoalRows" type="VBoxContainer" parent="Rows/Goals" unique_id=979652074]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
-theme_type_variation = &"PillLabel"
+mouse_filter = 2
+
+[node name="Divider" type="ColorRect" parent="Rows" unique_id=577658787]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.957, 0.945, 1, 0.12)
+
+[node name="Quests" type="VBoxContainer" parent="Rows" unique_id=36437715]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="QuestHeader" type="HBoxContainer" parent="Rows/Quests" unique_id=518894021]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="FlagIcon" type="TextureRect" parent="Rows/Quests/QuestHeader" unique_id=673243933]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("4_flag")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuestsLabel" type="Label" parent="Rows/Quests/QuestHeader" unique_id=2140068074]
+layout_mode = 2
+theme_type_variation = &"DimLabel"
 text = "Quests"
+
+[node name="QuestRows" type="VBoxContainer" parent="Rows/Quests" unique_id=756341139]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6

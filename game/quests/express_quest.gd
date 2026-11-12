@@ -77,6 +77,14 @@ func get_kind() -> String:
 	return KIND
 
 
+func get_ask() -> String:
+	return "Rush to"
+
+
+func get_planet() -> Planet:
+	return planet
+
+
 func get_transmission() -> Transmission:
 	var transmission := super()
 	transmission.text = _line % _planet_name()

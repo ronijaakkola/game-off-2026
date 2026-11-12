@@ -19,6 +19,8 @@ signal failed
 enum State { ACTIVE, COMPLETED, FAILED }
 
 var state := State.ACTIVE
+## Why it failed, as a short line such as "Ran out of time", or empty.
+var failure := ""
 
 
 ## What the player is asked to do, such as "Deliver 50 passengers".
@@ -115,7 +117,9 @@ func _complete() -> void:
 	completed.emit()
 
 
-func _fail() -> void:
+# Marks it failed, for [param reason], a short line the player is shown.
+func _fail(reason := "") -> void:
+	failure = reason
 	state = State.FAILED
 	changed.emit()
 	failed.emit()

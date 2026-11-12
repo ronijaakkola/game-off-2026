@@ -9,11 +9,15 @@ extends Node
 ## Declining costs them [constant DECLINE_SHOCK], and so does a call left unanswered until
 ## the bus reaches a planet. A call ends unanswered, at no cost, when its caller leaves the
 ## bus.
-## A finished quest stays in [member quests] for [constant SHOWN_SECONDS], so its row shows
-## how it ended.
+## A finished quest stays among [method get_quests] for [constant SHOWN_SECONDS], so its
+## row shows how it ended.
 
 ## A quest was taken on, or the one under way ended.
 signal changed
+## [param quest] was taken on.
+signal quest_added(quest: Quest)
+## [param quest], finished a while ago, is no longer shown.
+signal quest_removed(quest: Quest)
 
 ## Seconds into a run before the first call, and between one call or quest ending and the
 ## next call: a random value between the two.
@@ -41,7 +45,7 @@ const NOTICE_SECONDS := 4.0
 @export var cabin: Cabin
 @export var notices: NoticeStack
 @export var transmission_panel: TransmissionPanel
-## The quests under way, and those just finished.
+## Tells the quests' goals what happens in the game.
 @export var quests: GoalTracker
 
 var _planets: Array[Planet] = []
@@ -60,8 +64,8 @@ var _caller: Passenger
 # The quest on offer in the transmission panel, and the one under way.
 var _offer: Quest
 var _quest: Quest
-# Seconds each finished quest's goal still shows.
-var _shown: Dictionary[Goal, float] = {}
+# Seconds each finished quest still shows.
+var _shown: Dictionary[Quest, float] = {}
 
 
 func _ready() -> void:
@@ -73,11 +77,12 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	for goal: Goal in _shown.keys():
-		_shown[goal] -= delta
-		if _shown[goal] <= 0.0:
-			_shown.erase(goal)
-			quests.remove(goal)
+	for quest: Quest in _shown.keys():
+		_shown[quest] -= delta
+		if _shown[quest] <= 0.0:
+			_shown.erase(quest)
+			quests.remove(quest.goal)
+			quest_removed.emit(quest)
 	if not bus or not cabin or not _waiting:
 		return
 	var flying := bus.state == FrameshiftBus.State.FLYING and not bus.is_towing()
@@ -118,6 +123,15 @@ func get_quest() -> Quest:
 	return _quest
 
 
+## The quest under way, if any, after those just finished, oldest first.
+func get_quests() -> Array[Quest]:
+	var shown: Array[Quest] = []
+	shown.assign(_shown.keys())
+	if _quest:
+		shown.append(_quest)
+	return shown
+
+
 ## Has someone call as soon as anyone can, whatever the wait since the last call.
 func call_soon() -> void:
 	_until_call = 0.0
@@ -143,7 +157,16 @@ func load_save(saved: Dictionary, on_board: Array[Passenger]) -> void:
 		return
 	var quest := ExpressQuest.new()
 	quest.restore(saved, on_board[index])
-	_take_on(quest)
+	take_on(quest)
+
+
+## Makes [param quest], whose goal is built, the quest under way: tracks its goal and
+## flags its passenger.
+func take_on(quest: Quest) -> void:
+	_quest = quest
+	quest.passenger.quest_line = quest.goal.get_text()
+	quests.add(quest.goal)
+	quest_added.emit(quest)
 
 
 # Someone on board who could call now: awake, not about to get off, and with a quest to
@@ -204,14 +227,8 @@ func _on_answered(accepted: bool) -> void:
 		_rest()
 		return
 	quest.accept()
-	_take_on(quest)
+	take_on(quest)
 	changed.emit()
-
-
-func _take_on(quest: Quest) -> void:
-	_quest = quest
-	quest.passenger.quest_line = quest.goal.get_text()
-	quests.add(quest.goal)
 
 
 func _on_goal_completed(goal: Goal) -> void:
@@ -236,7 +253,7 @@ func _on_goal_failed(goal: Goal) -> void:
 
 func _finish() -> void:
 	_quest.passenger.quest_line = ""
-	_shown[_quest.goal] = SHOWN_SECONDS
+	_shown[_quest] = SHOWN_SECONDS
 	_quest = null
 	_rest()
 	changed.emit()

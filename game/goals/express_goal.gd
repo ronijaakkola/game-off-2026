@@ -49,7 +49,7 @@ func _on_delivered(who: Passenger) -> void:
 
 func _on_kicked(who: Passenger) -> void:
 	if who == passenger:
-		_fail()
+		_fail("%s was kicked" % passenger.name)
 
 
 func _on_bus_moved(_position: Vector3, on_board: Array[Passenger], _in_flight: bool) -> void:
@@ -64,6 +64,6 @@ func _on_time_passed(delta: float) -> void:
 		return
 	seconds_left = maxf(seconds_left - delta, 0.0)
 	if seconds_left <= 0.0:
-		_fail()
+		_fail("Ran out of time")
 	else:
 		changed.emit()

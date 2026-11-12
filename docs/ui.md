@@ -146,16 +146,17 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 
 ### Goal panel
 
-In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promotion" and a row for each goal, in the order given, then "Quests" and a row for each quest under way. A heading shows only while it has rows, and the panel only while there are any.
+In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promotion" and a row for each goal, in the order given. Under a thin faint line, a dim flag and "Quests", and a row for each quest. Each part shows only while it has rows, the line only between the two, and the panel only while there are any.
 
-- **A row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
+- **A goal's row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
 - **Deliver 50 passengers:** the count ("12/50"), and the bar fills with it.
 - **Maintain 3.5 rating:** the average ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
-- **Rush Sufoi to Moon** (an express quest): the seconds left ("12 s"), and the bar empties with them.
-- **A failed goal:** the icon is a red cross (`#F24D66`) and the bar turns red, full.
-- A finished quest's row stays 3 s, ticked or crossed, then goes.
-- Any other goal shows its text and icon only.
+- **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Rush to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and each race's research points by a flask in its colour.
+- **A quest on a clock** shows the seconds left at the right of its top line ("12 s"), over a 3 px bar between the two lines that empties with them.
+- **A done quest:** the green tick; the clock and its bar go.
+- **A failed quest:** a red cross (`#F24D66`), the top line at half strength, no reward, and why it failed in the name's place ("Ran out of time", "Reizhis was kicked", "Reizhis left the bus").
+- A finished quest's row stays 3 s, then goes.
 
 ### Dock panel
 

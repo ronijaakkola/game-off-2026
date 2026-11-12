@@ -1,0 +1,105 @@
+[gd_scene format=3 uid="uid://dgyctqfnij7u1"]
+
+[ext_resource type="Script" uid="uid://kc66b6h3djtg" path="res://game/quests/quest_row.gd" id="1_row"]
+[ext_resource type="Texture2D" uid="uid://d3m3waisgmnv2" path="res://game/goals/icons/circle.svg" id="2_circle"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_planet"]
+[ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="4_photo"]
+
+[node name="QuestRow" type="VBoxContainer" unique_id=2026095503]
+mouse_filter = 2
+theme_override_constants/separation = 4
+script = ExtResource("1_row")
+
+[node name="Top" type="HBoxContainer" parent="." unique_id=499440685]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Top" unique_id=2023058467]
+unique_name_in_owner = true
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_circle")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Ask" type="HBoxContainer" parent="Top" unique_id=776897308]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="AskLabel" type="Label" parent="Top/Ask" unique_id=436689316]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"GoalLabel"
+text = "Rush to"
+vertical_alignment = 1
+
+[node name="PlanetIcon" type="ColorRect" parent="Top/Ask" unique_id=1442275119]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3_planet")
+
+[node name="PlanetLabel" type="Label" parent="Top/Ask" unique_id=1581579629]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"GoalLabel"
+text = "Frost"
+vertical_alignment = 1
+
+[node name="ValueLabel" type="Label" parent="Top" unique_id=606775813]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallStrongLabel"
+text = "12 s"
+vertical_alignment = 1
+
+[node name="Bar" type="ProgressBar" parent="." unique_id=298738084]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+mouse_filter = 2
+max_value = 1.0
+step = 0.0
+value = 0.6
+show_percentage = false
+
+[node name="Bottom" type="HBoxContainer" parent="." unique_id=1998927222]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Indent" type="Control" parent="Bottom" unique_id=1609180372]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Photo" parent="Bottom" unique_id=944469066 instance=ExtResource("4_photo")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+flat = true
+badged = false
+
+[node name="NameLabel" type="Label" parent="Bottom" unique_id=854071192]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"DimLabel"
+text = "Reizhis"
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Reward" type="HBoxContainer" parent="Bottom" unique_id=1362785991]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8

@@ -4,9 +4,8 @@ extends VBoxContainer
 ## bar. The icon is an empty circle until the goal is met, then a green tick, and the bar
 ## turns green with it. A delivery goal shows its count ("12/50") and fills with it. A
 ## rating goal shows the average ("4.2", or a dash before the first rating) on a bar of
-## five stars, with a mark at the target. An express quest shows the seconds left
-## ("12 s") on a bar that empties with them. Any other goal shows only its text and icon.
-## A failed goal's icon is a red cross, and its bar turns red.
+## five stars, with a mark at the target. Any other goal shows only its text and icon.
+## A failed goal's icon is a red cross.
 
 const MET_COLOR := Color(0.549, 0.851, 0.4)
 const FAILED_COLOR := Color(0.949, 0.302, 0.4)
@@ -26,16 +25,12 @@ var goal: Goal:
 			refresh()
 
 var _met_fill: StyleBox
-var _failed_fill: StyleBox
 
 
 func _ready() -> void:
 	var fill := (%Bar as ProgressBar).get_theme_stylebox(&"fill").duplicate() as StyleBoxFlat
 	fill.bg_color = MET_COLOR
 	_met_fill = fill
-	var failed_fill := fill.duplicate() as StyleBoxFlat
-	failed_fill.bg_color = FAILED_COLOR
-	_failed_fill = failed_fill
 	refresh()
 
 
@@ -55,8 +50,6 @@ func refresh() -> void:
 	var bar := %Bar as ProgressBar
 	if met:
 		bar.add_theme_stylebox_override(&"fill", _met_fill)
-	elif failed:
-		bar.add_theme_stylebox_override(&"fill", _failed_fill)
 	else:
 		bar.remove_theme_stylebox_override(&"fill")
 	var value := %ValueLabel as Label
@@ -75,10 +68,6 @@ func refresh() -> void:
 		marker.set_anchor_and_offset(SIDE_LEFT, share, -MARKER_WIDTH / 2.0)
 		marker.set_anchor_and_offset(SIDE_RIGHT, share, MARKER_WIDTH / 2.0)
 		marker.visible = true
-	elif goal is ExpressGoal:
-		var express := goal as ExpressGoal
-		value.text = "%d s" % ceili(express.seconds_left)
-		bar.value = 1.0 if failed else goal.get_progress()
 	else:
 		value.text = ""
 		bar.visible = false

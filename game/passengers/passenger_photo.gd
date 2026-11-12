@@ -29,8 +29,10 @@ const BADGE_PHOTO_SIZE := 32.0
 const BADGE_GROWTH := 0.5
 ## The framed photo's size as laid out in its scene, in pixels.
 const FRAME_SIZE := 50.0
-## The flat photo's corner radius, in pixels.
+## The flat photo's corner radius, in pixels, and at most this share of its width, so a
+## small one stays a rounded square.
 const FLAT_RADIUS := 8
+const FLAT_RADIUS_SHARE := 0.25
 ## The photo's tilt, in degrees either way.
 const TILT_MIN := 0.5
 const TILT_MAX := 2.0
@@ -43,6 +45,8 @@ const MOOD_ANGER: Dictionary[Passenger.Mood, float] = {
 ## Whether the photo is a flat rounded square rather than a tilted, framed print. Set it
 ## in the scene that uses the photo; it applies once, when the photo is ready.
 @export var flat := false
+## Whether it wears badges. A photo too small for them, as in a quest's row, turns it off.
+@export var badged := true
 ## Whether the passenger rides the bus, so their portrait leans with its pushes. Their
 ## card sets it; while they wait at a planet it stays off, and so does the portrait.
 var riding := false:
@@ -127,7 +131,7 @@ func _show_badges() -> void:
 		badges.remove_child(badge)
 		badge.queue_free()
 	_quest_line = passenger.quest_line if passenger else ""
-	if not passenger:
+	if not passenger or not badged:
 		return
 	var type := passenger.type
 	for texture: Texture2D in type.badges:
@@ -181,7 +185,7 @@ func _give_back() -> void:
 func _flatten() -> void:
 	var frame := %Frame as Control
 	var mask := StyleBoxFlat.new()
-	mask.set_corner_radius_all(FLAT_RADIUS)
+	mask.set_corner_radius_all(mini(FLAT_RADIUS, roundi(custom_minimum_size.x * FLAT_RADIUS_SHARE)))
 	frame.add_theme_stylebox_override(&"panel", mask)
 	frame.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 	frame.position = Vector2.ZERO
