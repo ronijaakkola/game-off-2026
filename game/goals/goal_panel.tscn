@@ -18,6 +18,14 @@ layout_mode = 2
 mouse_filter = 2
 
 [node name="Header" type="Label" parent="Rows" unique_id=832714428]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"PillLabel"
 text = "To get promotion"
+
+[node name="QuestHeader" type="Label" parent="Rows" unique_id=1944368078]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"PillLabel"
+text = "Quests"

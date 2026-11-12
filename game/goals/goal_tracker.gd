@@ -1,8 +1,9 @@
 class_name GoalTracker
 extends Node
-## The player's goals: it tells each one what happens in the game, from the [Cabin], the
-## [Ledger] and the bus, and says when one changes, is completed or fails. Goals stay in it
-## once completed or failed, until removed.
+## A set of the player's goals: it tells each one what happens in the game, from the
+## [Cabin], the [Ledger], the bus and the clock, and says when one changes, is completed
+## or fails. Goals stay in it once completed or failed, until removed. The scene has one
+## for the goals a promotion takes and one for the quests under way.
 
 ## Started tracking [param goal], before it is told how things stand.
 signal goal_added(goal: Goal)
@@ -39,7 +40,9 @@ var _goals: Array[Goal] = []
 var _relays: Dictionary[Goal, Array] = {}
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	for goal: Goal in _goals.duplicate():
+		goal.time_passed(delta)
 	if not bus or _goals.is_empty():
 		return
 	var on_board: Array[Passenger] = cabin.get_passengers() if cabin else []

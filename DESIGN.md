@@ -292,12 +292,20 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 - **Several at once.** The player can have any number of goals; each counts from when it is given, not from the start of the run.
 - **A milestone** is done once and stays done: deliver 50 passengers. Kicked passengers don't count.
 - **A standing goal** is met or not as things stand, and is never done: keep a 4.0 average rating. It isn't met until a set number of rides are rated (at least 1), so one lucky first ride doesn't meet it. Dropping below makes it unmet, not failed.
-- **A quest** is a goal about one passenger, and fails if they are kicked:
-  - Deliver them to their destination.
-  - Fly them past a planet: while they ride, the bus comes within 3 units of its surface in flight, having been out of reach since they boarded. Leaving the planet they boarded at isn't a flyby, coming back to it is, and flying in to dock there counts. It fails if they leave the bus first, however they leave.
+- **A quest** is something one passenger asks for mid-ride, for a reward. It is tracked apart from the goals a promotion takes, so a quest under way or failed never stands in the way of all met.
+- **The call.** While the bus flies, a passenger on board calls: the first no sooner than 45 s into a run, the next 50 to 80 s after the last call or quest ended. One call or quest at a time. Nobody calls in the first 2 s of a flight, while asleep, or within 6 s of getting off.
+- **Answering** opens their transmission, with what they ask and the reward. The quest is worked out then, from where everything is.
+- **Declining costs the caller 5 happiness,** as a shock, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
+- **A done quest pays** 30 credits and 2 research points of the caller's race, on top of the delivery.
+- **A failed quest costs the caller 15 happiness,** as a shock, if they still ride: more than declining, or accepting and ignoring it would beat saying no. When a kick fails it, the kick's shock is the cost.
+- **Express.** The caller changes their mind and wants to be at another planet, quickly: one that isn't where they were going, where they boarded, or on the route, so it is always a detour for everyone else. Accepting changes their destination. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
+  - The time allowed is 1.3 times the direct trip to where the planet will be, parking included: enough to turn round at once, not to make another stop first. An immediate turn uses about 70 % of it.
+  - It is done when they get off there, and fails the moment the time runs out, or when they are kicked. The time runs docked or not, and stops once they leave their seat to get off.
+- *(not built)* **Photo stop:** hold still in space near a planet. **Pick up my friend:** fetch a named passenger at another planet and deliver both.
+- Two older quest goals are built but nothing gives them: deliver one passenger, and fly one past a planet (the bus comes within 3 units of its surface in flight, having been out of reach since they boarded).
+- **Balance runs have no quests:** the scripted player decides only at a dock, so it can neither answer a call nor reroute for one. The reward and the times above are unmeasured.
 - **All met** means every milestone done and every standing goal holding.
 - **A run starts with two goals:** deliver 30 passengers, and keep a 3.5 average rating. 3.5 is what a bare bus averages, so quick serving and direct routes meet it without research, and anyone else needs a first upgrade or two. Both are met after about 5 to 7 minutes, with half of the first stage researched.
-- *(not built)* Quests turning up.
 - *(not built)* A temporary win and lose while the loop is tuned. **Win:** every goal met at once. **Lose:** the happiness score, the average happiness of everyone on board, stays at 0 for 20 s; the countdown pauses while the bus is empty.
 
 ## Controls
@@ -342,8 +350,8 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 
 - **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save at once, so it is held to confirm, like refuelling, and a stray click can't lose a run.
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
-- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), and the goals' progress.
-- **What starts afresh:** the course, the charge, what each passenger was doing (a request comes back on hold, as at a stop), and the lines' clocks.
+- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, and the quest under way with its time left.
+- **What starts afresh:** the course, the charge, the wait until the next call, what each passenger was doing (a request comes back on hold, as at a stop), and the lines' clocks.
 - **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.
 - Only a run started from the main menu is saved, so tests and a scene run on its own never touch the save.
 

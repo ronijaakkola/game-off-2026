@@ -10,12 +10,15 @@ extends Control
 ## The framed photo is drawn at [constant FRAME_SIZE] and scaled to the photo's minimum
 ## size, so a scene can make it smaller. Their type's badges ([member PassengerType.badges])
 ## sit in a row from the photo's top left corner, a little past it, tilted with it, and the
-## pointer over one shows a tooltip with the type's name and description. With
+## pointer over one shows a tooltip with the type's name and description. A flag badge
+## joins them while a quest is about the passenger, its tooltip saying what the quest
+## asks. With
 ## [member flat] on, it is a flat square with rounded corners instead, as big as the minimum
 ## size, with no frame and no tilt.
 
 const BADGE := preload("res://game/passengers/photo_badge.tscn")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
+const FLAG := preload("res://shared/icons/flag.svg")
 ## A badge's size, the gap between its rim and its icon, and how far the badges reach past
 ## the photo's top left corner, in pixels, on a photo [constant BADGE_PHOTO_SIZE] wide.
 ## On a bigger photo they all grow, [constant BADGE_GROWTH] as fast as the photo.
@@ -63,6 +66,8 @@ var passenger: Passenger:
 
 # The tile of the studio's render this photo shows, or null.
 var _photo: AtlasTexture
+# The passenger's quest line the badges were last made for.
+var _quest_line := ""
 
 
 func _ready() -> void:
@@ -81,6 +86,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	if passenger and passenger.quest_line != _quest_line:
+		_show_badges()
 	var portrait := studio.get_portrait(_photo) if studio and _photo else null
 	if not portrait:
 		return
@@ -112,35 +119,51 @@ func _show() -> void:
 	(%Photo as TextureRect).texture = _photo
 
 
-# One badge for each of the passenger's type's, or none without a passenger.
+# One badge for each of the passenger's type's, then a flag while a quest is about them,
+# or none without a passenger.
 func _show_badges() -> void:
 	var badges := %Badges as Control
 	for badge: Node in badges.get_children():
 		badges.remove_child(badge)
 		badge.queue_free()
+	_quest_line = passenger.quest_line if passenger else ""
 	if not passenger:
 		return
-	var grow := lerpf(1.0, custom_minimum_size.x / BADGE_PHOTO_SIZE, BADGE_GROWTH)
-	var side := roundf(BADGE_SIZE * grow)
-	for texture: Texture2D in passenger.type.badges:
-		var badge := BADGE.instantiate() as PhotoBadge
-		# Whole pixels each side, so the icon sits dead centre.
-		badge.show_icon(texture, side, roundf(BADGE_PAD * grow))
-		if not passenger.type.description.is_empty():
-			# It takes the pointer for its tooltip and passes it on, so the row or card
-			# under it still sees the pointer and its clicks.
-			badge.mouse_filter = Control.MOUSE_FILTER_PASS
-			var tooltip := TOOLTIP.instantiate() as Tooltip
-			tooltip.target = badge
-			tooltip.title = passenger.type.display_name
-			tooltip.sentence = passenger.type.description
-			badge.add_child(tooltip)
-		badges.add_child(badge)
+	var type := passenger.type
+	for texture: Texture2D in type.badges:
+		badges.add_child(_make_badge(texture, type.display_name, type.description))
+	if not _quest_line.is_empty():
+		badges.add_child(_make_badge(FLAG, "Quest", _quest_line))
+	var grow := _badge_growth()
 	badges.size = badges.get_combined_minimum_size()
 	badges.position = -Vector2.ONE * roundf(BADGE_OVERHANG * grow)
 	# They turn about the photo's centre, as the frame does, so they stay on its corner.
 	badges.pivot_offset = custom_minimum_size * 0.5 - badges.position
 	badges.rotation = (%Frame as Control).rotation
+
+
+# A badge showing [param texture], with a tooltip of [param title] and [param sentence]
+# when there is a sentence.
+func _make_badge(texture: Texture2D, title: String, sentence: String) -> PhotoBadge:
+	var grow := _badge_growth()
+	var badge := BADGE.instantiate() as PhotoBadge
+	# Whole pixels each side, so the icon sits dead centre.
+	badge.show_icon(texture, roundf(BADGE_SIZE * grow), roundf(BADGE_PAD * grow))
+	if not sentence.is_empty():
+		# It takes the pointer for its tooltip and passes it on, so the row or card
+		# under it still sees the pointer and its clicks.
+		badge.mouse_filter = Control.MOUSE_FILTER_PASS
+		var tooltip := TOOLTIP.instantiate() as Tooltip
+		tooltip.target = badge
+		tooltip.title = title
+		tooltip.sentence = sentence
+		badge.add_child(tooltip)
+	return badge
+
+
+# How much bigger the badges are than on a photo BADGE_PHOTO_SIZE wide.
+func _badge_growth() -> float:
+	return lerpf(1.0, custom_minimum_size.x / BADGE_PHOTO_SIZE, BADGE_GROWTH)
 
 
 func _give_back() -> void:

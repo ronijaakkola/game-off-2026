@@ -184,7 +184,7 @@ func create(origin: Planet) -> Passenger:
 		destination.get_body_global_position()
 	)
 	var passenger := Passenger.new(
-		_pick_type(line), destination, _trip_seconds(distance), distance * fare_per_unit, _rng
+		_pick_type(line), destination, get_trip_seconds(distance), distance * fare_per_unit, _rng
 	)
 	passenger.origin = origin
 	passenger.race = _deal_race()
@@ -257,14 +257,15 @@ func _wait(planet: Planet, delta: float) -> void:
 		changed.emit(planet)
 
 
-# A rough direct trip: the charge, then the distance at top speed, plus the time to speed
-# up and slow down. Planets move, so it is only an estimate. It uses the top speed before
-# upgrades on purpose, so a faster bus makes for happier passengers instead of less patient
-# ones.
-func _trip_seconds(distance: float) -> float:
+## A rough direct trip of [param distance]: the charge, unless the bus is already
+## [param flying], then the distance at top speed, plus the time to speed up and slow
+## down. Planets move, so it is only an estimate. It uses the top speed before upgrades on
+## purpose, so a faster bus makes for happier passengers instead of less patient ones.
+func get_trip_seconds(distance: float, flying := false) -> float:
 	if not bus:
 		return distance
-	return bus.charge_time + distance / bus.max_speed + bus.max_speed / bus.acceleration
+	var charge := 0.0 if flying else bus.charge_time
+	return charge + distance / bus.max_speed + bus.max_speed / bus.acceleration
 
 
 func _interval() -> float:

@@ -8,8 +8,8 @@ extends Node
 ## run starts docked at the planet it was saved at, so quitting in flight loses only the
 ## flight. It keeps where each planet is on its orbit, the bus's planet and fuel, the
 ## [Ledger], the researched upgrades and open research stages, the passengers on board and
-## in every line, and the goals' progress. The course, the charge and what passengers were
-## doing start afresh.
+## in every line, the goals' progress and the quest under way. The course, the charge and
+## what passengers were doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
@@ -27,6 +27,8 @@ const PLANET_TREES: Dictionary[String, String] = {
 ## Who is on board.
 @export var cabin: Cabin
 @export var goals: GoalTracker
+## Whose quest under way is kept.
+@export var quest_giver: QuestGiver
 ## Which upgrades are researched, which stages are open, and every research tree.
 @export var research_lab: ResearchLab
 
@@ -84,6 +86,8 @@ func start() -> void:
 	bus.docked.connect(_on_changed.unbind(1))
 	cabin.stop_finished.connect(_on_changed)
 	cabin.kicked.connect(_on_changed.unbind(1))
+	if quest_giver:
+		quest_giver.changed.connect(_on_changed)
 	research_lab.get_research().researched.connect(_on_changed.unbind(1))
 	research_lab.get_research().stage_opened.connect(_on_changed.unbind(1))
 	_ledger.credits_earned.connect(_on_changed.unbind(1))
@@ -128,6 +132,7 @@ func _write() -> void:
 		"cabin": on_board,
 		"lines": lines,
 		"goals": progress,
+		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
 	}
 	SaveGame.write(run)
 
@@ -164,6 +169,8 @@ func _restore() -> void:
 	var tracked := goals.get_goals()
 	for i: int in mini(saved_goals.size(), tracked.size()):
 		tracked[i].load_save(saved_goals[i] as Dictionary)
+	if quest_giver:
+		quest_giver.load_save(_saved.get("quest", {}), cabin.get_passengers())
 
 
 func _get_planets_by_name() -> Dictionary[String, Planet]:

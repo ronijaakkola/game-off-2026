@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://d4jplluyhkbyv" path="res://game/transmissions/icons/phone_call.svg" id="5_phone"]
 [ext_resource type="Texture2D" uid="uid://5e4u8rlx68t4" path="res://shared/icons/arrow_right.svg" id="6_arrow"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="7_planet"]
-[ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://game/transmissions/icons/flag.svg" id="8_flag"]
+[ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://shared/icons/flag.svg" id="8_flag"]
 [ext_resource type="Texture2D" uid="uid://b2w4upsxpmhrb" path="res://game/solar_system/icons/dollar_sign.svg" id="9_dollar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest"]

@@ -308,6 +308,7 @@ func _start_passengers() -> void:
 	goals.ledger = _ledger
 	goals.add(DeliveryCountGoal.new(START_DELIVERIES))
 	goals.add(RatingGoal.new(START_RATING))
+	(%QuestGiver as QuestGiver).start(_planets, _ledger, waiting)
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
 	cabin.unloaded.connect(bar.commit)

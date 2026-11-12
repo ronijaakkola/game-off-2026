@@ -7,3 +7,4 @@ Icons used by more than one feature, from [Lucide](https://lucide.dev) (`lucide-
 | `fuel.svg` | `fuel` | ISC (`LICENSE.txt`) |
 | `arrow_right.svg` | `arrow-right` | ISC (`LICENSE.txt`) |
 | `sandwich.svg` | `sandwich` | ISC (`LICENSE.txt`) |
+| `flag.svg` | `flag` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |

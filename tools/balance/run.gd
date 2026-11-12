@@ -68,6 +68,9 @@ func _ready() -> void:
 	_cabin = _system.get_node(^"%Cabin") as Cabin
 	_waiting = _system.get_node(^"%WaitingPassengers") as WaitingPassengers
 	_lab = _system.get_node(^"%ResearchLab") as ResearchLab
+	# Nobody calls with a quest: the scripted player decides only at a dock, so it could
+	# neither answer a call nor reroute for one.
+	(_system.get_node(^"%QuestGiver") as QuestGiver).enabled = false
 	_ledger = _system.get_ledger()
 	_collect_planets(_system)
 	var overrides: Dictionary = _config.get("overrides", {})
