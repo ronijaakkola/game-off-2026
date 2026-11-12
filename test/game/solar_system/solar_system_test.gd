@@ -197,6 +197,23 @@ func test_the_dock_panel_shrinks_with_its_top_edge_in_place() -> void:
 	assert_float(bottom).is_less(top + 200.0)
 
 
+func test_the_dock_panel_shows_nobody_waiting_whole() -> void:
+	var runner := scene_runner(SCENE)
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	waiting.set_process(false)
+	var ember := (runner.find_child("Bus") as FrameshiftBus).get_docked_planet()
+	for passenger: Passenger in waiting.get_waiting(ember).duplicate():
+		waiting.take(ember, passenger)
+	await runner.simulate_frames(3)
+	await await_millis(800)
+	var label := runner.find_child("EmptyLabel", true, false) as Control
+	var clip := runner.find_child("Clip", true, false) as Control
+
+	assert_bool(label.visible).is_true()
+	var text_bottom := label.get_global_rect().position.y + (label as Label).get_line_height()
+	assert_float(text_bottom).is_less_equal(clip.get_global_rect().end.y + 0.01)
+
+
 func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
