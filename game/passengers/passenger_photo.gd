@@ -121,12 +121,9 @@ func _show_badges() -> void:
 	var grow := lerpf(1.0, custom_minimum_size.x / BADGE_PHOTO_SIZE, BADGE_GROWTH)
 	var side := roundf(BADGE_SIZE * grow)
 	for texture: Texture2D in passenger.type.badges:
-		var badge := BADGE.instantiate() as Control
-		badge.custom_minimum_size = Vector2.ONE * side
-		var icon := badge.get_node(^"%Icon") as TextureRect
+		var badge := BADGE.instantiate() as PhotoBadge
 		# Whole pixels each side, so the icon sits dead centre.
-		icon.custom_minimum_size = Vector2.ONE * (side - 2.0 * roundf(BADGE_PAD * grow))
-		icon.texture = texture
+		badge.show_icon(texture, side, roundf(BADGE_PAD * grow))
 		badges.add_child(badge)
 	badges.size = badges.get_combined_minimum_size()
 	badges.position = -Vector2.ONE * roundf(BADGE_OVERHANG * grow)
