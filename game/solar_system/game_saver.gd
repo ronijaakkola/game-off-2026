@@ -7,18 +7,27 @@ extends Node
 ## at a planet with no stop under way. A new run saves at once, over any save. A continued
 ## run starts docked at the planet it was saved at, so quitting in flight loses only the
 ## flight. It keeps where each planet is on its orbit, the bus's planet and fuel, the
-## [Ledger], the researched upgrades, the passengers on board and in every line, and the
-## goals' progress. The course, the charge and what passengers were doing start afresh.
+## [Ledger], the researched upgrades and open research stages, the passengers on board and
+## in every line, and the goals' progress. The course, the charge and what passengers were
+## doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
+
+## A save from before research trees left their planets keys each upgrade by the planet its
+## tree was at: the tree file each planet had then.
+const PLANET_TREES: Dictionary[String, String] = {
+	"Frost": "blue_tree",
+	"Terra": "green_tree",
+	"Giant": "orange_tree",
+}
 
 ## The bus whose planet, fuel and stats are kept.
 @export var bus: FrameshiftBus
 ## Who is on board.
 @export var cabin: Cabin
 @export var goals: GoalTracker
-## Which upgrades are researched.
+## Which upgrades are researched, which stages are open, and every research tree.
 @export var research_lab: ResearchLab
 
 ## Who waits at each planet. The parent sets it before [method start].
@@ -76,6 +85,7 @@ func start() -> void:
 	cabin.stop_finished.connect(_on_changed)
 	cabin.kicked.connect(_on_changed.unbind(1))
 	research_lab.get_research().researched.connect(_on_changed.unbind(1))
+	research_lab.get_research().stage_opened.connect(_on_changed.unbind(1))
 	_ledger.credits_earned.connect(_on_changed.unbind(1))
 	_ledger.credits_spent.connect(_on_changed.unbind(1))
 	_ledger.credits_set.connect(_on_changed)
@@ -114,6 +124,7 @@ func _write() -> void:
 		"fuel": bus.get_fuel_tank().fuel,
 		"ledger": _ledger.to_save(),
 		"research": researched,
+		"research_stages": research.get_open_stages(),
 		"cabin": on_board,
 		"lines": lines,
 		"goals": progress,
@@ -127,8 +138,11 @@ func _restore() -> void:
 	var upgrades := _get_upgrades_by_key()
 	var research := research_lab.get_research()
 	for key: Variant in _saved.get("research", []):
-		if upgrades.has(str(key)):
-			research.research(upgrades[str(key)])
+		var found := _upgrade_key(str(key))
+		if upgrades.has(found):
+			research.research(upgrades[found])
+	for stage: int in range(1, int(_saved.get("research_stages", 1))):
+		research.open_next_stage()
 	var tank := bus.get_fuel_tank()
 	tank.fuel = clampf(float(_saved.get("fuel", tank.capacity)), 0.0, tank.capacity)
 	var by_name := _get_planets_by_name()
@@ -168,13 +182,20 @@ func _get_types_by_path() -> Dictionary[String, PassengerType]:
 	return types
 
 
-# Every upgrade in every planet's tree, by its planet's name and its place in the tree,
-# which stay the same when the tree's file is edited or exported.
+# [param key] as saved, with an older save's planet name turned into its tree's file name.
+func _upgrade_key(key: String) -> String:
+	var tree := key.get_slice("/", 0)
+	if PLANET_TREES.has(tree):
+		return PLANET_TREES[tree] + key.trim_prefix(tree)
+	return key
+
+
+# Every upgrade in every research tree, by its tree's file name and its place in the
+# tree, which stay the same when the tree's file is edited or exported.
 func _get_upgrades_by_key() -> Dictionary[String, Upgrade]:
 	var upgrades: Dictionary[String, Upgrade] = {}
-	for planet: Planet in _planets:
-		if not planet.research_tree:
-			continue
-		for upgrade: Upgrade in planet.research_tree.upgrades:
-			upgrades["%s/%d/%d" % [planet.name, upgrade.tier, upgrade.column]] = upgrade
+	for tree: ResearchTree in research_lab.trees:
+		var name := tree.resource_path.get_file().get_basename()
+		for upgrade: Upgrade in tree.upgrades:
+			upgrades["%s/%d/%d" % [name, upgrade.tier, upgrade.column]] = upgrade
 	return upgrades

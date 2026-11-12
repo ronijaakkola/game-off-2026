@@ -67,6 +67,26 @@ func test_researching_puts_its_modifiers_and_traits_on_the_bus_once() -> void:
 	assert_bool(_stats.get_traits().has(BusTraits.Type.PILLOWS)).is_false()
 
 
+func test_an_upgrade_past_the_open_stages_needs_a_promotion() -> void:
+	var first := _upgrade()
+	var second := _upgrade([first])
+	second.tier = Research.ROWS_PER_STAGE
+	var last := _upgrade([first])
+	last.tier = Research.ROWS_PER_STAGE * Research.STAGES + 3
+	_research.research(first)
+
+	assert_int(Research.get_stage(last)).is_equal(Research.STAGES - 1)
+	assert_int(_state(second)).is_equal(Research.State.NEEDS_PROMOTION)
+	_research.open_next_stage()
+	assert_int(_state(second)).is_equal(Research.State.AVAILABLE)
+	assert_int(_state(last)).is_equal(Research.State.NEEDS_PROMOTION)
+	_research.open_next_stage()
+	_research.open_next_stage()
+	assert_bool(_research.is_stage_open(Research.STAGES - 1)).is_true()
+	assert_bool(_research.is_stage_open(Research.STAGES)).is_false()
+	assert_int(_state(last)).is_equal(Research.State.AVAILABLE)
+
+
 func test_an_upgrade_takes_the_colours_of_the_race_it_costs_most() -> void:
 	assert_int(_upgrade([], 0, {Race.Type.GREEN: 1, Race.Type.ORANGE: 4}).get_race()).is_equal(
 		Race.Type.ORANGE

@@ -8,13 +8,15 @@ extends Node
 ## someone waiting there, so the forecast shows over it and the marker under it. `-- Trip`
 ## opens nothing, puts two passengers in line at Ember, where the bus is docked, boards one
 ## going where the first one is, so their row shows "1 aboard", and pins the first one's
-## row in the dock panel, so their trip arc shows. `-- Research` opens
-## Ember, where the bus is docked, on its Research tab with Frost's blue tree, with credits
-## and points to spend and the first upgrade researched, and the pointer over the second so
-## its card shows. `-- Research green` and `-- Research orange` take Terra's and Giant's
-## trees instead, and `away` after either opens the tree's own planet, away from the bus,
-## so the tree is dimmed: `-- Research orange away`. `plain` leaves out the card,
-## and `dock` opens nothing, so the dock panel shows its Research button. `-- Tow` opens
+## row in the dock panel, so their trip arc shows. `-- Research` opens the research screen
+## with a few upgrades of each tree researched, credits and points to spend on some of
+## the rest, and the pointer over one the player can research so its card shows.
+## `-- Research promoted` opens the second stage too, `plain` leaves out the tooltip,
+## `lacking` hovers one the player can't afford instead, `hold`
+## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
+## it part way), and
+## `dock` gives Ember, where the bus is docked, a lab and opens nothing, so the dock panel
+## shows its Research button. `-- Tow` opens
 ## the bus, so the camera follows it, and sends it off with fuel for eight units, so it runs
 ## dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
 ## the whole tow takes about 32 s (`--frames 1900`).
@@ -94,29 +96,55 @@ func _ready() -> void:
 
 
 func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
-	var home := system.find_child("Frost") as Planet
-	if "green" in args:
-		home = system.find_child("Terra") as Planet
-	elif "orange" in args:
-		home = system.find_child("Giant") as Planet
-	var tree := home.research_tree
-	var ember := system.find_child("Ember") as Planet
-	ember.research_tree = tree
-	var ledger := system.get_ledger()
-	ledger.credits = 60
-	ledger.earn_research(tree.upgrades[0].get_race(), 5)
 	var lab := system.find_child("ResearchLab") as ResearchLab
-	lab.research_at(tree.upgrades[0], ember)
 	if "dock" in args:
+		(system.find_child("Ember") as Planet).has_lab = true
 		return
-	system.open_planet(home if "away" in args else ember)
-	var tabs := system.find_child("Tabs") as TabBar
-	tabs.current_tab = PlanetPanel.RESEARCH_TAB
+	var research := lab.get_research()
+	for tree: ResearchTree in lab.trees:
+		for upgrade: Upgrade in tree.upgrades:
+			if upgrade.tier == 0 and upgrade.column % 2 == 0:
+				research.research(upgrade)
+	if "promoted" in args:
+		research.open_next_stage()
+	var ledger := system.get_ledger()
+	ledger.credits = 120
+	ledger.earn_research(Race.Type.BLUE, 5)
+	ledger.earn_research(Race.Type.ORANGE, 3)
+	ledger.earn_research(Race.Type.GREEN, 11)
+	(system.find_child("ResourceBar") as ResourceBar).commit()
+	lab.open_screen()
 	if "plain" in args:
 		return
-	# The panel slides in with the camera; hover the second upgrade once it is in place.
-	await get_tree().create_timer(1.0).timeout
-	for node: Node in system.find_children("*", "UpgradeButton", true, false):
+	# Hover an upgrade the player can research once the screen has grown to full size. The
+	# timer runs while the game is paused under the screen.
+	await get_tree().create_timer(ResearchScreen.OPEN_SECONDS + 0.05).timeout
+	var screen := system.find_child("ResearchScreen") as ResearchScreen
+	for node: Node in screen.find_children("*", "UpgradeButton", true, false):
 		var button := node as UpgradeButton
-		if button.upgrade == tree.upgrades[1]:
+		var wanted := Research.State.AVAILABLE
+		if "lacking" in args:
+			wanted = Research.State.UNAFFORDABLE
+		if button.get_state() == wanted:
+			if "hold" in args:
+				_press(button)
 			button.mouse_entered.emit()
+			return
+
+
+# Moves the pointer onto [param control] and presses the left button there, without letting go.
+func _press(control: Control) -> void:
+	var at := get_viewport().get_final_transform() * control.get_global_rect().get_center()
+	# The window's own pointer too, or its next move takes the hover, and the hold, away.
+	get_viewport().warp_mouse(control.get_global_rect().get_center())
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	Input.parse_input_event(motion)
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.position = at
+	press.global_position = at
+	press.pressed = true
+	Input.parse_input_event(press)
+	Input.flush_buffered_events()

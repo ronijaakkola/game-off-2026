@@ -158,8 +158,17 @@ _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
 
 **Research tree**:
-The upgrades a planet offers, linked by which ones each needs first. Each planet has its own, or none, and the player researches from it only while the bus is docked or charging there. `Research` in code keeps which upgrades are researched.
+The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. The player researches from every tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched and which stages are open.
 _Never_: tech tree, skill tree
+
+**Stage**:
+A band of rows across every research tree, opened one at a time: the first from the start, each next one by a **promotion**. `Research.get_stage()` in code.
+
+**Lab**:
+What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
+
+**Promotion**:
+What opens the next stage of research. Only a debug button gives one so far.
 
 **Upgrade**:
 One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.

@@ -20,7 +20,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
 5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
-6. **Refuel and research.** Docked, the player buys fuel and researches upgrades from that planet's tree.
+6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every tree.
 
 ## The solar system
 
@@ -226,10 +226,12 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 
 Upgrades for the bus, bought with credits and research points.
 
-- **Each planet can have a research tree** of its own: the upgrades it offers, linked by what each needs first.
-- **Researching happens only while the bus is docked or charging at that planet,** as refuelling does, so routing to a planet is how the player gets at its tree.
+- **Research trees aren't tied to planets.** Each is the upgrades for one part of the bus, linked by what each needs first.
+- **Researching happens only while the bus is docked or charging at a planet with a lab,** as refuelling does, and there the player researches from every tree.
+- **Each tree splits into three stages** by row: rows 1 and 2, rows 3 and 4, and the rest. The first stage is open from the start, and each **promotion** opens the next. *(not built)* What earns a promotion; for now only the debug panel gives one.
+- **The game is paused** while the player researches.
 - **An upgrade** has a cost in credits and research points, usually of the one race whose points are for the part of the bus it improves, so a tree can send the player looking for that race.
-- It needs *all* the upgrades it lists, from the same tree.
+- It needs *all* the upgrades it lists, from the same tree, and its stage open.
 - Each is researched once. A bigger step of the same thing is its own upgrade after it (Tank I, then Tank II).
 - Once researched it puts modifiers on the bus's stats, gives it traits, or both.
 
@@ -237,6 +239,7 @@ An upgrade is in one of five states:
 
 | State | When |
 |---|---|
+| Needs promotion | Its stage isn't open. Its name, description and cost don't show |
 | Hidden | Marked hidden, and not everything it needs is researched. Its name, description and cost don't show |
 | Locked | Something it needs isn't researched |
 | Available | Everything it needs is researched and the player can pay |
@@ -267,21 +270,21 @@ An upgrade is in one of five states:
 
 ### The trees
 
-Three planets have a tree, each paid for with one race's points. The rest have none.
+There are three trees, each paid for with one race's points. Frost, Terra and Giant have a lab; the rest have none.
 
-- They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a hidden capstone that needs two branches.
+- They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a capstone that needs two branches. Only a stage that isn't open hides an upgrade; none is marked hidden.
 - **Costs go by row,** the same in every tree for now: 20 credits and 2 points in the top row, then 45 and 4, 90 and 7, 150 and 10, and 250 and 14.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
 "A ← B" means A needs B.
 
-- **Blue, at Frost** (performance). Speed 1 and Fuel tank 1 at the top. Speed 2 ← Speed 1; Frameshift 1 ← Speed 1 and Fuel tank 1; Fuel forecast ← Fuel tank 1; Fuel tank 2 ← Fuel tank 1. Speed 3, Frameshift 2 and Fuel tank 3 each ← the one above. Extra insulation ← Frameshift 2 and Fuel tank 3. Capstone: Sunscreen ← Speed 3 and Extra insulation.
+- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Speed 2 ← Speed 1; Frameshift 1 ← Speed 1 and Fuel tank 1; Fuel forecast ← Fuel tank 1; Fuel tank 2 ← Fuel tank 1. Speed 3, Frameshift 2 and Fuel tank 3 each ← the one above. Extra insulation ← Frameshift 2 and Fuel tank 3. Capstone: Sunscreen ← Speed 3 and Extra insulation.
   - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
   - *(not built)* Frameshift (a shorter charge), Extra insulation, Sunscreen.
-- **Green, at Terra** (the stops). Door chime; Station cameras and Station waiting lounge ← Door chime; capstone Mind reading machine ← both.
+- **Green** (the stops). Door chime; Station cameras and Station waiting lounge ← Door chime; capstone Mind reading machine ← both.
   - Door chime gives the waiting markers.
   - *(not built)* The other three.
-- **Orange, at Giant** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
+- **Orange** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
   - Every upgrade in it is implemented.
 
 ## Goals

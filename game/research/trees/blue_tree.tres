@@ -170,7 +170,6 @@ points = Dictionary[int, int]({
 0: 14
 })
 requires = Array[Resource]([SubResource("Resource_speed_3"), SubResource("Resource_extra_insulation")])
-hidden = true
 tier = 4
 column = 2
 
@@ -190,4 +189,5 @@ column = 3
 
 [resource]
 script = ExtResource("1_tree")
+title = "Performance"
 upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_speed_1"), SubResource("Resource_fuel_tank_1"), SubResource("Resource_speed_2"), SubResource("Resource_frameshift_1"), SubResource("Resource_fuel_tank_2"), SubResource("Resource_speed_3"), SubResource("Resource_frameshift_2"), SubResource("Resource_fuel_tank_3"), SubResource("Resource_extra_insulation"), SubResource("Resource_sunscreen"), SubResource("Resource_fuel_forecast")])

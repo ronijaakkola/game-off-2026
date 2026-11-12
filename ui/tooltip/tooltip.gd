@@ -1,9 +1,11 @@
 class_name Tooltip
 extends PanelContainer
 ## A small dark card naming the thing under the pointer: a [member title] and, when it
-## helps, one [member sentence]. It belongs to its [member target]: once the pointer has
-## rested on that for the rest timer's time it opens, centred on the target and [member gap]
-## pixels from it, and it closes when the pointer leaves. It comes from the target: it
+## helps, one [member sentence], and under them, where the caller gives one, an
+## [member extra] row such as a cost. It belongs to its [member target]: once the pointer has
+## rested on that for [member rest_seconds] it opens, or as the pointer arrives where that is
+## 0, centred on the target and [member gap] pixels from it, and it closes when the pointer
+## leaves. It comes from the target: it
 ## slides out from it into place, growing out of the edge that faces it while fading in.
 ## Closing is simpler and a little faster: it fades and shrinks back where it is. A pointer
 ## that leaves while it opens, or comes back while it closes, turns it round from where it
@@ -53,6 +55,24 @@ static var _leaving: Tooltip
 @export var side := Side.BELOW
 ## Pixels between the target's edge and the card.
 @export var gap := 8.0
+## Seconds the pointer rests on the target before the card opens. 0 opens it as the pointer
+## arrives, for a grid of targets read one after another, such as the research trees.
+@export var rest_seconds := 0.3
+
+## A row of the caller's under the sentence, such as a cost, or null for none. Set it
+## before the card opens; changing it while open resizes the card.
+var extra: Control:
+	set(value):
+		var rows := get_node(^"Rows") as VBoxContainer
+		if extra and extra.get_parent() == rows:
+			rows.remove_child(extra)
+			extra.queue_free()
+		extra = value
+		if extra:
+			extra.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			rows.add_child(extra)
+		if _open:
+			_fit()
 
 var _open := false
 # How far toward the target it still is: 1 before it opens, 0 in place.
@@ -66,6 +86,8 @@ func _ready() -> void:
 	scale = Vector2.ONE * CLOSED_SCALE
 	set_process(false)
 	_show_text()
+	if rest_seconds > 0.0:
+		(%RestTimer as Timer).wait_time = rest_seconds
 	(%RestTimer as Timer).timeout.connect(open)
 	if target:
 		target.mouse_entered.connect(_on_target_entered)
@@ -94,13 +116,7 @@ func open(at_once := false) -> void:
 	if _open:
 		return
 	_open = true
-	# Hidden, the sentence was never laid out: it wraps to the width it has, so it gets
-	# its width here, and the card's size follows from the lines that makes.
-	var label := %SentenceLabel as Label
-	label.size.x = label.custom_minimum_size.x
-	label.update_minimum_size()
-	reset_size()
-	_place()
+	_fit()
 	show()
 	set_process(true)
 	_animate(1.0, 1.0, OPEN_SECONDS)
@@ -130,10 +146,13 @@ func _on_closed() -> void:
 
 # The pointer reached the target. Straight from another tooltip, the card shows at once
 # and the other one, if still closing, is gone at once. Straight back to its own target,
-# it opens again from where it is. Otherwise the wait starts.
+# it opens again from where it is. Otherwise the wait starts, if it has one.
 func _on_target_entered() -> void:
 	if Time.get_ticks_msec() - _closed_at > WARM_SECONDS * 1000.0:
-		(%RestTimer as Timer).start()
+		if rest_seconds > 0.0:
+			(%RestTimer as Timer).start()
+		else:
+			open()
 		return
 	var from_another := is_instance_valid(_leaving) and _leaving != self
 	if from_another and not _leaving._open and _leaving._motion.is_running():
@@ -143,7 +162,7 @@ func _on_target_entered() -> void:
 
 # The pointer moved on the target: it hasn't rested yet, so the wait starts over.
 func _on_target_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and not _open:
+	if event is InputEventMouseMotion and not _open and rest_seconds > 0.0:
 		(%RestTimer as Timer).start()
 
 
@@ -177,6 +196,19 @@ func _show_text() -> void:
 	var font_size := label.get_theme_font_size(&"font_size")
 	var width := font.get_string_size(sentence, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	label.custom_minimum_size.x = minf(ceilf(width), MAX_SENTENCE_WIDTH)
+	if _open:
+		_fit()
+
+
+# Sizes the card to what it holds. Hidden, the sentence was never laid out: it wraps to the
+# width it has, so it gets its width here, and the card's size follows from the lines that
+# makes.
+func _fit() -> void:
+	var label := %SentenceLabel as Label
+	label.size.x = label.custom_minimum_size.x
+	label.update_minimum_size()
+	reset_size()
+	_place()
 
 
 # Centred on the target, or as near as the screen's side edges let it, on whole pixels

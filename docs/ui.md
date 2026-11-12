@@ -37,8 +37,9 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
 - Spacing is on a 4 px scale.
 - **Tooltips** name a counter or an icon-only key: a dark card (`#0B0920` at 85 %) with the surface's border and 8 px corners, no shadow, dark enough to read over the map and over glass. A name and, when it helps, one sentence in fainter running text, at most 200 px wide.
-  - It sits 8 px from its target's panel, centred on the target: below the resource bar, above the bus bar. Near a side edge of the screen it stays 8 px inside it, and still grows from the target's centre.
-  - It opens once the pointer has rested on the target for 0.3 s, and closes when the pointer leaves.
+  - It sits 8 px from its target's panel, centred on the target: below the resource bar, above the bus bar. A research tile's sits above the tile. Near a side edge of the screen it stays 8 px inside it, and still grows from the target's centre.
+  - It opens once the pointer has rested on the target for 0.3 s, and closes when the pointer leaves. On a research tile it opens as the pointer arrives: the trees are read tile after tile, and a wait would feel sluggish.
+  - Under the sentence it can hold one more row, such as a cost.
   - Going from one tooltip to the next, within 0.3 s of the last one closing, another target shows its tooltip at once with no motion, and the one closing goes at once.
   - It comes from its target: opening, it slides 6 px out from the target into place while fading in and growing from 94 % out of the edge facing it, in 0.15 s, easing out. Closing, it only fades and shrinks back, in 0.1 s. A pointer that leaves while it opens, or comes back while it closes, turns it round from where it is. Under Reduce motion it only fades. When the game pauses it closes at once.
 - The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
@@ -158,7 +159,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Title: the planet's icon and name with "Station".
 - Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
-  - A Research button, where the planet has a tree. It opens the planet on its Research tab.
+  - A Research button, where the planet has a lab. It opens the research screen.
 - Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
 - Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
@@ -251,35 +252,46 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 - The open planet's hover border fades out and stays off, so nothing sits on the close-up.
 - Closing blends the camera back to where it was while the panel slides out.
 - A panel that another replaces leaves fast, in 0.2 s, so the two don't cross.
-- Both panels are 480 px wide, so switching never changes the width. The resource bar moves to stay centred between the On board panel and the open panel, so the credits and research points stay in view while the player researches.
+- Both panels are 480 px wide, so switching never changes the width. The resource bar moves to stay centred between the On board panel and the open panel, so the credits stay in view.
 - Under Reduce motion the camera cuts and the panel fades.
 
 ### Planet panel
 
-The planet's icon and name, and a Close button. A planet with a research tree has two tabs, Services and Research; one without has no tab bar.
+The planet's icon and name, and a Close button.
 
-- It opens on Services. Opening another planet from an open one keeps the Research tab when the new planet has one.
 - **Services:** a row for each passenger waiting there, longest waiting first (portrait, name over destination, fare), then the Fuel section. Anything else a planet offers goes here.
 - A passenger who turns up while it is open slides in from the right.
 - **Fuel section:** "Full tank 10 credits", the bus's fuel as a bar and a percentage, a "Hold to refuel" button ("Refuelling..." while held), and a note.
 - The note shows the player's credits, or why the button is off: "Dock here to refuel.", "Tank full.", "Not enough credits.", "No fuel sold here.".
 
-### Research tab
+### Research screen
 
-- The tree draws top to bottom: a row for each tier, each upgrade a square tile showing only its icon.
-- A line runs from each upgrade up to each one it needs, faint until that one is researched, then in the race's skin colour.
-- **The accent** is the skin colour of the race whose points the upgrade costs most; cyan when it costs none.
+A modal over the whole screen, the game paused and dimmed under it: one frosted sheet 24 px in from the edges.
+
+- **Header:** a flask and "Research", a "Game paused" tag with a pause icon, the resource bar in the middle, and a Close button with an ✕. Esc closes it too, unless the pause menu is open over it.
+- **Opening** fades it in over 0.2 s while the sheet grows from 97 % to full size in 0.25 s. **Closing** lets the game run at once and fades it out in 0.15 s. Under Reduce motion it only fades.
+- While it is open, the HUD's resource bar hides; the header has its own.
+- **The trees** stand side by side, each on a faint card with its name ("Performance", "Stops", "Comfort") and a chip in its race's colour counting what is researched ("3/11").
+- Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral in its top left corner.
+- **Stages.** The rows of every tree line up, with more room between two stages and a faint line across all the trees there. While the stage under it is shut, a "Requires promotion" tag with a lock sits in the middle of the line.
+- **A stage opening** shows the next time the screen is open, once it has faded in: the tag fades off the line in 0.2 s and the line closes up, and the stage's tiles fade in from silhouettes over 0.3 s, each row 40 ms after the one above.
+- A line runs from each upgrade to each one it needs, centre to centre: lit and glowing in the race's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
+- **The colours** are those of the race whose points the upgrade costs most.
 
 | Tile | Look |
 |---|---|
-| Available (whether or not the player can pay) | Dark, with an accent border and a white icon |
-| Researched | Filled with the accent, the icon in the race's photo-background colour |
-| Locked or hidden | Flat and dim; a hidden one shows "?" |
+| Researched | A gradient in the race's colour, light at the top, glowing; the icon and numeral in its deep shade |
+| Available | A dark gradient with a 2 px border in the race's colour and its glow; a white icon |
+| Can't afford | Flat and dark with a faint border in the race's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
+| Locked | Flat, darker and dim |
+| Hidden, or its stage shut | A dark silhouette of its icon |
 
-- **The card.** The pointer over an upgrade shows its card just under it, or above where there's no room: name, a line on what it does, and its cost with the resource bar's icons, what the player lacks in red.
-- A hidden one shows "???" and no cost. A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
-- A click on an available upgrade researches it at once: the credits come off as a loss under the bar and the points come off their counts.
-- Away from that planet, the tree draws at half strength, the cards still show, and "Dock here to research." reads over it.
+- **The tooltip.** The pointer over an upgrade opens its tooltip above it, so it covers neither the rows under it, which the upgrade opens, nor the tiles beside it: name, a line on what it does, then, 4 px further apart than the lines above it, its cost with the resource bar's icons, what the player lacks in red. Under the cost, one the player can't afford reads "Insufficient funds" in red.
+- A hidden one shows "???" and no cost; one whose stage is shut shows "???" and "Requires promotion.". A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
+- **Researching.** Holding an available tile sweeps the hold buttons' faint cyan fill up from its bottom, evenly; at the top, 0.6 s on, it is researched: the credits come off as a loss and the points come off their counts. The tile turns lit and pops as the research count does (to 106 % and back), while the fill fades off it in 0.15 s. Letting go or leaving first drains the fill in 0.2 s, fast at first.
+- **A press on a tile that can't be researched** flashes its border for 0.3 s; on one the player can't afford, the red badge pulses too.
+- **Sound.** A click as a hold completes, and a different click for a press on a tile that can't be researched. Both are placeholders.
+- Under Reduce motion nothing pops or pulses; the fills, fades and flashes stay.
 
 ### Bus panel
 
@@ -292,12 +304,12 @@ Titled "Frameshift Bus".
 ## Menus
 
 - **Main menu:** title, Play, Settings, Quit (hidden on web). With a save game, Continue comes first as the primary button and has focus, and a plain "New game" button takes Play's place, with no hint that it has to be held: held for 1.2 s, a faint fill growing across it, it starts over; let go early, the fill drains back twice as fast. On web a title card (the game's title, "Click to start") comes first. The debug panel's "Delete save" deletes the save, and the menu turns back to Play; its "Reset settings" puts every setting back to its default.
-- **Pause menu:** Resume, Settings, Main menu.
+- **Pause menu:** Resume, Settings, Main menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 
 ## Debug panel
 
-F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. View research tree opens every tree side by side with smaller tiles, and researches from anywhere.
+F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. Open research opens the research screen from anywhere, and Promote opens the next research stage.
 
 ## Open questions
 
