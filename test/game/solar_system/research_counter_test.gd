@@ -14,6 +14,8 @@ func test_a_ledger_given_before_it_is_ready_shows_its_points() -> void:
 	add_child(counter)
 
 	var counts: Array[String] = []
+	var tooltip := counter.get_node(^"Tooltip")
 	for label: Node in counter.find_children("*", "Label", true, false):
-		counts.append((label as Label).text)
+		if not tooltip.is_ancestor_of(label):
+			counts.append((label as Label).text)
 	assert_array(counts).is_equal(["0", "7", "0"])
