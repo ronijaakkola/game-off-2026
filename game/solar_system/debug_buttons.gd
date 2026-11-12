@@ -13,6 +13,8 @@ const STATS_GROUP := "Stats"
 const TRAITS_GROUP := "Traits"
 ## PROTOTYPE: the debug panel's group for the serve minigames, one button per game.
 const SERVE_GROUP := "Serve game"
+## PROTOTYPE: the lab for trying the serve minigames, also on the main menu's panel.
+const SERVE_LAB_SCENE := "res://game/passengers/serve_minigame_lab_prototype.tscn"
 
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
@@ -25,6 +27,7 @@ func _ready() -> void:
 	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self)
 	DebugPanel.add_button("Incoming transmission", _debug_incoming_transmission, self)
 	DebugPanel.add_button("Test notices", _debug_test_notices, self)
+	DebugPanel.add_button("Serve games lab", SceneFlow.go_to.bind(SERVE_LAB_SCENE), self)
 	var percent := StatModifier.Kind.PERCENT
 	_add_stat_buttons(BusStats.Type.MAX_SPEED, percent, STAT_PERCENT, "% top speed")
 	_add_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, STAT_PERCENT, "% fuel tank")
