@@ -4,7 +4,8 @@ extends Control
 ## [enum Kind], with an optional action button and an optional close button on the right.
 ## The notice is the card's slot in the stack: it is as tall as the card plus the gap under
 ## it, so shrinking it closes the gap. [method dismiss] fades the card out, then shrinks the
-## slot and frees it. Under Reduce motion the card only fades, and the gap closes at once.
+## slot and frees it, even while the game is paused. Under Reduce motion the card only
+## fades, and the gap closes at once.
 ## A call's phone rattles every [constant RING_PAUSE] seconds while it shows, except under
 ## Reduce motion.
 
@@ -173,6 +174,9 @@ func dismiss() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	# It finishes leaving even if the game pauses, as it does when an Answer opens a
+	# transmission.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	# One that never came in stays out: showing the stack mustn't bring it back.
 	_postponed = false
 	if _life:

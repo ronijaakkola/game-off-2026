@@ -40,6 +40,7 @@
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 [ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
 [ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
+[ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="109_transmission"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -302,11 +303,14 @@ script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices")]
+[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "test_destination", "test_flyby_planet")]
 script = ExtResource("103_debug")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
+transmission_panel = NodePath("../TransmissionPanel")
+test_destination = NodePath("../Giant")
+test_flyby_planet = NodePath("../Frost")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")
@@ -420,5 +424,7 @@ unique_name_in_owner = true
 anchors_preset = 11
 
 [node name="ResearchScreen" parent="Hud" unique_id=2076382170 instance=ExtResource("99_screen")]
+
+[node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]
