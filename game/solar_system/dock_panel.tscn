@@ -13,6 +13,9 @@
 content_margin_top = 1.0
 bg_color = Color(1, 1, 1, 0.1216)
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_empty"]
+content_margin_bottom = 4.0
+
 [node name="DockPanel" type="Control" unique_id=1953939187]
 visible = false
 layout_mode = 3
@@ -175,6 +178,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 0
 theme_type_variation = &"FaintLabel"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_empty")
 text = "Nobody waiting."
 
 [node name="Rows" type="VBoxContainer" parent="Card/Clip/Content/List" unique_id=288850977]
