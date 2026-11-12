@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## The research trees the planets ship with hold together: each upgrade requires only
+## The research trees the game ships with hold together: each upgrade requires only
 ## upgrades from its own tree, sits below them, has a slot of its own and costs something,
 ## and the tree starts with at least one upgrade that requires nothing.
 

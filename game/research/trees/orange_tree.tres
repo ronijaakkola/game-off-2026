@@ -178,7 +178,6 @@ points = Dictionary[int, int]({
 1: 7
 })
 requires = Array[Resource]([SubResource("Resource_food_dispenser"), SubResource("Resource_portions_2")])
-hidden = true
 traits = Array[int]([7])
 tier = 2
 column = 2
@@ -223,4 +222,5 @@ tier = 3
 
 [resource]
 script = ExtResource("1_tree")
+title = "Comfort"
 upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_extra_seat_1"), SubResource("Resource_food_dispenser"), SubResource("Resource_portions_1"), SubResource("Resource_entertainment_system"), SubResource("Resource_extra_seat_2"), SubResource("Resource_pillows"), SubResource("Resource_portions_2"), SubResource("Resource_gaming_system"), SubResource("Resource_extra_seat_3"), SubResource("Resource_sleeping_pods"), SubResource("Resource_serving_robots"), SubResource("Resource_portions_3"), SubResource("Resource_extra_seat_4")])

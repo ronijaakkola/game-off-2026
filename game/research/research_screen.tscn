@@ -1,0 +1,162 @@
+[gd_scene format=3 uid="uid://cymsks2qraf1e"]
+
+[ext_resource type="Script" uid="uid://daguy8upd0m61" path="res://game/research/research_screen.gd" id="1_screen"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="4_bar"]
+[ext_resource type="PackedScene" uid="uid://d0x3nbgyr33kg" path="res://game/research/upgrade_card.tscn" id="5_card"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="6_flask"]
+[ext_resource type="Texture2D" uid="uid://dup4e3a0nc0eg" path="res://game/research/icons/pause.svg" id="7_pause"]
+[ext_resource type="Texture2D" uid="uid://cbnp8spnp837a" path="res://game/research/icons/x.svg" id="8_x"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tag"]
+content_margin_left = 8.0
+content_margin_right = 8.0
+bg_color = Color(1, 1, 1, 0.07)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="ResearchScreen" type="Control" unique_id=408984841]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_screen")
+
+[node name="Scrim" type="ColorRect" parent="." unique_id=892956458]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.043, 0.035, 0.125, 0.72)
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=170212013]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Sheet" type="PanelContainer" parent="Margin" unique_id=1837199431]
+material = ExtResource("3_glass")
+layout_mode = 2
+theme_type_variation = &"SheetPanel"
+
+[node name="Pad" type="MarginContainer" parent="Margin/Sheet" unique_id=1631119581]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Sheet/Pad" unique_id=1878885186]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Header" type="HBoxContainer" parent="Margin/Sheet/Pad/Rows" unique_id=1164784828]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="TitleGroup" type="HBoxContainer" parent="Margin/Sheet/Pad/Rows/Header" unique_id=2968539]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup" unique_id=938259159]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_flask")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup" unique_id=917215874]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Research"
+
+[node name="PausedTag" type="PanelContainer" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup" unique_id=347100802]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tag")
+
+[node name="Row" type="HBoxContainer" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup/PausedTag" unique_id=375405658]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup/PausedTag/Row" unique_id=1503050312]
+modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("7_pause")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup/PausedTag/Row" unique_id=1011699239]
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+text = "Game paused"
+
+[node name="ResourceBar" parent="Margin/Sheet/Pad/Rows/Header" unique_id=1801088530 instance=ExtResource("4_bar")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="CloseGroup" type="HBoxContainer" parent="Margin/Sheet/Pad/Rows/Header" unique_id=335787271]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+alignment = 2
+
+[node name="CloseButton" type="Button" parent="Margin/Sheet/Pad/Rows/Header/CloseGroup" unique_id=61349379]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_constants/icon_max_width = 14
+icon = ExtResource("8_x")
+icon_alignment = 1
+
+[node name="Trees" type="Control" parent="Margin/Sheet/Pad/Rows" unique_id=1770695969]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Card" parent="." unique_id=513246851 instance=ExtResource("5_card")]
+unique_name_in_owner = true
+visible = false
+z_index = 10
+layout_mode = 0
+
+[connection signal="pressed" from="Margin/Sheet/Pad/Rows/Header/CloseGroup/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="resized" from="Margin/Sheet/Pad/Rows/Trees" to="." method="_place"]

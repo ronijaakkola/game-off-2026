@@ -1,12 +1,13 @@
 class_name ResearchLab
 extends Node
-## Where the player researches upgrades: it keeps the [Research] for the bus, shows the open
-## planet's tree in its panel's Research tab every frame, and researches an upgrade the
-## player clicks there only while the bus is docked or charging at that planet and the
-## player can pay for it, taking its credits and research points off first. It adds the
-## debug panel's Resources buttons, which give credits and research points for testing,
-## and its View research tree button, which opens every planet's tree side by side
-## ([ResearchOverview]) to research from wherever the bus is.
+## Where the player researches upgrades: it keeps the [Research] for the bus and every
+## research tree, opens the research screen ([ResearchScreen]) on all of them, and
+## researches an upgrade the player holds there when the player can pay for it, taking its
+## credits and research points off first. Which planets open the screen is the dock
+## panel's to say: those with a lab ([member Planet.has_lab]). It adds the debug panel's
+## Resources buttons, which give credits and research points for testing, its Open
+## research button, which opens the screen from anywhere, and its Promote button, which
+## opens the next stage until promotions are built.
 
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
@@ -14,47 +15,43 @@ const DEBUG_CREDITS := 1000
 const DEBUG_RESEARCH := 100
 ## The debug panel's group for the buttons that give credits and research points.
 const DEBUG_RESOURCES_GROUP := "Resources"
-## The debug panel's button that opens every tree side by side.
-const DEBUG_OVERVIEW_TEXT := "View research tree"
+## The debug panel's buttons that open the screen from anywhere and open the next stage.
+const DEBUG_OPEN_TEXT := "Open research"
+const DEBUG_PROMOTE_TEXT := "Promote (open next research stage)"
 
-## The bus whose stats upgrades change, and where it is docked.
+## The bus whose stats upgrades change.
 @export var bus: FrameshiftBus
 ## Shows the credits and research points; the debug panel's credits are committed to it.
 @export var resource_bar: ResourceBar
-## The open planet's panel, whose Research tab draws the planet's tree.
-@export var planet_panel: PlanetPanel
-## The debug panel's modal with every planet's tree side by side.
-@export var research_overview: ResearchOverview
+## The full-screen modal with every tree.
+@export var research_screen: ResearchScreen
+## Every research tree, in the order the screen shows them.
+@export var trees: Array[ResearchTree] = []
 
 ## The player's credits and research points, which pay for upgrades. The parent sets it.
-var ledger: Ledger
-## The planets whose trees the debug panel's View research tree shows. The parent sets it.
-var planets: Array[Planet] = []
+var ledger: Ledger:
+	set(value):
+		ledger = value
+		if research_screen:
+			research_screen.ledger = value
 
 var _research: Research
 
 
 func _ready() -> void:
 	_research = Research.new(bus.get_stats())
-	planet_panel.research = _research
-	planet_panel.upgrade_clicked.connect(_on_upgrade_clicked)
-	research_overview.upgrade_clicked.connect(_on_overview_upgrade_clicked)
-	DebugPanel.add_button(DEBUG_OVERVIEW_TEXT, _debug_view_research_trees, self)
+	research_screen.research = _research
+	research_screen.upgrade_held.connect(research)
+	research_screen.closed.connect(resource_bar.show)
+	DebugPanel.add_button(DEBUG_OPEN_TEXT, open_screen, self)
+	DebugPanel.add_button(DEBUG_PROMOTE_TEXT, _research.open_next_stage, self)
 	var credits_text := "Add %d credits" % DEBUG_CREDITS
 	DebugPanel.add_button(credits_text, _debug_add_credits, self, DEBUG_RESOURCES_GROUP)
 	var research_text := "Add %d research of each" % DEBUG_RESEARCH
 	DebugPanel.add_button(research_text, _debug_add_research, self, DEBUG_RESOURCES_GROUP)
 
 
-func _process(_delta: float) -> void:
-	var planet := planet_panel.get_planet()
-	if planet and planet.research_tree:
-		planet_panel.show_research(get_credits(), get_points(), can_research_at(planet))
-	if research_overview.is_open():
-		research_overview.show_research(_research, get_credits(), get_points())
-
-
-## Which upgrades are researched.
+## Which upgrades are researched, and which stages are open.
 func get_research() -> Research:
 	return _research
 
@@ -69,21 +66,16 @@ func get_points() -> Dictionary[Race.Type, int]:
 	return ledger.get_all_research()
 
 
-## Whether the bus is docked or charging at [param planet], where its tree can be researched.
-func can_research_at(planet: Planet) -> bool:
-	return planet != null and bus.is_at_planet() and bus.get_docked_planet() == planet
+## Opens the research screen on every tree, pausing the game.
+func open_screen() -> void:
+	research_screen.open(trees)
+	# The screen's header has the bar of its own; the HUD's would peek out above the sheet.
+	resource_bar.hide()
 
 
-## Researches [param upgrade] from [param planet]'s tree when the bus is there and it is
-## available, paying its cost. Otherwise it does nothing.
-func research_at(upgrade: Upgrade, planet: Planet) -> void:
-	if can_research_at(planet):
-		research_anywhere(upgrade)
-
-
-## Researches [param upgrade] when it is available, paying its cost, wherever the bus is:
-## the debug panel's View research tree's way past docking. Otherwise it does nothing.
-func research_anywhere(upgrade: Upgrade) -> void:
+## Researches [param upgrade] when it is available, paying its cost. Otherwise it does
+## nothing.
+func research(upgrade: Upgrade) -> void:
 	if _research.get_state(upgrade, get_credits(), get_points()) != Research.State.AVAILABLE:
 		return
 	if upgrade.credits > 0:
@@ -93,23 +85,11 @@ func research_anywhere(upgrade: Upgrade) -> void:
 	_research.research(upgrade)
 
 
-func _on_upgrade_clicked(upgrade: Upgrade) -> void:
-	research_at(upgrade, planet_panel.get_planet())
-
-
-func _on_overview_upgrade_clicked(upgrade: Upgrade) -> void:
-	research_anywhere(upgrade)
-
-
-# The debug panel's View research tree, every planet's tree side by side.
-func _debug_view_research_trees() -> void:
-	research_overview.open(planets)
-
-
 # The debug panel's Add credits, shown as a gain that counts into the total, like a fare.
 func _debug_add_credits() -> void:
 	ledger.earn(DEBUG_CREDITS)
 	resource_bar.commit()
+	research_screen.commit()
 
 
 # The debug panel's Add research, which gives points of every race, each count popping.

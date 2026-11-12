@@ -2,7 +2,9 @@ class_name UpgradeCard
 extends PanelContainer
 ## The card the pointer over an upgrade shows, whatever its state: its name, a short line
 ## on what it does, and its cost, with what the player lacks in red. A hidden upgrade shows
-## "???" for its name and description, and a researched one no cost.
+## "???" for its name and description, one in a stage not open yet "???" and that it
+## requires a promotion, and a researched one no cost. One the player can research says to
+## hold it.
 
 ## The cost's icons, the resource bar's: a dollar sign in its gold for credits, and a flask
 ## in each race's skin colour for its research points.
@@ -17,9 +19,15 @@ const CREDITS_COLOR := Color(1, 0.831, 0.361)
 func show_upgrade(
 	upgrade: Upgrade, state: Research.State, credits: int, points: Dictionary[Race.Type, int]
 ) -> void:
-	var hidden_now := state == Research.State.HIDDEN
+	var sealed := state == Research.State.NEEDS_PROMOTION
+	var hidden_now := state == Research.State.HIDDEN or sealed
 	(%TitleLabel as Label).text = "???" if hidden_now else upgrade.title
-	(%DescriptionLabel as Label).text = "???" if hidden_now else upgrade.description
+	var description := "???" if hidden_now else upgrade.description
+	if sealed:
+		description = "Requires promotion."
+	elif state == Research.State.AVAILABLE:
+		description += "\nHold to research."
+	(%DescriptionLabel as Label).text = description
 	var cost := %CostRow as HBoxContainer
 	for child: Node in cost.get_children():
 		cost.remove_child(child)

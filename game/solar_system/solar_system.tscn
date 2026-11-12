@@ -27,11 +27,12 @@
 [ext_resource type="PackedScene" uid="uid://cqh6m26bmhwpp" path="res://game/solar_system/trip_arc.tscn" id="26_trip"]
 [ext_resource type="Script" uid="uid://d7ilyo18irr3" path="res://game/solar_system/fuel_pump.gd" id="27_pump"]
 [ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="28_bar"]
+[ext_resource type="Script" uid="uid://lkloudqqw7eo" path="res://game/research/research_tree.gd" id="94_research_tree"]
 [ext_resource type="Resource" uid="uid://8172pm4bmsop" path="res://game/research/trees/blue_tree.tres" id="95_blue_tree"]
 [ext_resource type="Resource" uid="uid://dvf5hrj5x3iew" path="res://game/research/trees/green_tree.tres" id="96_green_tree"]
 [ext_resource type="Resource" uid="uid://dkaejvutk1bu4" path="res://game/research/trees/orange_tree.tres" id="97_orange_tree"]
 [ext_resource type="Script" uid="uid://b5uw1vk5r888r" path="res://game/research/research_lab.gd" id="98_lab"]
-[ext_resource type="PackedScene" uid="uid://ds46abpebov64" path="res://game/research/research_overview.tscn" id="99_overview"]
+[ext_resource type="PackedScene" uid="uid://cymsks2qraf1e" path="res://game/research/research_screen.tscn" id="99_screen"]
 [ext_resource type="PackedScene" uid="uid://bahps38451xgx" path="res://game/solar_system/tow_offer.tscn" id="100_tow_offer"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="101_glass"]
 [ext_resource type="Script" uid="uid://b7b5a7k6hdr7s" path="res://game/solar_system/hud_layout.gd" id="102_hud"]
@@ -239,7 +240,7 @@ tilt = 15.0
 surface_material = SubResource("ShaderMaterial_terra")
 icon_color = Color(0.5, 0.82, 0.34, 1)
 fuel_price = 0.12
-research_tree = ExtResource("96_green_tree")
+has_lab = true
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Moon" type="Node3D" parent="Terra" unique_id=247044122]
@@ -266,7 +267,7 @@ tilt = 18.0
 surface_material = SubResource("ShaderMaterial_giant")
 icon_color = Color(1, 0.6, 0.25, 1)
 fuel_price = 0.06
-research_tree = ExtResource("97_orange_tree")
+has_lab = true
 orbit_material = SubResource("StandardMaterial3D_orbit")
 ring_material = SubResource("ShaderMaterial_giant_rings")
 ring_inner = 1.35
@@ -285,7 +286,7 @@ tilt = -10.0
 surface_material = SubResource("ShaderMaterial_frost")
 icon_color = Color(1, 0.62, 0.74, 1)
 fuel_price = 0.08
-research_tree = ExtResource("95_blue_tree")
+has_lab = true
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
@@ -312,13 +313,13 @@ unique_name_in_owner = true
 script = ExtResource("27_pump")
 sound = ExtResource("106_fuel_sound")
 
-[node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "planet_panel", "research_overview")]
+[node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "research_screen")]
 unique_name_in_owner = true
 script = ExtResource("98_lab")
 bus = NodePath("../Bus")
 resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
-planet_panel = NodePath("../Hud/PlanetPanel")
-research_overview = NodePath("../Hud/ResearchOverview")
+research_screen = NodePath("../Hud/ResearchScreen")
+trees = Array[ExtResource("94_research_tree")]([ExtResource("95_blue_tree"), ExtResource("96_green_tree"), ExtResource("97_orange_tree")])
 
 [node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus", "cabin")]
 unique_name_in_owner = true
@@ -441,7 +442,6 @@ anchors_preset = 11
 [node name="TowOffer" parent="Hud" unique_id=371962228 instance=ExtResource("100_tow_offer")]
 unique_name_in_owner = true
 
-[node name="ResearchOverview" parent="Hud" unique_id=2033696468 instance=ExtResource("99_overview")]
-anchors_preset = 15
+[node name="ResearchScreen" parent="Hud" unique_id=2076382170 instance=ExtResource("99_screen")]
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]

@@ -55,10 +55,10 @@ points = Dictionary[int, int]({
 2: 7
 })
 requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_station_waiting_lounge")])
-hidden = true
 tier = 2
 column = 1
 
 [resource]
 script = ExtResource("1_tree")
+title = "Stops"
 upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_door_chime"), SubResource("Resource_station_cameras"), SubResource("Resource_station_waiting_lounge"), SubResource("Resource_mind_reading_machine")])

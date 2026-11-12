@@ -157,7 +157,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Under the rows, a Board all button. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
 - Then a faint line and Services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
-  - A Research button, where the planet has a tree. It opens the planet on its Research tab.
+  - A Research button, where the planet has a lab. It opens the research screen.
 - **A row's trip.** The pointer over a row shows its trip arc. A click on the row pins it until the row is clicked again, the passenger boards or the bus leaves. The row whose trip shows has a border in their race's colour.
 - It slides in from the right when the bus docks and out when it leaves. A passenger picked up slides out of it to the right, and it grows and shrinks smoothly to fit, so it shrinks as rows leave.
 
@@ -227,35 +227,45 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 - The open planet's hover border fades out and stays off, so nothing sits on the close-up.
 - Closing blends the camera back to where it was while the panel slides out.
 - A panel that another replaces leaves fast, in 0.2 s, so the two don't cross.
-- Both panels are 480 px wide, so switching never changes the width. The resource bar moves to stay centred between the On board panel and the open panel, so the credits and research points stay in view while the player researches.
+- Both panels are 480 px wide, so switching never changes the width. The resource bar moves to stay centred between the On board panel and the open panel, so the credits stay in view.
 - Under Reduce motion the camera cuts and the panel fades.
 
 ### Planet panel
 
-The planet's icon and name, and a Close button. A planet with a research tree has two tabs, Services and Research; one without has no tab bar.
+The planet's icon and name, and a Close button.
 
-- It opens on Services. Opening another planet from an open one keeps the Research tab when the new planet has one.
 - **Services:** a row for each passenger waiting there, longest waiting first (portrait, name over destination, fare), then the Fuel section. Anything else a planet offers goes here.
 - A passenger who turns up while it is open slides in from the right.
 - **Fuel section:** "Full tank 10 credits", the bus's fuel as a bar and a percentage, a "Hold to refuel" button ("Refuelling..." while held), and a note.
 - The note shows the player's credits, or why the button is off: "Dock here to refuel.", "Tank full.", "Not enough credits.", "No fuel sold here.".
 
-### Research tab
+### Research screen
 
-- The tree draws top to bottom: a row for each tier, each upgrade a square tile showing only its icon.
-- A line runs from each upgrade up to each one it needs, faint until that one is researched, then in the race's skin colour.
-- **The accent** is the skin colour of the race whose points the upgrade costs most; cyan when it costs none.
+A modal over the whole screen, the game paused and dimmed under it: one frosted sheet 24 px in from the edges.
+
+- **Header:** a flask and "Research", a "Game paused" tag with a pause icon, the resource bar in the middle, and a Close button with an ✕. Esc closes it too, unless the pause menu is open over it.
+- **Opening** fades it in over 0.2 s while the sheet grows from 97 % to full size in 0.25 s. **Closing** lets the game run at once and fades it out in 0.15 s. Under Reduce motion it only fades.
+- While it is open, the HUD's resource bar hides; the header has its own.
+- **The trees** stand side by side, each on a faint card with its name ("Performance", "Stops", "Comfort") and a chip in its race's colour counting what is researched ("3/11").
+- Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral in its top left corner.
+- **Stages.** The rows of every tree line up, with more room between two stages and a faint line across all the trees there. While the stage under it is shut, a "Requires promotion" tag with a lock sits in the middle of the line.
+- **A stage opening** shows the next time the screen is open, once it has faded in: the tag fades off the line in 0.2 s and the line closes up, and the stage's tiles fade in from silhouettes over 0.3 s, each row 40 ms after the one above.
+- A line runs from each upgrade to each one it needs, centre to centre: lit and glowing in the race's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
+- **The colours** are those of the race whose points the upgrade costs most.
 
 | Tile | Look |
 |---|---|
-| Available (whether or not the player can pay) | Dark, with an accent border and a white icon |
-| Researched | Filled with the accent, the icon in the race's photo-background colour |
-| Locked or hidden | Flat and dim; a hidden one shows "?" |
+| Researched | A gradient in the race's colour, light at the top, glowing; the icon and numeral in its deep shade |
+| Available | A dark gradient with a 2 px border in the race's colour and its glow; a white icon |
+| Can't afford | Flat and dark with a faint border in the race's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
+| Locked | Flat, darker and dim |
+| Hidden, or its stage shut | A dark silhouette of its icon |
 
-- **The card.** The pointer over an upgrade shows its card just under it, or above where there's no room: name, a line on what it does, and its cost with the resource bar's icons, what the player lacks in red.
-- A hidden one shows "???" and no cost. A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
-- A click on an available upgrade researches it at once: the credits come off as a loss under the bar and the points come off their counts.
-- Away from that planet, the tree draws at half strength, the cards still show, and "Dock here to research." reads over it.
+- **The card.** The pointer over an upgrade shows its card just under it, or above where there's no room: name, a line on what it does, and its cost with the resource bar's icons, what the player lacks in red. An available one adds "Hold to research."
+- A hidden one shows "???" and no cost; one whose stage is shut shows "???" and "Requires promotion.". A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
+- **Researching.** Holding an available tile sweeps the hold buttons' faint cyan fill up from its bottom, evenly; at the top, 0.6 s on, it is researched: the credits come off as a loss and the points come off their counts. The tile turns lit and pops as the research count does (to 106 % and back), while the fill fades off it in 0.15 s. Letting go or leaving first drains the fill in 0.2 s, fast at first.
+- **A press on a tile that can't be researched** flashes its border for 0.3 s; on one the player can't afford, the red badge pulses too.
+- Under Reduce motion nothing pops or pulses; the fills, fades and flashes stay.
 
 ### Bus panel
 
@@ -268,12 +278,12 @@ Titled "Frameshift Bus".
 ## Menus
 
 - **Main menu:** title, Play, Settings, Quit (hidden on web). On web a title card (the game's title, "Click to start") comes first.
-- **Pause menu:** Resume, Settings, Main menu.
+- **Pause menu:** Resume, Settings, Main menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 
 ## Debug panel
 
-F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. View research tree opens every tree side by side with smaller tiles, and researches from anywhere.
+F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. Open research opens the research screen from anywhere, and Promote opens the next research stage.
 
 ## Open questions
 

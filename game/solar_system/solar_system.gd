@@ -283,7 +283,6 @@ func _start_passengers() -> void:
 	goals.add(RatingGoal.new(START_RATING))
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
-	lab.planets = _planets
 	cabin.unloaded.connect(bar.commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
@@ -365,10 +364,9 @@ func _run_fuel_pump(delta: float) -> void:
 	panel.show_fuel(tank.get_fraction(), full_tank_cost, open_stop.is_empty(), note)
 
 
-# The dock panel's Research button: opens the planet on its Research tab.
-func _on_research_pressed(planet: Planet) -> void:
-	open_planet(planet)
-	(%PlanetPanel as PlanetPanel).show_tab(PlanetPanel.RESEARCH_TAB)
+# The dock panel's Research button: opens the research screen on every tree.
+func _on_research_pressed(_planet: Planet) -> void:
+	(%ResearchLab as ResearchLab).open_screen()
 
 
 func _on_delivered(passenger: Passenger, payout: int) -> void:
