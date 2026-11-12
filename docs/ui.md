@@ -149,7 +149,7 @@ In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get
 - **A row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
 - **Deliver 50 passengers:** the count ("12/50"), and the bar fills with it.
-- **Maintain 4.0 rating:** the average ("4.2", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
+- **Maintain 3.5 rating:** the average ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
 - A quest shows its text and icon only *(no design yet)*.
 
 ### Dock panel

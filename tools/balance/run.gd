@@ -12,7 +12,8 @@ extends Node
 ## "drink.max_interval", "cabin.seats", "tank.burn_per_unit", "bus.charge_time", and
 ## "upgrade_credits" / "upgrade_points", a list of costs by tree row. "start_with" set to
 ## "all" starts on a bus with every built upgrade researched, and to a list of titles, with
-## those.
+## those. "open_stages" is how many research stages are open (1 to 3), and "rating_goal"
+## and "deliveries_goal" are the goals the run is measured against.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const COMMUTER := "res://game/passengers/types/commuter.tres"
@@ -41,6 +42,7 @@ var _decided := false
 var _think_left := 0.0
 var _decision_count := 0
 var _tow_in := -1.0
+var _tow_notice: Notice
 # The hand model: who it serves, when it is free again, and when it notices each request.
 var _hand: Passenger
 var _hand_free_at := 0.0
@@ -67,7 +69,10 @@ func _ready() -> void:
 	_waiting = _system.get_node(^"%WaitingPassengers") as WaitingPassengers
 	_lab = _system.get_node(^"%ResearchLab") as ResearchLab
 	_ledger = _system.get_ledger()
-	_planets = _lab.planets
+	_collect_planets(_system)
+	var overrides: Dictionary = _config.get("overrides", {})
+	_recorder.rating_goal = float(overrides.get("rating_goal", SolarSystem.START_RATING))
+	_recorder.deliveries_goal = int(overrides.get("deliveries_goal", SolarSystem.START_DELIVERIES))
 	_apply_node_overrides()
 	# The same dice for the same seed: the lines start over with it.
 	_waiting.seed_dice(int(_config.get("seed", 1)))
@@ -92,8 +97,8 @@ func _process(delta: float) -> void:
 		return
 	if _tow_in >= 0.0:
 		_tow_in -= delta
-		if _tow_in < 0.0:
-			(_system.get_node(^"%TowOffer") as TowOffer).requested.emit()
+		if _tow_in < 0.0 and is_instance_valid(_tow_notice):
+			_tow_notice.action_pressed.emit()
 	if _bus.is_at_planet():
 		_at_dock(delta)
 	else:
@@ -141,8 +146,8 @@ func _apply(decision: Dictionary) -> void:
 		_refuel(planet)
 	for id: String in decision.get("research", []):
 		var upgrade := _upgrade(id)
-		if upgrade:
-			_lab.research_at(upgrade, planet)
+		if upgrade and planet.has_lab:
+			_lab.research(upgrade)
 	var panel := _system.get_node(^"%DockPanel") as DockPanel
 	for id: String in decision.get("board", []):
 		if _ids.has(id):
@@ -233,7 +238,7 @@ func _describe() -> Dictionary:
 			"distance": snappedf(distance, 0.1),
 			"flight_seconds": roundi(_bus.charge_time + distance / _bus.max_speed + 2.0),
 			"full_tank_costs": ceili(tank.capacity * planet.fuel_price),
-			"research": planet.research_tree != null,
+			"research": planet.has_lab,
 		}
 		if markers:
 			row["waiting"] = _waiting.count_at(planet)
@@ -247,7 +252,6 @@ func _describe() -> Dictionary:
 		"points": _recorder.report(_ledger)["points"],
 		"rating": snappedf(_ledger.get_recent_rating(), 0.01),
 		"average_rating": snappedf(_ledger.get_average_rating(), 0.01),
-		"rating_says": RatingBand.describe(_ledger.get_recent_rating()),
 		"delivered": _recorder.deliveries.size(),
 		"fuel":
 		{
@@ -282,14 +286,11 @@ func _passenger_row(passenger: Passenger) -> Dictionary:
 func _upgrade_rows(here: Planet) -> Array[Dictionary]:
 	var rows: Array[Dictionary] = []
 	var research := _lab.get_research()
-	for planet: Planet in _planets:
-		if not planet.research_tree:
-			continue
-		var upgrades := planet.research_tree.upgrades
-		for i: int in upgrades.size():
-			var upgrade := upgrades[i]
+	for tree: ResearchTree in _lab.trees:
+		for i: int in tree.upgrades.size():
+			var upgrade := tree.upgrades[i]
 			var state := research.get_state(upgrade, _ledger.credits, _ledger.get_all_research())
-			if state == Research.State.HIDDEN:
+			if state == Research.State.HIDDEN or state == Research.State.NEEDS_PROMOTION:
 				continue
 			var points := {}
 			for race: Race.Type in upgrade.points:
@@ -300,14 +301,14 @@ func _upgrade_rows(here: Planet) -> Array[Dictionary]:
 					seats += roundi(modifier.amount)
 			var requires: Array[String] = []
 			for needs: Resource in upgrade.requires:
-				requires.append("%s#%d" % [planet.display_name, upgrades.find(needs)])
+				requires.append("%s#%d" % [tree.title, tree.upgrades.find(needs)])
 			(
 				rows
 				. append(
 					{
-						"id": "%s#%d" % [planet.display_name, i],
-						"at": planet.display_name,
-						"here": planet == here,
+						"id": "%s#%d" % [tree.title, i],
+						"tree": tree.title,
+						"here": here.has_lab,
 						"title": upgrade.title,
 						"does": upgrade.description,
 						"not_built": upgrade.description.contains("NOT IMPLEMENTED"),
@@ -324,12 +325,20 @@ func _upgrade_rows(here: Planet) -> Array[Dictionary]:
 
 func _upgrade(id: String) -> Upgrade:
 	var parts := id.split("#")
-	var planet := _planet(parts[0])
-	if parts.size() != 2 or not planet or not planet.research_tree:
+	if parts.size() != 2:
 		return null
-	var index := int(parts[1])
-	var upgrades := planet.research_tree.upgrades
-	return upgrades[index] if index >= 0 and index < upgrades.size() else null
+	for tree: ResearchTree in _lab.trees:
+		if tree.title == parts[0]:
+			var index := int(parts[1])
+			return tree.upgrades[index] if index >= 0 and index < tree.upgrades.size() else null
+	return null
+
+
+func _collect_planets(node: Node) -> void:
+	for child: Node in node.get_children():
+		if child is Planet:
+			_planets.append(child as Planet)
+		_collect_planets(child)
 
 
 func _planet(planet_name: String) -> Planet:
@@ -378,6 +387,9 @@ func _on_ran_out_of_fuel() -> void:
 	_recorder.tows += 1
 	_recorder.news.append("Ran out of fuel and had to be towed for %d" % SolarSystem.TOW_FEE)
 	_tow_in = TOW_THINK
+	# The system offered the tow just before this: its notice is the newest.
+	var notices := (_system.get_node(^"%Notices") as NoticeStack).get_notices()
+	_tow_notice = notices.back() if not notices.is_empty() else null
 
 
 # Numbers on the shared resources, set before the scene loads them.
@@ -408,11 +420,11 @@ func _apply_node_overrides() -> void:
 		var parts := key.split(".")
 		if parts.size() == 2 and nodes.has(parts[0]):
 			(nodes[parts[0]] as Node).set(parts[1], overrides[key])
+	for i: int in int(overrides.get("open_stages", 1)) - 1:
+		_lab.get_research().open_next_stage()
 	var start_with: Variant = overrides.get("start_with", [])
-	for planet: Planet in _planets:
-		if not planet.research_tree:
-			continue
-		for upgrade: Upgrade in planet.research_tree.upgrades:
+	for tree: ResearchTree in _lab.trees:
+		for upgrade: Upgrade in tree.upgrades:
 			var built := not upgrade.description.contains("NOT IMPLEMENTED")
 			var named: bool = start_with is Array and upgrade.title in start_with
 			if named or (start_with is String and start_with == "all" and built):

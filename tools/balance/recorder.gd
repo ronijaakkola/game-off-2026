@@ -30,9 +30,13 @@ var request_seconds := 0.0
 var worst_request := 0.0
 var earned := 0
 var spent_on_research := 0
-## When each of the run's two goals was first met, in seconds, or -1.
+## The run's two goals: this many delivered, and this all-time average rating.
+var deliveries_goal := SolarSystem.START_DELIVERIES
+var rating_goal := SolarSystem.START_RATING
+## When each goal was first met, and when both first held at once, in seconds, or -1.
 var deliveries_goal_at := -1.0
 var rating_goal_at := -1.0
+var both_goals_at := -1.0
 
 var _rides: Dictionary[Passenger, Dictionary] = {}
 var _open_since: Dictionary[Passenger, float] = {}
@@ -81,10 +85,13 @@ func deliver(passenger: Passenger, payout: int, ledger: Ledger) -> void:
 			% [passenger.name, row["type"], row["to"], row["stars"], payout, roundi(passenger.fare)]
 		)
 	)
-	if deliveries_goal_at < 0.0 and deliveries.size() >= SolarSystem.START_DELIVERIES:
+	var rated := ledger.get_average_rating() >= rating_goal
+	if deliveries_goal_at < 0.0 and deliveries.size() >= deliveries_goal:
 		deliveries_goal_at = _time
-	if rating_goal_at < 0.0 and ledger.get_average_rating() >= SolarSystem.START_RATING:
+	if rating_goal_at < 0.0 and rated:
 		rating_goal_at = _time
+	if both_goals_at < 0.0 and rated and deliveries.size() >= deliveries_goal:
+		both_goals_at = _time
 
 
 func research(upgrade: Upgrade) -> void:
@@ -163,6 +170,8 @@ func report(ledger: Ledger) -> Dictionary:
 		"points_earned": deliveries.size(),
 		"deliveries_goal_at": snappedf(deliveries_goal_at, 0.1),
 		"rating_goal_at": snappedf(rating_goal_at, 0.1),
+		"both_goals_at": snappedf(both_goals_at, 0.1),
+		"rating_goal": rating_goal,
 		"deliveries": deliveries,
 		"upgrades": upgrades,
 		"series": series,

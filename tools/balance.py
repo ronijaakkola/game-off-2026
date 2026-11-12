@@ -12,7 +12,7 @@
   uv run tools/balance.py play DIR [DECISION] [--seed N] [--minutes M] [--policy JSON]
       A game played turn by turn, one dock at a time, for a person or an agent. With no
       DECISION it starts the game in DIR (or shows where it stands). A DECISION is JSON:
-      {"board": ["w1"], "research": ["Giant#0"], "refuel": true, "next": "Terra"}.
+      {"board": ["w1"], "research": ["Comfort#0"], "refuel": true, "next": "Terra"}.
 
 The game is deterministic for a seed, so `play` replays the decisions so far each turn.
 """
@@ -99,11 +99,22 @@ def summarize(reports: list[dict]) -> dict:
         "flying %": mean([100.0 * r["flight_seconds"] / r["seconds"] for r in reports]),
         "business %": share(rides, lambda ride: ride["type"] == "Business"),
         "business stars": mean([ride["stars"] for ride in business]),
-        "30 delivered at min": mean(
+        "avg stars at 10 rides": mean(
+            [mean([ride["stars"] for ride in r["deliveries"][:10]]) for r in reports]
+        ),
+        "avg stars at 30 rides": mean(
+            [mean([ride["stars"] for ride in r["deliveries"][:30]]) for r in reports]
+        ),
+        "deliveries goal at min": mean(
             [r["deliveries_goal_at"] / 60.0 for r in reports if r["deliveries_goal_at"] > 0]
         ),
-        "4.0 avg ever %": share(reports, lambda r: r["rating_goal_at"] > 0),
-        "4.0 avg at end %": share(reports, lambda r: r["average_rating"] >= 4.0),
+        "rating goal at end %": share(
+            reports, lambda r: r["average_rating"] >= r["rating_goal"]
+        ),
+        "both goals met %": share(reports, lambda r: r["both_goals_at"] > 0),
+        "both goals at min": mean(
+            [r["both_goals_at"] / 60.0 for r in reports if r["both_goals_at"] > 0]
+        ),
         "recent stars at end": mean([r["recent_rating"] for r in reports]),
         "first upgrade at min": mean(
             [r["upgrades"][0]["t"] / 60.0 for r in reports if r["upgrades"]]
@@ -178,8 +189,7 @@ def show_state(state: dict) -> None:
     points = ", ".join(f"{count} {race.lower()}" for race, count in state["points"].items())
     print(f"Credits {state['credits']}. Research points: {points}.")
     print(f"Rating (last 10 rides) {state['rating']} stars, all-time {state['average_rating']}; "
-          f"{state['delivered']} delivered. Goals: deliver 30, keep a 4.0 all-time average.")
-    print("  " + state["rating_says"].replace("\n", " "))
+          f"{state['delivered']} delivered.")
     print(f"Fuel {fuel['fuel']}/{fuel['capacity']} (flies {fuel['range']} units); "
           f"filling up here costs {fuel['fill_costs']} credits.")
     print(f"On board ({len(state['on_board'])} of {state['seats']} seats):")
@@ -200,17 +210,16 @@ def show_state(state: dict) -> None:
         if "waiting" in planet:
             extras.append(f"{planet['waiting']} waiting")
         if planet["research"]:
-            extras.append("has a research tree")
+            extras.append("has a lab")
         print(f"  - {planet['name']}: {planet['distance']} units, about "
               f"{planet['flight_seconds']} s; full tank costs {planet['full_tank_costs']}"
               + (" (" + ", ".join(extras) + ")" if extras else ""))
-    print("Upgrades (researched only while docked at their planet):")
+    print("Upgrades (researched only while docked at a planet with a lab):")
     for upgrade in state["upgrades"]:
         if upgrade["state"] in ("researched", "locked"):
             continue
         cost = ", ".join(f"{n} {race.lower()}" for race, n in upgrade["points"].items())
-        where = "HERE" if upgrade["here"] else f"at {upgrade['at']}"
-        print(f"  - {upgrade['id']} {upgrade['title']} ({where}, {upgrade['state']}): "
+        print(f"  - {upgrade['id']} {upgrade['title']} ({upgrade['state']}): "
               f"{upgrade['credits']} credits + {cost}. {upgrade['does']}")
     done = [u["title"] for u in state["upgrades"] if u["state"] == "researched"]
     print("Researched so far: " + (", ".join(done) if done else "nothing"))
