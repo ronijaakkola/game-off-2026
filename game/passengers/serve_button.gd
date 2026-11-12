@@ -10,6 +10,9 @@ extends Button
 ## The player pressed it down, with [param held] true, or let go, or it hid or turned off
 ## while held, with [param held] false.
 signal hold_changed(held: bool)
+## PROTOTYPE: a move in the minigame tried in the hold's place served [param amount] more
+## of the request ([ServeMinigamePrototype]).
+signal fed(amount: float)
 
 ## The fill's colour: the fuel's cyan, faint, so the label stays readable over it.
 const FILL_COLOR := Color(0.6, 0.949, 1.0, 0.35)
@@ -24,11 +27,16 @@ var progress := 0.0:
 		if value != progress:
 			progress = value
 			queue_redraw()
+		if _game:
+			_game.progress = progress
 
 var _held := false
 # The need's icon and label, centred together. Made in _ready().
 var _icon: TextureRect
 var _label: Label
+var _row: HBoxContainer
+# PROTOTYPE: the minigame tried in the hold's place, drawn over the button.
+var _game: ServeMinigamePrototype
 # The fill's style: a flat box with the button's corners.
 var _fill_style := StyleBoxFlat.new()
 
@@ -44,7 +52,8 @@ func _ready() -> void:
 	button_up.connect(_set_held.bind(false))
 	_icon = TextureRect.new()
 	_label = Label.new()
-	var row := HBoxContainer.new()
+	_row = HBoxContainer.new()
+	var row := _row
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -59,6 +68,11 @@ func _ready() -> void:
 	row.add_child(_icon)
 	row.add_child(_label)
 	add_child(row)
+	_game = ServeMinigamePrototype.new()
+	_game.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_game.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_game.fed.connect(fed.emit)
+	add_child(_game)
 
 
 ## Shows the request's [param label] and [param request_icon], centred together.
@@ -67,6 +81,13 @@ func show_request(label: String, request_icon: Texture2D) -> void:
 		_label.text = label
 	_icon.texture = request_icon
 	_icon.visible = request_icon != null
+	_game.request_label = label
+	_row.modulate.a = _game.get_label_alpha()
+
+
+func _gui_input(event: InputEvent) -> void:
+	if not disabled:
+		_game.handle(event)
 
 
 func _notification(what: int) -> void:
@@ -91,7 +112,7 @@ func release() -> void:
 
 
 func _set_held(held: bool) -> void:
-	if held == _held:
+	if held == _held or (held and _game.is_playing()):
 		return
 	_held = held
 	hold_changed.emit(held)

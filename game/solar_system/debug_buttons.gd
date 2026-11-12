@@ -11,6 +11,8 @@ const SEATS := 1
 const STATS_GROUP := "Stats"
 ## The debug panel's group for the trait buttons, one per trait that turns it on or off.
 const TRAITS_GROUP := "Traits"
+## PROTOTYPE: the debug panel's group for the serve minigames, one button per game.
+const SERVE_GROUP := "Serve game"
 
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
@@ -32,6 +34,10 @@ func _ready() -> void:
 		var text := "Toggle %s" % String(BusTraits.Type.keys()[value]).capitalize().to_lower()
 		var action := _debug_toggle_trait.bind(value as BusTraits.Type)
 		DebugPanel.add_button(text, action, self, TRAITS_GROUP)
+	for mode: ServeMinigamePrototype.Mode in ServeMinigamePrototype.NAMES:
+		var pick := _debug_pick_serve_game.bind(mode)
+		DebugPanel.add_button(ServeMinigamePrototype.NAMES[mode], pick, self, SERVE_GROUP)
+	DebugPanel.add_button("Everyone asks", _debug_everyone_asks, self, SERVE_GROUP)
 
 
 # A pair of buttons for the type stat on the Stats card, "+20% top speed" and
@@ -93,3 +99,21 @@ func _debug_toggle_trait(type: BusTraits.Type) -> void:
 		traits.remove(type)
 	else:
 		traits.add(type)
+
+
+# PROTOTYPE: every serve button plays this game from now on, and a notice says how.
+func _debug_pick_serve_game(mode: ServeMinigamePrototype.Mode) -> void:
+	ServeMinigamePrototype.mode = mode
+	var text := "%s: %s" % [ServeMinigamePrototype.NAMES[mode], ServeMinigamePrototype.HINTS[mode]]
+	notices.push(text, Notice.Kind.INFO, false, 5.0)
+
+
+# PROTOTYPE: everyone on board with nothing open asks for something, to try a game at once.
+# Only in flight: a stop puts a request on hold.
+func _debug_everyone_asks() -> void:
+	for passenger: Passenger in cabin.get_passengers():
+		if passenger.request or passenger.type.needs.is_empty():
+			continue
+		passenger.request = passenger.type.needs.pick_random()
+		passenger.serving = 0.0
+		passenger.activity = passenger.request.request_line

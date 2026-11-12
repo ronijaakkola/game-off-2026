@@ -28,6 +28,8 @@ extends Control
 ## The serve button for [member passenger]'s open request was pressed down, with
 ## [param held] true, or let go, with it false.
 signal serve_held(held: bool)
+## PROTOTYPE: a serve minigame's move served [param amount] more of the open request.
+signal serve_fed(amount: float)
 ## The kick button was pressed: the player wants [member passenger] off the bus.
 signal kick_pressed
 ## The card has slid out and folded away after [method leave]. It can be freed.
@@ -461,6 +463,10 @@ func _morph_text(label: MorphLabel, text: String, at_once: bool) -> void:
 
 func _on_serve_button_hold_changed(held: bool) -> void:
 	serve_held.emit(held)
+
+
+func _on_serve_button_fed(amount: float) -> void:
+	serve_fed.emit(amount)
 
 
 func _on_kick_button_pressed() -> void:

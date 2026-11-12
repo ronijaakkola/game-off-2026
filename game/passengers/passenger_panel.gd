@@ -73,6 +73,7 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	card.options_gap = board.get_theme_stylebox(&"panel").content_margin_right + OPTIONS_GAP
 	card.passenger = passenger
 	card.serve_held.connect(func(held: bool) -> void: cabin.hold_serve(passenger, held))
+	card.serve_fed.connect(func(amount: float) -> void: cabin.feed_by_hand(passenger, amount))
 	card.kick_pressed.connect(func() -> void: cabin.kick(passenger))
 	card.left.connect(card.queue_free)
 	_cards[passenger] = card

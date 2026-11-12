@@ -161,6 +161,13 @@ func hold_serve(passenger: Passenger, held: bool) -> void:
 		_hands.erase(passenger)
 
 
+## PROTOTYPE: the player's move in a serve minigame serves [param amount] more of
+## [param passenger]'s open request, as a fraction of all of it.
+func feed_by_hand(passenger: Passenger, amount: float) -> void:
+	if passenger in _passengers:
+		passenger.feed(amount, portion)
+
+
 ## The amenity serving [param passenger]'s request now, or null.
 func get_serving_amenity(passenger: Passenger) -> Amenity:
 	return _served_by.get(passenger)
