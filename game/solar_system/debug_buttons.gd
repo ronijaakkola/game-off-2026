@@ -1,7 +1,8 @@
 extends Node
 ## The solar system's buttons on the debug panel: emptying or lowering the fuel, scaring the
-## passengers, showing notices, and a card each of buttons that change the bus's stats and
-## turn its traits on or off, as upgrades would.
+## passengers, showing notices, an incoming transmission whose Answer opens a test quest, and
+## a card each of buttons that change the bus's stats and turn its traits on or off, as
+## upgrades would.
 
 ## The percent of top speed, the fuel tank and portion size the stat buttons add or take
 ## away, and the seats, on every click.
@@ -11,10 +12,16 @@ const SEATS := 1
 const STATS_GROUP := "Stats"
 ## The debug panel's group for the trait buttons, one per trait that turns it on or off.
 const TRAITS_GROUP := "Traits"
+## The test quest's made-up caller's passenger type, for its badge.
+const TEST_TYPE := preload("res://game/passengers/types/business.tres")
 
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
 @export var notices: NoticeStack
+@export var transmission_panel: TransmissionPanel
+## Where the test quest's caller is going, and the planet their quest names.
+@export var test_destination: Planet
+@export var test_flyby_planet: Planet
 
 
 func _ready() -> void:
@@ -61,9 +68,9 @@ func _debug_scare_passengers() -> void:
 	cabin.shock(Cabin.KICK_SHOCK)
 
 
-# Incoming transmission: the call notice. Nothing answers it yet, so Answer only closes it.
+# Incoming transmission: the call notice, whose Answer opens the test quest.
 func _debug_incoming_transmission() -> void:
-	notices.announce_transmission()
+	notices.announce_transmission().action_pressed.connect(_open_test_quest)
 
 
 # Test notices: one of each other kind, the info closing by itself and the warning with a
@@ -73,6 +80,30 @@ func _debug_test_notices() -> void:
 	notices.push("The tank is full.", Notice.Kind.INFO, false, 4.0)
 	notices.push("Fuel is running low.", Notice.Kind.WARNING, true)
 	notices.push("Not enough credits.", Notice.Kind.ERROR, false, 4.0)
+
+
+# The test quest: the first passenger on board calls with a quest, or a made-up one when
+# nobody rides. Answering it does nothing yet.
+func _open_test_quest() -> void:
+	var passengers := cabin.get_passengers()
+	var transmission: Transmission
+	if passengers:
+		transmission = Transmission.from_passenger(passengers[0])
+	else:
+		transmission = Transmission.new()
+		transmission.caller_name = "Reizhis"
+		transmission.look = AlienLook.random(RandomNumberGenerator.new(), Race.Type.BLUE)
+		transmission.race = Race.Type.BLUE
+		transmission.type = TEST_TYPE
+		transmission.destination = test_destination
+	transmission.text = "Please stop the bus to let me admire that beautiful planet."
+	transmission.quest = "Stop the bus near"
+	transmission.quest_planet = test_flyby_planet
+	transmission.reward_credits = 40
+	transmission.reward_research = {transmission.race: 2}
+	transmission.accept_text = "Yes"
+	transmission.decline_text = "No"
+	transmission_panel.open(transmission)
 
 
 # The stat buttons, each a modifier like an upgrade's, another with every click. Once the

@@ -1,0 +1,135 @@
+[gd_scene format=3 uid="uid://bvv0a8fkf5k1v"]
+
+[ext_resource type="Script" uid="uid://clsulovrjexhc" path="res://game/transmissions/transmission_screen.gd" id="1_screen"]
+[ext_resource type="Shader" uid="uid://jsmh20iu8g0q" path="res://game/passengers/photo_backdrop.gdshader" id="2_backdrop"]
+[ext_resource type="Shader" uid="uid://doalqnk0tyx2h" path="res://game/transmissions/crt.gdshader" id="3_crt"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_screen"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.043, 0.035, 0.125, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tube"]
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
+resource_local_to_scene = true
+shader = ExtResource("2_backdrop")
+shader_parameter/backdrop_color = null
+shader_parameter/shadow_color = null
+shader_parameter/seed = null
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_photo"]
+blend_mode = 4
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+resource_local_to_scene = true
+shader = ExtResource("3_crt")
+shader_parameter/off_color = null
+shader_parameter/power = null
+shader_parameter/static_amount = null
+shader_parameter/motion = null
+shader_parameter/lines = null
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="TransmissionScreen" type="PanelContainer" unique_id=801305896]
+custom_minimum_size = Vector2(232, 232)
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_screen")
+script = ExtResource("1_screen")
+
+[node name="Tube" type="Panel" parent="." unique_id=2023176214]
+unique_name_in_owner = true
+clip_children = 1
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tube")
+
+[node name="Backdrop" type="ColorRect" parent="Tube" unique_id=1404483024]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_backdrop")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Photo" type="TextureRect" parent="Tube" unique_id=747690098]
+unique_name_in_owner = true
+material = SubResource("CanvasItemMaterial_photo")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Crt" type="ColorRect" parent="Tube" unique_id=415437521]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_crt")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Border" type="Panel" parent="." unique_id=715833324]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_border")
+
+[node name="BadgeLayer" type="Control" parent="." unique_id=122696830]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Badges" type="HBoxContainer" parent="BadgeLayer" unique_id=655247819]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = -10.0
+offset_top = -10.0
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Viewport" type="SubViewport" parent="." unique_id=1263939176]
+unique_name_in_owner = true
+own_world_3d = true
+transparent_bg = true
+msaa_3d = 2
+size = Vector2i(448, 448)
+render_target_update_mode = 0
+
+[node name="Camera" type="Camera3D" parent="Viewport" unique_id=919933864]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+projection = 1
+
+[node name="Talk" type="Node3D" parent="Viewport" unique_id=148953119]
+unique_name_in_owner = true

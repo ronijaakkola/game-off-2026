@@ -186,7 +186,7 @@ func _set_slide(value: float) -> void:
 
 
 func _show_text() -> void:
-	(%NameLabel as Label).text = title
+	(%TitleLabel as Label).text = title
 	var label := %SentenceLabel as Label
 	label.text = sentence
 	label.visible = not sentence.is_empty()

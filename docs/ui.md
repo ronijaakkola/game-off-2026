@@ -106,6 +106,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 | Bottom edge, centred | Bus status: the route bar over the bus bar |
 | Above the bus bars | Notices |
 | Right side | The open planet's or bus's panel, over the dock panel |
+| Middle, over the paused game | Transmission |
 | Bottom left | Debug panel (F2) |
 
 - **While a planet's or the bus's panel is open,** the bus bars and the notices hide, and the resource bar moves to stay centred between the On board panel and the open panel.
@@ -244,6 +245,21 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 
 - Out of the bus's door, a small, soft human figure in a star jump, all in their skin colour, is thrown out and up. It slows and tumbles as if weightless, and shrinks away after 4 s.
 - It lets out a quiet Wilhelm scream that fades fast, as if it flew away from the bus.
+
+### Transmission
+
+A frosted-glass modal, 552 px wide, in the middle of the screen over a dark scrim, while the game is paused: the caller's screen on the left, what they say on the right.
+
+- **The screen.** The caller's live portrait, 224 px, over a blurred backdrop in their race's deep shade, in a 2 px frame of their skin colour on a dark bezel. Their type's badges sit on its top left corner, 28 px discs, as on a portrait.
+- It looks like an old tube at all times: fine dark scanlines, a dark rim, faint grey snow and a soft bright band rolling down.
+- **Turning on.** It opens dark; a white line opens across the middle and the picture opens out from it in 0.9 s under a burst of static that settles to the faint snow. Answering closes the picture to a line and the line to nothing in 0.4 s; only once the screen is dark, after a short beat, does the modal fade and shrink a little (to 98 %) in 0.2 s.
+- **Beside it:** a phone icon and "Incoming transmission", faint; the caller's name, large; a passenger's destination at the right (arrow, planet icon, name); what they say, in Figtree 13 px. The text starts 4 px down, level with the coloured frame rather than the bezel.
+- **A quest** adds a faint row under the text: a flag, its line ("Stop the bus near") and a planet. Over the buttons sits the reward, right-aligned: "Reward", the credits in the gain's green by a gold dollar sign, and a chip per race's research points.
+- **Buttons:** a message has one primary button ("Got it"); a quest has a quiet "No" and a primary "Yes".
+- **Opening.** The scrim and modal fade in as the modal grows from 96 % in 0.4 s while the tube turns on. A beat after the picture is up, the caller says their text a letter at a time at a speaking pace, about 25 a second and never quite even, with a beat between words, a pause at a comma and a longer one at a full stop. Their head bobs as if with each word, stilling in the pauses, and their eyes stay on the player. After a 0.4 s pause to finish reading, the quest, the reward and the buttons fade in and rise into place one after another, 0.18 s apart over 0.5 s each, the quest rising most (8 px) and the buttons least (4 px). The buttons take clicks only once they start to show. A click on the modal before that shows the text whole and brings the rest in at once, with a tight stagger and no pause.
+- The caller's face shows their mood as on a portrait; a happy caller beams now and then.
+- **Music.** While it shows, the music is muffled, as if through a wall: a low-pass filter closes and the music dips to 60 %, easing in over 0.4 s as it opens and back out over 0.6 s as it is answered. On the web there are no audio filters, so only the dip is heard.
+- Under Reduce motion the modal fades in and out without growing or shrinking, the rest fades in without rising, the tube fades in with no static burst and its snow and band hold still, the text shows whole and the head doesn't bob.
 
 ## Opening a planet or the bus
 
