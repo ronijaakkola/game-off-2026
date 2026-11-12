@@ -29,7 +29,7 @@ enum Type {
 	FOOD_DISPENSER = 6,
 	## Robots bring hungry passengers their food, several at a time ([Amenity]).
 	SERVING_ROBOTS = 7,
-	## One more place in every planet's line ([WaitingPassengers]).
+	## Someone picked up rides happier the longer they waited ([WaitingPassengers]).
 	WAITING_LOUNGE = 8,
 	## Happy passengers tip on top of what they pay ([Cabin]).
 	TIP_JAR = 9,

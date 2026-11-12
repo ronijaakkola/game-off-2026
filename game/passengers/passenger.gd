@@ -86,6 +86,9 @@ var leeway := 0.0
 var activity := ""
 ## The need they are asking for, or null.
 var request: Need
+## Added to the happiness they settle at, all ride long, for the time they waited before
+## the Station waiting lounge picked them up ([WaitingPassengers]).
+var lounge_bonus := 0.0
 ## How much of the open request is served so far, from 0 to 1 ([method feed]).
 var serving := 0.0
 ## Whether they are asleep: their activity is one of the type's sleep lines. Only a bus
@@ -171,6 +174,7 @@ static func from_save(
 	passenger.race = int(saved.get("race", passenger.race)) as Race.Type
 	passenger.look = AlienLook.from_save(saved.get("look", {}), passenger.race)
 	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
+	passenger.lounge_bonus = float(saved.get("lounge_bonus", 0.0))
 	passenger.leeway = float(saved.get("leeway", 0.0))
 	passenger.activity = ""
 	passenger._activity_left = 0.0
@@ -251,7 +255,7 @@ func get_timing() -> float:
 func get_target(comfort: Comfort = null) -> float:
 	if request:
 		return 0.0
-	var bonus := comfort.bonus if comfort else 0.0
+	var bonus := (comfort.bonus if comfort else 0.0) + lounge_bonus
 	var settled := minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS)
 	return clampf(settled + get_timing(), 0.0, MAX_HAPPINESS)
 
@@ -386,6 +390,7 @@ func to_save() -> Dictionary:
 		"need_timers": Array(_need_timers),
 		"held_need": type.needs.find(held) if held else -1,
 		"request_age": _request_age,
+		"lounge_bonus": lounge_bonus,
 	}
 
 
