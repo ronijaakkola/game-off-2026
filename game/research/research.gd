@@ -14,13 +14,13 @@ signal stage_opened(stage: int)
 
 ## How an upgrade shows in its tree.
 enum State {
-	## Marked hidden, and something it requires isn't researched: a silhouette.
+	## Marked hidden, and nothing it requires is researched: a silhouette.
 	HIDDEN,
-	## Something it requires isn't researched.
+	## Nothing it requires is researched.
 	LOCKED,
-	## Everything it requires is researched, and the player can pay for it.
+	## One of the upgrades it requires is researched, and the player can pay for it.
 	AVAILABLE,
-	## Everything it requires is researched, but the player can't pay for it.
+	## One of the upgrades it requires is researched, but the player can't pay for it.
 	UNAFFORDABLE,
 	## Researched: its effects are on the bus.
 	RESEARCHED,
@@ -57,12 +57,15 @@ func is_researched(upgrade: Upgrade) -> bool:
 	return _researched.has(upgrade)
 
 
-## Whether everything [param upgrade] requires is researched.
+## Whether [param upgrade] can be reached: it requires nothing, or one of the upgrades it
+## requires is researched. Each is a path to it, and one is enough.
 func is_unlocked(upgrade: Upgrade) -> bool:
+	if upgrade.requires.is_empty():
+		return true
 	for required: Upgrade in upgrade.requires:
-		if not is_researched(required):
-			return false
-	return true
+		if is_researched(required):
+			return true
+	return false
 
 
 ## Whether [param stage], counting from 0, is open.

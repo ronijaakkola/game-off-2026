@@ -231,7 +231,7 @@ Upgrades for the bus, bought with credits and research points.
 - **Each tree splits into three stages** by row: rows 1 and 2, rows 3 and 4, and the rest. The first stage is open from the start, and each **promotion** opens the next. *(not built)* What earns a promotion; for now only the debug panel gives one.
 - **The game is paused** while the player researches.
 - **An upgrade** has a cost in credits and research points, usually of the one race whose points are for the part of the bus it improves, so a tree can send the player looking for that race.
-- It needs *all* the upgrades it lists, from the same tree, and its stage open.
+- It needs *one* of the upgrades it lists, from the same tree, and its stage open: each is a path to it. One that lists none needs only its stage.
 - Each is researched once. A bigger step of the same thing is its own upgrade after it (Tank I, then Tank II).
 - Once researched it puts modifiers on the bus's stats, gives it traits, or both.
 
@@ -240,9 +240,9 @@ An upgrade is in one of five states:
 | State | When |
 |---|---|
 | Needs promotion | Its stage isn't open. Its name, description and cost don't show |
-| Hidden | Marked hidden, and not everything it needs is researched. Its name, description and cost don't show |
-| Locked | Something it needs isn't researched |
-| Available | Everything it needs is researched and the player can pay |
+| Hidden | Marked hidden, and nothing it needs is researched. Its name, description and cost don't show |
+| Locked | Nothing it needs is researched |
+| Available | Something it needs is researched and the player can pay |
 | Can't afford | Available but for the cost |
 | Researched | Its effects are on the bus |
 
@@ -272,19 +272,19 @@ An upgrade is in one of five states:
 
 There are three trees, each paid for with one race's points. Frost, Terra and Giant have a lab; the rest have none.
 
-- They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that need two branches. An upgrade can need nothing even below the top row, open once its stage is. Only a stage that isn't open hides an upgrade; none is marked hidden.
+- They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that either of two branches reaches. An upgrade can need nothing even below the top row, open once its stage is. Only a stage that isn't open hides an upgrade; none is marked hidden.
 - **Costs come in five levels,** the same in every tree: 150 credits and 2 points, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Speed 3 on row 5 costs 550 and 7, Station waiting lounge on row 1 costs 300 and 4. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
-"A ← B" means A needs B.
+"A ← B" means A needs B; "A ← B or C" means either one opens it.
 
-- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Fuel forecast and Fuel tank 2 ← Fuel tank 1. Speed 2 and Warm drive ← Speed 1; Speed 3 ← Speed 2. How is my driving? ← Warm drive. Pit crew ← Fuel tank 2; Tow loyalty card ← Pit crew. Efficient burn ← Fuel forecast. Solar fuel ← Fuel tank 2 and Efficient burn. Last row: Slingshot ← Warm drive and Speed 3; Warp gate ← Efficient burn and Solar fuel.
+- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Fuel forecast and Fuel tank 2 ← Fuel tank 1. Speed 2 and Warm drive ← Speed 1; Speed 3 ← Speed 2. How is my driving? ← Warm drive. Pit crew ← Fuel tank 2; Tow loyalty card ← Pit crew. Efficient burn ← Fuel forecast. Solar fuel ← Fuel tank 2 or Efficient burn. Last row: Slingshot ← Warm drive or Speed 3; Warp gate ← Efficient burn or Solar fuel.
   - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait. Solar fuel still holds Fuel tank 3's +25 %.
   - *(not built)* Warm drive, Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel's star fuelling, Slingshot, Warp gate.
-- **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras; Research grant ← Remote terminal. Last row: Bottomless complaints box ← Station cameras and Honk; Express service ← Passenger loyalty program and Business lounge.
+- **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras; Research grant ← Remote terminal. Last row: Bottomless complaints box ← Station cameras or Honk; Express service ← Passenger loyalty program or Business lounge.
   - Door chime gives the waiting markers.
   - *(not built)* The other thirteen.
-- **Orange** (comfort). Extra seat, Pillows and Bigger portions I at the top. Four Extra seats in a chain (+1 seat each). In-Flight Movies ← Pillows; Space Invaders ← In-Flight Movies. Sleeping pods ← Pillows; Airlock ← Sleeping pods. Food Dispenser and Bigger portions II ← Bigger portions I; Waiter Droids ← Food Dispenser. Bigger portions I and II are +50 % portion size each, 2× in all. Earplugs needs nothing, in the second stage. Last row: Karaoke ← Space Invaders and Sleeping pods.
+- **Orange** (comfort). Extra seat, Pillows and Bigger portions I at the top. Four Extra seats in a chain (+1 seat each). In-Flight Movies ← Pillows; Space Invaders ← In-Flight Movies. Sleeping pods ← Pillows; Airlock ← Sleeping pods. Food Dispenser and Bigger portions II ← Bigger portions I; Waiter Droids ← Food Dispenser. Bigger portions I and II are +50 % portion size each, 2× in all. Earplugs needs nothing, in the second stage. Last row: Karaoke ← Space Invaders or Sleeping pods.
   - *(not built)* Earplugs, Airlock, Karaoke. The rest is implemented.
 
 ## Goals
