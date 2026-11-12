@@ -69,7 +69,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 ### Waiting
 
-- Each planet gets a new passenger every 8 to 20 s, up to 3 waiting. Who they are is under Who turns up.
+- Each planet gets a new passenger every 8 to 20 s, up to 3 waiting. Who they are is under Who turns up. *(not built)* Up to 2 until Station waiting lounge is researched.
 - Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
 - Happiness holds while they wait.
 - **The start.** The bus is empty and docked at Ember, with 2 passengers waiting there and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go.

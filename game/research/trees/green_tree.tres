@@ -26,7 +26,8 @@ column = 1
 [sub_resource type="Resource" id="Resource_station_waiting_lounge"]
 script = ExtResource("2_upgrade")
 title = "Station waiting lounge"
-description = "NOT IMPLEMENTED"
+description = "Up to 3 passengers wait at each planet, not 2.
+NOT IMPLEMENTED"
 icon = ExtResource("5_sofa")
 credits = 300
 points = Dictionary[int, int]({
