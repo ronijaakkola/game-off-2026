@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://b0edylrhdf8aq" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="PackedScene" uid="uid://du1swv634nyif" path="res://ui/settings/settings_menu.tscn" id="3_settings"]
+[ext_resource type="Script" uid="uid://dcy77e65i1dbl" path="res://ui/hold_button.gd" id="4_hold"]
 
 [node name="MainMenu" type="MarginContainer" unique_id=1815156436]
 anchor_right = 1.0
@@ -36,11 +37,25 @@ custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
+[node name="ContinueButton" type="Button" parent="Center/Column/Items" unique_id=2041035537]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "Continue"
+
 [node name="PlayButton" type="Button" parent="Center/Column/Items" unique_id=1142676507]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
 text = "Play"
+
+[node name="NewGameButton" type="Button" parent="Center/Column/Items" unique_id=1837312500]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "New game"
+script = ExtResource("4_hold")
 
 [node name="SettingsButton" type="Button" parent="Center/Column/Items" unique_id=1148331793]
 unique_name_in_owner = true
@@ -99,7 +114,9 @@ size_flags_horizontal = 8
 size_flags_vertical = 8
 theme_type_variation = &"FaintLabel"
 
+[connection signal="pressed" from="Center/Column/Items/ContinueButton" to="." method="_on_continue_button_pressed"]
 [connection signal="pressed" from="Center/Column/Items/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="confirmed" from="Center/Column/Items/NewGameButton" to="." method="_on_new_game_button_confirmed"]
 [connection signal="pressed" from="Center/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="Center/Column/Items/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]

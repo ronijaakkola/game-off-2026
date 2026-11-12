@@ -11,7 +11,7 @@ Keeping it that way:
 
 ## Pitch
 
-You drive a bus around a small solar system. Pick up passengers, plot a route through space and get them to their planet before the ride wears them out. The planets keep orbiting, so a route that is short now may not be short in a few seconds.
+You drive a bus around a small solar system. Pick up passengers, plot a route through space and get them to their planet before the ride wears them out. The planets orbit while the bus flies, so a route that looks short at the dock may not be short by the time the bus gets there.
 
 ## Core loop
 
@@ -27,6 +27,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - A star and four planets on circular orbits, one with a moon and one with rings. The Moon counts as a planet for passengers, fuel and docking.
 - Planets orbit at 0.34 (Frost) to 0.47 (Ember) units a second; the Moon moves at up to about 0.87 as it circles Terra. Every planet moves at under 40 % of the bus's speed, so the bus catches one without a long chase.
 - Ember and Frost are 12 to 23 units apart as they orbit.
+- **Time slows unless the bus frameshifts.** The planets orbit at full speed only while the bus flies a course, towed or not. They slow to half of it once it starts parking at a planet, comes to rest in space, or starts coasting to a stop after the course is cleared or the tank runs dry, and stay that slow while it waits or charges. A trip takes far longer than it looks, and the time spent stopped is wound back. Half speed keeps the system moving while docked, so a long stop still costs some of a route's shape. They take about 0.6 s to slow and 0.6 s to get going again, so nothing jumps. Their spin and the passengers' clocks keep running.
 
 ## Route and flight
 
@@ -254,7 +255,7 @@ An upgrade is in one of five states:
 | Seats | 4 | 1 | Rounded to the nearest whole seat. Fewer seats than passengers leaves everyone on board, and nobody else boards until enough have got off |
 | Portion size | 1 | 0.1 | How long a served snack or drink lasts, as a multiple of its need's time |
 
-- *(not built)* Saves will store which upgrades were bought and apply their modifiers again on load.
+- A continued run researches its saved upgrades again on load, so their modifiers and traits come from the same place as in play (Save game).
 
 ### Traits
 
@@ -323,7 +324,7 @@ Three planets have a tree, each paid for with one race's points. The rest have n
 ## Scenes and flow
 
 ```
-main menu ──Play──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
+main menu ──Play / Continue / New game──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
     │                                          │
     └──Settings──▶ settings panel ◀──────────Settings
 ```
@@ -333,9 +334,18 @@ main menu ──Play──▶ solar system ──Esc──▶ pause menu ──M
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
 
+## Save game
+
+- **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save at once, so it is held to confirm, like refuelling, and a stray click can't lose a run.
+- **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
+- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), and the goals' progress.
+- **What starts afresh:** the course, the charge, what each passenger was doing (a request comes back on hold, as at a stop), and the lines' clocks.
+- **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.
+- Only a run started from the main menu is saved, so tests and a scene run on its own never touch the save.
+
 ## Scope
 
-- **Out for now:** saving progress, dialogue, positional or adaptive audio.
+- **Out for now:** more than one save slot, dialogue, positional or adaptive audio.
 
 ## Not designed yet
 

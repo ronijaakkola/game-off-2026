@@ -16,7 +16,6 @@
 [ext_resource type="Resource" uid="uid://bbro62vlymeqe" path="res://game/passengers/types/commuter.tres" id="15_commuter"]
 [ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="16_type"]
 [ext_resource type="PackedScene" uid="uid://lhx0mmtinvdx" path="res://game/passengers/passenger_panel.tscn" id="17_panel"]
-[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="18_theme"]
 [ext_resource type="PackedScene" uid="uid://ciwv4teguvu2s" path="res://game/bus/bus_status_panel.tscn" id="19_status"]
 [ext_resource type="PackedScene" uid="uid://bnqjjd4k8w4nn" path="res://game/solar_system/planet_panel.tscn" id="21_planet_panel"]
 [ext_resource type="PackedScene" uid="uid://c4va8x2cf4kps" path="res://game/solar_system/waiting_markers.tscn" id="22_markers"]
@@ -32,14 +31,14 @@
 [ext_resource type="Resource" uid="uid://dkaejvutk1bu4" path="res://game/research/trees/orange_tree.tres" id="97_orange_tree"]
 [ext_resource type="Script" uid="uid://b5uw1vk5r888r" path="res://game/research/research_lab.gd" id="98_lab"]
 [ext_resource type="PackedScene" uid="uid://ds46abpebov64" path="res://game/research/research_overview.tscn" id="99_overview"]
-[ext_resource type="PackedScene" uid="uid://bahps38451xgx" path="res://game/solar_system/tow_offer.tscn" id="100_tow_offer"]
-[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="101_glass"]
+[ext_resource type="PackedScene" uid="uid://bcagdrd7pm3gw" path="res://game/solar_system/notice_stack.tscn" id="100_notices"]
 [ext_resource type="Script" uid="uid://b7b5a7k6hdr7s" path="res://game/solar_system/hud_layout.gd" id="102_hud"]
-[ext_resource type="Texture2D" uid="uid://qrc7n3h4glnm" path="res://game/solar_system/icons/info.svg" id="102_info"]
 [ext_resource type="Script" uid="uid://ddct1wfbig2em" path="res://game/solar_system/debug_buttons.gd" id="103_debug"]
 [ext_resource type="Script" uid="uid://g6mjlpc3bau8" path="res://game/goals/goal_tracker.gd" id="104_goals"]
 [ext_resource type="PackedScene" uid="uid://cw1q7e1gbejto" path="res://game/goals/goal_panel.tscn" id="105_goal_panel"]
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
+[ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
+[ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -302,15 +301,32 @@ script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin")]
+[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices")]
 script = ExtResource("103_debug")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
+notices = NodePath("../Hud/Notices")
 
-[node name="FuelPump" type="Node" parent="." unique_id=2138476615]
+[node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
+script = ExtResource("107_low_fuel")
+bus = NodePath("../Bus")
+notices = NodePath("../Hud/Notices")
+
+[node name="FuelPump" type="Node" parent="." unique_id=2138476615 node_paths=PackedStringArray("bus", "dock_panel", "planet_panel")]
 unique_name_in_owner = true
 script = ExtResource("27_pump")
 sound = ExtResource("106_fuel_sound")
+bus = NodePath("../Bus")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+planet_panel = NodePath("../Hud/PlanetPanel")
+
+[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "cabin", "goals", "research_lab")]
+unique_name_in_owner = true
+script = ExtResource("108_saver")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+goals = NodePath("../Goals")
+research_lab = NodePath("../ResearchLab")
 
 [node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "planet_panel", "research_overview")]
 unique_name_in_owner = true
@@ -385,45 +401,9 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="HintBox" type="MarginContainer" parent="Hud" unique_id=299227585]
+[node name="Notices" parent="Hud" unique_id=307714029 instance=ExtResource("100_notices")]
 unique_name_in_owner = true
 anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 0
-mouse_filter = 2
-theme = ExtResource("18_theme")
-theme_override_constants/margin_bottom = 96
-
-[node name="CourseHint" type="PanelContainer" parent="Hud/HintBox" unique_id=1777921169]
-unique_name_in_owner = true
-material = ExtResource("101_glass")
-custom_minimum_size = Vector2(438, 32)
-layout_mode = 2
-theme_type_variation = &"NoticePanel"
-
-[node name="Row" type="HBoxContainer" parent="Hud/HintBox/CourseHint" unique_id=2116448379]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="Icon" type="TextureRect" parent="Hud/HintBox/CourseHint/Row" unique_id=741794951]
-self_modulate = Color(0.957, 0.945, 1, 0.651)
-custom_minimum_size = Vector2(13, 13)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("102_info")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Label" type="Label" parent="Hud/HintBox/CourseHint/Row" unique_id=1805317662]
-layout_mode = 2
-theme_type_variation = &"BodyTextLabel"
-text = "Right-click planets or space to add stops. Backspace clears the route."
 
 [node name="BusStatusPanel" parent="Hud" unique_id=923292603 node_paths=PackedStringArray("bus") instance=ExtResource("19_status")]
 unique_name_in_owner = true
@@ -437,9 +417,6 @@ anchors_preset = 11
 [node name="BusPanel" parent="Hud" unique_id=1346201264 instance=ExtResource("24_bus_panel")]
 unique_name_in_owner = true
 anchors_preset = 11
-
-[node name="TowOffer" parent="Hud" unique_id=371962228 instance=ExtResource("100_tow_offer")]
-unique_name_in_owner = true
 
 [node name="ResearchOverview" parent="Hud" unique_id=2033696468 instance=ExtResource("99_overview")]
 anchors_preset = 15

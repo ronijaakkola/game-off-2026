@@ -16,6 +16,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 
 - **Camera.** Looks down at the orbit plane at an angle, with a narrow field of view (30°), so the system reads almost like a map but the planets still look round.
 - **Planets.** A sphere with up to three colour bands with hard edges: noise blobs for rocky planets, wobbly horizontal stripes for gas giants, optional polar caps. The pattern turns with the planet's spin.
+- **Orbits slowing.** As the bus swings side-on to dock, or its frameshift ends in space, the planets slow to half speed with a soft ease-out, and ease back in as it heads off. Their spin never stops, so the system still looks alive while it waits.
 - **Light is two tones only:** a lit side in the planet's own colours, and a night side tinted by the same purple multiply on every planet, split by a line about a pixel wide at any zoom. The star's distance and the ambient light don't change a planet's colours.
 - **Colours.** Soft, warm and saturated, never dark: sandy orange, leaf green, a pale lilac moon, an orange-striped gas giant with lilac rings, a pink ice planet with white caps. Planets are told apart by colour first, so each new one needs its own hue.
 - **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom.
@@ -86,14 +87,13 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 - **Hover.** The pointer over a planet shows a white border round it, over its orange route border. Where the bus and a planet overlap, only the one a left click would open shows it. Over the HUD, the pointer picks nothing.
 - **Route.** A flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border.
 - Under the pointer, the last stop's diamond turns white, as a planet's border does. Diamonds earlier on the route stay orange.
-- **Course hint.** Until the player first sets a course, a line at the bottom of the screen: "Right-click planets or space to add stops. Backspace clears the route."
 - **Waiting markers** (a trait). Under the name of each planet where someone waits, a small person and a number.
 - **Fuel forecast** (a trait). Just above the route's last stop, "-22% fuel" in the names' off-white, or in low fuel's red when the bus hasn't that much left. Hidden with no course and during a tow.
 - **Trip arc.** A waiting passenger's trip, shown from their row in the dock panel: an arc from the planet to their destination in their race's skin colour.
   - It rises off the orbit plane like a hop, so it never reads as part of the flat route, and bows sideways where the trip points along the view.
   - A line of rounded dashes with a thin dark outline, as wide on screen at any zoom, from the planet's edge to a ring round the destination.
   - It grows out in half a second, the ring closing in as it arrives; then the dashes flow toward the destination and the ring sends out a slow pulse. Under Reduce motion it fades in whole and holds still.
-- **While a planet or the bus is open,** the names, waiting markers, fuel forecast and trip arc fade out, and the course hint hides.
+- **While a planet or the bus is open,** the names, waiting markers, fuel forecast and trip arc fade out.
 
 ## The HUD
 
@@ -103,11 +103,11 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 | Top centre | Resource bar |
 | Top right | Goal panel, with the dock panel (the planet's station) under it while docked or charging |
 | Bottom edge, centred | Bus status: the route bar over the bus bar |
-| Above the bus bars | Tow offer, when out of fuel |
+| Above the bus bars | Notices |
 | Right side | The open planet's or bus's panel, over the dock panel |
 | Bottom left | Debug panel (F2) |
 
-- **While a planet's or the bus's panel is open,** the bus bars and the course hint hide, and the resource bar moves to stay centred between the On board panel and the open panel.
+- **While a planet's or the bus's panel is open,** the bus bars and the notices hide, and the resource bar moves to stay centred between the On board panel and the open panel.
 
 ### Resource bar
 
@@ -175,9 +175,27 @@ In the dock panel: "Hold to fuel (51 cr)", with what filling the tank costs ther
 - Off, it reads why: "Tank full" or "Not enough credits".
 - The bill shows as a loss under the credits when the pump stops.
 
-### Tow offer
+### Notices
 
-A red warning notice above the bus bars: "You ran out of fuel" and a "Request a tow (100 credits)" button, with what the tow costs now. It stays until pressed.
+Cards stacked above the bus bars, centred, 434 px wide and 32 px tall, 8 px apart, the newest on top. Each has an icon and a line of text in Figtree, and can have an action button (small and quiet, so it never outweighs the card) and a close button (a dim ×) on the right.
+
+| Kind | Icon | Card |
+|---|---|---|
+| Tutorial, how to do something | Question mark in a circle, dim | The navy glass |
+| Info, something that happened | `i` in a circle, dim | The navy glass |
+| Warning | Triangle, amber (`#FACC61`) | Dark amber glass |
+| Error | `!` in a circle, red (`#F24D66`) | Dark red glass |
+| Incoming call | Phone, white | The navy glass |
+
+- **While a planet's or the bus's panel is open** the notices hide with the bus bars. One that arrives meanwhile waits and comes in when the panel closes, and those already showing stop counting down to closing by themselves, so none goes unseen.
+- A notice stays until its close or action button is pressed, unless it was given a time to close by itself, or until what it is about is over: a tutorial once the player does what it says, a warning once its cause is gone.
+- **Course hint.** Until the player first sets a course, a tutorial notice: "Right-click planets or space to add stops. Backspace clears the route."
+- **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
+- **Out of fuel.** An error notice: "You ran out of fuel" and a "Tow (100 credits)" button, with what the tow costs now.
+- **Incoming transmission.** A call: "Incoming transmission..." and an Answer button. Every 1.6 s the phone rattles: it tips side to side, wide first then dying out, for about 0.4 s. Nothing in the game calls yet; the debug panel does.
+- **Coming in,** a card rises 8 px into place, growing from 96 % and fading in, over 0.3 s with a strong ease-out. A new one goes on top, so the cards already showing never move.
+- **Leaving,** it fades out in 0.18 s, sinking 6 px toward the bus bars and shrinking to 97 %, the way it came in. Then the cards above it glide down into its place over 0.25 s, easing in and out. A card can leave while still coming in, from wherever it got to.
+- Under Reduce motion cards only fade in and out, the cards above close the gap at once, and the phone holds still.
 
 ### On board panel
 
@@ -273,7 +291,7 @@ Titled "Frameshift Bus".
 
 ## Menus
 
-- **Main menu:** title, Play, Settings, Quit (hidden on web). On web a title card (the game's title, "Click to start") comes first.
+- **Main menu:** title, Play, Settings, Quit (hidden on web). With a save game, Continue comes first as the primary button and has focus, and a plain "New game" button takes Play's place, with no hint that it has to be held: held for 1.2 s, a faint fill growing across it, it starts over; let go early, the fill drains back twice as fast. On web a title card (the game's title, "Click to start") comes first. The debug panel's "Delete save" deletes the save, and the menu turns back to Play; its "Reset settings" puts every setting back to its default.
 - **Pause menu:** Resume, Settings, Main menu.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 

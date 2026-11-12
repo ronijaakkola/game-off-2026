@@ -296,9 +296,9 @@ corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_notice"]
 content_margin_left = 12.0
-content_margin_top = 8.0
-content_margin_right = 12.0
-content_margin_bottom = 8.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
 bg_color = Color(0.1216, 0.102, 0.2784, 1)
 border_width_left = 1
 border_width_top = 1
@@ -527,17 +527,33 @@ variation_opentype = {
 spacing_top = -10
 spacing_bottom = -10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_warning"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_error"]
 content_margin_left = 12.0
-content_margin_top = 8.0
-content_margin_right = 8.0
-content_margin_bottom = 8.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
 bg_color = Color(0.29, 0.102, 0.239, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.949, 0.302, 0.4, 1)
+border_color = Color(0.375, 0.21, 0.33, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_warning"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.29, 0.227, 0.122, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.375, 0.32, 0.227, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
@@ -615,6 +631,8 @@ DimLabel/colors/font_color = Color(0.957, 0.945, 1, 0.651)
 DimLabel/font_sizes/font_size = 11
 DimPanel/base_type = &"PanelContainer"
 DimPanel/styles/panel = SubResource("StyleBoxFlat_dim")
+ErrorNoticePanel/base_type = &"PanelContainer"
+ErrorNoticePanel/styles/panel = SubResource("StyleBoxFlat_error")
 FaintLabel/fonts/font = SubResource("FontVariation_600_small")
 FaintLabel/base_type = &"Label"
 FaintLabel/colors/font_color = Color(0.957, 0.945, 1, 0.4)
