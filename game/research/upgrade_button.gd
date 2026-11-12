@@ -13,13 +13,10 @@ extends Control
 ## fill fades off the lit tile as it pops. Letting go or leaving it first drains the fill.
 ## A press on one that can't be researched flashes its border, and pulses the badge of one
 ## the player can't afford. [method reveal] fades it in from a silhouette, as a stage
-## opens. Under Reduce motion nothing pops or pulses; the fades and flashes stay. It also
-## tells its parent when the pointer comes or goes.
+## opens. Under Reduce motion nothing pops or pulses; the fades and flashes stay. The pointer
+## over it opens its [Tooltip] at once, below it, or above it in the screen's lower half;
+## the parent fills it ([UpgradeTooltip]).
 
-## The pointer came over it.
-signal hovered
-## The pointer left it.
-signal unhovered
 ## It was held down long enough to research it.
 signal held
 
@@ -91,6 +88,7 @@ const BADGE_RADIUS := 8.0
 const BADGE_ICON_SIZE := 10.0
 const DOLLAR := preload("res://game/solar_system/icons/dollar_sign.svg")
 const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
+const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 const ROMAN := ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]
 
 var upgrade: Upgrade:
@@ -120,6 +118,7 @@ var _ink := TEXT_COLOR
 var _icon := TextureRect.new()
 var _step := Label.new()
 var _badge_icon := TextureRect.new()
+var _tooltip := TOOLTIP.instantiate() as Tooltip
 
 
 func _init() -> void:
@@ -146,6 +145,10 @@ func _init() -> void:
 	_badge_icon.pivot_offset = _badge_icon.size * 0.5
 	add_child(_badge_icon)
 	pivot_offset = SIZE * 0.5
+	# Read tile after tile, it can't keep the pointer waiting.
+	_tooltip.target = self
+	_tooltip.rest_seconds = 0.0
+	add_child(_tooltip)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 
@@ -186,6 +189,11 @@ func reveal(delay: float) -> void:
 ## The state it shows.
 func get_state() -> Research.State:
 	return _state
+
+
+## Its tooltip, for the parent to fill.
+func get_info_tooltip() -> Tooltip:
+	return _tooltip
 
 
 ## How far the hold has filled it, from 0 to 1.
@@ -437,11 +445,12 @@ func _badge_center() -> Vector2:
 func _on_mouse_entered() -> void:
 	_hover = true
 	queue_redraw()
-	hovered.emit()
+	# Before the tooltip opens: it hears the pointer after this.
+	var lower := get_global_rect().get_center().y > get_viewport_rect().size.y * 0.5
+	_tooltip.side = Tooltip.Side.ABOVE if lower else Tooltip.Side.BELOW
 
 
 func _on_mouse_exited() -> void:
 	_hover = false
 	_set_holding(false)
 	queue_redraw()
-	unhovered.emit()

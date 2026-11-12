@@ -109,6 +109,27 @@ func test_nothing_is_researched_without_a_hold() -> void:
 	assert_float(screen.get_button(upgrade).get_hold_progress()).is_equal(0.0)
 
 
+func test_an_upgrade_tile_shows_its_tooltip_at_once() -> void:
+	var upgrade := _first_upgrade()
+	_pay_for(upgrade, 0)
+	_lab.open_screen()
+	var tree := _system.get_tree()
+	await tree.process_frame
+	var button := (_runner.find_child("ResearchScreen") as ResearchScreen).get_button(upgrade)
+	var tooltip := button.get_info_tooltip()
+
+	button.mouse_entered.emit()
+	await tree.process_frame
+
+	assert_bool(tooltip.visible).is_true()
+	assert_str(tooltip.title).is_equal(upgrade.title)
+	assert_str(tooltip.sentence).is_equal(upgrade.description)
+	assert_object(tooltip.extra).is_not_null()
+	var notes := tooltip.extra.find_children("*", "Label", true, false)
+	var texts := notes.map(func(label: Node) -> String: return (label as Label).text)
+	assert_array(texts).not_contains([UpgradeTooltip.LACKING_TEXT])
+
+
 func test_holding_an_upgrade_tile_researches_it() -> void:
 	var upgrade := _first_upgrade()
 	_pay_for(upgrade, 0)

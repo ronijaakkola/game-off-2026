@@ -5,8 +5,8 @@ extends Control
 ## research points and rating in a resource bar of its own, and a Close button. Under it,
 ## every research tree side by side, each in a [ResearchColumn], with their rows lined up
 ## so a line with a "Requires promotion" tag runs across all of them between two stages;
-## the tag goes once the stage below opens. The pointer over an upgrade shows its card under
-## it. An upgrade held long enough only asks; the parent researches it. The close button
+## the tag goes once the stage below opens. The pointer over an upgrade opens its tooltip at
+## once. An upgrade held long enough only asks; the parent researches it. The close button
 ## and the pause action (Esc) close it, unless the pause menu is open over it: then Esc is
 ## the menu's. It holds the pause with the pause menu's [method PauseMenu.hold], so closing
 ## the menu over it leaves the game paused.
@@ -29,8 +29,6 @@ const DIVIDER_HEIGHT := 20.0
 const LINE_COLOR := Color(1, 1, 1, 0.12)
 const TAG_COLOR := Color("2a2450")
 const TAG_TEXT := "Requires promotion"
-## Pixels between an upgrade and its card.
-const CARD_GAP := 6.0
 const LOCK := preload("res://game/research/icons/lock.svg")
 ## Seconds to fade in, for the sheet to grow from [constant OPEN_SCALE], and to fade out.
 const FADE_IN_SECONDS := 0.2
@@ -59,9 +57,6 @@ var _columns: Array[ResearchColumn] = []
 var _dividers: Dictionary[int, Control] = {}
 var _tags: Dictionary[int, Control] = {}
 var _row_tops: Array[float] = []
-var _hovered: UpgradeButton
-# What the card showed last: the tile, its state, the credits and the points.
-var _card_shows: Array = []
 # How many stages showed open last time, so one that opened since is revealed.
 var _shown_stages := 1
 var _fade: Tween
@@ -132,9 +127,6 @@ func close() -> void:
 	if not is_open():
 		return
 	_closing = true
-	_hovered = null
-	_card_shows = []
-	(%Card as Control).hide()
 	PauseMenu.release(self)
 	closed.emit()
 	if _fade:
@@ -182,8 +174,6 @@ func _build(trees: Array[ResearchTree]) -> void:
 	for tree: ResearchTree in trees:
 		var column := ResearchColumn.new()
 		column.build(tree, _row_tops)
-		column.upgrade_hovered.connect(_on_upgrade_hovered)
-		column.upgrade_unhovered.connect(_on_upgrade_unhovered)
 		column.upgrade_held.connect(upgrade_held.emit)
 		area.add_child(column)
 		_columns.append(column)
@@ -227,13 +217,6 @@ func _refresh() -> void:
 	for column: ResearchColumn in _columns:
 		column.show_state(research, ledger.credits, points)
 	_reveal_opened_stages()
-	if not _hovered:
-		return
-	# The card is rebuilt only when what it shows changes.
-	var shows: Array = [_hovered, _hovered.get_state(), ledger.credits, points]
-	if shows != _card_shows:
-		_card_shows = shows
-		_show_card(_hovered)
 
 
 func _finish_closing() -> void:
@@ -319,38 +302,6 @@ func _make_line() -> Control:
 	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	return line
-
-
-# Shows the card under the tile, or above it where it would run off the bottom, kept inside
-# the screen.
-func _show_card(button: UpgradeButton) -> void:
-	var card := %Card as UpgradeCard
-	var state := button.get_state()
-	card.show_upgrade(button.upgrade, state, ledger.credits, ledger.get_all_research())
-	card.show()
-	var screen := get_viewport_rect().size
-	var rect := button.get_global_rect()
-	var card_size := card.get_combined_minimum_size()
-	var at := Vector2(rect.get_center().x - card_size.x * 0.5, rect.end.y + CARD_GAP)
-	if at.y + card_size.y > screen.y:
-		at.y = rect.position.y - CARD_GAP - card_size.y
-	at.x = clampf(at.x, 0.0, screen.x - card_size.x)
-	card.global_position = at
-
-
-func _on_upgrade_hovered(button: UpgradeButton) -> void:
-	_hovered = button
-	_card_shows = []
-	if research and ledger:
-		_refresh()
-
-
-func _on_upgrade_unhovered(button: UpgradeButton) -> void:
-	if _hovered != button:
-		return
-	_hovered = null
-	_card_shows = []
-	(%Card as Control).hide()
 
 
 func _on_close_button_pressed() -> void:

@@ -39,6 +39,17 @@ opentype_features = {
 spacing_top = -2
 spacing_bottom = -4
 
+[sub_resource type="FontVariation" id="FontVariation_700_pill"]
+base_font = ExtResource("1_baloo")
+variation_opentype = {
+2003265652: 700
+}
+opentype_features = {
+1953396077: 1
+}
+spacing_top = -3
+spacing_bottom = -3
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_disabled"]
 content_margin_left = 12.0
 content_margin_top = 8.0
@@ -126,30 +137,8 @@ opentype_features = {
 spacing_top = -2
 spacing_bottom = -4
 
-[sub_resource type="FontVariation" id="FontVariation_600_small"]
-base_font = ExtResource("1_baloo")
-variation_opentype = {
-2003265652: 600
-}
-opentype_features = {
-1953396077: 1
-}
-spacing_top = -1
-spacing_bottom = -4
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
 bg_color = Color(0.051, 0.043, 0.141, 0.851)
-
-[sub_resource type="FontVariation" id="FontVariation_600_goal"]
-base_font = ExtResource("1_baloo")
-variation_opentype = {
-2003265652: 600
-}
-opentype_features = {
-1953396077: 1
-}
-spacing_top = -3
-spacing_bottom = -3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track_fill"]
 content_margin_top = 3.0
@@ -169,6 +158,28 @@ corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
+[sub_resource type="FontVariation" id="FontVariation_600_small"]
+base_font = ExtResource("1_baloo")
+variation_opentype = {
+2003265652: 600
+}
+opentype_features = {
+1953396077: 1
+}
+spacing_top = -1
+spacing_bottom = -4
+
+[sub_resource type="FontVariation" id="FontVariation_700_small"]
+base_font = ExtResource("1_baloo")
+variation_opentype = {
+2003265652: 700
+}
+opentype_features = {
+1953396077: 1
+}
+spacing_top = -1
+spacing_bottom = -4
+
 [sub_resource type="FontVariation" id="FontVariation_heading"]
 base_font = ExtResource("1_baloo")
 variation_opentype = {
@@ -179,6 +190,50 @@ opentype_features = {
 }
 spacing_top = -4
 spacing_bottom = -4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_serve"]
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 3.0
+bg_color = Color(1, 1, 1, 0.1412)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_serve_hover"]
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 3.0
+bg_color = Color(1, 1, 1, 0.2196)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_serve_pressed"]
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 3.0
+bg_color = Color(1, 1, 1, 0.0784)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_serve_disabled"]
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 3.0
+bg_color = Color(1, 1, 1, 0.0706)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip"]
 content_margin_left = 8.0
@@ -254,28 +309,6 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
-
-[sub_resource type="FontVariation" id="FontVariation_700_small"]
-base_font = ExtResource("1_baloo")
-variation_opentype = {
-2003265652: 700
-}
-opentype_features = {
-1953396077: 1
-}
-spacing_top = -1
-spacing_bottom = -4
-
-[sub_resource type="FontVariation" id="FontVariation_700_pill"]
-base_font = ExtResource("1_baloo")
-variation_opentype = {
-2003265652: 700
-}
-opentype_features = {
-1953396077: 1
-}
-spacing_top = -3
-spacing_bottom = -3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_hover"]
 content_margin_left = 12.0
@@ -361,50 +394,6 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_serve_disabled"]
-content_margin_left = 8.0
-content_margin_top = 2.0
-content_margin_right = 8.0
-content_margin_bottom = 3.0
-bg_color = Color(1, 1, 1, 0.0706)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_serve_hover"]
-content_margin_left = 8.0
-content_margin_top = 2.0
-content_margin_right = 8.0
-content_margin_bottom = 3.0
-bg_color = Color(1, 1, 1, 0.2196)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_serve_pressed"]
-content_margin_left = 8.0
-content_margin_top = 2.0
-content_margin_right = 8.0
-content_margin_bottom = 3.0
-bg_color = Color(1, 1, 1, 0.0784)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_serve"]
-content_margin_left = 8.0
-content_margin_top = 2.0
-content_margin_right = 8.0
-content_margin_bottom = 3.0
-bg_color = Color(1, 1, 1, 0.1412)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sheet"]
 content_margin_left = 20.0
@@ -581,6 +570,17 @@ opentype_features = {
 spacing_top = -2
 spacing_bottom = -4
 
+[sub_resource type="FontVariation" id="FontVariation_600_goal"]
+base_font = ExtResource("1_baloo")
+variation_opentype = {
+2003265652: 600
+}
+opentype_features = {
+1953396077: 1
+}
+spacing_top = -3
+spacing_bottom = -3
+
 [resource]
 default_font = SubResource("FontVariation_600")
 default_font_size = 13
@@ -625,18 +625,18 @@ CheckButton/styles/hover = SubResource("StyleBoxEmpty_check")
 CheckButton/styles/hover_pressed = SubResource("StyleBoxEmpty_check")
 CheckButton/styles/normal = SubResource("StyleBoxEmpty_check")
 CheckButton/styles/pressed = SubResource("StyleBoxEmpty_check")
+DimLabel/fonts/font = SubResource("FontVariation_600_small")
 DimLabel/base_type = &"Label"
 DimLabel/colors/font_color = Color(0.957, 0.945, 1, 0.651)
 DimLabel/font_sizes/font_size = 11
-DimLabel/fonts/font = SubResource("FontVariation_600_small")
 DimPanel/base_type = &"PanelContainer"
 DimPanel/styles/panel = SubResource("StyleBoxFlat_dim")
 ErrorNoticePanel/base_type = &"PanelContainer"
 ErrorNoticePanel/styles/panel = SubResource("StyleBoxFlat_error")
+FaintLabel/fonts/font = SubResource("FontVariation_600_small")
 FaintLabel/base_type = &"Label"
 FaintLabel/colors/font_color = Color(0.957, 0.945, 1, 0.4)
 FaintLabel/font_sizes/font_size = 11
-FaintLabel/fonts/font = SubResource("FontVariation_600_small")
 GoalLabel/base_type = &"Label"
 GoalLabel/font_sizes/font_size = 13
 GoalLabel/fonts/font = SubResource("FontVariation_600_goal")
@@ -701,9 +701,9 @@ SettingLabel/font_sizes/font_size = 14
 SettingLabel/fonts/font = SubResource("FontVariation_500")
 SheetPanel/base_type = &"PanelContainer"
 SheetPanel/styles/panel = SubResource("StyleBoxFlat_sheet")
+SmallButton/fonts/font = SubResource("FontVariation_700_small")
 SmallButton/base_type = &"Button"
 SmallButton/font_sizes/font_size = 11
-SmallButton/fonts/font = SubResource("FontVariation_700_small")
 SmallButton/styles/disabled = SubResource("StyleBoxFlat_small_disabled")
 SmallButton/styles/hover = SubResource("StyleBoxFlat_small_hover")
 SmallButton/styles/hover_pressed = SubResource("StyleBoxFlat_small_pressed")
@@ -739,12 +739,12 @@ TabBar/styles/tab_focus = SubResource("StyleBoxFlat_focus")
 TabBar/styles/tab_hovered = SubResource("StyleBoxFlat_tab_hovered")
 TabBar/styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
 TabBar/styles/tab_unselected = SubResource("StyleBoxEmpty_tab")
+TinyLabel/fonts/font = SubResource("FontVariation_600_small")
 TinyLabel/base_type = &"Label"
 TinyLabel/font_sizes/font_size = 11
-TinyLabel/fonts/font = SubResource("FontVariation_600_small")
+TinyRichTextLabel/fonts/normal_font = SubResource("FontVariation_600_small")
 TinyRichTextLabel/base_type = &"RichTextLabel"
 TinyRichTextLabel/font_sizes/normal_font_size = 11
-TinyRichTextLabel/fonts/normal_font = SubResource("FontVariation_600_small")
 TitleLabel/base_type = &"Label"
 TitleLabel/font_sizes/font_size = 64
 TitleLabel/fonts/font = SubResource("FontVariation_title")

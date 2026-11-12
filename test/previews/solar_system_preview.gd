@@ -11,7 +11,8 @@ extends Node
 ## row in the dock panel, so their trip arc shows. `-- Research` opens the research screen
 ## with a few upgrades of each tree researched, credits and points to spend on some of
 ## the rest, and the pointer over one the player can research so its card shows.
-## `-- Research promoted` opens the second stage too, `plain` leaves out the card, `hold`
+## `-- Research promoted` opens the second stage too, `plain` leaves out the tooltip,
+## `lacking` hovers one the player can't afford instead, `hold`
 ## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
 ## it part way), and
 ## `dock` gives Ember, where the bus is docked, a lab and opens nothing, so the dock panel
@@ -121,7 +122,10 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 	var screen := system.find_child("ResearchScreen") as ResearchScreen
 	for node: Node in screen.find_children("*", "UpgradeButton", true, false):
 		var button := node as UpgradeButton
-		if button.get_state() == Research.State.AVAILABLE:
+		var wanted := Research.State.AVAILABLE
+		if "lacking" in args:
+			wanted = Research.State.UNAFFORDABLE
+		if button.get_state() == wanted:
 			if "hold" in args:
 				_press(button)
 			button.mouse_entered.emit()

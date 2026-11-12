@@ -4,7 +4,6 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="4_bar"]
-[ext_resource type="PackedScene" uid="uid://d0x3nbgyr33kg" path="res://game/research/upgrade_card.tscn" id="5_card"]
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="6_flask"]
 [ext_resource type="Texture2D" uid="uid://dup4e3a0nc0eg" path="res://game/research/icons/pause.svg" id="7_pause"]
 [ext_resource type="Texture2D" uid="uid://cbnp8spnp837a" path="res://game/research/icons/x.svg" id="8_x"]
@@ -151,12 +150,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
-
-[node name="Card" parent="." unique_id=513246851 instance=ExtResource("5_card")]
-unique_name_in_owner = true
-visible = false
-z_index = 10
-layout_mode = 0
 
 [connection signal="pressed" from="Margin/Sheet/Pad/Rows/Header/CloseGroup/CloseButton" to="." method="_on_close_button_pressed"]
 [connection signal="resized" from="Margin/Sheet/Pad/Rows/Trees" to="." method="_place"]

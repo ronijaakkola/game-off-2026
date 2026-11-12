@@ -6,13 +6,9 @@ extends Control
 ## runs from each upgrade to each one it requires, centre to centre under the tiles: lit and
 ## glowing in the race's colour once that one is researched, a little brighter while it
 ## can be researched, and faint otherwise. The parent places the rows, so every column's
-## stages line up, and tells it each upgrade's state. It passes on the pointer over a tile
-## and a tile held long enough; the parent researches it.
+## stages line up, and tells it each upgrade's state, which each tile's tooltip says
+## ([UpgradeTooltip]). It passes on a tile held long enough; the parent researches it.
 
-## The pointer came over [param button].
-signal upgrade_hovered(button: UpgradeButton)
-## The pointer left [param button].
-signal upgrade_unhovered(button: UpgradeButton)
 ## [param upgrade]'s tile was held long enough to research it.
 signal upgrade_held(upgrade: Upgrade)
 
@@ -42,6 +38,9 @@ const WIDTH := INNER_WIDTH + MARGIN.x * 2.0
 var _tree: ResearchTree
 var _buttons: Array[UpgradeButton] = []
 var _research: Research
+# What the tooltips were last filled for, so they change only when that does.
+var _credits := -1
+var _points: Dictionary[Race.Type, int] = {}
 var _count: Label
 var _card := StyleBoxFlat.new()
 
@@ -73,8 +72,6 @@ func build(tree: ResearchTree, row_tops: Array[float]) -> void:
 		button.position = Vector2(
 			left + upgrade.column * COLUMN_PITCH, TILES_TOP + row_tops[upgrade.tier]
 		)
-		button.hovered.connect(func() -> void: upgrade_hovered.emit(button))
-		button.unhovered.connect(func() -> void: upgrade_unhovered.emit(button))
 		button.held.connect(upgrade_held.emit.bind(upgrade))
 		add_child(button)
 		_buttons.append(button)
@@ -85,6 +82,9 @@ func build(tree: ResearchTree, row_tops: Array[float]) -> void:
 ## every frame.
 func show_state(research: Research, credits: int, points: Dictionary[Race.Type, int]) -> void:
 	_research = research
+	var paid_with_changed := credits != _credits or points != _points
+	_credits = credits
+	_points = points.duplicate()
 	var changed := false
 	var done := 0
 	for button: UpgradeButton in _buttons:
@@ -92,6 +92,8 @@ func show_state(research: Research, credits: int, points: Dictionary[Race.Type, 
 		var state := research.get_state(upgrade, credits, points)
 		var before := button.get_state()
 		button.show_state(state, _lacks_points(upgrade, points))
+		if before != state or paid_with_changed:
+			UpgradeTooltip.show(button.get_info_tooltip(), upgrade, state, credits, points)
 		changed = changed or before != state
 		if state == Research.State.RESEARCHED:
 			done += 1
