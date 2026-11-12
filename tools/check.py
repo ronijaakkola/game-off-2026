@@ -229,7 +229,6 @@ AUTOLOADS = "CODING_STANDARDS.md, Autoloads (core systems)"
 TESTS = "CODING_STANDARDS.md, Tests"
 USER_FILES = "CODING_STANDARDS.md, Saved files"
 ASSETS = "CODING_STANDARDS.md, Assets"
-FORMATTING = "CODING_STANDARDS.md, Naming"
 NAMING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
 SCRIPT_SIZE = "CODING_STANDARDS.md, Script size"
@@ -1193,7 +1192,7 @@ def formatting_problems(formatter: subprocess.Popen, gdlint_failed: bool) -> lis
     unformatted = WOULD_REFORMAT.findall(output)
     fix = "not laid out as gdformat would. Run: uv run tools/check.py format"
     problems = [
-        problem(path, None, "gdformat", f"{fix} {path}", FORMATTING) for path in unformatted
+        problem(path, None, "gdformat", f"{fix} {path}", NAMING) for path in unformatted
     ]
     # A script gdformat can't parse fails gdlint too, and gdlint says where.
     if formatter.returncode != 0 and not unformatted and not gdlint_failed:
