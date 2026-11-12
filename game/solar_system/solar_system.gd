@@ -55,7 +55,7 @@ const MARKER_GAP_PIXELS := 4.0
 const TOW_FEE := 100
 ## The goals a run starts with: deliver this many passengers, and keep this average rating.
 const START_DELIVERIES := 30
-const START_RATING := 4.0
+const START_RATING := 3.5
 ## How fast the planets' speed changes once the bus stops frameshifting, and once it heads
 ## off: the seconds it would take to go all the way between full speed and still. Linear
 ## in speed, so the planets ease out as they slow.

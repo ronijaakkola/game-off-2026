@@ -20,7 +20,7 @@ script = ExtResource("2_upgrade")
 title = "Speed 1"
 description = "The bus flies 10% faster."
 icon = ExtResource("4_gauge")
-credits = 20
+credits = 150
 points = Dictionary[int, int]({
 0: 2
 })
@@ -38,7 +38,7 @@ script = ExtResource("2_upgrade")
 title = "Fuel tank 1"
 description = "The fuel tank holds 25% more."
 icon = ExtResource("5_fuel")
-credits = 20
+credits = 150
 points = Dictionary[int, int]({
 0: 2
 })
@@ -55,7 +55,7 @@ script = ExtResource("2_upgrade")
 title = "Speed 2"
 description = "The bus flies another 10% faster."
 icon = ExtResource("4_gauge")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 0: 4
 })
@@ -68,7 +68,7 @@ script = ExtResource("2_upgrade")
 title = "Frameshift 1"
 description = "NOT IMPLEMENTED"
 icon = ExtResource("6_zap")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 0: 4
 })
@@ -87,7 +87,7 @@ script = ExtResource("2_upgrade")
 title = "Fuel tank 2"
 description = "The fuel tank holds another 25% more."
 icon = ExtResource("5_fuel")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 0: 4
 })
@@ -106,7 +106,7 @@ script = ExtResource("2_upgrade")
 title = "Speed 3"
 description = "The bus flies another 10% faster."
 icon = ExtResource("4_gauge")
-credits = 90
+credits = 550
 points = Dictionary[int, int]({
 0: 7
 })
@@ -119,7 +119,7 @@ script = ExtResource("2_upgrade")
 title = "Frameshift 2"
 description = "NOT IMPLEMENTED"
 icon = ExtResource("6_zap")
-credits = 90
+credits = 550
 points = Dictionary[int, int]({
 0: 7
 })
@@ -138,7 +138,7 @@ script = ExtResource("2_upgrade")
 title = "Fuel tank 3"
 description = "The fuel tank holds another 25% more."
 icon = ExtResource("5_fuel")
-credits = 90
+credits = 550
 points = Dictionary[int, int]({
 0: 7
 })
@@ -152,7 +152,7 @@ script = ExtResource("2_upgrade")
 title = "Extra insulation"
 description = "NOT IMPLEMENTED"
 icon = ExtResource("7_thermometer_snowflake")
-credits = 150
+credits = 800
 points = Dictionary[int, int]({
 0: 10
 })
@@ -165,7 +165,7 @@ script = ExtResource("2_upgrade")
 title = "Sunscreen"
 description = "NOT IMPLEMENTED"
 icon = ExtResource("8_sun")
-credits = 250
+credits = 1100
 points = Dictionary[int, int]({
 0: 14
 })
@@ -178,7 +178,7 @@ script = ExtResource("2_upgrade")
 title = "Fuel forecast"
 description = "Shows how much of the tank the course burns, over its last stop."
 icon = ExtResource("9_route")
-credits = 45
+credits = 300
 points = Dictionary[int, int]({
 0: 4
 })

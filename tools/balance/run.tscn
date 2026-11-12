@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://jahhionrcpiv"]
+
+[ext_resource type="Script" uid="uid://deasmr3cxdalk" path="res://tools/balance/run.gd" id="1_run"]
+
+[node name="BalanceRun" type="Node" unique_id=1660746731]
+script = ExtResource("1_run")
