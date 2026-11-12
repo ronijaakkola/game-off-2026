@@ -36,10 +36,6 @@ const DOCK_TURN_EASE := 4.0
 # How close to its dock point, and to side-on, a parking bus gets to count as parked.
 const PARK_DISTANCE := 0.03
 const PARK_ANGLE := 0.05
-# How far the model leans per radian per second of turn.
-const BANK := 0.12
-# How fast the thrusters' glow fades, per second.
-const THRUST_FADE := 2.0
 # Where the thrusters leave their trail, from the bus: at the nozzles, behind it.
 const TRAIL_START := Vector3(0.0, -0.035, -0.45)
 ## About half the bus's length: how big it is when the camera frames it and when a click
@@ -80,17 +76,10 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 ## How close the bus passes a stop before it heads for the next one.
 @export_range(0.05, 5.0, 0.01) var pass_radius := 0.3
 
-@export_group("Float")
-## How far the bus bobs up and down while still.
-@export_range(0.0, 1.0, 0.01) var bob_height := 0.02
-@export_range(0.1, 20.0, 0.1) var bob_period := 2.6
-## How far the bus sways side to side while still.
-@export_range(0.0, 1.0, 0.01) var sway := 0.01
-@export_range(0.1, 20.0, 0.1) var sway_period := 4.3
-## How far the bus shakes when the drive is fully charged. Reduce motion turns it off.
-@export_range(0.0, 0.5, 0.005) var charge_shake := 0.012
-
 var state := State.HOLDING
+## Which side of [member start_planet] the bus starts docked on: from the planet's centre
+## toward the bus, on the orbit plane. Set it before the bus is ready.
+var start_direction := Vector3.BACK
 ## Whether passengers are getting off or on. While they are, a docked bus doesn't start a
 ## charge, and a charge under way holds where it is. The scene that runs the passengers
 ## sets it.
@@ -117,9 +106,6 @@ var _dock_direction := Vector3.BACK
 var _speed := 0.0
 var _turn_rate := 0.0
 var _holding_time := 0.0
-var _time := 0.0
-# How much of the float shows: 1 while still, 0 in flight.
-var _float := 1.0
 var _felt := FeltPush.new()
 # How fast the bus glides toward its dock point, measured from the planet.
 var _glide_velocity := Vector3.ZERO
@@ -141,8 +127,8 @@ func _ready() -> void:
 	(%FuelTank as FuelTank).follow(_stats.get_stat(BusStats.Type.FUEL_CAPACITY))
 	rotation.y = PI * 0.5
 	if start_planet:
-		global_position = _approach_point(start_planet, Vector3.BACK, dock_gap)
-		_dock(start_planet, Vector3.BACK)
+		global_position = _approach_point(start_planet, start_direction, dock_gap)
+		_dock(start_planet, start_direction)
 		rotation.y = _dock_heading()
 	# Draws the route line and charge ring once while SceneFlow's fade covers the screen,
 	# so their materials compile now and not on the first click.
@@ -327,7 +313,6 @@ func estimate_time_to_next_planet() -> float:
 
 
 func _process(delta: float) -> void:
-	_time += delta
 	match state:
 		State.DOCKED:
 			_follow_dock(delta)
@@ -356,7 +341,10 @@ func _process(delta: float) -> void:
 			_holding_time += delta
 			_start_charge()
 	_feel(delta)
-	_animate_model(delta)
+	# The thrusters light up as the drive charges, burn in flight (not towed) and fade after.
+	var thrust := 1.0 if state == State.FLYING and not _towing else get_charge_progress()
+	var still := state != State.FLYING
+	(%Model as BusModel).animate(delta, still, get_charge_progress(), _turn_rate, thrust)
 	var burn := (%Model as BusModel).thrust if state == State.FLYING else 0.0
 	(%ThrusterTrail as ThrusterTrail).advance(global_transform * TRAIL_START, burn, delta)
 	_draw_route()
@@ -556,27 +544,6 @@ func _approach_point(planet: Planet, direction: Vector3, gap: float) -> Vector3:
 func _feel(delta: float) -> void:
 	var velocity := _glide_velocity if state == State.PARKING else _forward() * _speed
 	_felt.feel(velocity, _forward(), delta)
-
-
-# The float while still, the shake while charging, a lean into turns in flight, and the
-# thrusters' glow. All of it is on the model, so the bus itself stays on its route.
-func _animate_model(delta: float) -> void:
-	var still := state != State.FLYING
-	_float = move_toward(_float, 1.0 if still else 0.0, delta)
-	var model := %Model as BusModel
-	var offset := Vector3(
-		sin(TAU * _time / sway_period) * sway, sin(TAU * _time / bob_period) * bob_height, 0.0
-	)
-	model.position = offset * _float
-	if state == State.CHARGING and not Settings.reduce_motion:
-		var charged := get_charge_progress()
-		var shake := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0)
-		model.position += shake * charge_shake * charged
-	var lean := clampf(-_turn_rate * BANK, -0.5, 0.5)
-	model.rotation.z = lerp_angle(model.rotation.z, lean, 1.0 - exp(-8.0 * delta))
-	# The thrusters light up as the drive charges, burn in flight (not towed) and fade after.
-	var thrust := 1.0 if state == State.FLYING and not _towing else get_charge_progress()
-	model.thrust = move_toward(model.thrust, thrust, delta * THRUST_FADE)
 
 
 # The line through the route still ahead.

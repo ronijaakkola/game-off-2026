@@ -7,7 +7,7 @@ extends Node3D
 ## camera looks at, and its rotation is the viewing angle; its shot,
 ## %Shot, sits [member distance] back along that angle, and the scene's PhantomCameraHost
 ## moves the camera to it.
-## The look-at point stays within [member bounds_radius] of the parent's origin, and the
+## The look-at point stays within [member bounds_radius] of [member bounds_center], and the
 ## zoom between [member min_distance] and [member max_distance]. A zoom eases the look-at
 ## point and the distance to their target; a pan eases its speed and moves the look-at point
 ## and its target together, so zooming mid-pan doesn't hold the pan back.
@@ -17,6 +17,8 @@ extends Node3D
 ## bigger body looks bigger, but stays far enough back that its widest part, such as rings,
 ## fits across the rect. The host blends to it and, on [method release_focus], back to
 ## %Shot, which waited where it was: pan and zoom do nothing while the rig is focused.
+## While [member locked], they do nothing either, so a script can move the look-at point
+## with [method move_to].
 
 ## The camera has finished blending in to a focused target, and follows it from here on.
 signal focus_blend_finished
@@ -24,7 +26,7 @@ signal focus_blend_finished
 ## %FocusShot's priority while focused, over %Shot's.
 const FOCUSED_PRIORITY := 2
 
-## How far from the parent's origin the look-at point may go, on the orbit plane.
+## How far from [member bounds_center] the look-at point may go, on the orbit plane.
 @export_range(0.0, 200.0, 0.1, "or_greater") var bounds_radius := 20.0
 ## The closest zoom.
 @export_range(1.0, 200.0, 0.1, "or_greater") var min_distance := 12.0
@@ -55,6 +57,14 @@ const FOCUSED_PRIORITY := 2
 ## The part of the screen a focused target is framed in, in viewport pixels. Empty frames it
 ## in the whole viewport. Read every frame, so a parent can follow a window resize.
 var focus_rect := Rect2()
+## The centre of the area the look-at point stays in, in the parent's space: its origin
+## unless the map is zoomed.
+var bounds_center := Vector3.ZERO
+## Whether pan, drag and zoom are off, as while the map zooms out.
+var locked := false:
+	set(value):
+		locked = value
+		_dragging = _dragging and not value
 
 var _target_position := Vector3.ZERO
 var _target_distance := 0.0
@@ -108,7 +118,7 @@ func _input(event: InputEvent) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	var wheel := event as InputEventMouseButton
-	if not wheel or not wheel.pressed or is_focused():
+	if not wheel or not wheel.pressed or is_focused() or locked:
 		return
 	# A touchpad sends fractions of a notch in factor; a wheel sends 1 or 0.
 	var notches := wheel.factor if wheel.factor > 0.0 else 1.0
@@ -128,6 +138,8 @@ func _process(delta: float) -> void:
 		&"camera_pan_left", &"camera_pan_right", &"camera_pan_forward", &"camera_pan_back"
 	)
 	var input := (keys + _edge_pan_input()).limit_length(1.0)
+	if locked:
+		input = Vector2.ZERO
 	if is_focused():
 		input = Vector2.ZERO
 		_place_focus_shot()
@@ -168,6 +180,14 @@ func release_focus() -> void:
 
 func is_focused() -> bool:
 	return _focus_target != null
+
+
+## Puts the look-at point at [param point] at once, within the bounds, and stops any pan.
+func move_to(point: Vector3) -> void:
+	_pan_velocity = Vector3.ZERO
+	_target_position = _clamp_to_bounds(point)
+	position = _target_position
+	_place_shot()
 
 
 ## How much of [member focus_rect]'s height a body of [param radius] fills when focused,
@@ -300,8 +320,9 @@ func _on_focus_lost() -> void:
 
 
 func _clamp_to_bounds(point: Vector3) -> Vector3:
-	var flat := Vector2(point.x, point.z).limit_length(bounds_radius)
-	return Vector3(flat.x, point.y, flat.y)
+	var from := point - bounds_center
+	var flat := Vector2(from.x, from.z).limit_length(bounds_radius)
+	return Vector3(bounds_center.x + flat.x, point.y, bounds_center.z + flat.y)
 
 
 func _place_shot() -> void:

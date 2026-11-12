@@ -112,6 +112,14 @@ _Never_: respawn
 A card above the bus bars telling the player something: a tutorial, info, a warning, an error or an incoming call, optionally with an action button, a close button, or a time after which it closes by itself. `Notice` in code, pushed onto the `NoticeStack`, which returns it so its owner can dismiss it.
 _Avoid_: toast, notification, popup, alert, hint (one kind of notice is a tutorial)
 
+**Tutorial**:
+The guided first ride at the start of a new run, on the zoomed map: one passenger from Terra to the Moon, with a tutorial notice for each step, then the zoom out. `Tutorial` in code.
+_Avoid_: onboarding, intro, level
+
+**Zoomed map**:
+The map zoomed in on Terra and the Moon for the tutorial: the star and the planets scaled up together, so the Moon is as far out as a trip across the whole map, while the bus keeps its size and speed. The **zoom out** shrinks it back to the whole solar system. `MapZoom` in code; the node it scales is `World`.
+_Avoid_: mini map, small map
+
 **Passenger**:
 Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
 _Never_: customer, rider, NPC
