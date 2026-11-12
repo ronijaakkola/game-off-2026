@@ -76,45 +76,6 @@ layout_mode = 2
 theme_type_variation = &"DimLabel"
 text = "Station"
 
-[node name="List" type="MarginContainer" parent="Card/Clip/Content" unique_id=526103822]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/margin_bottom = -4
-
-[node name="EmptyLabel" type="Label" parent="Card/Clip/Content/List" unique_id=40552596]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 0
-theme_type_variation = &"FaintLabel"
-text = "Nobody waiting."
-
-[node name="Rows" type="VBoxContainer" parent="Card/Clip/Content/List" unique_id=288850977]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 0)
-layout_mode = 2
-size_flags_vertical = 0
-mouse_filter = 2
-theme_override_constants/separation = 0
-
-[node name="BoardAllButton" type="Button" parent="Card/Clip/Content" unique_id=294880964]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"SmallPrimaryButton"
-text = "Board all"
-
-[node name="FuelRule" type="Panel" parent="Card/Clip/Content" unique_id=1536806567]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 1)
-layout_mode = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
-
-[node name="ServicesLabel" type="Label" parent="Card/Clip/Content" unique_id=1032200223]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"DimLabel"
-text = "Services"
-
 [node name="FuelRow" type="HBoxContainer" parent="Card/Clip/Content" unique_id=1395238122]
 unique_name_in_owner = true
 layout_mode = 2
@@ -184,6 +145,45 @@ mouse_filter = 2
 texture = ExtResource("8_chevron")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="FuelRule" type="Panel" parent="Card/Clip/Content" unique_id=1536806567]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+
+[node name="WaitingLabel" type="Label" parent="Card/Clip/Content" unique_id=1032200223]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+text = "Waiting passengers"
+
+[node name="BoardAllButton" type="Button" parent="Card/Clip/Content" unique_id=294880964]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallPrimaryButton"
+text = "Board all"
+
+[node name="List" type="MarginContainer" parent="Card/Clip/Content" unique_id=526103822]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_bottom = -4
+
+[node name="EmptyLabel" type="Label" parent="Card/Clip/Content/List" unique_id=40552596]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+theme_type_variation = &"FaintLabel"
+text = "Nobody waiting."
+
+[node name="Rows" type="VBoxContainer" parent="Card/Clip/Content/List" unique_id=288850977]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 0
 
 [connection signal="pressed" from="Card/Clip/Content/BoardAllButton" to="." method="_on_board_all_button_pressed"]
 [connection signal="pressed" from="Card/Clip/Content/ResearchButton" to="." method="_on_research_button_pressed"]
