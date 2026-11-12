@@ -4,10 +4,11 @@ extends VBoxContainer
 ## shows the leg the bus is on, as a track from the planet it left to the next one with the
 ## time left to it, or what the bus is doing when it has no leg. The bus bar under it shows
 ## its fuel, two small keys that are blank placeholders for now, and the Frameshift key
-## ([FrameshiftKey]). With a course set and the bus waiting, holding the key charges the
-## drive and the key fills as it does; let go, the charge drains. Charged, the key pops up
-## by itself as the bus leaves. While the bus flies under its own power the key is Stop, and
-## it is off otherwise. It reads [member bus] every frame.
+## ([FrameshiftKey]), which Space works too. With a course set and the bus waiting,
+## holding the key charges the drive and the key fills as it does; let go, the charge
+## drains. Charged, the key pops up by itself as the bus leaves. While the bus flies under
+## its own power the key is Stop, and it is off otherwise. It reads [member bus] every
+## frame.
 
 const TRACK_COLOR := Color(1.0, 1.0, 1.0, 0.1412)
 const ROUTE_COLOR := Color(1.0, 0.6, 0.22, 1.0)
@@ -173,6 +174,28 @@ func _planet_name(planet: Planet) -> String:
 func _set_text(label: Label, text: String) -> void:
 	if label.text != text:
 		label.text = text
+
+
+# The frameshift action (Space) works the key as a click does, whatever has focus, so it
+# needn't be clicked first. _input, not _unhandled_input: a focused button would take Space
+# as its own press. Not while text is typed, as in the dev console, or while the bar hides.
+func _input(event: InputEvent) -> void:
+	if not event.is_action(&"frameshift") or event.is_echo():
+		return
+	var focus := get_viewport().gui_get_focus_owner()
+	if focus is LineEdit or focus is TextEdit:
+		return
+	var key := %FrameshiftKey as FrameshiftKey
+	if not key.is_visible_in_tree():
+		return
+	if event.is_pressed():
+		if key.disabled:
+			return
+		Audio.play_sfx(BusKey.CLICK)
+		_on_frameshift_key_button_down()
+	else:
+		_on_frameshift_key_button_up()
+	get_viewport().set_input_as_handled()
 
 
 # Stop acts at once. Otherwise the drive charges while the key stays down.

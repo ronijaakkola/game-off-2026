@@ -137,6 +137,7 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - **The bus bar** holds the fuel gauge and the bus's keys, the Frameshift key among them.
 - **Fuel gauge:** a pale cyan bar and the percentage, both red at a quarter of a tank or less.
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
+- Space works the Frameshift key as the pointer does, without clicking it first, while the bus bar shows. The bus keys never take keyboard focus.
 - With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, with a thin, faint glow in the bus's yellow round it. Under Reduce motion both hold still. Held, the drive charges: the pulse and glow go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
 - While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space.
 - Otherwise it is dim. Out of fuel, it is off.
