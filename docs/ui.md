@@ -37,7 +37,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
 - Spacing is on a 4 px scale.
 - **Tooltips** name a counter or an icon-only key: a dark card (`#0B0920` at 85 %) with the surface's border and 8 px corners, no shadow, dark enough to read over the map and over glass. A name and, when it helps, one sentence in fainter running text, at most 200 px wide.
-  - It sits 8 px from its target's panel, centred on the target: below the resource bar, above the bus bar. A research tile's sits beside the tile instead, centred on its height. Near a side edge of the screen it stays 8 px inside it, and still grows from the target's centre.
+  - It sits 8 px from its target's panel, centred on the target: below the resource bar, above the bus bar. A research tile's sits above the tile. Near a side edge of the screen it stays 8 px inside it, and still grows from the target's centre.
   - It opens once the pointer has rested on the target for 0.3 s, and closes when the pointer leaves. On a research tile it opens as the pointer arrives: the trees are read tile after tile, and a wait would feel sluggish.
   - Under the sentence it can hold one more row, such as a cost.
   - Going from one tooltip to the next, within 0.3 s of the last one closing, another target shows its tooltip at once with no motion, and the one closing goes at once.
@@ -286,7 +286,7 @@ A modal over the whole screen, the game paused and dimmed under it: one frosted 
 | Locked | Flat, darker and dim |
 | Hidden, or its stage shut | A dark silhouette of its icon |
 
-- **The tooltip.** The pointer over an upgrade opens its tooltip beside it, to the right where it fits on screen and else to the left, so it never covers the rows under it, which the upgrade opens: name, a line on what it does, then, 4 px further apart than the lines above it, its cost with the resource bar's icons, what the player lacks in red. Under the cost, one the player can't afford reads "Insufficient funds" in red.
+- **The tooltip.** The pointer over an upgrade opens its tooltip above it, so it covers neither the rows under it, which the upgrade opens, nor the tiles beside it: name, a line on what it does, then, 4 px further apart than the lines above it, its cost with the resource bar's icons, what the player lacks in red. Under the cost, one the player can't afford reads "Insufficient funds" in red.
 - A hidden one shows "???" and no cost; one whose stage is shut shows "???" and "Requires promotion.". A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
 - **Researching.** Holding an available tile sweeps the hold buttons' faint cyan fill up from its bottom, evenly; at the top, 0.6 s on, it is researched: the credits come off as a loss and the points come off their counts. The tile turns lit and pops as the research count does (to 106 % and back), while the fill fades off it in 0.15 s. Letting go or leaving first drains the fill in 0.2 s, fast at first.
 - **A press on a tile that can't be researched** flashes its border for 0.3 s; on one the player can't afford, the red badge pulses too.

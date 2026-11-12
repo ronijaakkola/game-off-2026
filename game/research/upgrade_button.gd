@@ -15,7 +15,7 @@ extends Control
 ## the player can't afford. A click sounds as a hold completes, and another for a press it
 ## can't act on. [method reveal] fades it in from a silhouette, as a stage
 ## opens. Under Reduce motion nothing pops or pulses; the fades and flashes stay. The pointer
-## over it opens its [Tooltip] at once, beside it, so it never covers the rows under it;
+## over it opens its [Tooltip] at once, above it, so it never covers the rows under it;
 ## the parent fills it ([UpgradeTooltip]).
 
 ## It was held down long enough to research it.
@@ -152,8 +152,9 @@ func _init() -> void:
 	# Read tile after tile, it can't keep the pointer waiting.
 	_tooltip.target = self
 	_tooltip.rest_seconds = 0.0
-	# Beside it, so the tooltip never covers the rows under it that this one opens.
-	_tooltip.side = Tooltip.Side.BESIDE
+	# Above it, so the tooltip covers neither the rows under it that this one opens nor the
+	# tiles beside it.
+	_tooltip.side = Tooltip.Side.ABOVE
 	add_child(_tooltip)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
