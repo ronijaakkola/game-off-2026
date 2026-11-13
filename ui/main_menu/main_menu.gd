@@ -18,6 +18,9 @@ static var _music_started := false
 func _ready() -> void:
 	%QuitButton.visible = not OS.has_feature("web")
 	_show_save_buttons()
+	Feedback.wiggle_on_hover(
+		[%ContinueButton, %PlayButton, %NewGameButton, %SettingsButton, %QuitButton]
+	)
 	DebugPanel.add_button("Delete save", _debug_delete_save, self)
 	DebugPanel.add_button("Reset settings", Settings.reset, self)
 	if FileAccess.file_exists(BUILD_COMMIT):

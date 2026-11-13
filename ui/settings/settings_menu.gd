@@ -18,6 +18,7 @@ var _controls: Dictionary[String, Control] = {}
 
 func _ready() -> void:
 	visibility_changed.connect(_on_visibility_changed)
+	Feedback.wiggle_on_hover([%BackButton])
 	for setting: String in Settings.get_names():
 		_bind(setting)
 	_read_settings()
