@@ -22,7 +22,7 @@ const TOOLTIP_TEXT := "Research planet"
 const PROCESS_PRIORITY := 302
 const BADGE := preload("res://game/passengers/photo_badge.tscn")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
-const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
+const FLASK := preload("res://shared/icons/flask_conical.svg")
 
 ## The camera the planets are seen through.
 @export var camera: Camera3D
