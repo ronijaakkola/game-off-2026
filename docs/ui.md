@@ -129,7 +129,7 @@ A frosted-glass pill: what is behind it shows blurred under a translucent fill. 
 - Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
 - The rating does the same: each one pops a gain with how far the average moved ("+0.2", "-0.3", "±0.0"). The very first just appears with a pop.
 - A research count pops as it goes up.
-- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 284 px and first changes at 1,000 credits or 100 points.
+- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 264 px, 40 px tall, and first changes at 1,000 credits or 100 points.
 - When a number gains or loses a digit, the pill stays centred and glides to the new width in 0.3 s, easing out. A count makes room for its widest number before it starts, so the pill changes width once per count.
 - Under Reduce motion nothing pops or drifts, and the width changes at once.
 
@@ -212,7 +212,7 @@ Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bar
 
 ### On board panel
 
-In the top left corner: how many seats are taken ("3/4") and, under it, a card for each passenger on board, a 48 px row.
+In the top left corner: how many seats are taken ("3/4") and, under it, a card for each passenger on board, a 48 px row. With nobody on board it is just the header row, 40 px tall like the resource bar, so the "On board" title and the bar's numbers share a centre line.
 
 - **A card shows:** portrait, their name with their destination beside it, a short activity line ("Sleeping...", "Counting stars"), and along the bottom a happiness bar in their mood's colour. The line starts with "Finding their seat..." for a few seconds after boarding.
 - **The mood has no name on the card:** the bar's colour says it. When the mood changes, the bar blends into the new colour, Reduce motion or not.

@@ -23,7 +23,7 @@ stretch_mode = 5
 
 [node name="TotalLabel" type="Label" parent="." unique_id=1751940342]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(38, 0)
+custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
 theme_type_variation = &"PillLabel"
 text = "0"

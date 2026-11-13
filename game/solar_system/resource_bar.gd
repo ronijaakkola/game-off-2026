@@ -10,6 +10,9 @@ extends PanelContainer
 
 ## Seconds the pill takes to reach its new width.
 const WIDTH_SECONDS := 0.3
+## The height of the row the items sit centred in, so the pill is as tall as the On board
+## panel's header row (8 px padding above and below), and their text shares its centre line.
+const ROW_HEIGHT := 24.0
 
 ## What the bar shows. Until one is set, its counters each show a ledger of their own, so
 ## the scene runs by itself.
@@ -72,17 +75,17 @@ func _on_items_resized() -> void:
 
 
 func _set_width(width: float) -> void:
-	var height := (%Items as HBoxContainer).get_combined_minimum_size().y
+	var height := maxf((%Items as HBoxContainer).get_combined_minimum_size().y, ROW_HEIGHT)
 	(%Track as Control).custom_minimum_size = Vector2(width, height)
 
 
-# The items keep their own width and sit in the middle of the track, so while the pill
+# The items keep their own size and sit in the middle of the track, so while the pill
 # grows, they reach a little into its padding on both sides until it catches up.
 func _place_items() -> void:
 	var items := %Items as HBoxContainer
 	var track := %Track as Control
 	items.size = items.get_combined_minimum_size()
-	items.position = Vector2((track.size.x - items.size.x) * 0.5, 0.0)
+	items.position = (track.size - items.size) * 0.5
 
 
 func _on_resized() -> void:

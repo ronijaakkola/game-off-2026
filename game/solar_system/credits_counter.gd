@@ -11,8 +11,9 @@ extends HBoxContainer
 ## the total counts down while it fades out drifting upward. It shows in the gain's place,
 ## or under the gain while one waits. Credits set outright show at once and clear the gain
 ## and the loss.
-## The total sits right-aligned in a slot of fixed width, so the resource bar keeps its
-## width whatever the credits: exact up to 9,999, then shortened to 12.4k, 125k or 1.25M.
+## The total sits right-aligned in a slot with room for three digits, so the resource bar
+## keeps its width while the credits stay under 1,000 and glides to fit a longer number:
+## exact up to 9,999, then shortened to 12.4k, 125k or 1.25M.
 
 ## Seconds from [method commit] to the total starting to count up.
 const COMMIT_DELAY := 0.25
@@ -28,7 +29,7 @@ const FADE_OUT_SECONDS := 0.6
 const RISE_PIXELS := 14.0
 ## How far under the total the gain starts, in pixels: clear of the resource bar's pill, so
 ## that drifting up it fades out just under the pill's edge.
-const GAIN_DROP := 23.0
+const GAIN_DROP := 27.0
 ## The most credits shown exactly; more are shortened.
 const MAX_EXACT := 9999
 
