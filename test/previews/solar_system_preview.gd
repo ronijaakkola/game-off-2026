@@ -20,9 +20,9 @@ extends Node
 ## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
 ## it part way), and
 ## `dock` gives Ember, where the bus is docked, a lab and opens nothing, so the dock panel
-## shows its Research button; `rich` gives credits and points too, so it glows. `-- Tow` opens
-## the bus, so the camera follows it, and sends it off with fuel for eight units, so it runs
-## dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
+## shows its Research button; `rich` gives credits and points too, so its outline shows.
+## `-- Tow` opens the bus, so the camera follows it, and sends it off with fuel for eight units, so
+## it runs dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
 ## the whole tow takes about 32 s (`--frames 1900`).
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")

@@ -4,11 +4,12 @@ extends Control
 ## title ends in a step ("Speed 2", "Bigger portions II"), that step as a numeral in the
 ## top left corner. It shows its [enum Research.State] in the shades of the race whose
 ## points it costs most ([method Upgrade.get_race]):
-## researched is lit, a gradient in the race's colour with a glow and the icon in its deep
-## shade; available is a dark gradient with a border in the race's colour and its glow;
-## can't afford is flat with a faint border, a dim icon and a red badge for what the player
-## lacks; locked is flat and dim; and hidden or needing a promotion is a dark silhouette of
-## its icon. Holding it down while available sweeps a fill up from the bottom; held for
+## researched is a solid fill in the race's colour with the icon in its deep shade;
+## available is dark, tinted toward the race's colour, with a border in it; can't afford is
+## dark with a faint border in it, a dim icon and a red badge for what the player lacks;
+## locked is dark and dim with a thin grey outline; and hidden or needing a promotion is a
+## near-black tile with a faint silhouette of its icon. Every tile is flat. Holding it down
+## while available sweeps a fill up from the bottom; held for
 ## [constant HOLD_SECONDS] it tells its parent, which researches it, and once researched the
 ## fill fades off the lit tile as it pops. Letting go or leaving it first drains the fill.
 ## A press on one that can't be researched flashes its border, and pulses the badge of one
@@ -46,43 +47,33 @@ const HOLD_COLOR := Color(0.6, 0.949, 1.0, 0.35)
 ## What the player lacks, on the badge and on the card.
 const LACKING_COLOR := Color("f24d66")
 
-## Each race's tile shades: a researched tile's gradient from top to bottom, its top
-## highlight, the line from it once researched, and the deep shade of its icon.
+## Each race's tile shades: the line from a researched tile, and the deep shade of its icon.
 const SHADES: Dictionary[Race.Type, Dictionary] = {
 	Race.Type.BLUE:
 	{
-		&"top": Color("9dbdff"),
-		&"bottom": Color("4f7fee"),
-		&"highlight": Color("c2d6ff"),
 		&"line": Color("a9c6ff"),
 		&"ink": Color("2e3d8c"),
 	},
 	Race.Type.ORANGE:
 	{
-		&"top": Color("ffb888"),
-		&"bottom": Color("f06a1c"),
-		&"highlight": Color("ffd2b3"),
 		&"line": Color("ffc29a"),
 		&"ink": Color("7a2e10"),
 	},
 	Race.Type.GREEN:
 	{
-		&"top": Color("c9f7ae"),
-		&"bottom": Color("7cd452"),
-		&"highlight": Color("e0fbd0"),
 		&"line": Color("cff7b8"),
 		&"ink": Color("296138"),
 	},
 }
-## An available tile's gradient, from top to bottom.
-const DARK_TOP := Color("4a3d7a")
-const DARK_BOTTOM := Color("281f47")
-## Flat tiles: can't afford, locked, and a silhouette (hidden or needing a promotion).
+## An available tile's fill: dark, tinted this far toward the race's colour.
+const AVAILABLE_COLOR := Color("281f47")
+const AVAILABLE_TINT := 0.24
+## The fills of can't afford, locked, and a silhouette (hidden or needing a promotion).
 const UNAFFORDABLE_COLOR := Color("2f2757")
 const LOCKED_COLOR := Color("2a2450")
-const SILHOUETTE_COLOR := Color("302859")
+const SILHOUETTE_COLOR := Color("15102e")
 ## A silhouette's icon.
-const SILHOUETTE_INK := Color("0b0920")
+const SILHOUETTE_INK := Color("3b3269")
 const TEXT_COLOR := Color("f4f1ff")
 const BADGE_COLOR := Color("1b1740")
 const BADGE_RADIUS := 8.0
@@ -213,7 +204,7 @@ func get_line_color() -> Color:
 	return _shades()[&"line"]
 
 
-## The colour of its glow: its race's skin colour.
+## Its race's skin colour, for its fill and border.
 func get_accent() -> Color:
 	return Race.SKIN_COLORS[upgrade.get_race()] if upgrade else Color.WHITE
 
@@ -397,32 +388,24 @@ func _show_state() -> void:
 
 func _draw() -> void:
 	var rect := Rect2(Vector2.ZERO, SIZE)
-	var shades := _shades()
 	var accent := get_accent()
-	# The glows grow in under the veil as it lifts.
 	var lift := 1.0 - _veil
 	match _state:
 		Research.State.RESEARCHED:
-			# The design's order: the glow first, the drop shadow over it.
-			TilePaint.shadow(self, rect, Color(accent, 0.6 * lift), 16.0, Vector2.ZERO)
-			TilePaint.shadow(self, rect, Color(0, 0, 0, 0.4 * lift), 8.0, Vector2(0, 5))
-			TilePaint.body(self, rect, shades[&"top"], shades[&"bottom"])
-			var light: Color = shades[&"highlight"]
-			TilePaint.top_highlight(self, rect, light.lightened(0.3) if _hover else light)
+			var fill := accent.lightened(0.15) if _hover else accent
+			TilePaint.body(self, rect, fill)
 		Research.State.AVAILABLE:
-			TilePaint.shadow(self, rect, Color(0, 0, 0, 0.5 * lift), 10.0, Vector2(0, 5))
-			TilePaint.shadow(self, rect, Color(accent, 0.6 * lift), 12.0, Vector2.ZERO)
-			TilePaint.body(self, rect, DARK_TOP, DARK_BOTTOM)
+			var fill := AVAILABLE_COLOR.lerp(accent, AVAILABLE_TINT)
+			TilePaint.body(self, rect, fill)
 			TilePaint.border(self, rect, accent.lightened(0.35) if _hover else accent, 2.0)
 		Research.State.UNAFFORDABLE:
-			TilePaint.body(self, rect, UNAFFORDABLE_COLOR, UNAFFORDABLE_COLOR)
+			TilePaint.body(self, rect, UNAFFORDABLE_COLOR)
 			var edge := (0.6 if _hover else 0.4) + 0.4 * _flash
 			TilePaint.border(self, rect, Color(accent, minf(edge, 1.0)), 1.5)
 		Research.State.LOCKED:
-			TilePaint.body(self, rect, LOCKED_COLOR, LOCKED_COLOR)
-			var edge := (0.12 if _hover else 0.0) + 0.3 * _flash
-			if edge > 0.0:
-				TilePaint.border(self, rect, Color(1, 1, 1, edge), 1.0)
+			TilePaint.body(self, rect, LOCKED_COLOR)
+			var edge := (0.28 if _hover else 0.16) + 0.3 * _flash
+			TilePaint.border(self, rect, Color(1, 1, 1, edge), 1.0)
 		_:
 			_draw_silhouette(rect, 1.0)
 	if _veil > 0.0 and not _silhouette():
@@ -440,11 +423,13 @@ func _draw() -> void:
 		draw_circle(_badge_center(), radius - 0.5, Color(ring, lift), false, 1.0, true)
 
 
-# The silhouette's flat tile and faint border, at [param strength] over what is under it.
+# The silhouette's flat tile, with a faint border under the pointer, at [param strength]
+# over what is under it.
 func _draw_silhouette(rect: Rect2, strength: float) -> void:
-	TilePaint.body(self, rect, Color(SILHOUETTE_COLOR, strength), Color(SILHOUETTE_COLOR, strength))
-	var edge := (0.2 if _hover else 0.12) + 0.3 * _flash
-	TilePaint.border(self, rect, Color(1, 1, 1, edge * strength), 1.0)
+	TilePaint.body(self, rect, Color(SILHOUETTE_COLOR, strength))
+	var edge := (0.12 if _hover else 0.0) + 0.3 * _flash
+	if edge > 0.0:
+		TilePaint.border(self, rect, Color(1, 1, 1, edge * strength), 1.0)
 
 
 func _badge_center() -> Vector2:

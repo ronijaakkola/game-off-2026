@@ -122,7 +122,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 ### Resource bar
 
-A frosted-glass pill: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
+A frosted-glass pill with a thin border and no shadow: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
 
 - **Credits:** beside a gold dollar sign, with a comma between thousands (12,480). The pointer over it shows a tooltip: "Credits", "Fares you have earned. Fuel and tows cost credits."
 - **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour. The pointer over them shows a tooltip: "Research points", "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
@@ -152,7 +152,7 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - **Fuel gauge:** a pale cyan bar and the percentage, both red at a quarter of a tank or less.
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
 - Space works the Frameshift key as the pointer does, without clicking it first, while the bus bar shows. The bus keys never take keyboard focus.
-- With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, with a thin, faint glow in the bus's yellow round it. Under Reduce motion both hold still. Held, the drive charges: the pulse and glow go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
+- With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, and a hard 2 px outline in the bus's yellow round the cap fades between 35 % and full strength in step. Under Reduce motion both hold still, the outline at full strength. Held, the drive charges: the pulse and outline go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
 - While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space.
 - Otherwise it is dim. Out of fuel, it is off.
 - Pressing the Frameshift key as Stop clears the route, as Backspace does. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.
@@ -179,7 +179,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Title: the planet's icon and name with "Station".
 - Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
-  - A Research button, where the planet has a lab, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen. While the player can pay for any upgrade, it has the Frameshift key's thin, faint glow in the bus's yellow round it, pulsing once every two seconds, holding still under Reduce motion; with nothing affordable, no glow.
+  - A Research button, where the planet has a lab, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen. While the player can pay for any upgrade, it has a nudge, quieter than the Frameshift key's: a 1 px outline in the bus's yellow on its own edge, fading between 15 % and 60 % once every two seconds in step with the key, and holding at 60 % under Reduce motion; with nothing affordable, no outline.
 - Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
 - Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
@@ -249,7 +249,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 
 ### Portraits
 
-A small photo on the left of a card or a waiting row: the passenger's head and shoulders over a blurred background in a deep shade of their race's colour, in a thin white frame tilted very slightly at random.
+A small photo on the left of a card or a waiting row: the passenger's head and shoulders over a blurred background in a deep shade of their race's colour, in a thin white frame tilted very slightly at random, over a hard dark navy shadow 2 px to its right and below.
 
 - Each passenger has one of their race's two heads and one of two eye styles (Googly, Bead). Eye style is variety only, not a sign of race.
 - **Badges.** A passenger's type can put badges on the photo: dark discs with a faint light rim and a white icon, in a row that starts on the top left corner, reaching a little past it, and runs right, tilted with the photo. A disc is 15 px on a 32 px photo, reaching 4 px past the corner, and both grow half as fast as the photo: 19 px on a card's 48 px one. A type can have several. Business has one, a briefcase. A Commuter has none. The pointer over a badge shows a tooltip with the type's name and a line about it: "Business", "These passengers are more demanding but pay more." While a quest is about a passenger, a flag badge joins the row after their type's, and its tooltip says "Quest" and what it asks ("Take Sufoi straight to Moon").
@@ -317,16 +317,18 @@ A modal over the whole screen, the game paused and dimmed under it: one frosted 
 - Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral in its top left corner.
 - **Stages.** The rows of every tree line up, with more room between two stages and a faint line across all the trees there. While the stage under it is shut, a "Requires promotion" tag with a lock sits in the middle of the line.
 - **A stage opening** shows the next time the screen is open, once it has faded in: the tag fades off the line in 0.2 s and the line closes up, and the stage's tiles fade in from silhouettes over 0.3 s, each row 40 ms after the one above.
-- A line runs from each upgrade to each one it needs, centre to centre: lit and glowing in the race's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
+- A line runs from each upgrade to each one it needs, centre to centre: lit in the race's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
 - **The colours** are those of the race whose points the upgrade costs most.
+
+Every tile is flat, with no gradient, glow or shadow, and each state has its own fill.
 
 | Tile | Look |
 |---|---|
-| Researched | A gradient in the race's colour, light at the top, glowing; the icon and numeral in its deep shade |
-| Available | A dark gradient with a 2 px border in the race's colour and its glow; a white icon |
-| Can't afford | Flat and dark with a faint border in the race's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
-| Locked | Flat, darker and dim |
-| Hidden, or its stage shut | A dark silhouette of its icon |
+| Researched | A solid fill in the race's colour; the icon and numeral in its deep shade |
+| Available | Dark, tinted toward the race's colour, with a 2 px border in it; a white icon |
+| Can't afford | Dark with a faint border in the race's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
+| Locked | Dark and dim, with a thin grey outline |
+| Hidden, or its stage shut | Near-black with no border, and a faint silhouette of its icon |
 
 - **The tooltip.** The pointer over an upgrade opens its tooltip above it, so it covers neither the rows under it, which the upgrade opens, nor the tiles beside it: name, a line on what it does, then, 4 px further apart than the lines above it, its cost with the resource bar's icons, what the player lacks in red. Under the cost, one the player can't afford reads "Insufficient funds" in red.
 - A hidden one shows "???" and no cost; one whose stage is shut shows "???" and "Requires promotion.". A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".

@@ -25,8 +25,8 @@ extends Control
 ## brighten quickly and fade slowly, again and again, and hold bright under Reduce motion.
 ## Board all steps back to a plain button meanwhile, so there is one thing to press.
 ## While the player can pay for an upgrade ([method ResearchLab.can_research_any]), the
-## Research button has the Frameshift key's thin yellow glow round it, pulsing as the key's
-## does, and holding still under Reduce motion.
+## Research button has a thin outline in the Frameshift key's yellow on its edge, fainter
+## than the key's and pulsing in step with it, and holding still under Reduce motion.
 
 ## The player pressed the button to pick up [param passenger]. Board all presses it for
 ## each one waiting, longest waiting first; the parent stops once the seats are full.
@@ -50,9 +50,10 @@ const BECKON_FADE_SECONDS := 1.0
 const BECKON_BORDER := 2
 const BECKON_COLOR := Color(1.0, 1.0, 1.0, 0.9)
 const BECKON_BORDER_LOW := 0.25
-# How far past the content the clip reaches, so the Research button's glow at the right
-# edge shows whole.
-const GLOW_ROOM := FrameshiftKey.GLOW_SIZE
+# The Research button's outline is a nudge, fainter than the Frameshift key's: its opacity
+# swings between these.
+const NUDGE_DIM := 0.15
+const NUDGE_BRIGHT := 0.6
 
 ## Who waits at each planet.
 @export var waiting: WaitingPassengers:
@@ -275,7 +276,7 @@ func _show_buttons() -> void:
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()
-	_glow_research(
+	_nudge_research(
 		(
 			_shown != null
 			and _shown.has_lab
@@ -285,22 +286,23 @@ func _show_buttons() -> void:
 	)
 
 
-## Whether the Research button glows, as it does while there is an upgrade to pay for.
-func is_research_glowing() -> bool:
-	return (%ResearchGlow as CanvasItem).visible
+## Whether the Research button's outline shows, as it does while there is an upgrade to pay
+## for.
+func is_research_nudging() -> bool:
+	return (%ResearchNudge as CanvasItem).visible
 
 
-# Shows the Frameshift key's pulsing glow round the Research button, or hides it.
-func _glow_research(glowing: bool) -> void:
-	var glow := %ResearchGlow as CanvasItem
-	glow.visible = glowing
-	if not glowing:
+# Shows the pulsing outline on the Research button, or hides it.
+func _nudge_research(nudging: bool) -> void:
+	var outline := %ResearchNudge as CanvasItem
+	outline.visible = nudging
+	if not nudging:
 		return
 	var pulse := 1.0
 	if not Settings.reduce_motion:
 		var seconds := Time.get_ticks_msec() / 1000.0
 		pulse = 0.5 - 0.5 * cos(seconds * TAU / FrameshiftKey.PULSE_SECONDS)
-	glow.self_modulate.a = lerpf(FrameshiftKey.GLOW_DIM, FrameshiftKey.GLOW_BRIGHT, pulse)
+	outline.self_modulate.a = lerpf(NUDGE_DIM, NUDGE_BRIGHT, pulse)
 
 
 # Sizes the slot to the card's width, and hangs the card down from the slot, as tall as
@@ -321,7 +323,7 @@ func _lay_out() -> void:
 	card.modulate.a = 1.0 - _offset if still else 1.0
 	var clip := %Clip as Control
 	clip.position = style.get_offset()
-	clip.size = inner + Vector2(GLOW_ROOM, 0.0)
+	clip.size = inner
 	content.position = Vector2.ZERO
 	content.size = inner
 
