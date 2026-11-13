@@ -11,13 +11,11 @@ func before_test() -> void:
 	_research = Research.new(_stats)
 
 
-func test_an_upgrade_is_available_once_everything_it_requires_is_researched() -> void:
+func test_an_upgrade_is_available_once_one_path_to_it_is_researched() -> void:
 	var first := _upgrade()
 	var second := _upgrade()
 	var third := _upgrade([first, second])
 
-	assert_int(_state(third)).is_equal(Research.State.LOCKED)
-	_research.research(first)
 	assert_int(_state(third)).is_equal(Research.State.LOCKED)
 	_research.research(second)
 	assert_int(_state(third)).is_equal(Research.State.AVAILABLE)

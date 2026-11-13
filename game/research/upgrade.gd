@@ -14,10 +14,10 @@ extends Resource
 @export var credits := 0
 ## Its cost in research points, by race. A race left out costs none.
 @export var points: Dictionary[Race.Type, int] = {}
-## The upgrades that must all be researched first, from the same tree. Each one is
-## an [Upgrade]: typed as one, the script names itself and leaks at exit.
+## The paths to it: upgrades from the same tree, any one of which researched opens it. Each
+## one is an [Upgrade]: typed as one, the script names itself and leaks at exit.
 @export var requires: Array[Resource] = []
-## Shown as a silhouette with "???" on its card until everything it requires is researched.
+## Shown as a silhouette with "???" on its card until one of the upgrades it requires is researched.
 @export var hidden := false
 ## Applied to the bus's stats once researched.
 @export var modifiers: Array[StatModifier] = []

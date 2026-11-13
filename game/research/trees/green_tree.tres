@@ -4,9 +4,12 @@
 [ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
 [ext_resource type="Texture2D" uid="uid://b0bgevms180dy" path="res://game/research/icons/bell_ring.svg" id="4_bell_ring"]
-[ext_resource type="Texture2D" uid="uid://dqebesaunqcwx" path="res://game/research/icons/cctv.svg" id="5_cctv"]
-[ext_resource type="Texture2D" uid="uid://bloqie2x21ut0" path="res://game/research/icons/sofa.svg" id="6_sofa"]
-[ext_resource type="Texture2D" uid="uid://cj2v07igax8yq" path="res://game/research/icons/brain.svg" id="7_brain"]
+[ext_resource type="Texture2D" uid="uid://bloqie2x21ut0" path="res://game/research/icons/sofa.svg" id="5_sofa"]
+[ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://game/solar_system/icons/star.svg" id="6_star"]
+[ext_resource type="Texture2D" uid="uid://2uvj2c14gptt" path="res://shared/icons/sandwich.svg" id="7_sandwich"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="8_flask_conical"]
+[ext_resource type="Texture2D" uid="uid://dqebesaunqcwx" path="res://game/research/icons/cctv.svg" id="9_cctv"]
+[ext_resource type="Texture2D" uid="uid://cqsul35bsw7i0" path="res://game/research/icons/bed_double.svg" id="10_bed_double"]
 
 [sub_resource type="Resource" id="Resource_door_chime"]
 script = ExtResource("2_upgrade")
@@ -20,46 +23,184 @@ points = Dictionary[int, int]({
 traits = Array[int]([1])
 column = 1
 
+[sub_resource type="Resource" id="Resource_station_waiting_lounge"]
+script = ExtResource("2_upgrade")
+title = "Station waiting lounge"
+description = "Waiting passengers grow happier the longer they wait, and ride happier for it."
+icon = ExtResource("5_sofa")
+credits = 300
+points = Dictionary[int, int]({
+2: 4
+})
+traits = Array[int]([9])
+column = 3
+
+[sub_resource type="Resource" id="Resource_tip_jar"]
+script = ExtResource("2_upgrade")
+title = "Tip jar"
+description = "Happy passengers pay 1.2x more."
+icon = ExtResource("6_star")
+credits = 550
+points = Dictionary[int, int]({
+2: 7
+})
+requires = Array[Resource]([SubResource("Resource_door_chime")])
+traits = Array[int]([10])
+tier = 1
+
+[sub_resource type="Resource" id="Resource_free_station_coffee"]
+script = ExtResource("2_upgrade")
+title = "Free station coffee"
+description = "A passenger's first request comes 50% later."
+icon = ExtResource("7_sandwich")
+credits = 150
+points = Dictionary[int, int]({
+2: 2
+})
+requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
+traits = Array[int]([11])
+tier = 1
+column = 2
+
+[sub_resource type="Resource" id="Resource_timetables"]
+script = ExtResource("2_upgrade")
+title = "Timetables"
+description = "Increased chance that multiple waiting passengers have the same destination."
+icon = ExtResource("8_flask_conical")
+credits = 300
+points = Dictionary[int, int]({
+2: 4
+})
+requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
+traits = Array[int]([12])
+tier = 1
+column = 4
+
+[sub_resource type="Resource" id="Resource_honk"]
+script = ExtResource("2_upgrade")
+title = "Honk"
+description = "Honk before arriving a planet to increase the happiness for waiting passengers.
+NOT IMPLEMENTED"
+icon = ExtResource("6_star")
+credits = 550
+points = Dictionary[int, int]({
+2: 7
+})
+requires = Array[Resource]([SubResource("Resource_tip_jar")])
+tier = 2
+
 [sub_resource type="Resource" id="Resource_station_cameras"]
 script = ExtResource("2_upgrade")
 title = "Station cameras"
-description = "Shows who waits at a planet, and where they are going, when you point at it."
-icon = ExtResource("5_cctv")
+description = "Hovering a planet on the map shows waiting passengers and their destinations."
+icon = ExtResource("9_cctv")
 credits = 300
 points = Dictionary[int, int]({
 2: 4
 })
 requires = Array[Resource]([SubResource("Resource_door_chime")])
 traits = Array[int]([8])
-tier = 1
+tier = 2
+column = 1
 
-[sub_resource type="Resource" id="Resource_station_waiting_lounge"]
+[sub_resource type="Resource" id="Resource_destination_sign"]
 script = ExtResource("2_upgrade")
-title = "Station waiting lounge"
-description = "NOT IMPLEMENTED"
-icon = ExtResource("6_sofa")
-credits = 300
-points = Dictionary[int, int]({
-2: 4
-})
-requires = Array[Resource]([SubResource("Resource_door_chime")])
-tier = 1
-column = 2
-
-[sub_resource type="Resource" id="Resource_mind_reading_machine"]
-script = ExtResource("2_upgrade")
-title = "Mind reading machine"
-description = "NOT IMPLEMENTED"
-icon = ExtResource("7_brain")
+title = "Destination sign"
+description = "Increased chance that waiting passengers have the same destination than one of your passengers on board.
+NOT IMPLEMENTED"
+icon = ExtResource("8_flask_conical")
 credits = 550
 points = Dictionary[int, int]({
 2: 7
 })
-requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_station_waiting_lounge")])
+requires = Array[Resource]([SubResource("Resource_timetables")])
 tier = 2
-column = 1
+column = 4
+
+[sub_resource type="Resource" id="Resource_remote_terminal"]
+script = ExtResource("2_upgrade")
+title = "Remote terminal"
+description = "Research from any docked planet.
+NOT IMPLEMENTED"
+icon = ExtResource("8_flask_conical")
+credits = 550
+points = Dictionary[int, int]({
+2: 7
+})
+requires = Array[Resource]([SubResource("Resource_station_cameras")])
+tier = 3
+column = 2
+
+[sub_resource type="Resource" id="Resource_business_lounge"]
+script = ExtResource("2_upgrade")
+title = "Business lounge"
+description = "Increase the chance of getting Business passengers.
+NOT IMPLEMENTED"
+icon = ExtResource("10_bed_double")
+credits = 800
+points = Dictionary[int, int]({
+2: 10
+})
+requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
+tier = 3
+column = 3
+
+[sub_resource type="Resource" id="Resource_passenger_loyalty_program"]
+script = ExtResource("2_upgrade")
+title = "Passenger loyalty program"
+description = "Increase the chance of getting returning passengers. Returning passengers pay 1.5x more.
+NOT IMPLEMENTED"
+icon = ExtResource("8_flask_conical")
+credits = 800
+points = Dictionary[int, int]({
+2: 10
+})
+requires = Array[Resource]([SubResource("Resource_destination_sign")])
+tier = 3
+column = 4
+
+[sub_resource type="Resource" id="Resource_bottomless_complaints_box"]
+script = ExtResource("2_upgrade")
+title = "Bottomless complaints box"
+description = "Ratings below 3 stars do not affect your total rating.
+NOT IMPLEMENTED"
+icon = ExtResource("6_star")
+credits = 1100
+points = Dictionary[int, int]({
+2: 14
+})
+requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_honk")])
+tier = 4
+
+[sub_resource type="Resource" id="Resource_research_grant"]
+script = ExtResource("2_upgrade")
+title = "Research grant"
+description = "You can exchange 200 credits for 1 research point of any race.
+NOT IMPLEMENTED"
+icon = ExtResource("8_flask_conical")
+credits = 1100
+points = Dictionary[int, int]({
+2: 14
+})
+requires = Array[Resource]([SubResource("Resource_remote_terminal")])
+tier = 4
+column = 2
+
+[sub_resource type="Resource" id="Resource_express_service"]
+script = ExtResource("2_upgrade")
+title = "Express service"
+description = "Kicking a passenger out near their destination planet delivers them.
+NOT IMPLEMENTED"
+icon = ExtResource("8_flask_conical")
+credits = 1100
+points = Dictionary[int, int]({
+2: 14
+})
+requires = Array[Resource]([SubResource("Resource_passenger_loyalty_program"), SubResource("Resource_business_lounge")])
+tier = 4
+column = 3
 
 [resource]
 script = ExtResource("1_tree")
 title = "Stops"
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_door_chime"), SubResource("Resource_station_cameras"), SubResource("Resource_station_waiting_lounge"), SubResource("Resource_mind_reading_machine")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_door_chime"), SubResource("Resource_station_waiting_lounge"), SubResource("Resource_tip_jar"), SubResource("Resource_free_station_coffee"), SubResource("Resource_timetables"), SubResource("Resource_honk"), SubResource("Resource_station_cameras"), SubResource("Resource_destination_sign"), SubResource("Resource_remote_terminal"), SubResource("Resource_business_lounge"), SubResource("Resource_passenger_loyalty_program"), SubResource("Resource_bottomless_complaints_box"), SubResource("Resource_research_grant"), SubResource("Resource_express_service")])

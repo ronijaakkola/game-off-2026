@@ -48,6 +48,12 @@ const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.
 @export var amenities: Array[Amenity] = []
 ## Seconds each passenger takes to get off or on at a stop.
 @export_range(0.0, 3.0, 0.05) var step_seconds := 0.6
+## What a happy passenger pays, as a multiple of what they would without it, once the bus
+## has the Tip jar.
+@export_range(1.0, 3.0, 0.05) var tip := 1.2
+## How many times as long someone picked up waits for their first requests, once the bus
+## has Free station coffee.
+@export_range(1.0, 3.0, 0.05) var coffee_delay := 1.5
 
 ## Whether the bus waits at a planet, docked or charging, so ride clocks run at half
 ## speed. The scene that holds the bus sets it. When it turns false the bus has left, and
@@ -200,7 +206,7 @@ func stop_at(planet: Planet) -> void:
 			_forget(passenger)
 			_getting_off.append(passenger)
 			passenger.arrive()
-			_payouts.append(passenger.get_payout())
+			_payouts.append(passenger.get_payout(tip if _has(BusTraits.Type.TIP_JAR) else 1.0))
 			leaving.append(passenger)
 	for passenger: Passenger in leaving:
 		getting_off.emit(passenger)
@@ -239,7 +245,10 @@ func _step() -> void:
 		unloaded.emit()
 	if not _getting_on.is_empty():
 		# Picked up with a seat promised, so they get on even if seats went since.
-		_take_seat(_getting_on.pop_front())
+		var boarding: Passenger = _getting_on.pop_front()
+		if _has(BusTraits.Type.FREE_COFFEE):
+			boarding.delay_requests(coffee_delay)
+		_take_seat(boarding)
 		_until_step += step_seconds
 		return
 	_stopping = false
@@ -299,6 +308,11 @@ func _take_seat(passenger: Passenger) -> void:
 	_passengers.append(passenger)
 	passenger.settle(comfort)
 	boarded.emit(passenger)
+
+
+# Whether the bus the cabin follows has [param type]. Before it follows one, nothing.
+func _has(type: BusTraits.Type) -> bool:
+	return _bus_stats != null and _bus_stats.get_traits().has(type)
 
 
 func _on_seats_stat_changed() -> void:

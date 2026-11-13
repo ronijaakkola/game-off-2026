@@ -191,6 +191,46 @@ func test_nobody_leaves_where_the_bus_waits() -> void:
 	assert_int(_waiting.count_at(_home)).is_equal(1)
 
 
+func test_with_the_lounge_someone_picked_up_rides_happier_the_longer_they_waited() -> void:
+	_quiet()
+	_waiting.leave_seconds = 1000.0
+	_waiting.bus = _bus_at(_away)
+	_waiting.bus.get_stats().get_traits().add(BusTraits.Type.WAITING_LOUNGE)
+	_waiting.add(_home)
+	_waiting.add(_home)
+
+	_run(23.0)
+	var line := _waiting.get_waiting(_home)
+	_waiting.take(_home, line[0])
+	_run(60.0)
+	_waiting.take(_home, line[1])
+
+	assert_float(line[0].lounge_bonus).is_equal(2.0)
+	assert_float(line[1].lounge_bonus).is_equal(_waiting.lounge_bonus_max)
+
+
+func test_without_the_lounge_waiting_gives_nothing() -> void:
+	_quiet()
+	_waiting.leave_seconds = 1000.0
+	_waiting.bus = _bus_at(_away)
+	_waiting.add(_home)
+
+	_run(60.0)
+	var passenger := _waiting.get_waiting(_home)[0]
+	_waiting.take(_home, passenger)
+
+	assert_float(passenger.lounge_bonus).is_equal(0.0)
+
+
+# A bus docked at [param planet], standing still.
+func _bus_at(planet: Planet) -> FrameshiftBus:
+	var bus := BUS_SCENE.instantiate() as FrameshiftBus
+	bus.start_planet = planet
+	(_home.get_parent() as Node).add_child(bus)
+	bus.set_process(false)
+	return bus
+
+
 func _planet() -> Planet:
 	var planet := Planet.new()
 	(_home.get_parent() as Node).add_child(planet)
