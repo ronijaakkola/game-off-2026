@@ -95,6 +95,11 @@ var frameshift_held: bool:
 		return _drive.held
 	set(value):
 		_drive.held = value
+## A direction on the orbit plane the player steers the bus in from the chase view, or zero.
+## While set, with fuel and not towed, the bus flies that way instead of along its route,
+## with no charge in space; at a planet, a held drive charges to leave without a course.
+## Letting go picks the route up again, or slows it to a stop.
+var steering := Vector3.ZERO
 
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
@@ -273,7 +278,7 @@ func is_docking() -> bool:
 
 ## Whether the bus is slowing to a stop in space after its course was cancelled.
 func is_stopping() -> bool:
-	return state == State.FLYING and _route.is_empty()
+	return state == State.FLYING and _route.is_empty() and not _is_steered()
 
 
 ## The push someone on board feels as the bus speeds up, brakes and turns, in units per
@@ -340,6 +345,8 @@ func _process(delta: float) -> void:
 			_turn_rate = 0.0
 			_holding_time += delta
 			_start_charge()
+			if _is_steered():
+				state = State.FLYING
 	_feel(delta)
 	# The thrusters light up as the drive charges, burn in flight (not towed) and fade after.
 	var thrust := 1.0 if state == State.FLYING and not _towing else get_charge_progress()
@@ -351,6 +358,12 @@ func _process(delta: float) -> void:
 
 
 func _fly(delta: float) -> void:
+	if _is_steered():
+		_turn_toward(steering, delta)
+		var ahead := maxf(_forward().dot(steering.normalized()), 0.0)
+		_speed = move_toward(_speed, _top_speed() * ahead * ahead, acceleration * delta)
+		_move(_speed * delta)
+		return
 	if _route.is_empty():
 		_speed = move_toward(_speed, 0.0, acceleration * delta)
 		_move(_speed * delta)
@@ -385,6 +398,10 @@ func _fly(delta: float) -> void:
 	_move(minf(_speed * delta, distance))
 
 
+func _is_steered() -> bool:
+	return steering != Vector3.ZERO and not _towing and not (%FuelTank as FuelTank).is_empty()
+
+
 # Moves the bus forward, burning fuel unless it is towed.
 func _move(distance: float) -> void:
 	global_position += _forward() * distance
@@ -410,6 +427,9 @@ func _top_speed() -> float:
 
 # While charging, so the bus leaves the planet already facing where it goes.
 func _face_next_stop(delta: float) -> void:
+	if _is_steered():
+		_turn_toward(steering, delta)
+		return
 	if _route.is_empty():
 		return
 	var to_target := _flat(_stop_position(_route[0], global_position) - global_position)
@@ -491,9 +511,10 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 	state = State.DOCKED
 
 
-# Starts a charge while the key is held with a course set, unless passengers are boarding.
+# Starts a charge while the key is held with a course set or steering, unless passengers
+# are boarding.
 func _start_charge() -> void:
-	if _drive.held and not boarding and not _route.is_empty():
+	if _drive.held and not boarding and (not _route.is_empty() or _is_steered()):
 		state = State.CHARGING
 		_drive.clear()
 

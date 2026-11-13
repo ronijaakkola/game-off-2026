@@ -47,6 +47,7 @@
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
+[ext_resource type="PackedScene" uid="uid://ss2dxed3vqmn" path="res://game/solar_system/chase_view.tscn" id="114_chase"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -205,6 +206,11 @@ bounds_radius = 18.0
 min_distance = 8.0
 max_distance = 55.0
 distance = 43.0
+
+[node name="ChaseView" parent="." unique_id=394415976 node_paths=PackedStringArray("bus", "rig", "world") instance=ExtResource("114_chase")]
+bus = NodePath("../Bus")
+rig = NodePath("../CameraRig")
+world = NodePath("../World")
 
 [node name="World" type="Node3D" parent="." unique_id=425802452]
 unique_name_in_owner = true
