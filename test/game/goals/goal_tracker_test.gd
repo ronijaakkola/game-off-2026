@@ -85,6 +85,18 @@ func test_a_rating_goal_starts_from_the_ledger_and_follows_it() -> void:
 	assert_bool(goal.is_met()).is_false()
 
 
+func test_a_rating_goal_forgets_rides_older_than_the_recent_ones() -> void:
+	var goal := RatingGoal.new(4.0)
+	_tracker.add(goal)
+	for i: int in 10:
+		_ledger.rate(1.0)
+	assert_bool(goal.is_met()).is_false()
+
+	for i: int in 10:
+		_ledger.rate(5.0)
+	assert_bool(goal.is_met()).is_true()
+
+
 func test_all_are_met_only_while_each_milestone_is_done_and_each_standing_goal_holds() -> void:
 	assert_bool(_tracker.are_all_met()).override_failure_message("met with no goals").is_false()
 	var deliveries := DeliveryCountGoal.new(1)
