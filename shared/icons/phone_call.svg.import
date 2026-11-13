@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d4jplluyhkbyv"
-path="res://.godot/imported/phone_call.svg-754635346ccf771e4f6acbbb281d09e0.ctex"
+uid="uid://dj01a2ryo88c0"
+path="res://.godot/imported/phone_call.svg-2fcdb6c5a4ad89f8b9d505e3289d2854.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/transmissions/icons/phone_call.svg"
-dest_files=["res://.godot/imported/phone_call.svg-754635346ccf771e4f6acbbb281d09e0.ctex"]
+source_file="res://shared/icons/phone_call.svg"
+dest_files=["res://.godot/imported/phone_call.svg-2fcdb6c5a4ad89f8b9d505e3289d2854.ctex"]
 
 [params]
 

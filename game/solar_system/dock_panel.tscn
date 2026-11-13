@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bbs2kxbdg7qyr" path="res://game/solar_system/fuel_button.tscn" id="4_fuel"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="5_glass"]
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
-[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="7_flask"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="7_flask"]
 [ext_resource type="Texture2D" uid="uid://bx5fr0dpvayyy" path="res://game/solar_system/icons/chevron_right.svg" id="8_chevron"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]

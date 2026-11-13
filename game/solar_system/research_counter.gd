@@ -13,7 +13,7 @@ const ICON_SIZE := 12.0
 const CHIP_TINT := 0.18
 ## Each chip's height, in pixels. It sets the pill's height too.
 const CHIP_HEIGHT := 20.0
-const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
+const FLASK := preload("res://shared/icons/flask_conical.svg")
 ## Each count always has room for this many digits.
 const ROOM := "00"
 ## How much bigger a count pops, and the seconds up and back down.

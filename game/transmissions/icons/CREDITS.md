@@ -4,5 +4,4 @@ The icons are from [Lucide](https://lucide.dev) (`lucide-static` 1.52.0), with t
 
 | File | Lucide icon | License |
 |---|---|---|
-| `phone_call.svg` | `phone-call` | ISC (`LICENSE.txt`) |
 | `flag.svg` | `flag` | ISC (`LICENSE.txt`) |

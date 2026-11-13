@@ -40,7 +40,7 @@ const ICONS: Dictionary[Kind, Texture2D] = {
 	Kind.INFO: preload("res://game/solar_system/icons/info.svg"),
 	Kind.WARNING: preload("res://game/solar_system/icons/triangle_alert.svg"),
 	Kind.ERROR: preload("res://game/solar_system/icons/circle_alert.svg"),
-	Kind.CALL: preload("res://game/solar_system/icons/phone_call.svg"),
+	Kind.CALL: preload("res://shared/icons/phone_call.svg"),
 }
 const ICON_COLORS: Dictionary[Kind, Color] = {
 	Kind.TUTORIAL: DIM,
