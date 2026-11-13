@@ -6,15 +6,13 @@ shader_type canvas_item;
 // it, so a border keeps its colour over the blur.
 // Set on a panel as its material, it touches only the panel's own style box: the panel's
 // children draw with their own materials.
-// Godot blurs the screen copy itself: each mipmap level is a Gaussian blur of the one
-// before, in Compatibility too, so a higher blur_lod is a stronger blur.
 
-uniform sampler2D screen : hint_screen_texture, filter_linear_mipmap;
-uniform float blur_lod : hint_range(0.0, 6.0) = 4.0;
+#include "res://ui/screen_blur.gdshaderinc"
+
 // How much of the style box's colour covers the blurred screen.
 uniform float fill_opacity : hint_range(0.0, 1.0) = 0.72;
 
 void fragment() {
-	vec3 behind = textureLod(screen, SCREEN_UV, blur_lod).rgb;
+	vec3 behind = screen_blur(SCREEN_UV, SCREEN_PIXEL_SIZE, FRAGCOORD.xy);
 	COLOR = vec4(mix(behind, COLOR.rgb, fill_opacity), COLOR.a);
 }
