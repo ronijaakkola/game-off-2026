@@ -5,3 +5,4 @@ The icons are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0), with 
 | File | Lucide icon | License |
 |---|---|---|
 | `circle.svg` | `circle` | ISC (`LICENSE.txt`) |
+| `circle_x.svg` | `circle-x` | ISC (`LICENSE.txt`) |

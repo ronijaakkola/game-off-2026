@@ -1,6 +1,7 @@
 extends Node
 ## The solar system's buttons on the debug panel: emptying or lowering the fuel, scaring the
-## passengers, showing notices, an incoming transmission whose Answer opens a test quest, and
+## passengers, showing notices, an incoming transmission whose Answer opens a test quest, a
+## passenger calling with a real quest as soon as one can, and
 ## a card each of buttons that change the bus's stats and turn its traits on or off, as
 ## upgrades would.
 
@@ -19,6 +20,7 @@ const TEST_TYPE := preload("res://game/passengers/types/business.tres")
 @export var cabin: Cabin
 @export var notices: NoticeStack
 @export var transmission_panel: TransmissionPanel
+@export var quest_giver: QuestGiver
 ## Where the test quest's caller is going, and the planet their quest names.
 @export var test_destination: Planet
 @export var test_flyby_planet: Planet
@@ -29,6 +31,7 @@ func _ready() -> void:
 	DebugPanel.add_button("Low fuel", _debug_low_fuel, self)
 	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self)
 	DebugPanel.add_button("Incoming transmission", _debug_incoming_transmission, self)
+	DebugPanel.add_button("Offer quest", _debug_offer_quest, self)
 	DebugPanel.add_button("Test notices", _debug_test_notices, self)
 	var percent := StatModifier.Kind.PERCENT
 	_add_stat_buttons(BusStats.Type.MAX_SPEED, percent, STAT_PERCENT, "% top speed")
@@ -71,6 +74,11 @@ func _debug_scare_passengers() -> void:
 # Incoming transmission: the call notice, whose Answer opens the test quest.
 func _debug_incoming_transmission() -> void:
 	notices.announce_transmission().action_pressed.connect(_open_test_quest)
+
+
+# Offer quest: a passenger on board calls with a quest as soon as one can, in flight.
+func _debug_offer_quest() -> void:
+	quest_giver.call_soon()
 
 
 # Test notices: one of each other kind, the info closing by itself and the warning with a

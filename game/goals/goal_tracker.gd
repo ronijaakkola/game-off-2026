@@ -1,8 +1,9 @@
 class_name GoalTracker
 extends Node
-## The player's goals: it tells each one what happens in the game, from the [Cabin], the
-## [Ledger] and the bus, and says when one changes, is completed or fails. Goals stay in it
-## once completed or failed, until removed.
+## A set of the player's goals: it tells each one what happens in the game, from the
+## [Cabin], the [Ledger] and the bus, and says when one changes, is completed
+## or fails. Goals stay in it once completed or failed, until removed. The scene has one
+## for the goals a promotion takes and one for the quests under way.
 
 ## Started tracking [param goal], before it is told how things stand.
 signal goal_added(goal: Goal)
@@ -13,7 +14,13 @@ signal goal_changed(goal: Goal)
 signal goal_completed(goal: Goal)
 signal goal_failed(goal: Goal)
 
-@export var bus: FrameshiftBus
+@export var bus: FrameshiftBus:
+	set(value):
+		if bus:
+			bus.docked.disconnect(_on_bus_docked)
+		bus = value
+		if bus:
+			bus.docked.connect(_on_bus_docked)
 @export var cabin: Cabin:
 	set(value):
 		if cabin:
@@ -104,6 +111,11 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 func _on_kicked(passenger: Passenger) -> void:
 	for goal: Goal in _goals.duplicate():
 		goal.passenger_kicked(passenger)
+
+
+func _on_bus_docked(planet: Planet) -> void:
+	for goal: Goal in _goals.duplicate():
+		goal.bus_docked(planet)
 
 
 func _on_rated(_stars: float) -> void:

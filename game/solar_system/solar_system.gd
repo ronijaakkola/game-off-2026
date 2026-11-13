@@ -322,10 +322,13 @@ func _start_passengers() -> void:
 	saver.start()
 
 
+# The run's goals, and from here on passengers call with quests.
 func _add_goals() -> void:
 	var goals := %Goals as GoalTracker
 	goals.add(DeliveryCountGoal.new(START_DELIVERIES))
 	goals.add(RatingGoal.new(START_RATING))
+	var waiting := %WaitingPassengers as WaitingPassengers
+	(%QuestGiver as QuestGiver).start(_planets, _ledger, waiting)
 
 
 # The tutorial is over: whatever is open closes, and the map zooms out.

@@ -2,7 +2,7 @@ class_name Goal
 extends RefCounted
 ## One thing the player is asked to do, tracked by the [GoalTracker], which tells every goal
 ## what happens in the game: a passenger delivered or kicked, a rating counted, the bus
-## moving. Each kind of goal overrides the facts it cares about.
+## moving or docking. Each kind of goal overrides the facts it cares about.
 ## A [b]milestone[/b], such as delivering 50 passengers, is met once it is completed, and
 ## stays completed. A [b]standing[/b] goal, such as keeping the average rating at 4 stars,
 ## is met or not as things stand, and never completes by itself. A quest, a goal about one
@@ -19,6 +19,8 @@ signal failed
 enum State { ACTIVE, COMPLETED, FAILED }
 
 var state := State.ACTIVE
+## Why it failed, as a short line such as "Ran out of time", or empty.
+var failure := ""
 
 
 ## What the player is asked to do, such as "Deliver 50 passengers".
@@ -71,6 +73,12 @@ func bus_moved(position: Vector3, on_board: Array[Passenger], in_flight: bool) -
 		_on_bus_moved(position, on_board, in_flight)
 
 
+## The bus docked at [param planet].
+func bus_docked(planet: Planet) -> void:
+	if is_active():
+		_on_bus_docked(planet)
+
+
 ## Its progress, for a save game. A kind of goal with progress of its own adds it.
 func to_save() -> Dictionary:
 	return {"state": state}
@@ -98,6 +106,10 @@ func _on_bus_moved(_position: Vector3, _on_board: Array[Passenger], _in_flight: 
 	pass
 
 
+func _on_bus_docked(_planet: Planet) -> void:
+	pass
+
+
 # Marks a milestone done.
 func _complete() -> void:
 	state = State.COMPLETED
@@ -105,7 +117,9 @@ func _complete() -> void:
 	completed.emit()
 
 
-func _fail() -> void:
+# Marks it failed, for [param reason], a short line the player is shown.
+func _fail(reason := "") -> void:
+	failure = reason
 	state = State.FAILED
 	changed.emit()
 	failed.emit()
