@@ -219,7 +219,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 
 - The player's **average rating** is the mean of every rating so far.
 - It changes nothing yet.
-- The **recent rating** is the mean of the last 10 ratings. It sets which types turn up (Who turns up), and it is the rating the player is shown, so the stars and what they explain are one number.
+- The **recent rating** is the mean of the last 10 ratings. It sets which types turn up (Who turns up), it is what a rating goal reads (Goals), and it is the rating the player is shown, so the stars, the goal and what they explain are one number.
 - The star rating says only that a higher rating brings more Business passengers: no bands, no odds.
 - *(not built)* The player is told the first time the recent rating reaches a new band, and not again on coming back to it.
 
@@ -294,7 +294,8 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 
 - **Several at once.** The player can have any number of goals; each counts from when it is given, not from the start of the run.
 - **A milestone** is done once and stays done: deliver 50 passengers. Kicked passengers don't count.
-- **A standing goal** is met or not as things stand, and is never done: keep a 4.0 average rating. It isn't met until a set number of rides are rated (at least 1), so one lucky first ride doesn't meet it. Dropping below makes it unmet, not failed.
+- **A standing goal** is met or not as things stand, and is never done: keep a 4.0 rating. It isn't met until a set number of rides are rated (at least 1), so one lucky first ride doesn't meet it. Dropping below makes it unmet, not failed.
+- **A rating goal reads the recent rating,** not the all-time average. On the average the first rides on a bare bus weigh on it for the whole run: a player who takes everyone and serves slowly then met a 3.5 goal in 3 runs of 8 within 15 minutes, with every first-stage upgrade researched. On the recent rating every kind of player meets it.
 - **A quest** is something one passenger asks for mid-ride, for a reward. It is tracked apart from the goals a promotion takes, so a quest under way or failed never stands in the way of all met.
 - **The call.** While the bus flies, a Business passenger on board calls: the first no sooner than 30 s into a run, the next 30 to 60 s after the last call or quest ended, and then only once a Business passenger rides, which is what spaces quests out most. Quests are an event, not a constant: the pausing transmission wears thin if it comes all the time.
 - **Only Business passengers call,** for now, while quests are tried out: who calls is easy to tell, and a bus of Commuters is left alone.
@@ -310,7 +311,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 - Two older quest goals are built but nothing gives them: deliver one passenger, and fly one past a planet (the bus comes within 3 units of its surface in flight, having been out of reach since they boarded).
 - **Balance runs have no quests:** the scripted player decides only at a dock, so it can neither answer a call nor reroute for one. The reward is unmeasured.
 - **All met** means every milestone done and every standing goal holding.
-- **A run starts with two goals:** deliver 30 passengers, and keep a 3.5 average rating. 3.5 is what a bare bus averages, so quick serving and direct routes meet it without research, and anyone else needs a first upgrade or two. Both are met after about 5 to 7 minutes, with half of the first stage researched.
+- **A run starts with two goals:** deliver 30 passengers, and keep a 3.5 rating. 3.5 is what a bare bus averages, so it is met about when the deliveries are: both after 4.5 to 5 minutes for a careful player and about 7 for one who takes everyone and serves slowly, with half of the first stage researched. A higher target barely gates more and unticks more: 3.8 is met about a minute later by everyone, a bare bus included, and then holds only half the time for the slow player, since the first stage tops out at 4.0.
 - *(not built)* A temporary win and lose while the loop is tuned. **Win:** every goal met at once. **Lose:** the happiness score, the average happiness of everyone on board, stays at 0 for 20 s; the countdown pauses while the bus is empty.
 
 ## Controls
@@ -390,15 +391,18 @@ Features we will very probably build, but that need more design work first.
 
 ## Open questions
 
-- **Fun in the first stage.** In-Flight Movies and Space Invaders are both in the first two rows, so the first stage alone takes the recent rating to about 4.7 and half of all rides to 5 stars. A later stage's rating goal has little room above that unless Space Invaders moves down a row or the bonuses shrink.
-- **Orange points.** Past the first stage the orange tree is what the player waits for: it holds most of the built upgrades, while green points pile up unspent (the green tree has two built upgrades) and credits pass 2,000 by minute 20.
-- **The rating goal reads the all-time average,** so the first rides on a bare bus weigh on it for the whole run, while the resource bar shows the recent rating.
+- **The first stage runs out.** Its 14 built upgrades cost 3,250 credits in all and are all researched by about minute 10; nothing gives a promotion yet, so after that credits (2,500 unspent by minute 15) and points (60 % unspent) pile up with nothing to buy.
+- **The first stage tops out at 4 stars.** In-Flight Movies and a full lounge bonus reach 89, so no ride gets 5 stars, the recent rating stops at 4.0, and the top band of Who turns up (4.25) is out of reach until a promotion. With every stage open, half of all rides get 5 stars and the recent rating ends near 4.9.
+- **Serving speed barely shows once research starts.** Over a run a hand that reacts in 4 s rates within 0.05 stars of one that reacts in 0.7 s and earns the same; on a bare bus it is 0.1 stars. In-Flight Movies does most of it: its +12 is four seconds of an open request for free.
+- **In-Flight Movies is the best upgrade by far,** at the lowest price: alone on a bare bus it adds 70 credits a minute and 0.4 stars, twice Speed 1 and four times any other. Researching it first still gains only 3 % over a run, since the whole stage is bought so soon, and at a higher price the player waits on orange points with credits to spare.
+- **Business passengers are no trade-off.** They pay 1.6× and rate 0.1 stars lower than Commuters, 0.3 lower on a bare bus; leaving them behind loses 30 % of the credits and gains no rating.
+- **Fuel tanks do nothing.** With fuel on sale everywhere a tank never runs low, so Fuel tank 1 and 2 change no number in a run. They matter only if some planets stop selling fuel (Not designed yet, Depots).
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.
 - **How often passengers sleep.** Too short between sleeps and a long route costs nothing, too long and the pods hardly show. Also the pods' price, since costs go by row.
 - **What else the rating does.** Besides setting which types turn up: whether it gates upgrades, or is the leaderboard score.
 - **The tow's price and speed.** 100 credits, which can take the credits below zero, and 0.4 units a second over the planet's speed.
-- **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit.
+- **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit, and under 2 % of what a run earns, so where to refuel is no decision. At five times the price it is 10 % of earnings and slows research by about one upgrade in ten minutes; the tow's price would have to rise with it.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
 - **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
 - **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype. With 6 seats or more a bus that keeps to two destinations leaves with one or two seats empty; 4 waiting delivers about a tenth more, and fills a bus that takes everyone with more destinations than it can serve well.

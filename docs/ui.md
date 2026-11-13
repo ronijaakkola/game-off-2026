@@ -165,7 +165,7 @@ In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get
 - **A goal's row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
 - **Deliver 50 passengers:** the count ("12/50"), and the bar fills with it.
-- **Maintain 3.5 rating:** the average ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
+- **Maintain 3.5 rating:** the recent rating ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
 - **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Go straight to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and each race's research points by a flask in its colour.
 - **A done quest:** the green tick.
 - **A failed quest:** a red cross (`#F24D66`), the top line at half strength, no reward, and why it failed in the name's place ("Stopped at Moon first", "Reizhis was kicked", "Reizhis left the bus").
