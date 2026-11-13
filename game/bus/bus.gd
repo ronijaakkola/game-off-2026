@@ -61,7 +61,7 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 ## Seconds the drive stays warm after the bus stops in space: a course set later waits for a charge.
 @export_range(0.0, 30.0, 0.1) var warm_time := 1.0
 ## Seconds the drive stays warm at a planet, once the passengers getting off are off.
-@export_range(0.0, 30.0, 0.1) var cool_time := 8.0:
+@export_range(0.0, 30.0, 0.1) var cool_time := 6.0:
 	set(value):
 		cool_time = value
 		_drive.cool_time = value

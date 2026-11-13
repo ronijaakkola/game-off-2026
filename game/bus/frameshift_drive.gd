@@ -4,7 +4,7 @@ extends RefCounted
 ## ([member held]) it charges, and it is charged after [member charge_time]. Let go, it
 ## drains back [member drain] times as fast as it charged. While passengers board it holds
 ## where it is. The bus decides when a charge starts and what being charged or drained does.
-## Docked with the route going on, it is warm ([method warm_up]): a press leaves at once,
+## Just docked, it is warm ([method warm_up]): a press leaves at once,
 ## until it cools over [member cool_time].
 
 ## Seconds of holding from empty to charged.
@@ -12,7 +12,7 @@ var charge_time := 3.0
 ## How many times faster the charge drains than it builds, once let go.
 var drain := 2.0
 ## Seconds a warm drive takes to go cold.
-var cool_time := 8.0
+var cool_time := 6.0
 ## Whether the player holds the Frameshift key. The bus lets go for them when it leaves or
 ## its course is cleared, so a key held through either doesn't charge the next one.
 var held := false

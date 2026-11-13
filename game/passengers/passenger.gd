@@ -318,21 +318,15 @@ func arrive() -> void:
 ## climbs), at [param stop_rate] of their speed. The clock runs as the comfort says
 ## while asleep or watching a show. Needs wait while they sleep, so a sleep runs its
 ## length, but not while they watch: a request stops the show. While a request is being
-## fed, happiness holds. While
-## the bus is docked or parks, no request opens, and an open one goes on hold until the
-## bus flies on.
+## fed, happiness holds. While the bus is docked or parks, no request opens, but one
+## already open stays open and can be served. A request saved on hold opens again.
 func tick(
 	delta: float, docked: bool, holds := false, comfort: Comfort = null, stop_rate := DOCKED_RATE
 ) -> void:
 	var giving := comfort if comfort else _no_comfort
 	stop_rate = stop_rate if docked else 1.0
 	var stopped := docked or holds
-	if stopped and request:
-		_held_request = request
-		request = null
-		activity = ""
-		_activity_left = 0.0
-	elif not stopped and _held_request:
+	if _held_request:
 		request = _held_request
 		_held_request = null
 		asleep = false
@@ -362,7 +356,8 @@ func tick(
 		if delta > 0.0:
 			trend = (happiness - before) / delta * TREND_SECONDS
 	if request:
-		if _departed:
+		# Parking counts for nothing, so one asked as the bus pulls in is forgiven.
+		if _departed and not holds:
 			_request_age += delta
 		return
 	_activity_left -= delta

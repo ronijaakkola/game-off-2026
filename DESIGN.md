@@ -38,7 +38,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **The queue key** is Shift or Q, both in every browser. Firefox opens its own context menu on Shift + right-click and a page can't stop it, so in Firefox the hints name Q. Not Ctrl: a page can't block Ctrl+W, and W pans the camera.
 - **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
 - **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. With the drive cold, the player charges it by holding the Frameshift key for 3 s. The bus turns toward its next stop meanwhile.
-- **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 8 s, which picking someone up and refuelling spend; research pauses the game and the cooling with it. While warm, a press of the Frameshift key leaves as soon as everyone picked up is on, with no charge. The bus never leaves by itself. Towed in, the drive is cold.
+- **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 6 s, which picking someone up and refuelling spend; research pauses the game and the cooling with it. While warm, a press of the Frameshift key leaves as soon as everyone picked up is on, with no charge. The bus never leaves by itself. Towed in, the drive is cold.
 - The reward is for leaving quickly; a queued route only makes that easier. A cold drive costs the passengers riding on (Happiness).
 - **Letting go** drains the charge twice as fast as it built and keeps the course; holding again charges from what is left. Cancelling keeps the bus docked.
 - **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
@@ -148,7 +148,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 |---|---|---|
 | Someone is kicked | −25 to everyone else | Otherwise kicking the angriest passenger would raise the average for free |
 | The bus runs out of fuel | −15 to everyone | Less than a kick, since the wait and the tow cost time on top |
-| Arriving unserved | −10 to them, before they rate | A request open or on hold for 5 s of flying or more. One asked just before arriving, or during parking, is forgiven |
+| Arriving unserved | −10 to them, before they rate | A request open for 5 s or more, not counting parking, and counting time docked at a stop on the way. One asked just before arriving, or during parking, is forgiven |
 | Woken by a shock | a further −10 | Every shock wakes anyone asleep, so a kick or a tow is worse on a bus that sleeps |
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
@@ -162,7 +162,7 @@ There are no good shocks: one would fall away at 3 a second, gone in seconds.
 - **One request at a time.** The other needs' timers wait while one is open, so serving one doesn't set off the rest.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
 - **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s, and letting go keeps what was served so far.
-- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers run as slowly as the clock while docked. A request open when the bus stops goes on hold and opens again once it flies on.
+- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers run as slowly as the clock while docked. A request already open when the bus stops stays open, and the player or an amenity can serve it there; one going with a passenger who gets off goes with them.
 - Fun and sleep aren't needs that ask: upgrades give them.
 - *(not built)* **Food and drink become one need,** so the player isn't asked to tell them apart: one request, served as a snack or a drink at random.
 
@@ -372,7 +372,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 - **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next New game starts the tutorial again.
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
 - **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, and the quest under way.
-- **What starts afresh:** the course, the charge, the wait until the next call, what each passenger was doing (a request comes back on hold, as at a stop), and the lines' clocks.
+- **What starts afresh:** the course, the charge, the wait until the next call, what each passenger was doing (an open request opens again at once), and the lines' clocks.
 - **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.
 - Only a run started from the main menu is saved, so tests and a scene run on its own never touch the save.
 
