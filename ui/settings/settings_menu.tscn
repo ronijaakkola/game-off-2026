@@ -107,6 +107,11 @@ custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 text = "Edge pan"
 
+[node name="ShowFps" type="CheckButton" parent="Center/Panel/Items" unique_id=2147462642]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Show FPS"
+
 [node name="BackButton" type="Button" parent="Center/Panel/Items" unique_id=707033197]
 unique_name_in_owner = true
 layout_mode = 2
