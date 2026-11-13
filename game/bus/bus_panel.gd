@@ -38,6 +38,7 @@ const TRAIT_NAMES := {
 	BusTraits.Type.ENTERTAINMENT_SYSTEM: "In-Flight Movies",
 	BusTraits.Type.FOOD_DISPENSER: "Food Replicator",
 	BusTraits.Type.SERVING_ROBOTS: "Waiter Droids",
+	BusTraits.Type.STATION_CAMERAS: "Station cameras",
 }
 
 var _bus: FrameshiftBus

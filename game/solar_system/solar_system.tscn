@@ -40,11 +40,12 @@
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 [ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
 [ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
-[ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="109_transmission"]
 [ext_resource type="Script" uid="uid://dl6s4c30gtvik" path="res://game/solar_system/orbit_clock.gd" id="109_orbit_clock"]
+[ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="109_transmission"]
 [ext_resource type="Script" uid="uid://h318eugw35ag" path="res://game/solar_system/map_zoom.gd" id="110_map_zoom"]
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
+[ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -398,10 +399,16 @@ camera = NodePath("../Camera")
 [node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
 script = ExtResource("102_hud")
 
-[node name="WaitingMarkers" parent="Hud" unique_id=1789310111 instance=ExtResource("22_markers")]
+[node name="LabBadges" parent="Hud" unique_id=26987481 node_paths=PackedStringArray("camera") instance=ExtResource("113_lab_badges")]
 unique_name_in_owner = true
+camera = NodePath("../../Camera")
 
 [node name="FuelForecast" parent="Hud" unique_id=1670509518 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("25_forecast")]
+unique_name_in_owner = true
+bus = NodePath("../../Bus")
+camera = NodePath("../../Camera")
+
+[node name="WaitingMarkers" parent="Hud" unique_id=1789310111 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("22_markers")]
 unique_name_in_owner = true
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")

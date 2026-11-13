@@ -18,12 +18,16 @@ const LABEL_COLOR := Color(0.93, 0.92, 1.0, 0.85)
 ## A thin outline in the sky's navy, so the name still reads over orbit lines and rings.
 const LABEL_OUTLINE_COLOR := Color(0.08, 0.07, 0.18, 0.7)
 const LABEL_FONT_SIZE := 32
+## The name's font: Baloo 2, the UI font, at its semibold weight.
+const LABEL_FONT := preload("res://ui/fonts/baloo_2.ttf")
+const LABEL_FONT_WEIGHT := 600
 const LABEL_OUTLINE_SIZE := 8
 const BORDER_COLORS: Dictionary[Border, Color] = {
 	Border.HOVER: Color.WHITE,
 	Border.ROUTE: Color(1.0, 0.6, 0.22),
 }
 
+static var _label_font: FontVariation
 static var _sphere: SphereMesh
 
 ## The name shown under the body. Empty shows none.
@@ -377,6 +381,7 @@ func _init_label() -> void:
 	_label.shaded = false
 	_label.double_sided = false
 	_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_label.font = _get_label_font()
 	_label.font_size = LABEL_FONT_SIZE
 	_label.pixel_size = label_pixel_size
 	_label.outline_size = LABEL_OUTLINE_SIZE
@@ -385,6 +390,16 @@ func _init_label() -> void:
 	_label.render_priority = 2
 	_label.outline_render_priority = 1
 	_label.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+static func _get_label_font() -> FontVariation:
+	if not _label_font:
+		_label_font = FontVariation.new()
+		_label_font.base_font = LABEL_FONT
+		_label_font.variation_opentype = {
+			TextServerManager.get_primary_interface().name_to_tag("wght"): LABEL_FONT_WEIGHT
+		}
+	return _label_font
 
 
 static func _get_sphere() -> SphereMesh:

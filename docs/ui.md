@@ -22,7 +22,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom.
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is a thin, faint lilac line, so the player sees where each planet is going.
 - **Sky.** A deep navy-violet background with faint coloured fog and two layers of small stars, dim on purpose so the planets stand out. Its layers drift slightly as the camera moves.
-- **Names.** Each planet has its name just under it: small off-white text with the sky's lilac, a little see-through, with a thin navy outline. It faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
+- **Names.** Each planet has its name just under it: small off-white text in Baloo 2 semibold with the sky's lilac, a little see-through, with a thin navy outline. It faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
 - **Planet icons.** The UI shows a planet as a flat disc in its one icon colour, with the same purple night side, lit from the upper left. Rings show as a line at their tilt, behind the disc at the top and in front at the bottom. Each icon colour is set by hand to the colour the planet reads as from the camera.
 - **A destination** reads the same everywhere: an arrow, the planet's icon and its name.
 - **Icons.** Lucide. The fonts are under UI style.
@@ -88,13 +88,15 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 - **Hover.** The pointer over a planet shows a white border round it, over its orange route border. Where the bus and a planet overlap, only the one a left click would open shows it. Over the HUD, the pointer picks nothing.
 - **Route.** A flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border.
 - Under the pointer, the last stop's diamond turns white, as a planet's border does. Diamonds earlier on the route stay orange.
-- **Waiting markers** (a trait). Under the name of each planet where someone waits, a small person and a number.
-- **Fuel forecast** (a trait). Just above the route's last stop, "-22% fuel" in the names' off-white, or in low fuel's red when the bus hasn't that much left. Hidden with no course and during a tow.
+- **Lab badge.** On the upper right of the rim of each planet with a lab, a 14 px badge drawn as a photo's are: a dark disc with a faint light rim and a white flask. It grows a quarter as fast as the planets do on the zoomed map, so it is about 2.4 times as big there. The pointer resting on the planet opens a tooltip above the badge, "Research planet" in the tooltips' running text with no name over it, the same card and motion as every tooltip. It follows the badge smoothly as the planet moves, off whole pixels.
+- **Waiting markers** (a trait). 7 px under each planet's name, a 5 px dot for each place in its line, 3 px apart: filled off-white for someone waiting, a faint ring for a free place. A dot that fills grows out of its ring from 40 % while fading in, in 0.25 s easing out; one that empties shrinks back. Under Reduce motion it only fades. Without the station cameras, the pointer resting on the planet opens a tooltip under the dots, "3 waiting passengers" in the tooltips' running text, following them as the lab badge's does.
+- **Station cameras** (a trait). The pointer over a planet turns its dots into who waits there, on a small dark card like a tooltip's: each one's 24 px photo over their destination's full 14 px icon, rings and all, with no text. Nobody waiting keeps the dots. The card grows out of the name, from 95 % at the middle of its top edge while fading in, in 0.18 s easing out, as the dots fade out; leaving, it fades and shrinks to 97 % in 0.12 s as the dots come back. It fades as one piece, photos and icons with the card. Under Reduce motion it only fades.
+- **Fuel forecast** (a trait). Just above the route's last stop, "-22% fuel" in the names' off-white, or in low fuel's red when the bus hasn't that much left. With more than one leg, each leg's own cost ("-9%", smaller) sits beside its middle, on its upper side. Hidden with no course and during a tow.
 - **Trip arc.** A waiting passenger's trip, shown from their row in the dock panel: an arc from the planet to their destination in their race's skin colour.
   - It rises off the orbit plane like a hop, so it never reads as part of the flat route, and bows sideways where the trip points along the view.
   - A line of rounded dashes with a thin dark outline, as wide on screen at any zoom, from the planet's edge to a ring round the destination.
   - It grows out in half a second, the ring closing in as it arrives; then the dashes flow toward the destination and the ring sends out a slow pulse. Under Reduce motion it fades in whole and holds still.
-- **While a planet or the bus is open,** the names, waiting markers, fuel forecast and trip arc fade out.
+- **While a planet or the bus is open,** the names, lab badges, waiting markers, fuel forecast and trip arc fade out.
 
 ### The zoomed map
 
