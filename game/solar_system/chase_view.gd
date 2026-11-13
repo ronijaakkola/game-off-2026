@@ -4,12 +4,13 @@ extends Node
 ## on and off, as does its button on the debug panel. While on, %ChaseShot outranks the
 ## map's shots, and the scene's PhantomCameraHost blends to it, or cuts under Reduce motion.
 ## Meanwhile:
-## - Dragging with the left mouse button turns the camera round the bus and tilts it. A left
-##   press over the 3D view starts the drag, so it opens no planet; over the HUD, it clicks
-##   the HUD as usual.
+## - Dragging with the left mouse button turns the camera round the bus and tilts it, and
+##   moves nothing else. A left press over the 3D view starts the drag, so it opens no
+##   planet; over the HUD, it clicks the HUD as usual. The camera keeps its angle to the
+##   bus as the bus turns, swinging round after it a little late.
 ## - The mouse wheel zooms in and out, between [member min_distance] and [member max_distance].
-## - WASD or the arrow keys steer the bus, the way the camera faces. At a planet, they
-##   charge the drive to leave, as holding the Frameshift key does.
+## - WASD or the arrow keys fly the bus: W ahead, S brakes, A and D turn it. At a planet,
+##   W charges the drive to leave, as holding the Frameshift key does.
 ## - E near a planet sets a course to it: let go of the steering keys and the bus flies in
 ##   and docks.
 ## - The map camera is locked, since its pan keys steer, and it comes back over the bus.
@@ -41,6 +42,8 @@ const PRIORITY := 10
 @export_range(0.1, 50.0, 0.1) var zoom_smoothing := 10.0
 ## How far ahead of the bus, the way the camera faces, it looks.
 @export_range(0.0, 10.0, 0.1) var look_ahead := 1.2
+## How fast the camera swings round after the bus as it turns. Higher is stiffer.
+@export_range(0.1, 30.0, 0.1) var turn_smoothing := 3.0
 ## How far the camera turns per pixel the mouse moves, in degrees.
 @export_range(0.01, 1.0, 0.01) var mouse_sensitivity := 0.2
 ## How far the camera may tilt down to look at the bus, in degrees: from just above the
@@ -55,8 +58,10 @@ var _blend_seconds := 0.0
 # The camera's field of view before the view came on, to go back to.
 var _map_fov := 0.0
 var _fov_tween: Tween
-# Which way the camera faces round the bus, and how far down it looks, in radians.
-var _yaw := 0.0
+# The bus's heading as the camera trails it, how far the mouse has turned the camera from
+# behind it, and how far down it looks, in radians.
+var _heading := 0.0
+var _orbit := 0.0
 var _pitch := deg_to_rad(19.0)
 # The distance the zoom eases toward.
 var _target_distance := 0.0
@@ -103,7 +108,7 @@ func _input(event: InputEvent) -> void:
 	var motion := event as InputEventMouseMotion
 	if motion and _rotating:
 		var turn := deg_to_rad(mouse_sensitivity)
-		_yaw -= motion.relative.x * turn
+		_orbit -= motion.relative.x * turn
 		_pitch = clampf(
 			_pitch + motion.relative.y * turn, deg_to_rad(min_pitch), deg_to_rad(max_pitch)
 		)
@@ -140,9 +145,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not bus:
 		return
+	var weight := 1.0 - exp(-turn_smoothing * delta)
 	if not is_on():
-		_yaw = bus.global_rotation.y
+		_heading = bus.global_rotation.y
 	else:
+		_heading = lerp_angle(_heading, bus.global_rotation.y, weight)
 		_steer()
 	distance = lerpf(distance, _target_distance, 1.0 - exp(-zoom_smoothing * delta))
 	var facing := _facing()
@@ -160,11 +167,12 @@ func toggle() -> void:
 	var turning_on := not is_on()
 	if turning_on:
 		_map_fov = camera.fov
+		_orbit = 0.0
 		_rig_was_locked = rig.locked
 		rig.locked = true
 	else:
 		_stop_rotating()
-		bus.steering = Vector3.ZERO
+		bus.steering = Vector2.ZERO
 		_let_go_of_drive()
 		rig.locked = _rig_was_locked
 		rig.move_to(bus.global_position)
@@ -181,19 +189,17 @@ func is_on() -> bool:
 	return (%ChaseShot as PhantomCamera3D).priority >= PRIORITY
 
 
-# The steering keys, turned to the way the camera faces. At a planet they hold the drive.
+# The steering keys, as the bus sees them. At a planet, W holds the drive.
 func _steer() -> void:
 	rig.locked = true
-	var keys := Input.get_vector(
-		&"camera_pan_left", &"camera_pan_right", &"camera_pan_forward", &"camera_pan_back"
+	bus.steering = Vector2(
+		Input.get_axis(&"camera_pan_left", &"camera_pan_right"),
+		Input.get_axis(&"camera_pan_back", &"camera_pan_forward")
 	)
-	var facing := _facing()
-	var right := facing.cross(Vector3.UP)
-	bus.steering = right * keys.x - facing * keys.y
-	if bus.steering != Vector3.ZERO and bus.is_at_planet():
+	if bus.steering.y > 0.0 and bus.is_at_planet():
 		bus.frameshift_held = true
 		_holding_drive = true
-	elif bus.steering == Vector3.ZERO:
+	elif bus.steering.y <= 0.0:
 		_let_go_of_drive()
 
 
@@ -235,7 +241,7 @@ func _in_space() -> bool:
 
 # Flat on the orbit plane: the way the camera faces round the bus.
 func _facing() -> Vector3:
-	return Basis(Vector3.UP, _yaw) * Vector3.BACK
+	return Basis(Vector3.UP, _heading + _orbit) * Vector3.BACK
 
 
 func _collect_planets(node: Node) -> void:

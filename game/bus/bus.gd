@@ -95,11 +95,12 @@ var frameshift_held: bool:
 		return _drive.held
 	set(value):
 		_drive.held = value
-## A direction on the orbit plane the player steers the bus in from the chase view, or zero.
-## While set, with fuel and not towed, the bus flies that way instead of along its route,
-## with no charge in space; at a planet, a held drive charges to leave without a course.
-## Letting go picks the route up again, or slows it to a stop.
-var steering := Vector3.ZERO
+## How the player steers the bus by hand from the chase view, or zero: x turns it, -1 left
+## and 1 right, at [member turn_speed]; y is the throttle, 1 to top speed and -1 to brake.
+## While set, with fuel and not towed, the bus flies by it instead of along its route, with
+## no charge in space; at a planet, a held drive charges to leave without a course. Letting
+## go picks the route up again, or slows it to a stop.
+var steering := Vector2.ZERO
 
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
@@ -359,9 +360,8 @@ func _process(delta: float) -> void:
 
 func _fly(delta: float) -> void:
 	if _is_steered():
-		_turn_toward(steering, delta)
-		var ahead := maxf(_forward().dot(steering.normalized()), 0.0)
-		_speed = move_toward(_speed, _top_speed() * ahead * ahead, acceleration * delta)
+		_turn_by_hand(delta)
+		_speed = move_toward(_speed, _top_speed() * maxf(steering.y, 0.0), acceleration * delta)
 		_move(_speed * delta)
 		return
 	if _route.is_empty():
@@ -399,7 +399,7 @@ func _fly(delta: float) -> void:
 
 
 func _is_steered() -> bool:
-	return steering != Vector3.ZERO and not _towing and not (%FuelTank as FuelTank).is_empty()
+	return steering != Vector2.ZERO and not _towing and not (%FuelTank as FuelTank).is_empty()
 
 
 # Moves the bus forward, burning fuel unless it is towed.
@@ -428,7 +428,7 @@ func _top_speed() -> float:
 # While charging, so the bus leaves the planet already facing where it goes.
 func _face_next_stop(delta: float) -> void:
 	if _is_steered():
-		_turn_toward(steering, delta)
+		_turn_by_hand(delta)
 		return
 	if _route.is_empty():
 		return
@@ -459,6 +459,13 @@ func _glide_speed() -> float:
 func _turn_toward(direction: Vector3, delta: float) -> void:
 	var previous := rotation.y
 	rotation.y = rotate_toward(rotation.y, atan2(direction.x, direction.z), turn_speed * delta)
+	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
+
+
+# Seen from above, a right turn is clockwise.
+func _turn_by_hand(delta: float) -> void:
+	var previous := rotation.y
+	rotation.y = wrapf(rotation.y - steering.x * turn_speed * delta, -PI, PI)
 	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
 
 
