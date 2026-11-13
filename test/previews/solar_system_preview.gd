@@ -20,7 +20,7 @@ extends Node
 ## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
 ## it part way), and
 ## `dock` gives Ember, where the bus is docked, a lab and opens nothing, so the dock panel
-## shows its Research button. `-- Tow` opens
+## shows its Research button; `rich` gives credits and points too, so it glows. `-- Tow` opens
 ## the bus, so the camera follows it, and sends it off with fuel for eight units, so it runs
 ## dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
 ## the whole tow takes about 32 s (`--frames 1900`).
@@ -117,6 +117,10 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 	var lab := system.find_child("ResearchLab") as ResearchLab
 	if "dock" in args:
 		(system.find_child("Ember") as Planet).has_lab = true
+		if "rich" in args:
+			system.get_ledger().credits = 500
+			for value: int in Race.Type.values():
+				system.get_ledger().earn_research(value as Race.Type, 20)
 		return
 	var research := lab.get_research()
 	for tree: ResearchTree in lab.trees:

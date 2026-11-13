@@ -24,6 +24,9 @@ extends Control
 ## calls for its button to be pressed ([member BoardingRow.beckoning]), in one pulse: they
 ## brighten quickly and fade slowly, again and again, and hold bright under Reduce motion.
 ## Board all steps back to a plain button meanwhile, so there is one thing to press.
+## While the player can pay for an upgrade ([method ResearchLab.can_research_any]), the
+## Research button has the Frameshift key's thin yellow glow round it, pulsing as the key's
+## does, and holding still under Reduce motion.
 
 ## The player pressed the button to pick up [param passenger]. Board all presses it for
 ## each one waiting, longest waiting first; the parent stops once the seats are full.
@@ -47,6 +50,9 @@ const BECKON_FADE_SECONDS := 1.0
 const BECKON_BORDER := 2
 const BECKON_COLOR := Color(1.0, 1.0, 1.0, 0.9)
 const BECKON_BORDER_LOW := 0.25
+# How far past the content the clip reaches, so the Research button's glow at the right
+# edge shows whole.
+const GLOW_ROOM := FrameshiftKey.GLOW_SIZE
 
 ## Who waits at each planet.
 @export var waiting: WaitingPassengers:
@@ -60,6 +66,8 @@ const BECKON_BORDER_LOW := 0.25
 			_sync_rows()
 ## The seats the buttons check.
 @export var cabin: Cabin
+## Says whether there is an upgrade to pay for, which lights the Research button.
+@export var research_lab: ResearchLab
 
 ## Where the rows' portraits are rendered.
 var portrait_studio: PortraitStudio
@@ -267,6 +275,32 @@ func _show_buttons() -> void:
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()
+	_glow_research(
+		(
+			_shown != null
+			and _shown.has_lab
+			and research_lab != null
+			and research_lab.can_research_any()
+		)
+	)
+
+
+## Whether the Research button glows, as it does while there is an upgrade to pay for.
+func is_research_glowing() -> bool:
+	return (%ResearchGlow as CanvasItem).visible
+
+
+# Shows the Frameshift key's pulsing glow round the Research button, or hides it.
+func _glow_research(glowing: bool) -> void:
+	var glow := %ResearchGlow as CanvasItem
+	glow.visible = glowing
+	if not glowing:
+		return
+	var pulse := 1.0
+	if not Settings.reduce_motion:
+		var seconds := Time.get_ticks_msec() / 1000.0
+		pulse = 0.5 - 0.5 * cos(seconds * TAU / FrameshiftKey.PULSE_SECONDS)
+	glow.self_modulate.a = lerpf(FrameshiftKey.GLOW_DIM, FrameshiftKey.GLOW_BRIGHT, pulse)
 
 
 # Sizes the slot to the card's width, and hangs the card down from the slot, as tall as
@@ -287,7 +321,7 @@ func _lay_out() -> void:
 	card.modulate.a = 1.0 - _offset if still else 1.0
 	var clip := %Clip as Control
 	clip.position = style.get_offset()
-	clip.size = inner
+	clip.size = inner + Vector2(GLOW_ROOM, 0.0)
 	content.position = Vector2.ZERO
 	content.size = inner
 

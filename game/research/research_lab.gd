@@ -66,6 +66,19 @@ func get_points() -> Dictionary[Race.Type, int]:
 	return ledger.get_all_research()
 
 
+## Whether the player can pay for any upgrade they could research now, in any tree.
+func can_research_any() -> bool:
+	if not ledger:
+		return false
+	var credits := get_credits()
+	var points := get_points()
+	for tree: ResearchTree in trees:
+		for upgrade: Upgrade in tree.upgrades:
+			if _research.get_state(upgrade, credits, points) == Research.State.AVAILABLE:
+				return true
+	return false
+
+
 ## Opens the research screen on every tree, pausing the game.
 func open_screen() -> void:
 	research_screen.open(trees)
