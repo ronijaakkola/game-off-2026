@@ -312,7 +312,7 @@ func _start_passengers() -> void:
 		_add_goals()
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
-	cabin.unloaded.connect(bar.commit)
+	cabin.unloaded.connect(lab.commit)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
