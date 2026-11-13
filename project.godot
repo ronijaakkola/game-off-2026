@@ -17,7 +17,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [audio]
 
-buses/default_bus_layout="res://core/audio/default_bus_layout.tres"
+buses/default_bus_layout="uid://r4x2py7qv14j"
 
 [autoload]
 
@@ -32,6 +32,7 @@ Talo="*uid://bpmdn8oc34pg7"
 Online="*res://core/online/online.gd"
 DevConsole="*res://core/dev_console/dev_console.gd"
 DebugPanel="*res://core/debug_panel/debug_panel.tscn"
+FpsCounter="*res://core/fps_counter/fps_counter.tscn"
 PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 
 [debug]
