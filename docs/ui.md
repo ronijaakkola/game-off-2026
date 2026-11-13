@@ -139,10 +139,15 @@ A frosted-glass pill: what is behind it shows blurred under a translucent fill. 
 
 Two bars on the bottom edge of the screen, centred: the route bar on top, the bus bar under it.
 
-- **The route bar** shows what the bus is doing, or the track while it is on a leg. With no course it reads "No course".
-- **What the bus is doing:** "Docked", "Hold Frameshift to leave", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to a point in space", "Stopping", "Holding in space", "Out of fuel", "Out of fuel: refuel here", "Towed to Terra".
-- **A track** from the planet it left (or "Space") to the next planet on the route, with the time left, once the drive charges. The track never moves back: a planet that moves away slows it instead.
-- **With a course set and the bus waiting** for a charge, at a planet or in space, the route bar reads "Hold Frameshift to leave" instead of the track.
+- **The route bar** says what the bus is doing in a header, and with a route, draws it under the header as a line. With a route it is 50 px tall; with none it is one 28 px row with an icon before the text. The notices above ride its height.
+- **What the bus is doing:** "No route", "Hold Frameshift to leave", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to a point in space", "Stopping", "Holding in space", "Out of fuel", "Out of fuel: refuel here", "Towed to Terra", and "Route complete" for 4 s after docking at the route's last planet. In one row it is dim with a dim route icon, except "Out of fuel" in low fuel's red with the fuel icon and "Route complete" with a green tick (`#8CD966`).
+- **Totals.** At the header's right, a timer and the time the whole route takes ("18 s", "1:38"); with the fuel forecast, the fuel the whole route burns too ("22%"), red when that is more than is left. They tick, with no motion.
+- **The line** runs to scale from where the bus set off or waits, through each planet ahead, to the point in space the route ends at, if it does: a long leg is a long link. A planet is its 16 px icon, a point in space a small diamond. A checkpoint on the way to a planet isn't drawn. Links are white and faint, orange (the route's colour) up to the bus.
+- Past seven stops the rest fold into a "+N" pill as tall as a planet's disc. The links shrink to fit, none under 14 px, and the first, where the bus is, stays at least 40 px.
+- **The bus** sits on the line in a disc of the bar's colour, cutting into what it touches. It waits just past the start, flies along its link, and stops with its nose at a planet it docks at on the way. Docking there, the flown part folds away to the left and the bus drives over the planet, which becomes the start. At the last stop it stops short, never covering it.
+- The pointer over a stop rings it and opens a tooltip above it with the planet's name, or "Point in space". The bus has none.
+- **Motion.** Opening to two rows eases out over 0.3 s while the line fades in, and closing back over 0.2 s; the line is in place as it opens, so its stops don't come in one by one. In the open bar a new stop slides in from 8 px past its place, growing from half size and fading in, in 0.25 s; one taken off fades and shrinks where it is in 0.15 s; the rest glide to their new places from wherever they are, so quick clicks never jump. The header's text morphs as a passenger's activity line does.
+- Under Reduce motion the height changes at once and only the fade is left, stops fade in and out where they stand, and the fold and the drive over are a cut.
 - **The bus bar** holds the fuel gauge and the bus's keys, the Frameshift key among them.
 - **Fuel gauge:** a pale cyan bar and the percentage, both red at a quarter of a tank or less.
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.

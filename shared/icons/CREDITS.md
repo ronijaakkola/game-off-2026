@@ -11,3 +11,4 @@ Icons used by more than one feature, from [Lucide](https://lucide.dev) (`lucide-
 | `flask_conical.svg` | `flask-conical` | ISC (`LICENSE.txt`) |
 | `phone_call.svg` | `phone-call` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `star.svg` | `star` | ISC (`LICENSE.txt`) |
+| `circle_check.svg` | `circle-check` | ISC (`LICENSE.txt`) |

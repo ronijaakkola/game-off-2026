@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgxv87og87rfb"
-path="res://.godot/imported/circle_check.svg-835c14577ac9b39546e234063cec803e.ctex"
+path="res://.godot/imported/circle_check.svg-77f9ea3a34ac272141b286fde87c5c1a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/goals/icons/circle_check.svg"
-dest_files=["res://.godot/imported/circle_check.svg-835c14577ac9b39546e234063cec803e.ctex"]
+source_file="res://shared/icons/circle_check.svg"
+dest_files=["res://.godot/imported/circle_check.svg-77f9ea3a34ac272141b286fde87c5c1a.ctex"]
 
 [params]
 

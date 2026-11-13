@@ -3,7 +3,8 @@ extends CanvasLayer
 ## notices above them, which sit under the panel, fades the goal panel out, which the panel
 ## would slice, and keeps the resource bar centred in the gap
 ## between the On board panel and the side panel, so the bar glides aside as the side
-## panel slides in and back as it slides out.
+## panel slides in and back as it slides out. The notices sit on top of the bus bars, so
+## they rise and fall with the route bar as it opens and closes.
 
 ## Seconds the goal panel takes to fade out and back, also under Reduce motion.
 const GOAL_FADE_SECONDS := 0.2
@@ -19,6 +20,9 @@ func _process(_delta: float) -> void:
 	var side := (%BusPanel if (%BusPanel as Control).visible else %PlanetPanel) as Control
 	(%Notices as Control).visible = not side.visible
 	(%BusStatusPanel as Control).visible = not side.visible
+	var notices := %Notices as Control
+	notices.offset_top = (%BusStatusPanel as Control).offset_top
+	notices.offset_bottom = notices.offset_top
 	if side.visible != _goals_hidden:
 		_goals_hidden = side.visible
 		_fade_goals()

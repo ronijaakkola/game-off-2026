@@ -39,7 +39,6 @@ func test_holding_the_key_charges_and_letting_go_drains_and_keeps_the_course() -
 
 	assert_int(bus.state).is_equal(FrameshiftBus.State.CHARGING)
 	assert_str(_text(runner, "StateLabel")).is_equal("Charging frameshift")
-	assert_str(_text(runner, "ToLabel")).is_equal("Terra")
 	assert_float(key.charge).is_greater(0.0)
 
 	runner.simulate_mouse_button_release(MOUSE_BUTTON_LEFT)

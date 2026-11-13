@@ -4,7 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="Script" uid="uid://bf21dpk28ap5b" path="res://game/bus/frameshift_key.gd" id="4_key"]
-[ext_resource type="Texture2D" uid="uid://bv3he6oofkmxy" path="res://game/bus/icons/route.svg" id="5_route"]
+[ext_resource type="PackedScene" uid="uid://ce3hkauxdygws" path="res://game/bus/route_bar.tscn" id="5_route_bar"]
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
 [ext_resource type="Script" uid="uid://djxl2kxm0tghb" path="res://game/bus/bus_key.gd" id="7_bus_key"]
 
@@ -28,72 +28,9 @@ theme = ExtResource("2_theme")
 theme_override_constants/separation = 0
 script = ExtResource("1_panel")
 
-[node name="RouteBar" type="PanelContainer" parent="." unique_id=1056280419]
-material = ExtResource("3_glass")
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-theme_type_variation = &"RouteBarPanel"
-
-[node name="Row" type="HBoxContainer" parent="RouteBar" unique_id=432325167]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="RouteNudge" type="MarginContainer" parent="RouteBar/Row" unique_id=1448027967]
+[node name="RouteBar" parent="." unique_id=1017829025 instance=ExtResource("5_route_bar")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_override_constants/margin_top = 2
-
-[node name="RouteIcon" type="TextureRect" parent="RouteBar/Row/RouteNudge" unique_id=1737471946]
-self_modulate = Color(0.957, 0.945, 1, 0.4)
-custom_minimum_size = Vector2(12, 12)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("5_route")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="StateLabel" type="Label" parent="RouteBar/Row" unique_id=196512966]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"StrongLabel"
-theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
-text = "No course"
-
-[node name="FromLabel" type="Label" parent="RouteBar/Row" unique_id=218105738]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 0)
-layout_mode = 2
-theme_type_variation = &"SmallLabel"
-theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
-text = "From"
-
-[node name="Track" type="Control" parent="RouteBar/Row" unique_id=647450832]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 12)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-mouse_filter = 2
-
-[node name="ToLabel" type="Label" parent="RouteBar/Row" unique_id=1048281388]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 0)
-layout_mode = 2
-theme_type_variation = &"StrongLabel"
-text = "To"
-
-[node name="EtaLabel" type="Label" parent="RouteBar/Row" unique_id=635715567]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(36, 0)
-layout_mode = 2
-theme_type_variation = &"SmallStrongLabel"
-text = "0 s"
-horizontal_alignment = 2
 
 [node name="BusBar" type="PanelContainer" parent="." unique_id=1889564419]
 material = ExtResource("3_glass")
