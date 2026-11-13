@@ -165,14 +165,16 @@ func _drawn_stops(route: Array[RouteStop]) -> Array[RouteStop]:
 func _legs(route: Array[RouteStop]) -> PackedFloat32Array:
 	var legs := PackedFloat32Array()
 	var at := bus.global_position
-	var length := _flat(_origin.get_target(at, bus.dock_gap)).distance_to(_flat(at))
+	var length := RouteStop.flat(_origin.get_target(at, bus.dock_gap)).distance_to(
+		RouteStop.flat(at)
+	)
 	var ahead: Array[RouteStop] = []
 	if _arriving:
 		ahead.append(_arriving)
 	ahead.append_array(route)
 	for i: int in ahead.size():
 		var to := ahead[i].get_target(at, bus.dock_gap)
-		length += _flat(at).distance_to(_flat(to))
+		length += RouteStop.flat(at).distance_to(RouteStop.flat(to))
 		at = to
 		if ahead[i].planet or i == ahead.size() - 1:
 			legs.append(length)
@@ -190,7 +192,9 @@ func _bus_progress(legs: PackedFloat32Array) -> float:
 		_progress = 1.0
 	else:
 		var at := bus.global_position
-		var flown := _flat(_origin.get_target(at, bus.dock_gap)).distance_to(_flat(at))
+		var flown := RouteStop.flat(_origin.get_target(at, bus.dock_gap)).distance_to(
+			RouteStop.flat(at)
+		)
 		# The bus is at the planet, its nose at the edge, where its glide into the dock
 		# starts.
 		var docks := bus.get_next_planet() != null
@@ -312,10 +316,6 @@ func _set_openness(amount: float) -> void:
 	(%IconRoom as Control).custom_minimum_size.x = ICON_ROOM * (1.0 - size_amount)
 	(%StateIcon as CanvasItem).modulate.a = 1.0 - amount
 	(%Totals as CanvasItem).modulate.a = amount
-
-
-func _flat(at: Vector3) -> Vector3:
-	return Vector3(at.x, 0.0, at.z)
 
 
 # Sets text only when it changes, since this runs every frame.

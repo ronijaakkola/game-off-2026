@@ -31,7 +31,7 @@ static func estimate(bus: FrameshiftBus) -> float:
 	var distance := 0.0
 	for stop: RouteStop in stops:
 		var to := stop.get_target(from, bus.dock_gap)
-		distance += _flat(from).distance_to(_flat(to))
+		distance += RouteStop.flat(from).distance_to(RouteStop.flat(to))
 		from = to
 		if stop.planet:
 			time += bus.charge_time + _to_planet(distance, top, bus.acceleration)
@@ -49,7 +49,3 @@ static func _to_planet(distance: float, top: float, acceleration: float) -> floa
 	var flight := FlightTime.straight(distance - glide_from, 0.0, glide, top, acceleration)
 	var park_distance := maxf(glide_from, FrameshiftBus.PARK_DISTANCE)
 	return flight + log(park_distance / FrameshiftBus.PARK_DISTANCE) / FrameshiftBus.DOCK_SMOOTHING
-
-
-static func _flat(at: Vector3) -> Vector3:
-	return Vector3(at.x, 0.0, at.z)

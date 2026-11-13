@@ -67,6 +67,8 @@ const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 var _icons := {}
 var _targets := {}
 var _fades := {}
+# The stops whose icons are going, as keys.
+var _leaving := {}
 # The icons in line order, those going among them where they were.
 var _order: Array[RouteStop] = []
 # The stops shown, in order, without those going.
@@ -137,6 +139,8 @@ func show_route(
 		_targets[stop] = x
 		if not _icons.has(stop):
 			_enter(stop, x, at_once)
+		elif _leaving.has(stop):
+			_come_back(stop, at_once)
 		if i < links.size():
 			exact += ICON + GAP + links[i] + GAP
 	_place_leaving()
@@ -211,6 +215,7 @@ func _leave(stop: RouteStop, at_once: bool) -> void:
 	if at_once:
 		_forget(stop)
 		return
+	_leaving[stop] = true
 	var fade := icon.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC)
 	fade.set_ease(Tween.EASE_OUT)
 	fade.tween_property(icon, ^"modulate:a", 0.0, EXIT_SECONDS)
@@ -220,11 +225,30 @@ func _leave(stop: RouteStop, at_once: bool) -> void:
 	_fades[stop] = fade
 
 
+# A stop going that is shown again, as when a fold pushes the last one out and back,
+# turns round from where its fade got to instead of blinking out and coming in again.
+func _come_back(stop: RouteStop, at_once: bool) -> void:
+	var icon := _icons[stop] as Control
+	(_fades[stop] as Tween).kill()
+	_leaving.erase(stop)
+	if at_once:
+		icon.modulate.a = 1.0
+		icon.scale = Vector2.ONE
+		_fades.erase(stop)
+		return
+	var fade := icon.create_tween().set_parallel().set_trans(Tween.TRANS_QUART)
+	fade.set_ease(Tween.EASE_OUT)
+	fade.tween_property(icon, ^"modulate:a", 1.0, ENTER_SECONDS)
+	fade.tween_property(icon, ^"scale", Vector2.ONE, ENTER_SECONDS)
+	_fades[stop] = fade
+
+
 func _forget(stop: RouteStop) -> void:
 	(_icons[stop] as Control).queue_free()
 	_icons.erase(stop)
 	_targets.erase(stop)
 	_fades.erase(stop)
+	_leaving.erase(stop)
 	_order.erase(stop)
 	if _hovered and not is_instance_valid(_hovered):
 		_hovered = null

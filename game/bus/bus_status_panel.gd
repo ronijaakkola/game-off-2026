@@ -15,7 +15,11 @@ const FUEL_LOW_COLOR := Color(0.95, 0.3, 0.4, 1.0)
 const FUEL_LOW := 0.25
 
 ## The bus whose status it shows.
-@export var bus: FrameshiftBus
+@export var bus: FrameshiftBus:
+	set(value):
+		bus = value
+		if is_node_ready():
+			(%RouteBar as RouteBar).bus = bus
 
 # The fuel bar's fill, a copy of the scene's, so its colour can change.
 var _fuel_fill: StyleBoxFlat
