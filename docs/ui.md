@@ -174,7 +174,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Title: the planet's icon and name with "Station".
 - Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
-  - A Research button, where the planet has a lab, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen.
+  - A Research button, where the planet has a lab, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen. While the player can pay for any upgrade, it has the Frameshift key's thin, faint glow in the bus's yellow round it, pulsing once every two seconds, holding still under Reduce motion; with nothing affordable, no glow.
 - Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
 - Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.

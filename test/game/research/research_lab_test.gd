@@ -3,7 +3,8 @@ extends GdUnitTestSuite
 ## panel's Research button and pauses the game, holding an upgrade's tile researches it,
 ## paying credits and research points from the ledger, and nothing is researched without
 ## the cost or in a stage that isn't open. The pause menu opened over the screen takes Esc,
-## and closing it leaves the game paused under the screen.
+## and closing it leaves the game paused under the screen. The dock panel's Research button
+## glows while the player can pay for an upgrade, and not while they can't.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -70,6 +71,21 @@ func test_the_research_button_opens_the_screen_and_pauses_the_game() -> void:
 	assert_bool(_system.get_tree().paused).is_true()
 	screen.close()
 	assert_bool(_system.get_tree().paused).is_false()
+
+
+func test_the_research_button_glows_while_an_upgrade_can_be_paid_for() -> void:
+	var dock := _runner.find_child("DockPanel") as DockPanel
+	(_runner.find_child("Bus") as FrameshiftBus).get_docked_planet().has_lab = true
+	_ledger.credits = 0
+
+	await _runner.simulate_frames(1)
+	assert_bool(_lab.can_research_any()).is_false()
+	assert_bool(dock.is_research_glowing()).is_false()
+
+	_pay_for(_first_upgrade(), 0)
+	await _runner.simulate_frames(1)
+	assert_bool(_lab.can_research_any()).is_true()
+	assert_bool(dock.is_research_glowing()).is_true()
 
 
 func test_the_pause_menu_over_the_screen_leaves_the_game_paused() -> void:
