@@ -27,7 +27,7 @@ A point in space on the route before a planet, which the bus flies through on it
 _Never_: waypoint
 
 **Docked**:
-The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, unless the drive is still **warm**: docked at a planet the route goes on from, it leaves on a press until it goes **cold**.
+The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, unless the drive is still **warm**: just after docking, it leaves on a press until it goes **cold**. Leaving warm is a **quick stop**.
 _Avoid_: landed, parked
 
 **Signal bus**:

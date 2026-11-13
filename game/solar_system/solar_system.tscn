@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" uid="uid://70b0mq875ago" path="res://game/solar_system/dock_panel.tscn" id="23_dock"]
 [ext_resource type="PackedScene" uid="uid://b384geq2qmg0r" path="res://game/bus/bus_panel.tscn" id="24_bus_panel"]
 [ext_resource type="PackedScene" uid="uid://cv1jtomgb7ywi" path="res://game/solar_system/fuel_forecast.tscn" id="25_forecast"]
+[ext_resource type="PackedScene" uid="uid://ch4hn7fwpolh2" path="res://game/solar_system/quick_stop_pop.tscn" id="25_quick_stop"]
 [ext_resource type="PackedScene" uid="uid://cqh6m26bmhwpp" path="res://game/solar_system/trip_arc.tscn" id="26_trip"]
 [ext_resource type="Script" uid="uid://d7ilyo18irr3" path="res://game/solar_system/fuel_pump.gd" id="27_pump"]
 [ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="28_bar"]
@@ -40,13 +41,13 @@
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 [ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
 [ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
-[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 [ext_resource type="Script" uid="uid://dl6s4c30gtvik" path="res://game/solar_system/orbit_clock.gd" id="109_orbit_clock"]
 [ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="109_transmission"]
 [ext_resource type="Script" uid="uid://h318eugw35ag" path="res://game/solar_system/map_zoom.gd" id="110_map_zoom"]
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
+[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -371,11 +372,11 @@ quests = NodePath("../Quests")
 
 [node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quest_giver", "test_destination", "test_flyby_planet")]
 script = ExtResource("103_debug")
-quest_giver = NodePath("../QuestGiver")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
+quest_giver = NodePath("../QuestGiver")
 test_destination = NodePath("../World/Giant")
 test_flyby_planet = NodePath("../World/Frost")
 
@@ -394,10 +395,10 @@ dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 [node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "cabin", "goals", "quest_giver", "research_lab")]
 unique_name_in_owner = true
 script = ExtResource("108_saver")
-quest_giver = NodePath("../QuestGiver")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 goals = NodePath("../Goals")
+quest_giver = NodePath("../QuestGiver")
 research_lab = NodePath("../ResearchLab")
 
 [node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "research_screen")]
@@ -432,6 +433,10 @@ camera = NodePath("../../Camera")
 
 [node name="FuelForecast" parent="Hud" unique_id=1670509518 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("25_forecast")]
 unique_name_in_owner = true
+bus = NodePath("../../Bus")
+camera = NodePath("../../Camera")
+
+[node name="QuickStopPop" parent="Hud" unique_id=650873092 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("25_quick_stop")]
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")
 

@@ -179,8 +179,12 @@ func test_each_planet_on_the_route_docks_warm_and_a_press_goes_on() -> void:
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_far)
 	assert_array(docked_at).contains_exactly([_near, _far])
-	# The end of the route docks cold.
-	assert_float(_bus.get_warmth()).is_equal(0.0)
+	# The end of the route docks warm too, so a course set now still leaves at once.
+	assert_float(_bus.get_warmth()).is_greater(0.9)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.frameshift_held = true
+	_step_for(STEP)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 
 
 func test_boarding_holds_a_charge_from_starting_and_a_charge_under_way() -> void:

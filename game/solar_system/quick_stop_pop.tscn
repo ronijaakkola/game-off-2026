@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://ch4hn7fwpolh2"]
+
+[ext_resource type="Script" uid="uid://cky1jeaqi11ki" path="res://game/solar_system/quick_stop_pop.gd" id="1_pop"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="QuickStopPop" type="Control" unique_id=1221716059]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_pop")
+
+[node name="Label" type="Label" parent="." unique_id=600456479]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.961, 0.78, 0.29, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.07, 0.18, 0.8)
+theme_override_constants/outline_size = 4
+text = "Quick stop!"

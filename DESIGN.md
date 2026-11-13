@@ -17,7 +17,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 1. **Docked.** The bus starts docked at a planet. Passengers wait at planets, each with a destination, a fare and an expected trip time. While docked or charging, the player picks passengers up into the bus's seats.
 2. **Set course.** The player adds planets and points in space to the route.
-3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. At a planet the route goes on from, the drive is still warm for a while, and a press leaves at once. Until then the route can still change.
+3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Just after docking the drive is still warm for a while, and a press leaves at once. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
 5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
 6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every tree.
@@ -38,8 +38,8 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **The queue key** is Shift or Q, both in every browser. Firefox opens its own context menu on Shift + right-click and a page can't stop it, so in Firefox the hints name Q. Not Ctrl: a page can't block Ctrl+W, and W pans the camera.
 - **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
 - **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. With the drive cold, the player charges it by holding the Frameshift key for 3 s. The bus turns toward its next stop meanwhile.
-- **Warm at a planet.** Docking at a planet the route goes on from, the drive is warm. It holds while the passengers getting off get off, then cools over 8 s, which picking someone up and refuelling spend; research pauses the game and the cooling with it. While warm, a press of the Frameshift key leaves as soon as everyone picked up is on, with no charge. The bus never leaves by itself. Docking at the end of the route, or towed, the drive is cold.
-- The reward is for leaving quickly, not for having a stop queued: a stop queued and then changed earns nothing more. A cold drive costs the passengers riding on (Happiness).
+- **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 8 s, which picking someone up and refuelling spend; research pauses the game and the cooling with it. While warm, a press of the Frameshift key leaves as soon as everyone picked up is on, with no charge. The bus never leaves by itself. Towed in, the drive is cold.
+- The reward is for leaving quickly; a queued route only makes that easier. A cold drive costs the passengers riding on (Happiness).
 - **Letting go** drains the charge twice as fast as it built and keeps the course; holding again charges from what is left. Cancelling keeps the bus docked.
 - **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
 - **Short stops in space.** A course set from a stop in space within 1 s of coming to rest leaves at once, so a short stop costs nothing. After that the drive is cold and the bus waits for a charge, as at a planet; cancelling leaves it holding in space.

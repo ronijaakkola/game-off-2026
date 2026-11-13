@@ -4,11 +4,11 @@ extends Node3D
 ## doesn't move it from a planet: the player charges the [FrameshiftDrive] by holding the
 ## Frameshift key for [member charge_time], the bus turning toward its next stop meanwhile,
 ## then it flies there. It passes through points in space and docks at every planet on its
-## route, and holds still at a point in space that ends the route. Docking with the route
-## going on, the drive is warm: once the passengers getting off are off it cools over
-## [member cool_time], and a press of the key before then leaves as soon as nobody is
-## boarding. Cold, it waits for a charge. A new course in flight starts at once, with no
-## charge, as does one in space up to [member warm_time] after stopping.
+## route, and holds still at a point in space that ends the route. Docking, unless towed,
+## the drive is warm: once the passengers getting off are off it cools over
+## [member cool_time], and a press of the key with a course set before then leaves as
+## soon as nobody is boarding. Cold, it waits for a charge. A new course in flight starts
+## at once, with no charge, as does one in space up to [member warm_time] after stopping.
 ## Flying to a planet, it slows down as it nears it, then parks: it glides the last stretch
 ## and swings side-on, with its door toward the planet. It has docked once it is parked.
 ## Flying burns fuel from its [FuelTank] by distance. Run dry, it coasts to a stop unless
@@ -23,6 +23,8 @@ signal ran_out_of_fuel
 ## A tow from [method tow_to] docked at [param planet] and the tank is full again. Emitted
 ## before [signal docked].
 signal towed(planet: Planet)
+## The bus left a planet on a press while its drive was warm: a quick stop.
+signal left_warm
 
 enum State { DOCKED, CHARGING, FLYING, HOLDING, PARKING }
 
@@ -58,8 +60,7 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 		_drive.charge_time = value
 ## Seconds the drive stays warm after the bus stops in space: a course set later waits for a charge.
 @export_range(0.0, 30.0, 0.1) var warm_time := 1.0
-## Seconds the drive stays warm at a planet the route goes on from, once the passengers
-## getting off are off.
+## Seconds the drive stays warm at a planet, once the passengers getting off are off.
 @export_range(0.0, 30.0, 0.1) var cool_time := 8.0:
 	set(value):
 		cool_time = value
@@ -328,6 +329,7 @@ func _process(delta: float) -> void:
 				_drive.cool(delta)
 			if _continuing and not boarding and not _route.is_empty():
 				_undock()
+				left_warm.emit()
 			else:
 				_start_charge()
 				%ChargeRing.show_progress(global_position, get_warmth())
@@ -471,7 +473,7 @@ func _arrive(stop: RouteStop) -> void:
 # Parked side-on: the bus has docked. It waits there, course or not, for the drive.
 func _finish_docking() -> void:
 	state = State.DOCKED
-	_drive.warm_up(not _towing and not _route.is_empty())
+	_drive.warm_up(not _towing)
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
 	if _towing:
