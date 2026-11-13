@@ -70,7 +70,7 @@ _Avoid_: logging, metrics
 _Never_: telemetry
 
 **Open planet**:
-The planet the player left-clicked to look at: the camera follows it on the left of the screen, and its **planet panel** on the right shows who is waiting there. One at a time. `SolarSystem.open_planet()` in code.
+The planet the player left-clicked to look at: the camera follows it on the left of the screen, and its **planet panel** on the right shows who is waiting there and a little of its lore. One at a time. `SolarSystem.open_planet()` in code.
 _Avoid_: selected planet, focused planet, planet view
 
 **Open bus**:
@@ -87,7 +87,7 @@ _Avoid_: dev menu, dev console (that is LimboConsole's, F1)
 _Never_: cheat menu
 
 **Fuel**:
-What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the dock panel or the open planet's panel, at that planet's **fuel price**.
+What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the dock panel, at that planet's **fuel price**.
 _Avoid_: energy, gas, charge (that is the frameshift drive's)
 
 **Stat**:

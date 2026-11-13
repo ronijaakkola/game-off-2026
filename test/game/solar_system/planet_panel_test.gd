@@ -61,6 +61,25 @@ func test_opens_hidden_and_shows_the_planet_and_who_waits_there() -> void:
 	assert_bool((runner.find_child("EmptyLabel") as Label).visible).is_false()
 	var first := rows[0] as WaitingPassengerRow
 	assert_str((first.find_child("DestinationLabel") as Label).text).is_equal("Away")
+	# No tagline or lore set: neither shows.
+	assert_bool((runner.find_child("TaglineLabel") as Label).visible).is_false()
+	assert_bool((runner.find_child("Lore") as Control).visible).is_false()
+
+
+func test_shows_the_planet_s_tagline_and_lore() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as PlanetPanel
+	_home.tagline = "Where every route begins"
+	_home.lore = "The depot keeps the old timetables."
+
+	panel.open(_home)
+
+	var tagline := runner.find_child("TaglineLabel") as Label
+	var lore := runner.find_child("LoreLabel") as Label
+	assert_bool(tagline.visible).is_true()
+	assert_str(tagline.text).is_equal(_home.tagline)
+	assert_bool((runner.find_child("Lore") as Control).visible).is_true()
+	assert_str(lore.text).is_equal(_home.lore)
 
 
 func test_each_row_shows_a_portrait_and_gives_it_back_when_the_passenger_boards() -> void:

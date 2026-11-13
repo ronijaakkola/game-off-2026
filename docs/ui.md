@@ -303,10 +303,10 @@ A frosted-glass modal, 552 px wide, in the middle of the screen over a dark scri
 
 The planet's icon and name, and a Close button.
 
-- **Services:** a row for each passenger waiting there, longest waiting first (portrait, name over destination, fare), then the Fuel section. Anything else a planet offers goes here.
+- **Header:** the name, and under it the planet's tagline, dim.
+- **Services:** a row for each passenger waiting there, longest waiting first (portrait, name over destination, fare). Anything else a planet offers goes here.
 - A passenger who turns up while it is open slides in from the right.
-- **Fuel section:** "Full tank 10 credits", the bus's fuel as a bar and a percentage, a "Hold to refuel" button ("Refuelling..." while held), and a note.
-- The note shows the player's credits, or why the button is off: "Dock here to refuel.", "Tank full.", "Not enough credits.", "No fuel sold here.".
+- **Lore** sits at the foot, over the Close button, under a rule: a few sentences about the planet in dim body text, about 40 words, so it fits under three rows. It keeps room for four lines, with space above and below, so its rule stays put from planet to planet. A planet without lore shows neither.
 
 ### Research screen
 
@@ -363,5 +363,5 @@ F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handler
 
 - **Fuel and time on the map.** Each planet is meant to show the fuel cost and travel time to it *(not built)*. Whether a point in space and a checkpoint show them too.
 - **Passenger cards while a planet is open.** The On board panel stays in the top left corner and can cover part of the open planet. Hide it, shrink it, or leave it?
-- **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button, so the player closes it to pick anyone up.
+- **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button and it has no fuel button, so the player closes it to pick anyone up or refuel.
 - **The charge ring** is temporary.
