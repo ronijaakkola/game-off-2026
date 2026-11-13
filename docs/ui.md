@@ -213,7 +213,7 @@ Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bar
 - **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
 - **Out of fuel.** An error notice: "You ran out of fuel" and a "Tow (100 credits)" button, with what the tow costs now.
 - **Incoming transmission.** A call: "Incoming transmission..." and an Answer button. Every 1.6 s the phone rattles: it tips side to side, wide first then dying out, for about 0.4 s. Nothing in the game calls yet; the debug panel does.
-- **Coming in,** a card rises 8 px into place, growing from 96 % and fading in, over 0.3 s with a strong ease-out. A new one goes on top, so the cards already showing never move.
+- **Coming in,** a card rises 8 px into place, growing from 96 % and fading in, over 0.3 s with a strong ease-out. A new one goes on top of the cards staying, so they never move, but under any still leaving, so one that replaces another (each tutorial step) comes in where it rests and never drops as the old one's gap closes.
 - **Leaving,** it fades out in 0.18 s, sinking 6 px toward the bus bars and shrinking to 97 %, the way it came in. Then the cards above it glide down into its place over 0.25 s, easing in and out. A card can leave while still coming in, from wherever it got to.
 - Under Reduce motion cards only fade in and out, the cards above close the gap at once, and the phone holds still.
 
