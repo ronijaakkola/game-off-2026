@@ -29,10 +29,10 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	await runner.simulate_frames(2)
 
 	var cards := runner.find_child("Cards") as Control
-	assert_int(cards.get_child_count()).is_equal(1)
-	var card := cards.get_child(0)
+	assert_int(_cards_in(cards).size()).is_equal(1)
+	var card := _cards_in(cards)[0]
 	assert_str((card.find_child("NameLabel") as Label).text).is_equal(passenger.name)
-	assert_str((card.find_child("DestinationLabel") as Label).text).contains("Ember")
+	assert_str((runner.find_child("PlanetLabel") as Label).text).is_equal("Ember")
 
 	# Done sliding in.
 	await runner.simulate_frames(30, 30)
@@ -44,8 +44,9 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	assert_float(panel.position.x).is_equal(0.0)
 	# Then it slides out to the left and folds away before it goes.
 	await assert_func(self, "_slid_out", [panel]).wait_until(2000).is_true()
-	assert_int(cards.get_child_count()).is_equal(1)
-	await runner.simulate_frames(30, 30)
+	assert_int(_cards_in(cards).size()).is_equal(1)
+	# Its group's header folds away after it.
+	await runner.simulate_frames(40, 30)
 	assert_int(cards.get_child_count()).is_equal(0)
 
 
@@ -110,7 +111,7 @@ func test_holding_serve_on_a_card_serves_the_request() -> void:
 	assert_str((runner.find_child("ActivityLabel") as Label).text).is_equal("Munching")
 
 
-func test_each_card_shows_an_icon_in_its_own_destination_colour() -> void:
+func test_each_destination_s_group_shows_an_icon_in_its_colour() -> void:
 	var runner := scene_runner(SCENE)
 	var cabin := _cabin(runner)
 	var colors: Array[Color] = [Color.ORANGE, Color.TEAL]
@@ -121,7 +122,7 @@ func test_each_card_shows_an_icon_in_its_own_destination_colour() -> void:
 	await runner.simulate_frames(2)
 
 	var icons := (runner.find_child("Cards") as Control).find_children(
-		"DestinationIcon", "", true, false
+		"DestinationPlanetIcon", "", true, false
 	)
 	assert_int(icons.size()).is_equal(2)
 	for i: int in icons.size():
@@ -136,7 +137,7 @@ func test_the_preview_shows_a_full_cabin_with_three_requests() -> void:
 	await runner.simulate_frames(2)
 
 	var cards := runner.find_child("Cards") as Control
-	assert_int(cards.get_child_count()).is_equal(8)
+	assert_int(_cards_in(cards).size()).is_equal(8)
 	var serving := 0
 	for button: Node in cards.find_children("ServeButton", "", true, false):
 		if (button as Button).is_visible_in_tree():
@@ -183,6 +184,42 @@ func test_a_card_s_kick_button_fades_in_outside_the_board() -> void:
 	assert_float(options.position.x).is_equal(start)
 	var board := runner.find_child("Board") as Control
 	assert_float(kick.global_position.x).is_greater(board.global_position.x + board.size.x)
+
+
+func test_cards_group_by_destination_in_the_order_the_planets_came_up() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var terra: Planet = auto_free(Planet.new())
+	terra.name = "Terra"
+	var frost: Planet = auto_free(Planet.new())
+	frost.name = "Frost"
+	var first := _passenger(terra, 1000.0)
+	var second := _passenger(frost, 1000.0)
+	var third := _passenger(terra, 1000.0)
+	for passenger: Passenger in [first, second, third]:
+		cabin.board(passenger)
+	await runner.simulate_frames(2)
+
+	var groups := (runner.find_child("Cards") as Control).get_children()
+	assert_int(groups.size()).is_equal(2)
+	assert_str((groups[0].find_child("PlanetLabel") as Label).text).is_equal("Terra")
+	assert_str((groups[0].find_child("CountLabel") as Label).text).is_equal("2")
+	assert_array(_names(groups[0])).is_equal([first.name, third.name])
+	assert_str((groups[1].find_child("PlanetLabel") as Label).text).is_equal("Frost")
+	assert_array(_names(groups[1])).is_equal([second.name])
+
+
+func _names(group: Node) -> Array[String]:
+	var names: Array[String] = []
+	for card: PassengerCard in _cards_in(group):
+		names.append((card.find_child("NameLabel") as Label).text)
+	return names
+
+
+func _cards_in(node: Node) -> Array[PassengerCard]:
+	var cards: Array[PassengerCard] = []
+	cards.assign(node.find_children("*", "PassengerCard", true, false))
+	return cards
 
 
 func _slid_out(panel: Control) -> bool:

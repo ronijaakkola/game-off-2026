@@ -1,7 +1,6 @@
 class_name PassengerCard
 extends Control
-## One passenger's row in the On board panel: their name with where they are going beside
-## it (an arrow, an icon of the planet and its name), what they are doing, and their
+## One passenger's row in the On board panel: their name, what they are doing, and their
 ## happiness as a bar along the bottom in their mood's colour, which blends into the next
 ## mood's as it changes. A big drop in happiness, such as a scare, leaves a red trail on the
 ## bar that holds a moment, then shrinks to it. While they ask for something, a button held
@@ -186,7 +185,7 @@ func slide_in() -> void:
 ## [constant Passenger.MAX_STARS]. The bottom row swaps: the happiness bar sinks and fades
 ## out while empty stars drop in from above and fade in, then the stars fill up to the
 ## rating one after another, each swelling as it fills. The activity morphs to "Getting
-## off", and the serve button goes. The name and destination stay. The card
+## off", and the serve button goes. The name stays. The card
 ## stops following the passenger. Under Reduce motion the row only crossfades and the
 ## stars only change colour. Only the first call counts.
 func show_rating(stars: float) -> void:
@@ -343,10 +342,6 @@ func _show() -> void:
 	# A new passenger's lines appear at once; later changes morph.
 	var first := _mood == -1
 	_set_text(%NameLabel, passenger.name)
-	var icon := %DestinationIcon as PlanetIcon
-	if icon.planet != passenger.destination:
-		icon.planet = passenger.destination
-	_set_text(%DestinationLabel, _destination_name())
 	var value := passenger.get_happiness_fraction()
 	(%HappinessBar as ProgressBar).value = value
 	if first:
@@ -435,14 +430,6 @@ func _place_trend() -> void:
 		color = _fill.bg_color
 	chevrons.position = Vector2(x, TREND_INSET)
 	chevrons.color = color
-
-
-func _destination_name() -> String:
-	if not passenger.destination:
-		return "?"
-	if passenger.destination.display_name:
-		return passenger.destination.display_name
-	return passenger.destination.name
 
 
 # Sets text only when it changes, since this runs every frame.

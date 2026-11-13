@@ -1,5 +1,6 @@
 extends Node
-## A full cabin for capturing the passenger cards: eight passengers, Commuters but for two
+## A full cabin for capturing the passenger cards: eight passengers going to five planets,
+## so three planets group two each and two planets one, Commuters but for two
 ## Business passengers, so their badge shows, one in each mood and some in between, three
 ## of them asking for something, their happiness heading every which way. The cabin stands
 ## still, so every frame shows the same state. `-- Kick` puts the pointer over the second
@@ -37,16 +38,20 @@ func _ready() -> void:
 	cabin.set_process(false)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
+	var planets: Array[Planet] = []
+	for i: int in DESTINATIONS.size():
+		var planet := Planet.new()
+		planet.display_name = DESTINATIONS[i]
+		planet.icon_color = ICON_COLORS[i]
+		if i == RINGED:
+			planet.ring_material = ShaderMaterial.new()
+			planet.icon_ring_color = Color(0.72, 0.72, 1.0)
+			planet.tilt = 18.0
+		add_child(planet)
+		planets.append(planet)
 	for seat: int in HAPPINESS.size():
-		var destination := Planet.new()
-		var planet := seat % DESTINATIONS.size()
-		destination.display_name = DESTINATIONS[planet]
-		destination.icon_color = ICON_COLORS[planet]
-		if planet == RINGED:
-			destination.ring_material = ShaderMaterial.new()
-			destination.icon_ring_color = Color(0.72, 0.72, 1.0)
-			destination.tilt = 18.0
-		add_child(destination)
+		# Seats wrap round the planets, so the first three go to the same as another seat.
+		var destination := planets[seat % planets.size()]
 		var type := BUSINESS if seat in BUSINESS_SEATS else COMMUTER
 		var passenger := Passenger.new(type, destination, 60.0, 40.0, rng)
 		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]
