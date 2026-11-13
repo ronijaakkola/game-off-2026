@@ -21,7 +21,7 @@ const DEBUG_PROMOTE_TEXT := "Promote (open next research stage)"
 
 ## The bus whose stats upgrades change.
 @export var bus: FrameshiftBus
-## Shows the credits and research points; the debug panel's credits are committed to it.
+## The HUD's bar, which shows the credits and research points while the screen is shut.
 @export var resource_bar: ResourceBar
 ## The full-screen modal with every tree.
 @export var research_screen: ResearchScreen
@@ -73,6 +73,14 @@ func open_screen() -> void:
 	resource_bar.hide()
 
 
+## Shows the credits and ratings earned since the last commit in both resource bars, the
+## HUD's and the screen's, so the two always show the same totals: each holds earnings
+## back until its own commit.
+func commit() -> void:
+	resource_bar.commit()
+	research_screen.commit()
+
+
 ## Researches [param upgrade] when it is available, paying its cost. Otherwise it does
 ## nothing.
 func research(upgrade: Upgrade) -> void:
@@ -88,8 +96,7 @@ func research(upgrade: Upgrade) -> void:
 # The debug panel's Add credits, shown as a gain that counts into the total, like a fare.
 func _debug_add_credits() -> void:
 	ledger.earn(DEBUG_CREDITS)
-	resource_bar.commit()
-	research_screen.commit()
+	commit()
 
 
 # The debug panel's Add research, which gives points of every race, each count popping.

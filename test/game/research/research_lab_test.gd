@@ -159,6 +159,28 @@ func test_holding_an_upgrade_tile_researches_it() -> void:
 	assert_int(_ledger.credits).is_equal(0)
 
 
+func test_the_screens_bar_shows_the_fares_the_huds_bar_shows() -> void:
+	var hud_bar := _runner.find_child("TopCentre").find_child("ResourceBar") as ResourceBar
+	var screen := _runner.find_child("ResearchScreen") as ResearchScreen
+	var screen_bar := screen.find_child("ResourceBar") as ResourceBar
+	_ledger.credits = 0
+	_ledger.earn(119)
+	_ledger.rate(4.0)
+
+	# As when everyone going to the planet has got off.
+	(_runner.find_child("Cabin") as Cabin).unloaded.emit()
+	await await_millis(1900)
+
+	assert_str(_shown(hud_bar, "TotalLabel")).is_equal("119")
+	assert_str(_shown(screen_bar, "TotalLabel")).is_equal("119")
+	assert_str(_shown(hud_bar, "AverageLabel")).is_not_equal(RatingCounter.NO_RATING)
+	assert_str(_shown(screen_bar, "AverageLabel")).is_equal(_shown(hud_bar, "AverageLabel"))
+
+
+func _shown(bar: ResourceBar, label: String) -> String:
+	return (bar.find_child(label, true, false) as Label).text
+
+
 func _first_upgrade() -> Upgrade:
 	for upgrade: Upgrade in _lab.trees[0].upgrades:
 		if upgrade.requires.is_empty():
