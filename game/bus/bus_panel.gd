@@ -36,9 +36,13 @@ const TRAIT_NAMES := {
 	BusTraits.Type.SLEEPING_PODS: "Sleeping pods",
 	BusTraits.Type.GAMING_SYSTEM: "Space Invaders",
 	BusTraits.Type.ENTERTAINMENT_SYSTEM: "In-Flight Movies",
-	BusTraits.Type.FOOD_DISPENSER: "Food Replicator",
+	BusTraits.Type.FOOD_DISPENSER: "Food Dispenser",
 	BusTraits.Type.SERVING_ROBOTS: "Waiter Droids",
 	BusTraits.Type.STATION_CAMERAS: "Station cameras",
+	BusTraits.Type.WAITING_LOUNGE: "Station waiting lounge",
+	BusTraits.Type.TIP_JAR: "Tip jar",
+	BusTraits.Type.FREE_COFFEE: "Free station coffee",
+	BusTraits.Type.TIMETABLES: "Timetables",
 }
 
 ## The width of each row's delta slot, wide enough for "+100%".

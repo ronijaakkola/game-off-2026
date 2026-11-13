@@ -4,5 +4,5 @@
 
 [resource]
 script = ExtResource("1_amenity")
-line = "Getting %s from the replicator"
-waiting_line = "Waiting for the replicator"
+line = "Getting %s from the dispenser"
+waiting_line = "Waiting for the dispenser"

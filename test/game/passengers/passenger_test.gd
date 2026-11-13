@@ -200,6 +200,14 @@ func test_comfort_raises_the_target() -> void:
 	)
 
 
+func test_the_lounge_bonus_raises_the_target_all_ride() -> void:
+	var passenger := _departed()
+	passenger.lounge_bonus = 5.0
+	assert_float(passenger.get_target()).is_equal(
+		Passenger.BASE_HAPPINESS + 5.0 + Passenger.ON_TIME_BONUS
+	)
+
+
 func test_a_shock_changes_happiness_at_once_and_it_climbs_back_slowly() -> void:
 	var passenger := _departed()
 	passenger.shock(-25.0)
@@ -350,6 +358,26 @@ func test_a_shock_wakes_a_sleeper_and_waking_costs_more() -> void:
 	assert_float(passenger.happiness).is_equal(
 		Passenger.BASE_HAPPINESS - 25.0 + Passenger.WAKE_SHOCK
 	)
+
+
+func test_a_tip_is_paid_only_by_a_happy_passenger() -> void:
+	var kind := _type()
+	kind.fare_multiplier = 2.0
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.happiness = 80.0
+	assert_int(passenger.get_payout(1.5)).is_equal(180)
+	passenger.happiness = 60.0
+	assert_int(passenger.get_payout(1.5)).is_equal(100)
+
+
+func test_delayed_requests_come_that_many_times_later() -> void:
+	var snack := _need(10.0)
+	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
+	passenger.delay_requests(1.5)
+	passenger.tick(14.0, false)
+	assert_object(passenger.request).is_null()
+	passenger.tick(2.0, false)
+	assert_object(passenger.request).is_same(snack)
 
 
 func test_asks_for_a_need_when_its_timer_runs_out() -> void:

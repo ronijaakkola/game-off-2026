@@ -72,13 +72,14 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - Each planet gets a new passenger every 8 to 20 s, up to 3 waiting. Who they are is under Who turns up.
 - Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
 - Happiness holds while they wait.
+- **Station waiting lounge.** Someone picked up gets +1 on their target for every 10 s they waited, up to +5 at 50 s, for their whole ride. A wait counts while the planet's clock runs, so waiting docked there builds none. +5 at most keeps In-Flight Movies alone short of 5 stars (84 + 5 = 89).
 - **The start.** A new run starts with the tutorial (Tutorial), and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A run without the tutorial (a scene run on its own) starts docked at Ember.
 
 ### Who turns up
 
 - **Decided when first seen.** A waiting passenger is only a count until the player first sees the line, by docking at the planet or opening it. Then each undecided passenger in it gets a destination, a race and a type, one after another, and keeps them. Lines fill about 40 s before the bus arrives, so deciding late is what lets a line answer the bus as it is now.
 - Anything that shows a line from afar counts as seeing it. The waiting markers show only a count, so they don't; the station cameras show who waits, so pointing at a planet with them does.
-- **Destination** is a weighted roll among the other planets, each at weight 1: ×2.5 if someone on board is going there, ×1.5 if someone already in the line is.
+- **Destination** is a weighted roll among the other planets, each at weight 1: ×2.5 if someone on board is going there, ×1.5 if someone already in the line is (×3 with Timetables).
 - **No more than two** in a line go to the same planet, so a line always holds a choice.
 - A match with who is on board is likely, never certain. A certain one stops being a reward, and turns the bus into a shuttle between two planets.
 - Destinations aren't dealt from a bag: dealing without repeats makes two going the same way rarer than chance does.
@@ -112,7 +113,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Fare** is 3 credits per unit times the type's multiplier.
 - Both are set when the passenger is decided (Who turns up), from where the planets are then.
 - A faster bus gets passengers there before they expect it. Speed upgrades make passengers happier rather than more demanding.
-- **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing.
+- **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing. With the Tip jar, happy pays 1.2× that again.
 
 ### Happiness
 
@@ -129,7 +130,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 **The target** is worked out fresh every frame:
 
-- 60 for a bus that does its job, plus the comfort bonuses (no higher than 100 together), plus timing.
+- 60 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), plus timing.
 - While a request is open, the target is 0. Ignoring a request must always cost more than serving it.
 - While anything is serving the request, happiness holds rather than falling, since they can see it coming.
 
@@ -170,9 +171,9 @@ An amenity serves food by itself. Automation shortens a request rather than remo
 
 - The moment someone asks for food, an amenity with room starts serving them. Anyone else asking waits, and their happiness heads for 0 meanwhile.
 - The player can still hold the button: the hand's speed adds to the amenity's.
-- **Food Replicator:** one passenger at a time, 4 s each.
+- **Food Dispenser:** one passenger at a time, 4 s each.
 - **Waiter Droids:** three at a time, 2.5 s each.
-- With both, the droids are tried first, then the replicator, so four can be served at once.
+- With both, the droids are tried first, then the dispenser, so four can be served at once.
 
 ### Comfort
 
@@ -181,7 +182,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 | Line | What it does |
 |---|---|
 | Food delivery | Shortens requests: the amenities above |
-| Portions | A served snack or drink lasts longer, by hand or by machine, so the next request comes later. Helps before any replicator |
+| Portions | A served snack or drink lasts longer, by hand or by machine, so the next request comes later. Helps before any dispenser |
 | Fun | Raises the target all ride long: In-Flight Movies +12, Space Invaders +8. Passengers also watch shows, and their clock runs at 70 % while they do |
 | Sleep | The clock runs a lot slower while asleep, and nothing is asked for |
 
@@ -231,7 +232,7 @@ Upgrades for the bus, bought with credits and research points.
 - **Each tree splits into three stages** by row: rows 1 and 2, rows 3 and 4, and the rest. The first stage is open from the start, and each **promotion** opens the next. *(not built)* What earns a promotion; for now only the debug panel gives one.
 - **The game is paused** while the player researches.
 - **An upgrade** has a cost in credits and research points, usually of the one race whose points are for the part of the bus it improves, so a tree can send the player looking for that race.
-- It needs *all* the upgrades it lists, from the same tree, and its stage open.
+- It needs *one* of the upgrades it lists, from the same tree, and its stage open: each is a path to it. One that lists none needs only its stage.
 - Each is researched once. A bigger step of the same thing is its own upgrade after it (Tank I, then Tank II).
 - Once researched it puts modifiers on the bus's stats, gives it traits, or both.
 
@@ -240,9 +241,9 @@ An upgrade is in one of five states:
 | State | When |
 |---|---|
 | Needs promotion | Its stage isn't open. Its name, description and cost don't show |
-| Hidden | Marked hidden, and not everything it needs is researched. Its name, description and cost don't show |
-| Locked | Something it needs isn't researched |
-| Available | Everything it needs is researched and the player can pay |
+| Hidden | Marked hidden, and nothing it needs is researched. Its name, description and cost don't show |
+| Locked | Nothing it needs is researched |
+| Available | Something it needs is researched and the player can pay |
 | Can't afford | Available but for the cost |
 | Researched | Its effects are on the bus |
 
@@ -267,26 +268,27 @@ An upgrade is in one of five states:
 - **Waiting markers:** how many wait at each planet shows on the map. Without them, the player finds out by opening a planet.
 - **Station cameras:** with the waiting markers, pointing at a planet shows who waits there and where each is going.
 - **Fuel forecast:** how much of the tank the whole course burns, and each leg of it, shows on the route. It counts the straight legs as everything is now, short of each planet by where the bus starts to park, so it is an estimate.
-- The comfort and food traits: Pillows, Sleeping pods, In-Flight Movies, Space Invaders, Food Replicator, Waiter Droids.
+- The comfort and food traits: Pillows, Sleeping pods, In-Flight Movies, Space Invaders, Food Dispenser, Waiter Droids.
+- The station traits: Station waiting lounge (Waiting), Timetables (Who turns up), Tip jar (Payment) and Free station coffee: someone picked up waits 1.5× as long for the first request of each need.
 
 ### The trees
 
 There are three trees, each paid for with one race's points. Frost, Terra and Giant have a lab; the rest have none.
 
-- They branch and join like talent trees: an early upgrade opens more than one, some need upgrades from two branches, and each ends in a capstone that needs two branches. Only a stage that isn't open hides an upgrade; none is marked hidden.
-- **Costs go by row,** the same in every tree for now: 150 credits and 2 points in the top row, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
+- They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that either of two branches reaches. An upgrade can need nothing even below the top row, open once its stage is. Only a stage that isn't open hides an upgrade; none is marked hidden.
+- **Costs come in five levels,** the same in every tree: 150 credits and 2 points, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Speed 3 on row 5 costs 550 and 7, Station waiting lounge on row 1 costs 300 and 4. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
-"A ← B" means A needs B.
+"A ← B" means A needs B; "A ← B or C" means either one opens it.
 
-- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Speed 2 ← Speed 1; Frameshift 1 ← Speed 1 and Fuel tank 1; Fuel forecast ← Fuel tank 1; Fuel tank 2 ← Fuel tank 1. Speed 3, Frameshift 2 and Fuel tank 3 each ← the one above. Extra insulation ← Frameshift 2 and Fuel tank 3. Capstone: Sunscreen ← Speed 3 and Extra insulation.
+- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Fuel forecast and Fuel tank 2 ← Fuel tank 1. Speed 2 and Warm drive ← Speed 1; Speed 3 ← Speed 2. How is my driving? ← Warm drive. Pit crew ← Fuel tank 2; Tow loyalty card ← Pit crew. Efficient burn ← Fuel forecast. Solar fuel ← Fuel tank 2 or Efficient burn. Last row: Slingshot ← Warm drive or Speed 3; Warp gate ← Efficient burn or Solar fuel.
   - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
-  - *(not built)* Frameshift (a shorter charge), Extra insulation, Sunscreen.
-- **Green** (the stops). Door chime; Station cameras and Station waiting lounge ← Door chime; capstone Mind reading machine ← both.
-  - Door chime gives the waiting markers, Station cameras the station cameras.
-  - *(not built)* The other three.
-- **Orange** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
-  - Every upgrade in it is implemented.
+  - *(not built)* Warm drive, Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel, Slingshot, Warp gate.
+- **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras; Research grant ← Remote terminal. Last row: Bottomless complaints box ← Station cameras or Honk; Express service ← Passenger loyalty program or Business lounge.
+  - Door chime gives the waiting markers, Station cameras the station cameras; Station waiting lounge, Tip jar, Free station coffee and Timetables their traits.
+  - *(not built)* The other eight.
+- **Orange** (comfort). Extra seat, Pillows and Bigger portions I at the top. Four Extra seats in a chain (+1 seat each). In-Flight Movies ← Pillows; Space Invaders ← In-Flight Movies. Sleeping pods ← Pillows; Airlock ← Sleeping pods. Food Dispenser and Bigger portions II ← Bigger portions I; Waiter Droids ← Food Dispenser. Bigger portions I and II are +50 % portion size each, 2× in all. Earplugs needs nothing, in the second stage. Last row: Karaoke ← Space Invaders or Sleeping pods.
+  - *(not built)* Earplugs, Airlock, Karaoke. The rest is implemented.
 
 ## Goals
 

@@ -19,7 +19,7 @@ func after() -> void:
 
 func test_continuing_puts_back_the_research_and_its_open_stages() -> void:
 	# Speed 1 by its tree, and Door chime by Terra, where the green tree used to be.
-	SaveGame.write({"research": ["blue_tree/0/1", "Terra/0/1"], "research_stages": 2})
+	SaveGame.write({"research": ["blue_tree/0/0", "Terra/0/1"], "research_stages": 2})
 	SaveGame.continue_saved()
 
 	var runner := scene_runner(SCENE)
@@ -27,7 +27,7 @@ func test_continuing_puts_back_the_research_and_its_open_stages() -> void:
 
 	var lab := runner.find_child("ResearchLab") as ResearchLab
 	var research := lab.get_research()
-	assert_bool(research.is_researched(_upgrade_at(lab, "Performance", 0, 1))).is_true()
+	assert_bool(research.is_researched(_upgrade_at(lab, "Performance", 0, 0))).is_true()
 	assert_bool(research.is_researched(_upgrade_at(lab, "Stops", 0, 1))).is_true()
 	assert_bool(research.is_researched(_upgrade_at(lab, "Comfort", 0, 0))).is_false()
 	assert_int(research.get_open_stages()).is_equal(2)

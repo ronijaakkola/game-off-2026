@@ -80,10 +80,11 @@ func _pick_research(state: Dictionary) -> Array[String]:
 				continue
 			if upgrade["not_built"] and not policy.get("research_not_built", false):
 				continue
-			var ready := true
+			# One researched path to it is enough.
+			var ready: bool = (upgrade["requires"] as Array).is_empty()
 			for needs: String in upgrade["requires"]:
-				if needs not in done and not _is_researched(state, needs):
-					ready = false
+				if needs in done or _is_researched(state, needs):
+					ready = true
 			var cost: Dictionary = upgrade["points"]
 			for race: String in cost:
 				if int(points.get(race, 0)) < int(cost[race]):

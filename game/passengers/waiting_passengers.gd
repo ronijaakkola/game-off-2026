@@ -10,6 +10,9 @@ extends Node
 ## trip time and fare come from the distance to their destination then.
 ## Once seen, the one who has waited longest leaves after [member leave_seconds] without
 ## being picked up, so a line the player passes over doesn't stay the same for good.
+## Everyone's wait is counted while their planet's clock runs: once the bus has the Station
+## waiting lounge, someone picked up rides happier the longer they waited
+## ([member Passenger.lounge_bonus]).
 
 ## The line at [param planet] changed: someone joined it, left it or was taken from it.
 signal changed(planet: Planet)
@@ -43,9 +46,16 @@ const MAX_SAME_DESTINATION := 2
 ## someone already in the line is. Likelier, never certain.
 @export_range(1.0, 10.0, 0.1) var on_board_weight := 2.5
 @export_range(1.0, 10.0, 0.1) var in_line_weight := 1.5
+## [member in_line_weight] once the bus has Timetables.
+@export_range(1.0, 10.0, 0.1) var timetables_in_line_weight := 3.0
 ## Seconds the longest-waiting passenger of a line the player has seen stays before they
 ## leave.
 @export_range(1.0, 600.0, 1.0) var leave_seconds := 60.0
+## With the Station waiting lounge, the happiness someone picked up gains for every
+## [member lounge_seconds] they waited, up to [member lounge_bonus_max]: a target bonus
+## for their whole ride.
+@export_range(1.0, 120.0, 1.0) var lounge_seconds := 10.0
+@export_range(0.0, 20.0, 0.5) var lounge_bonus_max := 5.0
 
 ## The player's ratings, whose recent mean sets how many are Business. Without one, the
 ## lowest band counts.
@@ -62,6 +72,9 @@ var _until_next: Dictionary[Planet, float] = {}
 # Who is first in each seen line, and the seconds until they leave.
 var _first: Dictionary[Planet, Passenger] = {}
 var _until_leave: Dictionary[Planet, float] = {}
+# Seconds each place in a line has waited, in line order: the seen ones, then the
+# undecided ones.
+var _waited: Dictionary[Planet, Array] = {}
 var _race_bag: Array[Race.Type] = []
 
 
@@ -70,6 +83,9 @@ func _process(delta: float) -> void:
 	for planet: Planet in _planets:
 		if planet == held:
 			continue
+		var waited: Array = _waited[planet]
+		for i: int in waited.size():
+			waited[i] += delta
 		_until_next[planet] -= delta
 		if _until_next[planet] <= 0.0:
 			_until_next[planet] = _interval()
@@ -91,8 +107,10 @@ func set_planets(planets: Array[Planet]) -> void:
 	_until_next.clear()
 	_first.clear()
 	_until_leave.clear()
+	_waited.clear()
 	for planet: Planet in _planets:
 		_waiting[planet] = []
+		_waited[planet] = []
 		_undecided[planet] = 0
 		_until_next[planet] = _interval()
 
@@ -122,6 +140,7 @@ func add(planet: Planet) -> void:
 	if not _waiting.has(planet) or count_at(planet) >= max_per_planet:
 		return
 	_undecided[planet] += 1
+	_waited[planet].append(0.0)
 	changed.emit(planet)
 
 
@@ -138,6 +157,8 @@ func get_waiting(planet: Planet) -> Array[Passenger]:
 		var passenger := create(planet)
 		if passenger:
 			_waiting[planet].append(passenger)
+		else:
+			_waited[planet].remove_at(_waiting[planet].size())
 	var line: Array[Passenger] = []
 	line.assign(_waiting.get(planet, []))
 	return line
@@ -158,6 +179,9 @@ func restore(planet: Planet, seen: Array[Passenger], unseen: int) -> void:
 		return
 	_waiting[planet] = seen.slice(0, max_per_planet)
 	_undecided[planet] = clampi(unseen, 0, max_per_planet - _waiting[planet].size())
+	_waited[planet] = []
+	_waited[planet].resize(count_at(planet))
+	_waited[planet].fill(0.0)
 	_first.erase(planet)
 	changed.emit(planet)
 
@@ -168,9 +192,17 @@ func take(planet: Planet, passenger: Passenger) -> bool:
 	var queue: Array = _waiting.get(planet, [])
 	if passenger not in queue:
 		return false
+	var waited: float = _waited[planet].pop_at(queue.find(passenger))
+	if _has(BusTraits.Type.WAITING_LOUNGE):
+		passenger.lounge_bonus = get_lounge_bonus(waited)
 	queue.erase(passenger)
 	changed.emit(planet)
 	return true
+
+
+## The happiness the Station waiting lounge gives someone who waited [param seconds].
+func get_lounge_bonus(seconds: float) -> float:
+	return minf(floorf(seconds / lounge_seconds), lounge_bonus_max)
 
 
 ## A new passenger at [param origin], decided as one joining its line now would be. Null
@@ -199,6 +231,7 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 	var others := _planets.filter(func(planet: Planet) -> bool: return planet != origin)
 	if others.is_empty():
 		return null
+	var leaning := timetables_in_line_weight if _has(BusTraits.Type.TIMETABLES) else in_line_weight
 	var weights := PackedFloat32Array()
 	var total := 0.0
 	for planet: Planet in others:
@@ -207,7 +240,7 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 		if same >= MAX_SAME_DESTINATION:
 			weight = 0.0
 		elif same > 0:
-			weight *= in_line_weight
+			weight *= leaning
 		if cabin and cabin.count_going_to(planet) > 0:
 			weight *= on_board_weight
 		weights.append(weight)
@@ -254,6 +287,7 @@ func _wait(planet: Planet, delta: float) -> void:
 	_until_leave[planet] -= delta
 	if _until_leave[planet] <= 0.0:
 		line.erase(first)
+		_waited[planet].pop_front()
 		changed.emit(planet)
 
 
@@ -266,6 +300,11 @@ func get_trip_seconds(distance: float, flying := false) -> float:
 		return distance
 	var charge := 0.0 if flying else bus.charge_time
 	return charge + distance / bus.max_speed + bus.max_speed / bus.acceleration
+
+
+# Whether the bus has [param type]: a station upgrade. Without a bus, nothing.
+func _has(type: BusTraits.Type) -> bool:
+	return bus != null and bus.get_stats().get_traits().has(type)
 
 
 func _interval() -> float:
