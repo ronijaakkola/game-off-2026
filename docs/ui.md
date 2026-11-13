@@ -22,7 +22,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom.
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is a thin, faint lilac line, so the player sees where each planet is going.
 - **Sky.** A deep navy-violet background with faint coloured fog and two layers of small stars, dim on purpose so the planets stand out. Its layers drift slightly as the camera moves.
-- **Names.** Each planet has its name just under it: small off-white text with the sky's lilac, a little see-through, with a thin navy outline. It faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
+- **Names.** Each planet has its name just under it: small off-white text in Baloo 2 semibold with the sky's lilac, a little see-through, with a thin navy outline. It faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
 - **Planet icons.** The UI shows a planet as a flat disc in its one icon colour, with the same purple night side, lit from the upper left. Rings show as a line at their tilt, behind the disc at the top and in front at the bottom. Each icon colour is set by hand to the colour the planet reads as from the camera.
 - **A destination** reads the same everywhere: an arrow, the planet's icon and its name.
 - **Icons.** Lucide. The fonts are under UI style.
@@ -88,13 +88,15 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 - **Hover.** The pointer over a planet shows a white border round it, over its orange route border. Where the bus and a planet overlap, only the one a left click would open shows it. Over the HUD, the pointer picks nothing.
 - **Route.** A flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border.
 - Under the pointer, the last stop's diamond turns white, as a planet's border does. Diamonds earlier on the route stay orange.
-- **Waiting markers** (a trait). Under the name of each planet where someone waits, a small person and a number.
-- **Fuel forecast** (a trait). Just above the route's last stop, "-22% fuel" in the names' off-white, or in low fuel's red when the bus hasn't that much left. Hidden with no course and during a tow.
+- **Lab badge.** On the upper right of the rim of each planet with a lab, a 14 px badge drawn as a photo's are: a dark disc with a faint light rim and a white flask. It grows a quarter as fast as the planets do on the zoomed map, so it is about 2.4 times as big there. The pointer resting on the planet opens a tooltip above the badge, "Research planet" in the tooltips' running text with no name over it, the same card and motion as every tooltip. It follows the badge smoothly as the planet moves, off whole pixels.
+- **Waiting markers** (a trait). 7 px under each planet's name, a 5 px dot for each place in its line, 3 px apart: filled off-white for someone waiting, a faint ring for a free place. A dot that fills grows out of its ring from 40 % while fading in, in 0.25 s easing out; one that empties shrinks back. Under Reduce motion it only fades. Without the station cameras, the pointer resting on the planet opens a tooltip under the dots, "3 waiting passengers" in the tooltips' running text, following them as the lab badge's does.
+- **Station cameras** (a trait). The pointer over a planet turns its dots into who waits there, on a small dark card like a tooltip's: each one's 24 px photo over their destination's full 14 px icon, rings and all, with no text. Nobody waiting keeps the dots. The card grows out of the name, from 95 % at the middle of its top edge while fading in, in 0.18 s easing out, as the dots fade out; leaving, it fades and shrinks to 97 % in 0.12 s as the dots come back. It fades as one piece, photos and icons with the card. Under Reduce motion it only fades.
+- **Fuel forecast** (a trait). Just above the route's last stop, "-22% fuel" in the names' off-white, or in low fuel's red when the bus hasn't that much left. With more than one leg, each leg's own cost ("-9%", smaller) sits beside its middle, on its upper side. Hidden with no course and during a tow.
 - **Trip arc.** A waiting passenger's trip, shown from their row in the dock panel: an arc from the planet to their destination in their race's skin colour.
   - It rises off the orbit plane like a hop, so it never reads as part of the flat route, and bows sideways where the trip points along the view.
   - A line of rounded dashes with a thin dark outline, as wide on screen at any zoom, from the planet's edge to a ring round the destination.
   - It grows out in half a second, the ring closing in as it arrives; then the dashes flow toward the destination and the ring sends out a slow pulse. Under Reduce motion it fades in whole and holds still.
-- **While a planet or the bus is open,** the names, waiting markers, fuel forecast and trip arc fade out.
+- **While a planet or the bus is open,** the names, lab badges, waiting markers, fuel forecast and trip arc fade out.
 
 ### The zoomed map
 
@@ -116,7 +118,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 | Middle, over the paused game | Transmission |
 | Bottom left | Debug panel (F2) |
 
-- **While a planet's or the bus's panel is open,** the bus bars and the notices hide, and the resource bar moves to stay centred between the On board panel and the open panel.
+- **While a planet's or the bus's panel is open,** the bus bars and the notices hide, the goal panel fades out over 0.2 s (and back in when the panel closes), and the resource bar moves to stay centred between the On board panel and the open panel.
 
 ### Resource bar
 
@@ -129,7 +131,7 @@ A frosted-glass pill: what is behind it shows blurred under a translucent fill. 
 - Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
 - The rating does the same: each one pops a gain with how far the average moved ("+0.2", "-0.3", "±0.0"). The very first just appears with a pop.
 - A research count pops as it goes up.
-- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 284 px and first changes at 1,000 credits or 100 points.
+- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 264 px and first changes at 1,000 credits or 100 points.
 - When a number gains or loses a digit, the pill stays centred and glides to the new width in 0.3 s, easing out. A count makes room for its widest number before it starts, so the pill changes width once per count.
 - Under Reduce motion nothing pops or drifts, and the width changes at once.
 
@@ -153,7 +155,7 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 
 ### Goal panel
 
-In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promotion" and a row for each goal, in the order given. Under a thin faint line, a dim flag and "Quests", and a row for each quest. Each part shows only while it has rows, the line only between the two, and the panel only while there are any.
+In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promoted" and a row for each goal, in the order given. Under a thin faint line, a dim flag and "Quests", and a row for each quest. Each part shows only while it has rows, the line only between the two, and the panel only while there are any.
 
 - **A goal's row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
@@ -171,7 +173,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Title: the planet's icon and name with "Station".
 - Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
-  - A Research button, where the planet has a lab. It opens the research screen.
+  - A Research button, where the planet has a lab, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen.
 - Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
 - Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
@@ -182,16 +184,16 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 
 ### Fuel button
 
-In the dock panel: "Hold to fuel (51 cr)", with what filling the tank costs there.
+In the dock panel: "Hold to fuel (51 credits)", with what filling the tank costs there.
 
-- It is the tank's gauge too: a faint fill behind the label, as wide as the share of a full tank the bus holds, in the fuel's colour.
+- It is the tank's gauge too: a faint fill behind the label, as wide as the share of a full tank the bus holds, in the fuel's colour. Off, the fill is about a third as strong and the label stays readable, so the button is quieter than an enabled one.
 - Held, the label morphs into the fuel's percentage, counting up, and morphs back when let go.
 - Off, it reads why: "Tank full" or "Not enough credits".
 - The bill shows as a loss under the credits when the pump stops.
 
 ### Notices
 
-Cards stacked above the bus bars, centred, 434 px wide and 32 px tall, 8 px apart, the newest on top. Each has an icon and a line of text in Figtree, and can have an action button (small and quiet, so it never outweighs the card) and a close button (a dim ×) on the right.
+Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bars and 32 px tall, 8 px apart, the newest on top. Each has an icon and a line of text in Figtree, and can have an action button (small and quiet, so it never outweighs the card) and a close button (a dim ×) on the right.
 
 | Kind | Icon | Card |
 |---|---|---|
@@ -199,7 +201,7 @@ Cards stacked above the bus bars, centred, 434 px wide and 32 px tall, 8 px apar
 | Info, something that happened | `i` in a circle, dim | The navy glass |
 | Warning | Triangle, amber (`#FACC61`) | Dark amber glass |
 | Error | `!` in a circle, red (`#F24D66`) | Dark red glass |
-| Incoming call | Phone, white | The navy glass |
+| Incoming call | Phone, pale lilac (`#CFBEFF`) with a soft glow of its own | Muted purple glass (`#3D2A80` at 85 %) with a 1 px lilac border (`#B9A0FF` at 50 %) and a faint lilac halo about 10 px wide |
 
 - **While a planet's or the bus's panel is open** the notices hide with the bus bars. One that arrives meanwhile waits and comes in when the panel closes, and those already showing stop counting down to closing by themselves, so none goes unseen.
 - A notice stays until its close or action button is pressed, unless it was given a time to close by itself, or until what it is about is over: a tutorial once the player does what it says, a warning once its cause is gone.
@@ -273,6 +275,7 @@ A frosted-glass modal, 552 px wide, in the middle of the screen over a dark scri
 - **Buttons:** a message has one primary button ("Got it"); a quest has a quiet "No" and a primary "Yes".
 - **Opening.** The scrim and modal fade in as the modal grows from 96 % in 0.4 s while the tube turns on. A beat after the picture is up, the caller says their text a letter at a time at a speaking pace, about 25 a second and never quite even, with a beat between words, a pause at a comma and a longer one at a full stop. Their head bobs as if with each word, stilling in the pauses, and their eyes stay on the player. After a 0.4 s pause to finish reading, the quest, the reward and the buttons fade in and rise into place one after another, 0.18 s apart over 0.5 s each, the quest rising most (8 px) and the buttons least (4 px). The buttons take clicks only once they start to show. A click on the modal before that shows the text whole and brings the rest in at once, with a tight stagger and no pause.
 - The caller's face shows their mood as on a portrait; a happy caller beams now and then.
+- **The boss** is a tall, lumpy tower of a blob that leans to one side, on a heap wider than the screen, with three eyes near the top: a big one in the middle and a smaller one a little lower on each side. For most of the game they call from a dark room: a near-black outline with no eyes, colour or mood, against a dim grey gloom, in a dim frame. It still bobs as it talks. Revealed, they are in the orange race's colours and glare whatever their mood: the eyes of full anger, with no anger mark and no tremble.
 - **Music.** While it shows, the music is muffled, as if through a wall: a low-pass filter closes and the music dips to 60 %, easing in over 0.4 s as it opens and back out over 0.6 s as it is answered. On the web there are no audio filters, so only the dip is heard.
 - Under Reduce motion the modal fades in and out without growing or shrinking, the rest fades in without rising, the tube fades in with no static burst and its snow and band hold still, the text shows whole and the head doesn't bob.
 
@@ -329,13 +332,16 @@ A modal over the whole screen, the game paused and dimmed under it: one frosted 
 Titled "Frameshift Bus".
 
 - One row per stat: its name, its value, and once upgrades change it, how much they add in green ("Top speed 1.44 +20%") or take away in red ("Fuel tank 80 -20%").
+- Each row's value right-aligns on one vertical line, and the delta has a fixed 44 px slot to its right (right-aligned, tabular figures, kept when empty), so the deltas form their own column.
 - Seats show whole ("Seats 5 +1"). Portion size shows as "1.5x".
+- Sections: 8 px between a section's title and its first row and between rows, 16 px between the end of one section and the next section's title.
 - A Traits section names each trait the bus has, or reads "None yet.".
 
 ## Menus
 
 - **Main menu:** title, Play, Settings, Quit (hidden on web). With a save game, Continue comes first as the primary button and has focus, and a plain "New game" button takes Play's place, with no hint that it has to be held: held for 1.2 s, a faint fill growing across it, it starts over; let go early, the fill drains back twice as fast. On web a title card (the game's title, "Click to start") comes first. The debug panel's "Delete save" deletes the save, and the menu turns back to Play; its "Reset settings" puts every setting back to its default.
 - **Pause menu:** Resume, Settings, Main menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
+- **Settings:** three volume sliders, a rule, then the Reduce motion and Edge pan toggles, and Back as the primary button. Every row is 38 px high with its label and control centred, so the five rows have one pitch; the rule sits 16 px from the rows above and below.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 
 ## Debug panel

@@ -87,8 +87,8 @@ const TEXT_COLOR := Color("f4f1ff")
 const BADGE_COLOR := Color("1b1740")
 const BADGE_RADIUS := 8.0
 const BADGE_ICON_SIZE := 10.0
-const DOLLAR := preload("res://game/solar_system/icons/dollar_sign.svg")
-const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
+const DOLLAR := preload("res://shared/icons/dollar_sign.svg")
+const FLASK := preload("res://shared/icons/flask_conical.svg")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 ## Placeholder clicks: once a hold completes, and for a press it can't act on.
 const HELD_SOUND := preload("res://ui/audio/ui_click.ogg")

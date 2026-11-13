@@ -4,11 +4,11 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="PackedScene" uid="uid://bvv0a8fkf5k1v" path="res://game/transmissions/transmission_screen.tscn" id="4_screen"]
-[ext_resource type="Texture2D" uid="uid://d4jplluyhkbyv" path="res://game/transmissions/icons/phone_call.svg" id="5_phone"]
+[ext_resource type="Texture2D" uid="uid://dj01a2ryo88c0" path="res://shared/icons/phone_call.svg" id="5_phone"]
 [ext_resource type="Texture2D" uid="uid://5e4u8rlx68t4" path="res://shared/icons/arrow_right.svg" id="6_arrow"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="7_planet"]
 [ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://shared/icons/flag.svg" id="8_flag"]
-[ext_resource type="Texture2D" uid="uid://b2w4upsxpmhrb" path="res://game/solar_system/icons/dollar_sign.svg" id="9_dollar"]
+[ext_resource type="Texture2D" uid="uid://b2w4upsxpmhrb" path="res://shared/icons/dollar_sign.svg" id="9_dollar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest"]
 content_margin_left = 10.0

@@ -40,21 +40,23 @@ const ICONS: Dictionary[Kind, Texture2D] = {
 	Kind.INFO: preload("res://game/solar_system/icons/info.svg"),
 	Kind.WARNING: preload("res://game/solar_system/icons/triangle_alert.svg"),
 	Kind.ERROR: preload("res://game/solar_system/icons/circle_alert.svg"),
-	Kind.CALL: preload("res://game/solar_system/icons/phone_call.svg"),
+	Kind.CALL: preload("res://shared/icons/phone_call.svg"),
 }
 const ICON_COLORS: Dictionary[Kind, Color] = {
 	Kind.TUTORIAL: DIM,
 	Kind.INFO: DIM,
 	Kind.WARNING: Color(0.98, 0.8, 0.38),
 	Kind.ERROR: Color(0.949, 0.302, 0.4),
-	Kind.CALL: Color(0.957, 0.945, 1),
+	Kind.CALL: Color(0.812, 0.745, 1),
 }
+## How much of the call card's colour covers the screen behind it, in place of the glass's own.
+const CALL_FILL_OPACITY := 0.85
 const PANELS: Dictionary[Kind, StringName] = {
 	Kind.TUTORIAL: &"NoticePanel",
 	Kind.INFO: &"NoticePanel",
 	Kind.WARNING: &"WarningNoticePanel",
 	Kind.ERROR: &"ErrorNoticePanel",
-	Kind.CALL: &"NoticePanel",
+	Kind.CALL: &"CallNoticePanel",
 }
 
 # From 1 while it shows to 0 once its gap has closed.
@@ -91,7 +93,13 @@ func setup(kind: Kind, text: String, closable: bool, seconds: float, action: Str
 	var icon := %Icon as TextureRect
 	icon.texture = ICONS[kind]
 	icon.self_modulate = ICON_COLORS[kind]
-	(%Card as PanelContainer).theme_type_variation = PANELS[kind]
+	var card := %Card as PanelContainer
+	card.theme_type_variation = PANELS[kind]
+	if kind == Kind.CALL:
+		var glass := card.material.duplicate() as ShaderMaterial
+		glass.set_shader_parameter(&"fill_opacity", CALL_FILL_OPACITY)
+		card.material = glass
+	(%Glow as Control).visible = kind == Kind.CALL
 	(%Label as Label).text = text
 	var button := %ActionButton as Button
 	button.text = action

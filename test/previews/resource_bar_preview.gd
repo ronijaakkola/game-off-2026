@@ -1,6 +1,6 @@
 extends Node
 ## Resource bars stacked down the right edge over the solar system, for capturing that the
-## bar keeps one width whatever its numbers: the design's small to large values. The last
+## bar keeps its width until a number gains a digit: the design's small to large values. The last
 ## three animate during the capture: a payment counts 990 up past 1,000, a refuel's bill
 ## counts 1,005 down past it, and the debug panel's 1,000 credits count up from 0. The last
 ## takes about 1.7 s: capture it with --frames 120.

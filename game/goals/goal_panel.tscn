@@ -26,7 +26,7 @@ mouse_filter = 2
 [node name="Header" type="Label" parent="Rows/Goals" unique_id=832714428]
 layout_mode = 2
 theme_type_variation = &"PillLabel"
-text = "To get promotion"
+text = "To get promoted"
 
 [node name="GoalRows" type="VBoxContainer" parent="Rows/Goals" unique_id=979652074]
 unique_name_in_owner = true

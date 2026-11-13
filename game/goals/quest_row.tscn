@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dgyctqfnij7u1"]
 
-[ext_resource type="Script" uid="uid://kc66b6h3djtg" path="res://game/quests/quest_row.gd" id="1_row"]
+[ext_resource type="Script" uid="uid://kc66b6h3djtg" path="res://game/goals/quest_row.gd" id="1_row"]
 [ext_resource type="Texture2D" uid="uid://d3m3waisgmnv2" path="res://game/goals/icons/circle.svg" id="2_circle"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_planet"]
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="4_photo"]

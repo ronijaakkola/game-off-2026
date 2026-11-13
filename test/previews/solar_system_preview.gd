@@ -4,8 +4,12 @@ extends Node
 ## name follows `--`: `uv run tools/check.py capture <this scene> -- Giant`. `-- Bus` opens
 ## the bus instead, with +20 % top speed, -20 % fuel tank and +1 seat, so its rows show a
 ## bonus, a penalty and a seat, and the fuel forecast trait. `-- Forecast` opens nothing,
-## and gives the bus the fuel forecast and waiting markers traits, a course to Terra and
-## someone waiting there, so the forecast shows over it and the marker under it. `-- Trip`
+## and gives the bus the fuel forecast, waiting markers and station cameras traits, a
+## course by Giant to Terra and lines of one, two and three, so the forecast shows over
+## Terra, each leg's cost over it and the dots under the names; `hover` puts the pointer on
+## Giant, so its line shows as photos, and `hover leave` takes it off again after 40 frames.
+## `chime` leaves out the station cameras, so the hover shows how many wait in a tooltip.
+## `-- Trip`
 ## opens nothing, puts two passengers in line at Ember, where the bus is docked, boards one
 ## going where the first one is, so their row shows "1 aboard", and pins the first one's
 ## row in the dock panel, so their trip arc shows. `-- Research` opens the research screen
@@ -32,9 +36,23 @@ func _ready() -> void:
 		var forecast_bus := system.find_child("Bus") as FrameshiftBus
 		forecast_bus.get_stats().get_traits().add(BusTraits.Type.FUEL_FORECAST)
 		forecast_bus.get_stats().get_traits().add(BusTraits.Type.WAITING_MARKERS)
+		if "chime" not in name_given:
+			forecast_bus.get_stats().get_traits().add(BusTraits.Type.STATION_CAMERAS)
 		var terra := system.find_child("Terra") as Planet
-		(system.find_child("WaitingPassengers") as WaitingPassengers).add(terra)
-		forecast_bus.plot_course(RouteStop.at_planet(terra))
+		var giant := system.find_child("Giant") as Planet
+		var line := system.find_child("WaitingPassengers") as WaitingPassengers
+		for planet: Planet in [terra, giant, giant, giant, forecast_bus.get_docked_planet()]:
+			line.add(planet)
+		forecast_bus.plot_course(RouteStop.at_planet(giant))
+		forecast_bus.plot_course(RouteStop.at_planet(terra), true)
+		if "hover" in name_given:
+			# With `leave`, the pointer moves off after 40 frames, so the card closes.
+			var frames := 0
+			while not ("leave" in name_given and frames >= 40):
+				await get_tree().process_frame
+				_point_at(giant)
+				frames += 1
+			_point_at(null)
 		return
 	if planet_name == "Trip":
 		var trip_bus := system.find_child("Bus") as FrameshiftBus
@@ -148,3 +166,17 @@ func _press(control: Control) -> void:
 	press.pressed = true
 	Input.parse_input_event(press)
 	Input.flush_buffered_events()
+
+
+# Moves the pointer onto [param planet] as the camera sees it, or with null to the top
+# left corner, over nothing.
+func _point_at(planet: Planet) -> void:
+	var camera := get_viewport().get_camera_3d()
+	var at := Vector2(4.0, 300.0)
+	if planet:
+		at = camera.unproject_position(planet.get_body_global_position())
+	get_viewport().warp_mouse(at)
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	Input.parse_input_event(motion)

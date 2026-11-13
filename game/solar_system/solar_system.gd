@@ -22,8 +22,9 @@ extends Node3D
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one, pay and rate the ride,
 ## which goes into the average rating beside the credits, and earn a research point of
-## their race, whatever their rating. Under each planet
-## where someone waits, a small person and a number say how many. While the bus is docked
+## their race, whatever their rating. Under each planet's name, dots say how many wait
+## there ([WaitingMarkers]), and a badge on its rim says it has a lab ([LabBadges]). While
+## the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
 ## picks them up one by one while seats are free; the row under the pointer, or a clicked
 ## one, shows their trip as an arc to their destination. The bus can't charge, and a
@@ -47,8 +48,6 @@ const FADE_SECONDS := 0.4
 ## The process priority Phantom Camera's host sets on itself to move the camera, after
 ## everything it follows.
 const CAMERA_HOST_PRIORITY := 300
-## Pixels between a planet's name and the marker for who waits there.
-const MARKER_GAP_PIXELS := 4.0
 ## The goals a run starts with: deliver this many passengers, and keep this average rating.
 const START_DELIVERIES := 30
 const START_RATING := 3.5
@@ -110,7 +109,9 @@ func _ready() -> void:
 	bus_panel.slide_seconds = panel.slide_seconds
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.waiting = %WaitingPassengers as WaitingPassengers
+	markers.portrait_studio = studio
 	markers.set_planets(_planets)
+	(%LabBadges as LabBadges).set_planets(_planets)
 	var dock_panel := %DockPanel as DockPanel
 	dock_panel.waiting = %WaitingPassengers as WaitingPassengers
 	dock_panel.cabin = %Cabin as Cabin
@@ -147,7 +148,7 @@ func _process(delta: float) -> void:
 	# What a left click would open shows the white border.
 	var picked: Node3D = null if over_hud else _pick_at(mouse)
 	var under := picked as Planet
-	_place_waiting()
+	_place_waiting(under)
 	var bus := %Bus as FrameshiftBus
 	var model := bus.get_model()
 	model.border = picked == bus and not is_bus_open()
@@ -455,28 +456,20 @@ func _get_shown_planets() -> Array[Planet]:
 	return shown
 
 
-# Shows the dock panel for the planet the bus waits at, docked or charging, and puts each
-# planet's waiting marker under its name, while the bus has the waiting markers trait. The
-# markers and the fuel forecast fade with the names.
-func _place_waiting() -> void:
+# Shows the dock panel for the planet the bus waits at, docked or charging, and tells the
+# waiting markers and the lab badges which planet is under the pointer. The markers, lab
+# badges and the fuel forecast fade with the names.
+func _place_waiting(under: Planet) -> void:
 	var bus := %Bus as FrameshiftBus
-	var camera := %Camera as Camera3D
 	(%DockPanel as DockPanel).planet = bus.get_docked_planet() if bus.is_at_planet() else null
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.modulate.a = _fade
+	markers.hovered = under
+	var badges := %LabBadges as LabBadges
+	badges.modulate.a = _fade
+	badges.hovered = under
 	(%FuelForecast as Control).modulate.a = _fade
 	(%TripArc as TripArc).opacity = _fade
-	var unlocked := bus.get_stats().get_traits().has(BusTraits.Type.WAITING_MARKERS)
-	var below := LABEL_PIXELS + MARKER_GAP_PIXELS
-	for planet: Planet in _planets:
-		var center := planet.get_body_global_position()
-		if camera.is_position_behind(center):
-			markers.place(planet, Vector2.ZERO, false)
-			continue
-		var bottom := camera.unproject_position(
-			center - camera.global_basis.y * planet.get_body_radius()
-		)
-		markers.place(planet, bottom + Vector2(0.0, below), unlocked and _fade > 0.0)
 
 
 # Hangs each planet's name just under its body on screen, at the same size at any zoom.

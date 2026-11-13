@@ -9,8 +9,8 @@ extends RefCounted
 ## The cost's icons, the resource bar's: a dollar sign in its gold for credits, and a flask
 ## in each race's skin colour for its research points.
 const COST_ICON_SIZE := 12.0
-const DOLLAR := preload("res://game/solar_system/icons/dollar_sign.svg")
-const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
+const DOLLAR := preload("res://shared/icons/dollar_sign.svg")
+const FLASK := preload("res://shared/icons/flask_conical.svg")
 const CREDITS_COLOR := Color(1, 0.831, 0.361)
 const LACKING_TEXT := "Insufficient funds"
 const PROMOTION_TEXT := "Requires promotion."

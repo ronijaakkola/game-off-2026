@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## The goal panel: "To get promotion" and a row for each goal, with its text, how far
+## The goal panel: "To get promoted" and a row for each goal, with its text, how far
 ## along it is, and a tick once it is met.
 
 const PANEL := "res://game/goals/goal_panel.tscn"

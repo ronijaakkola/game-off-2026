@@ -77,7 +77,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 ### Who turns up
 
 - **Decided when first seen.** A waiting passenger is only a count until the player first sees the line, by docking at the planet or opening it. Then each undecided passenger in it gets a destination, a race and a type, one after another, and keeps them. Lines fill about 40 s before the bus arrives, so deciding late is what lets a line answer the bus as it is now.
-- Anything that shows a line from afar counts as seeing it. The waiting markers show only a count, so they don't.
+- Anything that shows a line from afar counts as seeing it. The waiting markers show only a count, so they don't; the station cameras show who waits, so pointing at a planet with them does.
 - **Destination** is a weighted roll among the other planets, each at weight 1: ×2.5 if someone on board is going there, ×1.5 if someone already in the line is.
 - **No more than two** in a line go to the same planet, so a line always holds a choice.
 - A match with who is on board is likely, never certain. A certain one stops being a reward, and turns the bus into a shuttle between two planets.
@@ -265,7 +265,8 @@ An upgrade is in one of five states:
 - A **trait** is a feature the bus either has or doesn't. The feature shows or works only while it does.
 - Two upgrades can give the same trait; it stays until both take it back.
 - **Waiting markers:** how many wait at each planet shows on the map. Without them, the player finds out by opening a planet.
-- **Fuel forecast:** how much of the tank the whole course burns shows on the route. It counts the straight legs as everything is now, short of each planet by where the bus starts to park, so it is an estimate.
+- **Station cameras:** with the waiting markers, pointing at a planet shows who waits there and where each is going.
+- **Fuel forecast:** how much of the tank the whole course burns, and each leg of it, shows on the route. It counts the straight legs as everything is now, short of each planet by where the bus starts to park, so it is an estimate.
 - The comfort and food traits: Pillows, Sleeping pods, In-Flight Movies, Space Invaders, Food Replicator, Waiter Droids.
 
 ### The trees
@@ -282,7 +283,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
   - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
   - *(not built)* Frameshift (a shorter charge), Extra insulation, Sunscreen.
 - **Green** (the stops). Door chime; Station cameras and Station waiting lounge ← Door chime; capstone Mind reading machine ← both.
-  - Door chime gives the waiting markers.
+  - Door chime gives the waiting markers, Station cameras the station cameras.
   - *(not built)* The other three.
 - **Orange** (comfort). Extra seat, Food Replicator, Bigger portions I and In-Flight Movies at the top. Four Extra seats in a chain (+1 seat each). Pillows ← the first Extra seat and the Food Replicator; Sleeping pods ← the second Extra seat and Pillows. Bigger portions II and III in a chain (+50 %, +50 % and +100 % portion size, 3× in all). Space Invaders ← In-Flight Movies. Capstone: Waiter Droids ← the Food Replicator and Bigger portions II.
   - Every upgrade in it is implemented.
@@ -387,7 +388,7 @@ Features we will very probably build, but that need more design work first.
 ## Open questions
 
 - **Fun in the first stage.** In-Flight Movies and Space Invaders are both in the first two rows, so the first stage alone takes the recent rating to about 4.7 and half of all rides to 5 stars. A later stage's rating goal has little room above that unless Space Invaders moves down a row or the bonuses shrink.
-- **Orange points.** Past the first stage the orange tree is what the player waits for: it holds most of the built upgrades, while green points pile up unspent (the green tree has one built upgrade) and credits pass 2,000 by minute 20.
+- **Orange points.** Past the first stage the orange tree is what the player waits for: it holds most of the built upgrades, while green points pile up unspent (the green tree has two built upgrades) and credits pass 2,000 by minute 20.
 - **The rating goal reads the all-time average,** so the first rides on a bare bus weigh on it for the whole run, while the resource bar shows the recent rating.
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.

@@ -1,13 +1,13 @@
 class_name GoalPanel
 extends PanelContainer
-## The player's goals, in the top right corner over the dock panel: "To get promotion"
+## The player's goals, in the top right corner over the dock panel: "To get promoted"
 ## and a row for each goal the [member tracker] has, in the order added. Under a thin line
 ## and a flag, "Quests" and a row for each quest the [member quest_giver] shows, the one
 ## under way and those just finished. Each part shows only while it has rows, the line
 ## only between the two, and the panel only while there are any.
 
 const ROW := preload("res://game/goals/goal_row.tscn")
-const QUEST_ROW := preload("res://game/quests/quest_row.tscn")
+const QUEST_ROW := preload("res://game/goals/quest_row.tscn")
 
 ## The goals a promotion takes.
 @export var tracker: GoalTracker:

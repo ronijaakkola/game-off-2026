@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bbs2kxbdg7qyr" path="res://game/solar_system/fuel_button.tscn" id="4_fuel"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="5_glass"]
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
-[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="7_flask"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="7_flask"]
 [ext_resource type="Texture2D" uid="uid://bx5fr0dpvayyy" path="res://game/solar_system/icons/chevron_right.svg" id="8_chevron"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
@@ -104,28 +104,18 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ResearchButton" type="Button" parent="Card/Clip/Content" unique_id=1934796713]
+[node name="ResearchRow" type="HBoxContainer" parent="Card/Clip/Content" unique_id=1934796713]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
-theme_type_variation = &"RowButton"
-
-[node name="Row" type="HBoxContainer" parent="Card/Clip/Content/ResearchButton" unique_id=1468555162]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="ResearchTile" type="PanelContainer" parent="Card/Clip/Content/ResearchButton/Row" unique_id=515759577]
+[node name="ResearchTile" type="PanelContainer" parent="Card/Clip/Content/ResearchRow" unique_id=515759577]
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"IconTilePanel"
 
-[node name="ResearchIcon" type="TextureRect" parent="Card/Clip/Content/ResearchButton/Row/ResearchTile" unique_id=1875448864]
+[node name="ResearchIcon" type="TextureRect" parent="Card/Clip/Content/ResearchRow/ResearchTile" unique_id=1875448864]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 2
@@ -133,17 +123,27 @@ texture = ExtResource("7_flask")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ResearchLabel" type="Label" parent="Card/Clip/Content/ResearchButton/Row" unique_id=1408588537]
+[node name="ResearchButton" type="Button" parent="Card/Clip/Content/ResearchRow" unique_id=1408588537]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"SmallLabel"
+theme_type_variation = &"SmallButton"
 text = "Research"
 
-[node name="Chevron" type="TextureRect" parent="Card/Clip/Content/ResearchButton/Row" unique_id=757989064]
+[node name="Chevron" type="TextureRect" parent="Card/Clip/Content/ResearchRow/ResearchButton" unique_id=757989064]
 self_modulate = Color(0.957, 0.945, 1, 0.651)
-custom_minimum_size = Vector2(14, 14)
-layout_mode = 2
-size_flags_vertical = 4
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -26.0
+offset_top = -7.0
+offset_right = -12.0
+offset_bottom = 7.0
+grow_horizontal = 0
+grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("8_chevron")
 expand_mode = 1
@@ -190,4 +190,4 @@ mouse_filter = 2
 theme_override_constants/separation = 0
 
 [connection signal="pressed" from="Card/Clip/Content/BoardAllButton" to="." method="_on_board_all_button_pressed"]
-[connection signal="pressed" from="Card/Clip/Content/ResearchButton" to="." method="_on_research_button_pressed"]
+[connection signal="pressed" from="Card/Clip/Content/ResearchRow/ResearchButton" to="." method="_on_research_button_pressed"]

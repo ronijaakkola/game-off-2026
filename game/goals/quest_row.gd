@@ -17,8 +17,8 @@ const FAILED_OPACITY := 0.5
 const CIRCLE := preload("res://game/goals/icons/circle.svg")
 const CIRCLE_CHECK := preload("res://game/goals/icons/circle_check.svg")
 const CIRCLE_X := preload("res://game/goals/icons/circle_x.svg")
-const DOLLAR := preload("res://game/solar_system/icons/dollar_sign.svg")
-const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
+const DOLLAR := preload("res://shared/icons/dollar_sign.svg")
+const FLASK := preload("res://shared/icons/flask_conical.svg")
 ## A reward icon's size, in pixels.
 const REWARD_ICON := 12.0
 

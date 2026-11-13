@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2w4upsxpmhrb"
-path="res://.godot/imported/dollar_sign.svg-e1b8499f60f45ce3beb5b32f569a8a23.ctex"
+path="res://.godot/imported/dollar_sign.svg-c802a3979033fd18925d0e9bcaa8aa0b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/solar_system/icons/dollar_sign.svg"
-dest_files=["res://.godot/imported/dollar_sign.svg-e1b8499f60f45ce3beb5b32f569a8a23.ctex"]
+source_file="res://shared/icons/dollar_sign.svg"
+dest_files=["res://.godot/imported/dollar_sign.svg-c802a3979033fd18925d0e9bcaa8aa0b.ctex"]
 
 [params]
 
