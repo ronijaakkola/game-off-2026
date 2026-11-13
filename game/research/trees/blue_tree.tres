@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="5_fuel"]
 [ext_resource type="Texture2D" uid="uid://h7iwjy8dapm2" path="res://game/research/icons/route.svg" id="6_route"]
 [ext_resource type="Texture2D" uid="uid://dkvmrjt67ew4c" path="res://game/research/icons/zap.svg" id="7_zap"]
-[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="8_flask_conical"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="8_flask_conical"]
 [ext_resource type="Texture2D" uid="uid://cw6f520btgcas" path="res://game/research/icons/sun.svg" id="9_sun"]
 
 [sub_resource type="Resource" id="Resource_speed_1_mod"]

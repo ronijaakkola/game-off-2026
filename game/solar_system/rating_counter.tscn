@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bmgjetnhifb4n" path="res://game/solar_system/rating_counter.gd" id="1_counter"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="3_theme"]
-[ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://game/solar_system/icons/star.svg" id="4_star"]
+[ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="4_star"]
 [ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="9_tooltip"]
 
 [node name="RatingCounter" type="HBoxContainer" unique_id=976470558]

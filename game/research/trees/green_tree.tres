@@ -5,9 +5,9 @@
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
 [ext_resource type="Texture2D" uid="uid://b0bgevms180dy" path="res://game/research/icons/bell_ring.svg" id="4_bell_ring"]
 [ext_resource type="Texture2D" uid="uid://bloqie2x21ut0" path="res://game/research/icons/sofa.svg" id="5_sofa"]
-[ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://game/solar_system/icons/star.svg" id="6_star"]
+[ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="6_star"]
 [ext_resource type="Texture2D" uid="uid://2uvj2c14gptt" path="res://shared/icons/sandwich.svg" id="7_sandwich"]
-[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="8_flask_conical"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="8_flask_conical"]
 [ext_resource type="Texture2D" uid="uid://dqebesaunqcwx" path="res://game/research/icons/cctv.svg" id="9_cctv"]
 [ext_resource type="Texture2D" uid="uid://cqsul35bsw7i0" path="res://game/research/icons/bed_double.svg" id="10_bed_double"]
 
