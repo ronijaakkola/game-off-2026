@@ -32,7 +32,7 @@ credits = 300
 points = Dictionary[int, int]({
 2: 4
 })
-traits = Array[int]([8])
+traits = Array[int]([9])
 column = 3
 
 [sub_resource type="Resource" id="Resource_tip_jar"]
@@ -45,7 +45,7 @@ points = Dictionary[int, int]({
 2: 7
 })
 requires = Array[Resource]([SubResource("Resource_door_chime")])
-traits = Array[int]([9])
+traits = Array[int]([10])
 tier = 1
 
 [sub_resource type="Resource" id="Resource_free_station_coffee"]
@@ -58,7 +58,7 @@ points = Dictionary[int, int]({
 2: 2
 })
 requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
-traits = Array[int]([10])
+traits = Array[int]([11])
 tier = 1
 column = 2
 
@@ -72,7 +72,7 @@ points = Dictionary[int, int]({
 2: 4
 })
 requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
-traits = Array[int]([11])
+traits = Array[int]([12])
 tier = 1
 column = 4
 
@@ -92,14 +92,14 @@ tier = 2
 [sub_resource type="Resource" id="Resource_station_cameras"]
 script = ExtResource("2_upgrade")
 title = "Station cameras"
-description = "Hovering a planet on the map shows waiting passengers and their destinations.
-NOT IMPLEMENTED"
+description = "Hovering a planet on the map shows waiting passengers and their destinations."
 icon = ExtResource("9_cctv")
 credits = 300
 points = Dictionary[int, int]({
 2: 4
 })
 requires = Array[Resource]([SubResource("Resource_door_chime")])
+traits = Array[int]([8])
 tier = 2
 column = 1
 

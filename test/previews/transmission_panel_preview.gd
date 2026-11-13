@@ -1,5 +1,6 @@
 extends Node
-## The solar system with a transmission open: the boss's message by default, or with
+## The solar system with a transmission open: the boss's message by default, from the dark or with
+## `revealed` in the light, or with
 ## `quest` a passenger's quest with a reward and Yes and No. `skip` shows it all at once,
 ## as a click on the modal does.
 
@@ -21,8 +22,7 @@ func _ready() -> void:
 		transmission.accept_text = "Yes"
 		transmission.decline_text = "No"
 	else:
-		transmission.caller_name = "Your boss"
-		transmission.look = AlienLook.random(RandomNumberGenerator.new(), Race.Type.GREEN)
+		transmission = Transmission.from_boss("revealed" in args)
 		transmission.mood = Passenger.Mood.HAPPY
 		transmission.text = (
 			"Good work out there, driver. Hold a 4.0 rating until the end of the week"

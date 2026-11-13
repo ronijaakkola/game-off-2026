@@ -38,6 +38,7 @@ const TRAIT_NAMES := {
 	BusTraits.Type.ENTERTAINMENT_SYSTEM: "In-Flight Movies",
 	BusTraits.Type.FOOD_DISPENSER: "Food Dispenser",
 	BusTraits.Type.SERVING_ROBOTS: "Waiter Droids",
+	BusTraits.Type.STATION_CAMERAS: "Station cameras",
 	BusTraits.Type.WAITING_LOUNGE: "Station waiting lounge",
 	BusTraits.Type.TIP_JAR: "Tip jar",
 	BusTraits.Type.FREE_COFFEE: "Free station coffee",

@@ -78,7 +78,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 ### Who turns up
 
 - **Decided when first seen.** A waiting passenger is only a count until the player first sees the line, by docking at the planet or opening it. Then each undecided passenger in it gets a destination, a race and a type, one after another, and keeps them. Lines fill about 40 s before the bus arrives, so deciding late is what lets a line answer the bus as it is now.
-- Anything that shows a line from afar counts as seeing it. The waiting markers show only a count, so they don't.
+- Anything that shows a line from afar counts as seeing it. The waiting markers show only a count, so they don't; the station cameras show who waits, so pointing at a planet with them does.
 - **Destination** is a weighted roll among the other planets, each at weight 1: ×2.5 if someone on board is going there, ×1.5 if someone already in the line is (×3 with Timetables).
 - **No more than two** in a line go to the same planet, so a line always holds a choice.
 - A match with who is on board is likely, never certain. A certain one stops being a reward, and turns the bus into a shuttle between two planets.
@@ -266,7 +266,8 @@ An upgrade is in one of five states:
 - A **trait** is a feature the bus either has or doesn't. The feature shows or works only while it does.
 - Two upgrades can give the same trait; it stays until both take it back.
 - **Waiting markers:** how many wait at each planet shows on the map. Without them, the player finds out by opening a planet.
-- **Fuel forecast:** how much of the tank the whole course burns shows on the route. It counts the straight legs as everything is now, short of each planet by where the bus starts to park, so it is an estimate.
+- **Station cameras:** with the waiting markers, pointing at a planet shows who waits there and where each is going.
+- **Fuel forecast:** how much of the tank the whole course burns, and each leg of it, shows on the route. It counts the straight legs as everything is now, short of each planet by where the bus starts to park, so it is an estimate.
 - The comfort and food traits: Pillows, Sleeping pods, In-Flight Movies, Space Invaders, Food Dispenser, Waiter Droids.
 - The station traits: Station waiting lounge (Waiting), Timetables (Who turns up), Tip jar (Payment) and Free station coffee: someone picked up waits 1.5× as long for the first request of each need.
 
@@ -284,8 +285,8 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
   - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
   - *(not built)* Warm drive, Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel, Slingshot, Warp gate.
 - **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras; Research grant ← Remote terminal. Last row: Bottomless complaints box ← Station cameras or Honk; Express service ← Passenger loyalty program or Business lounge.
-  - Door chime gives the waiting markers; Station waiting lounge, Tip jar, Free station coffee and Timetables their traits.
-  - *(not built)* The other nine.
+  - Door chime gives the waiting markers, Station cameras the station cameras; Station waiting lounge, Tip jar, Free station coffee and Timetables their traits.
+  - *(not built)* The other eight.
 - **Orange** (comfort). Extra seat, Pillows and Bigger portions I at the top. Four Extra seats in a chain (+1 seat each). In-Flight Movies ← Pillows; Space Invaders ← In-Flight Movies. Sleeping pods ← Pillows; Airlock ← Sleeping pods. Food Dispenser and Bigger portions II ← Bigger portions I; Waiter Droids ← Food Dispenser. Bigger portions I and II are +50 % portion size each, 2× in all. Earplugs needs nothing, in the second stage. Last row: Karaoke ← Space Invaders or Sleeping pods.
   - *(not built)* Earplugs, Airlock, Karaoke. The rest is implemented.
 
@@ -380,7 +381,7 @@ Features we will very probably build, but that need more design work first.
 ## Open questions
 
 - **Fun in the first stage.** In-Flight Movies and Space Invaders are both in the first two rows, so the first stage alone takes the recent rating to about 4.7 and half of all rides to 5 stars. A later stage's rating goal has little room above that unless Space Invaders moves down a row or the bonuses shrink.
-- **Orange points.** Past the first stage the orange tree is what the player waits for: it holds most of the built upgrades, while green points pile up unspent (the green tree has one built upgrade) and credits pass 2,000 by minute 20.
+- **Orange points.** Past the first stage the orange tree is what the player waits for: it holds most of the built upgrades, while green points pile up unspent (the green tree has two built upgrades) and credits pass 2,000 by minute 20.
 - **The rating goal reads the all-time average,** so the first rides on a bare bus weigh on it for the whole run, while the resource bar shows the recent rating.
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +12 and +8 apply whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.
