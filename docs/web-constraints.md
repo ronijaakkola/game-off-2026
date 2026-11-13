@@ -32,6 +32,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - **A custom `light()` function costs about 1.5 s to compile**, even one that only adds a constant, against about 0.2 s for the same shader `unshaded` (measured as above). Light in `fragment()` instead, as `shared/two_tone_light.gdshaderinc` does. In `light()`, Compatibility also used `source_color` uniforms as stored, without the sRGB to linear conversion `fragment()` gets, so a colour moved out of `light()` needs its value converted to keep its look.
 - `vertex_color_is_srgb` does nothing in Compatibility. Check vertex-coloured models in the engine.
 - Shadowed lights render in sRGB, so they can look brighter or darker than unshadowed ones. Adjust energy by eye.
+- **Don't set Scaling 3D below 1.0 on 4.7.2.** In every browser on Windows, ANGLE upscales the depth-stencil buffer on the CPU, about 6× slower at 4K and worst in fullscreen. Fixed in 4.8 ([godot#119317](https://github.com/godotengine/godot/issues/119317), [PR #124310](https://github.com/godotengine/godot/pull/124310)).
 
 **Particles:**
 
@@ -75,7 +76,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 
 ## Still unverified in a browser
 
-Check these before relying on them: the pause on leaving fullscreen in Firefox, Safari and on itch itself (checked in Chromium only), stencil outlines on WebGL 2 (the bus's hover border relies on them: hover the bus in the preview build), the frosted UI blur in Firefox and Safari, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI laptops.
+Check these before relying on them: the pause on leaving fullscreen in Firefox, Safari and on itch itself (checked in Chromium only), stencil outlines on WebGL 2 (the bus's hover border relies on them: hover the bus in the preview build), the frosted UI blur in Firefox and Safari, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI screens: Firefox on itch drops to about 40 FPS in fullscreen on a 144 Hz screen that holds 144 everywhere else. The debug panel's Rendering switches and Show FPS are there to find which cost does it.
 
 ## Sources
 

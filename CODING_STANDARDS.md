@@ -78,7 +78,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
 | `DebugPanel` | `core/debug_panel/` | The **debug panel**: testing buttons that scenes add with `add_button(text, action, scene)`, opened with F2. In every build until release. See Debug panel. |
-| `FpsCounter` | `core/fps_counter/` | The frame rate in the top right corner over every scene, while `Settings.show_fps` is on. |
+| `FpsCounter` | `core/fps_counter/` | The frame rate and render size in the top right corner over every scene, while `Settings.show_fps` is on. Its `RenderDiagnostics` child adds the debug panel's Rendering switches. |
 | `PhantomCameraManager` | `addons/phantom_camera/` | The Phantom Camera plugin's autoload. Game code never calls it; see `docs/cameras.md`. |
 
 Add an autoload only for a service that must outlive a scene change, or that has exactly one instance game-wide. It lives in `core/<name>/`, works without knowing what the current scene is, and gets a row in this table.
