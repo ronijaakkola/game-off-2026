@@ -29,6 +29,8 @@ enum Type {
 	FOOD_DISPENSER = 6,
 	## Robots bring hungry passengers their food, several at a time ([Amenity]).
 	SERVING_ROBOTS = 7,
+	## The pointer over a planet shows who waits there, with the waiting markers.
+	STATION_CAMERAS = 8,
 }
 
 # How many times each trait the bus has was added and not yet taken out.
