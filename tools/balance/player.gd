@@ -54,11 +54,19 @@ func decide(state: Dictionary) -> Dictionary:
 
 # Every upgrade researchable here that the policy wants and the credits and points pay
 # for, cheapest first. "none" researches nothing; a list of titles researches only those.
+# "research_first" is a list of titles researched before anything else.
 func _pick_research(state: Dictionary) -> Array[String]:
 	var picked: Array[String] = []
 	var wanted: Variant = policy.get("research", "cheapest")
 	if wanted is String and wanted == "none":
 		return picked
+	# Until every title in "research_first" is researched, nothing else is: a player who
+	# saves up for the upgrades they read as best.
+	var first: Array = (policy.get("research_first", []) as Array).filter(
+		func(title: String) -> bool: return not _is_title_researched(state, title)
+	)
+	if not first.is_empty():
+		wanted = first
 	# The tank is filled before anything is researched, so its price is never research's.
 	var kept := maxi(int(policy.get("keep_credits", 15)), int(state["fuel"]["fill_costs"]))
 	var credits := int(state["credits"]) - kept
@@ -105,6 +113,13 @@ func _is_researched(state: Dictionary, id: String) -> bool:
 		if upgrade["id"] == id:
 			return upgrade["state"] == "researched"
 	return false
+
+
+func _is_title_researched(state: Dictionary, title: String) -> bool:
+	for upgrade: Dictionary in state["upgrades"]:
+		if upgrade["title"] == title and upgrade["state"] != "researched":
+			return false
+	return true
 
 
 func _seats_from(state: Dictionary, id: String) -> int:
