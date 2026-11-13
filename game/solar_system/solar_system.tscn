@@ -235,6 +235,8 @@ start_angle = 200.0
 spin_period = 27.0
 surface_material = SubResource("ShaderMaterial_ember")
 icon_color = Color(0.82, 0.58, 0.4, 1)
+tagline = "Towns that chase the dusk"
+lore = "Ember turns slowly, close to the star, and its towns roll along the dusk line to stay out of the noon heat. Everyone here is always on the move, and most of them would rather someone else did the driving."
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Terra" type="Node3D" parent="World" unique_id=310922244]
@@ -250,6 +252,8 @@ surface_material = SubResource("ShaderMaterial_terra")
 icon_color = Color(0.5, 0.82, 0.34, 1)
 fuel_price = 0.12
 has_lab = true
+tagline = "Where every route begins"
+lore = "The old orbital yards over Terra built the first frameshift buses, and the depot still keeps their timetables. Half the system calls it home, and the other half is visiting relatives. A bus here is expected on time, to the second."
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Moon" type="Node3D" parent="World/Terra" unique_id=247044122]
@@ -262,6 +266,8 @@ spin_period = 0.0
 surface_material = SubResource("ShaderMaterial_moon")
 icon_color = Color(0.95, 0.93, 1, 1)
 fuel_price = 0.15
+tagline = "Terra's quiet balcony"
+lore = "A short hop from Terra, the Moon is where people go to look back at it. Its fuel comes up out of Terra's gravity a canister at a time, which is why it costs what it costs. The domes keep the air in, not the warmth: bring a jacket."
 orbit_width = 0.03
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
@@ -277,6 +283,8 @@ surface_material = SubResource("ShaderMaterial_giant")
 icon_color = Color(1, 0.6, 0.25, 1)
 fuel_price = 0.06
 has_lab = true
+tagline = "The rings pay for everything"
+lore = "Giant's ring miners skim fuel straight off the ice and sell it cheaper than anyone in the system. The labs in its cloud cities study whatever the miners haul in. No one has seen the surface, and no one is sure there is one."
 orbit_material = SubResource("StandardMaterial3D_orbit")
 ring_material = SubResource("ShaderMaterial_giant_rings")
 ring_inner = 1.35
@@ -296,6 +304,8 @@ surface_material = SubResource("ShaderMaterial_frost")
 icon_color = Color(1, 0.62, 0.74, 1)
 fuel_price = 0.08
 has_lab = true
+tagline = "Last stop before the dark"
+lore = "Frost circles farthest from the star, and its people like it that way: long nights, quiet labs and a sky of stars no one else gets to see. Buses are rare out here, so a full one pulling in gets a cheer."
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
@@ -374,13 +384,12 @@ script = ExtResource("107_low_fuel")
 bus = NodePath("../Bus")
 notices = NodePath("../Hud/Notices")
 
-[node name="FuelPump" type="Node" parent="." unique_id=2138476615 node_paths=PackedStringArray("bus", "dock_panel", "planet_panel")]
+[node name="FuelPump" type="Node" parent="." unique_id=2138476615 node_paths=PackedStringArray("bus", "dock_panel")]
 unique_name_in_owner = true
 script = ExtResource("27_pump")
 sound = ExtResource("106_fuel_sound")
 bus = NodePath("../Bus")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
-planet_panel = NodePath("../Hud/PlanetPanel")
 
 [node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "cabin", "goals", "quest_giver", "research_lab")]
 unique_name_in_owner = true

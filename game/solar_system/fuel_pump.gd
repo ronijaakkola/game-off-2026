@@ -7,9 +7,8 @@ extends Node
 ## together, and what is left under a credit carries over to the next refuel.
 ## [member sound] plays from the moment fuel starts to flow until it stops, however that
 ## happens.
-## The buttons are the dock panel's fuel button, and the open planet's refuel button when
-## that is the planet the bus is docked at. Each frame it shows in both panels whether it
-## can pump, and in the open planet's the fuel, the price and what stops it.
+## The button is the dock panel's fuel button, and each frame it shows there whether it
+## can pump.
 
 ## Fuel a second the pump gives as the button goes down, the most it speeds up to, and the
 ## seconds it takes to get there.
@@ -30,9 +29,8 @@ const RAMP_SECONDS := 1.5
 @export_range(0.0, 1.0, 0.01) var fade_seconds := 0.34
 ## The bus whose tank it fills, at the planet it is docked at.
 @export var bus: FrameshiftBus
-## The panels whose fuel buttons it runs on.
+## The panel whose fuel button it runs on.
 @export var dock_panel: DockPanel
-@export var planet_panel: PlanetPanel
 
 ## The credits that pay for fuel. The parent sets it; without one, it does nothing.
 var ledger: Ledger
@@ -60,24 +58,14 @@ func _process(delta: float) -> void:
 		return
 	var tank := bus.get_fuel_tank()
 	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
-	var open := planet_panel.get_planet()
 	var reason := get_stop(docked, tank, ledger) if docked else ""
 	var fill_cost := ceili((tank.capacity - tank.fuel) * docked.fuel_price) if docked else 0
 	var can_fuel := docked != null and reason.is_empty()
 	dock_panel.show_fuel(tank.get_fraction(), fill_cost, can_fuel, reason.trim_suffix("."))
 	if docked:
-		var held := dock_panel.is_fuel_held() or (open == docked and planet_panel.is_refuel_held())
-		run(delta, docked, held, tank, ledger)
+		run(delta, docked, dock_panel.is_fuel_held(), tank, ledger)
 	else:
 		stop(ledger)
-	if not open:
-		return
-	var open_reason := reason if open == docked else "Dock here to refuel."
-	if not open.sells_fuel:
-		open_reason = "No fuel sold here."
-	var note := open_reason if open_reason else "%d credits" % ledger.credits
-	var full_tank_cost := ceili(tank.capacity * open.fuel_price)
-	planet_panel.show_fuel(tank.get_fraction(), full_tank_cost, open_reason.is_empty(), note)
 
 
 ## Why [param tank] can't take fuel at [param planet] now, or "" when it can.
