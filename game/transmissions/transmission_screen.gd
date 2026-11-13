@@ -27,6 +27,11 @@ const TALK_LIFT := 0.025
 const TALK_NOD := 0.06
 ## How fast the bob comes and goes as talking starts and stops, per second.
 const TALK_BLEND := 6.0
+## A shadowed caller: their skin, the dark room behind them, whose gloom the backdrop
+## lifts enough to show their outline, and their frame.
+const SHADOW_SKIN := Color(0.035, 0.03, 0.06)
+const SHADOW_BACKDROP := Color(0.02, 0.02, 0.07)
+const SHADOW_FRAME := Color(0.2, 0.19, 0.26)
 
 ## Whether the caller is talking.
 var talking := false
@@ -64,15 +69,26 @@ func show_caller(transmission: Transmission) -> void:
 	_portrait = PORTRAIT.instantiate() as AlienPortrait
 	_portrait.head_model = transmission.look.head
 	_portrait.eye_style = transmission.look.eye_style
-	_portrait.skin_color = transmission.look.skin_color
-	_portrait.anger = PassengerPhoto.MOOD_ANGER.get(transmission.mood, 0.0)
-	_portrait.content = transmission.mood == Passenger.Mood.HAPPY
+	var dark := transmission.shadowed
+	_portrait.skin_color = SHADOW_SKIN if dark else transmission.look.skin_color
+	if dark:
+		_portrait.outfit_color = SHADOW_SKIN
+	elif transmission.stern:
+		_portrait.anger = 1.0
+		_portrait.shows_fury = false
+	else:
+		_portrait.anger = PassengerPhoto.MOOD_ANGER.get(transmission.mood, 0.0)
+		_portrait.content = transmission.mood == Passenger.Mood.HAPPY
 	%Talk.add_child(_portrait)
 	PortraitStudio.frame(_portrait)
+	for eye: MeshInstance3D in _portrait.eyes:
+		eye.visible = not dark
 	var backdrop := (%Backdrop as ColorRect).material as ShaderMaterial
-	backdrop.set_shader_parameter(&"backdrop_color", Race.BACKDROP_COLORS[transmission.race])
+	backdrop.set_shader_parameter(
+		&"backdrop_color", SHADOW_BACKDROP if dark else Race.BACKDROP_COLORS[transmission.race]
+	)
 	var border := (%Border as Panel).get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
-	border.border_color = Race.SKIN_COLORS[transmission.race]
+	border.border_color = SHADOW_FRAME if dark else Race.SKIN_COLORS[transmission.race]
 	(%Border as Panel).add_theme_stylebox_override(&"panel", border)
 	_show_badges(transmission.type)
 	(%Viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ALWAYS
