@@ -474,6 +474,15 @@ def feature_of(path: str) -> str | None:
     return "/".join(parts[:2]) + "/" if parts[0] == "game" and len(parts) > 2 else None
 
 
+def shared_path(path: str) -> str:
+    """Where a file used by a second feature moves: its path inside its feature, or inside
+    its top folder (ui/foo.svg, a root icon.svg), under shared/."""
+    if path.startswith("shared/"):
+        return path
+    feature = feature_of(path)
+    return "shared/" + (path.removeprefix(feature) if feature else path.split("/", 1)[-1])
+
+
 def referenced_paths(path: str) -> list[tuple[int, str]]:
     """Each project path a script, scene or resource names, and its line: a script's
     res:// and uid:// strings, a scene's or resource's ext_resource paths."""
@@ -508,7 +517,7 @@ def feature_asset_problems(path: str) -> list[str]:
         owner = feature_of(target)
         if not target.endswith(MEDIA) or owner is None or owner == own:
             continue
-        shared = "shared/" + target.removeprefix(owner)
+        shared = shared_path(target)
         message = (
             f"res://{target} belongs to {owner}, and a file used by a second feature lives "
             f"in shared/. git mv it, with its .import or .uid, to {shared}, move its "
@@ -529,7 +538,7 @@ def duplicate_asset_problems(path: str) -> list[str]:
             continue
         if Path(other).read_bytes() != data:
             continue
-        target = other if other.startswith("shared/") else "shared/" + other.split("/", 2)[2]
+        target = shared_path(other)
         message = (
             f"{other} is the same file. A file used by a second feature lives once, in "
             f"shared/: keep one at {target}, delete the other with its .import, and point "
