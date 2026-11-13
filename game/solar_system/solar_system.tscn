@@ -424,6 +424,7 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="GoalPanel" parent="Hud/TopRight/Stack" unique_id=693263101 node_paths=PackedStringArray("tracker") instance=ExtResource("105_goal_panel")]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
 tracker = NodePath("../../../../Goals")

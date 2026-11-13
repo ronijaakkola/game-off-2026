@@ -1,6 +1,6 @@
 class_name GoalPanel
 extends PanelContainer
-## The player's goals, in the top right corner over the dock panel: "To get promotion"
+## The player's goals, in the top right corner over the dock panel: "To get promoted"
 ## and a row for each goal the [member tracker] has, in the order added. Hidden while
 ## there are none.
 
