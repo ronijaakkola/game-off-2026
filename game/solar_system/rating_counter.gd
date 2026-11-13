@@ -24,7 +24,7 @@ const FADE_OUT_SECONDS := 0.6
 const RISE_PIXELS := 14.0
 ## How far under the average the gain starts, in pixels: clear of the resource bar's pill,
 ## so that drifting up it fades out just under the pill's edge.
-const GAIN_DROP := 27.0
+const GAIN_DROP := 23.0
 ## The gain's colours when the average goes up, down, or stays as it shows.
 const UP_COLOR := Color(0.55, 0.85, 0.4)
 const DOWN_COLOR := Color(0.95, 0.3, 0.4)

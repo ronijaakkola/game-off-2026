@@ -29,7 +29,7 @@ const FADE_OUT_SECONDS := 0.6
 const RISE_PIXELS := 14.0
 ## How far under the total the gain starts, in pixels: clear of the resource bar's pill, so
 ## that drifting up it fades out just under the pill's edge.
-const GAIN_DROP := 27.0
+const GAIN_DROP := 23.0
 ## The most credits shown exactly; more are shortened.
 const MAX_EXACT := 9999
 

@@ -3,7 +3,6 @@ extends GdUnitTestSuite
 ## right corner, each counting to its new value, the pill one width whatever they are.
 
 const BAR := preload("res://game/solar_system/resource_bar.tscn")
-const PANEL := preload("res://game/passengers/passenger_panel.tscn")
 
 
 func test_the_preview_shows_each_bar_count_to_its_values() -> void:
@@ -37,17 +36,6 @@ func test_the_bar_widens_when_the_credits_gain_a_digit() -> void:
 
 func _total(bar: Node) -> String:
 	return ((bar as ResourceBar).find_child("TotalLabel", true, false) as Label).text
-
-
-func test_the_pill_is_as_tall_as_the_empty_on_board_panel() -> void:
-	var bar := auto_free(BAR.instantiate()) as Control
-	var panel := auto_free(PANEL.instantiate()) as Control
-	add_child(bar)
-	add_child(panel)
-	await await_idle_frame()
-	await await_idle_frame()
-	assert_float(bar.size.y).is_equal(40.0)
-	assert_float((panel.find_child("Board", true, false) as Control).size.y).is_equal(40.0)
 
 
 func test_the_credits_slot_holds_three_digits_and_no_more() -> void:
