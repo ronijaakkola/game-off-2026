@@ -41,6 +41,9 @@ const TRAIT_NAMES := {
 	BusTraits.Type.STATION_CAMERAS: "Station cameras",
 }
 
+## The width of each row's delta slot, wide enough for "+100%".
+const BONUS_WIDTH := 44.0
+
 var _bus: FrameshiftBus
 var _open := false
 # Each stat's value and bonus labels, by type.
@@ -102,8 +105,11 @@ func _make_row(type: BusStats.Type) -> HBoxContainer:
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_label)
 	var value_label := _make_label("ValueLabel")
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(value_label)
 	var bonus_label := _make_label("BonusLabel")
+	bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	bonus_label.custom_minimum_size.x = BONUS_WIDTH
 	row.add_child(bonus_label)
 	_value_labels[type] = value_label
 	_bonus_labels[type] = bonus_label
@@ -139,7 +145,6 @@ func _show_stats() -> void:
 		_value_labels[type].text = _value_text(type, stat)
 		var bonus := _bonus_labels[type]
 		bonus.text = _bonus_text(type, stat)
-		bonus.visible = not bonus.text.is_empty()
 		var color := PENALTY_COLOR if bonus.text.begins_with("-") else BONUS_COLOR
 		bonus.add_theme_color_override(&"font_color", color)
 

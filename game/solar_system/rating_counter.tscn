@@ -23,7 +23,7 @@ stretch_mode = 5
 
 [node name="AverageLabel" type="Label" parent="." unique_id=1318600619]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(20, 0)
+custom_minimum_size = Vector2(19, 0)
 layout_mode = 2
 theme_type_variation = &"PillLabel"
 text = "–"

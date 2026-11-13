@@ -178,7 +178,7 @@ func _rebuild() -> void:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
 		(%FuelRow as Control).visible = _shown.sells_fuel
-		(%ResearchButton as Control).visible = _shown.has_lab
+		(%ResearchRow as Control).visible = _shown.has_lab
 		var services := _shown.sells_fuel or _shown.has_lab
 		(%FuelRule as Control).visible = services
 	_sync_rows()

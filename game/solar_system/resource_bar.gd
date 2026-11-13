@@ -76,13 +76,13 @@ func _set_width(width: float) -> void:
 	(%Track as Control).custom_minimum_size = Vector2(width, height)
 
 
-# The items keep their own width and sit in the middle of the track, so while the pill
+# The items keep their own size and sit in the middle of the track, so while the pill
 # grows, they reach a little into its padding on both sides until it catches up.
 func _place_items() -> void:
 	var items := %Items as HBoxContainer
 	var track := %Track as Control
 	items.size = items.get_combined_minimum_size()
-	items.position = Vector2((track.size.x - items.size.x) * 0.5, 0.0)
+	items.position = (track.size - items.size) * 0.5
 
 
 func _on_resized() -> void:

@@ -21,7 +21,7 @@ theme_type_variation = &"CardPanel"
 [node name="Rows" type="VBoxContainer" parent="Board" unique_id=673343620]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="Header" type="HBoxContainer" parent="Board/Rows" unique_id=1599956347]
 layout_mode = 2
@@ -50,4 +50,4 @@ text = "0/0"
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8

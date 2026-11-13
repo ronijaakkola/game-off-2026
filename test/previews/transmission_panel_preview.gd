@@ -13,10 +13,10 @@ func _ready() -> void:
 		transmission.look = AlienLook.random(RandomNumberGenerator.new(), Race.Type.BLUE)
 		transmission.race = Race.Type.BLUE
 		transmission.type = preload("res://game/passengers/types/business.tres")
-		transmission.destination = $SolarSystem/Giant as Planet
+		transmission.destination = $SolarSystem.find_child("Giant") as Planet
 		transmission.text = "Please stop the bus to let me admire that beautiful planet."
 		transmission.quest = "Stop the bus near"
-		transmission.quest_planet = $SolarSystem/Frost as Planet
+		transmission.quest_planet = $SolarSystem.find_child("Frost") as Planet
 		transmission.reward_credits = 40
 		transmission.reward_research = {Race.Type.BLUE: 2}
 		transmission.accept_text = "Yes"

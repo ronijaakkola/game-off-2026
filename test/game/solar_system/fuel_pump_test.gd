@@ -112,7 +112,7 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	var fill := button.find_child("Fill") as Control
 	assert_bool(button.is_visible_in_tree()).is_true()
 	var cost := ceili(tank.capacity * 0.5 * bus.get_docked_planet().fuel_price)
-	assert_str(label.text).is_equal("Hold to fuel (%d cr)" % cost)
+	assert_str(label.text).is_equal("Hold to fuel (%d credits)" % cost)
 	assert_float(fill.size.x).is_equal_approx(button.size.x * 0.5, 1.0)
 	var camera := runner.find_child("Camera") as Camera3D
 	var at := _to_window(camera, button.get_global_rect().get_center())

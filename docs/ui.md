@@ -118,7 +118,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 | Middle, over the paused game | Transmission |
 | Bottom left | Debug panel (F2) |
 
-- **While a planet's or the bus's panel is open,** the bus bars and the notices hide, and the resource bar moves to stay centred between the On board panel and the open panel.
+- **While a planet's or the bus's panel is open,** the bus bars and the notices hide, the goal panel fades out over 0.2 s (and back in when the panel closes), and the resource bar moves to stay centred between the On board panel and the open panel.
 
 ### Resource bar
 
@@ -131,7 +131,7 @@ A frosted-glass pill: what is behind it shows blurred under a translucent fill. 
 - Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
 - The rating does the same: each one pops a gain with how far the average moved ("+0.2", "-0.3", "±0.0"). The very first just appears with a pop.
 - A research count pops as it goes up.
-- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 284 px and first changes at 1,000 credits or 100 points.
+- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 264 px and first changes at 1,000 credits or 100 points.
 - When a number gains or loses a digit, the pill stays centred and glides to the new width in 0.3 s, easing out. A count makes room for its widest number before it starts, so the pill changes width once per count.
 - Under Reduce motion nothing pops or drifts, and the width changes at once.
 
@@ -155,7 +155,7 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 
 ### Goal panel
 
-In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promotion" and a row for each goal, in the order given. Hidden with no goals.
+In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promoted" and a row for each goal, in the order given. Hidden with no goals.
 
 - **A row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
@@ -170,7 +170,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Title: the planet's icon and name with "Station".
 - Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
-  - A Research button, where the planet has a lab. It opens the research screen.
+  - A Research button, where the planet has a lab, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen.
 - Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
 - Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
@@ -181,16 +181,16 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 
 ### Fuel button
 
-In the dock panel: "Hold to fuel (51 cr)", with what filling the tank costs there.
+In the dock panel: "Hold to fuel (51 credits)", with what filling the tank costs there.
 
-- It is the tank's gauge too: a faint fill behind the label, as wide as the share of a full tank the bus holds, in the fuel's colour.
+- It is the tank's gauge too: a faint fill behind the label, as wide as the share of a full tank the bus holds, in the fuel's colour. Off, the fill is about a third as strong and the label stays readable, so the button is quieter than an enabled one.
 - Held, the label morphs into the fuel's percentage, counting up, and morphs back when let go.
 - Off, it reads why: "Tank full" or "Not enough credits".
 - The bill shows as a loss under the credits when the pump stops.
 
 ### Notices
 
-Cards stacked above the bus bars, centred, 434 px wide and 32 px tall, 8 px apart, the newest on top. Each has an icon and a line of text in Figtree, and can have an action button (small and quiet, so it never outweighs the card) and a close button (a dim ×) on the right.
+Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bars and 32 px tall, 8 px apart, the newest on top. Each has an icon and a line of text in Figtree, and can have an action button (small and quiet, so it never outweighs the card) and a close button (a dim ×) on the right.
 
 | Kind | Icon | Card |
 |---|---|---|
@@ -328,13 +328,16 @@ A modal over the whole screen, the game paused and dimmed under it: one frosted 
 Titled "Frameshift Bus".
 
 - One row per stat: its name, its value, and once upgrades change it, how much they add in green ("Top speed 1.44 +20%") or take away in red ("Fuel tank 80 -20%").
+- Each row's value right-aligns on one vertical line, and the delta has a fixed 44 px slot to its right (right-aligned, tabular figures, kept when empty), so the deltas form their own column.
 - Seats show whole ("Seats 5 +1"). Portion size shows as "1.5x".
+- Sections: 8 px between a section's title and its first row and between rows, 16 px between the end of one section and the next section's title.
 - A Traits section names each trait the bus has, or reads "None yet.".
 
 ## Menus
 
 - **Main menu:** title, Play, Settings, Quit (hidden on web). With a save game, Continue comes first as the primary button and has focus, and a plain "New game" button takes Play's place, with no hint that it has to be held: held for 1.2 s, a faint fill growing across it, it starts over; let go early, the fill drains back twice as fast. On web a title card (the game's title, "Click to start") comes first. The debug panel's "Delete save" deletes the save, and the menu turns back to Play; its "Reset settings" puts every setting back to its default.
 - **Pause menu:** Resume, Settings, Main menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
+- **Settings:** three volume sliders, a rule, then the Reduce motion and Edge pan toggles, and Back as the primary button. Every row is 38 px high with its label and control centred, so the five rows have one pitch; the rule sits 16 px from the rows above and below.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 
 ## Debug panel
