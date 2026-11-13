@@ -328,6 +328,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 | W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
 | Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
 | Mouse wheel | Zoom toward the point under the pointer |
+| V | The chase view, on and off (below) |
 | Esc | Pause |
 | F2 | The debug panel |
 
@@ -337,6 +338,11 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 - WASD reads physical key positions, so it sits in the same place on every keyboard layout.
 - Pan and zoom do nothing while a planet or the bus is open. Right click still sets the course.
 - Each panel's own buttons are in `docs/ui.md`.
+- **The chase view** is an experiment in flying by hand, from behind the bus. While it is on:
+  - **Left drag** over space turns the camera round the bus and tilts it, and moves nothing else, so a left click there opens nothing. The camera keeps that angle to the bus as it turns. **Mouse wheel** zooms it in and out from the bus. Over the HUD both work as usual.
+  - **W A S D or the arrow keys** fly the bus: W ahead to top speed, S brakes, A and D turn it at its turn rate. Its usual fuel burn applies, with no charge in space. At a planet W charges the drive to leave, as holding the Frameshift key does, with no course needed. Letting go picks up the route, or slows the bus to a stop.
+  - **E** within 3 units of a planet's surface sets a course to it, so the bus docks once the steering keys are let go.
+  - The map camera is locked, and comes back centred on the bus.
 
 ## Scenes and flow
 
