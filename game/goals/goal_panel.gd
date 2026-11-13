@@ -47,16 +47,20 @@ const PART_GAP := 8
 var _rows: Dictionary[Goal, GoalRow] = {}
 # Each quest's row sits in a slot of its own.
 var _quest_slots: Dictionary[Quest, SlideSlot] = {}
+# The slots of the quests that went with the part as it closed, freed once it has, or as
+# soon as a new quest comes.
+var _left_slots: Array[SlideSlot] = []
 
 
 func _ready() -> void:
-	(%QuestSlot as SlideSlot).closed.connect(_show_parts)
+	(%QuestSlot as SlideSlot).closed.connect(_on_quest_part_closed)
 	_sync_rows()
 
 
 func _sync_rows() -> void:
-	for row: Node in _rows.values() + _quest_slots.values():
+	for row: Node in _rows.values() + _quest_slots.values() + _left_slots:
 		row.queue_free()
+	_left_slots.clear()
 	_rows.clear()
 	_quest_slots.clear()
 	if tracker:
@@ -97,6 +101,9 @@ func _on_quest_added(quest: Quest) -> void:
 # Adds a row for [param quest] in a slot of its own. The first row brings the whole part
 # in; a later one opens its own slot.
 func _add_quest(quest: Quest, animated: bool) -> void:
+	# The part may still be closing over the last quest: that one goes now, so it doesn't
+	# come back with the part.
+	_free_left_slots()
 	var row := QUEST_ROW.instantiate() as QuestRow
 	row.studio = portrait_studio
 	row.quest = quest
@@ -118,11 +125,22 @@ func _on_quest_removed(quest: Quest) -> void:
 	_quest_slots.erase(quest)
 	var part := %QuestSlot as SlideSlot
 	if _quest_slots.is_empty():
-		part.closed.connect(slot.queue_free, CONNECT_ONE_SHOT)
+		_left_slots.append(slot)
 		part.close()
 	else:
 		slot.closed.connect(slot.queue_free, CONNECT_ONE_SHOT)
 		slot.close()
+
+
+func _on_quest_part_closed() -> void:
+	_free_left_slots()
+	_show_parts()
+
+
+func _free_left_slots() -> void:
+	for slot: SlideSlot in _left_slots:
+		slot.queue_free()
+	_left_slots.clear()
 
 
 # The quests' part stays until it has closed, so the panel doesn't go while it leaves.

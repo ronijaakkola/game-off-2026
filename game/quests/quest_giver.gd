@@ -93,7 +93,10 @@ func _process(delta: float) -> void:
 	if _call:
 		_watch_call()
 		return
-	if _offer or _quest or not enabled:
+	if _offer:
+		_watch_offer()
+		return
+	if _quest or not enabled:
 		return
 	_until_call -= delta
 	if _until_call > 0.0 or _flight_seconds < FLIGHT_SECONDS or transmission_panel.is_open():
@@ -223,9 +226,23 @@ func _on_call_answered() -> void:
 	transmission_panel.open(_offer.get_transmission())
 
 
+# The offer stands while its transmission shows. Should that close unanswered, as when
+# something else takes the panel away, the offer is off, at no cost.
+func _watch_offer() -> void:
+	if transmission_panel.is_open():
+		return
+	if transmission_panel.answered.is_connected(_on_answered):
+		transmission_panel.answered.disconnect(_on_answered)
+	_offer = null
+	_rest()
+
+
 func _on_answered(accepted: bool) -> void:
 	var quest := _offer
 	_offer = null
+	if not quest or quest.passenger not in cabin.get_passengers():
+		_rest()
+		return
 	if not accepted:
 		quest.passenger.shock(DECLINE_SHOCK)
 		_rest()
