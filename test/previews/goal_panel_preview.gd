@@ -1,7 +1,7 @@
 extends Node
 ## The solar system with the goal panel showing the design's state: 12 of 50 passengers
 ## delivered, and a 4.2 average against a 4.0 rating goal, so one goal is short and one
-## is met. With "Quest" after `--`, a passenger rides on an express quest, so the panel
+## is met. With "Quest" after `--`, a Business passenger rides on an express quest, so the panel
 ## also shows "Quests" and their portrait wears the flag; with "Failed" as well, the bus
 ## has stopped at another planet first.
 
@@ -25,6 +25,8 @@ func _show_quest() -> void:
 	var waiting := $SolarSystem/WaitingPassengers as WaitingPassengers
 	var bus := $SolarSystem/Bus as FrameshiftBus
 	var passenger := waiting.create(bus.get_docked_planet())
+	# Business, as everyone who calls with a quest is: the flag sits beside the briefcase.
+	passenger.type = waiting.business
 	($SolarSystem/Cabin as Cabin).board(passenger)
 	var goal := ExpressGoal.new(passenger)
 	var quest := ExpressQuest.new()
