@@ -20,7 +20,10 @@ extends Control
 ## out uncovers it and the card only shrinks. The pointer over a row shows that passenger's
 ## trip, and a click on a row pins it, so it stays shown once the pointer leaves, until the
 ## row is clicked again, the passenger boards or the bus leaves. The row whose trip shows is
-## highlighted.
+## highlighted. While [member beckon_boarding], the card's border glows and every row
+## calls for its button to be pressed ([member BoardingRow.beckoning]), in one pulse: they
+## brighten quickly and fade slowly, again and again, and hold bright under Reduce motion.
+## Board all steps back to a plain button meanwhile, so there is one thing to press.
 
 ## The player pressed the button to pick up [param passenger]. Board all presses it for
 ## each one waiting, longest waiting first; the parent stops once the seats are full.
@@ -36,6 +39,14 @@ const ROW := preload("res://game/solar_system/boarding_row.tscn")
 const SLIDE_SECONDS := 0.35
 # How far past the slot's right edge the card goes, so it is out of sight.
 const OFF_RIGHT := 32.0
+## The seconds a beckoning pulse takes to brighten, and to fade before the next.
+const BECKON_RISE_SECONDS := 0.3
+const BECKON_FADE_SECONDS := 1.0
+## The card's border while beckoning: its width in pixels, its colour at the height of a
+## pulse, and its opacity between pulses, as a share of that.
+const BECKON_BORDER := 2
+const BECKON_COLOR := Color(1.0, 1.0, 1.0, 0.9)
+const BECKON_BORDER_LOW := 0.25
 
 ## Who waits at each planet.
 @export var waiting: WaitingPassengers:
@@ -62,6 +73,18 @@ var planet: Planet:
 		if is_node_ready():
 			_show_planet()
 
+## Whether the card and its rows call for a pick-up, as in the tutorial's first step.
+var beckon_boarding := false:
+	set(value):
+		if value == beckon_boarding:
+			return
+		beckon_boarding = value
+		for row: BoardingRow in _rows.values():
+			row.beckoning = value
+		var board_all := %BoardAllButton as Button
+		board_all.theme_type_variation = &"SmallButton" if value else &"SmallPrimaryButton"
+		_start_beckon()
+
 # The planet whose line the panel lists. It stays while the panel slides out.
 var _shown: Planet
 var _rows: Dictionary[Passenger, BoardingRow] = {}
@@ -72,6 +95,7 @@ var _slide: Tween
 var _pinned: Passenger
 # The passenger whose trip shows, as last sent in trip_previewed.
 var _previewed: Passenger
+var _beckon: Tween
 
 
 func _ready() -> void:
@@ -178,11 +202,44 @@ func _sync_rows() -> void:
 		var row := ROW.instantiate() as BoardingRow
 		row.portrait_studio = portrait_studio
 		row.passenger = passenger
+		row.beckoning = beckon_boarding
 		row.board_pressed.connect(board_pressed.emit)
 		row.clicked.connect(_on_row_clicked)
 		(%Rows as Control).add_child(row)
 		_rows[passenger] = row
 	(%EmptyLabel as Control).visible = line.is_empty()
+
+
+# Pulses the card's border and the rows while beckoning, or puts the card back.
+func _start_beckon() -> void:
+	if _beckon:
+		_beckon.kill()
+		_beckon = null
+	_set_beckon_glow(1.0)
+	if not beckon_boarding:
+		(%Card as Control).remove_theme_stylebox_override(&"panel")
+		return
+	if Settings.reduce_motion:
+		return
+	_beckon = create_tween().set_loops().set_trans(Tween.TRANS_SINE)
+	_beckon.tween_method(_set_beckon_glow, 0.0, 1.0, BECKON_RISE_SECONDS)
+	_beckon.tween_method(_set_beckon_glow, 1.0, 0.0, BECKON_FADE_SECONDS)
+
+
+func _set_beckon_glow(glow: float) -> void:
+	for row: BoardingRow in _rows.values():
+		row.beckon_glow = glow
+	if not beckon_boarding:
+		return
+	var card := %Card as Control
+	card.remove_theme_stylebox_override(&"panel")
+	var style := card.get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
+	if not style:
+		return
+	style.set_border_width_all(BECKON_BORDER)
+	style.border_color = BECKON_COLOR
+	style.border_color.a *= lerpf(BECKON_BORDER_LOW, 1.0, glow)
+	card.add_theme_stylebox_override(&"panel", style)
 
 
 # Shows the trip of the passenger whose row the pointer is over, else the pinned one's, and

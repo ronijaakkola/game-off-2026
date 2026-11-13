@@ -18,5 +18,5 @@ func _ready() -> void:
 	while cabin.get_passengers().size() < ON_BOARD:
 		cabin.board(waiting.create(home))
 	bus.charge_time = 0.0
-	bus.plot_course(RouteStop.at_planet(system.get_node(^"Terra") as Planet))
+	bus.plot_course(RouteStop.at_planet(system.get_node(^"World/Terra") as Planet))
 	bus.frameshift_held = "ready" not in OS.get_cmdline_user_args()
