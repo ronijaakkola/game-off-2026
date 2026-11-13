@@ -103,6 +103,8 @@ const CENTRED_EYE_REACH := 1.6
 @export_range(0.0, 1.0) var anger := 0.0
 ## How joyful they look, from 0 to 1. The face blends toward it.
 @export_range(0.0, 1.0) var joy := 0.0
+## Whether fury shows beyond the eyes, past half anger: the anger mark and the tremble.
+@export var shows_fury := true
 ## Whether they are content: now and then they beam with full joy for a moment, as they
 ## blink. A partial joy doesn't read at a card's size, so contentment is these moments.
 @export var content := false
@@ -362,6 +364,8 @@ func _show_skin() -> void:
 
 # How far past half anger they are, from 0 to 1: the anger mark and the tremble.
 func _get_fury() -> float:
+	if not shows_fury:
+		return 0.0
 	return clampf(_anger * 2.0 - 1.0, 0.0, 1.0)
 
 
