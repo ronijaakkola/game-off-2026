@@ -30,7 +30,7 @@ var request_seconds := 0.0
 var worst_request := 0.0
 var earned := 0
 var spent_on_research := 0
-## The run's two goals: this many delivered, and this all-time average rating.
+## The run's two goals: this many delivered, and this recent rating.
 var deliveries_goal := SolarSystem.START_DELIVERIES
 var rating_goal := SolarSystem.START_RATING
 ## When each goal was first met, and when both first held at once, in seconds, or -1.
@@ -86,7 +86,7 @@ func deliver(passenger: Passenger, payout: int, ledger: Ledger) -> void:
 			% [passenger.name, row["type"], row["to"], row["stars"], payout, roundi(passenger.fare)]
 		)
 	)
-	var rated := ledger.get_average_rating() >= rating_goal
+	var rated := ledger.get_recent_rating() >= rating_goal
 	if deliveries_goal_at < 0.0 and deliveries.size() >= deliveries_goal:
 		deliveries_goal_at = _time
 	if rating_goal_at < 0.0 and rated:

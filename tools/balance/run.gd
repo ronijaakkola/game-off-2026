@@ -10,7 +10,8 @@ extends Node
 ## Overrides set exported numbers without touching a file: "waiting.max_per_planet",
 ## "commuter.slack", "business.fare_multiplier", "snack.min_interval",
 ## "drink.max_interval", "cabin.seats", "tank.burn_per_unit", "bus.charge_time", and
-## "upgrade_credits" / "upgrade_points", a list of costs by tree row. "start_with" set to
+## "upgrade_credits" / "upgrade_points", a list of costs by tree row, and "upgrade_cost",
+## one upgrade's own {title: [credits, points]}. "start_with" set to
 ## "all" starts on a bus with every built upgrade researched, and to a list of titles, with
 ## those. "fuel_price_scale" multiplies every planet's fuel price. "open_stages" is how
 ## many research stages are open (1 to 3), and "rating_goal" and "deliveries_goal" are the
@@ -446,6 +447,11 @@ func _apply_node_overrides() -> void:
 			var credits: Array = overrides.get("upgrade_credits", [])
 			if upgrade.tier < credits.size():
 				upgrade.credits = int(credits[upgrade.tier])
+			var own: Variant = (overrides.get("upgrade_cost", {}) as Dictionary).get(upgrade.title)
+			if own is Array:
+				upgrade.credits = int(own[0])
+				for race: Race.Type in upgrade.points:
+					upgrade.points[race] = int(own[1])
 			var points: Array = overrides.get("upgrade_points", [])
 			if upgrade.tier < points.size():
 				for race: Race.Type in upgrade.points:
