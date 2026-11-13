@@ -106,6 +106,9 @@ var race: Race.Type
 var action := Need.Action.NONE
 ## What they look like in their portrait.
 var look: AlienLook
+## What the quest about them asks, such as "Rush Zib to Frost", or empty while there is
+## none. Their portrait wears a flag while it is set. Whoever gives the quest sets it.
+var quest_line := ""
 
 var _rng: RandomNumberGenerator
 # Seconds left of the current activity line.
@@ -287,6 +290,18 @@ func settle(comfort: Comfort = null) -> void:
 func depart(comfort: Comfort = null) -> void:
 	settle(comfort)
 	_departed = true
+
+
+## They change their mind mid-ride and go to [param to] instead: a new trip of
+## [param seconds] direct from here, which their timing counts from now with the type's
+## slack and no leeway yet. Their fare becomes [param base_fare] times the type's
+## multiplier, when that is more than the one they had.
+func reroute(to: Planet, seconds: float, base_fare: float) -> void:
+	destination = to
+	fare = maxf(fare, base_fare * type.fare_multiplier)
+	trip_seconds = _clock + seconds
+	expected_seconds = _clock + seconds * type.slack
+	leeway = 0.0
 
 
 ## They have reached their destination. A request they have had open, or on hold, for

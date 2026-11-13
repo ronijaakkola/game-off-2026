@@ -7,7 +7,8 @@ extends Control
 ## slot and frees it, even while the game is paused. Under Reduce motion the card only
 ## fades, and the gap closes at once.
 ## A call's phone rattles every [constant RING_PAUSE] seconds while it shows, except under
-## Reduce motion.
+## Reduce motion, and its ringtone plays on a loop until it starts to leave, falling silent
+## while the stack is hidden or the game is paused.
 
 ## The action button was pressed. The notice dismisses itself after.
 signal action_pressed
@@ -33,6 +34,11 @@ const END_SCALE := 0.97
 const RING_PAUSE := 1.6
 const RING_SWINGS: Array[float] = [0.3, -0.3, 0.24, -0.18, 0.1, 0.0]
 const RING_SWING_SECONDS := 0.06
+## A call's ringtone, which its import loops, how loud it plays, and the seconds it takes
+## to fade once the call starts to leave.
+const RINGTONE := preload("res://game/solar_system/ringtone.ogg")
+const RINGTONE_VOLUME := 0.8
+const RINGTONE_FADE_SECONDS := 0.15
 
 const DIM := Color(0.957, 0.945, 1, 0.651)
 const ICONS: Dictionary[Kind, Texture2D] = {
@@ -74,6 +80,9 @@ var _gap: Tween
 var _life: Tween
 # A call's phone rattling, on a loop.
 var _ring: Tween
+# A call's ringtone, and its fade as the call leaves.
+var _ringtone: AudioStreamPlayer
+var _ringtone_fade: Tween
 
 
 func _ready() -> void:
@@ -148,6 +157,8 @@ func hold(held: bool) -> void:
 		_postponed = false
 		enter()
 		return
+	if _ringtone:
+		_ringtone.stream_paused = held
 	for tween: Tween in [_life, _ring]:
 		if not tween or not tween.is_valid():
 			continue
@@ -172,8 +183,10 @@ func enter() -> void:
 		_life = create_tween()
 		_life.tween_interval(_seconds)
 		_life.tween_callback(dismiss)
-	if _kind == Kind.CALL and not Settings.reduce_motion:
-		_start_ring()
+	if _kind == Kind.CALL:
+		_start_ringtone()
+		if not Settings.reduce_motion:
+			_start_ring()
 
 
 ## Fades the card out, sinking it a little, then closes its gap and frees it. From wherever
@@ -190,6 +203,7 @@ func dismiss() -> void:
 	if _life:
 		_life.kill()
 	(%Card as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stop_ringtone()
 	dismissed.emit()
 	var card := %Card as Control
 	var still := Settings.reduce_motion
@@ -213,6 +227,24 @@ func _start_ring() -> void:
 		_ring.tween_property(icon, ^"rotation", swing, RING_SWING_SECONDS).set_trans(
 			Tween.TRANS_SINE
 		)
+
+
+# Its own player, not Audio.play_sfx: the ringtone has to stop when the call does.
+func _start_ringtone() -> void:
+	_ringtone = AudioStreamPlayer.new()
+	_ringtone.stream = RINGTONE
+	_ringtone.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
+	_ringtone.volume_linear = RINGTONE_VOLUME
+	add_child(_ringtone)
+	_ringtone.play()
+
+
+func _stop_ringtone() -> void:
+	if not _ringtone:
+		return
+	_ringtone_fade = create_tween()
+	_ringtone_fade.tween_property(_ringtone, ^"volume_linear", 0.0, RINGTONE_FADE_SECONDS)
+	_ringtone_fade.tween_callback(_ringtone.stop)
 
 
 func _close_gap(still: bool) -> void:

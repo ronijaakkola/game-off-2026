@@ -155,13 +155,17 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 
 ### Goal panel
 
-In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promoted" and a row for each goal, in the order given. Hidden with no goals.
+In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promoted" and a row for each goal, in the order given. Under a thin faint line, a dim flag and "Quests", and a row for each quest. Each part shows only while it has rows, the line only between the two, and the panel only while there are any.
 
-- **A row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
+- **A goal's row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
 - **Deliver 50 passengers:** the count ("12/50"), and the bar fills with it.
 - **Maintain 3.5 rating:** the average ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
-- A quest shows its text and icon only *(no design yet)*.
+- **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Go straight to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and each race's research points by a flask in its colour.
+- **A done quest:** the green tick.
+- **A failed quest:** a red cross (`#F24D66`), the top line at half strength, no reward, and why it failed in the name's place ("Stopped at Moon first", "Reizhis was kicked", "Reizhis left the bus").
+- A finished quest's row stays 8 s, then goes.
+- **Coming in and going,** the quests move as the notices do. The panel grows to make room over 0.25 s, easing in and out, while the part rises 8 px into place and fades in over 0.3 s with a strong ease-out. Going, it fades out in 0.18 s, sinking 6 px, then the panel closes over it in 0.25 s. The first quest brings the whole part in, line and heading too, and the last takes it out; the dock panel under the goal panel glides with it. What is already there when the panel first shows doesn't move. Under Reduce motion the part only fades, and the panel changes height at once.
 
 ### Dock panel
 
@@ -207,7 +211,8 @@ Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bar
 - **Course hint.** In a run without the tutorial, until the player first sets a course, a tutorial notice: "Right-click planets or space to add stops. Backspace clears the route."
 - **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
 - **Out of fuel.** An error notice: "You ran out of fuel" and a "Tow (100 credits)" button, with what the tow costs now.
-- **Incoming transmission.** A call: "Incoming transmission..." and an Answer button. Every 1.6 s the phone rattles: it tips side to side, wide first then dying out, for about 0.4 s. Nothing in the game calls yet; the debug panel does.
+- **Incoming transmission.** A call: "Incoming transmission..." and an Answer button. Every 1.6 s the phone rattles: it tips side to side, wide first then dying out, for about 0.4 s. Its ringtone plays on a loop while it shows, at 80 %, and fades out in 0.15 s as the call is answered or goes; it is silent while the notices are hidden or the game is paused, and plays under Reduce motion too. A passenger with a quest calls this way; it goes unanswered when its caller leaves the bus or the bus reaches a planet.
+- **A quest ending.** "Quest done: Take Sufoi straight to Moon" as info, or "Quest failed: Take Sufoi straight to Moon" as a warning, each closing by itself after 4 s.
 - **Coming in,** a card rises 8 px into place, growing from 96 % and fading in, over 0.3 s with a strong ease-out. A new one goes on top, so the cards already showing never move.
 - **Leaving,** it fades out in 0.18 s, sinking 6 px toward the bus bars and shrinking to 97 %, the way it came in. Then the cards above it glide down into its place over 0.25 s, easing in and out. A card can leave while still coming in, from wherever it got to.
 - Under Reduce motion cards only fade in and out, the cards above close the gap at once, and the phone holds still.
@@ -240,7 +245,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 A small photo on the left of a card or a waiting row: the passenger's head and shoulders over a blurred background in a deep shade of their race's colour, in a thin white frame tilted very slightly at random.
 
 - Each passenger has one of their race's two heads and one of two eye styles (Googly, Bead). Eye style is variety only, not a sign of race.
-- **Badges.** A passenger's type can put badges on the photo: dark discs with a faint light rim and a white icon, in a row that starts on the top left corner, reaching a little past it, and runs right, tilted with the photo. A disc is 15 px on a 32 px photo, reaching 4 px past the corner, and both grow half as fast as the photo: 19 px on a card's 48 px one. A type can have several. Business has one, a briefcase. A Commuter has none. The pointer over a badge shows a tooltip with the type's name and a line about it: "Business", "These passengers are more demanding but pay more."
+- **Badges.** A passenger's type can put badges on the photo: dark discs with a faint light rim and a white icon, in a row that starts on the top left corner, reaching a little past it, and runs right, tilted with the photo. A disc is 15 px on a 32 px photo, reaching 4 px past the corner, and both grow half as fast as the photo: 19 px on a card's 48 px one. A type can have several. Business has one, a briefcase. A Commuter has none. The pointer over a badge shows a tooltip with the type's name and a line about it: "Business", "These passengers are more demanding but pay more." While a quest is about a passenger, a flag badge joins the row after their type's, and its tooltip says "Quest" and what it asks ("Take Sufoi straight to Moon").
 - **Alive:** the head sways and breathes, the eyes blink and glance around, stalks wobble.
 - **Mood shows on the face, never the skin.** Annoyed, the lids slant down toward the middle like a frown over smaller pupils. Furious, more so, a red cartoon anger mark grows in at the upper right and pulses, and the head trembles.
 - **Happy,** they beam now and then for a second or two: lower lids rise so the eyes smile into crescents, the pupils look up, the head bobs. A beam rather than a constant half-smile, which reads as a squint at a card's size.
