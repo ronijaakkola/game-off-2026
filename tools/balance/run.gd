@@ -12,8 +12,9 @@ extends Node
 ## "drink.max_interval", "cabin.seats", "tank.burn_per_unit", "bus.charge_time", and
 ## "upgrade_credits" / "upgrade_points", a list of costs by tree row. "start_with" set to
 ## "all" starts on a bus with every built upgrade researched, and to a list of titles, with
-## those. "open_stages" is how many research stages are open (1 to 3), and "rating_goal"
-## and "deliveries_goal" are the goals the run is measured against.
+## those. "fuel_price_scale" multiplies every planet's fuel price. "open_stages" is how
+## many research stages are open (1 to 3), and "rating_goal" and "deliveries_goal" are the
+## goals the run is measured against.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const COMMUTER := "res://game/passengers/types/commuter.tres"
@@ -431,6 +432,8 @@ func _apply_node_overrides() -> void:
 		var parts := key.split(".")
 		if parts.size() == 2 and nodes.has(parts[0]):
 			(nodes[parts[0]] as Node).set(parts[1], overrides[key])
+	for planet: Planet in _planets:
+		planet.fuel_price *= float(overrides.get("fuel_price_scale", 1.0))
 	for i: int in int(overrides.get("open_stages", 1)) - 1:
 		_lab.get_research().open_next_stage()
 	var start_with: Variant = overrides.get("start_with", [])
