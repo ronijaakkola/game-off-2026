@@ -54,10 +54,17 @@ var _complete_left := 0.0
 var _was_towing := false
 var _open := false
 var _started := false
-var _resize: Tween
+# The open or close under way: where it started, how long it has run and takes. It runs
+# in _process rather than a Tween: tweens step after every node, so the bus status panel
+# and the HUD would place themselves by last frame's height and lag the bar.
+var _resize_from := 0.0
+var _resize_time := 0.0
+var _resize_seconds := 0.0
 
 
 func _ready() -> void:
+	# Before the bus status panel and the HUD, which place themselves by its height.
+	process_priority = -1
 	var style := get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
 	style.content_margin_top = PADDING
 	style.content_margin_bottom = PADDING
@@ -82,6 +89,7 @@ func _process(delta: float) -> void:
 		(%RouteStrip as RouteStrip).show_route(stops, legs, _bus_progress(legs), not _open)
 		_show_totals()
 	_set_open(open)
+	_resize_step(delta)
 	_was_towing = bus.is_towing()
 
 
@@ -273,20 +281,29 @@ func _set_open(open: bool) -> void:
 	if open == _open and _started:
 		return
 	_open = open
-	if _resize:
-		_resize.kill()
-	var target := 1.0 if open else 0.0
 	if not _started:
 		_started = true
-		_set_openness(target)
+		_set_openness(1.0 if open else 0.0)
 		return
-	var seconds := OPEN_SECONDS if open else CLOSE_SECONDS
-	_resize = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_resize.tween_method(_set_openness, (%LineRoom as Control).modulate.a, target, seconds)
+	_resize_from = (%LineRoom as Control).modulate.a
+	_resize_time = 0.0
+	_resize_seconds = OPEN_SECONDS if open else CLOSE_SECONDS
+
+
+# Moves the open or close on by [param delta] seconds, easing out (cubic).
+func _resize_step(delta: float) -> void:
+	if _resize_seconds <= 0.0:
+		return
+	_resize_time = minf(_resize_time + delta, _resize_seconds)
+	var done := _resize_time / _resize_seconds
+	var eased := 1.0 - pow(1.0 - done, 3.0)
+	_set_openness(lerpf(_resize_from, 1.0 if _open else 0.0, eased))
+	if done >= 1.0:
+		_resize_seconds = 0.0
 
 
 # 0 is one row, 1 two. Under Reduce motion the size goes straight to where it heads, and
-# only the fade follows the tween.
+# only the fade eases.
 func _set_openness(amount: float) -> void:
 	var size_amount := (1.0 if _open else 0.0) if Settings.reduce_motion else amount
 	var line_room := %LineRoom as Control

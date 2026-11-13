@@ -26,6 +26,7 @@ grow_vertical = 0
 mouse_filter = 2
 theme = ExtResource("2_theme")
 theme_override_constants/separation = 0
+alignment = 2
 script = ExtResource("1_panel")
 
 [node name="RouteBar" parent="." unique_id=1017829025 instance=ExtResource("5_route_bar")]

@@ -20,9 +20,11 @@ func _process(_delta: float) -> void:
 	var side := (%BusPanel if (%BusPanel as Control).visible else %PlanetPanel) as Control
 	(%Notices as Control).visible = not side.visible
 	(%BusStatusPanel as Control).visible = not side.visible
+	# By the bars' height this frame, not the panel's offsets, which it sets after this
+	# runs: the route bar has already eased its height (it runs first).
 	var notices := %Notices as Control
-	notices.offset_top = (%BusStatusPanel as Control).offset_top
-	notices.offset_bottom = notices.offset_top
+	notices.offset_bottom = -(%BusStatusPanel as Control).get_combined_minimum_size().y
+	notices.offset_top = notices.offset_bottom
 	if side.visible != _goals_hidden:
 		_goals_hidden = side.visible
 		_fade_goals()

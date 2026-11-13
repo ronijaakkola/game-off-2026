@@ -35,6 +35,8 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	_show()
 	# Anchored to the bottom, it grows up as the route bar opens, and shrinks back down.
+	# Any room left over sits above the bars (alignment end), so the bus bar never lifts
+	# off the bottom edge.
 	offset_top = offset_bottom - get_combined_minimum_size().y
 
 
