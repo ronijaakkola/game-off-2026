@@ -57,31 +57,36 @@ theme_override_constants/icon_max_width = 14
 text = "Kick"
 icon = ExtResource("6_kick")
 
-[node name="Panel" type="PanelContainer" parent="." unique_id=895231627]
+[node name="Clip" type="Control" parent="." unique_id=767545413]
+unique_name_in_owner = true
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Clip" unique_id=895231627]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(216, 0)
 layout_mode = 0
 theme_type_variation = &"BarePanel"
 
-[node name="Layout" type="HBoxContainer" parent="Panel" unique_id=1164246159]
+[node name="Layout" type="HBoxContainer" parent="Clip/Panel" unique_id=1164246159]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PassengerPhoto" parent="Panel/Layout" unique_id=384567202 instance=ExtResource("4_photo")]
+[node name="PassengerPhoto" parent="Clip/Panel/Layout" unique_id=384567202 instance=ExtResource("4_photo")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 
-[node name="Rows" type="VBoxContainer" parent="Panel/Layout" unique_id=1669341052]
+[node name="Rows" type="VBoxContainer" parent="Clip/Panel/Layout" unique_id=1669341052]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 3
 
-[node name="Header" type="HBoxContainer" parent="Panel/Layout/Rows" unique_id=1604587981]
+[node name="Header" type="HBoxContainer" parent="Clip/Panel/Layout/Rows" unique_id=1604587981]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="NameLabel" type="Label" parent="Panel/Layout/Rows/Header" unique_id=519713180]
+[node name="NameLabel" type="Label" parent="Clip/Panel/Layout/Rows/Header" unique_id=519713180]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -90,11 +95,11 @@ text = "Name"
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="Activity" type="HBoxContainer" parent="Panel/Layout/Rows" unique_id=1257753859]
+[node name="Activity" type="HBoxContainer" parent="Clip/Panel/Layout/Rows" unique_id=1257753859]
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 
-[node name="ActivityLabel" type="Label" parent="Panel/Layout/Rows/Activity" unique_id=100637608]
+[node name="ActivityLabel" type="Label" parent="Clip/Panel/Layout/Rows/Activity" unique_id=100637608]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -105,7 +110,7 @@ clip_text = true
 text_overrun_behavior = 3
 script = ExtResource("4_morph")
 
-[node name="ServeButton" type="Button" parent="Panel/Layout/Rows/Activity" unique_id=818275599]
+[node name="ServeButton" type="Button" parent="Clip/Panel/Layout/Rows/Activity" unique_id=818275599]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 18)
@@ -114,16 +119,16 @@ size_flags_horizontal = 3
 theme_type_variation = &"ServeButton"
 script = ExtResource("7_serve")
 
-[node name="Middle" type="Control" parent="Panel/Layout/Rows" unique_id=730434983]
+[node name="Middle" type="Control" parent="Clip/Panel/Layout/Rows" unique_id=730434983]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Trip" type="HBoxContainer" parent="Panel/Layout/Rows/Middle" unique_id=1965568126]
+[node name="Trip" type="HBoxContainer" parent="Clip/Panel/Layout/Rows/Middle" unique_id=1965568126]
 unique_name_in_owner = true
 layout_mode = 0
 
-[node name="HappinessBar" type="ProgressBar" parent="Panel/Layout/Rows/Middle/Trip" unique_id=1379124599]
+[node name="HappinessBar" type="ProgressBar" parent="Clip/Panel/Layout/Rows/Middle/Trip" unique_id=1379124599]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
@@ -136,7 +141,7 @@ step = 0.0
 value = 1.0
 show_percentage = false
 
-[node name="HappinessTrail" type="ProgressBar" parent="Panel/Layout/Rows/Middle/Trip/HappinessBar" unique_id=248947368]
+[node name="HappinessTrail" type="ProgressBar" parent="Clip/Panel/Layout/Rows/Middle/Trip/HappinessBar" unique_id=248947368]
 unique_name_in_owner = true
 show_behind_parent = true
 layout_mode = 1
@@ -153,13 +158,13 @@ step = 0.0
 value = 1.0
 show_percentage = false
 
-[node name="HappinessTrend" type="Control" parent="Panel/Layout/Rows/Middle/Trip/HappinessBar" unique_id=1924373784]
+[node name="HappinessTrend" type="Control" parent="Clip/Panel/Layout/Rows/Middle/Trip/HappinessBar" unique_id=1924373784]
 unique_name_in_owner = true
 anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("8_trend")
 
-[node name="RatingStars" type="Control" parent="Panel/Layout/Rows/Middle" unique_id=1668521579]
+[node name="RatingStars" type="Control" parent="Clip/Panel/Layout/Rows/Middle" unique_id=1668521579]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(62, 11)
@@ -168,4 +173,4 @@ mouse_filter = 2
 script = ExtResource("5_stars")
 
 [connection signal="pressed" from="Options/OptionButtons/KickButton" to="." method="_on_kick_button_pressed"]
-[connection signal="hold_changed" from="Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_hold_changed"]
+[connection signal="hold_changed" from="Clip/Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_hold_changed"]

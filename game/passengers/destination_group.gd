@@ -2,8 +2,9 @@ class_name DestinationGroup
 extends VBoxContainer
 ## The On board panel's passengers going to one planet: a header with the planet's icon,
 ## its name, a rule and how many on board are going there, then their cards. The header
-## holds the gap above the group and below itself, so when the last card has left,
-## [method fold_away] folds it, gaps and all, and the groups below move up smoothly.
+## holds the gap above the group, and each card the gap above itself, so the header opens
+## with the group's first card ([method fade_in]) and, when the last card has left,
+## [method fold_away] folds it, gap and all, and the groups below move up smoothly.
 
 ## The group's last card has left, so nobody on board is going to [member planet].
 signal emptied
@@ -18,7 +19,9 @@ var planet: Planet:
 			_show_planet()
 
 var _fold := 1.0
+# The header's fade, and its place opening or folding.
 var _motion: Tween
+var _gap: Tween
 
 
 func _ready() -> void:
@@ -41,27 +44,40 @@ func show_count(count: int) -> void:
 	(%CountLabel as Label).text = str(count)
 
 
-## Fades the header in, as the group's first card slides in.
+## Opens the header's place and fades the header in, in step with the group's first card.
+## Under Reduce motion its place is open at once.
 func fade_in() -> void:
-	if _motion:
-		_motion.kill()
+	_kill_motion()
 	var header := %Header as Control
 	header.modulate.a = 0.0
-	_motion = create_tween()
-	_motion.tween_property(header, ^"modulate:a", 1.0, PassengerCard.SLIDE_IN_SECONDS)
+	_motion = create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	_motion.tween_property(header, ^"modulate:a", 1.0, PassengerCard.ENTER_SECONDS)
+	if Settings.reduce_motion:
+		return
+	_set_fold(0.0)
+	_gap = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_gap.tween_method(_set_fold, 0.0, 1.0, PassengerCard.FOLD_SECONDS)
 
 
-## Fades the header out while folding its height away, gaps included, then emits
-## [signal folded].
+## Fades the header out while folding its height away, gap included, then emits
+## [signal folded]. Under Reduce motion its place closes at once.
 func fold_away() -> void:
-	if _motion:
-		_motion.kill()
-	_motion = create_tween().set_parallel()
-	_motion.tween_property(%Header, ^"modulate:a", 0.0, PassengerCard.FOLD_SECONDS)
-	_motion.tween_method(_set_fold, _fold, 0.0, PassengerCard.FOLD_SECONDS).set_trans(
-		Tween.TRANS_QUAD
-	)
-	_motion.chain().tween_callback(folded.emit)
+	_kill_motion()
+	if Settings.reduce_motion:
+		_set_fold(0.0)
+		folded.emit()
+		return
+	_motion = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_motion.tween_property(%Header, ^"modulate:a", 0.0, PassengerCard.EXIT_SECONDS)
+	_gap = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_gap.tween_method(_set_fold, _fold, 0.0, PassengerCard.FOLD_SECONDS)
+	_gap.tween_callback(folded.emit)
+
+
+func _kill_motion() -> void:
+	for tween: Tween in [_motion, _gap]:
+		if tween:
+			tween.kill()
 
 
 func _show_planet() -> void:

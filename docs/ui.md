@@ -32,7 +32,8 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **One surface:** frosted navy glass (`#1F1A47` at 72 % over the blurred screen) with a 1 px faint white border and 12 px corners. Rows inside it are a faint white tint.
 - **Colour only carries game meaning** (mood, race, fuel, route, credits, gain and loss); controls stay neutral.
 - **Buttons.** Each panel has one primary button, light with dark text; the rest are quiet tinted buttons.
-- Hover lightens a control one step and pressing dips it below its default, and nothing changes size.
+- Hover lightens a control one step and pressing dips it below its default.
+- **A press is felt.** A held button shrinks to 96 % about the point it was pressed at, and springs back when let go, ending a touch over its size before it settles. Toggles, sliders, research tiles, the bus keys and the buttons held down to fill (refuel, serve, hold to confirm) don't. Under Reduce motion nothing changes size.
 - **Fonts.** Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing.
 - **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
 - Spacing is on a 4 px scale.
@@ -185,7 +186,8 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
 - After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
 - **A row's trip.** The pointer over a row shows its trip arc. A click on the row pins it until the row is clicked again, the passenger boards or the bus leaves. The row whose trip shows has a border in their race's colour.
-- It slides in from the right when the bus docks and out when it leaves. A passenger picked up slides out of it to the right, and it grows and shrinks smoothly to fit, so it shrinks as rows leave.
+- It slides in from the right when the bus docks and out when it leaves.
+- **Rows come and go** as the cards on board do, from the right: a passenger who turns up while it shows opens a place over 0.25 s while their row slides in from past the panel's right edge over 0.35 s; one picked up slides out past it in 0.25 s, then their place closes over 0.25 s. A row never fades as it moves. The panel grows and shrinks with the places. Those waiting when the bus docks are there already. "Nobody waiting." fades in once the last row has gone, and out under the first to come. Under Reduce motion a row only fades, and its place opens and closes at once.
 - **Calling for a pick-up** (the tutorial's first step). No trip shows yet. The card gets a 2 px white border, and every row the highlight's border in their race's colour. In a pulse every 1.3 s both borders brighten, the rows' backgrounds lighten and the Board buttons swell to 110 % over 0.3 s, then all of it fades back over 1 s. Board buttons turn primary and Board all turns plain, so the row's Board is the one thing to press. Under Reduce motion the borders hold bright and nothing swells. Once the passenger boards, the card goes back to plain and their trip's arc to the Moon shows until the bus leaves.
 
 ### Fuel button
@@ -242,10 +244,10 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 - **Options.** The pointer over a card fades its options in to the right of the On board panel, with no slide; Reduce motion keeps the fade. There is one: Kick, with a kicking shoe icon. A card showing a rating has none.
 - **Getting off.** When the bus docks, everyone going there shows their rating at once.
   - The middle row sinks a few pixels and fades out while five empty stars drop in from just above. Then the stars fill to the rating one after another, each swelling as it turns yellow. The line morphs to "Getting off".
-  - The card lingers for 2.2 s from when the stop starts, long enough for five stars to fill and be read. Only then, and at their turn, does it slide out past the left edge.
+  - The card lingers for 2.2 s from when the stop starts, long enough for five stars to fill and be read. Only then, and at their turn, does it leave.
   - Under Reduce motion the row crossfades and the stars only change colour.
-- **Cards slide** in at the bottom of their group from past the left edge and out the same way, and the cards below move up into a gap, the panel shrinking with them.
-- **A group's header** fades in with its first card. Once its last card has gone, it fades out and folds away with its gaps over 0.2 s, and the groups below move up.
+- **Cards come and go** over the left edge of the screen. Boarding, a card's place opens at the bottom of its group over 0.25 s, easing in and out, while the card slides in from past the edge over 0.35 s with a strong ease-out, cut off at the bottom by its place until that is open. Leaving, it slides all the way out past the edge in 0.25 s, easing out, then its place folds away over 0.25 s and the cards below move up, the panel growing and shrinking with them. A card never fades as it moves, since a see-through portrait flashes white. Under Reduce motion a card only fades, and its place opens and closes at once.
+- **A group's header** opens and fades in with its first card. Once its last card has gone, it fades out and folds away with its gap over 0.25 s, and the groups below move up.
 
 ### Portraits
 

@@ -26,6 +26,8 @@ var _well := StyleBoxFlat.new()
 func _ready() -> void:
 	# Never takes keyboard focus, so a click doesn't leave Space or Enter pressing it.
 	focus_mode = FOCUS_NONE
+	# The cap sinks, so the button itself doesn't dip.
+	add_to_group(ButtonFeel.OWN_PRESS)
 	_well.bg_color = WELL_COLOR
 	_well.set_corner_radius_all(12)
 	_side.set_corner_radius_all(8)
