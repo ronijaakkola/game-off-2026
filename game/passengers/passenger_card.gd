@@ -13,15 +13,16 @@ extends Control
 ## and once the fill is too short to hold them they sit just past its end on the track, in
 ## the mood's colour. They fade in and out.
 ## Their portrait sits on the left, as a [PassengerPhoto].
-## When the passenger boards, the card's place in the list opens while the card shifts in
-## from the left and fades in.
+## When the passenger boards, the card's place in the list opens while the card slides in
+## from past the left edge of the screen.
 ## When the bus stops at their destination, [method show_rating] swaps the bottom row,
 ## their happiness, for the stars they rate the ride, which fill
 ## up one by one, and the activity reads "Getting off". The card lingers like that, and
-## only then [method leave] fades it out, shifting back left, and folds its place away so
-## the cards below it move up. The root is a slot that holds the card's place in the list,
-## the gap above it included, so it closes without a jump; the panel moves inside it,
-## clipped to it while it opens.
+## only then [method leave] slides it back out past the left edge and folds its place away
+## so the cards below it move up. The root is a slot that holds the card's place in the
+## list, the gap above it included, so it closes without a jump; the panel moves inside it,
+## cut off at the slot's bottom while it opens. The card never fades as it moves: its
+## portrait blends by adding, so see-through it would flash white over its frame.
 ## The pointer over the card fades its options in to its right: for now one button, which
 ## kicks the passenger off the bus. They fade out once the pointer leaves both, and stay
 ## away once the card shows the rating or leaves.
@@ -31,17 +32,17 @@ extends Control
 signal serve_held(held: bool)
 ## The kick button was pressed: the player wants [member passenger] off the bus.
 signal kick_pressed
-## The card has faded out and folded away after [method leave]. It can be freed.
+## The card has slid out and folded away after [method leave]. It can be freed.
 signal left
 
-## Seconds to shift in and fade in, and to fade back out.
-const ENTER_SECONDS := 0.3
-const EXIT_SECONDS := 0.18
+## Seconds to slide in, and to slide back out.
+const ENTER_SECONDS := 0.35
+const EXIT_SECONDS := 0.25
 ## Seconds for the slot to open to the card's height, and to fold away once the card is out.
 const FOLD_SECONDS := 0.25
-## How far left of its place the card starts, and how far left it ends, in pixels.
-const ENTER_SHIFT := 12.0
-const EXIT_SHIFT := 8.0
+## How far past the left edge of the screen the card starts and ends, in pixels, so its
+## shadow is off it too.
+const OFF_SCREEN := 8.0
 ## Pixels above the card, kept in its slot.
 const GAP := 8.0
 # How far past the slot's sides the clip reaches, so it cuts only the card's bottom, never
@@ -127,7 +128,7 @@ var _mood := -1
 var _fold := 1.0
 # How far right of its place the panel sits, in pixels: negative is left.
 var _shift := 0.0
-# The tween that shifts and fades the panel, and the one that opens and folds the slot.
+# The tween that slides the panel, and the one that opens and folds the slot.
 var _motion: Tween
 var _gap: Tween
 # The bar's blend into the new mood's colour.
@@ -174,21 +175,22 @@ func _process(delta: float) -> void:
 	_fit_slot()
 
 
-## Opens the card's place in the list while the card shifts in from the left and fades in.
-## Under Reduce motion it fades in in place, its place open at once.
+## Opens the card's place in the list while the card slides in from past the left edge of
+## the screen. Under Reduce motion it fades in in place, its place open at once.
 func slide_in() -> void:
 	_kill_motion()
 	var panel := %Panel as Control
-	panel.modulate.a = 0.0
-	_motion = create_tween().set_parallel().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
-	_motion.tween_property(panel, ^"modulate:a", 1.0, ENTER_SECONDS)
+	_motion = create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	if Settings.reduce_motion:
+		panel.modulate.a = 0.0
+		_motion.tween_property(panel, ^"modulate:a", 1.0, ENTER_SECONDS)
 		return
 	_set_fold(0.0)
 	_gap = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	_gap.tween_method(_set_fold, 0.0, 1.0, FOLD_SECONDS)
-	_set_shift(-ENTER_SHIFT)
-	_motion.tween_method(_set_shift, -ENTER_SHIFT, 0.0, ENTER_SECONDS)
+	var start := _off_left()
+	_set_shift(start)
+	_motion.tween_method(_set_shift, start, 0.0, ENTER_SECONDS)
 
 
 ## Shows that the passenger is getting off and rated the ride [param stars] out of
@@ -247,9 +249,9 @@ func is_rated() -> bool:
 	return _rated
 
 
-## Fades the card out, shifting left, then folds its place away, and emits [signal left],
-## from wherever it is. Under Reduce motion it fades out in place and its place closes at
-## once. After [method show_rating], it first waits until the rating has
+## Slides the card out past the left edge of the screen, from wherever it is, then folds
+## its place away and emits [signal left]. Under Reduce motion it fades out in place and
+## its place closes at once. After [method show_rating], it first waits until the rating has
 ## shown for [constant LINGER_SECONDS]. The serve button stops working at once.
 func leave() -> void:
 	var panel := %Panel as Control
@@ -262,16 +264,22 @@ func leave() -> void:
 	_motion = create_tween()
 	if _linger_left > 0.0:
 		_motion.tween_interval(_linger_left)
-	_motion.tween_callback(_fade_out.bind(panel))
+	_motion.tween_callback(_slide_out.bind(panel))
 
 
-# Fades the panel out, shifting left from wherever it is, then folds the slot away.
-func _fade_out(panel: Control) -> void:
-	_motion = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_motion.tween_property(panel, ^"modulate:a", 0.0, EXIT_SECONDS)
-	if not Settings.reduce_motion:
-		_motion.tween_method(_set_shift, _shift, -EXIT_SHIFT, EXIT_SECONDS)
-	_motion.chain().tween_callback(_fold_away)
+# Slides the panel out past the left edge from wherever it is, then folds the slot away.
+func _slide_out(panel: Control) -> void:
+	_motion = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if Settings.reduce_motion:
+		_motion.tween_property(panel, ^"modulate:a", 0.0, EXIT_SECONDS)
+	else:
+		_motion.tween_method(_set_shift, _shift, _off_left(), EXIT_SECONDS)
+	_motion.tween_callback(_fold_away)
+
+
+# How far the panel shifts to sit just past the left edge of the screen.
+func _off_left() -> float:
+	return -(global_position.x + (%Panel as Control).size.x + OFF_SCREEN)
 
 
 func _fold_away() -> void:
@@ -303,8 +311,9 @@ func _set_fold(value: float) -> void:
 
 
 # The slot is as tall as the card and the gap above it, times the fold, and the panel
-# fills its width. The clip is the slot, reaching past its sides, and cuts only while the
-# slot is part open. The bottom row's slot is as tall as the bar's row, which fills its
+# fills its width. The clip is the slot, reaching past its sides and as far left as the
+# panel has shifted, so it cuts only the card's bottom, and only while the slot is part
+# open. The bottom row's slot is as tall as the bar's row, which fills its
 # width; the swap moves the row and the stars inside it.
 func _fit_slot() -> void:
 	var middle := %Middle as Control
@@ -318,14 +327,15 @@ func _fit_slot() -> void:
 	var panel := %Panel as Control
 	var size_needed := panel.get_combined_minimum_size()
 	panel.size = size_needed
-	panel.position = Vector2(CLIP_ROOM + _shift, GAP)
+	var reach := CLIP_ROOM + maxf(-_shift, 0.0)
+	panel.position = Vector2(reach + _shift, GAP)
 	var slot := Vector2(size_needed.x, (size_needed.y + GAP) * _fold)
 	if custom_minimum_size != slot:
 		custom_minimum_size = slot
 	var clip := %Clip as Control
 	clip.clip_contents = _fold < 1.0
-	clip.position = Vector2(-CLIP_ROOM, 0.0)
-	clip.size = Vector2(slot.x + CLIP_ROOM * 2.0, slot.y)
+	clip.position = Vector2(-reach, 0.0)
+	clip.size = Vector2(slot.x + reach + CLIP_ROOM, slot.y)
 	_place_options()
 
 

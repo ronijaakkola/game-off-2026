@@ -26,7 +26,6 @@ var _window_size := Vector2i.ZERO
 func _ready() -> void:
 	_window_size = get_window().size
 	get_window().size_changed.connect(_on_window_size_changed)
-	Feedback.wiggle_on_hover([%ResumeButton, %SettingsButton, %MainMenuButton])
 
 
 ## Pauses the game while [param holder] holds it.

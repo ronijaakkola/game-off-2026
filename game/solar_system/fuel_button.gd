@@ -26,6 +26,7 @@ var _fill_style := StyleBoxFlat.new()
 
 
 func _ready() -> void:
+	add_to_group(ButtonFeel.OWN_PRESS)
 	# As tall as the button would be with its text, which the label inside doesn't give it.
 	var line := get_theme_font(&"font").get_height(get_theme_font_size(&"font_size"))
 	var tall := get_theme_stylebox(&"normal").get_minimum_size().y + line

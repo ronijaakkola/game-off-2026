@@ -6,10 +6,11 @@ extends Control
 ## there too, from [member along]), and a button that picks them up. It reads the passenger
 ## when [member passenger] is set; a passenger's details don't change while they wait.
 ## The root is a slot that holds the row's place in the list, and the panel moves inside it:
-## a passenger who turns up opens the slot while the row shifts in from the right and fades
-## in ([method enter]), and once they board the row fades out, shifting right, and the slot
+## a passenger who turns up opens the slot while the row slides in from past the right
+## edge ([method enter]), and once they board the row slides back out past it and the slot
 ## closes ([method leave]). The slot is as tall as the panel and the gap under it, so it
-## opens and closes without a jump, and clips the panel meanwhile.
+## opens and closes without a jump, and clips the panel meanwhile. The row never fades as
+## it moves: its portrait blends by adding, so see-through it would flash white.
 ## The pointer over the row, or a click on it, shows where they are going (the dock panel
 ## decides which), and the row whose trip shows is [member highlighted]: a step lighter,
 ## with a border in their race's skin colour.
@@ -25,14 +26,14 @@ signal clicked(passenger: Passenger)
 
 ## Pixels under the row, kept in its slot.
 const GAP := 4.0
-## Seconds to shift in and fade in, and to fade back out.
-const ENTER_SECONDS := 0.3
-const EXIT_SECONDS := 0.18
+## Seconds to slide in, and to slide back out.
+const ENTER_SECONDS := 0.35
+const EXIT_SECONDS := 0.25
 ## Seconds for the slot to open to the row's height, and to close up once the row is out.
 const GAP_SECONDS := 0.25
-## How far right of its place the row starts, and how far right it ends, in pixels.
-const ENTER_SHIFT := 12.0
-const EXIT_SHIFT := 8.0
+## How far past its own right edge the row starts and ends, in pixels, so it is past the
+## dock panel's edge, which cuts it off.
+const OFF_RIGHT := 32.0
 ## The highlighted row's border width, in pixels, and how much lighter its background is.
 const HIGHLIGHT_BORDER := 2
 const HIGHLIGHT_LIGHTEN := 0.0706
@@ -96,7 +97,7 @@ var beckon_glow := 1.0:
 var _leaving := false
 # How much of the row's height the slot keeps: 1 in the list, 0 closed.
 var _open := 1.0
-# The tween that shifts and fades the panel, and the one that opens and closes the slot.
+# The tween that slides the panel, and the one that opens and closes the slot.
 var _motion: Tween
 var _gap: Tween
 
@@ -124,27 +125,27 @@ func is_hovered() -> bool:
 	return hovered != null and (hovered == panel or panel.is_ancestor_of(hovered))
 
 
-## Opens the row's place in the list while the row shifts in from the right and fades in.
+## Opens the row's place in the list while the row slides in from past the right edge.
 ## Under Reduce motion it fades in in place, its place open at once.
 func enter() -> void:
 	_kill_motion()
 	var panel := %Panel as Control
-	panel.modulate.a = 0.0
-	_motion = create_tween().set_parallel().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
-	_motion.tween_property(panel, ^"modulate:a", 1.0, ENTER_SECONDS)
+	_motion = create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	if Settings.reduce_motion:
+		panel.modulate.a = 0.0
+		_motion.tween_property(panel, ^"modulate:a", 1.0, ENTER_SECONDS)
 		return
 	clip_contents = true
 	_set_open(0.0)
 	_gap = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	_gap.tween_method(_set_open, 0.0, 1.0, GAP_SECONDS)
 	_gap.tween_callback(func() -> void: clip_contents = false)
-	panel.position.x = ENTER_SHIFT
+	panel.position.x = size.x + OFF_RIGHT
 	_motion.tween_property(panel, ^"position:x", 0.0, ENTER_SECONDS)
 
 
-## Fades the row out, shifting right, from wherever it is, then closes up its place and
-## frees it. Under Reduce motion it fades out in place and its place closes at once.
+## Slides the row out past the right edge, from wherever it is, then closes up its place
+## and frees it. Under Reduce motion it fades out in place and its place closes at once.
 func leave() -> void:
 	if _leaving:
 		return
@@ -154,11 +155,12 @@ func leave() -> void:
 	if _motion:
 		_motion.kill()
 	var panel := %Panel as Control
-	_motion = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_motion.tween_property(panel, ^"modulate:a", 0.0, EXIT_SECONDS)
-	if not Settings.reduce_motion:
-		_motion.tween_property(panel, ^"position:x", EXIT_SHIFT, EXIT_SECONDS)
-	_motion.chain().tween_callback(_close_up)
+	_motion = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if Settings.reduce_motion:
+		_motion.tween_property(panel, ^"modulate:a", 0.0, EXIT_SECONDS)
+	else:
+		_motion.tween_property(panel, ^"position:x", size.x + OFF_RIGHT, EXIT_SECONDS)
+	_motion.tween_callback(_close_up)
 
 
 func _close_up() -> void:

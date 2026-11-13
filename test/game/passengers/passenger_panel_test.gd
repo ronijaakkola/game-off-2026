@@ -42,7 +42,7 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	assert_bool((card as PassengerCard).is_rated()).is_true()
 	var panel := card.find_child("Panel") as Control
 	assert_float(_shift_of(panel, card)).is_equal(0.0)
-	# Then it fades out, shifting left, and folds away before it goes.
+	# Then it slides out to the left and folds away before it goes.
 	await assert_func(self, "_slid_out", [panel, card]).wait_until(2000).is_true()
 	assert_int(_cards_in(cards).size()).is_equal(1)
 	# Its group's header folds away after it.
@@ -70,7 +70,7 @@ func test_a_card_shows_a_portrait_and_gives_it_back_when_the_passenger_gets_off(
 	assert_int(studio.get_portrait_count()).is_equal(0)
 
 
-func test_a_boarding_card_opens_its_place_and_shifts_in_from_the_left() -> void:
+func test_a_boarding_card_opens_its_place_and_slides_in_from_the_left() -> void:
 	var runner := scene_runner(SCENE)
 	var cabin := _cabin(runner)
 	await runner.simulate_frames(1)
@@ -79,13 +79,11 @@ func test_a_boarding_card_opens_its_place_and_shifts_in_from_the_left() -> void:
 
 	var card := _cards_in(runner.find_child("Cards"))[0]
 	var panel := card.find_child("Panel") as Control
-	# It starts left of its place and see-through, its place in the list closed.
-	assert_float(_shift_of(panel, card)).is_equal(-PassengerCard.ENTER_SHIFT)
-	assert_float(panel.modulate.a).is_equal(0.0)
+	# It starts past the left edge of the screen, its place in the list closed.
+	assert_float(panel.global_position.x + panel.size.x).is_less(0.0)
 	assert_float(card.custom_minimum_size.y).is_equal(0.0)
 	await runner.simulate_frames(30, 30)
 	assert_float(_shift_of(panel, card)).is_equal(0.0)
-	assert_float(panel.modulate.a).is_equal(1.0)
 	assert_float(card.custom_minimum_size.y).is_equal(panel.size.y + PassengerCard.GAP)
 
 

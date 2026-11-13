@@ -40,13 +40,6 @@ func shake(amount: float, direction := Vector2.ZERO) -> void:
 	_direction = direction.normalized()
 
 
-## Tips each of [param buttons] side to side once as the pointer comes over it, as a
-## menu's buttons do. Does nothing when Reduce motion is on.
-func wiggle_on_hover(buttons: Array[Button]) -> void:
-	for button: Button in buttons:
-		_button_feel.wiggle_on_hover(button)
-
-
 func _process(delta: float) -> void:
 	if _trauma == 0.0:
 		return
