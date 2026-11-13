@@ -16,7 +16,7 @@ script = ExtResource("1_notice")
 [node name="Card" type="PanelContainer" parent="." unique_id=175584207]
 unique_name_in_owner = true
 material = ExtResource("3_glass")
-custom_minimum_size = Vector2(434, 32)
+custom_minimum_size = Vector2(438, 32)
 layout_mode = 0
 theme_type_variation = &"NoticePanel"
 
