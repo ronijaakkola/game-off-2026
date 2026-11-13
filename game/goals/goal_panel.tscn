@@ -20,4 +20,4 @@ mouse_filter = 2
 [node name="Header" type="Label" parent="Rows" unique_id=832714428]
 layout_mode = 2
 theme_type_variation = &"PillLabel"
-text = "To get promotion"
+text = "To get promoted"
