@@ -14,7 +14,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Ambient light from the sky or a constant pastel colour.
 - **SSAO**: only Radius and Intensity apply.
 - **Glow**, simplified: Screen blend only, with a low threshold for soft bloom on emissives.
-- **Frosted UI**: a `canvas_item` shader reading `hint_screen_texture, filter_linear_mipmap` with `textureLod` sees the screen behind it blurred, each level a Gaussian blur of the one before. `game/solar_system/resource_bar.gdshader` does it (checked in Chromium).
+- **Frosted UI**: a `canvas_item` shader reading `hint_screen_texture, filter_linear` sees the screen behind it, and blurs it itself with a few samples round each pixel (`ui/screen_blur.gdshaderinc`, checked in Chromium). Never read it with `filter_linear_mipmap`: see Costs.
 - **Depth and height fog**, with Sun Scatter.
 - One shadowed DirectionalLight with soft PCF filtering, plus a few unshadowed omni lights. The limit is 8 omni and 8 spot lights per mesh.
 - **Toon** diffuse in StandardMaterial3D, or a two-tone ramp worked out in `fragment()` of an `unshaded` shader (`shared/two_tone_light.gdshaderinc`). Not a custom `light()`: see Costs.
@@ -27,6 +27,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 **Costs to plan for:**
 
 - Each post effect (glow, SSAO, adjustments) adds a full-screen pass. Test on a laptop iGPU in a browser.
+- **A `canvas_item` shader reading the screen with `filter_linear_mipmap` makes Godot blur the whole screen into a mipmap chain every frame**: a full-screen copy plus about six render passes at 1080p, for each CanvasLayer that shows such an item, however small ([`rasterizer_canvas_gles3.cpp#L429`](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/rasterizer_canvas_gles3.cpp#L429), [`copy_effects.cpp#L253`](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/effects/copy_effects.cpp#L253)). Without the mipmaps it is the copy alone. Players reported the game slow in Firefox with the mipmap glass and better without it; whether the copy alone is fast enough there is unmeasured.
 - Fog and gradients band, because there is no debanding. Add dither or noise in materials.
 - Shaders compile the first time they're seen, which stutters. Show every material for one frame while the screen is black after a scene change; `SceneFlow` does it under its loading card, one new material a frame. In Chrome on Windows (ANGLE on Direct3D 11, measured 2026-11-08), a first draw costs about 200 ms per material, and the solar system's first draw was 90 % of its load.
 - **A custom `light()` function costs about 1.5 s to compile**, even one that only adds a constant, against about 0.2 s for the same shader `unshaded` (measured as above). Light in `fragment()` instead, as `shared/two_tone_light.gdshaderinc` does. In `light()`, Compatibility also used `source_color` uniforms as stored, without the sRGB to linear conversion `fragment()` gets, so a colour moved out of `light()` needs its value converted to keep its look.

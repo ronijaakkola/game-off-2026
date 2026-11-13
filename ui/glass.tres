@@ -4,5 +4,5 @@
 
 [resource]
 shader = ExtResource("1_glass")
-shader_parameter/blur_lod = null
+shader_parameter/blur_radius = null
 shader_parameter/fill_opacity = null
