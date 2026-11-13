@@ -24,9 +24,9 @@ signal quest_removed(quest: Quest)
 ## Seconds into a run before the first call, and between one call or quest ending and the
 ## next call: a random value between the two. Only a Business passenger calls, so the
 ## real wait is longer: until one rides.
-const FIRST_CALL_SECONDS := 60.0
-const CALL_MIN_SECONDS := 75.0
-const CALL_MAX_SECONDS := 150.0
+const FIRST_CALL_SECONDS := 30.0
+const CALL_MIN_SECONDS := 30.0
+const CALL_MAX_SECONDS := 60.0
 ## Seconds before trying again when nobody on board could call.
 const RETRY_SECONDS := 3.0
 ## Seconds the bus has flown before anyone calls, so a call never lands on leaving.
