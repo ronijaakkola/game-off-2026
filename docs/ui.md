@@ -214,9 +214,10 @@ Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bar
 
 ### On board panel
 
-In the top left corner: how many seats are taken ("3/4") and, under it, a card for each passenger on board, a 48 px row.
+In the top left corner: how many seats are taken ("3/4") and, under it, a card for each passenger on board, a 48 px row, grouped by destination.
 
-- **A card shows:** portrait, their name with their destination beside it, a short activity line ("Sleeping...", "Counting stars"), and along the bottom a happiness bar in their mood's colour. The line starts with "Finding their seat..." for a few seconds after boarding.
+- **Groups.** Each destination has a header: the planet's icon, its name, a faint rule and how many on board are going there. Groups run top to bottom in the order their planet first came up among those on board, and the cards in a group from the first to board to the last. 12 px above a header, 8 px under it and between cards.
+- **A card shows:** portrait, their name, a short activity line ("Sleeping...", "Counting stars"), and along the bottom a happiness bar in their mood's colour. The line starts with "Finding their seat..." for a few seconds after boarding.
 - **The mood has no name on the card:** the bar's colour says it. When the mood changes, the bar blends into the new colour, Reduce motion or not.
 - **The bar.** A big drop leaves a dark red trail that holds for half a second, then shrinks to the bar.
 - **Trend chevrons** on the bar show which way happiness is moving and how fast, as the motive arrows on The Sims' bars do: `>` while it climbs, `<` while it falls.
@@ -233,7 +234,8 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
   - The middle row sinks a few pixels and fades out while five empty stars drop in from just above. Then the stars fill to the rating one after another, each swelling as it turns yellow. The line morphs to "Getting off".
   - The card lingers for 2.2 s from when the stop starts, long enough for five stars to fill and be read. Only then, and at their turn, does it slide out past the left edge.
   - Under Reduce motion the row crossfades and the stars only change colour.
-- **Cards slide** in at the bottom from past the left edge and out the same way, and the cards below move up into a gap, the panel shrinking with them.
+- **Cards slide** in at the bottom of their group from past the left edge and out the same way, and the cards below move up into a gap, the panel shrinking with them.
+- **A group's header** fades in with its first card. Once its last card has gone, it fades out and folds away with its gaps over 0.2 s, and the groups below move up.
 
 ### Portraits
 

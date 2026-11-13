@@ -1,15 +1,19 @@
 class_name PassengerPanel
 extends MarginContainer
 ## The On board panel in the top left corner: how many seats are taken, then a card for each
-## passenger in [member cabin], in the order they boarded. A passenger who boards slides in
-## from the left at the bottom. When the bus stops at their destination, each card going
-## there shows the stars its passenger rates the ride; once the passenger gets off and the
-## rating has shown for a moment, the card slides back out to the left, while the cards
-## below move up to fill the gap. A card's serve button, held down, serves that passenger's
+## passenger in [member cabin], grouped by where they are going ([DestinationGroup]). The
+## groups run in the order their planet first came up among those on board, and each
+## group's cards in the order they boarded. A passenger who boards slides in from the left
+## at the bottom of their group, or of a new group at the bottom. When the bus stops at
+## their destination, each card going there shows the stars its passenger rates the ride;
+## once the passenger gets off and the rating has shown for a moment, the card slides back
+## out to the left, while the cards below move up to fill the gap, and a group whose last
+## card has left folds away. A card's serve button, held down, serves that passenger's
 ## request through the cabin ([method Cabin.hold_serve]), and its kick button kicks them off
 ## the bus, so their card slides out at once.
 
 const CARD := preload("res://game/passengers/passenger_card.tscn")
+const GROUP := preload("res://game/passengers/destination_group.tscn")
 ## Pixels between the board's edge and a card's options, which sit outside it.
 const OPTIONS_GAP := 6.0
 
@@ -35,6 +39,7 @@ const OPTIONS_GAP := 6.0
 var portrait_studio: PortraitStudio
 
 var _cards: Dictionary[Passenger, PassengerCard] = {}
+var _groups: Dictionary[Planet, DestinationGroup] = {}
 var _seats_shown := Vector2i(-1, -1)
 
 
@@ -54,16 +59,22 @@ func _process(_delta: float) -> void:
 
 
 func _show_all() -> void:
-	for card: PassengerCard in _cards.values():
-		card.queue_free()
+	for group: Node in %Cards.get_children():
+		group.queue_free()
 	_cards.clear()
+	_groups.clear()
 	if cabin:
 		for passenger: Passenger in cabin.get_passengers():
 			_add_card(passenger)
+	_show_counts()
 
 
 func _on_boarded(passenger: Passenger) -> void:
+	var new_group := not _groups.has(passenger.destination)
 	_add_card(passenger).slide_in()
+	if new_group:
+		_groups[passenger.destination].fade_in()
+	_show_counts()
 
 
 func _add_card(passenger: Passenger) -> PassengerCard:
@@ -74,10 +85,38 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	card.passenger = passenger
 	card.serve_held.connect(func(held: bool) -> void: cabin.hold_serve(passenger, held))
 	card.kick_pressed.connect(func() -> void: cabin.kick(passenger))
-	card.left.connect(card.queue_free)
 	_cards[passenger] = card
-	%Cards.add_child(card)
+	_group_for(passenger.destination).add_card(card)
 	return card
+
+
+# The group for those going to [param planet], made at the bottom if there is none yet.
+func _group_for(planet: Planet) -> DestinationGroup:
+	var group: DestinationGroup = _groups.get(planet)
+	if group:
+		return group
+	group = GROUP.instantiate() as DestinationGroup
+	group.planet = planet
+	group.emptied.connect(_on_group_emptied.bind(group))
+	group.folded.connect(group.queue_free)
+	_groups[planet] = group
+	%Cards.add_child(group)
+	return group
+
+
+func _on_group_emptied(group: DestinationGroup) -> void:
+	if _groups.get(group.planet) == group:
+		_groups.erase(group.planet)
+	group.fold_away()
+
+
+func _show_counts() -> void:
+	for planet: Planet in _groups:
+		var count := 0
+		for passenger: Passenger in _cards:
+			if passenger.destination == planet:
+				count += 1
+		_groups[planet].show_count(count)
 
 
 func _on_getting_off(passenger: Passenger) -> void:
@@ -95,6 +134,7 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 		# have changed, since happiness stops when a passenger leaves their seat.
 		card.show_rating(passenger.get_rating())
 		card.leave()
+		_show_counts()
 
 
 func _on_kicked(passenger: Passenger) -> void:
@@ -102,3 +142,4 @@ func _on_kicked(passenger: Passenger) -> void:
 	if card:
 		_cards.erase(passenger)
 		card.leave()
+		_show_counts()
