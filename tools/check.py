@@ -452,6 +452,9 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
         # written, and check.py ids fills them in once. The commit hook and CI catch it.
         if path.endswith((".tscn", ".tres")) and not hook:
             rules += missing_id_problems(path)
+        # The hook leaves this out too: a scene may name a sub-scene before it is written.
+        if path.endswith((".tscn", ".tres")) and not hook:
+            rules += missing_ext_resource_problems(path)
         if path.endswith(".uid") and not Path(path[: -len(".uid")]).is_file():
             message = (
                 f"there is no {path[: -len('.uid')]} beside it: Godot left it for a file "
@@ -516,6 +519,9 @@ def feature_asset_problems(path: str) -> list[str]:
     for line, target in referenced_paths(path):
         owner = feature_of(target)
         if not target.endswith(MEDIA) or owner is None or owner == own:
+            continue
+        # A missing file is path-exists's: moving it to shared/ is the wrong fix.
+        if not Path(target).exists():
             continue
         shared = shared_path(target)
         message = (
@@ -916,6 +922,36 @@ def missing_path_problems(path: str, strings: list[tuple[int, str]]) -> list[str
     return problems
 
 
+def missing_ext_resource_problems(path: str) -> list[str]:
+    """Godot looks an ext_resource's uid up first, so once its file moves a path left
+    behind still loads it, with only a warning: load, smoke and tests pass. Without a
+    uid that resolves, the scene or resource fails to load. Either way the path is fixed
+    here, before a later move or a uid-less copy of the line breaks it for real."""
+    lines = Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
+    problems = []
+    for number, line in enumerate(lines, 1):
+        if not line.startswith("[ext_resource "):
+            continue
+        m = re.search(r'\bpath="res://([^"]+)"', line)
+        if not m or Path(m.group(1)).exists():
+            continue
+        target = m.group(1)
+        uid = re.search(r'\buid="([^"]+)"', line)
+        moved = uid_paths().get(uid.group(1)) if uid else None
+        if moved:
+            message = (
+                f"no file is at res://{target}. Its uid {uid.group(1)} is {moved}'s, so "
+                f'Godot loads that with a warning. Set path="{moved}" and keep the uid.'
+            )
+        else:
+            message = (
+                f"no file is at res://{target}, and no uid on the line finds it elsewhere, "
+                "so this file fails to load. Fix the path, or write the file first."
+            )
+        problems.append(problem(path, number, "path-exists", message, SCENE_COMPOSITION))
+    return problems
+
+
 def saved_enum_problems(path: str, code: str) -> list[str]:
     """A .tres or .tscn saves an exported enum as its member's number, and Godot counts
     unnumbered members from 0 in order. A member added or moved above another renumbers
@@ -1252,7 +1288,7 @@ def wrong_uid_problems(path: str) -> list[str]:
     for number, line in enumerate(lines, 1):
         m = EXT_RESOURCE_UID.match(line)
         if not m or not Path(m.group(2)).is_file():
-            continue  # A missing target fails the load check, naming it.
+            continue  # A missing target is path-exists's.
         uid, target = m.groups()
         if uids.get(target) == uid:
             continue
