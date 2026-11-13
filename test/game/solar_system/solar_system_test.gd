@@ -292,7 +292,7 @@ func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var hint := (runner.find_child("Notices") as NoticeStack).get_notices()[0]
-	assert_str(hint.get_text()).is_equal(SolarSystem.COURSE_HINT)
+	assert_str(hint.get_text()).is_equal(SolarSystem.COURSE_HINT % QueueKey.get_label())
 	assert_bool(hint.is_leaving()).is_false()
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
@@ -302,19 +302,19 @@ func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
 	assert_bool(hint.is_leaving()).is_true()
 
 
-func test_right_click_on_the_last_planet_removes_it() -> void:
+func test_right_click_sets_the_route_and_with_the_queue_key_adds_to_it() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var giant := runner.find_child("Giant") as Planet
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+	_queued_click(_screen_point(runner, giant))
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_array(bus.get_route_planets()).contains_exactly([terra, giant])
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
 
-	assert_array(bus.get_route_planets()).contains_exactly([terra])
+	assert_array(bus.get_route_planets()).contains_exactly([giant])
 
 
 func test_right_click_on_the_docked_planet_with_a_route_makes_a_round_trip() -> void:
@@ -325,7 +325,7 @@ func test_right_click_on_the_docked_planet_with_a_route_makes_a_round_trip() -> 
 	var home := bus.get_docked_planet()
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, home))
+	_queued_click(_screen_point(runner, home))
 
 	assert_array(bus.get_route_planets()).contains_exactly([terra, home])
 
@@ -341,13 +341,13 @@ func test_right_click_on_the_docked_planet_with_no_route_does_nothing() -> void:
 	assert_float(bus.get_charge_progress()).is_equal(0.0)
 
 
-func test_clear_route_clears_every_stop() -> void:
+func test_clear_route_takes_the_last_stop_off() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var giant := runner.find_child("Giant") as Planet
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+	_queued_click(_screen_point(runner, giant))
 
 	var key := InputEventKey.new()
 	key.keycode = KEY_BACKSPACE
@@ -356,71 +356,31 @@ func test_clear_route_clears_every_stop() -> void:
 	Input.flush_buffered_events()
 
 	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_object(bus.get_last_stop()).is_null()
-	assert_float(bus.get_charge_progress()).is_equal(0.0)
+	assert_array(bus.get_route_planets()).contains_exactly([terra])
 
 
-func test_right_click_on_space_sets_the_one_checkpoint_before_the_planet_ahead() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var terra := runner.find_child("Terra") as Planet
-	var giant := runner.find_child("Giant") as Planet
-	var camera := runner.find_child("Camera") as Camera3D
-	var on_screen := _between_screen_point(runner)
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
-
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(0, 80)))
-
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	# The second click's point replaces the first's.
-	var stops := bus.get_route_stops()
-	assert_int(stops.size()).is_equal(3)
-	assert_object(stops[0].planet).is_null()
-	assert_object(stops[1].planet).is_same(terra)
-	assert_object(stops[2].planet).is_same(giant)
-	var second := on_screen + Vector2(0, 80)
-	assert_vector(camera.unproject_position(stops[0].point)).is_equal_approx(second, Vector2.ONE)
-
-
-func test_right_click_on_a_checkpoint_removes_it() -> void:
+func test_right_click_on_space_with_the_queue_key_adds_a_point_after_the_planet() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var camera := runner.find_child("Camera") as Camera3D
 	var on_screen := _between_screen_point(runner)
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_int(bus.get_route_stops().size()).is_equal(2)
 
-	# A few pixels off the point still hits its diamond.
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(4, 4)))
+	_queued_click(_to_window(camera, on_screen))
 
-	var stops := bus.get_route_stops()
-	assert_int(stops.size()).is_equal(1)
+	var stops := (runner.find_child("Bus") as FrameshiftBus).get_route_stops()
+	assert_int(stops.size()).is_equal(2)
 	assert_object(stops[0].planet).is_same(terra)
+	assert_object(stops[1].planet).is_null()
+	assert_vector(camera.unproject_position(stops[1].point)).is_equal_approx(on_screen, Vector2.ONE)
 
 
-func test_hovering_a_checkpoint_before_a_planet_picks_it() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var terra := runner.find_child("Terra") as Planet
-	var camera := runner.find_child("Camera") as Camera3D
-	var on_screen := _between_screen_point(runner)
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
-	var bus := runner.find_child("Bus") as FrameshiftBus
-
-	# A few pixels off the point still hits its diamond.
-	_send_motion(_to_window(camera, on_screen + Vector2(4, 4)))
-	await runner.simulate_frames(1)
-	assert_object(bus.hovered_stop).is_same(bus.get_route_stops()[0])
-
-	_send_motion(_to_window(camera, on_screen + Vector2(200, 0)))
-	await runner.simulate_frames(1)
-	assert_object(bus.hovered_stop).is_null()
+# A right click at [param at] with the queue key held.
+func _queued_click(at: Vector2) -> void:
+	Input.action_press(&"queue_stop")
+	_send_click(MOUSE_BUTTON_RIGHT, at)
+	Input.action_release(&"queue_stop")
 
 
 # One passenger waiting at the planet the bus is docked at, and their row in the dock

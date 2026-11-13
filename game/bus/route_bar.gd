@@ -233,7 +233,7 @@ func _status_text() -> String:
 	if _complete_left > 0.0:
 		return "Route complete"
 	if is_ready(bus):
-		return "Hold Frameshift to leave"
+		return "Press Frameshift to go on" if bus.get_warmth() > 0.0 else "Hold Frameshift to leave"
 	match bus.state:
 		FrameshiftBus.State.FLYING, FrameshiftBus.State.PARKING:
 			return _flying_text()

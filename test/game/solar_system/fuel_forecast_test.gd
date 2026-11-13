@@ -18,8 +18,8 @@ func test_the_estimate_is_the_distance_to_each_stop_short_of_parking_times_the_b
 	# Where the bus starts to park at it, 3 past the checkpoint.
 	var park := planet.get_body_radius() + bus.dock_gap + FrameshiftBus.DOCK_DISTANCE
 	planet.position = start + Vector3(4.0, 0.0, 3.0 + park)
-	bus.plot_course(RouteStop.at_planet(planet))
-	bus.plot_course(RouteStop.at_point(start + Vector3(4.0, 0.0, 0.0)), true)
+	bus.plot_course(RouteStop.at_point(start + Vector3(4.0, 0.0, 0.0)))
+	bus.plot_course(RouteStop.at_planet(planet), true)
 
 	var burn := bus.get_fuel_tank().burn_per_unit
 	assert_float(FuelForecast.estimate(bus)).is_equal_approx(7.0 * burn, 0.001)

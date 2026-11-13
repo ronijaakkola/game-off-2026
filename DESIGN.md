@@ -17,7 +17,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 1. **Docked.** The bus starts docked at a planet. Passengers wait at planets, each with a destination, a fare and an expected trip time. While docked or charging, the player picks passengers up into the bus's seats.
 2. **Set course.** The player adds planets and points in space to the route.
-3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Until then the route can still change.
+3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. At a planet the route goes on from, the drive is still warm for a while, and a press leaves at once. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
 5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
 6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every tree.
@@ -33,15 +33,16 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 
 - **Stops.** A route is an ordered list of stops, each a planet or a point in space. The bus docks at every planet on the route and passes through points in space. It holds still at a point in space that ends the route.
 - **A planet stop** is the planet's near side, so the bus chases a moving planet.
-- **Checkpoint.** With a planet on the route, a point in space goes in just before the first planet on the route, so it bends the way there rather than going on after it. There is one checkpoint before that planet: a new one replaces it.
-- **Open space.** With no planet on the route, a point in space replaces the one the bus is flying to, so a route in open space is one point. Adding a planet then replaces that point.
-- **Round trips.** A planet earlier on the route can be added again. The planet the bus is docked at can be added as the last stop when the route already has a planet.
-- **No modifier keys** in the route controls: Firefox opens its own context menu on Shift + right-click, and a page can't stop it.
+- **Setting a course** works as in a real-time strategy game: a right click sets the route to the one stop under the pointer, and with the queue key held adds it to the end, so the stops come in the order clicked. The planet the route already ends at isn't added again straight after itself.
+- **Round trips.** A planet earlier on the route can be added again, and so can the planet the bus is docked at once the route has a stop.
+- **The queue key** is Shift or Q, both in every browser. Firefox opens its own context menu on Shift + right-click and a page can't stop it, so in Firefox the hints name Q. Not Ctrl: a page can't block Ctrl+W, and W pans the camera.
 - **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
-- **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. The player charges the drive by holding the Frameshift key for 3 s, at every planet the bus leaves. The bus turns toward its next stop meanwhile.
+- **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. With the drive cold, the player charges it by holding the Frameshift key for 3 s. The bus turns toward its next stop meanwhile.
+- **Warm at a planet.** Docking at a planet the route goes on from, the drive is warm. It holds while the passengers getting off get off, then cools over 8 s, which picking someone up and refuelling spend; research pauses the game and the cooling with it. While warm, a press of the Frameshift key leaves as soon as everyone picked up is on, with no charge. The bus never leaves by itself. Docking at the end of the route, or towed, the drive is cold.
+- The reward is for leaving quickly, not for having a stop queued: a stop queued and then changed earns nothing more. A cold drive costs the passengers riding on (Happiness).
 - **Letting go** drains the charge twice as fast as it built and keeps the course; holding again charges from what is left. Cancelling keeps the bus docked.
 - **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
-- **Warm drive.** A course set from a stop in space within 1 s of coming to rest leaves at once, so a short stop costs nothing. After that the drive is cold and the bus waits for a charge, as at a planet; cancelling leaves it holding in space.
+- **Short stops in space.** A course set from a stop in space within 1 s of coming to rest leaves at once, so a short stop costs nothing. After that the drive is cold and the bus waits for a charge, as at a planet; cancelling leaves it holding in space.
 - **Parking.** Near a planet the bus glides the last half unit in and swings side-on, door toward the planet. It has docked only once it is parked, and only then can the drive charge.
 - **Clearing the route** stops a charging drive, and makes a flying bus coast to a stop.
 
@@ -126,7 +127,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 - **Mood:** happy from 70, okay from 50, annoyed from 25, furious below.
 - **Rating** on getting off: happiness ÷ 20, to the nearest whole star.
 - **It holds** until the bus leaves the planet they boarded at, and while the bus parks.
-- **Docked,** it falls at a tenth of its speed, so a stop (boarding, refuelling, charging) barely costs anyone.
+- **Docked,** it falls at a tenth of its speed while the drive is warm, so a quick stop (boarding, refuelling) barely costs anyone. Once the drive goes cold it falls at half its speed, and their clock runs at half speed, until the bus leaves: a stop that drags on costs those riding on. Those who boarded there hold anyway.
 
 **The target** is worked out fresh every frame:
 
@@ -137,7 +138,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 **Timing** is one line along the ride:
 
 - +12 if they arrive in the direct trip time, 0 at the expected time, then down to −100 one more trip time after that.
-- It runs on the passenger's own **clock**: real time in flight, a tenth of it while docked, and slower while they sleep or watch a show.
+- It runs on the passenger's own **clock**: real time in flight, a tenth of it while docked (half once the drive is cold), and slower while they sleep or watch a show.
 - **Leeway.** While happiness is 80 or more, every second of their clock adds half a second to the time they expect, up to half a trip time. It never grows past that, so a long enough ride still wears out anyone.
 - Getting there sooner (routing, speed, never needing a tow) is the main way to beat timing. Comfort only buys a little.
 
@@ -161,7 +162,7 @@ There are no good shocks: one would fall away at 3 a second, gone in seconds.
 - **One request at a time.** The other needs' timers wait while one is open, so serving one doesn't set off the rest.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
 - **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s, and letting go keeps what was served so far.
-- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers run at a tenth of their speed while docked. A request open when the bus stops goes on hold and opens again once it flies on.
+- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers run as slowly as the clock while docked. A request open when the bus stops goes on hold and opens again once it flies on.
 - Fun and sleep aren't needs that ask: upgrades give them.
 - *(not built)* **Food and drink become one need,** so the player isn't asked to tell them apart: one request, served as a snack or a drink at random.
 
@@ -320,11 +321,9 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 |---|---|
 | Left click a planet or the bus | Open it. One thing is open at a time. Where the bus and a planet overlap, whichever centre is nearer the pointer opens |
 | Left click the open thing, or empty space | Close it |
-| Right click a planet | Add it to the end of the route |
-| Right click empty space | Add a point in space (Route and flight) |
-| Right click a point in space on the route | Remove it |
-| Right click the last planet on the route | Remove it, along with the checkpoint before it |
-| Backspace or Delete | Clear the route |
+| Right click a planet or empty space | Set the route to it: the planet, or a point in space (Route and flight) |
+| Shift or Q + right click | Add it to the end of the route |
+| Backspace or Delete | Take the last stop off the route |
 | W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
 | Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
 | Mouse wheel | Zoom toward the point under the pointer |
@@ -333,7 +332,8 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 
 - **Left click selects, right click routes.**
 - **Esc stays pause only.** In browser fullscreen the browser takes Esc and the game never sees it, so Esc can't close a panel the same way in a window and in fullscreen.
-- Removing the last stop cancels the course.
+- Removing the last stop cancels the course. The Stop key clears the whole route.
+- While the bus brakes in to dock, the Frameshift key does nothing, so a press meant to leave from there doesn't stop the bus.
 - WASD reads physical key positions, so it sits in the same place on every keyboard layout.
 - Pan and zoom do nothing while a planet or the bus is open. Right click still sets the course.
 - Each panel's own buttons are in `docs/ui.md`.

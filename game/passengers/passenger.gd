@@ -43,7 +43,7 @@ const UNSERVED_SHOCK := -10.0
 const REQUEST_GRACE := 5.0
 ## While the bus is docked, their ride clock and their needs' timers run at this speed, and
 ## their happiness falls at this much of its speed: a stop barely costs them. Climbing back
-## isn't slowed, so a stop is a fine place to recover.
+## isn't slowed, so a stop is a fine place to recover. The cabin can give a faster one.
 const DOCKED_RATE := 0.1
 ## A good ride makes them patient: while their happiness is at least this, they grant the
 ## bus leeway, [constant LEEWAY_RATE] seconds of it per second of their ride clock, added to
@@ -315,14 +315,17 @@ func arrive() -> void:
 ## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. Happiness and
 ## the ride clock hold until [method depart], and while [param holds] (the bus parks).
 ## While [param docked] the clock and the needs' timers run, and happiness falls (but not
-## climbs), at [constant DOCKED_RATE] of their speed. The clock runs as the comfort says
+## climbs), at [param stop_rate] of their speed. The clock runs as the comfort says
 ## while asleep or watching a show. Needs wait while they sleep, so a sleep runs its
 ## length, but not while they watch: a request stops the show. While a request is being
 ## fed, happiness holds. While
 ## the bus is docked or parks, no request opens, and an open one goes on hold until the
 ## bus flies on.
-func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -> void:
+func tick(
+	delta: float, docked: bool, holds := false, comfort: Comfort = null, stop_rate := DOCKED_RATE
+) -> void:
 	var giving := comfort if comfort else _no_comfort
+	stop_rate = stop_rate if docked else 1.0
 	var stopped := docked or holds
 	if stopped and request:
 		_held_request = request
@@ -345,7 +348,7 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 			rate = giving.sleep_clock
 		elif watching:
 			rate = giving.watch_clock
-		var ride := delta * rate * (DOCKED_RATE if docked else 1.0)
+		var ride := delta * rate * stop_rate
 		_clock += ride
 		if happiness >= LEEWAY_HAPPINESS:
 			leeway = minf(leeway + ride * LEEWAY_RATE, trip_seconds * LEEWAY_MAX)
@@ -353,7 +356,7 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		var target := happiness if fed else get_target(giving)
 		var speed := CLIMB_RATE
 		if target < happiness:
-			speed = FALL_RATE * (DOCKED_RATE if docked else 1.0)
+			speed = FALL_RATE * stop_rate
 		var before := happiness
 		happiness = move_toward(happiness, target, speed * delta)
 		if delta > 0.0:
@@ -364,7 +367,7 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 		return
 	_activity_left -= delta
 	if not asleep and not _held_request:
-		var need_step := delta * (DOCKED_RATE if docked else 1.0)
+		var need_step := delta * stop_rate
 		for i: int in _need_timers.size():
 			_need_timers[i] -= need_step
 	if (_busy or asleep) and _activity_left > 0.0:
