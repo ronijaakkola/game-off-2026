@@ -10,6 +10,10 @@ uniform bool has_rings = false;
 uniform vec4 ring_color : source_color = vec4(1.0);
 // The rings' lean in radians, the planet's tilt.
 uniform float ring_tilt = 0.0;
+// A circle cut out of the icon, as where something sits on top of it, in UV. A radius
+// of 0 cuts nothing.
+uniform vec2 cut_center = vec2(0.0);
+uniform float cut_radius = 0.0;
 
 const float PIXEL = 1.0 / 14.0;
 const float RING_RX = 1.75;
@@ -58,6 +62,9 @@ void fragment() {
 	acc = over(acc, surface, cover(length(p) - r, aa));
 	if (front) {
 		acc = over(acc, ring_color.rgb, ring);
+	}
+	if (cut_radius > 0.0) {
+		acc *= 1.0 - cover(length(UV - cut_center) - cut_radius, aa);
 	}
 	COLOR = vec4(acc.rgb / max(acc.a, 1e-5), acc.a);
 }

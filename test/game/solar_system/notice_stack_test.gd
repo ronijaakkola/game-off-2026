@@ -39,3 +39,18 @@ func test_a_notice_answered_into_a_pause_still_leaves() -> void:
 	get_tree().paused = false
 
 	assert_bool(is_instance_valid(notice)).is_false()
+
+
+# A tutorial step pushed its notice on top of the last step's leaving one, so it came in
+# a notice too high and dropped as that one's gap closed.
+func test_a_notice_replacing_a_leaving_one_comes_in_under_it() -> void:
+	var stack := (load(STACK) as PackedScene).instantiate() as NoticeStack
+	add_child(stack)
+	auto_free(stack)
+	var kept := stack.push("Fuel is running low.", Notice.Kind.WARNING)
+	var old := stack.push("Right-click Terra to set a course there.", Notice.Kind.TUTORIAL)
+	old.dismiss()
+
+	var new := stack.push("Hold the Frameshift key to charge.", Notice.Kind.TUTORIAL)
+
+	assert_array(stack.get_notices()).contains_exactly([old, new, kept])
