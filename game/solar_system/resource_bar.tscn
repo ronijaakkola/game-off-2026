@@ -14,19 +14,16 @@ shader_parameter/blur_radius = null
 shader_parameter/fill_color = null
 shader_parameter/border_color = null
 shader_parameter/border_width = null
-shader_parameter/shadow_color = null
-shader_parameter/shadow_offset = null
-shader_parameter/shadow_blur = null
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_canvas"]
 content_margin_left = 12.0
 content_margin_top = 6.0
 content_margin_right = 12.0
 content_margin_bottom = 6.0
-expand_margin_left = 24.0
-expand_margin_top = 24.0
-expand_margin_right = 24.0
-expand_margin_bottom = 36.0
+expand_margin_left = 1.0
+expand_margin_top = 1.0
+expand_margin_right = 1.0
+expand_margin_bottom = 1.0
 anti_aliasing = false
 
 [node name="ResourceBar" type="PanelContainer" unique_id=234811527]

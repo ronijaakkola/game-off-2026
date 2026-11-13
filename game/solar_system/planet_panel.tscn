@@ -9,20 +9,6 @@
 content_margin_top = 1.0
 bg_color = Color(1, 1, 1, 0.1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
-bg_color = Color(1, 1, 1, 0.12)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuel"]
-bg_color = Color(0.6, 0.95, 1, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-
 [node name="PlanetPanel" type="MarginContainer" unique_id=2147144430]
 anchor_left = 1.0
 anchor_right = 1.0
@@ -61,11 +47,23 @@ size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
 
-[node name="PlanetNameLabel" type="Label" parent="Sheet/Rows/Header" unique_id=1164484599]
+[node name="Titles" type="VBoxContainer" parent="Sheet/Rows/Header" unique_id=1530968246]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="PlanetNameLabel" type="Label" parent="Sheet/Rows/Header/Titles" unique_id=1164484599]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeadingLabel"
 text = "Planet"
+
+[node name="TaglineLabel" type="Label" parent="Sheet/Rows/Header/Titles" unique_id=1047905149]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+text = "What it is known for"
 
 [node name="Rule" type="Panel" parent="Sheet/Rows" unique_id=1625155362]
 custom_minimum_size = Vector2(0, 1)
@@ -103,73 +101,32 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="FuelRule" type="Panel" parent="Sheet/Rows/Services" unique_id=1247600231]
+[node name="LoreRule" type="Panel" parent="Sheet/Rows/Services" unique_id=1993052834]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
 
-[node name="FuelHeader" type="HBoxContainer" parent="Sheet/Rows/Services" unique_id=1623810674]
+[node name="Lore" type="MarginContainer" parent="Sheet/Rows/Services" unique_id=1318826275]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_bottom = 12
 
-[node name="FuelTitle" type="Label" parent="Sheet/Rows/Services/FuelHeader" unique_id=1314631904]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"SmallLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.55)
-text = "Fuel"
-
-[node name="PriceLabel" type="Label" parent="Sheet/Rows/Services/FuelHeader" unique_id=1303074348]
+[node name="LoreLabel" type="Label" parent="Sheet/Rows/Services/Lore" unique_id=1096396580]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(440, 76)
 layout_mode = 2
-theme_type_variation = &"SmallLabel"
-text = "Full tank 10 credits"
-
-[node name="FuelRow" type="HBoxContainer" parent="Sheet/Rows/Services" unique_id=1835942146]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="FuelBar" type="ProgressBar" parent="Sheet/Rows/Services/FuelRow" unique_id=1662438485]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-mouse_filter = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_track")
-theme_override_styles/fill = SubResource("StyleBoxFlat_fuel")
-max_value = 1.0
-value = 1.0
-show_percentage = false
-
-[node name="FuelAmount" type="Label" parent="Sheet/Rows/Services/FuelRow" unique_id=2119550928]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 0)
-layout_mode = 2
-theme_type_variation = &"SmallLabel"
-text = "100%"
-horizontal_alignment = 2
-
-[node name="RefuelButton" type="Button" parent="Sheet/Rows/Services" unique_id=976823080]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Hold to refuel"
-
-[node name="FuelNote" type="Label" parent="Sheet/Rows/Services" unique_id=1266662327]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"SmallLabel"
-theme_override_colors/font_color = Color(1, 1, 1, 0.55)
-text = "Dock here to refuel."
-horizontal_alignment = 1
+theme_type_variation = &"BodyTextLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+text = "A few sentences about the planet."
+autowrap_mode = 3
 
 [node name="CloseButton" type="Button" parent="Sheet/Rows" unique_id=2026300211]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Close"
 
-[connection signal="button_down" from="Sheet/Rows/Services/RefuelButton" to="." method="_on_refuel_button_down"]
-[connection signal="button_up" from="Sheet/Rows/Services/RefuelButton" to="." method="_on_refuel_button_up"]
 [connection signal="pressed" from="Sheet/Rows/CloseButton" to="." method="_on_close_button_pressed"]

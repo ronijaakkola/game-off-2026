@@ -74,6 +74,10 @@ static var _sphere: SphereMesh
 @export_range(0.0, 10.0, 0.01, "or_greater") var fuel_price := 0.1
 ## Whether it has a lab, where the player can research upgrades from every research tree.
 @export var has_lab := false
+## A line under its name in its planet panel: what it is known for. Empty shows none.
+@export var tagline := ""
+## A few sentences about it at the foot of its planet panel. Empty shows none.
+@export_multiline var lore := ""
 
 @export_group("Orbit line")
 @export var show_orbit := true:

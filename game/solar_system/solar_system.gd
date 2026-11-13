@@ -31,8 +31,8 @@ extends Node3D
 ## charge under way holds, until the stop is over. The game starts with the bus empty.
 ## A passenger kicked off from their card is thrown out of the bus's door as a small figure
 ## in their skin colour.
-## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
-## open planet's panel ([FuelPump]).
+## Docked at a planet that sells fuel, the player refuels there from the dock panel
+## ([FuelPump]).
 ## Running out of fuel in space brings the [TowDispatch].
 ## How fast the planets orbit is the [OrbitClock]'s.
 
