@@ -196,7 +196,7 @@ Cards stacked above the bus bars, centred, 434 px wide and 32 px tall, 8 px apar
 | Info, something that happened | `i` in a circle, dim | The navy glass |
 | Warning | Triangle, amber (`#FACC61`) | Dark amber glass |
 | Error | `!` in a circle, red (`#F24D66`) | Dark red glass |
-| Incoming call | Phone, white | The navy glass |
+| Incoming call | Phone, pale lilac (`#CFBEFF`) with a soft glow of its own | Muted purple glass (`#3D2A80` at 85 %) with a 1 px lilac border (`#B9A0FF` at 50 %) and a faint lilac halo about 10 px wide |
 
 - **While a planet's or the bus's panel is open** the notices hide with the bus bars. One that arrives meanwhile waits and comes in when the panel closes, and those already showing stop counting down to closing by themselves, so none goes unseen.
 - A notice stays until its close or action button is pressed, unless it was given a time to close by itself, or until what it is about is over: a tutorial once the player does what it says, a warning once its cause is gone.
