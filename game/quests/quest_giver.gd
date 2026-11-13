@@ -38,7 +38,7 @@ const ARRIVING_SECONDS := 6.0
 const DECLINE_SHOCK := -5.0
 const FAIL_SHOCK := -15.0
 ## Seconds a finished quest stays among the quests.
-const SHOWN_SECONDS := 3.0
+const SHOWN_SECONDS := 8.0
 ## Seconds the notice of how a quest ended shows.
 const NOTICE_SECONDS := 4.0
 

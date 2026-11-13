@@ -164,7 +164,8 @@ In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get
 - **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Go straight to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and each race's research points by a flask in its colour.
 - **A done quest:** the green tick.
 - **A failed quest:** a red cross (`#F24D66`), the top line at half strength, no reward, and why it failed in the name's place ("Stopped at Moon first", "Reizhis was kicked", "Reizhis left the bus").
-- A finished quest's row stays 3 s, then goes.
+- A finished quest's row stays 8 s, then goes.
+- **Coming in and going,** the quests move as the notices do. The panel grows to make room over 0.25 s, easing in and out, while the part rises 8 px into place and fades in over 0.3 s with a strong ease-out. Going, it fades out in 0.18 s, sinking 6 px, then the panel closes over it in 0.25 s. The first quest brings the whole part in, line and heading too, and the last takes it out; the dock panel under the goal panel glides with it. What is already there when the panel first shows doesn't move. Under Reduce motion the part only fades, and the panel changes height at once.
 
 ### Dock panel
 
