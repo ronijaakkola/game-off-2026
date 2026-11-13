@@ -14,7 +14,7 @@ extends CanvasLayer
 ## The player answered: [param accepted] is true for the primary button.
 signal answered(accepted: bool)
 
-const FLASK_ICON := preload("res://game/solar_system/icons/flask_conical.svg")
+const FLASK_ICON := preload("res://shared/icons/flask_conical.svg")
 ## Seconds the scrim and the modal take to come in, and to go.
 const FADE_IN_SECONDS := 0.4
 const FADE_OUT_SECONDS := 0.2

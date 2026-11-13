@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c4ts4i4v8a1kd"]
 
 [ext_resource type="Script" uid="uid://udbsici8x8l8" path="res://game/passengers/passenger_photo.gd" id="1_photo"]
-[ext_resource type="Shader" uid="uid://jsmh20iu8g0q" path="res://game/passengers/photo_backdrop.gdshader" id="2_backdrop"]
+[ext_resource type="Shader" uid="uid://jsmh20iu8g0q" path="res://shared/photo_backdrop.gdshader" id="2_backdrop"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_frame"]
 bg_color = Color(0.97, 0.96, 0.93, 1)

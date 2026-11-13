@@ -30,7 +30,7 @@ const GLOW_BLUR := 10.0
 const LIT_ALPHA := 0.8
 const FAINT_LINE := Color(1, 1, 1, 0.08)
 const OPEN_LINE := Color(1, 1, 1, 0.14)
-const FLASK := preload("res://game/solar_system/icons/flask_conical.svg")
+const FLASK := preload("res://shared/icons/flask_conical.svg")
 
 ## The full width of the card.
 const WIDTH := INNER_WIDTH + MARGIN.x * 2.0
