@@ -8,9 +8,9 @@ extends Control
 ## Seconds from showing to gone.
 const SECONDS := 1.2
 ## Pixels it rises on screen over that time.
-const RISE_PIXELS := 36.0
+const RISE_PIXELS := 24.0
 ## Pixels between the bus on screen and its lower edge as it starts.
-const GAP_PIXELS := 18.0
+const GAP_PIXELS := 12.0
 ## The process priority Phantom Camera's host sets on itself to move the camera.
 const CAMERA_HOST_PRIORITY := 300
 
