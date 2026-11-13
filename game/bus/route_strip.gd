@@ -12,8 +12,10 @@ extends Control
 ## while it grows and fades in; one taken off fades and shrinks where it is. The start
 ## leaving, as when the bus docks on its way, slides off to the left, taking the flown part
 ## of the line with it, and the bus, which waits just past the start, drives over the
-## planet that becomes the new one. Under Reduce motion nothing slides or grows: icons fade
-## in and out where they stand and the rest cuts to place.
+## planet that becomes the new one. The bus has room round it: the line and any planet
+## under it are cut away there, so the bar's glass shows between. Under Reduce motion
+## nothing slides or grows: icons fade in and out where they stand and the rest cuts to
+## place.
 ## The pointer over an icon rings it and opens a tooltip with the planet's name.
 
 const ICON := 16.0
@@ -30,9 +32,13 @@ const CHIP_FONT_SIZE := 10
 const FLOWN_COLOR := Color(1.0, 0.6, 0.22, 1.0)
 const AHEAD_COLOR := Color(1.0, 1.0, 1.0, 0.1412)
 const BUS_COLOR := Color(0.96, 0.78, 0.29, 1.0)
-## The route bar's own colour, so the bus cuts a clean bite out of what it sits on.
-const BUS_DISC_COLOR := Color(0.1216, 0.102, 0.2784, 1.0)
-const BUS_DISC := 20.0
+## The bus's room: nothing under it is drawn within this radius of its middle, so the
+## bar's glass shows through round it, a clean bite out of the line and of a planet it
+## sits on.
+const BUS_ROOM := 10.0
+## The shortest piece of a link drawn beside the bus; a shorter one would read as a
+## sliver poking out from under it.
+const SHORTEST_PIECE := 3.0
 const BUS_ICON := 14.0
 const POINT_COLOR := Color(0.957, 0.945, 1.0, 0.651)
 const POINT_ICON := 9.0
@@ -85,7 +91,7 @@ func _ready() -> void:
 	_chip.visible = false
 	add_child(_chip)
 	_bus = Control.new()
-	_bus.size = Vector2.ONE * BUS_DISC
+	_bus.size = Vector2.ONE * BUS_ROOM * 2.0
 	_bus.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bus.draw.connect(_draw_bus)
 	_bus.visible = false
@@ -98,8 +104,9 @@ func _process(delta: float) -> void:
 		var icon := _icons[stop] as Control
 		icon.position.x = lerpf(icon.position.x, _targets[stop], weight)
 	_bus_x = lerpf(_bus_x, _bus_target, weight)
-	_bus.position = Vector2(_bus_x - BUS_DISC * 0.5, (ICON - BUS_DISC) * 0.5)
+	_bus.position = Vector2(_bus_x - BUS_ROOM, ICON * 0.5 - BUS_ROOM)
 	_chip.position.x = lerpf(_chip.position.x, _chip_target, weight)
+	_cut_planets()
 	queue_redraw()
 
 
@@ -120,14 +127,18 @@ func show_route(
 	_shown = shown
 	_progress = progress
 	var links := _link_widths(legs.slice(0, maxi(shown.size() - 1, 0)), hidden > 0)
+	# Whole pixels as the links add up, not each link rounded, so the errors never pile up
+	# at the far end: the start and the last stop stay put however the legs change.
+	var exact := 0.0
 	var x := 0.0
 	for i: int in shown.size():
 		var stop := shown[i]
+		x = roundf(exact)
 		_targets[stop] = x
 		if not _icons.has(stop):
 			_enter(stop, x, at_once)
 		if i < links.size():
-			x += ICON + GAP + links[i] + GAP
+			exact += ICON + GAP + links[i] + GAP
 	_place_leaving()
 	_place_chip(x + ICON + CHIP_GAP, hidden)
 	_place_bus()
@@ -171,8 +182,6 @@ func _link_widths(legs: PackedFloat32Array, chip: bool) -> PackedFloat32Array:
 				settled = false
 		if settled:
 			break
-	for i: int in count:
-		widths[i] = roundf(widths[i])
 	return widths
 
 
@@ -342,14 +351,36 @@ func _draw() -> void:
 		_draw_link(split, right, y, Color(AHEAD_COLOR, AHEAD_COLOR.a * alpha))
 
 
+# A piece of link, less the bus's room, dropping slivers too short to read beside it.
 func _draw_link(left: float, right: float, y: float, color: Color) -> void:
-	if right - left > 0.5 and color.a > 0.0:
-		draw_rect(Rect2(left, y, right - left, 2.0), color)
+	if color.a <= 0.0:
+		return
+	var pieces: Array[Vector2] = [Vector2(left, right)]
+	if _bus.visible:
+		pieces = [Vector2(left, minf(right, _bus_x - BUS_ROOM))]
+		pieces.append(Vector2(maxf(left, _bus_x + BUS_ROOM), right))
+	for piece: Vector2 in pieces:
+		var length := piece.y - piece.x
+		if length >= SHORTEST_PIECE or (length > 0.5 and not _bus.visible):
+			draw_rect(Rect2(piece.x, y, length, 2.0), color)
+
+
+# Cuts the bus's room out of each planet it overlaps, in the icon's own pixels, as it
+# grows and shrinks round its middle.
+func _cut_planets() -> void:
+	for stop: RouteStop in _icons:
+		var icon := _icons[stop] as Control
+		var planet := icon.get_child(0) as PlanetIcon
+		if not planet:
+			continue
+		var bus := Vector2(_bus_x, ICON * 0.5) - icon.position - icon.pivot_offset
+		var scale_x := maxf(icon.scale.x, 0.01)
+		var radius := BUS_ROOM / scale_x if _bus.visible else 0.0
+		planet.cut(bus / scale_x + icon.pivot_offset, radius)
 
 
 func _draw_bus() -> void:
 	var middle := _bus.size * 0.5
-	_bus.draw_circle(middle, BUS_DISC * 0.5, BUS_DISC_COLOR, true, -1.0, true)
 	var rect := Rect2(middle - Vector2.ONE * BUS_ICON * 0.5, Vector2.ONE * BUS_ICON)
 	_bus.draw_texture_rect(BUS_TEXTURE, rect, false, BUS_COLOR)
 
