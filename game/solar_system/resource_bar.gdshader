@@ -1,8 +1,8 @@
 shader_type canvas_item;
-// The resource bar's pill, drawn whole here: a soft drop shadow, frosted glass (the
-// screen behind blurred under a translucent fill) and a thin border. The panel's style
-// box is a plain rectangle reaching past the panel on every side, so this runs once for
-// each pixel the pill or its shadow covers, and nothing else draws them.
+// The resource bar's pill, drawn whole here: frosted glass (the screen behind blurred
+// under a translucent fill) and a thin border. The panel's style box is a plain rectangle
+// reaching a pixel past the panel on every side, so this runs once for each pixel the
+// pill covers, and nothing else draws it.
 
 #include "res://ui/screen_blur.gdshaderinc"
 
@@ -12,10 +12,6 @@ uniform vec2 size = vec2(0.0);
 uniform vec4 fill_color : source_color = vec4(0.1216, 0.102, 0.2784, 0.72);
 uniform vec4 border_color : source_color = vec4(1.0, 1.0, 1.0, 0.12);
 uniform float border_width = 1.0;
-uniform vec4 shadow_color : source_color = vec4(0.0, 0.0, 0.0, 0.2);
-uniform vec2 shadow_offset = vec2(0.0, 6.0);
-// How far the shadow fades out on either side of the pill's edge, in pixels: a CSS blur.
-uniform float shadow_blur = 18.0;
 
 varying vec2 local;
 
@@ -43,7 +39,5 @@ void fragment() {
 	vec3 glass = screen_blur(SCREEN_UV, SCREEN_PIXEL_SIZE, FRAGCOORD.xy);
 	glass = mix(glass, fill_color.rgb, fill_color.a);
 	glass = mix(glass, border_color.rgb, border_color.a * border / max(inside, 0.001));
-	float shadow_d = pill(local - shadow_offset);
-	float shadow = shadow_color.a * (1.0 - smoothstep(-shadow_blur, shadow_blur, shadow_d));
-	COLOR = mix(vec4(shadow_color.rgb, shadow), vec4(glass, 1.0), inside);
+	COLOR = vec4(glass, inside);
 }

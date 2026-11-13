@@ -9,9 +9,9 @@ corner_radius_top_left = 1
 corner_radius_top_right = 1
 corner_radius_bottom_right = 1
 corner_radius_bottom_left = 1
-shadow_color = Color(0, 0, 0, 0.35)
-shadow_size = 2
-shadow_offset = Vector2(1, 2)
+shadow_color = Color(0.043, 0.035, 0.125, 0.6)
+shadow_size = 1
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
 resource_local_to_scene = true

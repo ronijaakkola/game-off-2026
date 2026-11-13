@@ -3,8 +3,8 @@ extends Control
 ## One research tree in the research screen, on a faint card of its own: its title and a
 ## chip in its race's colour counting the upgrades researched of all it has, over the tree
 ## drawn top to bottom, each upgrade at its tier and column, centred in the column. A line
-## runs from each upgrade to each one it requires, centre to centre under the tiles: lit and
-## glowing in the race's colour once that one is researched, a little brighter while it
+## runs from each upgrade to each one it requires, centre to centre under the tiles: lit
+## in the race's colour once that one is researched, a little brighter while it
 ## can be researched, and faint otherwise. The parent places the rows, so every column's
 ## stages line up, and tells it each upgrade's state, which each tile's tooltip says
 ## ([UpgradeTooltip]). It passes on a tile held long enough; the parent researches it.
@@ -24,9 +24,7 @@ const CARD_BORDER := Color(1, 1, 1, 0.12)
 const CARD_RADIUS := 8
 const LINE_WIDTH := 2.0
 const LIT_WIDTH := 3.0
-## A lit line's glow: the race's colour blurred as a design tool blurs it ([SoftGlow]).
-const GLOW_BLUR := 10.0
-## How strong a lit line is over its glow.
+## How strong a lit line is.
 const LIT_ALPHA := 0.8
 const FAINT_LINE := Color(1, 1, 1, 0.08)
 const OPEN_LINE := Color(1, 1, 1, 0.14)
@@ -136,12 +134,6 @@ func _draw_link(from: UpgradeButton, to: UpgradeButton) -> void:
 	var start := from.position + UpgradeButton.SIZE * 0.5
 	var end := to.position + UpgradeButton.SIZE * 0.5
 	if _is_lit(from.upgrade):
-		var glow := SoftGlow.line(LIT_WIDTH, GLOW_BLUR)
-		var across := float(glow.get_height())
-		draw_set_transform(start, (end - start).angle())
-		var along := Rect2(0.0, -across * 0.5, start.distance_to(end), across)
-		draw_texture_rect(glow, along, false, from.get_accent())
-		draw_set_transform_matrix(Transform2D.IDENTITY)
 		draw_line(start, end, Color(from.get_line_color(), LIT_ALPHA), LIT_WIDTH, true)
 		return
 	var state := from.get_state()
