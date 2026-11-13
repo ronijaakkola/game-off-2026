@@ -4,7 +4,7 @@ extends RefCounted
 ## what happens in the game: a passenger delivered or kicked, a rating counted, the bus
 ## moving or docking. Each kind of goal overrides the facts it cares about.
 ## A [b]milestone[/b], such as delivering 50 passengers, is met once it is completed, and
-## stays completed. A [b]standing[/b] goal, such as keeping the average rating at 4 stars,
+## stays completed. A [b]standing[/b] goal, such as keeping the recent rating at 4 stars,
 ## is met or not as things stand, and never completes by itself. A quest, a goal about one
 ## passenger, can fail, as when that passenger is kicked off. A completed or failed goal
 ## takes in no more facts.
@@ -59,11 +59,11 @@ func passenger_kicked(passenger: Passenger) -> void:
 		_on_kicked(passenger)
 
 
-## The average rating is [param average] stars, over [param count] rides. Also told once
-## when the goal is added, so it starts from how things stand.
-func rating_changed(average: float, count: int) -> void:
+## The recent rating is [param recent] stars, with [param count] rides rated in all. Also
+## told once when the goal is added, so it starts from how things stand.
+func rating_changed(recent: float, count: int) -> void:
 	if is_active():
-		_on_rating_changed(average, count)
+		_on_rating_changed(recent, count)
 
 
 ## Every frame: the bus is at [param position] with [param on_board] riding, and
@@ -98,7 +98,7 @@ func _on_kicked(_passenger: Passenger) -> void:
 	pass
 
 
-func _on_rating_changed(_average: float, _count: int) -> void:
+func _on_rating_changed(_recent: float, _count: int) -> void:
 	pass
 
 

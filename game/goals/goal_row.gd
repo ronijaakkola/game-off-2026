@@ -3,7 +3,7 @@ extends VBoxContainer
 ## One goal in the goal panel: an icon, what to do and how far along it is, over a thin
 ## bar. The icon is an empty circle until the goal is met, then a green tick, and the bar
 ## turns green with it. A delivery goal shows its count ("12/50") and fills with it. A
-## rating goal shows the average ("4.2", or a dash before the first rating) on a bar of
+## rating goal shows the recent rating ("4.2", or a dash before the first rating) on a bar of
 ## five stars, with a mark at the target. Any other goal shows only its text and icon.
 ## A failed goal's icon is a red cross.
 
@@ -62,8 +62,8 @@ func refresh() -> void:
 		bar.value = goal.get_progress()
 	elif goal is RatingGoal:
 		var rating := goal as RatingGoal
-		value.text = "%.1f" % rating.average if rating.rides > 0 else NO_RATING
-		bar.value = rating.average / Passenger.MAX_STARS
+		value.text = "%.1f" % rating.rating if rating.rides > 0 else NO_RATING
+		bar.value = rating.rating / Passenger.MAX_STARS
 		var share := rating.target / Passenger.MAX_STARS
 		marker.set_anchor_and_offset(SIDE_LEFT, share, -MARKER_WIDTH / 2.0)
 		marker.set_anchor_and_offset(SIDE_RIGHT, share, MARKER_WIDTH / 2.0)

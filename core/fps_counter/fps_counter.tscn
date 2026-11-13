@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://bvltj3jsdu0w3"]
+
+[ext_resource type="Script" uid="uid://b77et38xm01it" path="res://core/fps_counter/fps_counter.gd" id="1_fps"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" uid="uid://0s8berr68q40" path="res://core/fps_counter/render_diagnostics.gd" id="3_diag"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backing"]
+content_margin_left = 6.0
+content_margin_top = 1.0
+content_margin_right = 6.0
+content_margin_bottom = 1.0
+bg_color = Color(0.0431, 0.0353, 0.1255, 0.85)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="FpsCounter" type="CanvasLayer" unique_id=1169304894]
+process_mode = 3
+layer = 101
+visible = false
+script = ExtResource("1_fps")
+
+[node name="Label" type="Label" parent="." unique_id=832811189]
+unique_name_in_owner = true
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -8.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 8.0
+grow_horizontal = 0
+theme = ExtResource("2_theme")
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_outline_color = Color(0.0431, 0.0353, 0.1255, 1)
+theme_override_constants/outline_size = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_backing")
+text = "60 FPS · 1920×1080 · MSAA 4x"
+horizontal_alignment = 2
+
+[node name="RenderDiagnostics" type="Node" parent="." unique_id=43618459]
+unique_name_in_owner = true
+script = ExtResource("3_diag")

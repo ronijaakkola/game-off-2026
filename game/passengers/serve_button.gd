@@ -34,6 +34,7 @@ var _fill_style := StyleBoxFlat.new()
 
 
 func _ready() -> void:
+	add_to_group(ButtonFeel.OWN_PRESS)
 	_fill_style.bg_color = FILL_COLOR
 	var button_style := get_theme_stylebox(&"normal") as StyleBoxFlat
 	if button_style:

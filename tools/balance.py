@@ -113,7 +113,7 @@ def summarize(reports: list[dict]) -> dict:
             [r["deliveries_goal_at"] / 60.0 for r in reports if r["deliveries_goal_at"] > 0]
         ),
         "rating goal at end %": share(
-            reports, lambda r: r["average_rating"] >= r["rating_goal"]
+            reports, lambda r: r["recent_rating"] >= r["rating_goal"]
         ),
         "both goals met %": share(reports, lambda r: r["both_goals_at"] > 0),
         "both goals at min": mean(

@@ -2,7 +2,8 @@ extends Node
 ## Game feel effects. Callers never check Reduce motion: each effect decides inside.
 ## It owns the current camera's [member Camera3D.h_offset] and [member Camera3D.v_offset],
 ## so game cameras keep them at 0. It pauses with the game, so a shake freezes under the
-## pause menu and finishes after Resume.
+## pause menu and finishes after Resume. Its [ButtonFeel] child gives buttons their press
+## and runs while paused.
 
 ## Seconds a full shake takes to fade out.
 const FADE := 0.5
@@ -18,11 +19,13 @@ var _trauma := 0.0
 var _direction := Vector2.ZERO
 var _time := 0.0
 var _noise := FastNoiseLite.new()
+var _button_feel := ButtonFeel.new()
 
 
 func _ready() -> void:
 	_noise.frequency = NOISE_FREQUENCY
 	get_tree().scene_changed.connect(_on_scene_changed)
+	add_child(_button_feel)
 
 
 ## Shakes the camera. [param amount] adds to the trauma, which is capped at 1 and fades

@@ -25,6 +25,7 @@ var _fill_style := StyleBoxFlat.new()
 
 
 func _ready() -> void:
+	add_to_group(ButtonFeel.OWN_PRESS)
 	var button_style := get_theme_stylebox(&"normal") as StyleBoxFlat
 	if button_style:
 		for corner: int in 4:

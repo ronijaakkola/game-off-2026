@@ -11,12 +11,13 @@ extends Control
 ## The board buttons are off while every seat is taken. It only asks: the parent picks the
 ## passenger up, pumps the fuel while [method is_fuel_held], and turns the fuel button on or
 ## off with [method show_fuel]. It slides in from the right when [member planet] is set and
-## back out when it is cleared. A row whose passenger boards slides out to the right,
-## clipped by the card, then closes up. The card fits what it holds every frame, so it
+## back out when it is cleared. A passenger who turns up while it shows opens a row, which
+## shifts in from the right and fades in; a row whose passenger boards fades out, shifting
+## right, then closes up. The card fits what it holds every frame, so it
 ## shrinks as smoothly as the row closes. The root is a slot of no height that marks the
 ## panel's place in the corner, and the card hangs down from it. So the card's top edge
 ## stays put however its height changes, with no container to re-sort a frame later and
-## round the height to whole pixels. "Nobody waiting." sits under the rows, so a row sliding
+## round the height to whole pixels. "Nobody waiting." sits under the rows, so a row going
 ## out uncovers it and the card only shrinks. The pointer over a row shows that passenger's
 ## trip, and a click on a row pins it, so it stays shown once the pointer leaves, until the
 ## row is clicked again, the passenger boards or the bus leaves. The row whose trip shows is
@@ -105,6 +106,9 @@ var _pinned: Passenger
 # The passenger whose trip shows, as last sent in trip_previewed.
 var _previewed: Passenger
 var _beckon: Tween
+# Whether "Nobody waiting." shows, or is on its way in, and its fade.
+var _empty := true
+var _empty_fade: Tween
 
 
 func _ready() -> void:
@@ -190,11 +194,12 @@ func _rebuild() -> void:
 		(%ResearchRow as Control).visible = _shown.has_lab
 		var services := _shown.sells_fuel or _shown.has_lab
 		(%FuelRule as Control).visible = services
-	_sync_rows()
+	_sync_rows(false)
 
 
-# Adds a row for each passenger new in line, and slides out those no longer in it.
-func _sync_rows() -> void:
+# Adds a row for each passenger new in line, which comes in when [param animated], and
+# takes out those no longer in it.
+func _sync_rows(animated := true) -> void:
 	var line: Array[Passenger] = []
 	if waiting and _shown:
 		line = waiting.get_waiting(_shown)
@@ -216,7 +221,36 @@ func _sync_rows() -> void:
 		row.clicked.connect(_on_row_clicked)
 		(%Rows as Control).add_child(row)
 		_rows[passenger] = row
-	(%EmptyLabel as Control).visible = line.is_empty()
+		if animated and visible:
+			row.enter()
+	_show_empty(line.is_empty(), animated and visible)
+
+
+# Shows "Nobody waiting." while [param empty]. When [param animated], it fades in once the
+# last row has faded out, and fades out under the first row to come, staying in the layout
+# until that row's place has opened past it, so the card never snaps shorter.
+func _show_empty(empty: bool, animated: bool) -> void:
+	var label := %EmptyLabel as Control
+	if animated and empty == _empty:
+		return
+	_empty = empty
+	if _empty_fade:
+		_empty_fade.kill()
+	if not animated or Settings.reduce_motion:
+		label.visible = empty
+		label.modulate.a = 1.0
+		return
+	_empty_fade = create_tween()
+	if empty:
+		if not label.visible:
+			label.modulate.a = 0.0
+			label.visible = true
+		_empty_fade.tween_interval(BoardingRow.EXIT_SECONDS)
+		_empty_fade.tween_property(label, ^"modulate:a", 1.0, BoardingRow.EXIT_SECONDS)
+	else:
+		_empty_fade.tween_property(label, ^"modulate:a", 0.0, BoardingRow.EXIT_SECONDS)
+		_empty_fade.tween_interval(BoardingRow.GAP_SECONDS - BoardingRow.EXIT_SECONDS)
+		_empty_fade.tween_callback(label.hide)
 
 
 # Pulses the card's border and the rows while beckoning, or puts the card back.

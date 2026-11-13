@@ -13,7 +13,7 @@ Folders are by feature:
 | Folder | What goes there |
 |---|---|
 | `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config, and Phantom Camera, vendored without its `examples/` folder. |
-| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/save_game/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`. |
+| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/save_game/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`, `core/fps_counter/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/<feature>/` | The game, one folder per feature: `game/bus/`, `game/goals/`, `game/passengers/`, `game/research/`, `game/solar_system/`, `game/transmissions/`, `game/tutorial/`. |
 | `shared/` | Assets used by more than one feature, such as `shared/two_tone.gdshader`. |
@@ -72,12 +72,13 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `SceneFlow` | `core/scene_flow/` | Moves between top-level scenes with a fade: `await SceneFlow.go_to(path)`. |
 | `Settings` | `core/settings/` | The player's **settings**, applied on every change and saved to `user://settings.cfg` once changes stop for a moment. `reset()` puts them all back to their defaults. |
 | `SaveGame` | `core/save_game/` | The player's **save game** in `user://save_game.json`, one run as a plain Dictionary. The main menu starts a run with `start_new()` or `continue_saved()`, and the game scene takes it with `claim_run()`; only a claimed run is written, so tests and F6 runs never touch the save. Tests run in the player's own user folder, so a test that starts a run from the menu points `SaveGame.path` at a file of its own first. It knows nothing of the game: `GameSaver` in the solar system builds and applies the Dictionary. |
-| `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
+| `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`, and through its `ButtonFeel` child the dip of every pressed `Button`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
 | `Talo` | `addons/talo/` | The Talo plugin's autoload. Only `core/online/` names it; see Online. |
 | `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
 | `DebugPanel` | `core/debug_panel/` | The **debug panel**: testing buttons that scenes add with `add_button(text, action, scene)`, opened with F2. In every build until release. See Debug panel. |
+| `FpsCounter` | `core/fps_counter/` | The frame rate and render size in the top right corner over every scene, while `Settings.show_fps` is on. Its `RenderDiagnostics` child adds the debug panel's Rendering switches. |
 | `PhantomCameraManager` | `addons/phantom_camera/` | The Phantom Camera plugin's autoload. Game code never calls it; see `docs/cameras.md`. |
 
 Add an autoload only for a service that must outlive a scene change, or that has exactly one instance game-wide. It lives in `core/<name>/`, works without knowing what the current scene is, and gets a row in this table.

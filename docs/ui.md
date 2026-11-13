@@ -32,7 +32,8 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **One surface:** frosted navy glass (`#1F1A47` at 72 % over the blurred screen) with a 1 px faint white border and 12 px corners. Rows inside it are a faint white tint.
 - **Colour only carries game meaning** (mood, race, fuel, route, credits, gain and loss); controls stay neutral.
 - **Buttons.** Each panel has one primary button, light with dark text; the rest are quiet tinted buttons.
-- Hover lightens a control one step and pressing dips it below its default, and nothing changes size.
+- Hover lightens a control one step and pressing dips it below its default.
+- **A press is felt.** A held button shrinks to 96 % about the point it was pressed at, and springs back when let go, ending a touch over its size before it settles. Toggles, sliders, research tiles, the bus keys and the buttons held down to fill (refuel, serve, hold to confirm) don't. Under Reduce motion nothing changes size.
 - **Fonts.** Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing.
 - **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
 - Spacing is on a 4 px scale.
@@ -165,7 +166,7 @@ In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get
 - **A goal's row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
 - **Deliver 50 passengers:** the count ("12/50"), and the bar fills with it.
-- **Maintain 3.5 rating:** the average ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
+- **Maintain 3.5 rating:** the recent rating ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
 - **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Go straight to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and each race's research points by a flask in its colour.
 - **A done quest:** the green tick.
 - **A failed quest:** a red cross (`#F24D66`), the top line at half strength, no reward, and why it failed in the name's place ("Stopped at Moon first", "Reizhis was kicked", "Reizhis left the bus").
@@ -185,7 +186,8 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
 - After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
 - **A row's trip.** The pointer over a row shows its trip arc. A click on the row pins it until the row is clicked again, the passenger boards or the bus leaves. The row whose trip shows has a border in their race's colour.
-- It slides in from the right when the bus docks and out when it leaves. A passenger picked up slides out of it to the right, and it grows and shrinks smoothly to fit, so it shrinks as rows leave.
+- It slides in from the right when the bus docks and out when it leaves.
+- **Rows come and go** as the cards on board do, from the right: a passenger who turns up while it shows opens a place over 0.25 s while their row slides in from past the panel's right edge over 0.35 s; one picked up slides out past it in 0.25 s, then their place closes over 0.25 s. A row never fades as it moves. The panel grows and shrinks with the places. Those waiting when the bus docks are there already. "Nobody waiting." fades in once the last row has gone, and out under the first to come. Under Reduce motion a row only fades, and its place opens and closes at once.
 - **Calling for a pick-up** (the tutorial's first step). No trip shows yet. The card gets a 2 px white border, and every row the highlight's border in their race's colour. In a pulse every 1.3 s both borders brighten, the rows' backgrounds lighten and the Board buttons swell to 110 % over 0.3 s, then all of it fades back over 1 s. Board buttons turn primary and Board all turns plain, so the row's Board is the one thing to press. Under Reduce motion the borders hold bright and nothing swells. Once the passenger boards, the card goes back to plain and their trip's arc to the Moon shows until the bus leaves.
 
 ### Fuel button
@@ -242,10 +244,10 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 - **Options.** The pointer over a card fades its options in to the right of the On board panel, with no slide; Reduce motion keeps the fade. There is one: Kick, with a kicking shoe icon. A card showing a rating has none.
 - **Getting off.** When the bus docks, everyone going there shows their rating at once.
   - The middle row sinks a few pixels and fades out while five empty stars drop in from just above. Then the stars fill to the rating one after another, each swelling as it turns yellow. The line morphs to "Getting off".
-  - The card lingers for 2.2 s from when the stop starts, long enough for five stars to fill and be read. Only then, and at their turn, does it slide out past the left edge.
+  - The card lingers for 2.2 s from when the stop starts, long enough for five stars to fill and be read. Only then, and at their turn, does it leave.
   - Under Reduce motion the row crossfades and the stars only change colour.
-- **Cards slide** in at the bottom of their group from past the left edge and out the same way, and the cards below move up into a gap, the panel shrinking with them.
-- **A group's header** fades in with its first card. Once its last card has gone, it fades out and folds away with its gaps over 0.2 s, and the groups below move up.
+- **Cards come and go** over the left edge of the screen. Boarding, a card's place opens at the bottom of its group over 0.25 s, easing in and out, while the card slides in from past the edge over 0.35 s with a strong ease-out, cut off at the bottom by its place until that is open. Leaving, it slides all the way out past the edge in 0.25 s, easing out, then its place folds away over 0.25 s and the cards below move up, the panel growing and shrinking with them. A card never fades as it moves, since a see-through portrait flashes white. Under Reduce motion a card only fades, and its place opens and closes at once.
+- **A group's header** opens and fades in with its first card. Once its last card has gone, it fades out and folds away with its gap over 0.25 s, and the groups below move up.
 
 ### Portraits
 
@@ -350,13 +352,14 @@ Titled "Frameshift Bus".
 ## Menus
 
 - **Main menu:** title, Play, Settings, Quit (hidden on web). With a save game, Continue comes first as the primary button and has focus, and a plain "New game" button takes Play's place, with no hint that it has to be held: held for 1.2 s, a faint fill growing across it, it starts over; let go early, the fill drains back twice as fast. On web a title card (the game's title, "Click to start") comes first. The debug panel's "Delete save" deletes the save, and the menu turns back to Play; its "Reset settings" puts every setting back to its default.
+- **Show FPS** (settings, off by default): one line in the top right corner, over every scene, the HUD included: the frame rate, the size the game renders at in real pixels, the MSAA, and any rendering switch turned off ("40 FPS · 2560×1440 · MSAA 4x · no glass"). Small off-white text with a navy outline on a dark backing (`#0B0920` at 85 %, 4 px corners), 4 px from the corner.
 - **Pause menu:** Resume, Settings, Main menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
 - **Settings:** three volume sliders, a rule, then the Reduce motion and Edge pan toggles, and Back as the primary button. Every row is 38 px high with its label and control centred, so the five rows have one pitch; the rule sits 16 px from the rows above and below.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 
 ## Debug panel
 
-F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. Open research opens the research screen from anywhere, and Promote opens the next research stage.
+F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. The Rendering group is there in every scene: MSAA off, 2x or 4x, and toggles for the glass blur and the stencil, each for this session only, so a slow frame can be traced on the machine where it is slow, with Show FPS on. Open research opens the research screen from anywhere, and Promote opens the next research stage.
 
 ## Open questions
 

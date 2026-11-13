@@ -22,7 +22,7 @@ unique_name_in_owner = true
 layout_mode = 0
 mouse_filter = 2
 theme_override_constants/margin_top = 12
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_bottom = 0
 
 [node name="Row" type="HBoxContainer" parent="HeaderSlot/Header" unique_id=294942976]
 layout_mode = 2
@@ -56,12 +56,14 @@ color = Color(1, 1, 1, 0.122)
 [node name="CountLabel" type="Label" parent="HeaderSlot/Header/Row" unique_id=177156928]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"SmallStrongLabel"
+size_flags_vertical = 0
+theme_type_variation = &"StrongLabel"
 theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+theme_override_font_sizes/font_size = 11
 text = "0"
 
 [node name="GroupCards" type="VBoxContainer" parent="." unique_id=531089702]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0

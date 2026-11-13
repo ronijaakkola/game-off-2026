@@ -165,7 +165,7 @@ What delivering a passenger earns, one of their race's kind per delivery whateve
 _Avoid_: science, XP, tech points
 
 **Resource bar**:
-The pill at the top centre showing the player's credits, research points and average rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
+The pill at the top centre showing the player's credits, research points and recent rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
 _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
 

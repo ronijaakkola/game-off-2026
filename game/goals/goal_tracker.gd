@@ -31,7 +31,7 @@ signal goal_failed(goal: Goal)
 			cabin.delivered.connect(_on_delivered)
 			cabin.kicked.connect(_on_kicked)
 
-## The ledger whose average rating the goals follow. The scene that owns it sets it.
+## The ledger whose recent rating the goals follow. The scene that owns it sets it.
 var ledger: Ledger:
 	set(value):
 		if ledger:
@@ -71,7 +71,7 @@ func add(goal: Goal) -> void:
 	_relays[goal] = relays
 	goal_added.emit(goal)
 	if ledger:
-		goal.rating_changed(ledger.get_average_rating(), ledger.get_rating_count())
+		goal.rating_changed(ledger.get_recent_rating(), ledger.get_rating_count())
 
 
 ## Stops tracking [param goal].
@@ -119,10 +119,10 @@ func _on_bus_docked(planet: Planet) -> void:
 
 
 func _on_rated(_stars: float) -> void:
-	var average := ledger.get_average_rating()
+	var recent := ledger.get_recent_rating()
 	var count := ledger.get_rating_count()
 	for goal: Goal in _goals.duplicate():
-		goal.rating_changed(average, count)
+		goal.rating_changed(recent, count)
 
 
 func _on_goal_changed(goal: Goal) -> void:
