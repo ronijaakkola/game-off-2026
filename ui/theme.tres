@@ -532,6 +532,17 @@ content_margin_top = 5.0
 content_margin_right = 12.0
 content_margin_bottom = 5.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tag"]
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 2.0
+bg_color = Color(1, 1, 1, 0.07)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [sub_resource type="FontVariation" id="FontVariation_title"]
 base_font = ExtResource("1_baloo")
 variation_opentype = {
@@ -660,6 +671,9 @@ FaintLabel/fonts/font = SubResource("FontVariation_600_small")
 GoalLabel/base_type = &"Label"
 GoalLabel/font_sizes/font_size = 13
 GoalLabel/fonts/font = SubResource("FontVariation_600_goal")
+GuideTitleLabel/base_type = &"Label"
+GuideTitleLabel/font_sizes/font_size = 14
+GuideTitleLabel/fonts/font = SubResource("FontVariation_700")
 HSlider/constants/center_grabber = 0
 HSlider/icons/grabber = ExtResource("7_knob")
 HSlider/icons/grabber_highlight = ExtResource("8_knob_highlight")
@@ -759,6 +773,8 @@ TabBar/styles/tab_focus = SubResource("StyleBoxFlat_focus")
 TabBar/styles/tab_hovered = SubResource("StyleBoxFlat_tab_hovered")
 TabBar/styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
 TabBar/styles/tab_unselected = SubResource("StyleBoxEmpty_tab")
+TagPanel/base_type = &"PanelContainer"
+TagPanel/styles/panel = SubResource("StyleBoxFlat_tag")
 TinyLabel/base_type = &"Label"
 TinyLabel/font_sizes/font_size = 11
 TinyLabel/fonts/font = SubResource("FontVariation_600_small")

@@ -5,7 +5,7 @@
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="4_bar"]
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="6_flask"]
-[ext_resource type="Texture2D" uid="uid://dup4e3a0nc0eg" path="res://game/research/icons/pause.svg" id="7_pause"]
+[ext_resource type="Texture2D" uid="uid://dup4e3a0nc0eg" path="res://shared/icons/pause.svg" id="7_pause"]
 [ext_resource type="Texture2D" uid="uid://cbnp8spnp837a" path="res://game/research/icons/x.svg" id="8_x"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tag"]
@@ -92,6 +92,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="TitleLabel" type="Label" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup" unique_id=917215874]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeadingLabel"
 text = "Research"
@@ -108,11 +109,16 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="Icon" type="TextureRect" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup/PausedTag/Row" unique_id=1503050312]
+[node name="IconNudge" type="MarginContainer" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup/PausedTag/Row" unique_id=447028876]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="Icon" type="TextureRect" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup/PausedTag/Row/IconNudge" unique_id=1503050312]
 modulate = Color(0.957, 0.945, 1, 0.651)
 custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
-size_flags_vertical = 4
 mouse_filter = 2
 texture = ExtResource("7_pause")
 expand_mode = 1

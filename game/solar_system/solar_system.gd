@@ -174,7 +174,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if (%MapZoom as MapZoom).is_zooming_out():
+	if (%MapZoom as MapZoom).is_zooming_out() or (%Tutorial as Tutorial).locks_route():
 		return
 	if event.is_action_pressed(&"clear_route"):
 		(%Bus as FrameshiftBus).cancel_course()
@@ -194,7 +194,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		bus.remove_stop(removed)
 	else:
 		var stop := _stop_at(click.position)
-		if not stop or not (%Tutorial as Tutorial).allows_course():
+		if not stop or not (%Tutorial as Tutorial).allows_course(stop):
 			return
 		bus.plot_course(stop, true)
 		if _course_hint:
@@ -257,14 +257,14 @@ func is_bus_open() -> bool:
 	return (%BusPanel as BusPanel).is_open()
 
 
-# A left click: on the bus or a planet opens it, on what is open or on empty space closes
-# it.
+# A left click: on the bus or a planet opens it, but no planet in the tutorial; on what is
+# open or on empty space closes it.
 func _select_at(screen_point: Vector2) -> void:
 	var picked := _pick_at(screen_point)
 	var planet := picked as Planet
 	if picked is FrameshiftBus and not is_bus_open():
 		open_bus()
-	elif planet and planet != get_open_planet():
+	elif planet and planet != get_open_planet() and not (%Tutorial as Tutorial).is_running():
 		open_planet(planet)
 	elif get_open_planet():
 		close_planet()
