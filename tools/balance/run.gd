@@ -2,7 +2,8 @@ extends Node
 ## Plays the real solar system headless, at whatever speed the machine manages, with a
 ## seeded dice and a scripted player, and writes what happened as JSON: the balance run
 ## behind `tools/balance.py`. The player decides only at docks; in flight a hand model
-## serves requests one at a time, each after a reaction time.
+## serves requests one at a time, each after a reaction time, and the player steers round
+## the star's hot zone (detour.gd).
 ## Run by `tools/balance.py` as the scene `run.tscn`, with the path of a config file after `--`:
 ## "seed", "minutes", "out", "policy" (player.gd), "overrides" (below), and for a
 ## turn-by-turn player "decisions" (the list given so far) and "state_out" (where the
@@ -24,6 +25,7 @@ const SNACK := "res://game/passengers/needs/snack.tres"
 const DRINK := "res://game/passengers/needs/drink.tres"
 const Recorder := preload("res://tools/balance/recorder.gd")
 const Player := preload("res://tools/balance/player.gd")
+const Detour := preload("res://tools/balance/detour.gd")
 ## Seconds the hand takes to move from one serve button to the next.
 const HAND_SWITCH := 0.3
 ## Seconds a player takes to ask for a tow once the bus has stopped.
@@ -45,6 +47,7 @@ var _think_left := 0.0
 var _decision_count := 0
 var _tow_in := -1.0
 var _tow_notice: Notice
+var _detour: Detour
 # The hand model: who it serves, when it is free again, and when it notices each request.
 var _hand: Passenger
 var _hand_free_at := 0.0
@@ -86,6 +89,8 @@ func _ready() -> void:
 	_think_left = float(_player.policy.get("dock_think", 3.0))
 	_bus.docked.connect(_on_docked)
 	_bus.ran_out_of_fuel.connect(_on_ran_out_of_fuel)
+	_bus.temperature.overheated.connect(_on_overheated)
+	_detour = Detour.new(_bus, _system.get_node(^"World/Star") as Node3D)
 	_cabin.boarded.connect(_on_boarded)
 	_cabin.delivered.connect(_on_delivered)
 	_cabin.kicked.connect(func(_passenger: Passenger) -> void: _recorder.kicks += 1)
@@ -109,6 +114,7 @@ func _process(delta: float) -> void:
 	else:
 		_decided = false
 		_serve(delta)
+		_detour.steer()
 
 
 func _at_dock(delta: float) -> void:
@@ -166,7 +172,7 @@ func _apply(decision: Dictionary) -> bool:
 	for id: String in decision.get("board", []):
 		if _ids.has(id):
 			panel.board_pressed.emit(_ids[id])
-	_bus.plot_course(RouteStop.at_planet(next))
+	_detour.plot(next)
 	return true
 
 
@@ -400,9 +406,18 @@ func _on_ran_out_of_fuel() -> void:
 	_recorder.tows += 1
 	_recorder.news.append("Ran out of fuel and had to be towed for %d" % TowDispatch.TOW_FEE)
 	_tow_in = TOW_THINK
-	# The system offered the tow just before this: its notice is the newest.
+	# The system offered the tow just before this. Other notices, such as the heat warning,
+	# may show beside it.
 	var notices := (_system.get_node(^"%Notices") as NoticeStack).get_notices()
-	_tow_notice = notices.back() if not notices.is_empty() else null
+	var tow := notices.find_custom(
+		func(notice: Notice) -> bool: return notice.get_text().begins_with("You ran out of fuel")
+	)
+	_tow_notice = notices[tow] if tow >= 0 else null
+
+
+func _on_overheated() -> void:
+	_recorder.overheats += 1
+	_recorder.news.append("Overheated near the star and stopped to cool down")
 
 
 # Numbers on the shared resources, set before the scene loads them.

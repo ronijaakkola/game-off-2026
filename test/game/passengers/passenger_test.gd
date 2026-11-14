@@ -257,6 +257,31 @@ func test_finds_their_seat_then_idles_on_one_of_the_type_s_lines() -> void:
 	assert_bool(passenger.asleep).is_false()
 
 
+func test_overheating_shows_an_overheat_line_for_the_cooldown_then_they_idle_again() -> void:
+	var kind := _type()
+	kind.idle_lines = ["Reading"]
+	kind.overheat_lines = ["Fanning themselves"]
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, true)
+	passenger.react_to_overheat(8.0)
+	assert_str(passenger.activity).is_equal("Fanning themselves")
+	passenger.tick(7.0, true)
+	assert_str(passenger.activity).is_equal("Fanning themselves")
+	passenger.tick(1.5, true)
+	assert_str(passenger.activity).is_equal("Reading")
+
+
+func test_overheating_leaves_an_open_request_on_their_card() -> void:
+	var snack := _need(Passenger.BOARDING_SECONDS + 1.0)
+	var kind := _type([snack])
+	kind.overheat_lines = ["Fanning themselves"]
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.tick(Passenger.BOARDING_SECONDS + 1.5, false)
+	assert_object(passenger.request).is_same(snack)
+	passenger.react_to_overheat(8.0)
+	assert_str(passenger.activity).is_equal(snack.request_line)
+
+
 func test_nobody_sleeps_on_a_bus_with_nowhere_to_sleep() -> void:
 	var kind := _type()
 	kind.idle_lines = []

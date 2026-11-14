@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://c1rt7jqls6s8t" path="res://game/passengers/destination_group.gd" id="1_group"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
+[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 
 [node name="DestinationGroup" type="VBoxContainer" unique_id=865620529]
 custom_minimum_size = Vector2(216, 0)
@@ -45,21 +46,23 @@ theme_type_variation = &"StrongLabel"
 theme_override_font_sizes/font_size = 12
 text = "?"
 
-[node name="Rule" type="ColorRect" parent="HeaderSlot/Header/Row" unique_id=1830343129]
+[node name="Rule" type="Control" parent="HeaderSlot/Header/Row" unique_id=1830343129]
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 mouse_filter = 2
+script = ExtResource("90_hairline")
 color = Color(1, 1, 1, 0.122)
+horizontal = true
 
 [node name="CountLabel" type="Label" parent="HeaderSlot/Header/Row" unique_id=177156928]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 0
 theme_type_variation = &"StrongLabel"
-theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
 theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
 text = "0"
 
 [node name="GroupCards" type="VBoxContainer" parent="." unique_id=531089702]

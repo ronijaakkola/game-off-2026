@@ -1,9 +1,9 @@
 extends Node
-## The solar system's buttons on the debug panel: emptying or lowering the fuel, scaring the
-## passengers, showing notices, an incoming transmission whose Answer opens a test quest, a
-## passenger calling with a real quest as soon as one can, and
-## a card each of buttons that change the bus's stats and turn its traits on or off, as
-## upgrades would.
+## The solar system's buttons on the debug panel: emptying or lowering the fuel, heating
+## the bus to where it warns or until it overheats, scaring the passengers, showing
+## notices, an incoming transmission whose Answer opens a test quest, a passenger calling
+## with a real quest as soon as one can, and a card each of buttons that change the bus's
+## stats and turn its traits on or off, as upgrades would.
 
 ## The percent of top speed, the fuel tank and portion size the stat buttons add or take
 ## away, and the seats, on every click.
@@ -29,6 +29,8 @@ const TEST_TYPE := preload("res://game/passengers/types/business.tres")
 func _ready() -> void:
 	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
 	DebugPanel.add_button("Low fuel", _debug_low_fuel, self)
+	DebugPanel.add_button("Heat to warning", _debug_heat_to_warning, self)
+	DebugPanel.add_button("Overheat", _debug_overheat, self)
 	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self)
 	DebugPanel.add_button("Incoming transmission", _debug_incoming_transmission, self)
 	DebugPanel.add_button("Offer quest", _debug_offer_quest, self)
@@ -64,6 +66,16 @@ func _debug_empty_fuel() -> void:
 func _debug_low_fuel() -> void:
 	var tank := bus.get_fuel_tank()
 	tank.fuel = tank.capacity * 0.2
+
+
+# Heat to warning: the temperature where the gauge turns amber and the warning shows.
+func _debug_heat_to_warning() -> void:
+	bus.temperature.set_temperature(BusStatusPanel.TEMPERATURE_HIGH)
+
+
+# Overheat: the route clears and the cooldown starts, wherever the bus is.
+func _debug_overheat() -> void:
+	bus.temperature.set_temperature(bus.temperature.overheat_temperature)
 
 
 # Scare passengers: everyone on board takes a kick's shock, without anyone being kicked.

@@ -2,7 +2,8 @@ class_name BusModel
 extends Node3D
 ## The bus's model: `models/bus.glb` under it, redrawn with the planets' two-tone light in
 ## the colours it was made with. Its thrusters' exhaust glows and grows by [member thrust].
-## It can show a white border round it, as a planet under the pointer does.
+## It can show a white border round it, as a planet under the pointer does, and glow red
+## ([member heat_glow]).
 ## The bus moves it with [method animate]: a float while still, a shake while charging, a
 ## lean into turns and the thrusters' glow, so the bus itself stays on its route.
 
@@ -44,6 +45,16 @@ var thrust := 0.0:
 		if _exhaust:
 			_exhaust.scale.z = lerpf(OFF_LENGTH, 1.0, thrust)
 
+## How strongly the bus glows red, from 0 (not at all) to 1, as after it overheats.
+var heat_glow := 0.0:
+	set(value):
+		value = clampf(value, 0.0, 1.0)
+		if value == heat_glow:
+			return
+		heat_glow = value
+		for flat: ShaderMaterial in _flats:
+			flat.set_shader_parameter(&"tint_amount", value)
+
 ## Whether the white border round the bus shows.
 var border := false:
 	set(value):
@@ -64,6 +75,8 @@ var _exhaust: MeshInstance3D
 # Each part's border, drawn after it. Always there, see-through while off, so the first
 # hover doesn't compile a shader mid-game.
 var _outlines: Array[ShaderMaterial] = []
+# Each part's own material, which glows red by heat_glow.
+var _flats: Array[ShaderMaterial] = []
 
 
 func _ready() -> void:
@@ -84,6 +97,7 @@ func _ready() -> void:
 		for surface: int in part.mesh.get_surface_count():
 			var imported := part.mesh.surface_get_material(surface) as BaseMaterial3D
 			var flat := _flat(imported.albedo_color)
+			_flats.append(flat)
 			flat.next_pass = outline
 			part.set_surface_override_material(surface, flat)
 	thrust = thrust

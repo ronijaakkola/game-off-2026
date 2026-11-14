@@ -65,6 +65,29 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - The player can't set, change or cancel a course from running dry until the bus has docked.
 - The bus docks as usual (a stop, with passengers getting off) **with a full tank**, so a tow never leaves the player stuck at a planet without fuel or the credits for it.
 
+## Temperature
+
+The star is something to steer around: flying near it heats the bus, and too near for too long overheats it, which stops it. How close and how long is a skill the player learns.
+
+- **Degrees.** The bus rests at 21° and overheats at 60°. A new run and a continued one start at 21°; it isn't saved, since a run saves only at a planet and of those only Ember is in the heat zone.
+- **The heat zone** is everything within 6.3 units of the star's centre. It reaches past Ember's orbit (5.2), so every trip to Ember costs a little, and stays inside 6.6, the closest the Moon comes, so Terra and the Moon are clear of it.
+- **The hot zone** is its inner part, within 4.5 units. The rise steepens sharply there.
+
+| Where | Flying | Standing still: docked, charging, parking, holding in space |
+|---|---|---|
+| Outside the heat zone | Falls 3.9° a second, to 21° | Falls the same |
+| Heat zone | Rises 0.78° a second at its edge, up to 2.34° at the hot zone's edge | Rises 0.4° a second |
+| Hot zone | Rises 2.34° a second at its edge, up to 46.8° at the star's surface (2.4) | Rises 0.4° a second |
+
+- **Standing still in the zone warms it slowly,** docked at Ember or holding in space alike, so a stop there keeps what the trip cost and a long one costs a little more: from a trip's 25° or so, about a minute and a half to overheat, and parking in the zone is never free. Research pauses the game, so the clock stops there too.
+- Coasting to a stop after the course is cleared counts as flying until the bus is at rest.
+- **Never into the star.** While the straight line the bus heads along would touch the star, it brakes so it comes to rest on that line 0.1 short of touching (2.95 units from the star's centre when heading straight at it), and there it soon overheats. A line that clears the star isn't slowed, however near it passes. Not during a tow, which can't overheat, so stopping there would hold it for good.
+- **Overheating.** At 60° the route is cleared and the bus coasts to a stop, as when the tank runs dry. A course can be set meanwhile, but the drive can't charge until the **cooldown** is over: 8 s that bring it back to 21° wherever the bus stands. Then it waits in space with a cold drive, warming slowly again, so leaving takes a charge.
+- **A clear way out.** After a cooldown, until the bus leaves the heat zone, flying anywhere but into the star heats it at a tenth of the usual rate, so the player can keep the course they had or turn away, and get out without overheating again. Only a heading whose line would touch the star heats as usual. Stopped against the star, that leaves courses 75° or more off straight at its centre.
+- **Overheating scares everyone on board, −5,** and costs no credits. The time is most of the cost: the cooldown and the charge are about 11 s on a ride of about 20 s, which takes a passenger's on-time bonus and more.
+- **Exempt.** The temperature holds, and can't overheat, during the tutorial until the zoom out is over (the zoomed map scales distances to the star), and during a tow, whose route the player has no say in.
+- **Balance runs steer round it.** The scripted player decides only at docks, so whenever the straight way to the planet ahead passes within 0.5 of the hot zone, now or as the planet moves, it puts a checkpoint beyond the heat zone's edge. Going round just outside the hot zone overheats: half a circle at 5.0 units adds about 25°. After an overheat it sets the same course again once it has cooled.
+
 ## Passengers
 
 ### Waiting
@@ -147,6 +170,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 |---|---|---|
 | Someone is kicked | −25 to everyone else | Otherwise kicking the angriest passenger would raise the average for free |
 | The bus runs out of fuel | −15 to everyone | Less than a kick, since the wait and the tow cost time on top |
+| The bus overheats | −5 to everyone | Small, since the cooldown and the charge cost time on top, and there is no tow to pay |
 | Arriving unserved | −10 to them, before they rate | A request open or on hold for 5 s of flying or more. One asked just before arriving, or during parking, is forgiven |
 | Woken by a shock | a further −10 | Every shock wakes anyone asleep, so a kick or a tow is worse on a bus that sleeps |
 
@@ -401,6 +425,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 ## Scope
 
 - **Out for now:** more than one save slot, dialogue, positional or adaptive audio.
+- **Not in temperature:** cold (nothing lies beyond Frost, so it would be an unavoidable tax on Frost trips or never felt; it waits for a system where it is a choice), passengers feeling the temperature below overheating, a player action that cools the bus, and upgrades that change any of it.
 
 ## Not designed yet
 
@@ -408,7 +433,7 @@ Features we will very probably build, but that need more design work first.
 
 - **Business passengers' own needs.** Types can also differ in what they need on board, so a Business passenger might want a sleeping pod where a Commuter wants only snacks.
 - **VIPs.** Rare passengers who turn up as announced events once the recent rating is in the top band, outside the rules for who turns up, with requests of another kind, such as visiting planets.
-- **Environment.** How space affects the bus and passengers. A hot star makes passengers on a route near it hot; a big planet's gravity slows the bus down near it.
+- **Environment.** How space affects the bus and passengers beyond the star's heat (Temperature): a big planet's gravity slows the bus down near it.
 - **Depots.** Whether fuel stays on sale at every planet.
 
 ## Open questions
@@ -428,6 +453,8 @@ Features we will very probably build, but that need more design work first.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
 - **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
 - **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype. With 6 seats or more a bus that keeps to two destinations leaves with one or two seats empty; 4 waiting delivers about a tenth more, and fills a bus that takes everyone with more destinations than it can serve well.
+- **Temperature's numbers** are guesses, tuned by hand. Unmeasured: how much a pass clipping the hot zone adds, and what a trip into Ember and out costs (meant to be 4 to 6°).
+- **Temperature's cost.** Over 8 seeds of 10 minutes it costs the scripted player about 8 % of deliveries and a fifth of the credits, and 3.64 stars become 3.46, with no overheats. Part of that is tows, about once in 16 minutes: going to Ember on the far side of the star, it circles just outside the heat zone chasing Ember, which takes about 40 units, and its fuel margin counts only the straight distance.
 - **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
 
 UI questions are in `docs/ui.md`.
