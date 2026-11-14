@@ -324,6 +324,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 | Right click a planet or empty space | Set the route to it: the planet, or a point in space (Route and flight) |
 | Shift or Q + right click | Add it to the end of the route |
 | Backspace or Delete | Take the last stop off the route |
+| The X on a stop in the route bar | Take that stop off the route |
 | W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
 | Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
 | Mouse wheel | Zoom toward the point under the pointer |
@@ -332,6 +333,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 
 - **Left click selects, right click routes.**
 - **Esc stays pause only.** In browser fullscreen the browser takes Esc and the game never sees it, so Esc can't close a panel the same way in a window and in fullscreen.
+- **Removing a stop.** Any planet ahead on the route comes off, from the middle too, and the route joins up round it. A planet takes the points in space just before it along: they were the way there, and the route bar doesn't show them. A point in space comes off alone, and only when it ends the route. Two of the same planet left side by side become one, as does a first stop at the planet the bus waits at. Not during a tow.
 - Removing the last stop cancels the course. The Stop key clears the whole route.
 - While the bus brakes in to dock, the Frameshift key does nothing, so a press meant to leave from there doesn't stop the bus.
 - WASD reads physical key positions, so it sits in the same place on every keyboard layout.

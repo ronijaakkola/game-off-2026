@@ -149,17 +149,16 @@ func _ready() -> void:
 	_draw_route()
 
 
-## Sets the route to [param stop], or with [param add] adds it to the end, unless it is the
-## planet the route already ends at. In flight, or in space with the drive warm, the bus
+## Sets the route to [param stop], or with [param add] adds it to the end
+## ([method RouteEditing.add]). In flight, or in space with the drive warm, the bus
 ## heads off at once; anywhere else it waits for the drive. Does nothing while towed or
 ## with an empty tank.
 func plot_course(stop: RouteStop, add := false) -> void:
 	if _towing or (%FuelTank as FuelTank).is_empty():
 		return
-	if not add or _route.is_empty():
-		_route = [stop]
-	elif not stop.planet or stop.planet != _route.back().planet:
-		_route.append(stop)
+	if not add:
+		_route.clear()
+	RouteEditing.add(_route, stop)
 	if _route.size() == 1 and stop.planet and stop.planet == _glide.planet:
 		cancel_course()
 		return
@@ -180,12 +179,13 @@ func cancel_course() -> void:
 		_stop_charge()
 
 
-## Removes the last stop on the route. With none left it is the same as
-## [method cancel_course].
-func remove_last_stop() -> void:
+## Removes [param stop] from the route, wherever it is, with what
+## [method RouteEditing.remove] takes along. With none left it is the same as
+## [method cancel_course]. Does nothing while towed.
+func remove_stop(stop: RouteStop) -> void:
 	if _towing:
 		return
-	_route.pop_back()
+	RouteEditing.remove(_route, stop, _glide.planet if is_at_planet() else null)
 	if _route.is_empty():
 		cancel_course()
 

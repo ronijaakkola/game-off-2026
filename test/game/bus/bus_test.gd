@@ -243,18 +243,17 @@ func test_the_drive_holds_warm_while_unloading_then_cools_and_needs_a_charge() -
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 
-func test_removing_the_last_stop_takes_off_only_that_one() -> void:
+func test_removing_a_planet_takes_the_points_before_it_along() -> void:
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_point(Vector3(3.0, 0.0, 3.0)), true)
 	_bus.plot_course(RouteStop.at_planet(_far), true)
-	_bus.remove_last_stop()
-	assert_array(_bus.get_route_stops()).has_size(2)
+	_bus.remove_stop(_bus.get_last_stop())
+	assert_array(_bus.get_route_stops()).has_size(1)
 	assert_array(_bus.get_route_planets()).contains_exactly([_near])
 	_step_for(STEP)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 	# With no stop left the charge stops.
-	_bus.remove_last_stop()
-	_bus.remove_last_stop()
+	_bus.remove_stop(_bus.get_last_stop())
 	assert_object(_bus.get_last_stop()).is_null()
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
 

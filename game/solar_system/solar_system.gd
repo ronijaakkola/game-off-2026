@@ -3,7 +3,8 @@ extends Node3D
 ## The solar system. The pointer picks a planet, which shows a white border; a pointer over
 ## the HUD picks nothing. A right click sets the bus's route to a stop: the planet under the
 ## pointer, or the point on the orbit plane under it. With the [QueueKey] held, it adds the
-## stop to the end of the route instead. The clear_route action takes the last stop off.
+## stop to the end of the route instead. The clear_route action takes the last stop off,
+## as the route bar's X does any planet's.
 ## Planets on the route show an orange border.
 ## A new run from the main menu starts with the [Tutorial], on the map zoomed in on Terra
 ## and the Moon ([MapZoom]); once it is over, the map zooms out to the whole solar system,
@@ -180,7 +181,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if (%MapZoom as MapZoom).is_zooming_out():
 		return
 	if event.is_action_pressed(&"clear_route"):
-		(%Bus as FrameshiftBus).remove_last_stop()
+		var bus := %Bus as FrameshiftBus
+		bus.remove_stop(bus.get_last_stop())
 		get_viewport().set_input_as_handled()
 		return
 	var click := event as InputEventMouseButton
