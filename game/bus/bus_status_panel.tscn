@@ -7,6 +7,9 @@
 [ext_resource type="PackedScene" uid="uid://ce3hkauxdygws" path="res://game/bus/route_bar.tscn" id="5_route_bar"]
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
 [ext_resource type="Script" uid="uid://djxl2kxm0tghb" path="res://game/bus/bus_key.gd" id="7_bus_key"]
+[ext_resource type="Texture2D" uid="uid://dt7n63aq7jtgn" path="res://game/bus/icons/thermometer.svg" id="8_thermometer"]
+[ext_resource type="Script" uid="uid://dcdn22pu2jb5x" path="res://game/bus/temperature_gauge.gd" id="9_gauge"]
+[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="10_hairline"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuel"]
 bg_color = Color(0.6, 0.949, 1, 1)
@@ -98,12 +101,73 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_fuel")
 max_value = 1.0
 show_percentage = false
 
-[node name="Divider" type="ColorRect" parent="BusBar/Row" unique_id=2105485791]
+[node name="FuelDivider" type="Control" parent="BusBar/Row" unique_id=24434892]
 custom_minimum_size = Vector2(1, 30)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
-color = Color(1, 1, 1, 0.1216)
+script = ExtResource("10_hairline")
+
+[node name="TemperatureBox" type="MarginContainer" parent="BusBar/Row" unique_id=855712255]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_bottom = 4
+
+[node name="TemperatureColumn" type="VBoxContainer" parent="BusBar/Row/TemperatureBox" unique_id=1787444508]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="TemperatureRow" type="HBoxContainer" parent="BusBar/Row/TemperatureBox/TemperatureColumn" unique_id=340941190]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="TemperatureNudge" type="MarginContainer" parent="BusBar/Row/TemperatureBox/TemperatureColumn/TemperatureRow" unique_id=1417081630]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="TemperatureIcon" type="TextureRect" parent="BusBar/Row/TemperatureBox/TemperatureColumn/TemperatureRow/TemperatureNudge" unique_id=1980883492]
+unique_name_in_owner = true
+self_modulate = Color(0.549, 0.851, 0.4, 1)
+custom_minimum_size = Vector2(11, 11)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("8_thermometer")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TemperatureLabel" type="Label" parent="BusBar/Row/TemperatureBox/TemperatureColumn/TemperatureRow" unique_id=363116489]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"DimLabel"
+text = "Temperature"
+
+[node name="TemperatureAmount" type="Label" parent="BusBar/Row/TemperatureBox/TemperatureColumn/TemperatureRow" unique_id=265599786]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallStrongLabel"
+text = "21°"
+horizontal_alignment = 2
+
+[node name="TemperatureBar" type="Control" parent="BusBar/Row/TemperatureBox/TemperatureColumn" unique_id=872206640]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 9)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("9_gauge")
+
+[node name="Divider" type="Control" parent="BusBar/Row" unique_id=2105485791]
+custom_minimum_size = Vector2(1, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("10_hairline")
 
 [node name="Controls" type="HBoxContainer" parent="BusBar/Row" unique_id=413320870]
 layout_mode = 2

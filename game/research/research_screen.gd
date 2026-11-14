@@ -295,7 +295,8 @@ func _make_divider(stage: int) -> Control:
 
 
 func _make_line() -> Control:
-	var line := ColorRect.new()
+	var line := Hairline.new()
+	line.horizontal = true
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line.color = LINE_COLOR
 	line.custom_minimum_size = Vector2(0, 1)

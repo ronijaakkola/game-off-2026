@@ -193,6 +193,13 @@ func shock(amount: float) -> void:
 		passenger.shock(amount)
 
 
+## Everyone on board reacts to the bus overheating for [param seconds]
+## ([method Passenger.react_to_overheat]).
+func react_to_overheat(seconds: float) -> void:
+	for passenger: Passenger in _passengers:
+		passenger.react_to_overheat(seconds)
+
+
 ## Starts a stop at [param planet]. Everyone going there leaves their seat now, and their
 ## happiness stops, so they pay by the mood they arrived in, after any disappointment at a
 ## request left unserved ([method Passenger.arrive]); they get off one at a time.

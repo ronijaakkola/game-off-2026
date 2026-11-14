@@ -18,6 +18,10 @@ uniform vec3 screen_light : source_color = vec3(0.0);
 // Which side of the screen its light comes from, from -1 at the left to 1, as the bright
 // part of its picture moves.
 uniform float screen_side = 0.0;
+// A colour washed over the whole of it, by tint_amount from 0 (none, the default) to 1, as
+// the bus glowing red when it overheats.
+uniform vec3 tint : source_color = vec3(1.0, 0.27, 0.2);
+uniform float tint_amount : hint_range(0.0, 1.0) = 0.0;
 // Toward the screen, in view space, and how far to the side its light swings.
 const vec3 SCREEN_DIRECTION = vec3(0.0, -0.5, 0.866);
 const float SCREEN_SWING = 0.5;
@@ -27,4 +31,5 @@ void fragment() {
 	vec3 to_screen = normalize(SCREEN_DIRECTION + vec3(screen_side * SCREEN_SWING, 0.0, 0.0));
 	float facing = smoothstep(-0.1, 0.7, dot(normalize(NORMAL), to_screen));
 	ALBEDO += (1.0 - ALBEDO) * screen_light * facing;
+	ALBEDO = mix(ALBEDO, tint, tint_amount);
 }

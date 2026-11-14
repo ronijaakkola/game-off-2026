@@ -11,6 +11,7 @@ extends Node3D
 ## and swings side-on, with its door toward the planet. It has docked once it is parked.
 ## Flying burns fuel from its [FuelTank] by distance. Run dry, it coasts to a stop unless
 ## [method tow_to] tows it, slowly and with no say over its route, to a planet.
+## While its [member temperature] cools down after overheating, no course can be set.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 ## The bus docked at [param planet] after flying there and parking: the end of its route,
@@ -95,6 +96,13 @@ var frameshift_held: bool:
 		return _drive.held
 	set(value):
 		_drive.held = value
+## The bus's temperature. The scene that knows where the star is drives it.
+var temperature: BusTemperature:
+	get:
+		return %Temperature as BusTemperature
+## The fastest the bus may fly now. The scene that knows where the star is lowers it as the
+## bus heads at the star, so it brakes to a stop short of it. INF leaves it to the route.
+var speed_cap := INF
 
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
@@ -145,9 +153,10 @@ func _ready() -> void:
 
 ## Sets the route to [param stop], or adds it with [param add] where [method RoutePlotting.add]
 ## puts it. In flight, or in space with the drive warm, the bus heads off at once; anywhere
-## else it waits for the drive to charge. Does nothing while towed or with an empty tank.
+## else it waits for the drive to charge. Does nothing while towed, with an empty tank or
+## while it cools down.
 func plot_course(stop: RouteStop, add := false) -> void:
-	if _towing or (%FuelTank as FuelTank).is_empty():
+	if _towing or (%FuelTank as FuelTank).is_empty() or temperature.is_cooling():
 		return
 	if add:
 		RoutePlotting.add(_route, stop)
@@ -352,7 +361,7 @@ func _process(delta: float) -> void:
 
 func _fly(delta: float) -> void:
 	if _route.is_empty():
-		_speed = move_toward(_speed, 0.0, acceleration * delta)
+		_speed = minf(move_toward(_speed, 0.0, acceleration * delta), speed_cap)
 		_move(_speed * delta)
 		_turn_rate = 0.0
 		if _speed == 0.0:
@@ -372,7 +381,7 @@ func _fly(delta: float) -> void:
 	# Slow to a crawl while facing away, so the bus turns toward a stop behind it rather
 	# than circling it.
 	var facing := maxf(_forward().dot(to_target / distance), 0.0)
-	var limit := _top_speed()
+	var limit := minf(_top_speed(), speed_cap)
 	if stop.planet:
 		# Brakes to the glide's speed where the glide into the dock starts.
 		var glide := _glide_speed()
@@ -381,7 +390,7 @@ func _fly(delta: float) -> void:
 	elif last:
 		# Brakes so it comes to rest at the end of the route.
 		limit = minf(limit, sqrt(2.0 * acceleration * distance))
-	_speed = move_toward(_speed, limit * facing * facing, acceleration * delta)
+	_speed = minf(move_toward(_speed, limit * facing * facing, acceleration * delta), speed_cap)
 	_move(minf(_speed * delta, distance))
 
 

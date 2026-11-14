@@ -46,6 +46,9 @@
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
+[ext_resource type="Script" uid="uid://dwyqyf3dug5pa" path="res://game/solar_system/heat_zone.gd" id="114_heat_zone"]
+[ext_resource type="Shader" uid="uid://bfd4gbew06myw" path="res://game/solar_system/heat_zone.gdshader" id="115_heat_shader"]
+[ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
 [ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 
@@ -66,6 +69,12 @@ shader = ExtResource("5_halo")
 shader_parameter/halo_color = Color(1, 0.7, 0.3, 0.4)
 shader_parameter/ring_count = 2
 shader_parameter/inner_radius = 0.78
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
+render_priority = -2
+shader = ExtResource("115_heat_shader")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_heat_zone"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ember"]
 render_priority = 0
@@ -221,6 +230,11 @@ surface_material_override/0 = SubResource("StandardMaterial3D_star")
 cast_shadow = 0
 mesh = SubResource("QuadMesh_halo")
 surface_material_override/0 = SubResource("ShaderMaterial_halo")
+
+[node name="HeatZoneDisc" type="MeshInstance3D" parent="World/Star" unique_id=786749512]
+material_override = SubResource("ShaderMaterial_heat_zone")
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_heat_zone")
 
 [node name="Light" type="OmniLight3D" parent="World/Star" unique_id=1336476973]
 omni_range = 200.0
@@ -379,6 +393,19 @@ transmission_panel = NodePath("../TransmissionPanel")
 quest_giver = NodePath("../QuestGiver")
 test_destination = NodePath("../World/Giant")
 test_flyby_planet = NodePath("../World/Frost")
+
+[node name="HeatZone" type="Node" parent="." unique_id=743044272 node_paths=PackedStringArray("bus", "star", "map_zoom", "zone")]
+script = ExtResource("114_heat_zone")
+bus = NodePath("../Bus")
+star = NodePath("../World/Star")
+map_zoom = NodePath("../MapZoom")
+zone = NodePath("../World/Star/HeatZoneDisc")
+
+[node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin")]
+script = ExtResource("116_heat_warning")
+bus = NodePath("../Bus")
+notices = NodePath("../Hud/Notices")
+cabin = NodePath("../Cabin")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")

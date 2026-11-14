@@ -430,6 +430,16 @@ func feed(amount: float, portion := 1.0) -> void:
 		_close(request.served_line, seconds)
 
 
+## Shows one of their type's overheat lines for [param seconds], as the bus cools down
+## after overheating, unless something else holds their line: a request, a sleep, a show
+## or a served need.
+func react_to_overheat(seconds: float) -> void:
+	if request or asleep or watching or _busy or type.overheat_lines.is_empty():
+		return
+	activity = type.overheat_lines[_rng.randi_range(0, type.overheat_lines.size() - 1)]
+	_activity_left = seconds
+
+
 ## Brings their next request forward, so it opens within [param seconds] of their need
 ## timers, unless one would open sooner anyway: the tutorial's way of showing a request on
 ## a short trip.

@@ -27,5 +27,7 @@ extends Resource
 ## Idle lines they show while watching a show, on a bus with an entertainment system. Each
 ## comes up as often as any one idle line.
 @export var watch_lines: Array[String] = []
+## What the card says, one of them at random, while the bus cools down after overheating.
+@export var overheat_lines: Array[String] = []
 ## The names a passenger of this type picks from.
 @export var names: Array[String] = ["Passenger"]
