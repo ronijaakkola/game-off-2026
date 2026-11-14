@@ -28,6 +28,9 @@ extends Control
 ## While the player can pay for an upgrade ([method ResearchLab.can_research_any]), the
 ## Research button has a thin outline in the Frameshift key's yellow on its edge, fainter
 ## than the key's and pulsing in step with it, and holding still under Reduce motion.
+## While [member research_hidden], as through the tutorial, there is no Research button,
+## and while [member fuel_hidden] no fuel button, while [member fuel_locked] one that is
+## off, and while [member board_all_hidden] no Board all.
 
 ## The player pressed the button to pick up [param passenger]. Board all presses it for
 ## each one waiting, longest waiting first; the parent stops once the seats are full.
@@ -97,6 +100,28 @@ var beckon_boarding := false:
 		board_all.theme_type_variation = &"SmallButton" if value else &"SmallPrimaryButton"
 		_start_beckon()
 
+## Whether the Research button is hidden even at a planet with a lab.
+var research_hidden := false:
+	set(value):
+		research_hidden = value
+		if is_node_ready():
+			_show_services()
+## Whether the fuel button is hidden even at a planet that sells fuel.
+var fuel_hidden := false:
+	set(value):
+		fuel_hidden = value
+		if is_node_ready():
+			_show_services()
+
+## Whether the fuel button shows but is off, reading what filling up would cost.
+var fuel_locked := false
+## Whether Board all is hidden.
+var board_all_hidden := false:
+	set(value):
+		board_all_hidden = value
+		if is_node_ready():
+			(%BoardAllButton as Control).visible = not value
+
 # The planet whose line the panel lists. It stays while the panel slides out.
 var _shown: Planet
 var _rows: Dictionary[Passenger, BoardingRow] = {}
@@ -145,6 +170,9 @@ func is_fuel_held() -> bool:
 ## [param cost], the credits to fill it, and turns it on or off. Off, it lets go and reads
 ## [param reason] instead.
 func show_fuel(fraction: float, cost: int, can_fuel: bool, reason: String) -> void:
+	if fuel_locked and can_fuel:
+		(%FuelButton as FuelButton).show_fuel(fraction, cost, false, FuelButton.IDLE_TEXT % cost)
+		return
 	(%FuelButton as FuelButton).show_fuel(fraction, cost, can_fuel, reason)
 
 
@@ -192,11 +220,23 @@ func _rebuild() -> void:
 	if _shown:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
-		(%FuelRow as Control).visible = _shown.sells_fuel
-		(%ResearchRow as Control).visible = _shown.has_lab
-		var services := _shown.sells_fuel or _shown.has_lab
-		(%FuelRule as Control).visible = services
+		_show_services()
 	_sync_rows(false)
+
+
+# The shown planet's services, and the line under them when there are any.
+func _show_services() -> void:
+	if not _shown:
+		return
+	var fuel := _shown.sells_fuel and not fuel_hidden
+	(%FuelRow as Control).visible = fuel
+	(%ResearchRow as Control).visible = _shows_lab()
+	(%FuelRule as Control).visible = fuel or _shows_lab()
+
+
+# Whether the shown planet's lab has its Research button.
+func _shows_lab() -> bool:
+	return _shown != null and _shown.has_lab and not research_hidden
 
 
 # Adds a row for each passenger new in line, which comes in when [param animated], and
@@ -313,14 +353,22 @@ func _show_buttons() -> void:
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()
-	_nudge_research(
-		(
-			_shown != null
-			and _shown.has_lab
-			and research_lab != null
-			and research_lab.can_research_any()
-		)
-	)
+	_nudge_research(_shows_lab() and research_lab != null and research_lab.can_research_any())
+
+
+## The fuel button, for a guide card to point at.
+func get_fuel_button() -> Control:
+	return %FuelButton
+
+
+## The Research button, for a guide card to point at.
+func get_research_button() -> Control:
+	return %ResearchButton
+
+
+## The row of [param passenger] in the shown line, or null.
+func get_row(passenger: Passenger) -> Control:
+	return _rows.get(passenger)
 
 
 ## Whether the Research button's outline shows, as it does while there is an upgrade to pay

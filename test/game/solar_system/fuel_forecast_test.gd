@@ -53,6 +53,23 @@ func test_shows_over_the_last_stop_only_while_the_bus_has_the_trait() -> void:
 	assert_bool(label.visible).is_false()
 
 
+# A course ending at a point in space once asked the bus for a marker size it no longer
+# had, and errored every frame.
+func test_shows_over_a_point_in_space_the_course_ends_at() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var label := (runner.find_child("FuelForecast") as Node).find_child("Label") as Label
+	bus.get_stats().get_traits().add(BusTraits.Type.FUEL_FORECAST)
+	var point := bus.global_position + Vector3(4.0, 0.0, 0.0)
+	bus.plot_course(RouteStop.at_point(point))
+	await runner.simulate_frames(1)
+
+	assert_bool(label.visible).is_true()
+	var camera := runner.find_child("Camera") as Camera3D
+	assert_float(label.get_global_rect().end.y).is_less(camera.unproject_position(point).y)
+
+
 func test_turns_red_when_the_course_burns_more_than_the_fuel_left() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)

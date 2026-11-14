@@ -99,6 +99,11 @@ func go_to(path: String) -> void:
 	_busy = false
 
 
+## Whether a scene change is under way, until the new scene has faded in.
+func is_busy() -> bool:
+	return _busy
+
+
 ## Loads every file the scene at [param path] uses, deepest first, filling the bar to
 ## [constant LOAD_SHARE] in steps. The scene itself is the last part, loaded by the caller.
 func _load_dependencies(path: String) -> void:

@@ -213,6 +213,22 @@ func test_cards_group_by_destination_in_the_order_the_planets_came_up() -> void:
 	assert_array(_names(groups[1])).is_equal([second.name])
 
 
+func test_a_passenger_boarding_while_arrivals_are_held_comes_in_once_let_go() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var planet: Planet = auto_free(Planet.new())
+	runner.set_property("arrivals_held", true)
+
+	cabin.board(_passenger(planet, 1000.0))
+	await runner.simulate_frames(2)
+	var cards := runner.find_child("Cards") as Control
+	assert_int(_cards_in(cards).size()).is_equal(0)
+
+	runner.set_property("arrivals_held", false)
+	await runner.simulate_frames(2)
+	assert_int(_cards_in(cards).size()).is_equal(1)
+
+
 func _names(group: Node) -> Array[String]:
 	var names: Array[String] = []
 	for card: PassengerCard in _cards_in(group):

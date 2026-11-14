@@ -80,6 +80,11 @@ func _ready() -> void:
 	_show_counts()
 
 
+## The count of [param race]'s points, for something that points it out.
+func get_count_label(race: Race.Type) -> Control:
+	return _labels[race]
+
+
 # Every count as the ledger has it. Before _ready() there are no labels yet, and _ready()
 # shows them.
 func _show_counts() -> void:

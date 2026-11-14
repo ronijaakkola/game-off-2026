@@ -99,6 +99,12 @@ var _hands: Dictionary[Passenger, bool] = {}
 
 
 func _process(delta: float) -> void:
+	# Kept running through a pause, as for the tutorial's first request: only serving goes
+	# on, and the ride holds still.
+	if get_tree().paused:
+		for passenger: Passenger in _passengers:
+			_serve_request(passenger, delta)
+		return
 	for passenger: Passenger in _passengers:
 		var rate := COLD_RATE if cold else Passenger.DOCKED_RATE
 		passenger.tick(delta, docked, parking, comfort, rate)
