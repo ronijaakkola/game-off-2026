@@ -94,9 +94,9 @@ var state := State.HOLDING
 ## Which side of [member start_planet] the bus starts docked on: from the planet's centre
 ## toward the bus, on the orbit plane. Set it before the bus is ready.
 var start_direction := Vector3.BACK
-## Whether passengers are getting off or on. While they are, a docked bus doesn't start a
-## charge, and a charge under way holds where it is. The scene that runs the passengers
-## sets it.
+## Whether passengers are getting off or on. A charge starts and builds meanwhile, but a
+## charged bus waits until they are done before it leaves. The scene that runs the
+## passengers sets it.
 var boarding := false
 ## Whether passengers are getting off. Meanwhile a warm drive doesn't cool. The scene that
 ## runs the passengers sets it.
@@ -337,7 +337,7 @@ func _process(delta: float) -> void:
 		State.CHARGING:
 			_follow_dock(delta)
 			_face_next_stop(delta)
-			_drive.advance(delta, boarding)
+			_drive.advance(delta)
 			if _drive.is_charged() and not boarding:
 				var quick := _drive.is_warm_charge()
 				_undock()
@@ -492,9 +492,9 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 	state = State.DOCKED
 
 
-# Starts a charge while the key is held with a course set, unless passengers are boarding.
+# Starts a charge while the key is held with a course set, passengers boarding or not.
 func _start_charge() -> void:
-	if _drive.held and not boarding and not _route.is_empty():
+	if _drive.held and not _route.is_empty():
 		state = State.CHARGING
 		_drive.start()
 

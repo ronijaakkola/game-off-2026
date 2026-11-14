@@ -187,25 +187,19 @@ func test_each_planet_docks_warm_and_a_hold_from_warm_leaves_sooner() -> void:
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 
 
-func test_boarding_holds_a_charge_from_starting_and_a_charge_under_way() -> void:
+func test_a_charge_builds_while_boarding_and_leaves_once_boarding_is_over() -> void:
 	_bus.boarding = true
 	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(STEP)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	# Charged before everyone is on, it waits, full.
 	_step_for(_bus.charge_time + 1.0)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
-	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	assert_float(_bus.get_charge_progress()).is_equal(1.0)
 
 	_bus.boarding = false
 
 	_step_for(STEP)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
-	_step_for(_bus.charge_time - 0.5)
-	var progress := _bus.get_charge_progress()
-	_bus.boarding = true
-	_step_for(_bus.charge_time)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
-	assert_float(_bus.get_charge_progress()).is_equal_approx(progress, 0.001)
-	_bus.boarding = false
-	_step_for(1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 
 

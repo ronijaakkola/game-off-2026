@@ -2,8 +2,8 @@ class_name FrameshiftDrive
 extends RefCounted
 ## The bus's frameshift drive, charged by hand. While the player holds the Frameshift key
 ## ([member held]) it charges, and it is charged after [member charge_time]. Let go, it
-## drains back [member drain] times as fast as it charged. While passengers board it holds
-## where it is. The bus decides when a charge starts and what being charged or drained does.
+## drains back [member drain] times as fast as it charged. The bus decides when a charge
+## starts and what being charged or drained does.
 ## Just docked, it is warm ([method warm_up]) and cools over [member cool_time]. A charge
 ## started warm starts from the warmth left and builds [member warm_boost] times as fast;
 ## let go, it goes cold, draining [member warm_drain] times as fast as a charge builds.
@@ -46,10 +46,8 @@ func start() -> void:
 	_warmth = 0.0
 
 
-## Charges while held and drains while not, unless [param boarding].
-func advance(delta: float, boarding: bool) -> void:
-	if boarding:
-		return
+## Charges while held and drains while not.
+func advance(delta: float) -> void:
 	if held:
 		_dropped = false
 		_charged = minf(_charged + delta * (warm_boost if _warm_charge else 1.0), charge_time)

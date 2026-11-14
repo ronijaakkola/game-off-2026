@@ -105,7 +105,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Nobody boards by themselves.** While the bus is docked or charging, the player picks waiting passengers up one by one, or all that fit at once, longest waiting first.
 - **Seats.** The bus has 4. No one can be picked up while every seat is taken or promised to someone picked up.
 - Getting off or on takes 0.6 s each, in order: those getting off first, then those picked up, in the order picked.
-- **The drive can't charge until the stop is over.** Holding the key during it charges nothing until the last passenger is on. Picking someone up while it charges holds the charge where it is until they are on.
+- **The bus can't leave until the stop is over.** The drive charges during it as at any time, so the key answers at once, but a charge that fills before the last passenger is on waits, full, and the bus leaves as they sit down. Holding back the charge felt sluggish when picking passengers up quickly.
 - The bus waits at every planet until the player charges the drive, so picking passengers up takes as long as the player likes.
 
 ### Trip time, fare and payment

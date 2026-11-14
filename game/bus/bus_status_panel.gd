@@ -62,7 +62,7 @@ func _show() -> void:
 	if _was_waiting and flying:
 		key.release()
 	_was_waiting = charging or RouteBar.is_ready(bus)
-	# A charge that hasn't moved yet, as while passengers board, still latches the key.
+	# A charge that hasn't moved yet still latches the key.
 	key.charge = maxf(bus.get_charge_progress(), 0.02) if charging else 0.0
 	key.warmth = bus.get_warmth()
 	_show_fuel()
