@@ -73,17 +73,16 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - **The heat zone** is everything within 6.3 units of the star's centre. It reaches past Ember's orbit (5.2), so every trip to Ember costs a little, and stays inside 6.6, the closest the Moon comes, so Terra and the Moon are clear of it.
 - **The hot zone** is its inner part, within 4.5 units. The rise steepens sharply there.
 
-| Where | Flying | Docked or charging | Parking, holding in space |
-|---|---|---|---|
-| Outside the heat zone | Falls 3.9° a second, to 21° | Falls the same | Falls the same |
-| Heat zone | Rises 0.78° a second at its edge, up to 2.34° at the hot zone's edge | Rises 0.2° a second | Holds |
-| Hot zone | Rises 2.34° a second at its edge, up to 46.8° at the star's surface (2.4) | No planet is there | Holds |
+| Where | Flying | Standing still: docked, charging, parking, holding in space |
+|---|---|---|
+| Outside the heat zone | Falls 3.9° a second, to 21° | Falls the same |
+| Heat zone | Rises 0.78° a second at its edge, up to 2.34° at the hot zone's edge | Rises 0.4° a second |
+| Hot zone | Rises 2.34° a second at its edge, up to 46.8° at the star's surface (2.4) | Rises 0.4° a second |
 
-- **Waiting at Ember warms it very slowly,** so docking there keeps what the trip there cost and a long stop costs a little more: from a trip's 25° or so, about two minutes to overheat. Research pauses the game, so the clock stops there too.
-- Holding in space inside the zone holds.
+- **Standing still in the zone warms it slowly,** docked at Ember or holding in space alike, so a stop there keeps what the trip cost and a long one costs a little more: from a trip's 25° or so, about a minute and a half to overheat, and parking in the zone is never free. Research pauses the game, so the clock stops there too.
 - Coasting to a stop after the course is cleared counts as flying until the bus is at rest.
 - **Never into the star.** Heading at the star, the bus brakes so it comes to rest 0.1 short of touching it (2.95 units from its centre, at any speed), and there it overheats within a second. Only the part of its speed toward the star counts, so a pass that only skims it isn't slowed until it would touch. Not during a tow, which can't overheat, so stopping there would hold it for good.
-- **Overheating.** At 60° the route is cleared and the bus coasts to a stop, as when the tank runs dry. No course can be set, so the drive can't charge, until the **cooldown** is over: 8 s that bring it back to 21° wherever the bus stands, since inside the zone it would otherwise only hold. Then it holds in space with a cold drive, so leaving takes a charge.
+- **Overheating.** At 60° the route is cleared and the bus coasts to a stop, as when the tank runs dry. No course can be set, so the drive can't charge, until the **cooldown** is over: 8 s that bring it back to 21° wherever the bus stands. Then it waits in space with a cold drive, warming slowly again, so leaving takes a charge.
 - **A clear way out.** After a cooldown, until the bus leaves the heat zone, flying away from the star heats it at a tenth of the usual rate, so getting out of where it overheated is easy: about 3° from where it stops by the star. Heading back toward it heats as usual, so it can't be used to go deeper.
 - **Overheating scares everyone on board, −5,** and costs no credits. The time is most of the cost: the cooldown and the charge are about 11 s on a ride of about 20 s, which takes a passenger's on-time bonus and more.
 - **Exempt.** The temperature holds, and can't overheat, during the tutorial until the zoom out is over (the zoomed map scales distances to the star), and during a tow, whose route the player has no say in.
@@ -434,7 +433,6 @@ Features we will very probably build, but that need more design work first.
 - **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype. With 6 seats or more a bus that keeps to two destinations leaves with one or two seats empty; 4 waiting delivers about a tenth more, and fills a bus that takes everyone with more destinations than it can serve well.
 - **Temperature's numbers** are guesses, tuned by hand. Unmeasured: how much a pass clipping the hot zone adds, and what a trip into Ember and out costs (meant to be 4 to 6°).
 - **Temperature's cost.** Over 8 seeds of 10 minutes it costs the scripted player about 8 % of deliveries and a fifth of the credits, and 3.64 stars become 3.46, with no overheats. Part of that is tows, about once in 16 minutes: going to Ember on the far side of the star, it circles just outside the heat zone chasing Ember, which takes about 40 units, and its fuel margin counts only the straight distance.
-- **Holding in space beside the hot zone** holds the temperature, while waiting at Ember warms it, so a bus can park in space beside the hot zone for free.
 - **Softening shocks.** An upgrade could soften the kick's shock, or what a stop costs.
 
 UI questions are in `docs/ui.md`.

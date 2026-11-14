@@ -2,8 +2,8 @@ class_name BusTemperature
 extends Node
 ## The bus's temperature, in degrees, driven by how far it is from the star. Outside the
 ## heat zone it falls back to [member rest_temperature]. Inside it, it rises while the bus
-## flies, faster the nearer the star and much faster in the hot zone, rises very slowly
-## while the bus waits at a planet there, and holds while it is stopped anywhere else. At
+## flies, faster the nearer the star and much faster in the hot zone, and very slowly while
+## the bus stands still there: waiting at a planet, parking or holding in space. At
 ## [member overheat_temperature] it overheats: it emits [signal overheated] and cools back
 ## to rest over [member cooldown_time], wherever the bus stands. Then, until it leaves the
 ## heat zone, it rises only [member escape_share] as fast while the bus flies away from the
@@ -32,8 +32,8 @@ signal overheated
 ## at the star's surface.
 @export_range(0.0, 100.0, 0.01) var hot_rate := 2.34
 @export_range(0.0, 500.0, 0.1) var surface_rate := 46.8
-## Degrees a second it rises while the bus waits at a planet in the heat zone.
-@export_range(0.0, 10.0, 0.01) var docked_rate := 0.2
+## Degrees a second it rises while the bus stands still in the heat zone.
+@export_range(0.0, 10.0, 0.01) var standing_rate := 0.4
 ## Seconds the cooldown takes, from overheated back to rest.
 @export_range(0.0, 60.0, 0.1) var cooldown_time := 8.0
 ## After a cooldown, until the bus leaves the heat zone, the share of the usual rise it
@@ -53,11 +53,11 @@ func _ready() -> void:
 
 
 ## Moves the temperature on by [param delta] seconds, the bus [param distance] from the
-## star's centre and [param flying] ([param heading_out] when away from the star),
-## [param docked] at a planet or stopped elsewhere. While [param exempt] it holds and can't
-## overheat, but a cooldown under way goes on.
+## star's centre and [param flying] ([param heading_out] when away from the star) or
+## standing still. While [param exempt] it holds and can't overheat, but a cooldown under way
+## goes on.
 func advance(
-	delta: float, distance: float, flying: bool, heading_out: bool, docked: bool, exempt := false
+	delta: float, distance: float, flying: bool, heading_out: bool, exempt := false
 ) -> void:
 	if is_cooling():
 		_cooldown_left = maxf(_cooldown_left - delta, 0.0)
@@ -73,8 +73,8 @@ func advance(
 	elif flying:
 		var share := escape_share if _escaping and heading_out else 1.0
 		set_temperature(temperature + get_rise_rate(distance) * share * delta)
-	elif docked:
-		set_temperature(temperature + docked_rate * delta)
+	else:
+		set_temperature(temperature + standing_rate * delta)
 
 
 ## Degrees a second the temperature rises in flight [param distance] from the star's

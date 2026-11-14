@@ -30,15 +30,11 @@ func test_flying_heats_it_faster_the_nearer_the_star() -> void:
 	assert_float(t.get_rise_rate(t.star_radius)).is_equal(t.surface_rate)
 
 
-func test_in_the_heat_zone_it_rises_slowly_docked_and_holds_stopped_in_space() -> void:
-	var inside := _temperature.zone_radius - 1.0
-	_advance(10.0, inside, false, false, true)
-	var docked := _temperature.temperature
-	assert_float(docked).is_equal_approx(
-		_temperature.rest_temperature + _temperature.docked_rate * 10.0, 0.01
+func test_standing_still_in_the_heat_zone_warms_it_slowly() -> void:
+	_advance(10.0, _temperature.hot_zone_radius - 0.5, false)
+	assert_float(_temperature.temperature).is_equal_approx(
+		_temperature.rest_temperature + _temperature.standing_rate * 10.0, 0.01
 	)
-	_advance(10.0, inside, false)
-	assert_float(_temperature.temperature).is_equal(docked)
 
 
 func test_outside_the_heat_zone_it_falls_back_to_rest() -> void:
@@ -70,10 +66,10 @@ func test_it_overheats_once_and_cools_back_to_rest_over_the_cooldown() -> void:
 
 func test_while_exempt_it_holds_but_a_cooldown_goes_on() -> void:
 	var t := _temperature
-	_advance(5.0, t.hot_zone_radius, true, false, false, true)
+	_advance(5.0, t.hot_zone_radius, true, false, true)
 	assert_float(t.temperature).is_equal(t.rest_temperature)
 	t.set_temperature(t.overheat_temperature)
-	_advance(t.cooldown_time + STEP, t.hot_zone_radius, true, false, false, true)
+	_advance(t.cooldown_time + STEP, t.hot_zone_radius, true, false, true)
 	assert_bool(t.is_cooling()).is_false()
 
 
@@ -96,12 +92,7 @@ func test_after_a_cooldown_heading_out_heats_it_a_little_until_it_leaves_the_zon
 
 
 func _advance(
-	seconds: float,
-	distance: float,
-	flying: bool,
-	heading_out := false,
-	docked := false,
-	exempt := false
+	seconds: float, distance: float, flying: bool, heading_out := false, exempt := false
 ) -> void:
 	for i: int in roundi(seconds / STEP):
-		_temperature.advance(STEP, distance, flying, heading_out, docked, exempt)
+		_temperature.advance(STEP, distance, flying, heading_out, exempt)

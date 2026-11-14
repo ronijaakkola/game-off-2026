@@ -2,7 +2,7 @@ class_name HeatZone
 extends Node
 ## The heat zone round the star. Every frame it drives the bus's temperature
 ## ([BusTemperature]) by how far the bus is from the star on the orbit plane and whether it
-## flies or waits at a planet, and overheating clears the bus's route so it coasts to a
+## flies or stands still, and overheating clears the bus's route so it coasts to a
 ## stop. The temperature holds while the map is zoomed for the tutorial, which scales the
 ## distance to the star, and during a tow, whose route isn't the player's.
 ## It keeps the bus out of the star: heading at it, the bus's speed is capped so it brakes
@@ -54,7 +54,7 @@ func _process(delta: float) -> void:
 	forward.y = 0.0
 	# How much of the bus's heading points at the star: 1 straight at it, below 0 away.
 	var closing := forward.normalized().dot(-offset.normalized())
-	temperature.advance(delta, distance, flying, closing < 0.0, bus.is_at_planet(), exempt)
+	temperature.advance(delta, distance, flying, closing < 0.0, exempt)
 	bus.speed_cap = INF if exempt else _speed_cap(distance, closing)
 	var target := 0.0
 	if not exempt and distance < temperature.zone_radius:
