@@ -26,6 +26,8 @@ extends Node
 ## the whole tow takes about 32 s (`--frames 1900`).
 ## `-- Quick` opens nothing and shows a quick text over the bus, a remark; `gain` or `loss`
 ## shows that kind instead. It holds from about frame 20 to 80.
+## `-- Full` opens nothing, fills every seat and puts one in line at Ember, then clicks
+## their Board button once the dock panel has slid in, so the bus full notice shows.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const TIMER := preload("res://game/bus/icons/timer.svg")
@@ -94,11 +96,13 @@ func _ready() -> void:
 		await get_tree().create_timer(1.0).timeout
 		cabin.kick(cabin.get_passengers()[1])
 		return
-	if planet_name == "Research" or planet_name == "Quick":
+	if planet_name in ["Research", "Quick", "Full"]:
 		if planet_name == "Research":
 			await _open_research(system, name_given)
-		else:
+		elif planet_name == "Quick":
 			await _show_quick_text(system, name_given)
+		else:
+			await _board_on_a_full_bus(system)
 		return
 	if planet_name == "Bus":
 		var bus := system.find_child("Bus") as FrameshiftBus
@@ -171,6 +175,17 @@ func _show_quick_text(system: SolarSystem, args: PackedStringArray) -> void:
 		quick.show_text("Rough stop!", FUEL, BusQuickText.Kind.LOSS)
 	else:
 		quick.show_text("Quick stop!", TIMER)
+
+
+func _board_on_a_full_bus(system: SolarSystem) -> void:
+	var bus := system.find_child("Bus") as FrameshiftBus
+	var cabin := system.find_child("Cabin") as Cabin
+	for i: int in cabin.get_free_seats():
+		cabin.board(Passenger.new(COMMUTER, bus.get_docked_planet(), 60.0, 40.0))
+	(system.find_child("WaitingPassengers") as WaitingPassengers).add(bus.get_docked_planet())
+	# Once the dock panel has slid in.
+	await get_tree().create_timer(0.6).timeout
+	_press(system.find_child("BoardButton", true, false) as Control)
 
 
 # Moves the pointer onto [param control] and presses the left button there, without letting go.

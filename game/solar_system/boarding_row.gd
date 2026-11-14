@@ -21,6 +21,8 @@ extends Control
 
 ## The player pressed the button to pick up [member passenger].
 signal board_pressed(passenger: Passenger)
+## The player clicked the button while it was off for every seat being taken.
+signal full_pressed
 ## The player clicked the row anywhere but its button.
 signal clicked(passenger: Passenger)
 
@@ -105,6 +107,8 @@ var _gap: Tween
 func _ready() -> void:
 	resized.connect(_fit)
 	(%Panel as Control).minimum_size_changed.connect(_fit)
+	# An off button still gets its clicks as input, though it never emits pressed.
+	(%BoardButton as Control).gui_input.connect(_on_board_button_gui_input)
 	_show()
 	_show_button()
 	_show_along()
@@ -257,6 +261,14 @@ func _fit() -> void:
 
 func _on_board_button_pressed() -> void:
 	board_pressed.emit(passenger)
+
+
+func _on_board_button_gui_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if not click or click.button_index != MOUSE_BUTTON_LEFT or not click.pressed:
+		return
+	if not can_board and not _leaving:
+		full_pressed.emit()
 
 
 func _on_panel_gui_input(event: InputEvent) -> void:

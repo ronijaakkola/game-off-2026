@@ -136,7 +136,7 @@ A stamp of a few words with an icon that lands over the bus when something about
 A frosted-glass pill with a thin border and no shadow: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
 
 - **Credits:** beside a gold dollar sign, with a comma between thousands (12,480). The pointer over it shows a tooltip: "Credits", "Fares you have earned. Fuel and tows cost credits."
-- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour. The pointer over them shows a tooltip: "Research points", "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
+- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour, in the research screen's order: blue, green, orange. The pointer over them shows a tooltip: "Research points", "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
 - **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: "Recent rating", "Your last 10 rides. A higher rating brings more Business passengers."
 - **Gains and losses** float under the pill, taking no room in it: green "+15", red "-12". Each new payment at a stop pops the gain bigger and shows the new sum.
 - Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
@@ -193,7 +193,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
   - A Research button, where the planet has a lab, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen. While the player can pay for any upgrade, it has a nudge, quieter than the Frameshift key's: a 1 px outline in the bus's yellow on its own edge, fading between 15 % and 60 % once every two seconds in step with the key, and holding at 60 % under Reduce motion; with nothing affordable, no outline.
-- Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons.
+- Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons; a click on an off Board button brings the bus full notice.
 - Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
 - After a row's destination, fainter, how many on board or picked up are going there too ("· 2 aboard"), so the player can group passengers.
@@ -229,6 +229,7 @@ Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bar
 - **Map open.** Once the zoom out is over, an info notice for 8 s: "The whole solar system is open. Deliver passengers to get promotion."
 - **Course hint.** In a run without the tutorial, until the player first sets a course, a tutorial notice: "Right-click a planet or space to set a course, and hold Shift to add stops. Backspace takes the last stop off." In Firefox it names Q for Shift.
 - **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
+- **Bus full.** A click on a Board button while every seat is taken: an info notice for 2.5 s, "The bus is already full!". Another click while it shows starts its 2.5 s over rather than adding a second.
 - **Out of fuel.** An error notice: "You ran out of fuel" and a "Tow (100 credits)" button, with what the tow costs now.
 - **Incoming transmission.** A call: "Incoming transmission..." and an Answer button. Every 1.6 s the phone rattles: it tips side to side, wide first then dying out, for about 0.4 s. Its ringtone plays on a loop while it shows, at 80 %, and fades out in 0.15 s as the call is answered or goes; it is silent while the notices are hidden or the game is paused, and plays under Reduce motion too. A passenger with a quest calls this way; it goes unanswered when its caller leaves the bus or the bus reaches a planet.
 - **A quest ending.** "Quest done: Take Sufoi straight to Moon" as info, or "Quest failed: Take Sufoi straight to Moon" as a warning, each closing by itself after 4 s.
