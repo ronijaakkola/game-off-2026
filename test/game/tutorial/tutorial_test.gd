@@ -78,6 +78,29 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	assert_bool((runner.find_child("BusStatusPanel") as BusStatusPanel).stop_locked).is_false()
 
 
+# The zoomed map rescaled the star's meshes, the heat zone's disc among them, and left it
+# 2 units across inside the star once the map zoomed out: the zone never showed.
+func test_the_heat_zone_fades_in_full_size_once_the_map_zooms_out() -> void:
+	SaveGame.start_new()
+	var reduce_motion := Settings.reduce_motion
+	Settings.reduce_motion = true
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var disc := runner.find_child("HeatZoneDisc") as MeshInstance3D
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_bool(disc.visible).is_false()
+	(runner.find_child("MapZoom") as MapZoom).settle_seconds = 0.0
+
+	(runner.find_child("Tutorial") as Tutorial).skip()
+	await await_millis(int(HeatZone.FADE_SECONDS * 1000.0) + 400)
+	Settings.reduce_motion = reduce_motion
+
+	assert_bool(disc.visible).is_true()
+	assert_float(disc.scale.x).is_equal_approx(bus.temperature.zone_radius, 0.001)
+	var material := disc.material_override as ShaderMaterial
+	assert_float(material.get_shader_parameter(&"opacity") as float).is_equal_approx(1.0, 0.001)
+
+
 func _has_notice(notices: NoticeStack) -> bool:
 	return not notices.get_notices().is_empty()
 

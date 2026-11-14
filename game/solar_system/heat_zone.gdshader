@@ -16,6 +16,8 @@ uniform float softness : hint_range(0.0, 0.5) = 0.12;
 // From 0 to 1: how much brighter it shows, as it pulses while the bus is inside.
 uniform float flash : hint_range(0.0, 1.0) = 0.0;
 uniform float flash_gain = 1.8;
+// From 0 to 1: how much of it shows, as it fades in once the tutorial's map zooms out.
+uniform float opacity : hint_range(0.0, 1.0) = 1.0;
 // The smoke: its colour, how much it adds over the glow at its thickest, how big its wisps
 // are (wisps across the zone's width), and how fast it drifts. 0 holds it still.
 uniform vec4 smoke_color : source_color = vec4(1.0, 0.6, 0.3, 0.07);
@@ -64,5 +66,6 @@ void fragment() {
 	float wisps = smoke(p, TIME * drift) * smoke_color.a;
 	vec3 color = mix(glow.rgb, smoke_color.rgb, wisps / max(glow.a + wisps, 1e-4));
 	ALBEDO = color;
-	ALPHA = (glow.a + wisps) * rim * (1.0 + flash * flash_gain) + dither(FRAGCOORD.xy) / 255.0;
+	float shade = (glow.a + wisps) * rim * (1.0 + flash * flash_gain) + dither(FRAGCOORD.xy) / 255.0;
+	ALPHA = shade * opacity;
 }

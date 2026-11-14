@@ -133,21 +133,21 @@ func test_no_request_opens_at_a_stop_and_their_needs_run_slowly_there() -> void:
 	assert_object(passenger.request).is_same(snack)
 
 
-func test_an_open_request_goes_on_hold_at_a_stop_and_returns_when_the_bus_leaves() -> void:
+func test_an_open_request_stays_open_at_a_stop_and_can_be_served_there() -> void:
 	var snack := _need(1.0)
 	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
 	passenger.depart()
 	passenger.tick(1.5, false)
 	assert_object(passenger.request).is_same(snack)
 
+	passenger.tick(0.1, false, true)
 	passenger.tick(0.1, true)
-	assert_object(passenger.request).is_null()
-	assert_str(passenger.activity).is_not_equal(snack.request_line)
-	assert_float(passenger.get_target()).is_greater(0.0)
-
-	passenger.tick(0.1, false)
 	assert_object(passenger.request).is_same(snack)
 	assert_str(passenger.activity).is_equal(snack.request_line)
+
+	passenger.serve()
+	passenger.tick(0.1, true)
+	assert_object(passenger.request).is_null()
 
 
 func test_arriving_with_a_long_unserved_request_disappoints_them() -> void:
