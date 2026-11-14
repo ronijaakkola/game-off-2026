@@ -20,6 +20,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Light is two tones only:** a lit side in the planet's own colours, and a night side tinted by the same purple multiply on every planet, split by a line about a pixel wide at any zoom. The star's distance and the ambient light don't change a planet's colours.
 - **Colours.** Soft, warm and saturated, never dark: sandy orange, leaf green, a pale lilac moon, an orange-striped gas giant with lilac rings, a pink ice planet with white caps. Planets are told apart by colour first, so each new one needs its own hue.
 - **Star.** An unlit yellow sphere with a flat halo of a few see-through discs that always face the camera. No bloom.
+- **Heat zone.** A faint warm glow on the orbit plane round the star, out to the heat zone's edge, with no edge lines: it fades out softly over its outer rim, and deepens to red-orange where the hot zone starts, blended rather than cut. Very faint orange smoke churns through it: two layers of soft wisps slowly turning round the star opposite ways. While the bus is inside, flying, docked at Ember or holding in space, it pulses brighter about once every 1.7 s, more in the hot zone, easing in and out over a second as the bus enters and leaves; under Reduce motion it brightens without pulsing, and the smoke holds still. Hidden with the star's body on the zoomed map.
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is a thin, faint lilac line, so the player sees where each planet is going.
 - **Sky.** A deep navy-violet background with faint coloured fog and two layers of small stars, dim on purpose so the planets stand out. Its layers drift slightly as the camera moves.
 - **Names.** Each planet has its name just under it: small off-white text in Baloo 2 semibold with the sky's lilac, a little see-through, with a thin navy outline. It faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
@@ -72,6 +73,8 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 - **Docked,** it floats beside its planet with a barely visible bob and sway.
 - **Charging,** a white ring round the bus fills clockwise (temporary), and the bus shakes slightly. It pulls out a little from the planet as it turns, so its tail clears it.
 - **Docking** rings a bell.
+- **Heating up.** From 40°, thin pale lilac-grey wisps puff up off the bus's roof, thicker and more opaque as it nears 60°: small faceted puffs that rise, grow to about three times their size and fade in under 2 s, left behind as the bus moves.
+- **Overheated.** A burst of smoke goes out all at once, wider and faster than the wisps. For the length of the cooldown the whole bus pulses red, 2.5 times a second, the red fading as it cools, and the smoke stays thick; it stops a little before the cooldown ends. Under Reduce motion the red holds steady rather than pulsing.
 - **Hover.** A white border as wide on screen as a planet's, only past its silhouette. Not while the bus is open.
 
 ### The tow ship
@@ -149,8 +152,9 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - The pointer over a stop rings it and opens a tooltip above it with the planet's name, or "Point in space". The bus has none.
 - **Motion.** Opening to two rows eases out over 0.3 s while the line fades in, and closing back over 0.2 s; the line is in place as it opens, so its stops don't come in one by one. In the open bar a new stop slides in from 8 px past its place, growing from half size and fading in, in 0.25 s; one taken off fades and shrinks where it is in 0.15 s; the rest glide to their new places from wherever they are, so quick clicks never jump. The header's text morphs as a passenger's activity line does.
 - Under Reduce motion the height changes at once and only the fade is left, stops fade in and out where they stand, and the fold and the drive over are a cut.
-- **The bus bar** holds the fuel gauge and the bus's keys, the Frameshift key among them.
+- **The bus bar** holds the fuel gauge, the temperature gauge and the bus's keys, the Frameshift key among them, with a faint divider between each.
 - **Fuel gauge:** a pale cyan bar and the percentage, both red at a quarter of a tank or less.
+- **Temperature gauge:** a green thermometer, "Temperature" and the degrees ("21°") over a faint track from −20° to 60°, with a green comfortable band from 8° to 32° and a white marker, standing proud of the track, at the temperature. From 45° the thermometer and the degrees turn amber, and red while it cools down after overheating.
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
 - Space works the Frameshift key as the pointer does, without clicking it first, while the bus bar shows. The bus keys never take keyboard focus.
 - With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, and a hard 2 px outline in the bus's yellow round the cap fades between 35 % and full strength in step. Under Reduce motion both hold still, the outline at full strength. Held, the drive charges: the pulse and outline go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
@@ -217,6 +221,9 @@ Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bar
 - **Map open.** Once the zoom out is over, an info notice for 8 s: "The whole solar system is open. Deliver passengers to get promotion."
 - **Course hint.** In a run without the tutorial, until the player first sets a course, a tutorial notice: "Right-click planets or space to add stops. Backspace clears the route."
 - **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
+- **Overheating.** Once the temperature climbs to 45°, where the gauge turns amber, a closable warning: "The bus is overheating. Steer away from the star." It clears by itself once it is back under 45°, or the bus overheats.
+- **Overheated.** An error notice for the length of the cooldown: "The bus overheated. Cooling down..."
+- **Cooled down.** Once the cooldown is over, an info notice for 6 s: "The bus has now cooled down. You can charge your frameshift drive again."
 - **Out of fuel.** An error notice: "You ran out of fuel" and a "Tow (100 credits)" button, with what the tow costs now.
 - **Incoming transmission.** A call: "Incoming transmission..." and an Answer button. Every 1.6 s the phone rattles: it tips side to side, wide first then dying out, for about 0.4 s. Its ringtone plays on a loop while it shows, at 80 %, and fades out in 0.15 s as the call is answered or goes; it is silent while the notices are hidden or the game is paused, and plays under Reduce motion too. A passenger with a quest calls this way; it goes unanswered when its caller leaves the bus or the bus reaches a planet.
 - **A quest ending.** "Quest done: Take Sufoi straight to Moon" as info, or "Quest failed: Take Sufoi straight to Moon" as a warning, each closing by itself after 4 s.
@@ -230,6 +237,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 
 - **Groups.** Each destination has a header: the planet's icon, its name, a faint rule and how many on board are going there. Groups run top to bottom in the order their planet first came up among those on board, and the cards in a group from the first to board to the last. 12 px above a header, 8 px under it and between cards.
 - **A card shows:** portrait, their name, a short activity line ("Sleeping...", "Counting stars"), and along the bottom a happiness bar in their mood's colour. The line starts with "Finding their seat..." for a few seconds after boarding.
+- **When the bus overheats,** everyone on board who is only idling shows one of their type's overheat lines for the length of the cooldown ("Fanning themselves", "Asking for a refund"). A request, a sleep, a show or a meal keeps its own line.
 - **The mood has no name on the card:** the bar's colour says it. When the mood changes, the bar blends into the new colour, Reduce motion or not.
 - **The bar.** A big drop leaves a dark red trail that holds for half a second, then shrinks to the bar.
 - **Trend chevrons** on the bar show which way happiness is moving and how fast, as the motive arrows on The Sims' bars do: `>` while it climbs, `<` while it falls.

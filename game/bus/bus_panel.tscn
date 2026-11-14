@@ -3,10 +3,7 @@
 [ext_resource type="Script" uid="uid://d4h6peo1d1no0" path="res://game/bus/bus_panel.gd" id="1_panel"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="90_glass"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
-content_margin_top = 1.0
-bg_color = Color(1, 1, 1, 0.1)
+[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 
 [node name="BusPanel" type="MarginContainer" unique_id=1561658414]
 anchor_left = 1.0
@@ -37,11 +34,13 @@ layout_mode = 2
 theme_type_variation = &"HeadingLabel"
 text = "Frameshift Bus"
 
-[node name="Rule" type="Panel" parent="Sheet/Rows" unique_id=315961883]
+[node name="Rule" type="Control" parent="Sheet/Rows" unique_id=315961883]
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+script = ExtResource("90_hairline")
+color = Color(1, 1, 1, 0.1)
+horizontal = true
 
 [node name="StatsTitle" type="Label" parent="Sheet/Rows" unique_id=717956304]
 layout_mode = 2

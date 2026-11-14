@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="7_flask"]
 [ext_resource type="Texture2D" uid="uid://bx5fr0dpvayyy" path="res://game/solar_system/icons/chevron_right.svg" id="8_chevron"]
+[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nudge"]
 draw_center = false
@@ -20,10 +21,6 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
-content_margin_top = 1.0
-bg_color = Color(1, 1, 1, 0.1216)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_empty"]
 content_margin_bottom = 4.0
@@ -174,12 +171,13 @@ texture = ExtResource("8_chevron")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="FuelRule" type="Panel" parent="Card/Clip/Content" unique_id=1536806567]
+[node name="FuelRule" type="Control" parent="Card/Clip/Content" unique_id=1536806567]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+script = ExtResource("90_hairline")
+horizontal = true
 
 [node name="WaitingLabel" type="Label" parent="Card/Clip/Content" unique_id=1032200223]
 unique_name_in_owner = true

@@ -90,6 +90,18 @@ _Never_: cheat menu
 What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the dock panel, at that planet's **fuel price**.
 _Avoid_: energy, gas, charge (that is the frameshift drive's)
 
+**Temperature**:
+How hot the bus is, in degrees, shown in the bus bar. It rests at 21° and climbs while the bus flies through the heat zone. `BusTemperature` in code.
+_Avoid_: warm and cold (those are the frameshift drive's), cabin temperature, heat level
+
+**Heat zone**:
+The area round the star where flying raises the temperature. Its inner part, nearest the star, is the **hot zone**, where it rises much faster.
+_Avoid_: core (that is core systems'), danger zone
+
+**Overheated**:
+The bus at the top of its temperature: its route clears and it coasts to a stop. Through the **cooldown** that follows, no course can be set and the drive can't charge.
+_Avoid_: burnt out, meltdown
+
 **Stat**:
 A number on the bus that upgrades change, such as its top speed: a base value, with **modifiers** applied on top. `Stat` in code; the bus's are its `BusStats`, one of each `BusStats.Type`. Not the stats `Online.add_stat` sends to Talo, which count what players do.
 _Avoid_: attribute, property, Talo stat

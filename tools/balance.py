@@ -127,6 +127,7 @@ def summarize(reports: list[dict]) -> dict:
         "upgrades at 10 min": mean([at_time(r["series"], 600, "upgrades") for r in reports]),
         "upgrades at end": mean([len(r["upgrades"]) for r in reports]),
         "tows": mean([r["tows"] for r in reports]),
+        "overheats": mean([r.get("overheats", 0) for r in reports]),
         "waiting at a dock": mean([r["waiting_at_dock"] for r in reports]),
         "empty seats leaving": mean([r["empty_seats_leaving"] for r in reports]),
         "seats at end": mean([r["seats"] for r in reports]),
