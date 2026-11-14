@@ -1,6 +1,6 @@
 # Icon credits
 
-The upgrade icons, and the research screen's own (lock, pause, x), are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0), as the resource bar's are (`game/solar_system/icons/`), with the stroke set to white so a `modulate` tints them.
+The upgrade icons, and the research screen's own (lock, x), are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0), as the resource bar's are (`game/solar_system/icons/`), with the stroke set to white so a `modulate` tints them.
 
 | File | Lucide icon | License |
 |---|---|---|
@@ -14,7 +14,6 @@ The upgrade icons, and the research screen's own (lock, pause, x), are from [Luc
 | `gauge.svg` | `gauge` | ISC (`LICENSE.txt`) |
 | `ham.svg` | `ham` | ISC (`LICENSE.txt`) |
 | `lock.svg` | `lock` | ISC (`LICENSE.txt`) |
-| `pause.svg` | `pause` | ISC (`LICENSE.txt`) |
 | `route.svg` | `route` | ISC (`LICENSE.txt`) |
 | `sofa.svg` | `sofa` | ISC (`LICENSE.txt`) |
 | `sun.svg` | `sun` | ISC (`LICENSE.txt`) |

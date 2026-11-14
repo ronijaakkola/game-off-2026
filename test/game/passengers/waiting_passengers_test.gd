@@ -126,6 +126,20 @@ func test_races_are_dealt_evenly_from_a_bag() -> void:
 		assert_int(races.get(value as Race.Type, 0)).is_equal(WaitingPassengers.RACE_BAG_COPIES)
 
 
+func test_a_race_dealt_next_comes_before_the_bag_and_leaves_it_whole() -> void:
+	_waiting.deal_next(Race.Type.BLUE)
+	_waiting.deal_next(Race.Type.BLUE)
+
+	assert_int(_waiting.create(_home).race).is_equal(Race.Type.BLUE)
+	assert_int(_waiting.create(_home).race).is_equal(Race.Type.BLUE)
+	var races: Dictionary[Race.Type, int] = {}
+	for i: int in Race.Type.size() * WaitingPassengers.RACE_BAG_COPIES:
+		var race := _waiting.create(_home).race
+		races[race] = races.get(race, 0) + 1
+	for value: int in Race.Type.values():
+		assert_int(races.get(value as Race.Type, 0)).is_equal(WaitingPassengers.RACE_BAG_COPIES)
+
+
 func test_business_passengers_turn_up_more_often_with_a_better_recent_rating() -> void:
 	_waiting.business = PassengerType.new()
 	_waiting.ledger = Ledger.new()

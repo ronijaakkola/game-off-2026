@@ -5,7 +5,8 @@ extends Control
 ## planning a route. It grows with the zoomed map, slower than the planets do. The pointer
 ## resting on such a planet opens a tooltip above its badge. It places itself after the
 ## planets and the camera have moved each frame, and hides with the planets the zoomed map
-## hides.
+## hides. While [member only] lists planets, as in the tutorial, only theirs show, and
+## [method pop_in] brings one in.
 
 ## The disc's size, and the gap between its rim and the flask, in pixels.
 const SIZE := 14.0
@@ -16,6 +17,9 @@ const ANGLE_DEGREES := 40.0
 const RIM_INSET_PIXELS := 1.5
 ## How fast the disc grows as the map zooms in, as a share of how fast the planets do.
 const ZOOM_GROWTH := 0.25
+## How small a badge starts as it pops in, and the seconds it takes.
+const POP_FROM := 0.4
+const POP_SECONDS := 0.35
 const TOOLTIP_TEXT := "Research planet"
 ## After the solar system, which moves the planets after Phantom Camera's host (300) has
 ## moved the camera; placed any earlier, the badges trail the planets by a frame.
@@ -26,6 +30,9 @@ const FLASK := preload("res://shared/icons/flask_conical.svg")
 
 ## The camera the planets are seen through.
 @export var camera: Camera3D
+
+## The planets whose badges show, or empty for every planet with a lab.
+var only: Array[Planet] = []
 
 ## The planet under the pointer. The parent sets it every frame.
 var hovered: Planet:
@@ -67,6 +74,7 @@ func _process(delta: float) -> void:
 			camera != null
 			and modulate.a > 0.0
 			and planet.is_visible_in_tree()
+			and (only.is_empty() or planet in only)
 			and not camera.is_position_behind(center)
 		)
 		if not badge.visible:
@@ -81,6 +89,7 @@ func _process(delta: float) -> void:
 		)
 		var at := middle + direction * (middle.distance_to(top) - RIM_INSET_PIXELS)
 		badge.position = at - badge.size * 0.5
+		badge.pivot_offset = badge.size * 0.5
 	_show_tooltip(delta)
 
 
@@ -95,6 +104,31 @@ func set_planets(planets: Array[Planet]) -> void:
 			add_child(badge)
 			badge.show_icon(FLASK, SIZE, PAD)
 			_badges[planet] = badge
+
+
+## Brings [param planet]'s badge in: it fades in while growing to its size, overshooting a
+## little; under Reduce motion it only fades. It returns once it is in.
+func pop_in(planet: Planet) -> void:
+	var badge: PhotoBadge = _badges.get(planet)
+	if not badge:
+		return
+	badge.modulate.a = 0.0
+	var tween := create_tween().set_parallel()
+	tween.tween_property(badge, ^"modulate:a", 1.0, POP_SECONDS)
+	if not Settings.reduce_motion:
+		badge.scale = Vector2.ONE * POP_FROM
+		(
+			tween
+			. tween_property(badge, ^"scale", Vector2.ONE, POP_SECONDS)
+			. set_trans(Tween.TRANS_BACK)
+			. set_ease(Tween.EASE_OUT)
+		)
+	await tween.finished
+
+
+## [param planet]'s badge, or null, for a guide card to point at.
+func get_badge(planet: Planet) -> Control:
+	return _badges.get(planet)
 
 
 ## Whether [param planet] shows a badge.
