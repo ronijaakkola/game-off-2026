@@ -9,6 +9,7 @@ extends Button
 const WELL_PAD := 3.0
 const RAISE := 3.0
 const CAP_HEIGHT := 35.0
+const CAP_RADIUS := 8
 const WELL_COLOR := Color(0.043, 0.035, 0.125)
 const SIDE_COLOR := Color(0.133, 0.118, 0.239)
 const FACE_COLOR := Color(0.227, 0.208, 0.361)
@@ -30,9 +31,9 @@ func _ready() -> void:
 	add_to_group(ButtonFeel.OWN_PRESS)
 	_well.bg_color = WELL_COLOR
 	_well.set_corner_radius_all(12)
-	_side.set_corner_radius_all(8)
-	_face.set_corner_radius_all(8)
-	_edge.set_corner_radius_all(8)
+	_side.set_corner_radius_all(CAP_RADIUS)
+	_face.set_corner_radius_all(CAP_RADIUS)
+	_edge.set_corner_radius_all(CAP_RADIUS)
 	mouse_entered.connect(queue_redraw)
 	mouse_exited.connect(queue_redraw)
 	button_down.connect(queue_redraw)

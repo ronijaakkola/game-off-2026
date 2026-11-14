@@ -10,11 +10,6 @@ theme = ExtResource("2_theme")
 theme_type_variation = &"SmallButton"
 script = ExtResource("1_button")
 
-[node name="Fill" type="Panel" parent="." unique_id=388235467]
-unique_name_in_owner = true
-layout_mode = 0
-mouse_filter = 2
-
 [node name="Label" type="Label" parent="." unique_id=1933842340]
 unique_name_in_owner = true
 layout_mode = 1

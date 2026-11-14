@@ -7,6 +7,8 @@ extends HBoxContainer
 ## until one passes 99. It shows the points of its [member ledger] and pops each count the
 ## ledger signals as earned; a count spent just changes. It keeps no points of its own.
 
+## The races in the order their chips show, the same as the research screen's trees.
+const ORDER: Array[Race.Type] = [Race.Type.BLUE, Race.Type.GREEN, Race.Type.ORANGE]
 ## The flask's size, in pixels.
 const ICON_SIZE := 12.0
 ## How strongly the chip behind each count is tinted in its race's colour.
@@ -38,8 +40,7 @@ var _pops: Dictionary[Race.Type, Tween] = {}
 
 
 func _ready() -> void:
-	for value: int in Race.Type.values():
-		var race := value as Race.Type
+	for race: Race.Type in ORDER:
 		var chip := PanelContainer.new()
 		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		chip.custom_minimum_size.y = CHIP_HEIGHT
