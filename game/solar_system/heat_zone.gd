@@ -12,7 +12,9 @@ extends Node
 ## It sizes [member zone], the disc drawn round the star, to the zone, with the hot zone's
 ## edge on it. While the bus is inside, the disc pulses brighter, more in the hot zone,
 ## easing in and out; under Reduce motion it brightens without pulsing, and its smoke holds
-## still.
+## still. The disc is the world's, not the star's, so the map zoom leaves its size alone.
+## While the map is zoomed for the tutorial it doesn't show, and it fades in over
+## [constant FADE_SECONDS] once the zoom out is over and the rest of the run starts.
 
 ## Pulses a second while the bus is inside.
 const PULSE_RATE := 0.6
@@ -23,6 +25,8 @@ const HOT_FLASH := 1.0
 const FLASH_EASE := 1.0
 ## How far from touching the star the bus stops, at its nearest.
 const STAR_CLEARANCE := 0.1
+## Seconds the disc takes to fade in after the zoom out.
+const FADE_SECONDS := 0.8
 
 @export var bus: FrameshiftBus
 @export var star: Node3D
@@ -34,6 +38,7 @@ const STAR_CLEARANCE := 0.1
 var _time := 0.0
 # How strong the pulse is now, easing toward what where the bus is calls for.
 var _flash := 0.0
+var _fade: Tween
 
 
 func _ready() -> void:
@@ -42,6 +47,24 @@ func _ready() -> void:
 	zone.scale = Vector3.ONE * temperature.zone_radius
 	var share := temperature.hot_zone_radius / temperature.zone_radius
 	(zone.material_override as ShaderMaterial).set_shader_parameter(&"hot_share", share)
+	if map_zoom.is_zoomed():
+		zone.visible = false
+		map_zoom.zoomed_out.connect(_fade_in)
+
+
+func _fade_in() -> void:
+	var material := zone.material_override as ShaderMaterial
+	material.set_shader_parameter(&"opacity", 0.0)
+	zone.visible = true
+	if _fade:
+		_fade.kill()
+	_fade = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	_fade.tween_method(
+		func(value: float) -> void: material.set_shader_parameter(&"opacity", value),
+		0.0,
+		1.0,
+		FADE_SECONDS
+	)
 
 
 func _process(delta: float) -> void:

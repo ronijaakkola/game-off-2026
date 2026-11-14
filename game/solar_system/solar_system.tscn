@@ -233,7 +233,7 @@ cast_shadow = 0
 mesh = SubResource("QuadMesh_halo")
 surface_material_override/0 = SubResource("ShaderMaterial_halo")
 
-[node name="HeatZoneDisc" type="MeshInstance3D" parent="World/Star" unique_id=786749512]
+[node name="HeatZoneDisc" type="MeshInstance3D" parent="World" unique_id=786749512]
 material_override = SubResource("ShaderMaterial_heat_zone")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_heat_zone")
@@ -419,7 +419,7 @@ script = ExtResource("114_heat_zone")
 bus = NodePath("../Bus")
 star = NodePath("../World/Star")
 map_zoom = NodePath("../MapZoom")
-zone = NodePath("../World/Star/HeatZoneDisc")
+zone = NodePath("../World/HeatZoneDisc")
 
 [node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin")]
 script = ExtResource("116_heat_warning")
