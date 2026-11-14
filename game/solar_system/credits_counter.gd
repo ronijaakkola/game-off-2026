@@ -175,6 +175,11 @@ func commit() -> void:
 	)
 
 
+## The total, for something that points it out.
+func get_total_label() -> Control:
+	return %TotalLabel
+
+
 # The credits were set outright: shows them at once, and clears the gain and the loss.
 func _on_set() -> void:
 	_pending = 0

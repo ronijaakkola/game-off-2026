@@ -182,6 +182,14 @@ func is_focused() -> bool:
 	return _focus_target != null
 
 
+## Sets the zoom at once to [param value], within [member min_distance] and
+## [member max_distance], for a script that moves the camera.
+func set_distance(value: float) -> void:
+	_target_distance = clampf(value, min_distance, max_distance)
+	distance = _target_distance
+	_place_shot()
+
+
 ## Puts the look-at point at [param point] at once, within the bounds, and stops any pan.
 func move_to(point: Vector3) -> void:
 	_pan_velocity = Vector3.ZERO

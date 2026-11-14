@@ -8,8 +8,9 @@ extends Control
 ## the tag goes once the stage below opens. The pointer over an upgrade opens its tooltip at
 ## once. An upgrade held long enough only asks; the parent researches it. The close button
 ## and the pause action (Esc) close it, unless the pause menu is open over it: then Esc is
-## the menu's. It holds the pause with the pause menu's [method PauseMenu.hold], so closing
-## the menu over it leaves the game paused.
+## the menu's. While [member close_locked], as in the tutorial, neither closes it. It
+## holds the pause with the pause menu's [method PauseMenu.hold], so closing the menu over
+## it leaves the game paused.
 ## It fades in as its sheet grows to full size, and fades out faster; under Reduce motion
 ## it only fades. A stage that opened since it last showed is revealed: its tag fades off
 ## the line, and its tiles fade in from silhouettes row by row.
@@ -50,6 +51,13 @@ var ledger: Ledger:
 	set(value):
 		ledger = value
 		(%ResourceBar as ResourceBar).ledger = value
+
+## Whether it can't be closed, its close button off.
+var close_locked := false:
+	set(value):
+		close_locked = value
+		if is_node_ready():
+			(%CloseButton as Button).disabled = value
 
 var _trees: Array[ResearchTree] = []
 var _columns: Array[ResearchColumn] = []
@@ -124,7 +132,7 @@ func open(trees: Array[ResearchTree]) -> void:
 
 ## Lets the game run again at once, and fades out.
 func close() -> void:
-	if not is_open():
+	if not is_open() or close_locked:
 		return
 	_closing = true
 	PauseMenu.release(self)
@@ -144,6 +152,16 @@ func is_open() -> bool:
 ## Shows the credits and ratings earned since the last commit in its resource bar.
 func commit() -> void:
 	(%ResourceBar as ResourceBar).commit()
+
+
+## The title, for a guide card to point at.
+func get_title() -> Control:
+	return %TitleLabel
+
+
+## The close button, for a guide card to point at.
+func get_close_button() -> Control:
+	return %CloseButton
 
 
 ## The tile of [param upgrade], or null where no tree shown has it.

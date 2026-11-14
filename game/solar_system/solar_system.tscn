@@ -40,13 +40,15 @@
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 [ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
 [ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
-[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 [ext_resource type="Script" uid="uid://dl6s4c30gtvik" path="res://game/solar_system/orbit_clock.gd" id="109_orbit_clock"]
 [ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="109_transmission"]
 [ext_resource type="Script" uid="uid://h318eugw35ag" path="res://game/solar_system/map_zoom.gd" id="110_map_zoom"]
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
+[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="114_guide"]
+[ext_resource type="Script" uid="uid://c4ehv650d8qwy" path="res://game/tutorial/tutorial_call.gd" id="115_call"]
+[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -333,16 +335,33 @@ bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 
-[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "notices", "dock_panel", "trip_arc", "home", "destination")]
+[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "map_zoom", "lab_badges", "research_lab", "research_screen", "guide")]
 unique_name_in_owner = true
 script = ExtResource("112_tutorial")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
-notices = NodePath("../Hud/Notices")
+intro = NodePath("Call")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+passenger_panel = NodePath("../Hud/PassengerPanel")
+portrait_studio = NodePath("../PortraitStudio")
+bus_bars = NodePath("../Hud/BusStatusPanel")
+resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
 trip_arc = NodePath("../TripArc")
 home = NodePath("../World/Terra")
 destination = NodePath("../World/Terra/Moon")
+hud = NodePath("../Hud")
+rig = NodePath("../CameraRig")
+map_zoom = NodePath("../MapZoom")
+lab_badges = NodePath("../Hud/LabBadges")
+research_lab = NodePath("../ResearchLab")
+research_screen = NodePath("../Hud/ResearchScreen")
+guide = NodePath("../Hud/GuideCard")
+
+[node name="Call" type="Node" parent="Tutorial" unique_id=1313732372 node_paths=PackedStringArray("hud", "notices", "transmission_panel")]
+script = ExtResource("115_call")
+hud = NodePath("../../Hud")
+notices = NodePath("../../Hud/Notices")
+transmission_panel = NodePath("../../TransmissionPanel")
 
 [node name="Cabin" type="Node" parent="." unique_id=1517490635]
 unique_name_in_owner = true
@@ -371,11 +390,11 @@ quests = NodePath("../Quests")
 
 [node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quest_giver", "test_destination", "test_flyby_planet")]
 script = ExtResource("103_debug")
-quest_giver = NodePath("../QuestGiver")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
+quest_giver = NodePath("../QuestGiver")
 test_destination = NodePath("../World/Giant")
 test_flyby_planet = NodePath("../World/Frost")
 
@@ -394,10 +413,10 @@ dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 [node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "cabin", "goals", "quest_giver", "research_lab")]
 unique_name_in_owner = true
 script = ExtResource("108_saver")
-quest_giver = NodePath("../QuestGiver")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 goals = NodePath("../Goals")
+quest_giver = NodePath("../QuestGiver")
 research_lab = NodePath("../ResearchLab")
 
 [node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "research_screen")]
@@ -444,6 +463,7 @@ camera = NodePath("../../Camera")
 unique_name_in_owner = true
 
 [node name="TopRight" type="MarginContainer" parent="Hud" unique_id=304030688]
+unique_name_in_owner = true
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -483,14 +503,25 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Notices" parent="Hud" unique_id=307714029 instance=ExtResource("100_notices")]
-unique_name_in_owner = true
-anchors_preset = 7
-
 [node name="BusStatusPanel" parent="Hud" unique_id=923292603 node_paths=PackedStringArray("bus") instance=ExtResource("19_status")]
 unique_name_in_owner = true
 anchors_preset = 7
 bus = NodePath("../../Bus")
+
+[node name="Curtain" type="ColorRect" parent="Hud" unique_id=1536382013]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Notices" parent="Hud" unique_id=307714029 instance=ExtResource("100_notices")]
+unique_name_in_owner = true
+anchors_preset = 7
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
 unique_name_in_owner = true
@@ -501,6 +532,8 @@ unique_name_in_owner = true
 anchors_preset = 11
 
 [node name="ResearchScreen" parent="Hud" unique_id=2076382170 instance=ExtResource("99_screen")]
+
+[node name="GuideCard" parent="Hud" unique_id=1412722458 instance=ExtResource("114_guide")]
 
 [node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 

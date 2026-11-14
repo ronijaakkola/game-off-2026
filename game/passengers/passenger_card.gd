@@ -25,7 +25,7 @@ extends Control
 ## portrait blends by adding, so see-through it would flash white over its frame.
 ## The pointer over the card fades its options in to its right: for now one button, which
 ## kicks the passenger off the bus. They fade out once the pointer leaves both, and stay
-## away once the card shows the rating or leaves.
+## away once the card shows the rating or leaves, or while it isn't [member kickable].
 
 ## The serve button for [member passenger]'s open request was pressed down, with
 ## [param held] true, or let go, with it false.
@@ -97,6 +97,8 @@ const MOOD_COLORS: Dictionary[Passenger.Mood, Color] = {
 ## clear its edge. The gap still counts as the card for the pointer, so the options stay
 ## while it crosses.
 var options_gap := 6.0
+## Whether the passenger can be kicked off. Without it the card has no options.
+var kickable := true
 
 var passenger: Passenger:
 	set(value):
@@ -244,6 +246,16 @@ func show_rating(stars: float) -> void:
 	(%ActivityLabel as MorphLabel).morph_to("Getting off")
 
 
+## The serve button, for a guide card to point at.
+func get_serve_button() -> Control:
+	return %ServeButton
+
+
+## The rating's stars, for a guide card to point at.
+func get_rating_stars() -> Control:
+	return %RatingStars
+
+
 ## Whether the card shows the rating, after [method show_rating].
 func is_rated() -> bool:
 	return _rated
@@ -342,7 +354,7 @@ func _fit_slot() -> void:
 # Whether the options should be out: the pointer is over the card or them, and the
 # passenger is still riding.
 func _wants_options() -> bool:
-	if _rated or _leaving:
+	if _rated or _leaving or not kickable:
 		return false
 	var hovered := get_viewport().gui_get_hovered_control()
 	return hovered != null and is_ancestor_of(hovered)

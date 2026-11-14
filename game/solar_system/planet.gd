@@ -157,6 +157,14 @@ var orbit_opacity := 1.0:
 		orbit_opacity = clampf(value, 0.0, 1.0)
 		_show_orbit_line()
 
+## How big the body is drawn, as a share of the size the world it sits in gives it: below 1
+## while the map zooms out, so a planet coming in keeps its size on the whole map. Its name,
+## border and radius follow it.
+var body_scale := 1.0:
+	set(value):
+		body_scale = value
+		_tilt.scale = Vector3.ONE * value
+
 ## How fast the body moves along its orbit, from 0 (held still) to 1 (its
 ## [member orbit_period]). Its spin keeps going. The solar system sets it on every planet.
 var orbit_speed := 1.0
@@ -235,9 +243,9 @@ func get_body_position() -> Vector3:
 
 
 ## The body's radius as drawn, in global space: [member radius] times the scale of the
-## world it sits in.
+## world it sits in and [member body_scale].
 func get_body_radius() -> float:
-	return _get_local_radius() * get_world_scale()
+	return _get_local_radius() * get_world_scale() * body_scale
 
 
 ## How much bigger the planet is drawn than its own units say: the scale of the world it

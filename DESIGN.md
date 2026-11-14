@@ -354,16 +354,38 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 
 ## Tutorial
 
-- **Every new run starts with it,** and a continued run never does. Each of its notices has a Skip button that ends it at once.
+- **Every new run starts with it,** and a continued run never does. Only the debug panel skips it.
 - **The zoomed map.** Only Terra and the Moon, the map zoomed in 6.5× on Terra, so the Moon orbits 13 units out, about as far as a trip across the whole map. The bus keeps its size, speed and fuel burn, so the ride costs the time, fuel and fare a trip across the whole map does.
-- Terra holds still, and the Moon moves as fast as it does on the whole map, about 0.42 units a second at full orbit speed: under 40 % of the bus's speed.
-- **A clear way out.** The bus starts docked on the side of Terra facing the Moon, and the Moon holds still while the bus waits at Terra, so the straight flight there never crosses Terra.
-- **One ride.** One passenger waits at Terra, going to the Moon. Nobody else turns up, and nobody leaves a line.
-- **Steps,** each a tutorial notice until the player does it: pick the passenger up, right-click the Moon, hold the Frameshift key, serve their request, then refuel once they are off. A stop short of the Moon asks for the course again.
-- **No course before the pick-up.** Until the passenger is on board, right clicks set no course, so the bus can't leave Terra without them.
-- They ask for something 3 s into the ride, so the short trip shows a request.
-- Kicked before the bus leaves, they are replaced by someone new at Terra. Kicked in flight, the tutorial goes on to refuelling.
-- **The zoom out.** Done or skipped, the map zooms out to the whole solar system. The planets hold still, and the route controls, pan and zoom do nothing, until it is over.
+- **Nothing orbits.** Terra and the Moon hold still on their orbits, still spinning, so the bus always finds them where they were and stays in view.
+- **A clear way out.** The bus starts docked on the side of Terra facing the Moon, so the straight flight there never crosses Terra.
+- **One ride, and back.** One passenger waits at Terra, going to the Moon, always a blue one, so the research point they pay is always blue. Nobody else turns up, and nobody leaves a line. Then the bus flies back to Terra to research.
+- **A trip burns half the tank,** each way, more than the bus burns outside the tutorial, so refuelling has a reason. Fuel is free at Terra and the Moon.
+- **Just enough for the first upgrade.** The passenger pays 150 credits whatever their mood, and Fuel tank 1 costs 150 credits and 1 blue research point (not 2) until it is over.
+- **It opens on a call from their boss,** who tells them they are on a trial period. Until the player answers it and closes the transmission, the call notice's Answer is the one thing they can do: no clicks on the map or the bus bars, no pan or zoom.
+- **Each step is a guide card** (placeholder titles; what each says is in `tutorial_cards.gd`, the calls' words in `tutorial_call.gd`), most waiting for the player to do something in the game; a card that only tells them something has a Got it button, offered on purpose and rarely.
+  - **The bus**, beside it. Got it moves on. Until then, still no clicks but on the card, and no pan or zoom.
+  - **The pick-up**, on the waiting passenger's row once the station panel is in. It goes once they board.
+  - **On board**, beside the On board panel, once it has come in and the passenger's card has slid into it. Got it moves on.
+  - **The course**, beside the Moon. It goes once the Moon is on the route.
+  - **The charge**, above the Frameshift key. It goes once the bus leaves.
+  - **The snack.** Halfway to the Moon the passenger asks for a snack, and the game pauses, all but serving and the portraits, with a card beside their serve button. The game runs again once it is served.
+  - **The rating.** Getting off at the Moon, once their card has filled its stars, the game pauses, all but the portraits, with a card beside them. Got it moves on.
+  - **The fare.** Once their card has left the On board panel, the resource bar comes in, then a card under it. Got it moves on.
+  - **Refuelling**, beside the Moon's fuel button. It goes once the tank is full.
+  - **The course home.** Half a second after the tank is full, Terra's lab badge pops in, then a card beside it. It goes once Terra is on the route.
+  - **The charge** again, then the flight home, as before but with no request.
+  - **The lab.** Docked at Terra, the station has its Research button, with a card on it. It goes as the research screen opens.
+  - **The research screen**, which can't be closed until the last card, with a card beside its title. Nothing can be researched until Got it.
+  - **The upgrade**, beside Fuel tank 1, the only one that can be researched. It goes once it is researched.
+  - **Closing the lab**, beside the close button, which now works. It goes as the screen closes.
+- **It ends on another call from their boss,** a second after the lab closes: the player passed their trial period, and the boss unlocks the frameshift planet lock for the whole star system. The call notice's Answer is again the one thing the player can do. Both calls offer two answers that mean the same, for flavour, and either one goes on. Answering the last ends the tutorial.
+- **Only what a step brings in shows.** After the call, only the bus bars; the station panel comes in with the pick-up, the On board panel once the passenger boards, and the resource bar with the fare. The station's fuel button shows from the flight to the Moon on, off until the refuelling card opens, and its Research button and Terra's lab badge from the course home; the Moon's lab badge and Board all stay hidden until it is over.
+- **No planet opens** on a click through it.
+- **Courses only when asked for.** Right clicks set a course only in the steps about setting one, and only to the planet the step names: no points in space, no other planet, and nothing more once it is set. A stop short of where the bus is headed asks for the course again.
+- **No other needs.** The snack is the only thing the passenger asks for.
+- **No route changes in flight.** From leaving until the bus docks, each way, clicks on the map, Backspace and the Frameshift key do nothing, and the key never turns into Stop.
+- **No kicks.** The passenger can't be kicked off until it is over.
+- **The zoom out.** Done or skipped, the HUD goes, then the map zooms out to the whole solar system, the planets starting to orbit as it goes, and holds there for 4 s before the HUD comes back. The screen takes no clicks, and the route controls, pan and zoom do nothing, until then.
 - Then the lines start at every planet (The start), the run's goals are given, and a notice says the whole solar system is open.
 
 ## Save game

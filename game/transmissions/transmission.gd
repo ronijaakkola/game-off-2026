@@ -41,6 +41,10 @@ var reward_research: Dictionary[Race.Type, int] = {}
 ## there is only the primary button.
 var accept_text := "Got it"
 var decline_text := ""
+## Whether the two buttons are two ways to say the same thing, for flavour: both look like
+## the primary button, as wide as each other, the decline label on the left, and either
+## accepts.
+var answers_alike := false
 
 
 ## A transmission from [param passenger], in their look, mood and badges.

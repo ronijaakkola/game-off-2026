@@ -1,0 +1,108 @@
+[gd_scene format=3 uid="uid://cgcnqs8n4ol2e"]
+
+[ext_resource type="Script" uid="uid://cdifo8r20en2i" path="res://ui/guide_card/guide_card.gd" id="1_card"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" uid="uid://dup4e3a0nc0eg" path="res://shared/icons/pause.svg" id="3_pause"]
+
+[node name="GuideCard" type="PanelContainer" unique_id=766873684]
+process_mode = 3
+visible = false
+top_level = true
+z_index = 10
+custom_minimum_size = Vector2(256, 0)
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_type_variation = &"TooltipCardPanel"
+script = ExtResource("1_card")
+
+[node name="Pad" type="MarginContainer" parent="." unique_id=769549910]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="Rows" type="VBoxContainer" parent="Pad" unique_id=2048282656]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Header" type="HBoxContainer" parent="Pad/Rows" unique_id=516530060]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="TitleLabel" type="Label" parent="Pad/Rows/Header" unique_id=1296799064]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"GuideTitleLabel"
+text = "Title"
+
+[node name="PausedTag" type="PanelContainer" parent="Pad/Rows/Header" unique_id=1607270203]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Row" type="HBoxContainer" parent="Pad/Rows/Header/PausedTag" unique_id=1581041728]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="IconNudge" type="MarginContainer" parent="Pad/Rows/Header/PausedTag/Row" unique_id=1353012760]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="Icon" type="TextureRect" parent="Pad/Rows/Header/PausedTag/Row/IconNudge" unique_id=441370244]
+modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("3_pause")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Pad/Rows/Header/PausedTag/Row" unique_id=419784947]
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+text = "Game paused"
+
+[node name="BodyLabel" type="Label" parent="Pad/Rows" unique_id=1583530604]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(232, 0)
+layout_mode = 2
+theme_type_variation = &"TooltipSentenceLabel"
+text = "What to do with the thing the notch points at."
+autowrap_mode = 3
+
+[node name="Footer" type="MarginContainer" parent="Pad/Rows" unique_id=1090556071]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_top = 4
+
+[node name="Row" type="HBoxContainer" parent="Pad/Rows/Footer" unique_id=1875939737]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="StepDots" type="Control" parent="Pad/Rows/Footer/Row" unique_id=2123721770]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="Spacer" type="Control" parent="Pad/Rows/Footer/Row" unique_id=1800855589]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="GotItButton" type="Button" parent="Pad/Rows/Footer/Row" unique_id=793968874]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallPrimaryButton"
+text = "Got it"
