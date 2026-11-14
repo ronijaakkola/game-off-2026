@@ -81,7 +81,8 @@ func zoom_in() -> void:
 	_home = rig.position
 	_home_center = rig.bounds_center
 	_home_radius = rig.bounds_radius
-	# The world and the camera share a parent, so this is where the pivot's body is to both.
+	# The world's parent sits where the camera's does, so this is where the pivot's body is
+	# to both.
 	_zoomed_center = world.transform * _pivot_point
 	rig.bounds_center = _zoomed_center
 	rig.bounds_radius = zoomed_bounds_radius

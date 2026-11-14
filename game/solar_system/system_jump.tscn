@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://d2tkvslrbiqae"]
+
+[ext_resource type="Script" uid="uid://5s5ytm52noj2" path="res://game/solar_system/system_jump.gd" id="1_jump"]
+[ext_resource type="PackedScene" uid="uid://dsx7t06sbogl0" path="res://game/bus/frameshift_shift.tscn" id="2_shift"]
+
+[node name="SystemJump" type="Node" unique_id=660306429]
+script = ExtResource("1_jump")
+
+[node name="Shift" parent="." unique_id=1563839863 instance=ExtResource("2_shift")]
+unique_name_in_owner = true

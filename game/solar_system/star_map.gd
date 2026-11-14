@@ -1,0 +1,158 @@
+class_name StarMap
+extends Node
+## Every star system, all in one space under [member world], in the order the player opens
+## them, and how far the player has got through them. Until they are joined the bus works
+## in one system at a time: only that one shows, and the camera stays over it. A promotion
+## there opens the next system ([method promote]), and the bus jumps to it once it is empty
+## ([method enter]). It never goes back. The promotion in the last system joins them: every
+## system shows, the camera roams over all of them and zooms out further, and passengers
+## travel between them.
+
+## The systems the bus works in, or the one it can jump to, changed.
+signal changed
+
+## Holds the [StarSystem]s, in the order they open.
+@export var world: Node3D
+@export var rig: CameraRig
+## How far the camera may zoom out once the systems are joined.
+@export_range(1.0, 400.0, 0.1, "or_greater") var joined_max_distance := 110.0
+
+@export_group("Joined goals")
+## The goals once the systems are joined: deliver this many passengers, and keep this
+## recent rating.
+@export_range(1, 1000, 1) var joined_deliveries := 60
+@export_range(0.0, 5.0, 0.05) var joined_rating := 4.0
+
+var _systems: Array[StarSystem] = []
+# The system the bus works in.
+var _current := 0
+# How many systems are open: the current one and those before it, and the next one once a
+# promotion opens it.
+var _opened := 1
+var _joined := false
+
+
+## Puts the map as a saved run had it: [param saved] from [method to_save], with the bus at
+## [param bus_planet], whose system is the one it works in. Call it before the scene is
+## ready, so the camera starts over that system.
+func restore(saved: Dictionary, bus_planet: Planet) -> void:
+	var systems := get_systems()
+	_opened = clampi(int(saved.get("opened", 1)), 1, systems.size())
+	_joined = bool(saved.get("joined", false))
+	_current = 0
+	for i: int in systems.size():
+		if bus_planet and systems[i].has_planet(bus_planet):
+			_current = i
+	_opened = maxi(_opened, _current + 1)
+	show_systems()
+	rig.position = systems[_current].position
+
+
+## What a save keeps: how many systems are open and whether they are joined.
+func to_save() -> Dictionary:
+	return {"opened": _opened, "joined": _joined}
+
+
+## Every star system, in the order they open.
+func get_systems() -> Array[StarSystem]:
+	if _systems.is_empty():
+		for child: Node in world.get_children():
+			if child is StarSystem:
+				_systems.append(child as StarSystem)
+	return _systems.duplicate()
+
+
+## The system the bus works in. Once they are joined, the one it was promoted in last.
+func get_current() -> StarSystem:
+	return get_systems()[_current]
+
+
+func is_joined() -> bool:
+	return _joined
+
+
+## The system the bus can jump to, now that a promotion has opened it, or null.
+func get_jump_target() -> StarSystem:
+	if _joined or _opened <= _current + 1:
+		return null
+	return get_systems()[_current + 1]
+
+
+## The planets passengers wait at and travel between: the current system's, or every
+## system's once they are joined.
+func get_active_planets() -> Array[Planet]:
+	if not _joined:
+		return get_current().get_planets()
+	var planets: Array[Planet] = []
+	for system: StarSystem in get_systems():
+		planets.append_array(system.get_planets())
+	return planets
+
+
+## The system whose star is nearest [param point], among those that show.
+func get_nearest_system(point: Vector3) -> StarSystem:
+	var nearest := get_current()
+	if not _joined:
+		return nearest
+	for system: StarSystem in get_systems():
+		if system.global_position.distance_to(point) < nearest.global_position.distance_to(point):
+			nearest = system
+	return nearest
+
+
+## A promotion: in the last system it joins them all, anywhere else it opens the next one.
+func promote() -> void:
+	if _joined:
+		return
+	if _current + 1 >= get_systems().size():
+		_joined = true
+		show_systems()
+		rig.zoom_to(joined_max_distance)
+	else:
+		_opened = maxi(_opened, _current + 2)
+	changed.emit()
+
+
+## The bus has jumped to [param system], which becomes the one it works in.
+func enter(system: StarSystem) -> void:
+	var index := get_systems().find(system)
+	if index < 0:
+		return
+	_current = index
+	_opened = maxi(_opened, index + 1)
+	show_systems()
+	changed.emit()
+
+
+## Shows the systems the bus works in and hides the rest, and keeps the camera over them.
+func show_systems() -> void:
+	var systems := get_systems()
+	for i: int in systems.size():
+		systems[i].visible = _joined or i == _current
+	if _joined:
+		rig.max_distance = maxf(rig.max_distance, joined_max_distance)
+	rig.bounds_center = get_bounds_center()
+	rig.bounds_radius = get_bounds_radius()
+
+
+## The centre of the area the camera's look-at point stays in: the current system's star,
+## or the middle of every system once they are joined. In the camera rig's parent's space.
+func get_bounds_center() -> Vector3:
+	if not _joined:
+		return get_current().position
+	var center := Vector3.ZERO
+	for system: StarSystem in get_systems():
+		center += system.position
+	return center / get_systems().size()
+
+
+## How far from [method get_bounds_center] the look-at point may go: far enough to reach
+## the edge of every system the bus works in.
+func get_bounds_radius() -> float:
+	if not _joined:
+		return get_current().bounds_radius
+	var center := get_bounds_center()
+	var radius := 0.0
+	for system: StarSystem in get_systems():
+		radius = maxf(radius, center.distance_to(system.position) + system.bounds_radius)
+	return radius

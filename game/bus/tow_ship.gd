@@ -58,15 +58,6 @@ const PLANET_GAP := 0.6
 # How fast the hitched ship follows its point ahead of the bus: the share of the way left
 # it covers per second.
 const FOLLOW_SMOOTHING := 6.0
-# Seconds a frameshift jump takes, how far it goes, and how long and how thin the model
-# stretches at the jump's far end, as shares of its size.
-const SHIFT_SECONDS := 0.3
-const SHIFT_DISTANCE := 2.5
-const SHIFT_STRETCH := 6.0
-const SHIFT_THIN := 0.12
-# Seconds the streak a jump leaves takes to fade, and how see-through it starts.
-const STREAK_FADE_SECONDS := 0.5
-const STREAK_OPACITY := 0.85
 # Seconds for the beacon to blink on and off once.
 const BEACON_PERIOD := 0.8
 # How fast the thrusters' glow changes, per second.
@@ -89,13 +80,6 @@ var _speed := 0.0
 var _time := 0.0
 var _leave_time := 0.0
 var _leave_direction := Vector3.FORWARD
-# The jump under way: seconds into it, and where it starts and ends.
-var _shift_time := 0.0
-var _shift_from := Vector3.ZERO
-var _shift_to := Vector3.ZERO
-# How much of the streak shows, from 1 as a jump ends to 0 once it has faded.
-var _streak := 0.0
-var _streak_material: StandardMaterial3D
 # How far the cable reaches from the ship's hook to the bus's, 0 to 1, and whether the
 # ship is paying it out or holding the bus with it, rather than reeling it in.
 var _cable_out := 0.0
@@ -117,11 +101,7 @@ func _ready() -> void:
 	(%Cable as MeshInstance3D).mesh = _cable_mesh
 	(%Cable as Node3D).hide()
 	(%Hook as Node3D).hide()
-	(%Streak as Node3D).hide()
-	# Its own copy, so fading it fades no other ship's.
-	var streak := %Streak as MeshInstance3D
-	_streak_material = (streak.material_override as StandardMaterial3D).duplicate()
-	streak.material_override = _streak_material
+	(%Shift as FrameshiftShift).finished.connect(_on_shift_finished)
 
 
 ## Sends the ship from just off [param planet] to [param bus], to tow it there. It
@@ -136,17 +116,16 @@ func come_for(bus: FrameshiftBus, planet: Planet) -> void:
 	var along_edge := Vector3.UP.cross(direction)
 	rotation.y = atan2(along_edge.x, along_edge.z)
 	_heading = rotation.y
-	_shift_to = center + direction * (planet.get_body_radius() + PLANET_GAP)
-	_shift_from = _shift_to - along_edge * SHIFT_DISTANCE
-	_start_shift(Phase.SHIFTING_IN)
+	var to := center + direction * (planet.get_body_radius() + PLANET_GAP)
+	phase = Phase.SHIFTING_IN
+	var shift := %Shift as FrameshiftShift
+	shift.shift_in(self, %Model as Node3D, to - along_edge * FrameshiftShift.DISTANCE, to)
 
 
 func _process(delta: float) -> void:
 	_time += delta
-	_streak = move_toward(_streak, 0.0, delta / STREAK_FADE_SECONDS)
+	(%Shift as FrameshiftShift).advance(delta)
 	match phase:
-		Phase.SHIFTING_IN, Phase.SHIFTING_OUT:
-			_shift(delta)
 		Phase.APPROACHING:
 			_approach(delta)
 		Phase.HITCHING:
@@ -156,9 +135,11 @@ func _process(delta: float) -> void:
 		Phase.LEAVING:
 			_leave(delta)
 		Phase.GONE:
-			if _streak <= 0.0:
+			if not (%Shift as FrameshiftShift).is_streaking():
 				queue_free()
 	var model := %Model as BusModel
+	if _has_bus():
+		model.light_source = _planet.light_source
 	var working := phase != Phase.IDLE and phase != Phase.GONE
 	model.thrust = move_toward(model.thrust, 1.0 if working else 0.0, delta * THRUST_FADE)
 	var blink := fmod(_time, BEACON_PERIOD) < BEACON_PERIOD * 0.5
@@ -168,7 +149,6 @@ func _process(delta: float) -> void:
 	if not _latched:
 		_cable_out = move_toward(_cable_out, 0.0, delta / REEL_SECONDS)
 	_draw_cable(delta)
-	_draw_streak()
 
 
 func _approach(delta: float) -> void:
@@ -235,46 +215,18 @@ func _leave(delta: float) -> void:
 	_speed = move_toward(_speed, max_speed * facing * facing, acceleration * delta)
 	global_position += _forward() * _speed * delta
 	if _leave_time >= leave_seconds:
-		_shift_from = global_position
-		_shift_to = global_position + _forward() * SHIFT_DISTANCE
-		_start_shift(Phase.SHIFTING_OUT)
+		phase = Phase.SHIFTING_OUT
+		var to := global_position + _forward() * FrameshiftShift.DISTANCE
+		(%Shift as FrameshiftShift).shift_out(self, %Model as Node3D, global_position, to)
 
 
-func _start_shift(shift_phase: Phase) -> void:
-	phase = shift_phase
-	_shift_time = 0.0
-	global_position = _shift_from
-	(%Model as Node3D).show()
-	_stretch(1.0 if shift_phase == Phase.SHIFTING_IN else 0.0)
-
-
-# A frameshift jump from _shift_from to _shift_to. Shifting in, it slows into place and
-# shrinks back from long and thin; shifting out, it speeds away and stretches out, then
-# vanishes. The streak runs along the jump.
-func _shift(delta: float) -> void:
-	_shift_time += delta
-	var done := clampf(_shift_time / SHIFT_SECONDS, 0.0, 1.0)
-	var shifting_in := phase == Phase.SHIFTING_IN
-	# How far along the jump, eased toward its slow end.
-	var along := 1.0 - (1.0 - done) * (1.0 - done) if shifting_in else done * done
-	global_position = _shift_from.lerp(_shift_to, along)
-	_stretch(1.0 - done if shifting_in else done)
-	_streak = 1.0
-	if done < 1.0:
-		return
-	if shifting_in:
+# Shifted in, it heads for the bus; shifted out, it is gone once the streak fades.
+func _on_shift_finished() -> void:
+	if phase == Phase.SHIFTING_IN:
 		_speed = max_speed * 0.5
 		phase = Phase.APPROACHING
-	else:
-		(%Model as Node3D).hide()
+	elif phase == Phase.SHIFTING_OUT:
 		phase = Phase.GONE
-
-
-# Stretches the model along its heading and thins it, by [param amount] from 0 (its own
-# shape) to 1 (the far end of a jump).
-func _stretch(amount: float) -> void:
-	var thin := lerpf(1.0, SHIFT_THIN, amount)
-	(%Model as Node3D).scale = Vector3(thin, thin, lerpf(1.0, SHIFT_STRETCH, amount))
 
 
 func _let_go() -> void:
@@ -289,23 +241,6 @@ func _let_go() -> void:
 		var away := from_bus + from_planet
 		if away.length_squared() > 1e-6:
 			_leave_direction = away.normalized()
-
-
-# A flat streak on the orbit plane along the last jump, from its start to where the ship
-# is, fading out once the jump is over.
-func _draw_streak() -> void:
-	var streak := %Streak as MeshInstance3D
-	var end := _shift_to if phase == Phase.GONE else global_position
-	var span := _flat(end - _shift_from)
-	var length := span.length()
-	streak.visible = _streak > 0.0 and length > 1e-3
-	if not streak.visible:
-		return
-	_streak_material.albedo_color.a = _streak * STREAK_OPACITY
-	var along := span / length
-	# The streak mesh is a plane one unit long along its z.
-	var streak_basis := Basis(Vector3.UP.cross(along), Vector3.UP, along * length)
-	streak.global_transform = Transform3D(streak_basis, _flat(_shift_from + end) * 0.5)
 
 
 # The cable from the ship's boom toward the bus's nose, as far as it has reached, with the

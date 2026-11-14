@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://kw0cbc6mmvt7" path="res://game/bus/tow_ship.gd" id="1_tow"]
 [ext_resource type="Script" uid="uid://ddvccqtdkw6wu" path="res://game/bus/bus_model.gd" id="2_model"]
 [ext_resource type="PackedScene" uid="uid://kuviy8ptdstj" path="res://game/bus/models/tow_ship.glb" id="3_glb"]
+[ext_resource type="PackedScene" uid="uid://dsx7t06sbogl0" path="res://game/bus/frameshift_shift.tscn" id="4_shift"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beacon"]
 shading_mode = 0
@@ -21,15 +22,6 @@ albedo_color = Color(0.85, 0.82, 0.95, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_hook"]
 size = Vector3(0.06, 0.04, 0.05)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_streak"]
-transparency = 1
-cull_mode = 2
-shading_mode = 0
-albedo_color = Color(0.88, 1, 1, 0.85)
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_streak"]
-size = Vector2(0.09, 1)
 
 [node name="TowShip" type="Node3D" unique_id=3591385]
 script = ExtResource("1_tow")
@@ -61,9 +53,5 @@ material_override = SubResource("StandardMaterial3D_cable")
 cast_shadow = 0
 mesh = SubResource("BoxMesh_hook")
 
-[node name="Streak" type="MeshInstance3D" parent="." unique_id=1852509617]
+[node name="Shift" parent="." unique_id=2121048193 instance=ExtResource("4_shift")]
 unique_name_in_owner = true
-top_level = true
-material_override = SubResource("StandardMaterial3D_streak")
-cast_shadow = 0
-mesh = SubResource("PlaneMesh_streak")
