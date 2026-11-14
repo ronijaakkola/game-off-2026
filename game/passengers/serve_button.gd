@@ -29,18 +29,15 @@ var _held := false
 # The need's icon and label, centred together. Made in _ready().
 var _icon: TextureRect
 var _label: Label
-# The fill's style: a flat box with the button's corners.
-var _fill_style := StyleBoxFlat.new()
+# The button's corners, which the fill follows.
+var _corner_radius := 0.0
 
 
 func _ready() -> void:
 	add_to_group(ButtonFeel.OWN_PRESS)
-	_fill_style.bg_color = FILL_COLOR
 	var button_style := get_theme_stylebox(&"normal") as StyleBoxFlat
 	if button_style:
-		for corner: int in 4:
-			_fill_style.set_corner_radius(corner, button_style.get_corner_radius(corner))
-		_fill_style.corner_detail = button_style.corner_detail
+		_corner_radius = button_style.get_corner_radius(CORNER_TOP_LEFT)
 	button_down.connect(_set_held.bind(true))
 	button_up.connect(_set_held.bind(false))
 	_icon = TextureRect.new()
@@ -78,7 +75,7 @@ func _notification(what: int) -> void:
 
 func _draw() -> void:
 	if progress > 0.0:
-		draw_style_box(_fill_style, Rect2(Vector2.ZERO, Vector2(size.x * progress, size.y)))
+		RoundedFill.draw(self, Rect2(Vector2.ZERO, size), _corner_radius, progress, FILL_COLOR)
 
 
 ## Whether the button is held down.

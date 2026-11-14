@@ -7,9 +7,16 @@ extends VBoxContainer
 ## tutorial's steps do, comes in where it rests and never drops as the old one's gap
 ## closes. While the stack is hidden, a new notice waits to come in until it shows, and the
 ## countdowns of those showing stop. [method offer_tow] and [method announce_transmission]
-## are the notices with an action of their own.
+## are the notices with an action of their own, and [method tell_bus_full] one that shows
+## once however often its cause comes up.
 
 const NOTICE := preload("res://game/solar_system/notice.tscn")
+const BUS_FULL := "The bus is already full!"
+## Seconds the bus full notice shows after the last try to board.
+const BUS_FULL_SECONDS := 2.5
+
+# The bus full notice while it shows, so another try prolongs it rather than adding one.
+var _bus_full: Notice
 
 
 func _ready() -> void:
@@ -61,6 +68,16 @@ func offer_tow(fee: int) -> Notice:
 ## answered.
 func announce_transmission() -> Notice:
 	return push("Incoming transmission...", Notice.Kind.CALL, false, 0.0, "Answer")
+
+
+## The player tried to pick someone up with every seat taken: an info notice that closes by
+## itself. While one shows, another try starts its time over rather than adding a second.
+func tell_bus_full() -> Notice:
+	if is_instance_valid(_bus_full) and not _bus_full.is_leaving():
+		_bus_full.prolong()
+		return _bus_full
+	_bus_full = push(BUS_FULL, Notice.Kind.INFO, false, BUS_FULL_SECONDS)
+	return _bus_full
 
 
 func _on_visibility_changed() -> void:

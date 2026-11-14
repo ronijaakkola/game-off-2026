@@ -180,13 +180,30 @@ func enter() -> void:
 	_motion.tween_property(card, ^"position:y", 0.0, ENTER_SECONDS)
 	_motion.tween_property(card, ^"scale", Vector2.ONE, ENTER_SECONDS)
 	if _seconds > 0.0:
-		_life = create_tween()
-		_life.tween_interval(_seconds)
-		_life.tween_callback(dismiss)
+		_start_life()
 	if _kind == Kind.CALL:
 		_start_ringtone()
 		if not Settings.reduce_motion:
 			_start_ring()
+
+
+## Starts its countdown to closing by itself over from the whole time, for a notice whose
+## cause came up again. Does nothing for one that never closes by itself, one not yet in,
+## whose countdown starts as it comes in, or one leaving. Held, it stays held.
+func prolong() -> void:
+	if _leaving or not _life or not _life.is_valid():
+		return
+	var held := not _life.is_running()
+	_life.kill()
+	_start_life()
+	if held:
+		_life.pause()
+
+
+func _start_life() -> void:
+	_life = create_tween()
+	_life.tween_interval(_seconds)
+	_life.tween_callback(dismiss)
 
 
 ## Fades the card out, sinking it a little, then closes its gap and frees it. From wherever
