@@ -55,3 +55,15 @@ func test_set_volume_reaches_the_bus() -> void:
 	var music := AudioServer.get_bus_index(&"Music")
 	assert_float(AudioServer.get_bus_volume_linear(music)).is_equal_approx(0.3, 0.001)
 	_audio.set_volume(AudioScript.Bus.MUSIC, before)
+
+
+func test_a_beat_is_due_at_once_with_no_music() -> void:
+	assert_float(_audio.seconds_to_beat()).is_equal(0.0)
+
+
+func test_the_next_beat_is_less_than_a_beat_away_while_music_plays() -> void:
+	_audio.play_music(MUSIC, 0.0)
+	await await_idle_frame()
+	var beat := 60.0 / AudioScript.MUSIC_BPM
+	assert_float(_audio.seconds_to_beat()).is_between(0.0, beat)
+	assert_float(_audio.seconds_to_beat(2.0)).is_between(0.0, beat * 2.0)
