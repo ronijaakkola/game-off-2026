@@ -63,3 +63,20 @@ func test_a_sound_effect_plays_at_its_clip_level() -> void:
 	var playing := _players_playing(RINGTONE)
 	assert_array(playing).has_size(1)
 	assert_float(playing[0].volume_linear).is_equal_approx(ClipLevels.of(RINGTONE), 0.001)
+
+
+func test_a_level_set_for_the_run_wins_over_the_table() -> void:
+	_audio.set_clip_volume(RINGTONE, 1.7)
+	assert_float(_audio.get_clip_volume(RINGTONE)).is_equal_approx(1.7, 0.001)
+	_audio.set_clip_volume(RINGTONE, 9.0)
+	assert_float(_audio.get_clip_volume(RINGTONE)).is_equal_approx(ClipLevels.MAX, 0.001)
+	_audio.play_sfx(RINGTONE)
+	assert_float(_players_playing(RINGTONE)[0].volume_linear).is_equal_approx(ClipLevels.MAX, 0.001)
+
+
+func test_a_level_set_while_a_track_plays_changes_it_at_once() -> void:
+	_audio.play_music(MUSIC, 0.0)
+	await await_idle_frame()
+	_audio.set_clip_volume(MUSIC, 0.4)
+	assert_float(_players_playing(MUSIC)[0].volume_linear).is_equal_approx(0.4, 0.001)
+	assert_object(_audio.get_music()).is_same(MUSIC)

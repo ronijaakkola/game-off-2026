@@ -394,6 +394,14 @@ Titled "Frameshift Bus".
 
 F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. The Rendering group is there in every scene: MSAA off, 2x or 4x, and toggles for the glass blur and the stencil, each for this session only, so a slow frame can be traced on the machine where it is slow, with Show FPS on. Open research opens the research screen from anywhere, and Promote opens the next research stage.
 
+## Mixer
+
+Debug panel (F2) › Mixer, on the main menu: one scrolling card for setting how loud each sound is.
+
+- **Music, Sound effects.** One row for each audio file in the project outside the alien voices' folder, found by scanning, so a new clip is in it with no code. A clip 30 seconds or longer is a track, under Music. A row has its file name (the path on hover), a Play button, a slider from 0 to 2 with a − and a + beside it that move it 0.05, and the number. A track plays as the music and loops, so it can run while the others are tried; a clip that loops plays until Stop; any other plays once. A row says "edited" when it is off the table's level and "unset" when the table has no entry for it, so it plays as recorded.
+- **Voices.** A level for each race's voice (its volume), and buttons that say a line as a transmission would, with the caller's stinger and the words typing out: Plain, Question, Exclaim, Annoyed, Happy, Scared, and the Plain line in the lowest and in the highest of the race's voices. "Every voice in turn" has each race say a few lines one after another, to hear them against each other.
+- **Header.** Stop the music, Stop sounds (a loop, a voice line), Copy values, Reset all and Back to menu. Copy puts the table for `core/audio/clip_levels.gd` and each voice's volume on the clipboard, to set by hand: the mixer writes no file. A level set here is heard in the game too, until it closes.
+
 ## Open questions
 
 - **Fuel and time on the map.** Each planet is meant to show the fuel cost and travel time to it *(not built)*. Whether a point in space shows them too.

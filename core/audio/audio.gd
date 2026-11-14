@@ -31,6 +31,8 @@ var _music_players: Array[AudioStreamPlayer] = []
 var _music_tweens: Array[Tween] = [null, null]
 var _current := 0
 var _music: AudioStream
+# Levels the mixer has set this run, by the clip's path, over the table in ClipLevels.
+var _levels: Dictionary[String, float] = {}
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _next_sfx := 0
 # How muffled the music is, from 0 to 1, and the one tween that moves it.
@@ -82,11 +84,30 @@ func get_muffle() -> float:
 	return _muffle
 
 
-## How loud [param stream] plays by default, as a multiple of how it was recorded: 1 as
-## recorded, up to [constant ClipLevels.MAX]. A sound that makes its own player sets that
-## player's volume to this; [method play_music] and [method play_sfx] do it themselves.
+## How loud [param stream] plays, as a multiple of how it was recorded: 1 as recorded, up to
+## [constant ClipLevels.MAX]. Its default in [ClipLevels], or what the mixer has set it to
+## since the game started. A sound that makes its own player sets that player's volume to
+## this; [method play_music] and [method play_sfx] do it themselves.
 func get_clip_volume(stream: AudioStream) -> float:
+	if stream and _levels.has(stream.resource_path):
+		return _levels[stream.resource_path]
 	return ClipLevels.of(stream)
+
+
+## Sets how loud [param stream] plays from now until the game closes, which is how the mixer
+## tries levels. A track already playing changes at once. Nothing is saved: the defaults
+## are the table in [ClipLevels].
+func set_clip_volume(stream: AudioStream, level: float) -> void:
+	_levels[stream.resource_path] = clampf(level, 0.0, ClipLevels.MAX)
+	if stream == _music:
+		if _music_tweens[_current]:
+			_music_tweens[_current].kill()
+		_music_players[_current].volume_linear = get_clip_volume(stream)
+
+
+## The track playing, or null.
+func get_music() -> AudioStream:
+	return _music
 
 
 ## Plays [param stream] once at its [method get_clip_volume], its pitch varied at random by

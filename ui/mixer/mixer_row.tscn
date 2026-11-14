@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://b3y5ixt38mt3v"]
+
+[ext_resource type="Script" uid="uid://ddlbvd0mudyqh" path="res://ui/mixer/mixer_row.gd" id="1_row"]
+[ext_resource type="PackedScene" uid="uid://c5k10rn6mdgj6" path="res://ui/mixer/level_control.tscn" id="2_level"]
+
+[node name="MixerRow" type="HBoxContainer" unique_id=1163031070]
+theme_override_constants/separation = 8
+script = ExtResource("1_row")
+
+[node name="NameLabel" type="Label" parent="." unique_id=1022546686]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text_overrun_behavior = 3
+
+[node name="KindLabel" type="Label" parent="." unique_id=1367347589]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_type_variation = &"FaintLabel"
+
+[node name="PlayButton" type="Button" parent="." unique_id=126709270]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(54, 0)
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallPrimaryButton"
+text = "Play"
+
+[node name="Level" parent="." unique_id=2084256977 instance=ExtResource("2_level")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarkLabel" type="Label" parent="." unique_id=972707719]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_type_variation = &"FaintLabel"

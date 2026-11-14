@@ -26,8 +26,8 @@ enum Stinger { ANNOYED = 0, HAPPY = 1, SCARED = 2 }
 ## faster. A race's language can run quicker or slower than another's. It takes hold the
 ## next time a line starts.
 @export_range(0.4, 2.5, 0.01) var typing_speed := 1.0
-## How loud the voice is, from 0 to 1.
-@export_range(0.0, 1.0, 0.01) var volume := 1.0
+## How loud the voice is, 1 as recorded, up to 2 (the mixer sets it).
+@export_range(0.0, 2.0, 0.01) var volume := 1.0
 ## The lowest and highest pitch a caller's voice has, 1 as recorded. The range is split into
 ## [member voice_count] steps, and each caller's name picks one, so callers of a race sound
 ## clearly different, not a hair apart.
