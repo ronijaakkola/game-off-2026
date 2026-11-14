@@ -542,7 +542,7 @@ func _finish() -> void:
 		return
 	_running = false
 	hud.cover()
-	hud.hide_all()
+	_empty_home_line()
 	lab_badges.hide()
 	# The camera stays locked: the zoom out holds it until the run starts.
 	map_zoom.zoomed_out.connect(_on_zoomed_out, CONNECT_ONE_SHOT)
@@ -561,6 +561,14 @@ func _finish() -> void:
 	_cards.close()
 	waiting.set_process(true)
 	finished.emit()
+
+
+# Once the HUD has gone, the line at home empties where nobody sees it, so a passenger
+# still waiting there when it is skipped doesn't leave in view as the run starts.
+func _empty_home_line() -> void:
+	await hud.hide_all()
+	for passenger: Passenger in waiting.get_waiting(home):
+		waiting.take(home, passenger)
 
 
 # The map has zoomed out and settled: the HUD comes back, and the player can play.
