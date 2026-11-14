@@ -34,10 +34,9 @@ const END_SCALE := 0.97
 const RING_PAUSE := 1.6
 const RING_SWINGS: Array[float] = [0.3, -0.3, 0.24, -0.18, 0.1, 0.0]
 const RING_SWING_SECONDS := 0.06
-## A call's ringtone, which its import loops, how loud it plays, and the seconds it takes
-## to fade once the call starts to leave.
+## A call's ringtone, which its import loops, and the seconds it takes to fade once the call
+## starts to leave.
 const RINGTONE := preload("res://game/solar_system/ringtone.ogg")
-const RINGTONE_VOLUME := 0.8
 const RINGTONE_FADE_SECONDS := 0.15
 
 const DIM := Color(0.957, 0.945, 1, 0.651)
@@ -251,7 +250,7 @@ func _start_ringtone() -> void:
 	_ringtone = AudioStreamPlayer.new()
 	_ringtone.stream = RINGTONE
 	_ringtone.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
-	_ringtone.volume_linear = RINGTONE_VOLUME
+	_ringtone.volume_linear = Audio.get_clip_volume(RINGTONE)
 	add_child(_ringtone)
 	_ringtone.play()
 

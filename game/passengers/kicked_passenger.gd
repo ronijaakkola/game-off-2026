@@ -19,8 +19,7 @@ const SCREAM := preload("res://game/passengers/wilhelm_scream.ogg")
 ## Seconds it flies before it shrinks away, and the seconds the shrink takes.
 @export_range(0.0, 10.0, 0.1) var flight_seconds := 4.0
 @export_range(0.05, 2.0, 0.05) var shrink_seconds := 0.35
-## How loud the scream starts, from 0 to 1, and the seconds it takes to fade out.
-@export_range(0.0, 1.0, 0.05) var scream_volume := 0.3
+## The seconds the scream, which starts at its mixed level, takes to fade out.
 @export_range(0.1, 5.0, 0.05) var scream_fade_seconds := 1.6
 
 var _velocity := Vector3.ZERO
@@ -64,7 +63,7 @@ func _scream() -> void:
 	var player := AudioStreamPlayer.new()
 	player.stream = SCREAM
 	player.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
-	player.volume_linear = scream_volume
+	player.volume_linear = Audio.get_clip_volume(SCREAM)
 	add_child(player)
 	player.play()
 	if _scream_fade:

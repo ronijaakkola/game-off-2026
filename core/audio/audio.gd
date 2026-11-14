@@ -58,7 +58,7 @@ func play_music(stream: AudioStream, fade := 1.0) -> void:
 	player.stream = stream
 	player.volume_linear = 0.0
 	player.play()
-	_fade(_current, 1.0, fade)
+	_fade(_current, get_clip_volume(stream), fade)
 
 
 ## Fades the music out over [param fade] seconds.
@@ -82,12 +82,21 @@ func get_muffle() -> float:
 	return _muffle
 
 
-## Plays [param stream] once, its pitch varied at random by up to [param pitch_jitter]
-## (0.1 is ±10%). With every player busy, the oldest sound is cut off.
+## How loud [param stream] plays by default, as a multiple of how it was recorded: 1 as
+## recorded, up to [constant ClipLevels.MAX]. A sound that makes its own player sets that
+## player's volume to this; [method play_music] and [method play_sfx] do it themselves.
+func get_clip_volume(stream: AudioStream) -> float:
+	return ClipLevels.of(stream)
+
+
+## Plays [param stream] once at its [method get_clip_volume], its pitch varied at random by
+## up to [param pitch_jitter] (0.1 is ±10%). With every player busy, the oldest sound is
+## cut off.
 func play_sfx(stream: AudioStream, pitch_jitter := 0.0) -> void:
 	var player := _sfx_players[_next_sfx]
 	_next_sfx = (_next_sfx + 1) % SFX_PLAYERS
 	player.stream = stream
+	player.volume_linear = get_clip_volume(stream)
 	player.pitch_scale = 1.0 + randf_range(-pitch_jitter, pitch_jitter)
 	player.play()
 

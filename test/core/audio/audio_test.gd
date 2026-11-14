@@ -4,6 +4,7 @@ const AudioScript := preload("res://core/audio/audio.gd")
 const MUSIC := preload("res://ui/audio/bg.ogg")
 const SFX := preload("res://ui/audio/ui_click.ogg")
 const OTHER_SFX := preload("res://game/bus/dock_bell.ogg")
+const RINGTONE := preload("res://game/solar_system/ringtone.ogg")
 
 var _audio: AudioScript
 
@@ -55,3 +56,10 @@ func test_set_volume_reaches_the_bus() -> void:
 	var music := AudioServer.get_bus_index(&"Music")
 	assert_float(AudioServer.get_bus_volume_linear(music)).is_equal_approx(0.3, 0.001)
 	_audio.set_volume(AudioScript.Bus.MUSIC, before)
+
+
+func test_a_sound_effect_plays_at_its_clip_level() -> void:
+	_audio.play_sfx(RINGTONE)
+	var playing := _players_playing(RINGTONE)
+	assert_array(playing).has_size(1)
+	assert_float(playing[0].volume_linear).is_equal_approx(ClipLevels.of(RINGTONE), 0.001)
