@@ -349,6 +349,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 - The game is one scene, the solar system. A new run opens on the tutorial's zoomed map (Tutorial).
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
 - **A transmission** pauses the game until the player answers it. Closing the pause menu over one leaves the game paused.
+- **A caller's voice:** each race has its own set of short recorded clips (`game/transmissions/voice/`), strung together while the text types out. A race with no clips yet is silent. Every caller of a race has a pitch of their own, fixed by their name. The voice lab, from the debug panel on the main menu, is where the delivery is tuned.
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
 

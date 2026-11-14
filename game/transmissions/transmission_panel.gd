@@ -7,9 +7,9 @@ extends CanvasLayer
 ## it animates while paused, and its layer sits over the HUD and under the pause menu.
 ## It opens in steps: the tube turns on, then the caller says their text a letter at a
 ## time at a speaking pace, a beat between words and a pause at each comma and full stop,
-## talking as they do and falling quiet in the pauses. Only then do the quest, the reward
-## and the buttons fade in one after another. A click on the modal before that shows it
-## all at once.
+## talking as they do and falling quiet in the pauses, in their race's [Voice]. Only then do
+## the quest, the reward and the buttons fade in one after another. A click on the modal
+## before that shows it all at once.
 
 ## The player answered: [param accepted] is true for the primary button.
 signal answered(accepted: bool)
@@ -22,12 +22,6 @@ const FADE_OUT_SECONDS := 0.2
 const START_SCALE := 0.96
 ## Seconds after opening before the caller starts talking: once the tube is on, and a beat.
 const TALK_DELAY := TransmissionScreen.ON_SECONDS + 0.35
-## Seconds after each letter, after a space, after a comma, colon or dash, and after a full
-## stop, question or exclamation mark.
-const LETTER_SECONDS := 0.04
-const SPACE_SECONDS := 0.07
-const COMMA_SECONDS := 0.25
-const STOP_SECONDS := 0.5
 ## How much each wait varies either way, as a share of it, so the pace isn't mechanical.
 const PACE_JITTER := 0.35
 ## A pause at least this long stops the talking until the next word starts.
@@ -76,12 +70,20 @@ func is_open() -> bool:
 	return visible
 
 
+## The caller's voice, which blips along with the text.
+func get_voice() -> VoiceSpeaker:
+	return %Voice as VoiceSpeaker
+
+
 ## Shows [param transmission] and pauses the game until the player answers it.
 func open(transmission: Transmission) -> void:
 	_transmission = transmission
 	PauseMenu.hold(self)
 	Audio.muffle_music(true)
 	_fill(transmission)
+	var voice := get_voice()
+	voice.begin(transmission.race, transmission.caller_name)
+	voice.play_mood(transmission.mood)
 	show()
 	var still := Settings.reduce_motion
 	var modal := %Modal as Control
@@ -109,32 +111,25 @@ func open(transmission: Transmission) -> void:
 	_typing.tween_interval(TALK_DELAY)
 	var text := message.text
 	for i: int in text.length():
-		var wait := _wait_after(text[i])
+		var wait := TalkPace.wait_after(text[i])
 		_typing.tween_callback(_say.bind(i + 1, wait < QUIET_SECONDS))
-		_typing.tween_interval(wait * randf_range(1.0 - PACE_JITTER, 1.0 + PACE_JITTER))
+		var jitter := randf_range(1.0 - PACE_JITTER, 1.0 + PACE_JITTER)
+		_typing.tween_interval(wait * jitter / voice.get_typing_speed())
 	_typing.tween_callback(_reveal.bind(false))
 
 
 # Shows the first [param letters] letters, talking unless a pause comes next.
 func _say(letters: int, talking: bool) -> void:
-	(%Message as Label).visible_characters = letters
+	var message := %Message as Label
+	message.visible_characters = letters
 	_set_talking(talking)
-
-
-# How long the caller waits after saying [param letter] before the next.
-static func _wait_after(letter: String) -> float:
-	if letter in [".", "!", "?"]:
-		return STOP_SECONDS
-	if letter in [",", ";", ":", "—"]:
-		return COMMA_SECONDS
-	if letter == " ":
-		return SPACE_SECONDS
-	return LETTER_SECONDS
+	get_voice().letter(message.text, letters - 1)
 
 
 ## Shows the whole text at once and fades in the rest, as a click on the modal does.
 func skip() -> void:
 	if not _revealed:
+		get_voice().stop()
 		_reveal(true)
 
 

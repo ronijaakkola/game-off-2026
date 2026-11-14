@@ -1,0 +1,211 @@
+[gd_scene format=3 uid="uid://brd1wk0esa565"]
+
+[ext_resource type="Script" uid="uid://c0tj1og2vbolg" path="res://game/transmissions/voice_lab.gd" id="1_lab"]
+[ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="2_panel"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="3_theme"]
+
+[node name="VoiceLab" type="Node" unique_id=1365572737]
+process_mode = 3
+script = ExtResource("1_lab")
+
+[node name="TransmissionPanel" parent="." unique_id=1536637560 instance=ExtResource("2_panel")]
+unique_name_in_owner = true
+
+[node name="Controls" type="CanvasLayer" parent="." unique_id=389427796]
+layer = 6
+
+[node name="Root" type="MarginContainer" parent="Controls" unique_id=907553326]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("3_theme")
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Columns" type="HBoxContainer" parent="Controls/Root" unique_id=628987846]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Setup" type="PanelContainer" parent="Controls/Root/Columns" unique_id=1707952972]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_vertical = 0
+theme_type_variation = &"CardPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Controls/Root/Columns/Setup" unique_id=952023018]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Controls/Root/Columns/Setup/Rows" unique_id=164534474]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Voice lab"
+
+[node name="RaceLabel" type="Label" parent="Controls/Root/Columns/Setup/Rows" unique_id=679318362]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Race"
+
+[node name="RaceOption" type="OptionButton" parent="Controls/Root/Columns/Setup/Rows" unique_id=2071718192]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+
+[node name="MoodLabel" type="Label" parent="Controls/Root/Columns/Setup/Rows" unique_id=1377429903]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Mood"
+
+[node name="MoodOption" type="OptionButton" parent="Controls/Root/Columns/Setup/Rows" unique_id=1552148185]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+
+[node name="NameLabel" type="Label" parent="Controls/Root/Columns/Setup/Rows" unique_id=774181728]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Caller's name (sets their pitch)"
+
+[node name="NameEdit" type="LineEdit" parent="Controls/Root/Columns/Setup/Rows" unique_id=1823755010]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="NameRow" type="HBoxContainer" parent="Controls/Root/Columns/Setup/Rows" unique_id=172166888]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CallerPitch" type="Label" parent="Controls/Root/Columns/Setup/Rows/NameRow" unique_id=1791645876]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SmallLabel"
+text_overrun_behavior = 3
+
+[node name="AnotherButton" type="Button" parent="Controls/Root/Columns/Setup/Rows/NameRow" unique_id=1745735539]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Another caller"
+
+[node name="TextLabel" type="Label" parent="Controls/Root/Columns/Setup/Rows" unique_id=51244624]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "What they say"
+
+[node name="TextEdit" type="TextEdit" parent="Controls/Root/Columns/Setup/Rows" unique_id=30643846]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+wrap_mode = 1
+
+[node name="SpeakButton" type="Button" parent="Controls/Root/Columns/Setup/Rows" unique_id=1573995471]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"PrimaryButton"
+text = "Speak"
+
+[node name="StingerLabel" type="Label" parent="Controls/Root/Columns/Setup/Rows" unique_id=218756327]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "Stingers"
+
+[node name="Stingers" type="HBoxContainer" parent="Controls/Root/Columns/Setup/Rows" unique_id=1429836745]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="AnnoyedButton" type="Button" parent="Controls/Root/Columns/Setup/Rows/Stingers" unique_id=1659551746]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Annoyed"
+
+[node name="HappyButton" type="Button" parent="Controls/Root/Columns/Setup/Rows/Stingers" unique_id=737330078]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Happy"
+
+[node name="ScaredButton" type="Button" parent="Controls/Root/Columns/Setup/Rows/Stingers" unique_id=1270542631]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Scared"
+
+[node name="BackButton" type="Button" parent="Controls/Root/Columns/Setup/Rows" unique_id=541153031]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Back to menu"
+
+[node name="Spacer" type="Control" parent="Controls/Root/Columns" unique_id=1762139471]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Tuning" type="PanelContainer" parent="Controls/Root/Columns" unique_id=782851118]
+custom_minimum_size = Vector2(290, 0)
+layout_mode = 2
+size_flags_vertical = 0
+theme_type_variation = &"CardPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Controls/Root/Columns/Tuning" unique_id=374273345]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ParamsTitle" type="Label" parent="Controls/Root/Columns/Tuning/Rows" unique_id=1970820914]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Voice"
+
+[node name="NoVoice" type="Label" parent="Controls/Root/Columns/Tuning/Rows" unique_id=428292304]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"BodyTextLabel"
+text = "No clips for this race yet, so it is silent."
+autowrap_mode = 3
+
+[node name="Params" type="VBoxContainer" parent="Controls/Root/Columns/Tuning/Rows" unique_id=1987375317]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ParamButtons" type="HBoxContainer" parent="Controls/Root/Columns/Tuning/Rows" unique_id=1745174285]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CopyButton" type="Button" parent="Controls/Root/Columns/Tuning/Rows/ParamButtons" unique_id=131067581]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Copy values"
+
+[node name="ResetButton" type="Button" parent="Controls/Root/Columns/Tuning/Rows/ParamButtons" unique_id=25445090]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Reset"
+
+[connection signal="item_selected" from="Controls/Root/Columns/Setup/Rows/RaceOption" to="." method="_on_race_option_item_selected"]
+[connection signal="text_changed" from="Controls/Root/Columns/Setup/Rows/NameEdit" to="." method="_on_name_edit_text_changed"]
+[connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/NameRow/AnotherButton" to="." method="_on_another_button_pressed"]
+[connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/SpeakButton" to="." method="_on_speak_button_pressed"]
+[connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/Stingers/AnnoyedButton" to="." method="_on_annoyed_button_pressed"]
+[connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/Stingers/HappyButton" to="." method="_on_happy_button_pressed"]
+[connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/Stingers/ScaredButton" to="." method="_on_scared_button_pressed"]
+[connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="pressed" from="Controls/Root/Columns/Tuning/Rows/ParamButtons/CopyButton" to="." method="_on_copy_button_pressed"]
+[connection signal="pressed" from="Controls/Root/Columns/Tuning/Rows/ParamButtons/ResetButton" to="." method="_on_reset_button_pressed"]

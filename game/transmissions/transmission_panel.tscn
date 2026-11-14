@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="7_planet"]
 [ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://shared/icons/flag.svg" id="8_flag"]
 [ext_resource type="Texture2D" uid="uid://b2w4upsxpmhrb" path="res://shared/icons/dollar_sign.svg" id="9_dollar"]
+[ext_resource type="Script" uid="uid://b0qfu6wawycw7" path="res://game/transmissions/voice/voice_speaker.gd" id="10_voice"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest"]
 content_margin_left = 10.0
@@ -25,6 +26,10 @@ corner_radius_bottom_left = 8
 process_mode = 3
 layer = 5
 script = ExtResource("1_panel")
+
+[node name="Voice" type="Node" parent="." unique_id=1602966718]
+unique_name_in_owner = true
+script = ExtResource("10_voice")
 
 [node name="Root" type="Control" parent="." unique_id=1548843942]
 unique_name_in_owner = true
