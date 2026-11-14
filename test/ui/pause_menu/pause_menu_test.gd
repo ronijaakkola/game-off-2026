@@ -66,6 +66,21 @@ func test_resume_closes_the_settings_panel_too() -> void:
 	assert_bool(get_tree().paused).is_false()
 
 
+func test_skip_tutorial_shows_only_when_offered_and_skips_from_a_closed_menu() -> void:
+	var runner := scene_runner(SCENE)
+	runner.invoke("open")
+	var skip := runner.find_child("SkipTutorialButton") as Button
+	assert_bool(skip.is_visible_in_tree()).is_false()
+
+	runner.set_property("offers_skip_tutorial", true)
+	assert_bool(skip.is_visible_in_tree()).is_true()
+	monitor_signals(runner.scene())
+	skip.pressed.emit()
+	assert_bool(runner.scene().visible).is_false()
+	assert_bool(get_tree().paused).is_false()
+	await assert_signal(runner.scene()).is_emitted("skip_tutorial_pressed")
+
+
 func test_esc_in_settings_goes_back_to_the_paused_menu() -> void:
 	var runner := scene_runner(SCENE)
 	runner.invoke("open")

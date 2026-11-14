@@ -117,6 +117,8 @@ const RIDE_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE, Step.FL
 @export var research_lab: ResearchLab
 ## The research screen, which can't close until the last step in it.
 @export var research_screen: ResearchScreen
+## Offers to skip it while it runs.
+@export var pause_menu: PauseMenu
 ## Points at what a step is about and says what to do.
 @export var guide: GuideCard
 
@@ -218,6 +220,8 @@ func start() -> void:
 	guide.acknowledged.connect(_on_guide_acknowledged)
 	research_lab.get_research().researched.connect(_on_researched)
 	research_screen.closed.connect(_on_research_closed)
+	pause_menu.offers_skip_tutorial = true
+	pause_menu.skip_tutorial_pressed.connect(skip)
 	cabin.getting_off.connect(_on_getting_off)
 	dock_panel.research_pressed.connect(_on_research_pressed)
 	intro.ended.connect(_on_call_ended)
@@ -543,6 +547,9 @@ func _finish() -> void:
 	# The camera stays locked: the zoom out holds it until the run starts.
 	map_zoom.zoomed_out.connect(_on_zoomed_out, CONNECT_ONE_SHOT)
 	_rules.lift()
+	pause_menu.offers_skip_tutorial = false
+	# Skipped over the research screen, it closes, so the zoom out isn't held paused.
+	research_screen.close()
 	resource_bar.breathe(PASSENGER_RACE, false)
 	_rules.pause(false)
 	if _step in TRIP_STEPS:

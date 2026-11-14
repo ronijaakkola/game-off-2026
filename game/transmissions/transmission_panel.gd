@@ -53,6 +53,8 @@ const CHIP_TINT := 0.18
 
 var _transmission: Transmission
 var _revealed := false
+# Whether it is closing, after an answer.
+var _answering := false
 # The one tween for each thing that moves: the scrim and modal fading in and out, the text,
 # and the cascade.
 var _fade: Tween
@@ -79,6 +81,7 @@ func is_open() -> bool:
 ## Shows [param transmission] and pauses the game until the player answers it.
 func open(transmission: Transmission) -> void:
 	_transmission = transmission
+	_answering = false
 	PauseMenu.hold(self)
 	Audio.muffle_music(true)
 	_fill(transmission)
@@ -138,6 +141,13 @@ func skip() -> void:
 		_reveal(true)
 
 
+## Closes it as the decline button would, as when what it belongs to is skipped. Does
+## nothing unless it is open, or once it is closing.
+func close() -> void:
+	if is_open() and not _answering:
+		_answer(false)
+
+
 func _on_modal_gui_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT and not _revealed:
@@ -154,6 +164,7 @@ func _on_decline_button_pressed() -> void:
 
 
 func _answer(accepted: bool) -> void:
+	_answering = true
 	_set_buttons_live(false)
 	Audio.muffle_music(false)
 	(%Screen as TransmissionScreen).turn_off()

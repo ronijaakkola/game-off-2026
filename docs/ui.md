@@ -373,7 +373,7 @@ Titled "Frameshift Bus".
 
 - **Main menu:** title, Play, Settings, Quit (hidden on web). With a save game, Continue comes first as the primary button and has focus, and a plain "New game" button takes Play's place, with no hint that it has to be held: held for 1.2 s, a faint fill growing across it, it starts over; let go early, the fill drains back twice as fast. On web a title card (the game's title, "Click to start") comes first. The debug panel's "Delete save" deletes the save, and the menu turns back to Play; its "Reset settings" puts every setting back to its default.
 - **Show FPS** (settings, off by default): one line in the top right corner, over every scene, the HUD included: the frame rate, the size the game renders at in real pixels, the MSAA, and any rendering switch turned off ("40 FPS · 2560×1440 · MSAA 4x · no glass"). Small off-white text with a navy outline on a dark backing (`#0B0920` at 85 %, 4 px corners), 4 px from the corner.
-- **Pause menu:** Resume, Settings, Main menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
+- **Pause menu:** Resume, Settings, Main menu. Through the tutorial, a Skip tutorial button sits above them, 12 px further apart than the rest; it closes the menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
 - **Settings:** three volume sliders, a rule, then the Reduce motion and Edge pan toggles, and Back as the primary button. Every row is 38 px high with its label and control centred, so the five rows have one pitch; the rule sits 16 px from the rows above and below.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 

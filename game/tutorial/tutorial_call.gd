@@ -56,12 +56,13 @@ func ring(caller: String, text: String, answers: Array[String]) -> void:
 	_notice.action_pressed.connect(_on_answered.bind(caller, text, answers))
 
 
-## Takes the call notice away, and no call comes or ends after.
+## Takes the call notice away, or closes the call, and no call comes or ends after.
 func cancel() -> void:
 	_cancelled = true
 	if _notice:
 		_notice.dismiss()
 		_notice = null
+	transmission_panel.close()
 
 
 # Answer: The Boss's transmission opens.

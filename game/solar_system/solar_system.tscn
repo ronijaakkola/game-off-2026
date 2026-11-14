@@ -336,7 +336,7 @@ bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 
-[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "map_zoom", "lab_badges", "research_lab", "research_screen", "guide")]
+[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "map_zoom", "lab_badges", "research_lab", "research_screen", "pause_menu", "guide")]
 unique_name_in_owner = true
 script = ExtResource("112_tutorial")
 bus = NodePath("../Bus")
@@ -356,6 +356,7 @@ map_zoom = NodePath("../MapZoom")
 lab_badges = NodePath("../Hud/LabBadges")
 research_lab = NodePath("../ResearchLab")
 research_screen = NodePath("../Hud/ResearchScreen")
+pause_menu = NodePath("../PauseMenu")
 guide = NodePath("../Hud/GuideCard")
 
 [node name="Call" type="Node" parent="Tutorial" unique_id=1313732372 node_paths=PackedStringArray("hud", "notices", "transmission_panel")]
