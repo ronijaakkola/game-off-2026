@@ -34,11 +34,12 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Stops.** A route is an ordered list of stops, each a planet or a point in space. The bus docks at every planet on the route and passes through points in space. It holds still at a point in space that ends the route.
 - **A planet stop** is the planet's near side, so the bus chases a moving planet.
 - **Setting a course** works as in a real-time strategy game: a right click sets the route to the one stop under the pointer, and with the queue key held adds it to the end, so the stops come in the order clicked. The planet the route already ends at isn't added again straight after itself.
+- **Steering by hand.** A point in space set with the right button follows the pointer for as long as the button stays down, every frame, so the bus chases it. Where the bus reaches it, as when the pointer rests, it stops; moving the pointer 0.3 units on sets a new point, which leaves at once while the drive is still warm from stopping (1 s) and otherwise waits for a charge.
 - **Round trips.** A planet earlier on the route can be added again, and so can the planet the bus is docked at once the route has a stop.
 - **The queue key** is Shift or Q, both in every browser. Firefox opens its own context menu on Shift + right-click and a page can't stop it, so in Firefox the hints name Q. Not Ctrl: a page can't block Ctrl+W, and W pans the camera.
 - **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
 - **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. With the drive cold, the player charges it by holding the Frameshift key for 3 s. The bus turns toward its next stop meanwhile.
-- **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 6 s, which picking someone up and refuelling spend; research pauses the game and the cooling with it. Holding the Frameshift key while warm starts the charge from the warmth left, building 1.25 times as fast, so a quick stop takes a short hold. Letting go of it drains the charge four times as fast as it builds (0.75 s from full), and the drive is cold from then on: held again, it charges at the normal speed. The bus never leaves by itself. Towed in, the drive is cold.
+- **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 6 s, which picking someone up and refuelling spend; research pauses the game and the cooling with it. Holding the Frameshift key while warm starts the charge from the warmth left, building 1.5 times as fast, so a quick stop takes a short hold. Letting go of it drains the charge four times as fast as it builds (0.75 s from full), and the drive is cold from then on: held again, it charges at the normal speed. The bus never leaves by itself. Towed in, the drive is cold.
 - The reward is for leaving quickly; a queued route only makes that easier. A cold drive costs the passengers riding on (Happiness).
 - **Letting go** drains the charge twice as fast as it built and keeps the course; holding again charges from what is left. Cancelling keeps the bus docked.
 - **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
@@ -323,6 +324,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 | Left click the open thing, or empty space | Close it |
 | Right click a planet or empty space | Set the route to it: the planet, or a point in space (Route and flight) |
 | Shift or Q + right click | Add it to the end of the route |
+| Hold the right button on empty space | The point in space follows the pointer until let go, to steer by hand |
 | Backspace or Delete | Take the last stop off the route |
 | The X on a stop in the route bar | Take that stop off the route |
 | W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |

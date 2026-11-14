@@ -3,7 +3,8 @@ extends Node3D
 ## The solar system. The pointer picks a planet, which shows a white border; a pointer over
 ## the HUD picks nothing. A right click sets the bus's route to a stop: the planet under the
 ## pointer, or the point on the orbit plane under it. With the [QueueKey] held, it adds the
-## stop to the end of the route instead. The clear_route action takes the last stop off,
+## stop to the end of the route instead. A point in space follows the pointer for as long
+## as the button stays down ([CourseDrag]). The clear_route action takes the last stop off,
 ## as the route bar's X does any planet's.
 ## Planets on the route show an orange border.
 ## A new run from the main menu starts with the [Tutorial], on the map zoomed in on Terra
@@ -41,7 +42,6 @@ const OUTLINE_PIXELS := 3.0
 const LABEL_PIXELS := 13.0
 ## The gap between a planet's lower edge on screen and its name, in pixels.
 const LABEL_GAP_PIXELS := 0.0
-const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
 ## The process priority Phantom Camera's host sets on itself to move the camera, after
@@ -75,6 +75,8 @@ var _fade := 1.0
 var _faded_planet: Planet
 # How to set a course, until the player first sets one.
 var _course_hint: Notice
+# The point in space a held right click drags.
+var _course_drag: CourseDrag
 
 
 # Before the planets, the bus and the camera are ready, so a continued run starts where it
@@ -96,6 +98,7 @@ func _ready() -> void:
 	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
 	process_priority = CAMERA_HOST_PRIORITY + 1
 	(%OrbitClock as OrbitClock).start(_planets)
+	_course_drag = CourseDrag.new(%Bus as FrameshiftBus, %Camera as Camera3D)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
 	for planet: Planet in _planets:
@@ -154,6 +157,7 @@ func _process(delta: float) -> void:
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
 	var mouse := get_viewport().get_mouse_position()
+	_course_drag.follow(mouse)
 	var over_hud := get_viewport().gui_get_hovered_control() != null
 	# What a left click would open shows the white border.
 	var picked: Node3D = null if over_hud else _pick_at(mouse)
@@ -200,6 +204,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not stop or not (%Tutorial as Tutorial).allows_course():
 		return
 	(%Bus as FrameshiftBus).plot_course(stop, QueueKey.is_held())
+	_course_drag.start(stop)
 	if _course_hint:
 		_course_hint.dismiss()
 		_course_hint = null
@@ -407,10 +412,7 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 	var planet := _planet_at(screen_point)
 	if planet:
 		return RouteStop.at_planet(planet)
-	var camera := %Camera as Camera3D
-	var hit: Variant = ORBIT_PLANE.intersects_ray(
-		camera.project_ray_origin(screen_point), camera.project_ray_normal(screen_point)
-	)
+	var hit: Variant = CourseDrag.point_under(%Camera as Camera3D, screen_point)
 	if hit == null:
 		return null
 	return RouteStop.at_point(hit)

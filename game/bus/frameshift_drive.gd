@@ -15,7 +15,7 @@ var drain := 2.0
 ## Seconds a warm drive takes to go cold.
 var cool_time := 6.0
 ## How many times as fast a charge started warm builds.
-var warm_boost := 1.25
+var warm_boost := 1.5
 ## How many times faster than a charge builds one started warm drains, once let go.
 var warm_drain := 4.0
 ## Whether the player holds the Frameshift key. The bus lets go for them when it leaves or

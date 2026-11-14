@@ -66,7 +66,7 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 		cool_time = value
 		_drive.cool_time = value
 ## How many times as fast a charge started warm builds.
-@export_range(1.0, 5.0, 0.05) var warm_boost := 1.25:
+@export_range(1.0, 5.0, 0.05) var warm_boost := 1.5:
 	set(value):
 		warm_boost = value
 		_drive.warm_boost = value
