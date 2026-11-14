@@ -11,6 +11,9 @@ extends RefCounted
 ## A request is served over time: the player's hold on the serve button and the bus's food
 ## amenities [method feed] it, and it closes once full.
 
+## They changed their mind mid-ride and are going somewhere else ([method reroute]).
+signal rerouted
+
 enum Mood { HAPPY, OKAY, ANNOYED, FURIOUS }
 
 ## What each mood pays, as a multiple of the fare.
@@ -302,6 +305,7 @@ func reroute(to: Planet, seconds: float, base_fare: float) -> void:
 	trip_seconds = _clock + seconds
 	expected_seconds = _clock + seconds * type.slack
 	leeway = 0.0
+	rerouted.emit()
 
 
 ## They have reached their destination. A request they have had open, or on hold, for

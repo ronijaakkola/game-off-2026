@@ -273,6 +273,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
   - Amenities have their own lines: "Getting a snack from the dispenser", "Waiting for the dispenser", "A droid brings a snack", "Waiting for a droid".
   - A request on hold at a stop shows them idling.
 - **Options.** The pointer over a card fades its options in to the right of the On board panel, with no slide; Reduce motion keeps the fade. There is one: Kick, with a kicking shoe icon. A card showing a rating has none, nor does any during the tutorial.
+- **A change of destination,** as when the player accepts an express quest: the card slides out of its group as a kicked one does, and slides back in at the bottom of the new destination's group, which opens at the bottom when there is none yet. The old group folds away if it emptied, and both counts update.
 - **Getting off.** When the bus docks, everyone going there shows their rating at once.
   - The middle row sinks a few pixels and fades out while five empty stars drop in from just above. Then the stars fill to the rating one after another, each swelling as it turns yellow. The line morphs to "Getting off".
   - The card lingers for 2.2 s from when the stop starts, long enough for five stars to fill and be read. Only then, and at their turn, does it leave.
