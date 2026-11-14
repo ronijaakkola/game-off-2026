@@ -106,8 +106,7 @@ func is_escaping() -> bool:
 	return _escaping
 
 
-## Whether it overheated and is cooling down. Meanwhile no course can be set and the drive
-## can't charge.
+## Whether it overheated and is cooling down. Meanwhile the drive can't charge.
 func is_cooling() -> bool:
 	return _cooldown_left > 0.0
 

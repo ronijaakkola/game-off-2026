@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## The heat zone keeping the bus out of the star: a bus sent straight at it brakes to a stop
-## short of its surface and overheats there, its route cleared and no new course taken until
-## it has cooled down. Driven frame by frame with a fixed step.
+## short of its surface and overheats there, its route cleared. A course set while it cools
+## down waits there for a charge until it has cooled. Driven frame by frame with a fixed
+## step.
 
 const BUS := "res://game/bus/bus.tscn"
 const HEAT_SHADER := "res://game/solar_system/heat_zone.gdshader"
@@ -64,17 +65,22 @@ func test_a_bus_sent_through_the_star_stops_short_of_it_and_overheats() -> void:
 	assert_bool(overheated).is_true()
 	assert_float(nearest).is_greater(temperature.star_radius + FrameshiftBus.RADIUS)
 	assert_array(_bus.get_route_planets()).is_empty()
-	# While it cools down, no course can be set.
+	# A course set while it cools down stays, but the bus coasts to a stop and the drive
+	# doesn't charge, though the key is held.
 	_bus.plot_course(RouteStop.at_planet(_far))
-	assert_array(_bus.get_route_planets()).is_empty()
-	# It coasts to a stop, still clear of the star.
-	for i: int in roundi(temperature.cooldown_time / STEP) + 1:
+	_bus.frameshift_held = true
+	assert_array(_bus.get_route_planets()).is_not_empty()
+	for i: int in roundi(temperature.cooldown_time / STEP) - 2:
 		_step()
 		nearest = minf(nearest, _distance())
+		assert_int(_bus.state).is_not_equal(FrameshiftBus.State.CHARGING)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.HOLDING)
 	assert_float(nearest).is_greater(temperature.star_radius + FrameshiftBus.RADIUS)
+	# Cooled down, it charges for the course.
+	for i: int in 4:
+		_step()
 	assert_bool(temperature.is_cooling()).is_false()
-	_bus.plot_course(RouteStop.at_planet(_far))
-	assert_array(_bus.get_route_planets()).is_not_empty()
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 
 # The bus runs first each frame, as it does in the game, so it flies by last frame's cap.
