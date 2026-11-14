@@ -74,6 +74,15 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 - **Docking** rings a bell.
 - **Hover.** A white border as wide on screen as a planet's, only past its silhouette. Not while the bus is open.
 
+### Quick text
+
+A stamp of a few words with an icon that lands over the bus when something about the driving is worth a nod, then goes. Nothing shows one yet.
+
+- **Look.** A Lucide icon (15 px) 3 px before the text (Baloo 2 ExtraBold, 14 px), in one colour with a 2 px navy outline (`#141230`) and a hard shadow (`#0B0920`, 1 px right, 2 px down), tilted 5° counter-clockwise so the text climbs to the right. The icon's lines are thickened to read as 2 px beside the heavy text.
+- **Kinds.** A remark in the bus's yellow (`#F5C74A`), a gain in green (`#8CD966`), a loss in red (`#F24D66`). Three words at most, sentence case.
+- **Placement.** Centred over the bus, its lowest corner 6 px above the bus on screen, following it at the same size at any zoom; over the map's labels, under the HUD panels. One at a time: a new one replaces the one showing at once. While a planet's or the bus's panel is open it hides, and one that would show is dropped.
+- **Motion.** 1.5 s in all, about its centre, never drifting: it slams from 160 % to 92 % easing in over 0.14 s, fading in over the first 0.08 s, springs back to 100 % easing out by 0.25 s, holds until 1.3 s, then shrinks to 80 % while fading out, easing in. Under Reduce motion it fades in over 0.15 s at full size, holds until 1.3 s, and fades out over 0.2 s; the tilt stays.
+
 ### The tow ship
 
 - A stubby coral-red tug, so it never reads as the bus: a cab at the bow, a push bumper, a winch and an A-frame tow boom over the stern, an oversized engine on a stub wing each side so the exhaust passes either side of the cable, a blinking orange beacon on its roof.

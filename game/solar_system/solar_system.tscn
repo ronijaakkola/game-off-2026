@@ -40,13 +40,14 @@
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 [ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
 [ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
-[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 [ext_resource type="Script" uid="uid://dl6s4c30gtvik" path="res://game/solar_system/orbit_clock.gd" id="109_orbit_clock"]
 [ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="109_transmission"]
 [ext_resource type="Script" uid="uid://h318eugw35ag" path="res://game/solar_system/map_zoom.gd" id="110_map_zoom"]
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
+[ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
+[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -371,11 +372,11 @@ quests = NodePath("../Quests")
 
 [node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quest_giver", "test_destination", "test_flyby_planet")]
 script = ExtResource("103_debug")
-quest_giver = NodePath("../QuestGiver")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
+quest_giver = NodePath("../QuestGiver")
 test_destination = NodePath("../World/Giant")
 test_flyby_planet = NodePath("../World/Frost")
 
@@ -394,10 +395,10 @@ dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 [node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "cabin", "goals", "quest_giver", "research_lab")]
 unique_name_in_owner = true
 script = ExtResource("108_saver")
-quest_giver = NodePath("../QuestGiver")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 goals = NodePath("../Goals")
+quest_giver = NodePath("../QuestGiver")
 research_lab = NodePath("../ResearchLab")
 
 [node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "research_screen")]
@@ -439,6 +440,12 @@ camera = NodePath("../../Camera")
 unique_name_in_owner = true
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")
+
+[node name="BusQuickText" parent="Hud" unique_id=1403942728 node_paths=PackedStringArray("camera", "bus", "panels") instance=ExtResource("114_quick_text")]
+unique_name_in_owner = true
+camera = NodePath("../../Camera")
+bus = NodePath("../../Bus")
+panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
 
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
