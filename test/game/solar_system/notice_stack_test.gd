@@ -54,3 +54,20 @@ func test_a_notice_replacing_a_leaving_one_comes_in_under_it() -> void:
 	var new := stack.push("Hold the Frameshift key to charge.", Notice.Kind.TUTORIAL)
 
 	assert_array(stack.get_notices()).contains_exactly([old, new, kept])
+
+
+func test_the_bus_full_notice_shows_once_and_another_try_prolongs_it() -> void:
+	var stack := (load(STACK) as PackedScene).instantiate() as NoticeStack
+	add_child(stack)
+	auto_free(stack)
+	var notice := stack.tell_bus_full()
+	await await_millis(int(NoticeStack.BUS_FULL_SECONDS * 1000.0 * 0.6))
+
+	assert_object(stack.tell_bus_full()).is_same(notice)
+	assert_int(stack.get_child_count()).is_equal(1)
+	# Past when the first try's time ran out, the second's still runs.
+	await await_millis(int(NoticeStack.BUS_FULL_SECONDS * 1000.0 * 0.6))
+	assert_bool(notice.is_leaving()).is_false()
+	await assert_signal(notice).wait_until(2000).is_emitted("dismissed")
+	# Once it has gone, the next try brings a new one.
+	assert_object(stack.tell_bus_full()).is_not_same(notice)

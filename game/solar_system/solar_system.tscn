@@ -49,6 +49,7 @@
 [ext_resource type="Script" uid="uid://dwyqyf3dug5pa" path="res://game/solar_system/heat_zone.gd" id="114_heat_zone"]
 [ext_resource type="Shader" uid="uid://bfd4gbew06myw" path="res://game/solar_system/heat_zone.gdshader" id="115_heat_shader"]
 [ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
+[ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
@@ -467,6 +468,12 @@ unique_name_in_owner = true
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")
 
+[node name="BusQuickText" parent="Hud" unique_id=1403942728 node_paths=PackedStringArray("camera", "bus", "panels") instance=ExtResource("114_quick_text")]
+unique_name_in_owner = true
+camera = NodePath("../../Camera")
+bus = NodePath("../../Bus")
+panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
+
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
 
@@ -492,10 +499,11 @@ tracker = NodePath("../../../../Goals")
 quest_giver = NodePath("../../../../QuestGiver")
 portrait_studio = NodePath("../../../../PortraitStudio")
 
-[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 node_paths=PackedStringArray("research_lab") instance=ExtResource("23_dock")]
+[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 node_paths=PackedStringArray("research_lab", "notices") instance=ExtResource("23_dock")]
 unique_name_in_owner = true
 layout_mode = 2
 research_lab = NodePath("../../../../ResearchLab")
+notices = NodePath("../../../Notices")
 
 [node name="TopCentre" type="MarginContainer" parent="Hud" unique_id=1703736930]
 unique_name_in_owner = true
