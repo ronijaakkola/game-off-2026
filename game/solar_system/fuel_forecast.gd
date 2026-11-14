@@ -18,6 +18,9 @@ const GAP_PIXELS := 4.0
 const LEG_GAP_PIXELS := 2.0
 ## The leg costs' font size; the total's is set in the scene.
 const LEG_FONT_SIZE := 11
+## How far the route line's diamond at a point in space reaches, in world units, so the
+## forecast sits clear of it.
+const MARKER_REACH := 0.22
 ## The process priority Phantom Camera's host sets on itself to move the camera.
 const CAMERA_HOST_PRIORITY := 300
 
@@ -88,7 +91,7 @@ func _top_of(stop: RouteStop) -> Vector3:
 	if stop.planet:
 		var center := stop.planet.get_body_global_position()
 		return center + camera.global_basis.y * stop.planet.get_body_radius()
-	return stop.point + camera.global_basis.y * bus.get_marker_size()
+	return stop.point + camera.global_basis.y * MARKER_REACH
 
 
 func _show(cost: float, top: Vector2) -> void:

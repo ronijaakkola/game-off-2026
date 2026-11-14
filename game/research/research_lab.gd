@@ -7,7 +7,8 @@ extends Node
 ## panel's to say: those with a lab ([member Planet.has_lab]). It adds the debug panel's
 ## Resources buttons, which give credits and research points for testing, its Open
 ## research button, which opens the screen from anywhere, and its Promote button, which
-## opens the next stage until promotions are built.
+## opens the next stage until promotions are built. While [member restricted], as in the
+## tutorial, only [member researchable] upgrades can be researched.
 
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
@@ -34,6 +35,10 @@ var ledger: Ledger:
 		ledger = value
 		if research_screen:
 			research_screen.ledger = value
+
+## Whether only [member researchable] upgrades can be researched.
+var restricted := false
+var researchable: Array[Upgrade] = []
 
 var _research: Research
 
@@ -97,6 +102,8 @@ func commit() -> void:
 ## Researches [param upgrade] when it is available, paying its cost. Otherwise it does
 ## nothing.
 func research(upgrade: Upgrade) -> void:
+	if restricted and upgrade not in researchable:
+		return
 	if _research.get_state(upgrade, get_credits(), get_points()) != Research.State.AVAILABLE:
 		return
 	if upgrade.credits > 0:

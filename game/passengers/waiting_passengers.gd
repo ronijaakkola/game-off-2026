@@ -76,6 +76,8 @@ var _until_leave: Dictionary[Planet, float] = {}
 # undecided ones.
 var _waited: Dictionary[Planet, Array] = {}
 var _race_bag: Array[Race.Type] = []
+# Races to deal before the bag's, first first ([method deal_next]).
+var _next_races: Array[Race.Type] = []
 
 
 func _process(delta: float) -> void:
@@ -264,9 +266,17 @@ func _pick_type(line: Array) -> PassengerType:
 	return ordinary
 
 
+## Makes the next passenger created [param race], in place of a race from the bag, as the
+## tutorial's passenger is.
+func deal_next(race: Race.Type) -> void:
+	_next_races.append(race)
+
+
 # The next race from the bag, which holds RACE_BAG_COPIES of each, shuffled, so no race
-# stays away for long.
+# stays away for long; or one asked for with deal_next(), first.
 func _deal_race() -> Race.Type:
+	if not _next_races.is_empty():
+		return _next_races.pop_front()
 	if _race_bag.is_empty():
 		for value: int in Race.Type.values():
 			for i: int in RACE_BAG_COPIES:

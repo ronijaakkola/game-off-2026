@@ -213,6 +213,50 @@ func test_cards_group_by_destination_in_the_order_the_planets_came_up() -> void:
 	assert_array(_names(groups[1])).is_equal([second.name])
 
 
+func test_a_rerouted_passenger_s_card_moves_to_their_new_destination_s_group() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var terra: Planet = auto_free(Planet.new())
+	terra.name = "Terra"
+	var frost: Planet = auto_free(Planet.new())
+	frost.name = "Frost"
+	var first := _passenger(terra, 1000.0)
+	var second := _passenger(frost, 1000.0)
+	cabin.board(first)
+	cabin.board(second)
+	await runner.simulate_frames(30, 30)
+
+	# An express quest accepted: they go to Frost now.
+	first.reroute(frost, 10.0, 0.0)
+	var card := (runner.scene() as PassengerPanel).get_card(first)
+	assert_object(card).is_not_null()
+	await runner.simulate_frames(60, 30)
+
+	# Their old card has left, and with it Terra's group; they ride under Frost, last.
+	var groups := (runner.find_child("Cards") as Control).get_children()
+	assert_int(groups.size()).is_equal(1)
+	assert_str((groups[0].find_child("PlanetLabel") as Label).text).is_equal("Frost")
+	assert_str((groups[0].find_child("CountLabel") as Label).text).is_equal("2")
+	assert_array(_names(groups[0])).is_equal([second.name, first.name])
+	assert_object((runner.scene() as PassengerPanel).get_card(first)).is_same(card)
+
+
+func test_a_passenger_boarding_while_arrivals_are_held_comes_in_once_let_go() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var planet: Planet = auto_free(Planet.new())
+	runner.set_property("arrivals_held", true)
+
+	cabin.board(_passenger(planet, 1000.0))
+	await runner.simulate_frames(2)
+	var cards := runner.find_child("Cards") as Control
+	assert_int(_cards_in(cards).size()).is_equal(0)
+
+	runner.set_property("arrivals_held", false)
+	await runner.simulate_frames(2)
+	assert_int(_cards_in(cards).size()).is_equal(1)
+
+
 func _names(group: Node) -> Array[String]:
 	var names: Array[String] = []
 	for card: PassengerCard in _cards_in(group):

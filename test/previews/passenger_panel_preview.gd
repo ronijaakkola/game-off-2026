@@ -7,6 +7,8 @@ extends Node
 ## card, so its options slide out.
 ## `-- Scare` gives everyone a kick's scare a few frames in, so the bars drop and leave
 ## their red trail.
+## `-- Reroute` sends the first passenger to Frost instead of Ember a few frames in, as an
+## express quest does, so their card moves to Frost's group.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
@@ -67,6 +69,10 @@ func _ready() -> void:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		cabin.shock(Cabin.KICK_SHOCK)
+	if "Reroute" in OS.get_cmdline_user_args():
+		await get_tree().process_frame
+		await get_tree().process_frame
+		cabin.get_passengers()[0].reroute(planets[DESTINATIONS.find("Frost")], 60.0, 40.0)
 	if "Kick" in OS.get_cmdline_user_args():
 		# The cards lay out a frame in.
 		await get_tree().process_frame

@@ -4,10 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="90_glass"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
-content_margin_top = 1.0
-bg_color = Color(1, 1, 1, 0.1)
+[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 
 [node name="PlanetPanel" type="MarginContainer" unique_id=2147144430]
 anchor_left = 1.0
@@ -65,11 +62,13 @@ layout_mode = 2
 theme_type_variation = &"DimLabel"
 text = "What it is known for"
 
-[node name="Rule" type="Panel" parent="Sheet/Rows" unique_id=1625155362]
+[node name="Rule" type="Control" parent="Sheet/Rows" unique_id=1625155362]
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+script = ExtResource("90_hairline")
+color = Color(1, 1, 1, 0.1)
+horizontal = true
 
 [node name="Services" type="VBoxContainer" parent="Sheet/Rows" unique_id=987650556]
 unique_name_in_owner = true
@@ -101,12 +100,14 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="LoreRule" type="Panel" parent="Sheet/Rows/Services" unique_id=1993052834]
+[node name="LoreRule" type="Control" parent="Sheet/Rows/Services" unique_id=1993052834]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+script = ExtResource("90_hairline")
+color = Color(1, 1, 1, 0.1)
+horizontal = true
 
 [node name="Lore" type="MarginContainer" parent="Sheet/Rows/Services" unique_id=1318826275]
 unique_name_in_owner = true

@@ -31,6 +31,8 @@ signal stop_finished
 
 ## The scare everyone left on board takes when the player kicks someone off.
 const KICK_SHOCK := -25.0
+## How fast a stop runs for those riding on once the bus's drive goes cold ([member cold]).
+const COLD_RATE := 0.5
 ## Seconds the player holds a serve button to serve a request alone.
 const HAND_SECONDS := 1.2
 const FOOD_DISPENSER := preload("res://game/passengers/amenities/food_dispenser.tres")
@@ -65,6 +67,11 @@ var docked := true:
 				passenger.depart(comfort)
 		docked = value
 
+## Whether the bus waits at a planet with its drive cold. Then the ride clocks of those
+## riding on run, and their happiness falls, at [constant COLD_RATE] of their speed rather
+## than [constant Passenger.DOCKED_RATE]. The scene that holds the bus sets it.
+var cold := false
+
 ## Whether the bus is parking at a planet, so everyone's happiness holds: the bus has
 ## arrived. The scene that holds the bus sets it.
 var parking := false
@@ -92,8 +99,15 @@ var _hands: Dictionary[Passenger, bool] = {}
 
 
 func _process(delta: float) -> void:
+	# Kept running through a pause, as for the tutorial's first request: only serving goes
+	# on, and the ride holds still.
+	if get_tree().paused:
+		for passenger: Passenger in _passengers:
+			_serve_request(passenger, delta)
+		return
 	for passenger: Passenger in _passengers:
-		passenger.tick(delta, docked, parking, comfort)
+		var rate := COLD_RATE if cold else Passenger.DOCKED_RATE
+		passenger.tick(delta, docked, parking, comfort, rate)
 		_serve_request(passenger, delta)
 	if _stopping:
 		_until_step -= delta
@@ -191,6 +205,13 @@ func kick(passenger: Passenger) -> bool:
 func shock(amount: float) -> void:
 	for passenger: Passenger in _passengers:
 		passenger.shock(amount)
+
+
+## Everyone on board reacts to the bus overheating for [param seconds]
+## ([method Passenger.react_to_overheat]).
+func react_to_overheat(seconds: float) -> void:
+	for passenger: Passenger in _passengers:
+		passenger.react_to_overheat(seconds)
 
 
 ## Starts a stop at [param planet]. Everyone going there leaves their seat now, and their

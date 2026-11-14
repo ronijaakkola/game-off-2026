@@ -4,13 +4,16 @@ extends Node3D
 ## doesn't move it from a planet: the player charges the [FrameshiftDrive] by holding the
 ## Frameshift key for [member charge_time], the bus turning toward its next stop meanwhile,
 ## then it flies there. It passes through points in space and docks at every planet on its
-## route, waiting for a new charge before it leaves each one, and holds still at a point in
-## space that ends the route. A new course in flight starts at once, with no charge, as does
-## one in space up to [member warm_time] after stopping; later, it waits for a charge too.
+## route, and holds still at a point in space that ends the route. Docking, unless towed,
+## the drive is warm: once the passengers getting off are off it cools over
+## [member cool_time]. A charge started warm starts from the warmth left and builds
+## [member warm_boost] times as fast; let go, the drive goes cold. A new course in flight starts
+## at once, with no charge, as does one in space up to [member warm_time] after stopping.
 ## Flying to a planet, it slows down as it nears it, then parks: it glides the last stretch
 ## and swings side-on, with its door toward the planet. It has docked once it is parked.
 ## Flying burns fuel from its [FuelTank] by distance. Run dry, it coasts to a stop unless
 ## [method tow_to] tows it, slowly and with no say over its route, to a planet.
+## While its [member temperature] cools down after overheating, its drive can't charge.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 ## The bus docked at [param planet] after flying there and parking: the end of its route,
@@ -21,6 +24,8 @@ signal ran_out_of_fuel
 ## A tow from [method tow_to] docked at [param planet] and the tank is full again. Emitted
 ## before [signal docked].
 signal towed(planet: Planet)
+## The bus left a planet on a charge started warm and never let go: a quick stop.
+signal left_warm
 
 enum State { DOCKED, CHARGING, FLYING, HOLDING, PARKING }
 
@@ -56,6 +61,16 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 		_drive.charge_time = value
 ## Seconds the drive stays warm after the bus stops in space: a course set later waits for a charge.
 @export_range(0.0, 30.0, 0.1) var warm_time := 1.0
+## Seconds the drive stays warm at a planet, once the passengers getting off are off.
+@export_range(0.0, 30.0, 0.1) var cool_time := 4.0:
+	set(value):
+		cool_time = value
+		_drive.cool_time = value
+## How many times as fast a charge started warm builds.
+@export_range(1.0, 5.0, 0.05) var warm_boost := 1.5:
+	set(value):
+		warm_boost = value
+		_drive.warm_boost = value
 ## Top speed before upgrades: the base of the MAX_SPEED stat ([method get_stats]). Planets
 ## orbit at under 0.5, so the bus can catch one.
 @export_range(0.1, 20.0, 0.05) var max_speed := 1.2:
@@ -80,13 +95,13 @@ var state := State.HOLDING
 ## Which side of [member start_planet] the bus starts docked on: from the planet's centre
 ## toward the bus, on the orbit plane. Set it before the bus is ready.
 var start_direction := Vector3.BACK
-## Whether passengers are getting off or on. While they are, a docked bus doesn't start a
-## charge, and a charge under way holds where it is. The scene that runs the passengers
-## sets it.
+## Whether passengers are getting off or on. A charge starts and builds meanwhile, but a
+## charged bus waits until they are done before it leaves. The scene that runs the
+## passengers sets it.
 var boarding := false
-## The stop on the route under the pointer. A point in space draws its diamond white. The
-## scene that handles the pointer sets it.
-var hovered_stop: RouteStop
+## Whether passengers are getting off. Meanwhile a warm drive doesn't cool. The scene that
+## runs the passengers sets it.
+var unloading := false
 ## Whether the player holds the Frameshift key. Docked or holding in space with a course,
 ## the drive charges while it is held and drains once let go. Leaving lets go, as does
 ## clearing the course.
@@ -95,24 +110,23 @@ var frameshift_held: bool:
 		return _drive.held
 	set(value):
 		_drive.held = value
+## The bus's temperature. The scene that knows where the star is drives it.
+var temperature: BusTemperature:
+	get:
+		return %Temperature as BusTemperature
+## The fastest the bus may fly now. The scene that knows where the star is lowers it as the
+## bus heads at the star, so it brakes to a stop short of it. INF leaves it to the route.
+var speed_cap := INF
 
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
 var _stats := BusStats.new()
 var _towing := false
-var _dock_planet: Planet
-# From the docked planet's centre toward the bus, on the orbit plane.
-var _dock_direction := Vector3.BACK
+var _glide := DockGlide.new()
 var _speed := 0.0
 var _turn_rate := 0.0
 var _holding_time := 0.0
 var _felt := FeltPush.new()
-# How fast the bus glides toward its dock point, measured from the planet.
-var _glide_velocity := Vector3.ZERO
-# Where the bus is from its docked planet's centre, on the orbit plane. Kept rather than
-# measured each frame: a planet that moves after the bus in a frame would otherwise drag
-# the bus behind it, and it would never park.
-var _dock_offset := Vector3.ZERO
 
 
 # Sets the stats' bases from the exports' defaults. A value the scene sets comes later,
@@ -120,6 +134,8 @@ var _dock_offset := Vector3.ZERO
 func _init() -> void:
 	_stats.get_stat(BusStats.Type.MAX_SPEED).base = max_speed
 	_drive.charge_time = charge_time
+	_drive.cool_time = cool_time
+	_drive.warm_boost = warm_boost
 
 
 func _ready() -> void:
@@ -127,15 +143,14 @@ func _ready() -> void:
 	(%FuelTank as FuelTank).follow(_stats.get_stat(BusStats.Type.FUEL_CAPACITY))
 	rotation.y = PI * 0.5
 	if start_planet:
-		global_position = _approach_point(start_planet, start_direction, dock_gap)
+		global_position = RouteStop.approach_point(start_planet, start_direction, dock_gap)
 		_dock(start_planet, start_direction)
-		rotation.y = _dock_heading()
+		rotation.y = _glide.get_heading()
 	# Draws the route line and charge ring once while SceneFlow's fade covers the screen,
 	# so their materials compile now and not on the first click.
 	%RouteLine.draw_route(
 		PackedVector3Array([global_position, global_position + Vector3.LEFT]),
-		PackedVector3Array([global_position + Vector3.LEFT]),
-		0
+		PackedVector3Array([global_position + Vector3.LEFT])
 	)
 	%ChargeRing.show_progress(global_position, 1.0)
 	await get_tree().process_frame
@@ -143,20 +158,20 @@ func _ready() -> void:
 	_draw_route()
 
 
-## Sets the route to [param stop], or adds it with [param add] where [method RoutePlotting.add]
-## puts it. In flight, or in space with the drive warm, the bus heads off at once; anywhere
-## else it waits for the drive to charge. Does nothing while towed or with an empty tank.
+## Sets the route to [param stop], or with [param add] adds it to the end
+## ([method RouteEditing.add]). In flight, or in space with the drive warm, the bus
+## heads off at once; anywhere else, or while it cools down, it waits for the drive. Does
+## nothing while towed or with an empty tank.
 func plot_course(stop: RouteStop, add := false) -> void:
 	if _towing or (%FuelTank as FuelTank).is_empty():
 		return
-	if add:
-		RoutePlotting.add(_route, stop)
-	else:
-		_route = [stop]
-	if _route.size() == 1 and stop.planet and stop.planet == _dock_planet:
+	if not add:
+		_route.clear()
+	RouteEditing.add(_route, stop)
+	if _route.size() == 1 and stop.planet and stop.planet == _glide.planet:
 		cancel_course()
 		return
-	if state == State.HOLDING and _holding_time <= warm_time:
+	if state == State.HOLDING and _holding_time <= warm_time and not temperature.is_cooling():
 		state = State.FLYING
 
 
@@ -172,12 +187,13 @@ func cancel_course() -> void:
 		_stop_charge()
 
 
-## Removes [param stop] from the route, with what [method RoutePlotting.remove] takes along.
-## With none left it is the same as [method cancel_course].
+## Removes [param stop] from the route, wherever it is, with what
+## [method RouteEditing.remove] takes along. With none left it is the same as
+## [method cancel_course]. Does nothing while towed.
 func remove_stop(stop: RouteStop) -> void:
 	if _towing:
 		return
-	RoutePlotting.remove(_route, stop)
+	RouteEditing.remove(_route, stop, _glide.planet if is_at_planet() else null)
 	if _route.is_empty():
 		cancel_course()
 
@@ -221,19 +237,14 @@ func get_route_stops() -> Array[RouteStop]:
 	return _route.duplicate()
 
 
-## The size of the diamond drawn at a point in space on the route, in world units.
-func get_marker_size() -> float:
-	return (%RouteLine as RouteLine).marker_size
-
-
 ## The planet the bus is docked at, or null.
 func get_docked_planet() -> Planet:
-	return _dock_planet
+	return _glide.planet
 
 
 ## Whether the bus waits at a planet: docked, or charging to leave it.
 func is_at_planet() -> bool:
-	return state == State.DOCKED or (state == State.CHARGING and _dock_planet != null)
+	return state == State.DOCKED or (state == State.CHARGING and _glide.planet != null)
 
 
 ## Every planet on the route still ahead.
@@ -249,7 +260,7 @@ func get_route_planets() -> Array[Planet]:
 ## bus parks, the planet it parks at.
 func get_next_planet() -> Planet:
 	if state == State.PARKING:
-		return _dock_planet
+		return _glide.planet
 	var first := _route.find_custom(RouteStop.is_planet)
 	return _route[first].planet if first >= 0 else null
 
@@ -257,6 +268,14 @@ func get_next_planet() -> Planet:
 ## How far the frameshift drive has charged, from 0 to 1. 0 when it isn't charging.
 func get_charge_progress() -> float:
 	return _drive.get_progress() if state == State.CHARGING else 0.0
+
+
+## How warm the drive is at a planet, from 1 just docked to 0 cold. While a charge started
+## warm builds, before it is let go, how far it has charged.
+func get_warmth() -> float:
+	if state == State.CHARGING and _drive.is_warm_charge():
+		return _drive.get_progress()
+	return _drive.get_warmth() if state == State.DOCKED else 0.0
 
 
 ## Whether the bus is braking into its next stop, a planet, or parking there: the end of a
@@ -271,9 +290,10 @@ func is_docking() -> bool:
 	return distance <= (_speed * _speed - glide * glide) / (2.0 * acceleration) + DOCK_DISTANCE
 
 
-## Whether the bus is slowing to a stop in space after its course was cancelled.
+## Whether the bus is slowing to a stop in space after its course was cancelled or it
+## overheated.
 func is_stopping() -> bool:
-	return state == State.FLYING and _route.is_empty()
+	return state == State.FLYING and (_route.is_empty() or temperature.is_cooling())
 
 
 ## The push someone on board feels as the bus speeds up, brakes and turns, in units per
@@ -292,7 +312,7 @@ func estimate_time_to_next_planet() -> float:
 	if not get_next_planet():
 		return -1.0
 	if state == State.PARKING:
-		return _park_seconds(_flat(_dock_point() - global_position).length())
+		return DockGlide.park_seconds(_flat(_dock_point() - global_position).length())
 	var from := _flat(global_position)
 	var distance := 0.0
 	for stop: RouteStop in _route:
@@ -306,7 +326,7 @@ func estimate_time_to_next_planet() -> float:
 	var time := FlightTime.straight(
 		maxf(distance - DOCK_DISTANCE, 0.0), start_speed, _glide_speed(), _top_speed(), acceleration
 	)
-	time += _park_seconds(minf(distance, DOCK_DISTANCE))
+	time += DockGlide.park_seconds(minf(distance, DOCK_DISTANCE))
 	if state in [State.DOCKED, State.CHARGING, State.HOLDING]:
 		time += _drive.get_time_left()
 	return time
@@ -317,13 +337,20 @@ func _process(delta: float) -> void:
 		State.DOCKED:
 			_follow_dock(delta)
 			_face_dock_side(delta)
+			if not unloading:
+				_drive.cool(delta)
 			_start_charge()
+			if state == State.DOCKED:
+				%ChargeRing.show_progress(global_position, get_warmth())
 		State.CHARGING:
 			_follow_dock(delta)
 			_face_next_stop(delta)
-			_drive.advance(delta, boarding)
+			_drive.advance(delta)
 			if _drive.is_charged() and not boarding:
+				var quick := _drive.is_warm_charge()
 				_undock()
+				if quick:
+					left_warm.emit()
 			elif _drive.is_drained():
 				_stop_charge()
 			else:
@@ -331,7 +358,7 @@ func _process(delta: float) -> void:
 		State.PARKING:
 			_follow_dock(delta)
 			_face_dock_side(delta)
-			if _is_parked():
+			if _glide.is_parked(dock_gap, rotation.y):
 				_finish_docking()
 		State.FLYING:
 			_holding_time = 0.0
@@ -351,8 +378,9 @@ func _process(delta: float) -> void:
 
 
 func _fly(delta: float) -> void:
-	if _route.is_empty():
-		_speed = move_toward(_speed, 0.0, acceleration * delta)
+	# Cooling down, it coasts to a stop, and a course set meanwhile waits for a charge.
+	if _route.is_empty() or temperature.is_cooling():
+		_speed = minf(move_toward(_speed, 0.0, acceleration * delta), speed_cap)
 		_move(_speed * delta)
 		_turn_rate = 0.0
 		if _speed == 0.0:
@@ -372,7 +400,7 @@ func _fly(delta: float) -> void:
 	# Slow to a crawl while facing away, so the bus turns toward a stop behind it rather
 	# than circling it.
 	var facing := maxf(_forward().dot(to_target / distance), 0.0)
-	var limit := _top_speed()
+	var limit := minf(_top_speed(), speed_cap)
 	if stop.planet:
 		# Brakes to the glide's speed where the glide into the dock starts.
 		var glide := _glide_speed()
@@ -381,7 +409,7 @@ func _fly(delta: float) -> void:
 	elif last:
 		# Brakes so it comes to rest at the end of the route.
 		limit = minf(limit, sqrt(2.0 * acceleration * distance))
-	_speed = move_toward(_speed, limit * facing * facing, acceleration * delta)
+	_speed = minf(move_toward(_speed, limit * facing * facing, acceleration * delta), speed_cap)
 	_move(minf(_speed * delta, distance))
 
 
@@ -420,15 +448,10 @@ func _face_next_stop(delta: float) -> void:
 # Docked, so the door on the bus's left faces the planet. Eases out at the end of the swing.
 func _face_dock_side(delta: float) -> void:
 	var previous := rotation.y
-	var left := absf(angle_difference(rotation.y, _dock_heading()))
+	var left := absf(angle_difference(rotation.y, _glide.get_heading()))
 	var step := minf(turn_speed * delta, left * (1.0 - exp(-DOCK_TURN_EASE * delta)))
-	rotation.y = rotate_toward(rotation.y, _dock_heading(), step)
+	rotation.y = rotate_toward(rotation.y, _glide.get_heading(), step)
 	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
-
-
-# The heading that puts the bus's left side, where its door is, toward its planet.
-func _dock_heading() -> float:
-	return atan2(-_dock_direction.z, _dock_direction.x)
 
 
 # The speed the bus glides into its dock at, from where the glide starts.
@@ -463,45 +486,33 @@ func _arrive(stop: RouteStop) -> void:
 # Parked side-on: the bus has docked. It waits there, course or not, for the drive.
 func _finish_docking() -> void:
 	state = State.DOCKED
+	_drive.warm_up(not _towing)
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
 	if _towing:
 		_towing = false
 		(%FuelTank as FuelTank).fill()
-		towed.emit(_dock_planet)
-	docked.emit(_dock_planet)
-
-
-func _is_parked() -> bool:
-	var center := _flat(_dock_planet.get_body_global_position())
-	var off := (_dock_point() - center - _dock_offset).length()
-	return off < PARK_DISTANCE and absf(angle_difference(rotation.y, _dock_heading())) < PARK_ANGLE
-
-
-# Seconds the glide takes from [param distance] out to parked.
-func _park_seconds(distance: float) -> float:
-	return log(maxf(distance, PARK_DISTANCE) / PARK_DISTANCE) / DOCK_SMOOTHING
+		towed.emit(_glide.planet)
+	docked.emit(_glide.planet)
 
 
 func _dock(planet: Planet, direction: Vector3) -> void:
-	_dock_planet = planet
-	var flat := _flat(direction)
-	_dock_direction = flat.normalized() if flat.length_squared() > 1e-6 else Vector3.BACK
-	_dock_offset = _flat(global_position - planet.get_body_global_position())
+	_glide.dock(planet, direction, global_position)
 	state = State.DOCKED
 
 
-# Starts a charge while the key is held with a course set, unless passengers are boarding.
+# Starts a charge while the key is held with a course set, passengers boarding or not,
+# unless it cools down.
 func _start_charge() -> void:
-	if _drive.held and not boarding and not _route.is_empty():
+	if _drive.held and not _route.is_empty() and not temperature.is_cooling():
 		state = State.CHARGING
-		_drive.clear()
+		_drive.start()
 
 
 # Drained or cancelled: the bus waits where it was, docked or holding in space.
 func _stop_charge() -> void:
 	_drive.clear()
-	state = State.DOCKED if _dock_planet else State.HOLDING
+	state = State.DOCKED if _glide.planet else State.HOLDING
 	%ChargeRing.show_progress(global_position, 0.0)
 
 
@@ -509,7 +520,8 @@ func _undock() -> void:
 	%ChargeRing.show_progress(global_position, 0.0)
 	_drive.clear()
 	_drive.held = false
-	_dock_planet = null
+	_drive.warm_up(false)
+	_glide.planet = null
 	state = State.FLYING if not _route.is_empty() else State.HOLDING
 
 
@@ -517,38 +529,31 @@ func _undock() -> void:
 # moving planet without lagging behind it.
 func _follow_dock(delta: float) -> void:
 	_turn_rate = 0.0
-	if not _dock_planet:
-		return
-	var center := _flat(_dock_planet.get_body_global_position())
-	var weight := 1.0 - exp(-DOCK_SMOOTHING * delta)
-	var glided := _dock_offset.lerp(_dock_point() - center, weight)
-	_glide_velocity = (glided - _dock_offset) / delta if delta > 0.0 else Vector3.ZERO
-	_dock_offset = glided
-	global_position = center + glided
+	if _glide.planet:
+		global_position = _glide.follow(delta, _dock_gap())
 
 
 func _dock_point() -> Vector3:
-	var gap := charge_gap if state == State.CHARGING else dock_gap
-	return _approach_point(_dock_planet, _dock_direction, gap)
+	return _glide.get_point(_dock_gap())
+
+
+func _dock_gap() -> float:
+	return charge_gap if state == State.CHARGING else dock_gap
 
 
 func _stop_position(stop: RouteStop, from: Vector3) -> Vector3:
 	return stop.get_target(from, dock_gap)
 
 
-func _approach_point(planet: Planet, direction: Vector3, gap: float) -> Vector3:
-	return RouteStop.approach_point(planet, direction, gap)
-
-
 # Parking, the bus moves by its glide, measured from the planet.
 func _feel(delta: float) -> void:
-	var velocity := _glide_velocity if state == State.PARKING else _forward() * _speed
+	var velocity := _glide.velocity if state == State.PARKING else _forward() * _speed
 	_felt.feel(velocity, _forward(), delta)
 
 
 # The line through the route still ahead.
 func _draw_route() -> void:
-	(%RouteLine as RouteLine).draw_stops(global_position, _route, hovered_stop)
+	(%RouteLine as RouteLine).draw_stops(global_position, _route)
 
 
 func _forward() -> Vector3:

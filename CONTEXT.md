@@ -23,11 +23,11 @@ The ordered stops the bus flies through, each a planet or a point in space. A **
 _Avoid_: path, waypoints list
 
 **Checkpoint**:
-A point in space on the route before a planet, which the bus flies through on its way there. Right-clicking space puts one just before the first planet on the route, replacing the one there: one at a time.
+A point in space on the route before a planet, which the bus flies through on its way there.
 _Never_: waypoint
 
 **Docked**:
-The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key.
+The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, which starts from the warmth left while the drive is still **warm**, just after docking, and builds faster, until it goes **cold**. Leaving on a warm charge never let go is a **quick stop**.
 _Avoid_: landed, parked
 
 **Signal bus**:
@@ -90,6 +90,18 @@ _Never_: cheat menu
 What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the dock panel, at that planet's **fuel price**.
 _Avoid_: energy, gas, charge (that is the frameshift drive's)
 
+**Temperature**:
+How hot the bus is, in degrees, shown in the bus bar. It rests at 21° and climbs while the bus flies through the heat zone. `BusTemperature` in code.
+_Avoid_: warm and cold (those are the frameshift drive's), cabin temperature, heat level
+
+**Heat zone**:
+The area round the star where flying raises the temperature. Its inner part, nearest the star, is the **hot zone**, where it rises much faster.
+_Avoid_: core (that is core systems'), danger zone
+
+**Overheated**:
+The bus at the top of its temperature: its route clears and it coasts to a stop. Through the **cooldown** that follows, a course can be set but the drive can't charge.
+_Avoid_: burnt out, meltdown
+
 **Stat**:
 A number on the bus that upgrades change, such as its top speed: a base value, with **modifiers** applied on top. `Stat` in code; the bus's are its `BusStats`, one of each `BusStats.Type`. Not the stats `Online.add_stat` sends to Talo, which count what players do.
 _Avoid_: attribute, property, Talo stat
@@ -112,8 +124,12 @@ _Never_: respawn
 A card above the bus bars telling the player something: a tutorial, info, a warning, an error or an incoming call, optionally with an action button, a close button, or a time after which it closes by itself. `Notice` in code, pushed onto the `NoticeStack`, which returns it so its owner can dismiss it.
 _Avoid_: toast, notification, popup, alert, hint (one kind of notice is a tutorial)
 
+**Guide card**:
+A card that points with a notch at one thing on screen, a control, a panel or a planet, and says what to do with it. Two kinds: a **tutorial step**, with step dots, which goes once the player does what it says (or, rarely, has a Got it button), and a **feature hint**, shown over the paused game when the player meets a feature, which the player closes with Got it. `GuideCard` in code. Not a **notice**, which sits above the bus bars and points at nothing.
+_Avoid_: tooltip (that names a counter under the pointer), callout, coach mark
+
 **Tutorial**:
-The guided first ride at the start of a new run, on the zoomed map: one passenger from Terra to the Moon, with a tutorial notice for each step, then the zoom out. `Tutorial` in code.
+The guided first ride at the start of a new run, on the zoomed map: a call from The Boss, then one passenger from Terra to the Moon, with a guide card for each step, then the zoom out. `Tutorial` in code.
 _Avoid_: onboarding, intro, level
 
 **Zoomed map**:

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dup4e3a0nc0eg"
-path="res://.godot/imported/pause.svg-de570187eb585d26b5e9ecbf76d6f54a.ctex"
+uid="uid://b628blgrik660"
+path="res://.godot/imported/clock.svg-71e8b0ee1b23cc1ae4f6ea091f1c2bf2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/pause.svg"
-dest_files=["res://.godot/imported/pause.svg-de570187eb585d26b5e9ecbf76d6f54a.ctex"]
+source_file="res://game/solar_system/icons/clock.svg"
+dest_files=["res://.godot/imported/clock.svg-71e8b0ee1b23cc1ae4f6ea091f1c2bf2.ctex"]
 
 [params]
 

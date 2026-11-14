@@ -2,7 +2,8 @@ class_name FrameshiftKey
 extends BusKey
 ## The Frameshift key in the bus bar, a [BusKey] with a label. The bus status sets what it
 ## shows: [member charge], how far the drive has charged, fills the cap in the bus's yellow
-## and latches the key down; [member stop] turns it into the red Stop key; disabled, the
+## and latches the key down; [member warmth], how warm the drive is, fills it the same way
+## with the key up and ready; [member stop] turns it into the red Stop key; disabled, the
 ## cap is dim. Enabled and neither charging nor Stop, it is ready: the cap pulses slightly
 ## lighter, with a hard outline in the bus's yellow round it. [method release] pops it up
 ## while the pointer still holds it down.
@@ -27,6 +28,12 @@ var charge := 0.0:
 	set(value):
 		if not is_equal_approx(value, charge):
 			charge = value
+			queue_redraw()
+## How warm the drive is, from 0 to 1. Fills the cap without latching the key down.
+var warmth := 0.0:
+	set(value):
+		if not is_equal_approx(value, warmth):
+			warmth = value
 			queue_redraw()
 ## Whether the key is the red Stop key.
 var stop := false:
@@ -59,8 +66,9 @@ func _draw() -> void:
 		var cap := Rect2(WELL_PAD, WELL_PAD, face.size.x, CAP_HEIGHT + RAISE)
 		_outline.border_color = Color(OUTLINE_COLOR, lerpf(OUTLINE_DIM, OUTLINE_BRIGHT, _pulse()))
 		_outline.draw(get_canvas_item(), cap.grow(OUTLINE_WIDTH))
-	if charge > 0.0:
-		RoundedFill.draw(self, face, CAP_RADIUS, charge, CHARGE_COLOR)
+	var fill := maxf(charge, warmth)
+	if fill > 0.0:
+		RoundedFill.draw(self, face, CAP_RADIUS, fill, CHARGE_COLOR)
 	var font := get_theme_font(&"font")
 	var font_size := get_theme_font_size(&"font_size")
 	var label := "Stop" if stop else "Frameshift"
