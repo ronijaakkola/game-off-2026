@@ -142,8 +142,7 @@ func _ready() -> void:
 	# so their materials compile now and not on the first click.
 	%RouteLine.draw_route(
 		PackedVector3Array([global_position, global_position + Vector3.LEFT]),
-		PackedVector3Array([global_position + Vector3.LEFT]),
-		0
+		PackedVector3Array([global_position + Vector3.LEFT])
 	)
 	%ChargeRing.show_progress(global_position, 1.0)
 	await get_tree().process_frame
@@ -543,7 +542,7 @@ func _feel(delta: float) -> void:
 
 # The line through the route still ahead.
 func _draw_route() -> void:
-	(%RouteLine as RouteLine).draw_stops(global_position, _route, null)
+	(%RouteLine as RouteLine).draw_stops(global_position, _route)
 
 
 func _forward() -> Vector3:

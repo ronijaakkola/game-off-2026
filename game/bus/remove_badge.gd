@@ -1,12 +1,15 @@
 class_name RemoveBadge
 extends Control
 ## A small round X on the corner of a stop's icon in the route strip, which takes the stop
-## off the route when clicked. Dark with a white X, red while the pointer is over it.
+## off the route when clicked. Dark with a white X, red while the pointer is over it, with
+## a tooltip above it saying what it does.
 
 ## A left click on it.
 signal pressed
 
 const SIZE := 12.0
+const TEXT := "Remove from route"
+const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 const FILL_COLOR := Color(0.08, 0.07, 0.18, 0.92)
 const HOVER_COLOR := Color(0.949, 0.302, 0.4, 1.0)
 const RIM_COLOR := Color(1.0, 1.0, 1.0, 0.35)
@@ -15,6 +18,7 @@ const MARK_COLOR := Color(1.0, 1.0, 1.0, 1.0)
 const MARK := 2.5
 
 var _over := false
+var _tooltip: Tooltip
 
 
 func _ready() -> void:
@@ -23,12 +27,18 @@ func _ready() -> void:
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	mouse_entered.connect(_set_over.bind(true))
 	mouse_exited.connect(_set_over.bind(false))
+	_tooltip = TOOLTIP.instantiate() as Tooltip
+	_tooltip.target = self
+	_tooltip.title = TEXT
+	_tooltip.side = Tooltip.Side.ABOVE
+	add_child(_tooltip)
 
 
 func _gui_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
 		accept_event()
+		_tooltip.close()
 		pressed.emit()
 
 

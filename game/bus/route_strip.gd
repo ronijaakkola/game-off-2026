@@ -352,6 +352,9 @@ func _make_icon(stop: RouteStop) -> Control:
 		(Vector2(ICON, 0.0) + BADGE_OFFSET - Vector2.ONE * RemoveBadge.SIZE * 0.5).round()
 	)
 	badge.pressed.connect(_on_badge_pressed.bind(stop))
+	# The X has its own tooltip, so the stop's name gives way to it. Deferred, after the
+	# icon has had its own enter and exit from the pointer moving onto the X.
+	badge.mouse_entered.connect(func() -> void: tooltip.close.call_deferred())
 	_badges[icon] = badge
 	icon.mouse_entered.connect(_hover.bind(icon))
 	icon.mouse_exited.connect(_unhover.bind(icon))
