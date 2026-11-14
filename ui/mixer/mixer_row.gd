@@ -1,7 +1,8 @@
 class_name MixerRow
 extends HBoxContainer
 ## One sound clip in the mixer: its name, a button to play it, and its level. A track plays
-## as the music, a clip that loops plays until stopped, and any other plays once.
+## as the music, a clip that loops plays until stopped (starting on the music's beat), and
+## any other plays once.
 
 signal changed
 
@@ -12,6 +13,7 @@ var clip: AudioStream
 var _track := false
 var _looping := false
 var _player: AudioStreamPlayer
+var _start: Tween
 var _was_playing := false
 
 
@@ -55,7 +57,8 @@ func is_unset() -> bool:
 func is_playing() -> bool:
 	if _track:
 		return Audio.get_music() == clip
-	return _player != null and _player.playing
+	var waiting := _start != null and _start.is_valid() and _start.is_running()
+	return waiting or (_player != null and _player.playing)
 
 
 ## Back to the level the table gives it.
@@ -66,6 +69,8 @@ func reset() -> void:
 
 ## Stops it if it is playing on its own, as a loop does. A track is the music's to stop.
 func stop() -> void:
+	if _start:
+		_start.kill()
 	if _player:
 		_player.stop()
 
@@ -107,7 +112,7 @@ func _on_play_pressed() -> void:
 		Audio.play_sfx(clip)
 
 
-# A loop plays from the top until stopped.
+# A loop starts on the music's next beat, as the ringtone does in the game.
 func _play_loop() -> void:
 	if not _player:
 		_player = AudioStreamPlayer.new()
@@ -115,4 +120,10 @@ func _play_loop() -> void:
 		_player.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
 		add_child(_player)
 	_player.volume_linear = get_level()
-	_player.play()
+	var wait := Audio.seconds_to_beat()
+	if wait <= 0.0:
+		_player.play()
+		return
+	_start = create_tween()
+	_start.tween_interval(wait)
+	_start.tween_callback(_player.play)

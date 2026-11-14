@@ -10,9 +10,9 @@ extends RefCounted
 ## Level by the clip's path from the project root, in path order. It is a table of data, not
 ## a use of the clips: the clips stay in the folder of the feature that plays them.
 const LEVELS: Dictionary[String, float] = {
-	"game/bus/dock_bell.ogg": 1.0,
-	"game/passengers/wilhelm_scream.ogg": 0.3,
-	"game/solar_system/fuel.ogg": 1.0,
+	"game/bus/dock_bell.ogg": 0.5,
+	"game/passengers/wilhelm_scream.ogg": 0.23,
+	"game/solar_system/fuel.ogg": 0.5,
 	"game/solar_system/ringtone.ogg": 0.8,
 	"ui/audio/bg.ogg": 1.0,
 	"ui/audio/key_click.ogg": 1.0,

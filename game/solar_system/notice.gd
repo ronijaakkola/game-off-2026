@@ -7,8 +7,8 @@ extends Control
 ## slot and frees it, even while the game is paused. Under Reduce motion the card only
 ## fades, and the gap closes at once.
 ## A call's phone rattles every [constant RING_PAUSE] seconds while it shows, except under
-## Reduce motion, and its ringtone plays on a loop until it starts to leave, falling silent
-## while the stack is hidden or the game is paused.
+## Reduce motion, and its ringtone plays on a loop until it starts to leave, started on the
+## music's next beat, and again on one when the notices come back or the game resumes.
 
 ## The action button was pressed. The notice dismisses itself after.
 signal action_pressed
@@ -72,6 +72,7 @@ var _seconds := 0.0
 var _leaving := false
 # Pushed while the stack was hidden: it comes in once the stack shows.
 var _postponed := false
+var _held := false
 # The card's rise and fade, and the gap closing.
 var _motion: Tween
 var _gap: Tween
@@ -82,6 +83,15 @@ var _ring: Tween
 # A call's ringtone, and its fade as the call leaves.
 var _ringtone: AudioStreamPlayer
 var _ringtone_fade: Tween
+# The wait for the music's beat before the ringtone starts.
+var _ringtone_start: Tween
+
+
+func _notification(what: int) -> void:
+	# The music plays through a pause, so the ringtone comes back on its beat.
+	if what == NOTIFICATION_UNPAUSED and _ringtone and not _held and not _leaving:
+		_ringtone.stop()
+		_ring_on_beat()
 
 
 func _ready() -> void:
@@ -152,12 +162,18 @@ func postpone() -> void:
 ## With [param held], stops its countdown and the phone while the stack is hidden; without,
 ## carries on, or brings it in if it was postponed.
 func hold(held: bool) -> void:
+	_held = held
 	if not held and _postponed:
 		_postponed = false
 		enter()
 		return
-	if _ringtone:
-		_ringtone.stream_paused = held
+	if _ringtone and not _leaving:
+		# The music carries on while it is held, so it comes back on the beat, not where it left.
+		if _ringtone_start:
+			_ringtone_start.kill()
+		_ringtone.stop()
+		if not held:
+			_ring_on_beat()
 	for tween: Tween in [_life, _ring]:
 		if not tween or not tween.is_valid():
 			continue
@@ -252,12 +268,26 @@ func _start_ringtone() -> void:
 	_ringtone.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
 	_ringtone.volume_linear = Audio.get_clip_volume(RINGTONE)
 	add_child(_ringtone)
-	_ringtone.play()
+	_ring_on_beat()
+
+
+# Starts the ringtone on the music's next beat. Its loop is whole beats long, so it then
+# stays in time with the music.
+func _ring_on_beat() -> void:
+	var wait := Audio.seconds_to_beat()
+	if wait <= 0.0:
+		_ringtone.play()
+		return
+	_ringtone_start = create_tween()
+	_ringtone_start.tween_interval(wait)
+	_ringtone_start.tween_callback(_ringtone.play)
 
 
 func _stop_ringtone() -> void:
 	if not _ringtone:
 		return
+	if _ringtone_start:
+		_ringtone_start.kill()
 	_ringtone_fade = create_tween()
 	_ringtone_fade.tween_property(_ringtone, ^"volume_linear", 0.0, RINGTONE_FADE_SECONDS)
 	_ringtone_fade.tween_callback(_ringtone.stop)

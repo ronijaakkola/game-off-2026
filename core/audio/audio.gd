@@ -26,6 +26,8 @@ const MUFFLED_VOLUME := 0.6
 ## Seconds the muffle takes to come in and to go.
 const MUFFLE_IN_SECONDS := 0.4
 const MUFFLE_OUT_SECONDS := 0.6
+## The music's tempo, in beats a minute, for sounds that land on its beat.
+const MUSIC_BPM := 88.0
 
 var _music_players: Array[AudioStreamPlayer] = []
 var _music_tweens: Array[Tween] = [null, null]
@@ -61,6 +63,20 @@ func play_music(stream: AudioStream, fade := 1.0) -> void:
 	player.volume_linear = 0.0
 	player.play()
 	_fade(_current, get_clip_volume(stream), fade)
+
+
+## Seconds until the music's next beat, or the next [param beats]th beat of it (0.5 for every
+## half beat, 2 for every other). 0 when no music is playing, so a sound meant to land on
+## the beat plays at once. The music is on a grid from the start of its file, which its
+## loop keeps ([constant MUSIC_BPM]).
+func seconds_to_beat(beats := 1.0) -> float:
+	var player := _music_players[_current]
+	if not player.playing:
+		return 0.0
+	var step := 60.0 / MUSIC_BPM * beats
+	# A mix is not made every frame, so the position lags by the time since the last one.
+	var position := player.get_playback_position() + AudioServer.get_time_since_last_mix()
+	return fposmod(-position, step)
 
 
 ## Fades the music out over [param fade] seconds.
