@@ -5,9 +5,10 @@ extends Node
 ## flies or stands still, and overheating clears the bus's route so it coasts to a
 ## stop. The temperature holds while the map is zoomed for the tutorial, which scales the
 ## distance to the star, and during a tow, whose route isn't the player's.
-## It keeps the bus out of the star: heading at it, the bus's speed is capped so it brakes
-## to a stop [constant STAR_CLEARANCE] short of touching it, where it soon overheats. Not
-## during a tow, which can't overheat, so a stop there would hold it for good.
+## It keeps the bus out of the star: while the line it heads along would touch the star, its
+## speed is capped so it brakes to a stop [constant STAR_CLEARANCE] short of touching it,
+## where it soon overheats. A line that clears the star isn't slowed, however near it passes.
+## Not during a tow, which can't overheat, so a stop there would hold it for good.
 ## It sizes [member zone], the disc drawn round the star, to the zone, with the hot zone's
 ## edge on it. While the bus is inside, the disc pulses brighter, more in the hot zone,
 ## easing in and out; under Reduce motion it brightens without pulsing, and its smoke holds
@@ -54,23 +55,24 @@ func _process(delta: float) -> void:
 	forward.y = 0.0
 	# How much of the bus's heading points at the star: 1 straight at it, below 0 away.
 	var closing := forward.normalized().dot(-offset.normalized())
-	temperature.advance(delta, distance, flying, closing < 0.0, exempt)
-	bus.speed_cap = INF if exempt else _speed_cap(distance, closing)
+	var to_star := _distance_to_star(distance, closing)
+	temperature.advance(delta, distance, flying, to_star < INF, exempt)
+	bus.speed_cap = INF if exempt else sqrt(2.0 * bus.acceleration * maxf(to_star, 0.0))
 	var target := 0.0
 	if not exempt and distance < temperature.zone_radius:
 		target = HOT_FLASH if distance < temperature.hot_zone_radius else ZONE_FLASH
 	_pulse(delta, target)
 
 
-# The fastest the bus may fly distance from the star and still brake to a stop short of it
-# along its heading: no limit heading away. Heading at it partly (closing under 1), only
-# the part of its speed toward the star counts.
-func _speed_cap(distance: float, closing: float) -> float:
-	if closing <= 0.0:
+# How far the bus can fly along its heading, distance from the star, before it is
+# STAR_CLEARANCE short of touching it: INF when that line clears the star.
+func _distance_to_star(distance: float, closing: float) -> float:
+	var touch := bus.temperature.star_radius + FrameshiftBus.RADIUS
+	# How near the star's centre the line along its heading passes.
+	var nearest := distance * sqrt(maxf(1.0 - closing * closing, 0.0))
+	if closing <= 0.0 or nearest >= touch:
 		return INF
-	var stop := bus.temperature.star_radius + FrameshiftBus.RADIUS + STAR_CLEARANCE
-	var room := maxf(distance - stop, 0.0)
-	return sqrt(2.0 * bus.acceleration * room) / closing
+	return distance * closing - sqrt(touch * touch - nearest * nearest) - STAR_CLEARANCE
 
 
 # Eases the pulse's strength toward target and shows it on the disc.

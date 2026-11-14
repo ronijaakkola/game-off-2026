@@ -83,6 +83,68 @@ func test_a_bus_sent_through_the_star_stops_short_of_it_and_overheats() -> void:
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 
+func test_overheated_against_the_star_a_course_that_clears_it_gets_out() -> void:
+	var temperature := _bus.temperature
+	var overheats := [0]
+	temperature.overheated.connect(func() -> void: overheats[0] += 1)
+	_bus.plot_course(RouteStop.at_planet(_far))
+	for i: int in MAX_STEPS:
+		_step()
+		if temperature.is_cooling():
+			break
+	assert_int(overheats[0]).is_equal(1)
+	# A planet off to the side, its way heading 85° from straight at the star: a little
+	# toward it at first, but clear of it.
+	var toward := (_star.global_position - _bus.global_position).normalized()
+	var aside := toward.rotated(Vector3.UP, deg_to_rad(85.0))
+	var side := _planet(_far.get_parent() as Node3D, _bus.global_position + aside * 12.0)
+	_bus.plot_course(RouteStop.at_planet(side))
+	_bus.frameshift_held = true
+	var docked := false
+	for i: int in MAX_STEPS:
+		_step()
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			docked = true
+			break
+	assert_bool(docked).is_true()
+	assert_int(overheats[0]).is_equal(1)
+
+
+func test_overheated_on_the_way_in_beside_the_star_the_same_course_gets_out() -> void:
+	var temperature := _bus.temperature
+	var overheats := [0]
+	temperature.overheated.connect(func() -> void: overheats[0] += 1)
+	# The straight way there passes about 3.3 from the star's centre, deep in the hot zone.
+	var beside := _planet(_far.get_parent() as Node3D, Vector3(-12.0, 0.0, 6.9))
+	_bus.plot_course(RouteStop.at_planet(beside))
+	for i: int in MAX_STEPS:
+		_step()
+		if _distance() < 5.0:
+			break
+	# Warm from earlier, it overheats on the way in.
+	temperature.set_temperature(temperature.overheat_temperature)
+	for i: int in MAX_STEPS:
+		_step()
+		if _bus.state == FrameshiftBus.State.HOLDING:
+			break
+	# Stopped short of its nearest point, it still heads toward the star.
+	var forward := _bus.global_basis.z
+	assert_float(forward.dot(_star.global_position - _bus.global_position)).is_greater(0.0)
+	_bus.plot_course(RouteStop.at_planet(beside))
+	_bus.frameshift_held = true
+	var nearest := INF
+	var docked := false
+	for i: int in MAX_STEPS:
+		_step()
+		nearest = minf(nearest, _distance())
+		if _bus.state == FrameshiftBus.State.DOCKED:
+			docked = true
+			break
+	assert_bool(docked).is_true()
+	assert_int(overheats[0]).is_equal(1)
+	assert_float(nearest).is_greater(temperature.star_radius + FrameshiftBus.RADIUS)
+
+
 # The bus runs first each frame, as it does in the game, so it flies by last frame's cap.
 func _step() -> void:
 	_bus._process(STEP)

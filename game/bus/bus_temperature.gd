@@ -6,8 +6,9 @@ extends Node
 ## the bus stands still there: waiting at a planet, parking or holding in space. At
 ## [member overheat_temperature] it overheats: it emits [signal overheated] and cools back
 ## to rest over [member cooldown_time], wherever the bus stands. Then, until it leaves the
-## heat zone, it rises only [member escape_share] as fast while the bus flies away from the
-## star, so getting out is easy; heading back in heats it as usual. It starts at rest.
+## heat zone, it rises only [member escape_share] as fast while the bus flies anywhere but
+## into the star, so getting out is easy; heading into it heats it as usual. It starts at
+## rest.
 ## Whoever knows where the star is calls [method advance].
 
 ## It reached [member overheat_temperature]. The cooldown has started.
@@ -37,7 +38,7 @@ signal overheated
 ## Seconds the cooldown takes, from overheated back to rest.
 @export_range(0.0, 60.0, 0.1) var cooldown_time := 8.0
 ## After a cooldown, until the bus leaves the heat zone, the share of the usual rise it
-## gets while flying away from the star.
+## gets while flying anywhere but into the star.
 @export_range(0.0, 1.0, 0.01) var escape_share := 0.1
 
 ## The temperature now, in degrees.
@@ -53,12 +54,10 @@ func _ready() -> void:
 
 
 ## Moves the temperature on by [param delta] seconds, the bus [param distance] from the
-## star's centre and [param flying] ([param heading_out] when away from the star) or
+## star's centre and [param flying] ([param at_star] when heading into the star) or
 ## standing still. While [param exempt] it holds and can't overheat, but a cooldown under way
 ## goes on.
-func advance(
-	delta: float, distance: float, flying: bool, heading_out: bool, exempt := false
-) -> void:
+func advance(delta: float, distance: float, flying: bool, at_star: bool, exempt := false) -> void:
 	if is_cooling():
 		_cooldown_left = maxf(_cooldown_left - delta, 0.0)
 		_escaping = _cooldown_left == 0.0
@@ -71,7 +70,7 @@ func advance(
 		_escaping = false
 		temperature = maxf(temperature - fall_rate * delta, rest_temperature)
 	elif flying:
-		var share := escape_share if _escaping and heading_out else 1.0
+		var share := escape_share if _escaping and not at_star else 1.0
 		set_temperature(temperature + get_rise_rate(distance) * share * delta)
 	else:
 		set_temperature(temperature + standing_rate * delta)
@@ -101,7 +100,7 @@ func set_temperature(degrees: float) -> void:
 
 
 ## Whether it cooled down after overheating and the bus hasn't left the heat zone since:
-## flying away from the star then heats it only [member escape_share] as fast.
+## flying anywhere but into the star then heats it only [member escape_share] as fast.
 func is_escaping() -> bool:
 	return _escaping
 

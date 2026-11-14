@@ -73,26 +73,26 @@ func test_while_exempt_it_holds_but_a_cooldown_goes_on() -> void:
 	assert_bool(t.is_cooling()).is_false()
 
 
-func test_after_a_cooldown_heading_out_heats_it_a_little_until_it_leaves_the_zone() -> void:
+func test_after_a_cooldown_flying_anywhere_but_into_the_star_heats_it_a_little() -> void:
 	var t := _temperature
 	var inside := t.hot_zone_radius - 0.5
 	t.set_temperature(t.overheat_temperature)
 	_advance(t.cooldown_time + STEP, inside, false)
 	assert_bool(t.is_escaping()).is_true()
-	_advance(1.0, inside, true, true)
+	_advance(1.0, inside, true)
 	var out := t.temperature - t.rest_temperature
 	assert_float(out).is_equal_approx(t.get_rise_rate(inside) * t.escape_share, 0.01)
-	# Heading back in heats it as usual.
+	# Heading into the star heats it as usual.
 	var before := t.temperature
-	_advance(1.0, inside, true, false)
+	_advance(1.0, inside, true, true)
 	assert_float(t.temperature - before).is_equal_approx(t.get_rise_rate(inside), 0.01)
 	# Out of the zone, the easy way out is over.
-	_advance(STEP, t.zone_radius, true, true)
+	_advance(STEP, t.zone_radius, true)
 	assert_bool(t.is_escaping()).is_false()
 
 
 func _advance(
-	seconds: float, distance: float, flying: bool, heading_out := false, exempt := false
+	seconds: float, distance: float, flying: bool, at_star := false, exempt := false
 ) -> void:
 	for i: int in roundi(seconds / STEP):
-		_temperature.advance(STEP, distance, flying, heading_out, exempt)
+		_temperature.advance(STEP, distance, flying, at_star, exempt)
