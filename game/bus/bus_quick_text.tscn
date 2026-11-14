@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bmppic1wfm6po"]
+
+[ext_resource type="Script" uid="uid://lwea6t0e73h0" path="res://game/bus/bus_quick_text.gd" id="1_quick"]
+
+[node name="BusQuickText" type="Control" unique_id=1088824709]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("1_quick")

@@ -24,8 +24,13 @@ extends Node
 ## `-- Tow` opens the bus, so the camera follows it, and sends it off with fuel for eight units, so
 ## it runs dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
 ## the whole tow takes about 32 s (`--frames 1900`).
+## `-- Quick` opens nothing and shows a quick text over the bus, a remark; `gain` or `loss`
+## shows that kind instead. It holds from about frame 20 to 80.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
+const TIMER := preload("res://game/bus/icons/timer.svg")
+const CHECK := preload("res://shared/icons/circle_check.svg")
+const FUEL := preload("res://shared/icons/fuel.svg")
 
 
 func _ready() -> void:
@@ -89,8 +94,11 @@ func _ready() -> void:
 		await get_tree().create_timer(1.0).timeout
 		cabin.kick(cabin.get_passengers()[1])
 		return
-	if planet_name == "Research":
-		await _open_research(system, name_given)
+	if planet_name == "Research" or planet_name == "Quick":
+		if planet_name == "Research":
+			await _open_research(system, name_given)
+		else:
+			await _show_quick_text(system, name_given)
 		return
 	if planet_name == "Bus":
 		var bus := system.find_child("Bus") as FrameshiftBus
@@ -152,6 +160,17 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 				_press(button)
 			button.mouse_entered.emit()
 			return
+
+
+func _show_quick_text(system: SolarSystem, args: PackedStringArray) -> void:
+	var quick := system.find_child("BusQuickText") as BusQuickText
+	await get_tree().process_frame
+	if "gain" in args:
+		quick.show_text("Straight to the Moon!", CHECK, BusQuickText.Kind.GAIN)
+	elif "loss" in args:
+		quick.show_text("Rough stop!", FUEL, BusQuickText.Kind.LOSS)
+	else:
+		quick.show_text("Quick stop!", TIMER)
 
 
 # Moves the pointer onto [param control] and presses the left button there, without letting go.
