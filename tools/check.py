@@ -258,6 +258,12 @@ GD_COMMENT_OR_STRING = re.compile(
     r"""(#[^\n]*)|("{3}[\s\S]*?"{3}|'{3}[\s\S]*?'{3}|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')"""
 )
 # Godot's untyped_declaration warning skips loop variables, so `for i in 3:` loads.
+# Feedback's ButtonFeel sets the scale and pivot of every Button pressed, every frame.
+BUTTON_FEEL = "core/feedback/button_feel.gd"
+BUILTIN_BUTTONS = ("Button", "OptionButton", "MenuButton", "ColorPickerButton")
+EXTENDS = re.compile(r"^extends[ \t]+(\w+)", re.MULTILINE)
+# A member ButtonFeel moves: written, or tweened by name.
+BUTTON_FEEL_MEMBER = r"(?:scale|pivot_offset\w*)\b"
 UNTYPED_LOOP_VARIABLE = re.compile(r"^[ \t]*for[ \t]+(\w+)[ \t]+in\b", re.MULTILINE)
 CLASS_NAME = re.compile(r"^class_name[ \t]+(\w+)", re.MULTILINE)
 ENUM = re.compile(r"\benum[ \t]+(\w+)[ \t]*\{([^}]*)\}")
@@ -679,6 +685,8 @@ def script_problems(path: str, hook: bool) -> list[str]:
     problems += user_path_problems(path, strings, outside)
     if not outside:
         problems += saved_enum_problems(path, code)
+    if not (outside or path == BUTTON_FEEL):
+        problems += button_scale_problems(path, code, source)
     # The hook leaves this out: a script may name a scene before it is written.
     if not (outside or hook):
         problems += missing_path_problems(path, strings)
@@ -1092,6 +1100,66 @@ def bus_name_problems(path: str, code: str, source: str) -> list[str]:
     matches = [*AUDIO_SERVER_BUS.finditer(code), *assignments]
     lines = sorted({line_at(code, m.start()) for m in matches})
     return [problem(path, line, "bus-through-audio", message, AUTOLOADS) for line in lines]
+
+
+def button_scale_problems(path: str, code: str, source: str) -> list[str]:
+    """ButtonFeel dips every pressed Button by setting its scale and pivot each frame, so a
+    script that also moves a Button's scale fights it, and whichever runs later wins with no
+    error. Such a script puts the button in ButtonFeel.OWN_PRESS, which ButtonFeel leaves
+    alone; a script that names that group is trusted to have done so."""
+    if "ButtonFeel.OWN_PRESS" in code:
+        return []
+    buttons = button_classes()
+    kinds = "|".join(buttons)
+    names = set()
+    for m in re.finditer(rf"\b(\w+)[ \t]*:[ \t]*(?:{kinds})\b", code):
+        names.add(m.group(1))
+    inferred = rf"\bvar[ \t]+(\w+)[ \t]*:=[^\n]*?\b(?:as[ \t]+(?:{kinds})\b|(?:{kinds})\.new\()"
+    for m in re.finditer(inferred, code):
+        names.add(m.group(1))
+    targets = [rf"\(\s*%\w+\s+as\s+(?:{kinds})\s*\)"]
+    targets += [rf"(?<![\w.]){re.escape(name)}" for name in names]
+    own = EXTENDS.search(code)
+    if own and own.group(1) in buttons:
+        targets.append(r"(?<![\w.])self")
+        writes = [rf"^[ \t]*{BUTTON_FEEL_MEMBER}[ \t]*[-+*/]?=(?!=)"]
+    else:
+        writes = []
+    target = "(?:" + "|".join(targets) + ")"
+    writes.append(rf"{target}\s*\.\s*{BUTTON_FEEL_MEMBER}[ \t]*[-+*/]?=(?!=)")
+    tweened = re.compile(rf"\btween_property\(\s*{target}\s*,\s*\^?")
+    lines = set()
+    for pattern in writes:
+        for m in re.finditer(pattern, code, re.MULTILINE):
+            lines.add(line_at(code, m.start()))
+    for m in tweened.finditer(code):
+        if re.match(rf'"{BUTTON_FEEL_MEMBER}', source[m.end() :]):
+            lines.add(line_at(code, m.start()))
+    message = (
+        "this moves a Button's scale or pivot, which Feedback's ButtonFeel sets every frame "
+        "while the button is pressed, so the two fight with no error. Put the button in "
+        "ButtonFeel.OWN_PRESS while this script moves it: "
+        "button.add_to_group(ButtonFeel.OWN_PRESS)."
+    )
+    return [problem(path, line, "button-scale", message, AUTOLOADS) for line in sorted(lines)]
+
+
+@cache
+def button_classes() -> tuple[str, ...]:
+    """Godot's Buttons that ButtonFeel dips, and every game class_name that extends one,
+    however far down."""
+    parents = {}
+    for path, name in script_classes().items():
+        source = Path(path).read_text(encoding="utf-8", errors="replace")
+        if m := EXTENDS.search(source):
+            parents[name] = m.group(1)
+    buttons = set(BUILTIN_BUTTONS)
+    grew = True
+    while grew:
+        found = {name for name, parent in parents.items() if parent in buttons}
+        grew = not found <= buttons
+        buttons |= found
+    return tuple(sorted(buttons))
 
 
 def object_value(code: str, offset: int) -> bool:

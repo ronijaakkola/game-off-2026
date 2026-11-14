@@ -17,7 +17,8 @@ extends Control
 ## A row that is [member beckoning] calls for its button to be pressed, as the tutorial
 ## does: the whole row shows the highlight's border and the button turns primary. The
 ## border glows and the button swells by [member beckon_glow], which the dock panel pulses;
-## under Reduce motion the button doesn't swell.
+## under Reduce motion the button doesn't swell. The swell is how a beckoning button feels,
+## so it doesn't also dip when pressed.
 
 ## The player pressed the button to pick up [member passenger].
 signal board_pressed(passenger: Passenger)
@@ -231,6 +232,11 @@ func _show_beckon() -> void:
 	var button := %BoardButton as Button
 	button.theme_type_variation = &"SmallPrimaryButton" if beckoning else &"SmallButton"
 	var swell := beckon_glow if beckoning and not Settings.reduce_motion else 0.0
+	# The swell sets the button's scale, which ButtonFeel's dip would fight while held.
+	if beckoning:
+		button.add_to_group(ButtonFeel.OWN_PRESS)
+	else:
+		button.remove_from_group(ButtonFeel.OWN_PRESS)
 	button.pivot_offset_ratio = Vector2(0.5, 0.5)
 	button.scale = Vector2.ONE * lerpf(1.0, BECKON_SCALE, swell)
 	_show_highlight()
