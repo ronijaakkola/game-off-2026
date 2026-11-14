@@ -1,0 +1,108 @@
+[gd_scene format=3 uid="uid://dnvts7efivgh"]
+
+[ext_resource type="Script" uid="uid://djsvxd6yxxs2w" path="res://ui/mixer/mixer.gd" id="1_mixer"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="Mixer" type="Control" unique_id=1300830050]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_mixer")
+
+[node name="Backdrop" type="ColorRect" parent="." unique_id=1941893232]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.05, 0.06, 0.09, 1)
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=844852741]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Card" type="PanelContainer" parent="Margin" unique_id=2057646289]
+layout_mode = 2
+theme_type_variation = &"CardPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Card" unique_id=531649000]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Margin/Card/Rows" unique_id=1153211083]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Margin/Card/Rows/Header" unique_id=1576737483]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HeadingLabel"
+text = "Mixer"
+
+[node name="MusicButton" type="Button" parent="Margin/Card/Rows/Header" unique_id=903892438]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Stop the music"
+
+[node name="StopButton" type="Button" parent="Margin/Card/Rows/Header" unique_id=1873129655]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Stop sounds"
+
+[node name="CopyButton" type="Button" parent="Margin/Card/Rows/Header" unique_id=1667836832]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallPrimaryButton"
+text = "Copy values"
+
+[node name="ResetButton" type="Button" parent="Margin/Card/Rows/Header" unique_id=399564618]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Reset all"
+
+[node name="BackButton" type="Button" parent="Margin/Card/Rows/Header" unique_id=615743831]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Back to menu"
+
+[node name="Hint" type="Label" parent="Margin/Card/Rows" unique_id=1477894677]
+layout_mode = 2
+theme_type_variation = &"FaintLabel"
+text = "1.00 is a clip as recorded. Changes last until the game closes and are heard in the game at once; Copy values puts them on the clipboard to set by hand."
+autowrap_mode = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/Card/Rows" unique_id=1846923554]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Sections" type="VBoxContainer" parent="Margin/Card/Rows/Scroll" unique_id=2015000904]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[connection signal="pressed" from="Margin/Card/Rows/Header/MusicButton" to="." method="_on_music_button_pressed"]
+[connection signal="pressed" from="Margin/Card/Rows/Header/StopButton" to="." method="_on_stop_button_pressed"]
+[connection signal="pressed" from="Margin/Card/Rows/Header/CopyButton" to="." method="_on_copy_button_pressed"]
+[connection signal="pressed" from="Margin/Card/Rows/Header/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="Margin/Card/Rows/Header/BackButton" to="." method="_on_back_button_pressed"]

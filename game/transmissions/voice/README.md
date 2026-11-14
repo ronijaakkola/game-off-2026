@@ -34,4 +34,4 @@ Each race's folder gets a `CREDITS.md` for where its clips came from.
 
 Each caller gets one of the race's `voice_count` pitch steps between `pitch_min` and `pitch_max`, picked from their name, so callers of a race sound clearly different. Blips are tied to words and chosen to fit the time before the next word; `blip_speed` plays them faster (and higher, since the web has no time-stretch), and `max_overlap` sets how far two clips may stack.
 
-The voice lab tunes the delivery: **Debug panel (F2) › Voice lab** on the main menu. Its Copy button puts the values on the clipboard to set in the resource.
+The voice lab tunes the delivery: **Debug panel (F2) › Voice lab** on the main menu. Its Copy button puts the values on the clipboard to set in the resource. The mixer (**Debug panel (F2) › Mixer**) sets how loud each race's voice is, and plays lines in it.

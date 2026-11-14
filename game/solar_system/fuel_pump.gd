@@ -22,7 +22,6 @@ const RAMP_SECONDS := 1.5
 ## [member pitch_rise_seconds], slower than the flow itself speeds up. The sound fades out
 ## over [member fade_seconds] when the pump stops, so it doesn't click.
 @export var sound: AudioStream
-@export_range(0.0, 1.0, 0.01) var sound_volume := 1.0
 @export_range(0.1, 4.0, 0.01) var pitch_start := 0.6
 @export_range(0.1, 4.0, 0.01) var pitch_end := 1.0
 @export_range(0.1, 10.0, 0.1, "or_greater") var pitch_rise_seconds := 2.0
@@ -117,7 +116,7 @@ func _set_sounding(on: bool) -> void:
 		_fade.kill()
 		_fade = null
 	if on:
-		_player.volume_linear = sound_volume
+		_player.volume_linear = Audio.get_clip_volume(sound)
 		_player.pitch_scale = pitch_start
 		_player.play()
 		return

@@ -13,7 +13,7 @@ dest_files=["res://.godot/imported/bg.ogg-810d18303450e4ca1f9cd976cb07ead6.oggvo
 [params]
 
 loop=true
-loop_offset=21.81
+loop_offset=21.818182
 bpm=0
 beat_count=0
 bar_beats=4

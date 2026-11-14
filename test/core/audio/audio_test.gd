@@ -4,6 +4,7 @@ const AudioScript := preload("res://core/audio/audio.gd")
 const MUSIC := preload("res://ui/audio/bg.ogg")
 const SFX := preload("res://ui/audio/ui_click.ogg")
 const OTHER_SFX := preload("res://game/bus/dock_bell.ogg")
+const RINGTONE := preload("res://game/solar_system/ringtone.ogg")
 
 var _audio: AudioScript
 
@@ -55,3 +56,39 @@ func test_set_volume_reaches_the_bus() -> void:
 	var music := AudioServer.get_bus_index(&"Music")
 	assert_float(AudioServer.get_bus_volume_linear(music)).is_equal_approx(0.3, 0.001)
 	_audio.set_volume(AudioScript.Bus.MUSIC, before)
+
+
+func test_a_sound_effect_plays_at_its_clip_level() -> void:
+	_audio.play_sfx(RINGTONE)
+	var playing := _players_playing(RINGTONE)
+	assert_array(playing).has_size(1)
+	assert_float(playing[0].volume_linear).is_equal_approx(ClipLevels.of(RINGTONE), 0.001)
+
+
+func test_a_level_set_for_the_run_wins_over_the_table() -> void:
+	_audio.set_clip_volume(RINGTONE, 1.7)
+	assert_float(_audio.get_clip_volume(RINGTONE)).is_equal_approx(1.7, 0.001)
+	_audio.set_clip_volume(RINGTONE, 9.0)
+	assert_float(_audio.get_clip_volume(RINGTONE)).is_equal_approx(ClipLevels.MAX, 0.001)
+	_audio.play_sfx(RINGTONE)
+	assert_float(_players_playing(RINGTONE)[0].volume_linear).is_equal_approx(ClipLevels.MAX, 0.001)
+
+
+func test_a_level_set_while_a_track_plays_changes_it_at_once() -> void:
+	_audio.play_music(MUSIC, 0.0)
+	await await_idle_frame()
+	_audio.set_clip_volume(MUSIC, 0.4)
+	assert_float(_players_playing(MUSIC)[0].volume_linear).is_equal_approx(0.4, 0.001)
+	assert_object(_audio.get_music()).is_same(MUSIC)
+
+
+func test_a_beat_is_due_at_once_with_no_music() -> void:
+	assert_float(_audio.seconds_to_beat()).is_equal(0.0)
+
+
+func test_the_next_beat_is_less_than_a_beat_away_while_music_plays() -> void:
+	_audio.play_music(MUSIC, 0.0)
+	await await_idle_frame()
+	var beat := 60.0 / AudioScript.MUSIC_BPM
+	assert_float(_audio.seconds_to_beat()).is_between(0.0, beat)
+	assert_float(_audio.seconds_to_beat(2.0)).is_between(0.0, beat * 2.0)

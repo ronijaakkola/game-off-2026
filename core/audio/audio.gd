@@ -26,11 +26,15 @@ const MUFFLED_VOLUME := 0.6
 ## Seconds the muffle takes to come in and to go.
 const MUFFLE_IN_SECONDS := 0.4
 const MUFFLE_OUT_SECONDS := 0.6
+## The music's tempo, in beats a minute, for sounds that land on its beat.
+const MUSIC_BPM := 88.0
 
 var _music_players: Array[AudioStreamPlayer] = []
 var _music_tweens: Array[Tween] = [null, null]
 var _current := 0
 var _music: AudioStream
+# Levels the mixer has set this run, by the clip's path, over the table in ClipLevels.
+var _levels: Dictionary[String, float] = {}
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _next_sfx := 0
 # How muffled the music is, from 0 to 1, and the one tween that moves it.
@@ -58,7 +62,21 @@ func play_music(stream: AudioStream, fade := 1.0) -> void:
 	player.stream = stream
 	player.volume_linear = 0.0
 	player.play()
-	_fade(_current, 1.0, fade)
+	_fade(_current, get_clip_volume(stream), fade)
+
+
+## Seconds until the music's next beat, or the next [param beats]th beat of it (0.5 for every
+## half beat, 2 for every other). 0 when no music is playing, so a sound meant to land on
+## the beat plays at once. The music is on a grid from the start of its file, which its
+## loop keeps ([constant MUSIC_BPM]).
+func seconds_to_beat(beats := 1.0) -> float:
+	var player := _music_players[_current]
+	if not player.playing:
+		return 0.0
+	var step := 60.0 / MUSIC_BPM * beats
+	# A mix is not made every frame, so the position lags by the time since the last one.
+	var position := player.get_playback_position() + AudioServer.get_time_since_last_mix()
+	return fposmod(-position, step)
 
 
 ## Fades the music out over [param fade] seconds.
@@ -82,12 +100,40 @@ func get_muffle() -> float:
 	return _muffle
 
 
-## Plays [param stream] once, its pitch varied at random by up to [param pitch_jitter]
-## (0.1 is ±10%). With every player busy, the oldest sound is cut off.
+## How loud [param stream] plays, as a multiple of how it was recorded: 1 as recorded, up to
+## [constant ClipLevels.MAX]. Its default in [ClipLevels], or what the mixer has set it to
+## since the game started. A sound that makes its own player sets that player's volume to
+## this; [method play_music] and [method play_sfx] do it themselves.
+func get_clip_volume(stream: AudioStream) -> float:
+	if stream and _levels.has(stream.resource_path):
+		return _levels[stream.resource_path]
+	return ClipLevels.of(stream)
+
+
+## Sets how loud [param stream] plays from now until the game closes, which is how the mixer
+## tries levels. A track already playing changes at once. Nothing is saved: the defaults
+## are the table in [ClipLevels].
+func set_clip_volume(stream: AudioStream, level: float) -> void:
+	_levels[stream.resource_path] = clampf(level, 0.0, ClipLevels.MAX)
+	if stream == _music:
+		if _music_tweens[_current]:
+			_music_tweens[_current].kill()
+		_music_players[_current].volume_linear = get_clip_volume(stream)
+
+
+## The track playing, or null.
+func get_music() -> AudioStream:
+	return _music
+
+
+## Plays [param stream] once at its [method get_clip_volume], its pitch varied at random by
+## up to [param pitch_jitter] (0.1 is ±10%). With every player busy, the oldest sound is
+## cut off.
 func play_sfx(stream: AudioStream, pitch_jitter := 0.0) -> void:
 	var player := _sfx_players[_next_sfx]
 	_next_sfx = (_next_sfx + 1) % SFX_PLAYERS
 	player.stream = stream
+	player.volume_linear = get_clip_volume(stream)
 	player.pitch_scale = 1.0 + randf_range(-pitch_jitter, pitch_jitter)
 	player.play()
 
