@@ -172,10 +172,10 @@ func test_each_planet_docks_warm_and_a_hold_from_warm_leaves_sooner() -> void:
 
 	_bus.frameshift_held = true
 
-	# From 5/6 warm, the missing sixth of a 3 s charge at 1.5 times is 0.33 s.
-	_step_for(0.2)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	# From 3/4 warm, the missing quarter of a 3 s charge at 1.5 times is 0.5 s.
 	_step_for(0.3)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	_step_for(0.4)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 	assert_int(quick[0]).is_equal(1)
 	# The end of the route docks warm too, so a course set now still leaves sooner.
