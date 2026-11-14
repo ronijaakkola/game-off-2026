@@ -20,17 +20,15 @@ const FILL_ALPHA := 0.3
 var _held := false
 # How full the fill is, from 0 to 1.
 var _progress := 0.0
-# The fill's style: a flat box with the button's corners.
-var _fill_style := StyleBoxFlat.new()
+# The button's corners, which the fill follows.
+var _corner_radius := 0.0
 
 
 func _ready() -> void:
 	add_to_group(ButtonFeel.OWN_PRESS)
 	var button_style := get_theme_stylebox(&"normal") as StyleBoxFlat
 	if button_style:
-		for corner: int in 4:
-			_fill_style.set_corner_radius(corner, button_style.get_corner_radius(corner))
-		_fill_style.corner_detail = button_style.corner_detail
+		_corner_radius = button_style.get_corner_radius(CORNER_TOP_LEFT)
 	button_down.connect(_on_button_down)
 	button_up.connect(_on_button_up)
 	set_process(false)
@@ -66,8 +64,8 @@ func get_progress() -> float:
 func _draw() -> void:
 	if _progress <= 0.0:
 		return
-	_fill_style.bg_color = Color(get_theme_color(&"font_color"), FILL_ALPHA)
-	draw_style_box(_fill_style, Rect2(Vector2.ZERO, Vector2(size.x * _progress, size.y)))
+	var color := Color(get_theme_color(&"font_color"), FILL_ALPHA)
+	RoundedFill.draw(self, Rect2(Vector2.ZERO, size), _corner_radius, _progress, color)
 
 
 func _on_button_down() -> void:

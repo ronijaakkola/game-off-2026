@@ -35,18 +35,15 @@ var stop := false:
 			stop = value
 			queue_redraw()
 
-var _fill := StyleBoxFlat.new()
 var _outline := StyleBoxFlat.new()
 
 
 func _ready() -> void:
 	super()
 	custom_minimum_size = custom_minimum_size.max(SIZE)
-	_fill.bg_color = CHARGE_COLOR
-	_fill.set_corner_radius_all(8)
 	_outline.draw_center = false
 	_outline.set_border_width_all(OUTLINE_WIDTH)
-	_outline.set_corner_radius_all(8 + OUTLINE_WIDTH)
+	_outline.set_corner_radius_all(CAP_RADIUS + OUTLINE_WIDTH)
 
 
 # The cap and its outline pulse, so the key redraws every frame while it shows.
@@ -63,9 +60,7 @@ func _draw() -> void:
 		_outline.border_color = Color(OUTLINE_COLOR, lerpf(OUTLINE_DIM, OUTLINE_BRIGHT, _pulse()))
 		_outline.draw(get_canvas_item(), cap.grow(OUTLINE_WIDTH))
 	if charge > 0.0:
-		_fill.draw(
-			get_canvas_item(), Rect2(face.position, Vector2(face.size.x * charge, face.size.y))
-		)
+		RoundedFill.draw(self, face, CAP_RADIUS, charge, CHARGE_COLOR)
 	var font := get_theme_font(&"font")
 	var font_size := get_theme_font_size(&"font_size")
 	var label := "Stop" if stop else "Frameshift"
