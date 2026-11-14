@@ -73,6 +73,8 @@ const NUDGE_BRIGHT := 0.6
 @export var cabin: Cabin
 ## Says whether there is an upgrade to pay for, which lights the Research button.
 @export var research_lab: ResearchLab
+## Where a Board button pressed on a full bus says so.
+@export var notices: NoticeStack
 
 ## Where the rows' portraits are rendered.
 var portrait_studio: PortraitStudio
@@ -258,6 +260,7 @@ func _sync_rows(animated := true) -> void:
 		row.passenger = passenger
 		row.beckoning = beckon_boarding
 		row.board_pressed.connect(board_pressed.emit)
+		row.full_pressed.connect(_on_row_full_pressed)
 		row.clicked.connect(_on_row_clicked)
 		(%Rows as Control).add_child(row)
 		_rows[passenger] = row
@@ -437,3 +440,8 @@ func _on_research_button_pressed() -> void:
 func _on_board_all_button_pressed() -> void:
 	for passenger: Passenger in _rows.keys():
 		board_pressed.emit(passenger)
+
+
+func _on_row_full_pressed() -> void:
+	if notices:
+		notices.tell_bus_full()

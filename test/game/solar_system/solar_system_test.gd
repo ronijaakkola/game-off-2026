@@ -134,6 +134,32 @@ func test_boarding_a_pinned_passenger_hides_their_trip() -> void:
 	assert_object(arc.get_destination()).is_null()
 
 
+func test_board_on_a_full_bus_says_so_once() -> void:
+	var runner := scene_runner(SCENE)
+	var row := await _wait_for_a_boarding_row(runner)
+	var cabin := runner.find_child("Cabin") as Cabin
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	var planet := (runner.find_child("Bus") as FrameshiftBus).get_docked_planet()
+	for _seat: int in cabin.get_free_seats():
+		cabin.board(waiting.create(planet))
+	await runner.simulate_frames(2)
+	var camera := runner.find_child("Camera") as Camera3D
+	var button := row.find_child("BoardButton", true, false) as Button
+	assert_bool(button.disabled).is_true()
+	var notices := runner.find_child("Notices") as NoticeStack
+
+	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
+	await runner.simulate_frames(2)
+	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
+	await runner.simulate_frames(2)
+
+	var full := notices.get_notices().filter(
+		func(notice: Notice) -> bool: return notice.get_text() == NoticeStack.BUS_FULL
+	)
+	assert_int(full.size()).is_equal(1)
+	assert_array(cabin.get_passengers()).not_contains([row.passenger])
+
+
 func test_waiting_markers_show_only_while_the_bus_has_the_trait() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers

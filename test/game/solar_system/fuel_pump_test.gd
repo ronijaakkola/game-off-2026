@@ -62,13 +62,12 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	var ledger := (runner.scene() as SolarSystem).get_ledger()
 	ledger.credits = 100
 	await await_millis(500)
-	var button := runner.find_child("FuelButton") as Button
+	var button := runner.find_child("FuelButton") as FuelButton
 	var label := button.find_child("Label") as Label
-	var fill := button.find_child("Fill") as Control
 	assert_bool(button.is_visible_in_tree()).is_true()
 	var cost := ceili(tank.capacity * 0.5 * bus.get_docked_planet().fuel_price)
 	assert_str(label.text).is_equal("Hold to fuel (%d credits)" % cost)
-	assert_float(fill.size.x).is_equal_approx(button.size.x * 0.5, 1.0)
+	assert_float(button.get_fill()).is_equal_approx(0.5, 0.01)
 	var camera := runner.find_child("Camera") as Camera3D
 	var at := _to_window(camera, button.get_global_rect().get_center())
 
@@ -87,7 +86,7 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	await runner.simulate_frames(20, 30)
 	assert_float(tank.fuel).is_equal(held_to)
 	assert_str(label.text).starts_with("Hold to fuel (")
-	assert_float(fill.size.x).is_equal_approx(button.size.x * tank.get_fraction(), 1.0)
+	assert_float(button.get_fill()).is_equal_approx(tank.get_fraction(), 0.01)
 	tank.fill()
 	await runner.simulate_frames(2)
 	assert_bool(button.disabled).is_true()

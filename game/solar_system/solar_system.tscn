@@ -46,7 +46,8 @@
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
-[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="114_guide"]
+[ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
+[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
 [ext_resource type="Script" uid="uid://c4ehv650d8qwy" path="res://game/tutorial/tutorial_call.gd" id="115_call"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 
@@ -459,6 +460,12 @@ unique_name_in_owner = true
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")
 
+[node name="BusQuickText" parent="Hud" unique_id=1403942728 node_paths=PackedStringArray("camera", "bus", "panels") instance=ExtResource("114_quick_text")]
+unique_name_in_owner = true
+camera = NodePath("../../Camera")
+bus = NodePath("../../Bus")
+panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
+
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
 
@@ -485,10 +492,11 @@ tracker = NodePath("../../../../Goals")
 quest_giver = NodePath("../../../../QuestGiver")
 portrait_studio = NodePath("../../../../PortraitStudio")
 
-[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 node_paths=PackedStringArray("research_lab") instance=ExtResource("23_dock")]
+[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 node_paths=PackedStringArray("research_lab", "notices") instance=ExtResource("23_dock")]
 unique_name_in_owner = true
 layout_mode = 2
 research_lab = NodePath("../../../../ResearchLab")
+notices = NodePath("../../../Notices")
 
 [node name="TopCentre" type="MarginContainer" parent="Hud" unique_id=1703736930]
 unique_name_in_owner = true
@@ -533,7 +541,7 @@ anchors_preset = 11
 
 [node name="ResearchScreen" parent="Hud" unique_id=2076382170 instance=ExtResource("99_screen")]
 
-[node name="GuideCard" parent="Hud" unique_id=1412722458 instance=ExtResource("114_guide")]
+[node name="GuideCard" parent="Hud" unique_id=1412722458 instance=ExtResource("116_guide")]
 
 [node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 
