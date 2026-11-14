@@ -54,6 +54,9 @@ const COURSE_HINT := (
 	"Right-click a planet or space to set a course, and hold %s to add stops."
 	+ " Backspace takes the last stop off."
 )
+## What the quick text over the bus says when it leaves a planet with the drive warm.
+const QUICK_STOP := "Quick stop!"
+const QUICK_STOP_ICON := preload("res://game/solar_system/icons/clock.svg")
 const MAP_OPENED := "The whole solar system is open. Deliver passengers to get promotion."
 ## Seconds the notice that the map is open shows.
 const MAP_OPENED_SECONDS := 8.0
@@ -301,6 +304,7 @@ func _start_passengers() -> void:
 	var waiting := %WaitingPassengers as WaitingPassengers
 	waiting.start(_planets, bus.get_docked_planet(), _ledger)
 	bus.docked.connect(_on_bus_docked)
+	bus.left_warm.connect(_on_bus_left_warm)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
 	cabin.kicked.connect(_on_kicked)
@@ -347,6 +351,10 @@ func _on_map_zoomed_out() -> void:
 	_add_goals()
 	(%GameSaver as GameSaver).holding = false
 	(%Notices as NoticeStack).push(MAP_OPENED, Notice.Kind.INFO, false, MAP_OPENED_SECONDS)
+
+
+func _on_bus_left_warm() -> void:
+	(%BusQuickText as BusQuickText).show_text(QUICK_STOP, QUICK_STOP_ICON)
 
 
 func _on_bus_docked(planet: Planet) -> void:

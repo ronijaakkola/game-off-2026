@@ -74,6 +74,17 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 - **Docking** rings a bell.
 - **Hover.** A white border as wide on screen as a planet's, only past its silhouette. Not while the bus is open.
 
+### Quick text
+
+A stamp of a few words with an icon that lands over the bus when something about the driving is worth a nod, then goes.
+
+- **Quick stop.** Leaving a planet with the drive warm: "Quick stop!" with a clock, as a remark.
+
+- **Look.** A Lucide icon (15 px) 3 px before the text (Baloo 2 ExtraBold, 14 px), in one colour with a 2 px navy outline (`#141230`) and a hard shadow (`#0B0920`, 1 px right, 2 px down), tilted 5° counter-clockwise so the text climbs to the right. The icon's lines are thickened to read as 2 px beside the heavy text.
+- **Kinds.** A remark in the bus's yellow (`#F5C74A`), a gain in green (`#8CD966`), a loss in red (`#F24D66`). Three words at most, sentence case.
+- **Placement.** Centred over the bus, its lowest corner 6 px above the bus on screen, following it at the same size at any zoom; over the map's labels, under the HUD panels. One at a time: a new one replaces the one showing at once. While a planet's or the bus's panel is open it hides, and one that would show is dropped.
+- **Motion.** 1.5 s in all, about its centre, never drifting: it slams from 160 % to 92 % easing in over 0.14 s, fading in over the first 0.08 s, springs back to 100 % easing out by 0.25 s, holds until 1.3 s, then shrinks to 80 % while fading out, easing in. Under Reduce motion it fades in over 0.15 s at full size, holds until 1.3 s, and fades out over 0.2 s; the tilt stays.
+
 ### The tow ship
 
 - A stubby coral-red tug, so it never reads as the bus: a cab at the bow, a push bumper, a winch and an A-frame tow boom over the stern, an oversized engine on a stub wing each side so the exhaust passes either side of the cable, a blinking orange beacon on its roof.
@@ -155,7 +166,6 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - Space works the Frameshift key as the pointer does, without clicking it first, while the bus bar shows. The bus keys never take keyboard focus.
 - With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, and a hard 2 px outline in the bus's yellow round the cap fades between 35 % and full strength in step. Under Reduce motion both hold still, the outline at full strength. Held, the drive charges: the pulse and outline go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
 - Docked with the drive warm, the key is up and ready and the bus's yellow fills it by the warmth left, emptying as the drive cools. The ring round the bus on the map shows the same. A press leaves, and the key pops up as the bus does.
-- **Quick stop.** Leaving a planet with the drive warm, "Quick stop!" in the bus's yellow (13 px, with the names' dark outline) shows 12 px above where the bus left from. It rises 24 px, easing out, and fades over its last two thirds, 1.2 s in all. It stays over that spot as the bus flies off. Under Reduce motion it only fades.
 - While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space. Not while it brakes in to dock: then it is dim.
 - Otherwise it is dim. Out of fuel, it is off.
 - Pressing the Frameshift key as Stop clears the whole route; Backspace takes off only the last stop. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.

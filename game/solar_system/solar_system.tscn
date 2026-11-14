@@ -23,7 +23,6 @@
 [ext_resource type="PackedScene" uid="uid://70b0mq875ago" path="res://game/solar_system/dock_panel.tscn" id="23_dock"]
 [ext_resource type="PackedScene" uid="uid://b384geq2qmg0r" path="res://game/bus/bus_panel.tscn" id="24_bus_panel"]
 [ext_resource type="PackedScene" uid="uid://cv1jtomgb7ywi" path="res://game/solar_system/fuel_forecast.tscn" id="25_forecast"]
-[ext_resource type="PackedScene" uid="uid://ch4hn7fwpolh2" path="res://game/solar_system/quick_stop_pop.tscn" id="25_quick_stop"]
 [ext_resource type="PackedScene" uid="uid://cqh6m26bmhwpp" path="res://game/solar_system/trip_arc.tscn" id="26_trip"]
 [ext_resource type="Script" uid="uid://d7ilyo18irr3" path="res://game/solar_system/fuel_pump.gd" id="27_pump"]
 [ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="28_bar"]
@@ -47,6 +46,7 @@
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
+[ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
@@ -436,14 +436,16 @@ unique_name_in_owner = true
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")
 
-[node name="QuickStopPop" parent="Hud" unique_id=650873092 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("25_quick_stop")]
-bus = NodePath("../../Bus")
-camera = NodePath("../../Camera")
-
 [node name="WaitingMarkers" parent="Hud" unique_id=1789310111 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("22_markers")]
 unique_name_in_owner = true
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")
+
+[node name="BusQuickText" parent="Hud" unique_id=1403942728 node_paths=PackedStringArray("camera", "bus", "panels") instance=ExtResource("114_quick_text")]
+unique_name_in_owner = true
+camera = NodePath("../../Camera")
+bus = NodePath("../../Bus")
+panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
 
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
