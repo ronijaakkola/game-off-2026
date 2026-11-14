@@ -32,16 +32,3 @@ static func planet_at(camera: Camera3D, planets: Array[Planet], screen_point: Ve
 			best = planet
 			best_depth = depth
 	return best
-
-
-## The point in space among [param stops] whose diamond, [param size] across, covers
-## [param screen_point] on screen. Where diamonds overlap, the one latest in the list. Null
-## when there is none.
-static func point_stop_at(
-	camera: Camera3D, stops: Array[RouteStop], size: float, screen_point: Vector2
-) -> RouteStop:
-	for i: int in range(stops.size() - 1, -1, -1):
-		var stop := stops[i]
-		if not stop.planet and covers(camera, stop.point, size, screen_point):
-			return stop
-	return null

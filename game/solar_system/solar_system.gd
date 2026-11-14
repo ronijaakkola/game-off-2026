@@ -1,12 +1,12 @@
 class_name SolarSystem
 extends Node3D
-## The solar system. The pointer picks a planet, which shows a white border, or else the
-## diamond of the route's last stop when that is a point in space, which turns white; a
-## pointer over the HUD picks nothing. A right click adds a stop to the end of the bus's
-## route: the planet under the pointer, or the point on the orbit plane under it. A right
-## click on the route's last stop removes it, and the clear_route action clears the whole
-## route. No modifier keys: Firefox opens its own context menu on Shift + right click
-## whatever the page does. Planets on the route show an orange border.
+## The solar system. The pointer picks a planet, which shows a white border; a pointer over
+## the HUD picks nothing. A right click sets the bus's route to a stop: the planet under the
+## pointer, or the point on the orbit plane under it. With the [QueueKey] held, it adds the
+## stop to the end of the route instead. A point in space follows the pointer for as long
+## as the button stays down ([CourseDrag]). The clear_route action takes the last stop off,
+## as the route bar's X does any planet's.
+## Planets on the route show an orange border.
 ## A new run from the main menu starts with the [Tutorial], on the map zoomed in on Terra
 ## and the Moon ([MapZoom]); once it is over, the map zooms out to the whole solar system,
 ## and only then do the other planets' lines start, the goals come and the run saves. A run
@@ -42,7 +42,6 @@ const OUTLINE_PIXELS := 3.0
 const LABEL_PIXELS := 13.0
 ## The gap between a planet's lower edge on screen and its name, in pixels.
 const LABEL_GAP_PIXELS := 0.0
-const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
 ## The process priority Phantom Camera's host sets on itself to move the camera, after
@@ -51,7 +50,13 @@ const CAMERA_HOST_PRIORITY := 300
 ## The goals a run starts with: deliver this many passengers, and keep this average rating.
 const START_DELIVERIES := 30
 const START_RATING := 3.5
-const COURSE_HINT := "Right-click planets or space to add stops. Backspace clears the route."
+const COURSE_HINT := (
+	"Right-click a planet or space to set a course, and hold %s to add stops."
+	+ " Backspace takes the last stop off."
+)
+## What the quick text over the bus says when it leaves a planet with the drive warm.
+const QUICK_STOP := "Quick stop!"
+const QUICK_STOP_ICON := preload("res://game/solar_system/icons/clock.svg")
 const MAP_OPENED := "The whole solar system is open. Deliver passengers to get promotion."
 ## Seconds the notice that the map is open shows.
 const MAP_OPENED_SECONDS := 8.0
@@ -70,6 +75,8 @@ var _fade := 1.0
 var _faded_planet: Planet
 # How to set a course, until the player first sets one.
 var _course_hint: Notice
+# The point in space a held right click drags.
+var _course_drag: CourseDrag
 
 
 # Before the planets, the bus and the camera are ready, so a continued run starts where it
@@ -91,6 +98,7 @@ func _ready() -> void:
 	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
 	process_priority = CAMERA_HOST_PRIORITY + 1
 	(%OrbitClock as OrbitClock).start(_planets)
+	_course_drag = CourseDrag.new(%Bus as FrameshiftBus, %Camera as Camera3D)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
 	for planet: Planet in _planets:
@@ -129,12 +137,17 @@ func _ready() -> void:
 		(%Tutorial as Tutorial).start()
 	# A continued run has set courses before.
 	elif not (%GameSaver as GameSaver).is_continued():
-		_course_hint = (%Notices as NoticeStack).push(COURSE_HINT, Notice.Kind.TUTORIAL)
+		_course_hint = (%Notices as NoticeStack).push(
+			COURSE_HINT % QueueKey.get_label(), Notice.Kind.TUTORIAL
+		)
 
 
 func _process(delta: float) -> void:
 	(%OrbitClock as OrbitClock).run(delta)
-	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
+	var bus := %Bus as FrameshiftBus
+	(%Cabin as Cabin).docked = bus.is_at_planet()
+	# Charging only starts cold, and warmth holds until everyone getting off is off.
+	(%Cabin as Cabin).cold = bus.is_at_planet() and bus.get_warmth() <= 0.0 and not bus.unloading
 	(%Cabin as Cabin).parking = (%Bus as FrameshiftBus).state == FrameshiftBus.State.PARKING
 	var felt := (%Bus as FrameshiftBus).get_felt_acceleration()
 	(%PortraitStudio as PortraitStudio).felt_acceleration = felt
@@ -144,18 +157,16 @@ func _process(delta: float) -> void:
 	if rig.is_focused():
 		rig.focus_rect = _focus_rect()
 	var mouse := get_viewport().get_mouse_position()
+	_course_drag.follow(mouse)
 	var over_hud := get_viewport().gui_get_hovered_control() != null
 	# What a left click would open shows the white border.
 	var picked: Node3D = null if over_hud else _pick_at(mouse)
 	var under := picked as Planet
 	_place_waiting(under)
-	var bus := %Bus as FrameshiftBus
 	var model := bus.get_model()
 	model.border = picked == bus and not is_bus_open()
 	if model.border:
 		model.outline_width = _pixels_to_world(OUTLINE_PIXELS, bus.global_position)
-	# A right click removes any point in space on the route.
-	bus.hovered_stop = null if picked or over_hud else _marker_at(mouse)
 	var on_route := bus.get_route_planets()
 	for planet: Planet in _planets:
 		var hover_opacity := _fade if planet == _faded_planet else 1.0
@@ -177,7 +188,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if (%MapZoom as MapZoom).is_zooming_out():
 		return
 	if event.is_action_pressed(&"clear_route"):
-		(%Bus as FrameshiftBus).cancel_course()
+		var bus := %Bus as FrameshiftBus
+		bus.remove_stop(bus.get_last_stop())
 		get_viewport().set_input_as_handled()
 		return
 	var click := event as InputEventMouseButton
@@ -188,18 +200,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
-	var bus := %Bus as FrameshiftBus
-	var removed := _removable_stop_at(click.position)
-	if removed:
-		bus.remove_stop(removed)
-	else:
-		var stop := _stop_at(click.position)
-		if not stop or not (%Tutorial as Tutorial).allows_course():
-			return
-		bus.plot_course(stop, true)
-		if _course_hint:
-			_course_hint.dismiss()
-			_course_hint = null
+	var stop := _stop_at(click.position)
+	if not stop or not (%Tutorial as Tutorial).allows_course():
+		return
+	(%Bus as FrameshiftBus).plot_course(stop, QueueKey.is_held())
+	_course_drag.start(stop)
+	if _course_hint:
+		_course_hint.dismiss()
+		_course_hint = null
 	get_viewport().set_input_as_handled()
 
 
@@ -301,6 +309,7 @@ func _start_passengers() -> void:
 	var waiting := %WaitingPassengers as WaitingPassengers
 	waiting.start(_planets, bus.get_docked_planet(), _ledger)
 	bus.docked.connect(_on_bus_docked)
+	bus.left_warm.connect(_on_bus_left_warm)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
 	cabin.kicked.connect(_on_kicked)
@@ -313,6 +322,7 @@ func _start_passengers() -> void:
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
 	cabin.unloaded.connect(lab.commit)
+	cabin.unloaded.connect(func() -> void: bus.unloading = false)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
@@ -348,8 +358,13 @@ func _on_map_zoomed_out() -> void:
 	(%Notices as NoticeStack).push(MAP_OPENED, Notice.Kind.INFO, false, MAP_OPENED_SECONDS)
 
 
+func _on_bus_left_warm() -> void:
+	(%BusQuickText as BusQuickText).show_text(QUICK_STOP, QUICK_STOP_ICON)
+
+
 func _on_bus_docked(planet: Planet) -> void:
 	(%Bus as FrameshiftBus).boarding = true
+	(%Bus as FrameshiftBus).unloading = true
 	(%Cabin as Cabin).stop_at(planet)
 
 
@@ -397,34 +412,10 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 	var planet := _planet_at(screen_point)
 	if planet:
 		return RouteStop.at_planet(planet)
-	var camera := %Camera as Camera3D
-	var hit: Variant = ORBIT_PLANE.intersects_ray(
-		camera.project_ray_origin(screen_point), camera.project_ray_normal(screen_point)
-	)
+	var hit: Variant = CourseDrag.point_under(%Camera as Camera3D, screen_point)
 	if hit == null:
 		return null
 	return RouteStop.at_point(hit)
-
-
-# The stop on the route a right click at screen_point removes, or null: the last stop
-# when it is the planet there, or else any point in space whose diamond is there. A planet
-# earlier on the route isn't removed, so a route can come back to it. The same pick as the
-# hover, so what turns white is what a click removes.
-func _removable_stop_at(screen_point: Vector2) -> RouteStop:
-	var planet := _planet_at(screen_point)
-	if planet:
-		var last := (%Bus as FrameshiftBus).get_last_stop()
-		return last if last and last.planet == planet else null
-	return _marker_at(screen_point)
-
-
-# The point in space on the route whose diamond covers screen_point on screen. Where
-# diamonds overlap, the one latest on the route. Null when there is none.
-func _marker_at(screen_point: Vector2) -> RouteStop:
-	var bus := %Bus as FrameshiftBus
-	return ScreenPick.point_stop_at(
-		%Camera as Camera3D, bus.get_route_stops(), bus.get_marker_size(), screen_point
-	)
 
 
 # What a left click at screen_point opens: the bus, a planet, or null. Where the bus and a

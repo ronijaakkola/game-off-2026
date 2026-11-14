@@ -16,7 +16,12 @@ extends Control
 ## under it are cut away there, so the bar's glass shows between. Under Reduce motion
 ## nothing slides or grows: icons fade in and out where they stand and the rest cuts to
 ## place.
-## The pointer over an icon rings it and opens a tooltip with the planet's name.
+## The pointer over an icon rings it and opens a tooltip with the planet's name. When
+## [member can_remove] allows it, a [RemoveBadge] shows on the icon's top right corner, and
+## clicking it asks for the stop to come off with [signal remove_pressed].
+
+## The player clicked the X on [param stop]'s icon.
+signal remove_pressed(stop: RouteStop)
 
 const ICON := 16.0
 ## Pixels between an icon and the link next to it.
@@ -62,6 +67,11 @@ const ENTER_SLIDE := 8.0
 const BUS_TEXTURE := preload("res://game/bus/icons/bus.svg")
 const POINT_TEXTURE := preload("res://game/bus/icons/diamond.svg")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
+## Where the X's middle sits from the icon's top right corner.
+const BADGE_OFFSET := Vector2(-2.0, 1.0)
+
+## Whether a stop's icon offers the X: called with the stop, returns a bool. Unset, none do.
+var can_remove: Callable
 
 # Every icon drawn, by its stop, those going too, and where each heads.
 var _icons := {}
@@ -78,6 +88,8 @@ var _progress := -1.0
 var _bus_x := 0.0
 var _bus_target := 0.0
 var _hovered: Control
+# Each icon's X, by the icon.
+var _badges := {}
 var _bus: Control
 var _chip: Control
 var _chip_text := ""
@@ -244,6 +256,7 @@ func _come_back(stop: RouteStop, at_once: bool) -> void:
 
 
 func _forget(stop: RouteStop) -> void:
+	_badges.erase(_icons[stop])
 	(_icons[stop] as Control).queue_free()
 	_icons.erase(stop)
 	_targets.erase(stop)
@@ -332,10 +345,28 @@ func _make_icon(stop: RouteStop) -> Control:
 	tooltip.title = _stop_name(stop)
 	tooltip.side = Tooltip.Side.ABOVE
 	icon.add_child(tooltip)
+	var badge := RemoveBadge.new()
+	badge.visible = false
+	icon.add_child(badge)
+	badge.position = (
+		(Vector2(ICON, 0.0) + BADGE_OFFSET - Vector2.ONE * RemoveBadge.SIZE * 0.5).round()
+	)
+	badge.pressed.connect(_on_badge_pressed.bind(stop))
+	_badges[icon] = badge
 	icon.mouse_entered.connect(_hover.bind(icon))
-	icon.mouse_exited.connect(_hover.bind(null))
+	icon.mouse_exited.connect(_unhover.bind(icon))
+	badge.mouse_exited.connect(_unhover.bind(icon))
 	icon.draw.connect(_draw_hover.bind(icon))
 	return icon
+
+
+func _on_badge_pressed(stop: RouteStop) -> void:
+	_badge_of(_icons[stop] as Control).visible = false
+	remove_pressed.emit(stop)
+
+
+func _badge_of(icon: Control) -> RemoveBadge:
+	return _badges[icon] as RemoveBadge
 
 
 func _hover(icon: Control) -> void:
@@ -344,6 +375,31 @@ func _hover(icon: Control) -> void:
 	for each: Control in [was, icon]:
 		if each and is_instance_valid(each):
 			each.queue_redraw()
+			_badge_of(each).visible = each == icon and _removable(each)
+
+
+# The pointer left [param icon] or its X. Once the viewport has settled which control is
+# under it, nothing is hovered unless that is the icon or the X poking out of its corner.
+func _unhover(icon: Control) -> void:
+	_settle_hover.call_deferred(icon)
+
+
+func _settle_hover(icon: Control) -> void:
+	if not is_inside_tree() or not is_instance_valid(icon) or _hovered != icon:
+		return
+	var over := get_viewport().gui_get_hovered_control()
+	if over and (over == icon or icon.is_ancestor_of(over)):
+		return
+	_hover(null)
+
+
+# Whether [param icon] offers the X: its stop isn't where the line starts or going, and
+# can_remove allows it.
+func _removable(icon: Control) -> bool:
+	var stop: RouteStop = _icons.find_key(icon)
+	if not stop or _leaving.has(stop) or (not _shown.is_empty() and _shown[0] == stop):
+		return false
+	return can_remove.is_valid() and can_remove.call(stop)
 
 
 func _stop_name(stop: RouteStop) -> String:

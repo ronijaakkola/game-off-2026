@@ -23,11 +23,11 @@ The ordered stops the bus flies through, each a planet or a point in space. A **
 _Avoid_: path, waypoints list
 
 **Checkpoint**:
-A point in space on the route before a planet, which the bus flies through on its way there. Right-clicking space puts one just before the first planet on the route, replacing the one there: one at a time.
+A point in space on the route before a planet, which the bus flies through on its way there.
 _Never_: waypoint
 
 **Docked**:
-The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key.
+The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, which starts from the warmth left while the drive is still **warm**, just after docking, and builds faster, until it goes **cold**. Leaving on a warm charge never let go is a **quick stop**.
 _Avoid_: landed, parked
 
 **Signal bus**:

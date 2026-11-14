@@ -5,7 +5,9 @@ extends PanelContainer
 ## with the fuel forecast trait, the fuel the whole route burns, red when that is more than
 ## the tank holds now. Under the header, the route as a line to scale ([RouteStrip]): from
 ## where the bus set off or waits, through each planet ahead, to a point in space where the
-## route ends at one. A checkpoint on the way to a planet isn't drawn.
+## route ends at one. A point in space on the way to a planet isn't drawn. A planet ahead,
+## or the point the route ends at, offers an X that takes it off the route
+## ([method FrameshiftBus.remove_stop]), except during a tow.
 ## With no route to draw it is one row, with an icon before the text, and it opens to two
 ## when a route is set: its height eases out to the new one while the line fades in, and
 ## back. Under Reduce motion the height changes at once and only the fade is left.
@@ -70,6 +72,9 @@ func _ready() -> void:
 	style.content_margin_bottom = PADDING
 	add_theme_stylebox_override(&"panel", style)
 	_set_openness(0.0)
+	var strip := %RouteStrip as RouteStrip
+	strip.can_remove = _can_remove
+	strip.remove_pressed.connect(_on_remove_pressed)
 
 
 func _process(delta: float) -> void:
@@ -91,6 +96,15 @@ func _process(delta: float) -> void:
 	_set_open(open)
 	_resize_step(delta)
 	_was_towing = bus.is_towing()
+
+
+func _can_remove(stop: RouteStop) -> bool:
+	return bus != null and not bus.is_towing() and bus.get_route_stops().has(stop)
+
+
+func _on_remove_pressed(stop: RouteStop) -> void:
+	if bus:
+		bus.remove_stop(stop)
 
 
 ## Whether [param waiting_bus] waits, docked or holding in space, with a course for the

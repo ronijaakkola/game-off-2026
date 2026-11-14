@@ -76,7 +76,9 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 ### Quick text
 
-A stamp of a few words with an icon that lands over the bus when something about the driving is worth a nod, then goes. Nothing shows one yet.
+A stamp of a few words with an icon that lands over the bus when something about the driving is worth a nod, then goes.
+
+- **Quick stop.** Leaving a planet on a charge started warm and never let go: "Quick stop!" with a clock, as a remark.
 
 - **Look.** A Lucide icon (15 px) 3 px before the text (Baloo 2 ExtraBold, 14 px), in one colour with a 2 px navy outline (`#141230`) and a hard shadow (`#0B0920`, 1 px right, 2 px down), tilted 5° counter-clockwise so the text climbs to the right. The icon's lines are thickened to read as 2 px beside the heavy text.
 - **Kinds.** A remark in the bus's yellow (`#F5C74A`), a gain in green (`#8CD966`), a loss in red (`#F24D66`). Three words at most, sentence case.
@@ -97,7 +99,6 @@ A stamp of a few words with an icon that lands over the bus when something about
 
 - **Hover.** The pointer over a planet shows a white border round it, over its orange route border. Where the bus and a planet overlap, only the one a left click would open shows it. Over the HUD, the pointer picks nothing.
 - **Route.** A flat orange line from the bus through each stop, with a diamond at each point in space. It runs to a planet's surface, and every planet on the route has an orange border.
-- Under the pointer, the last stop's diamond turns white, as a planet's border does. Diamonds earlier on the route stay orange.
 - **Lab badge.** On the upper right of the rim of each planet with a lab, a 14 px badge drawn as a photo's are: a dark disc with a faint light rim and a white flask. It grows a quarter as fast as the planets do on the zoomed map, so it is about 2.4 times as big there. The pointer resting on the planet opens a tooltip above the badge, "Research planet" in the tooltips' running text with no name over it, the same card and motion as every tooltip. It follows the badge smoothly as the planet moves, off whole pixels.
 - **Waiting markers** (a trait). 7 px under each planet's name, a 5 px dot for each place in its line, 3 px apart: filled off-white for someone waiting, a faint ring for a free place. A dot that fills grows out of its ring from 40 % while fading in, in 0.25 s easing out; one that empties shrinks back. Under Reduce motion it only fades. Without the station cameras, the pointer resting on the planet opens a tooltip under the dots, "3 waiting passengers" in the tooltips' running text, following them as the lab badge's does.
 - **Station cameras** (a trait). The pointer over a planet turns its dots into who waits there, on a small dark card like a tooltip's: each one's 24 px photo over their destination's full 14 px icon, rings and all, with no text. Nobody waiting keeps the dots. The card grows out of the name, from 95 % at the middle of its top edge while fading in, in 0.18 s easing out, as the dots fade out; leaving, it fades and shrinks to 97 % in 0.12 s as the dots come back. It fades as one piece, photos and icons with the card. Under Reduce motion it only fades.
@@ -152,10 +153,11 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - **The route bar** says what the bus is doing in a header, and with a route, draws it under the header as a line. With a route it is 50 px tall; with none it is one 28 px row with an icon before the text. The notices above ride its height.
 - **What the bus is doing:** "No route", "Hold Frameshift to leave", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to a point in space", "Stopping", "Holding in space", "Out of fuel", "Out of fuel: refuel here", "Towed to Terra", and "Route complete" for 4 s after docking at the route's last planet. In one row it is dim with a dim route icon, except "Out of fuel" in low fuel's red with the fuel icon and "Route complete" with a green tick (`#8CD966`).
 - **Totals.** At the header's right, a timer and the time the whole route takes ("18 s", "1:38"); with the fuel forecast, the fuel the whole route burns too ("22%"), red when that is more than is left. They tick, with no motion.
-- **The line** runs to scale from where the bus set off or waits, through each planet ahead, to the point in space the route ends at, if it does: a long leg is a long link. A planet is its 16 px icon, a point in space a small diamond. A checkpoint on the way to a planet isn't drawn. Links are white and faint, orange (the route's colour) up to the bus.
+- **The line** runs to scale from where the bus set off or waits, through each planet ahead, to the point in space the route ends at, if it does: a long leg is a long link. A planet is its 16 px icon, a point in space a small diamond. A point in space on the way to a planet isn't drawn. Links are white and faint, orange (the route's colour) up to the bus.
 - Past seven stops the rest fold into a "+N" pill as tall as a planet's disc. The links shrink to fit, none under 14 px, and the first, where the bus is, stays at least 40 px.
 - **The bus** sits on the line with room round it: the line and any planet under it are cut away there, so the glass shows through, and no sliver of line is left beside it. It waits just past the start, flies along its link, and stops with its nose at a planet it docks at on the way. Docking there, the flown part folds away to the left and the bus drives over the planet, which becomes the start. At the last stop it stops short, never covering it.
 - The pointer over a stop rings it and opens a tooltip above it with the planet's name, or "Point in space". The bus has none.
+- **Remove.** The pointer over a stop that can come off (Route and flight) also shows a 12 px round X on its top right corner: dark with a faint light rim and a white X, red under the pointer, with a pointing-hand cursor. It stays while the pointer moves from the icon onto it. A click takes the stop off, and its icon leaves as any stop taken off does. The start of the line never shows one, nor does any stop during a tow.
 - **Motion.** Opening to two rows eases out over 0.3 s while the line fades in, and closing back over 0.2 s; the line is in place as it opens, so its stops don't come in one by one. In the open bar a new stop slides in from 8 px past its place, growing from half size and fading in, in 0.25 s; one taken off fades and shrinks where it is in 0.15 s; the rest glide to their new places from wherever they are, so quick clicks never jump. The header's text morphs as a passenger's activity line does.
 - Under Reduce motion the height changes at once and only the fade is left, stops fade in and out where they stand, and the fold and the drive over are a cut.
 - **The bus bar** holds the fuel gauge and the bus's keys, the Frameshift key among them.
@@ -163,9 +165,10 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
 - Space works the Frameshift key as the pointer does, without clicking it first, while the bus bar shows. The bus keys never take keyboard focus.
 - With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, and a hard 2 px outline in the bus's yellow round the cap fades between 35 % and full strength in step. Under Reduce motion both hold still, the outline at full strength. Held, the drive charges: the pulse and outline go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
-- While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space.
+- Docked with the drive warm, the key is up and ready and the bus's yellow fills it by the warmth left, emptying as the drive cools. The ring round the bus on the map shows the same. Held, the key goes down and fills from there, faster than a cold charge; let go, the fill drains back fast and the drive is cold.
+- While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space. Not while it brakes in to dock: then it is dim.
 - Otherwise it is dim. Out of fuel, it is off.
-- Pressing the Frameshift key as Stop clears the route, as Backspace does. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.
+- Pressing the Frameshift key as Stop clears the whole route; Backspace takes off only the last stop. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.
 - Pressing a bus key down plays a click.
 
 ### Goal panel
@@ -224,7 +227,7 @@ Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bar
 - A notice stays until its close or action button is pressed, unless it was given a time to close by itself, or until what it is about is over: a tutorial once the player does what it says, a warning once its cause is gone.
 - **Tutorial.** One tutorial notice at a time, each saying what to do next and with a "Skip tutorial" button. The next comes in once the player has done it.
 - **Map open.** Once the zoom out is over, an info notice for 8 s: "The whole solar system is open. Deliver passengers to get promotion."
-- **Course hint.** In a run without the tutorial, until the player first sets a course, a tutorial notice: "Right-click planets or space to add stops. Backspace clears the route."
+- **Course hint.** In a run without the tutorial, until the player first sets a course, a tutorial notice: "Right-click a planet or space to set a course, and hold Shift to add stops. Backspace takes the last stop off." In Firefox it names Q for Shift.
 - **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
 - **Bus full.** A click on a Board button while every seat is taken: an info notice for 2.5 s, "The bus is already full!". Another click while it shows starts its 2.5 s over rather than adding a second.
 - **Out of fuel.** An error notice: "You ran out of fuel" and a "Tow (100 credits)" button, with what the tow costs now.
@@ -373,7 +376,7 @@ F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handler
 
 ## Open questions
 
-- **Fuel and time on the map.** Each planet is meant to show the fuel cost and travel time to it *(not built)*. Whether a point in space and a checkpoint show them too.
+- **Fuel and time on the map.** Each planet is meant to show the fuel cost and travel time to it *(not built)*. Whether a point in space shows them too.
 - **Passenger cards while a planet is open.** The On board panel stays in the top left corner and can cover part of the open planet. Hide it, shrink it, or leave it?
 - **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button and it has no fuel button, so the player closes it to pick anyone up or refuel.
 - **The charge ring** is temporary.

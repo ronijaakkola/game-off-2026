@@ -4,8 +4,10 @@ extends VBoxContainer
 ## ([RouteBar]) shows what the bus is doing and the route ahead. The bus bar under it shows
 ## its fuel and the Frameshift key ([FrameshiftKey]), which Space works too. With a course
 ## set and the bus waiting, holding the key charges the drive and the key fills as it does;
-## let go, the charge drains. Charged, the key pops up by itself as the bus leaves. While
-## the bus flies under its own power the key is Stop, and it is off otherwise. It reads
+## let go, the charge drains. Docked with the drive warm, the fill shows the warmth left
+## and a press leaves. The key pops up by itself as the bus leaves. While the bus flies
+## under its own power the key is Stop, except while it brakes in to dock, and it is off
+## otherwise. It reads
 ## [member bus] every frame. It stays anchored to the bottom edge as the route bar opens
 ## and closes.
 
@@ -24,8 +26,8 @@ const FUEL_LOW := 0.25
 # The fuel bar's fill, a copy of the scene's, so its colour can change.
 var _fuel_fill: StyleBoxFlat
 var _fuel_low := false
-# Whether the drive charged last frame, to pop the key up the moment the bus leaves.
-var _was_charging := false
+# Whether the bus waited to leave last frame, to pop the key up the moment it does.
+var _was_waiting := false
 
 
 func _ready() -> void:
@@ -50,14 +52,19 @@ func _show() -> void:
 	var charging := bus.state == FrameshiftBus.State.CHARGING
 	var key := %FrameshiftKey as FrameshiftKey
 	var flying := bus.state == FrameshiftBus.State.FLYING
-	var can_stop := flying and not bus.is_stopping() and not bus.is_towing()
+	# Not while braking in to dock, so a press meant to leave from there doesn't clear the
+	# route.
+	var can_stop := (
+		flying and not bus.is_stopping() and not bus.is_towing() and not bus.is_docking()
+	)
 	key.disabled = not (charging or can_stop or RouteBar.is_ready(bus))
 	key.stop = can_stop
-	if _was_charging and flying:
+	if _was_waiting and flying:
 		key.release()
-	_was_charging = charging
+	_was_waiting = charging or RouteBar.is_ready(bus)
 	# A charge that hasn't moved yet, as while passengers board, still latches the key.
 	key.charge = maxf(bus.get_charge_progress(), 0.02) if charging else 0.0
+	key.warmth = bus.get_warmth()
 	_show_fuel()
 
 
