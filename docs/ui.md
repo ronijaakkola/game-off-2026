@@ -78,7 +78,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 A stamp of a few words with an icon that lands over the bus when something about the driving is worth a nod, then goes.
 
-- **Quick stop.** Leaving a planet with the drive warm: "Quick stop!" with a clock, as a remark.
+- **Quick stop.** Leaving a planet on a charge started warm and never let go: "Quick stop!" with a clock, as a remark.
 
 - **Look.** A Lucide icon (15 px) 3 px before the text (Baloo 2 ExtraBold, 14 px), in one colour with a 2 px navy outline (`#141230`) and a hard shadow (`#0B0920`, 1 px right, 2 px down), tilted 5° counter-clockwise so the text climbs to the right. The icon's lines are thickened to read as 2 px beside the heavy text.
 - **Kinds.** A remark in the bus's yellow (`#F5C74A`), a gain in green (`#8CD966`), a loss in red (`#F24D66`). Three words at most, sentence case.
@@ -151,7 +151,7 @@ A frosted-glass pill with a thin border and no shadow: what is behind it shows b
 Two bars on the bottom edge of the screen, centred: the route bar on top, the bus bar under it.
 
 - **The route bar** says what the bus is doing in a header, and with a route, draws it under the header as a line. With a route it is 50 px tall; with none it is one 28 px row with an icon before the text. The notices above ride its height.
-- **What the bus is doing:** "No route", "Hold Frameshift to leave", "Press Frameshift to go on" (the drive is warm), "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to a point in space", "Stopping", "Holding in space", "Out of fuel", "Out of fuel: refuel here", "Towed to Terra", and "Route complete" for 4 s after docking at the route's last planet. In one row it is dim with a dim route icon, except "Out of fuel" in low fuel's red with the fuel icon and "Route complete" with a green tick (`#8CD966`).
+- **What the bus is doing:** "No route", "Hold Frameshift to leave", "Charging frameshift", "Travelling to Terra", "Docking to Terra", "Heading to a point in space", "Stopping", "Holding in space", "Out of fuel", "Out of fuel: refuel here", "Towed to Terra", and "Route complete" for 4 s after docking at the route's last planet. In one row it is dim with a dim route icon, except "Out of fuel" in low fuel's red with the fuel icon and "Route complete" with a green tick (`#8CD966`).
 - **Totals.** At the header's right, a timer and the time the whole route takes ("18 s", "1:38"); with the fuel forecast, the fuel the whole route burns too ("22%"), red when that is more than is left. They tick, with no motion.
 - **The line** runs to scale from where the bus set off or waits, through each planet ahead, to the point in space the route ends at, if it does: a long leg is a long link. A planet is its 16 px icon, a point in space a small diamond. A point in space on the way to a planet isn't drawn. Links are white and faint, orange (the route's colour) up to the bus.
 - Past seven stops the rest fold into a "+N" pill as tall as a planet's disc. The links shrink to fit, none under 14 px, and the first, where the bus is, stays at least 40 px.
@@ -165,7 +165,7 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
 - Space works the Frameshift key as the pointer does, without clicking it first, while the bus bar shows. The bus keys never take keyboard focus.
 - With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, and a hard 2 px outline in the bus's yellow round the cap fades between 35 % and full strength in step. Under Reduce motion both hold still, the outline at full strength. Held, the drive charges: the pulse and outline go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
-- Docked with the drive warm, the key is up and ready and the bus's yellow fills it by the warmth left, emptying as the drive cools. The ring round the bus on the map shows the same. A press leaves, and the key pops up as the bus does.
+- Docked with the drive warm, the key is up and ready and the bus's yellow fills it by the warmth left, emptying as the drive cools. The ring round the bus on the map shows the same. Held, the key goes down and fills from there, faster than a cold charge; let go, the fill drains back fast and the drive is cold.
 - While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space. Not while it brakes in to dock: then it is dim.
 - Otherwise it is dim. Out of fuel, it is off.
 - Pressing the Frameshift key as Stop clears the whole route; Backspace takes off only the last stop. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.

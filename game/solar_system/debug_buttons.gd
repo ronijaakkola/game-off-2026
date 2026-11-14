@@ -1,9 +1,9 @@
 extends Node
 ## The solar system's buttons on the debug panel: emptying or lowering the fuel, scaring the
 ## passengers, showing notices, an incoming transmission whose Answer opens a test quest, a
-## passenger calling with a real quest as soon as one can, and
-## a card each of buttons that change the bus's stats and turn its traits on or off, as
-## upgrades would.
+## passenger calling with a real quest as soon as one can, a card of warm drive boosts to
+## try, and a card each of buttons that change the bus's stats and turn its traits on or
+## off, as upgrades would.
 
 ## The percent of top speed, the fuel tank and portion size the stat buttons add or take
 ## away, and the seats, on every click.
@@ -13,6 +13,9 @@ const SEATS := 1
 const STATS_GROUP := "Stats"
 ## The debug panel's group for the trait buttons, one per trait that turns it on or off.
 const TRAITS_GROUP := "Traits"
+const WARM_GROUP := "Warm drive"
+## The boosts the Warm drive card offers, as multiples of a cold charge's speed.
+const WARM_BOOSTS: Array[float] = [1.0, 1.25, 1.5, 2.0, 3.0]
 ## The test quest's made-up caller's passenger type, for its badge.
 const TEST_TYPE := preload("res://game/passengers/types/business.tres")
 
@@ -38,6 +41,9 @@ func _ready() -> void:
 	_add_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, STAT_PERCENT, "% fuel tank")
 	_add_stat_buttons(BusStats.Type.SEATS, StatModifier.Kind.FLAT, SEATS, " seat")
 	_add_stat_buttons(BusStats.Type.PORTION_SIZE, percent, STAT_PERCENT, "% portions")
+	for boost: float in WARM_BOOSTS:
+		var label := "Warm boost %s×" % String.num(boost, 2)
+		DebugPanel.add_button(label, _debug_warm_boost.bind(boost), self, WARM_GROUP)
 	for value: int in BusTraits.Type.values():
 		var text := "Toggle %s" % String(BusTraits.Type.keys()[value]).capitalize().to_lower()
 		var action := _debug_toggle_trait.bind(value as BusTraits.Type)
@@ -53,6 +59,12 @@ func _add_stat_buttons(
 		var text := "%+d%s" % [amount, what]
 		var action := _debug_change_stat.bind(type, kind, amount)
 		DebugPanel.add_button(text, action, self, STATS_GROUP)
+
+
+# How many times as fast a charge started warm builds, said in a notice.
+func _debug_warm_boost(boost: float) -> void:
+	bus.warm_boost = boost
+	notices.push("Warm boost %s×" % String.num(boost, 2), Notice.Kind.INFO, false, 2.0)
 
 
 # Empty fuel: in space the tow is offered; at a planet the bus must refuel.

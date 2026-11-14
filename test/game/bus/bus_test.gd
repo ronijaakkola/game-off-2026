@@ -156,34 +156,34 @@ func test_a_flight_leaves_a_trail_that_fades_after_it_arrives() -> void:
 	assert_bool(trail.is_empty()).is_true()
 
 
-func test_each_planet_on_the_route_docks_warm_and_a_press_goes_on() -> void:
-	var docked_at: Array[Planet] = []
-	_bus.docked.connect(func(planet: Planet) -> void: docked_at.append(planet))
+func test_each_planet_docks_warm_and_a_hold_from_warm_leaves_sooner() -> void:
+	var quick := [0]
+	_bus.left_warm.connect(func() -> void: quick[0] += 1)
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_planet(_far), true)
-	assert_array(_bus.get_route_planets()).contains_exactly([_near, _far])
 	_step_for(_bus.charge_time + STEP)
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
-	assert_array(_bus.get_route_planets()).contains_exactly([_far])
 	assert_float(_bus.get_warmth()).is_greater(0.9)
 	# Leaving let go of the key, so it waits for the player.
 	_step_for(1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_int(quick[0]).is_equal(0)
 
 	_bus.frameshift_held = true
 
-	# Warm, a press leaves with no charge.
-	_step_for(STEP)
+	# From 5/6 warm, the missing sixth of a 3 s charge at 1.25 times is 0.4 s.
+	_step_for(0.2)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	_step_for(0.3)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
+	assert_int(quick[0]).is_equal(1)
+	# The end of the route docks warm too, so a course set now still leaves sooner.
 	assert_bool(_step_until_docked()).is_true()
-	assert_object(_bus.get_docked_planet()).is_same(_far)
-	assert_array(docked_at).contains_exactly([_near, _far])
-	# The end of the route docks warm too, so a course set now still leaves at once.
 	assert_float(_bus.get_warmth()).is_greater(0.9)
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.frameshift_held = true
-	_step_for(STEP)
+	_step_for(0.3)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 
 
@@ -209,21 +209,29 @@ func test_boarding_holds_a_charge_from_starting_and_a_charge_under_way() -> void
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 
 
-func test_a_warm_press_while_boarding_leaves_once_boarding_is_over() -> void:
-	_bus.docked.connect(func(_planet: Planet) -> void: _bus.boarding = true)
+func test_letting_go_of_a_warm_charge_drops_it_fast_and_the_drive_goes_cold() -> void:
+	var quick := [0]
+	_bus.left_warm.connect(func() -> void: quick[0] += 1)
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_planet(_far), true)
 	assert_bool(_step_until_docked()).is_true()
-	assert_object(_bus.get_docked_planet()).is_same(_near)
 	_bus.frameshift_held = true
-	_bus.frameshift_held = false
-	_step_for(1.0)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
-
-	_bus.boarding = false
-
 	_step_for(STEP)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+
+	_bus.frameshift_held = false
+
+	# A full charge drains at four times its build: 0.75 s.
+	_step_for(0.8)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_float(_bus.get_warmth()).is_equal(0.0)
+	# Held again, it charges cold, at the normal speed, and isn't a quick stop.
+	_bus.frameshift_held = true
+	_step_for(_bus.charge_time - 0.5)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	_step_for(1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
+	assert_int(quick[0]).is_equal(0)
 
 
 func test_the_drive_holds_warm_while_unloading_then_cools_and_needs_a_charge() -> void:

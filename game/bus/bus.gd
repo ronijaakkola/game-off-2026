@@ -6,8 +6,8 @@ extends Node3D
 ## then it flies there. It passes through points in space and docks at every planet on its
 ## route, and holds still at a point in space that ends the route. Docking, unless towed,
 ## the drive is warm: once the passengers getting off are off it cools over
-## [member cool_time], and a press of the key with a course set before then leaves as
-## soon as nobody is boarding. Cold, it waits for a charge. A new course in flight starts
+## [member cool_time]. A charge started warm starts from the warmth left and builds
+## [member warm_boost] times as fast; let go, the drive goes cold. A new course in flight starts
 ## at once, with no charge, as does one in space up to [member warm_time] after stopping.
 ## Flying to a planet, it slows down as it nears it, then parks: it glides the last stretch
 ## and swings side-on, with its door toward the planet. It has docked once it is parked.
@@ -23,7 +23,7 @@ signal ran_out_of_fuel
 ## A tow from [method tow_to] docked at [param planet] and the tank is full again. Emitted
 ## before [signal docked].
 signal towed(planet: Planet)
-## The bus left a planet on a press while its drive was warm: a quick stop.
+## The bus left a planet on a charge started warm and never let go: a quick stop.
 signal left_warm
 
 enum State { DOCKED, CHARGING, FLYING, HOLDING, PARKING }
@@ -65,6 +65,11 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 	set(value):
 		cool_time = value
 		_drive.cool_time = value
+## How many times as fast a charge started warm builds.
+@export_range(1.0, 5.0, 0.05) var warm_boost := 1.25:
+	set(value):
+		warm_boost = value
+		_drive.warm_boost = value
 ## Top speed before upgrades: the base of the MAX_SPEED stat ([method get_stats]). Planets
 ## orbit at under 0.5, so the bus can catch one.
 @export_range(0.1, 20.0, 0.05) var max_speed := 1.2:
@@ -97,15 +102,13 @@ var boarding := false
 ## runs the passengers sets it.
 var unloading := false
 ## Whether the player holds the Frameshift key. Docked or holding in space with a course,
-## the drive charges while it is held and drains once let go. Pressed while the drive is
-## warm, the bus leaves as soon as it can. Leaving lets go, as does clearing the course.
+## the drive charges while it is held and drains once let go. Leaving lets go, as does
+## clearing the course.
 var frameshift_held: bool:
 	get:
 		return _drive.held
 	set(value):
 		_drive.held = value
-		if value and _drive.is_warm():
-			_continuing = true
 
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
@@ -115,8 +118,6 @@ var _glide := DockGlide.new()
 var _speed := 0.0
 var _turn_rate := 0.0
 var _holding_time := 0.0
-# The key was pressed while the drive was warm: the bus leaves once nobody is boarding.
-var _continuing := false
 var _felt := FeltPush.new()
 
 
@@ -126,6 +127,7 @@ func _init() -> void:
 	_stats.get_stat(BusStats.Type.MAX_SPEED).base = max_speed
 	_drive.charge_time = charge_time
 	_drive.cool_time = cool_time
+	_drive.warm_boost = warm_boost
 
 
 func _ready() -> void:
@@ -174,7 +176,6 @@ func cancel_course() -> void:
 		return
 	_route.clear()
 	_drive.held = false
-	_continuing = false
 	if state == State.CHARGING:
 		_stop_charge()
 
@@ -262,8 +263,11 @@ func get_charge_progress() -> float:
 	return _drive.get_progress() if state == State.CHARGING else 0.0
 
 
-## How warm the drive is at a planet, from 1 just docked to 0 cold.
+## How warm the drive is at a planet, from 1 just docked to 0 cold. While a charge started
+## warm builds, before it is let go, how far it has charged.
 func get_warmth() -> float:
+	if state == State.CHARGING and _drive.is_warm_charge():
+		return _drive.get_progress()
 	return _drive.get_warmth() if state == State.DOCKED else 0.0
 
 
@@ -327,18 +331,18 @@ func _process(delta: float) -> void:
 			_face_dock_side(delta)
 			if not unloading:
 				_drive.cool(delta)
-			if _continuing and not boarding and not _route.is_empty():
-				_undock()
-				left_warm.emit()
-			else:
-				_start_charge()
+			_start_charge()
+			if state == State.DOCKED:
 				%ChargeRing.show_progress(global_position, get_warmth())
 		State.CHARGING:
 			_follow_dock(delta)
 			_face_next_stop(delta)
 			_drive.advance(delta, boarding)
 			if _drive.is_charged() and not boarding:
+				var quick := _drive.is_warm_charge()
 				_undock()
+				if quick:
+					left_warm.emit()
 			elif _drive.is_drained():
 				_stop_charge()
 			else:
@@ -492,7 +496,7 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 func _start_charge() -> void:
 	if _drive.held and not boarding and not _route.is_empty():
 		state = State.CHARGING
-		_drive.clear()
+		_drive.start()
 
 
 # Drained or cancelled: the bus waits where it was, docked or holding in space.
@@ -507,7 +511,6 @@ func _undock() -> void:
 	_drive.clear()
 	_drive.held = false
 	_drive.warm_up(false)
-	_continuing = false
 	_glide.planet = null
 	state = State.FLYING if not _route.is_empty() else State.HOLDING
 
