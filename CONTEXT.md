@@ -112,8 +112,12 @@ _Never_: respawn
 A card above the bus bars telling the player something: a tutorial, info, a warning, an error or an incoming call, optionally with an action button, a close button, or a time after which it closes by itself. `Notice` in code, pushed onto the `NoticeStack`, which returns it so its owner can dismiss it.
 _Avoid_: toast, notification, popup, alert, hint (one kind of notice is a tutorial)
 
+**Guide card**:
+A card that points with a notch at one thing on screen, a control, a panel or a planet, and says what to do with it. Two kinds: a **tutorial step**, with step dots, which goes once the player does what it says (or, rarely, has a Got it button), and a **feature hint**, shown over the paused game when the player meets a feature, which the player closes with Got it. `GuideCard` in code. Not a **notice**, which sits above the bus bars and points at nothing.
+_Avoid_: tooltip (that names a counter under the pointer), callout, coach mark
+
 **Tutorial**:
-The guided first ride at the start of a new run, on the zoomed map: one passenger from Terra to the Moon, with a tutorial notice for each step, then the zoom out. `Tutorial` in code.
+The guided first ride at the start of a new run, on the zoomed map: a call from The Boss, then one passenger from Terra to the Moon, with a guide card for each step, then the zoom out. `Tutorial` in code.
 _Avoid_: onboarding, intro, level
 
 **Zoomed map**:

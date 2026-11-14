@@ -430,17 +430,10 @@ func feed(amount: float, portion := 1.0) -> void:
 		_close(request.served_line, seconds)
 
 
-## Brings their next request forward, so it opens within [param seconds] of their need
-## timers, unless one would open sooner anyway: the tutorial's way of showing a request on
-## a short trip.
-func ask_within(seconds: float) -> void:
-	if _need_timers.is_empty():
-		return
-	var soonest := 0
-	for i: int in _need_timers.size():
-		if _need_timers[i] < _need_timers[soonest]:
-			soonest = i
-	_need_timers[soonest] = minf(_need_timers[soonest], seconds)
+## Asks for [param need] now, whatever their timers say: the tutorial's way of showing a
+## request when it wants one.
+func ask_for(need: Need) -> void:
+	_open(need)
 
 
 ## Shows [param line] while the request is open, such as who serves it, or the request's

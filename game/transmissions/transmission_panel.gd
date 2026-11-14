@@ -150,7 +150,7 @@ func _on_accept_button_pressed() -> void:
 
 
 func _on_decline_button_pressed() -> void:
-	_answer(false)
+	_answer(_transmission.answers_alike)
 
 
 func _answer(accepted: bool) -> void:
@@ -240,6 +240,11 @@ func _fill(transmission: Transmission) -> void:
 	(%AcceptButton as Button).text = transmission.accept_text
 	(%DeclineButton as Button).text = transmission.decline_text
 	(%DeclineButton as Button).visible = transmission.decline_text != ""
+	# Alike, the two share the row equally in the primary button's look.
+	var decline := %DeclineButton as Button
+	var alike := transmission.answers_alike
+	decline.theme_type_variation = &"PrimaryButton" if alike else &""
+	decline.size_flags_horizontal = (Control.SIZE_EXPAND_FILL if alike else Control.SIZE_FILL)
 
 
 func _fill_reward(transmission: Transmission) -> void:

@@ -47,6 +47,8 @@
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
 [ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
+[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
+[ext_resource type="Script" uid="uid://c4ehv650d8qwy" path="res://game/tutorial/tutorial_call.gd" id="115_call"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
@@ -334,16 +336,33 @@ bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 
-[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "notices", "dock_panel", "trip_arc", "home", "destination")]
+[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "map_zoom", "lab_badges", "research_lab", "research_screen", "guide")]
 unique_name_in_owner = true
 script = ExtResource("112_tutorial")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
-notices = NodePath("../Hud/Notices")
+intro = NodePath("Call")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+passenger_panel = NodePath("../Hud/PassengerPanel")
+portrait_studio = NodePath("../PortraitStudio")
+bus_bars = NodePath("../Hud/BusStatusPanel")
+resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
 trip_arc = NodePath("../TripArc")
 home = NodePath("../World/Terra")
 destination = NodePath("../World/Terra/Moon")
+hud = NodePath("../Hud")
+rig = NodePath("../CameraRig")
+map_zoom = NodePath("../MapZoom")
+lab_badges = NodePath("../Hud/LabBadges")
+research_lab = NodePath("../ResearchLab")
+research_screen = NodePath("../Hud/ResearchScreen")
+guide = NodePath("../Hud/GuideCard")
+
+[node name="Call" type="Node" parent="Tutorial" unique_id=1313732372 node_paths=PackedStringArray("hud", "notices", "transmission_panel")]
+script = ExtResource("115_call")
+hud = NodePath("../../Hud")
+notices = NodePath("../../Hud/Notices")
+transmission_panel = NodePath("../../TransmissionPanel")
 
 [node name="Cabin" type="Node" parent="." unique_id=1517490635]
 unique_name_in_owner = true
@@ -451,6 +470,7 @@ panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
 unique_name_in_owner = true
 
 [node name="TopRight" type="MarginContainer" parent="Hud" unique_id=304030688]
+unique_name_in_owner = true
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -491,14 +511,25 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Notices" parent="Hud" unique_id=307714029 instance=ExtResource("100_notices")]
-unique_name_in_owner = true
-anchors_preset = 7
-
 [node name="BusStatusPanel" parent="Hud" unique_id=923292603 node_paths=PackedStringArray("bus") instance=ExtResource("19_status")]
 unique_name_in_owner = true
 anchors_preset = 7
 bus = NodePath("../../Bus")
+
+[node name="Curtain" type="ColorRect" parent="Hud" unique_id=1536382013]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Notices" parent="Hud" unique_id=307714029 instance=ExtResource("100_notices")]
+unique_name_in_owner = true
+anchors_preset = 7
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
 unique_name_in_owner = true
@@ -509,6 +540,8 @@ unique_name_in_owner = true
 anchors_preset = 11
 
 [node name="ResearchScreen" parent="Hud" unique_id=2076382170 instance=ExtResource("99_screen")]
+
+[node name="GuideCard" parent="Hud" unique_id=1412722458 instance=ExtResource("116_guide")]
 
 [node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 
