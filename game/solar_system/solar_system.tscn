@@ -472,10 +472,11 @@ tracker = NodePath("../../../../Goals")
 quest_giver = NodePath("../../../../QuestGiver")
 portrait_studio = NodePath("../../../../PortraitStudio")
 
-[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 node_paths=PackedStringArray("research_lab") instance=ExtResource("23_dock")]
+[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 node_paths=PackedStringArray("research_lab", "notices") instance=ExtResource("23_dock")]
 unique_name_in_owner = true
 layout_mode = 2
 research_lab = NodePath("../../../../ResearchLab")
+notices = NodePath("../../../Notices")
 
 [node name="TopCentre" type="MarginContainer" parent="Hud" unique_id=1703736930]
 unique_name_in_owner = true
