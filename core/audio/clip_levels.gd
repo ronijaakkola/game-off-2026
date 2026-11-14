@@ -12,8 +12,8 @@ extends RefCounted
 const LEVELS: Dictionary[String, float] = {
 	"game/bus/dock_bell.ogg": 0.5,
 	"game/passengers/wilhelm_scream.ogg": 0.23,
-	"game/solar_system/fuel.ogg": 0.5,
-	"game/solar_system/ringtone.ogg": 0.22,
+	"game/solar_system/fuel.ogg": 0.35,
+	"game/solar_system/ringtone.ogg": 0.15,
 	"ui/audio/bg.ogg": 1.0,
 	"ui/audio/key_click.ogg": 1.0,
 	"ui/audio/menu_music.ogg": 1.0,

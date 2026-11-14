@@ -4,7 +4,7 @@ const RINGTONE := preload("res://game/solar_system/ringtone.ogg")
 
 
 func test_a_clip_with_an_entry_gets_its_level() -> void:
-	assert_float(ClipLevels.of(RINGTONE)).is_equal(0.22)
+	assert_float(ClipLevels.of(RINGTONE)).is_equal(0.15)
 
 
 func test_a_clip_with_no_entry_plays_as_recorded() -> void:
