@@ -66,3 +66,28 @@ func test_accept_answers_yes_and_unpauses() -> void:
 		return
 	assert_array(answers).contains_exactly([true])
 	assert_bool(get_tree().paused).is_false()
+
+
+# Closed while the caller talks, as a skipped tutorial closes The Boss's call, the caller
+# falls quiet: the text stops coming and the voice stops with it.
+func test_close_while_talking_stops_the_voice() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as TransmissionPanel
+	var call := Transmission.from_boss()
+	call.text = TutorialCall.FIRST_TEXT
+	panel.open(call)
+	await runner.simulate_frames(60, 30)
+	var message := runner.find_child("Message") as Label
+	assert_int(message.visible_characters).is_greater(0)
+	panel.close()
+	var answered := await PauseProofWait.for_signal(panel.answered, 3000)
+	assert_bool(answered).override_failure_message("The transmission never closed").is_true()
+	if is_failure():
+		return
+	var shown := message.visible_characters
+	await runner.simulate_frames(60, 30)
+	assert_int(message.visible_characters).is_equal(shown)
+	for player: AudioStreamPlayer in panel.get_voice().find_children(
+		"", "AudioStreamPlayer", true, false
+	):
+		assert_bool(player.playing).is_false()
