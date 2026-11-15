@@ -42,6 +42,11 @@ const FAIL_SHOCK := -15.0
 const SHOWN_SECONDS := 8.0
 ## Seconds the notice of how a quest ended shows.
 const NOTICE_SECONDS := 4.0
+## What the quick text over the bus says when a quest ends.
+const COMPLETED_TEXT := "Quest completed!"
+const COMPLETED_ICON := preload("res://shared/icons/circle_check.svg")
+const FAILED_TEXT := "Quest failed!"
+const FAILED_ICON := preload("res://game/quests/icons/circle_x.svg")
 
 ## Whether anyone calls. A quest under way carries on either way.
 @export var enabled := true
@@ -51,6 +56,8 @@ const NOTICE_SECONDS := 4.0
 @export var transmission_panel: TransmissionPanel
 ## Tells the quests' goals what happens in the game.
 @export var quests: GoalTracker
+## Stamps how a quest ended over the bus.
+@export var quick_text: BusQuickText
 
 var _planets: Array[Planet] = []
 var _ledger: Ledger
@@ -267,6 +274,8 @@ func _on_goal_completed(goal: Goal) -> void:
 		for race: Race.Type in _quest.reward_research:
 			_ledger.earn_research(race, _quest.reward_research[race])
 	notices.push("Quest done: %s" % goal.get_text(), Notice.Kind.INFO, false, NOTICE_SECONDS)
+	if quick_text:
+		quick_text.show_text(COMPLETED_TEXT, COMPLETED_ICON, BusQuickText.Kind.GAIN)
 	_finish()
 
 
@@ -276,6 +285,8 @@ func _on_goal_failed(goal: Goal) -> void:
 	if _quest.passenger in cabin.get_passengers():
 		_quest.passenger.shock(FAIL_SHOCK)
 	notices.push("Quest failed: %s" % goal.get_text(), Notice.Kind.WARNING, false, NOTICE_SECONDS)
+	if quick_text:
+		quick_text.show_text(FAILED_TEXT, FAILED_ICON, BusQuickText.Kind.LOSS)
 	_finish()
 
 

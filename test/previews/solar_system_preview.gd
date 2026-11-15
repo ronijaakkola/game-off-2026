@@ -25,7 +25,8 @@ extends Node
 ## it runs dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
 ## the whole tow takes about 32 s (`--frames 1900`).
 ## `-- Quick` opens nothing and shows a quick text over the bus, a remark; `gain` or `loss`
-## shows that kind instead. It holds from about frame 20 to 80.
+## shows that kind instead, and `quest` or `quest failed` has the quest giver take on a
+## quest and end it so. It holds from about frame 20 to 80.
 ## `-- Full` opens nothing, fills every seat and puts one in line at Ember, then clicks
 ## their Board button once the dock panel has slid in, so the bus full notice shows.
 
@@ -169,12 +170,29 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 func _show_quick_text(system: SolarSystem, args: PackedStringArray) -> void:
 	var quick := system.find_child("BusQuickText") as BusQuickText
 	await get_tree().process_frame
-	if "gain" in args:
+	if "quest" in args:
+		_end_a_quest(system, "failed" in args)
+	elif "gain" in args:
 		quick.show_text("Straight to the Moon!", CHECK, BusQuickText.Kind.GAIN)
 	elif "loss" in args:
 		quick.show_text("Rough stop!", FUEL, BusQuickText.Kind.LOSS)
 	else:
 		quick.show_text("Quick stop!", TIMER)
+
+
+# The quest giver takes on a quest about a passenger on board, and it ends at once.
+func _end_a_quest(system: SolarSystem, failed: bool) -> void:
+	var bus := system.find_child("Bus") as FrameshiftBus
+	var passenger := Passenger.new(COMMUTER, bus.get_docked_planet(), 60.0, 40.0)
+	(system.find_child("Cabin") as Cabin).board(passenger)
+	var quest := ExpressQuest.new()
+	quest.passenger = passenger
+	quest.goal = ExpressGoal.new(passenger)
+	(system.find_child("QuestGiver") as QuestGiver).take_on(quest)
+	if failed:
+		quest.goal._fail()
+	else:
+		quest.goal._complete()
 
 
 func _board_on_a_full_bus(system: SolarSystem) -> void:
