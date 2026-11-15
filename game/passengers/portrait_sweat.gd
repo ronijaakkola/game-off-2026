@@ -31,9 +31,12 @@ var _slide := 0.0
 var _time := 0.0
 
 
-## Makes the drops on the head this node sits on, whose own shape is [param meshes].
+## Makes the drops on the head this node sits on, whose own shape is [param meshes]. A head
+## with no shape to go by gets none.
 func setup(meshes: Array[MeshInstance3D]) -> void:
 	var points := _points(meshes)
+	if points.is_empty():
+		return
 	var bounds := AABB(points[0], Vector3.ZERO)
 	for point: Vector3 in points:
 		bounds = bounds.expand(point)
@@ -84,6 +87,8 @@ func _points(meshes: Array[MeshInstance3D]) -> PackedVector3Array:
 	var to_head := get_parent_node_3d().global_transform.affine_inverse()
 	var points := PackedVector3Array()
 	for mesh: MeshInstance3D in meshes:
+		if not mesh.mesh:
+			continue
 		var to_local := to_head * mesh.global_transform
 		for point: Vector3 in mesh.mesh.get_faces():
 			points.append(to_local * point)
