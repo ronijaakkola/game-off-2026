@@ -91,6 +91,8 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 A stamp of a few words with an icon that lands over the bus when something about the driving is worth a nod, then goes.
 
 - **Quick stop.** Leaving a planet on a charge started warm and never let go: "Quick stop!" with a clock, as a remark.
+- **Quest completed.** A quest done: "Quest completed!" with a circled check, as a gain.
+- **Quest failed.** A quest failed: "Quest failed!" with a circled cross, as a loss.
 
 - **Look.** A Lucide icon (15 px) 3 px before the text (Baloo 2 ExtraBold, 14 px), in one colour with a 2 px navy outline (`#141230`) and a hard shadow (`#0B0920`, 1 px right, 2 px down), tilted 5° counter-clockwise so the text climbs to the right. The icon's lines are thickened to read as 2 px beside the heavy text.
 - **Kinds.** A remark in the bus's yellow (`#F5C74A`), a gain in green (`#8CD966`), a loss in red (`#F24D66`). Three words at most, sentence case.
