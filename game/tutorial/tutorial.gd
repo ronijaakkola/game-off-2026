@@ -22,8 +22,8 @@ extends Node
 ## The station's Board all button stays hidden throughout, and no other planet shows its
 ## lab badge. Until the pick-up, the screen takes no clicks but on the guide card.
 ## A course can be set only to where the step heads ([method allows_course]), the route
-## can't change in flight ([method locks_route]), and the research screen can't be closed
-## until the step says so. What else it changes about the game is [TutorialRules]'.
+## can't change in flight ([member FrameshiftBus.route_locked]), and the research screen
+## can't be closed until the step says so. What else it changes about the game is [TutorialRules]'.
 ## Through it, only home and the destination have lines, with the one passenger at home,
 ## and nobody joins or leaves a line. The passenger asks for nothing but the snack. The
 ## debug panel's Skip tutorial finishes it at once.
@@ -241,12 +241,6 @@ func allows_course(stop: RouteStop) -> bool:
 	return _step in [Step.ROUTE, Step.LAB_ROUTE] and stop.planet == _goal
 
 
-## Whether the route can't change: through a trip, so the bus flies on to where it is
-## headed.
-func locks_route() -> bool:
-	return _running and _step in [Step.FLY, Step.SERVE]
-
-
 ## Finishes it now, wherever it got to. Does nothing unless it is running.
 func skip() -> void:
 	if _running:
@@ -259,6 +253,7 @@ func _go_to(step: Step) -> void:
 	if _step in TRIP_STEPS and step not in TRIP_STEPS:
 		trip_arc.hide_trip()
 	_step = step
+	bus.route_locked = step in [Step.FLY, Step.SERVE]
 	dock_panel.beckon_boarding = step == Step.BOARD
 	_cards.close()
 	match step:
@@ -555,6 +550,7 @@ func _finish() -> void:
 	if _step in TRIP_STEPS:
 		trip_arc.hide_trip()
 	_step = Step.DONE
+	bus.route_locked = false
 	dock_panel.beckon_boarding = false
 	set_process(false)
 	intro.cancel()

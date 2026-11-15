@@ -409,6 +409,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
   - **Closing the lab**, beside the close button, which now works. It goes as the screen closes.
 - **It ends on another call from their boss,** a second after the lab closes: the player passed their trial period, and the boss unlocks the frameshift planet lock for the whole star system. The call notice's Answer is again the one thing the player can do. Both calls offer two answers that mean the same, for flavour, and either one goes on. Answering the last ends the tutorial.
 - **Only what a step brings in shows.** After the call, only the bus bars; the station panel comes in with the pick-up, the On board panel once the passenger boards, and the resource bar with the fare. The station's fuel button shows from the flight to the Moon on, off until the refuelling card opens, and its Research button and Terra's lab badge from the course home; the Moon's lab badge and Board all stay hidden until it is over.
+- **The course holds in flight.** From the flight's start until the bus docks, the player can't change the route: no Stop, no stop taken off the route bar, no new course.
 - **No planet opens** on a click through it.
 - **Courses only when asked for.** Right clicks set a course only in the steps about setting one, and only to the planet the step names: no points in space, no other planet, and nothing more once it is set. A stop short of where the bus is headed asks for the course again.
 - **No other needs.** The snack is the only thing the passenger asks for.

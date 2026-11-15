@@ -8,8 +8,8 @@ extends VBoxContainer
 ## the warmth left, and holding fills it from there. The key pops up by itself as the bus
 ## leaves. While the bus flies under its own power the key is Stop, except while it brakes
 ## in to dock, and it is off otherwise. It reads [member bus] every frame. It stays anchored
-## to the bottom edge as the route bar opens and closes. While [member stop_locked], as
-## through the tutorial, it never stops the bus.
+## to the bottom edge as the route bar opens and closes. While the bus's route is locked
+## ([member FrameshiftBus.route_locked]), it never stops the bus.
 
 const FUEL_COLOR := Color(0.6, 0.95, 1.0, 1.0)
 const FUEL_LOW_COLOR := Color(0.95, 0.3, 0.4, 1.0)
@@ -27,9 +27,6 @@ const TEMPERATURE_HIGH := 45.0
 		bus = value
 		if is_node_ready():
 			(%RouteBar as RouteBar).bus = bus
-
-## Whether the key can't stop the bus: off while it flies instead of Stop.
-var stop_locked := false
 
 # The fuel bar's fill, a copy of the scene's, so its colour can change.
 var _fuel_fill: StyleBoxFlat
@@ -73,7 +70,7 @@ func _show() -> void:
 		and not bus.is_stopping()
 		and not bus.is_towing()
 		and not bus.is_docking()
-		and not stop_locked
+		and not bus.route_locked
 	)
 	key.disabled = not (charging or can_stop or RouteBar.is_ready(bus))
 	key.stop = can_stop

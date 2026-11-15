@@ -75,7 +75,7 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	assert_bool((runner.find_child("PassengerPanel") as PassengerPanel).kicks_allowed).is_true()
 	var dock := runner.find_child("DockPanel") as DockPanel
 	assert_bool(dock.fuel_hidden or dock.fuel_locked or dock.board_all_hidden).is_false()
-	assert_bool((runner.find_child("BusStatusPanel") as BusStatusPanel).stop_locked).is_false()
+	assert_bool((runner.find_child("Bus") as FrameshiftBus).route_locked).is_false()
 
 
 # The zoomed map rescaled the star's meshes, the heat zone's disc among them, and left it

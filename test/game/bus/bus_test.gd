@@ -388,6 +388,22 @@ func test_cancel_while_flying_is_stopping_until_it_holds_in_space() -> void:
 	assert_object(_bus.get_docked_planet()).is_null()
 
 
+# The route bar's remove badge reached the bus around the tutorial's lock on the course in
+# flight, and taking the last stop off stopped the bus in space.
+func test_a_locked_route_ignores_the_player_but_overheating_still_clears_it() -> void:
+	var stop := RouteStop.at_planet(_near)
+	_bus.plot_course(stop)
+	_step_for(_bus.charge_time + 2.0)
+	_bus.route_locked = true
+	_bus.remove_stop(stop)
+	_bus.cancel_course()
+	_bus.plot_course(RouteStop.at_planet(_far), true)
+	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+	assert_bool(_bus.is_stopping()).is_false()
+	_bus.temperature.set_temperature(_bus.temperature.overheat_temperature)
+	assert_array(_bus.get_route_planets()).is_empty()
+
+
 func test_on_board_speeding_up_pushes_back_a_turn_pushes_out_and_braking_forward() -> void:
 	# The bus leaves Home toward +X, then turns left, toward -Z, for Side.
 	var side := _planet(_home.get_parent() as Node3D, Vector3(5.0, 0.0, -6.0))

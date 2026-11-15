@@ -2,9 +2,8 @@ class_name HeatZone
 extends Node
 ## The heat zone round the star. Every frame it drives the bus's temperature
 ## ([BusTemperature]) by how far the bus is from the star on the orbit plane and whether it
-## flies or stands still, and overheating clears the bus's route so it coasts to a
-## stop. The temperature holds while the map is zoomed for the tutorial, which scales the
-## distance to the star, and during a tow, whose route isn't the player's.
+## flies or stands still. The temperature holds while the map is zoomed for the tutorial,
+## which scales the distance to the star, and during a tow, whose route isn't the player's.
 ## It keeps the bus out of the star: while the line it heads along would touch the star, its
 ## speed is capped so it brakes to a stop [constant STAR_CLEARANCE] short of touching it,
 ## where it soon overheats. A line that clears the star isn't slowed, however near it passes.
@@ -43,7 +42,6 @@ var _fade: Tween
 
 func _ready() -> void:
 	var temperature := bus.temperature
-	temperature.overheated.connect(bus.cancel_course)
 	zone.scale = Vector3.ONE * temperature.zone_radius
 	var share := temperature.hot_zone_radius / temperature.zone_radius
 	(zone.material_override as ShaderMaterial).set_shader_parameter(&"hot_share", share)
