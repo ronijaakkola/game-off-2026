@@ -98,7 +98,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
 - Happiness holds while they wait.
 - **Station waiting lounge.** Someone picked up gets +1 on their target for every 10 s they waited, up to +5 at 50 s, for their whole ride. A wait counts while the planet's clock runs, so waiting docked there builds none. +5 at most keeps In-Flight Movies alone short of 5 stars (84 + 5 = 89).
-- **The start.** A new run starts with the tutorial (Tutorial), and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A run without the tutorial (a scene run on its own) starts docked at Ember.
+- **The start.** A new run starts with the tutorial (Tutorial) while the player hasn't been through it, and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A run without the tutorial (a New game after it, or a scene run on its own) starts docked at Ember.
 
 ### Who turns up
 
@@ -377,7 +377,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
     └──Settings──▶ settings panel ◀──────────Settings
 ```
 
-- The game is one scene, the solar system. A new run opens on the tutorial's zoomed map (Tutorial).
+- The game is one scene, the solar system. A new run opens on the tutorial's zoomed map (Tutorial) until the player has been through it.
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
 - **A transmission** pauses the game until the player answers it. Closing the pause menu over one leaves the game paused.
 - **A caller's voice:** each race has its own set of short recorded clips (`game/transmissions/voice/`), strung together while the text types out. A race with no clips yet is silent. Every caller of a race has a pitch of their own, fixed by their name. The voice lab, from the debug panel on the main menu, is where the delivery is tuned.
@@ -386,7 +386,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 
 ## Tutorial
 
-- **Every new run starts with it,** and a continued run never does. The pause menu's Skip tutorial skips it, as does the debug panel: what shows closes, and it goes straight to the zoom out it ends with. A passenger still waiting at Terra leaves the line while the HUD is out, unseen.
+- **A new run starts with it until the player has been through it once,** done or skipped; after that New game starts without it, as does a continued run. Whether they have is kept beside the save, outlives it, and only the debug panel's Delete save forgets it. The pause menu's Skip tutorial skips it, as does the debug panel: what shows closes, and it goes straight to the zoom out it ends with. A passenger still waiting at Terra leaves the line while the HUD is out, unseen.
 - **The zoomed map.** Only Terra and the Moon, the map zoomed in 6.5× on Terra, so the Moon orbits 13 units out, about as far as a trip across the whole map. The bus keeps its size, speed and fuel burn, so the ride costs the time, fuel and fare a trip across the whole map does.
 - **Nothing orbits.** Terra and the Moon hold still on their orbits, still spinning, so the bus always finds them where they were and stays in view.
 - **A clear way out.** The bus starts docked on the side of Terra facing the Moon, so the straight flight there never crosses Terra.
@@ -425,7 +425,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 ## Save game
 
 - **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save once the tutorial is over, so it is held to confirm, like refuelling, and a stray click can't lose a run. The main menu's settings can delete the save, held the same way; the pause menu's can't, since the run in play would save it again at the next planet.
-- **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next New game starts the tutorial again.
+- **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next New game starts the tutorial again. Once it has ended, done or skipped, it is kept as done, even if the player quits in the zoom out.
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
 - **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, and the quest under way.
 - **What starts afresh:** the course, the charge, the wait until the next call, what each passenger was doing (an open request opens again at once), and the lines' clocks.

@@ -87,7 +87,7 @@ func _enter_tree() -> void:
 	_collect_planets(self)
 	var saver := %GameSaver as GameSaver
 	saver.place_world(_planets, _ledger)
-	if saver.is_new_run() or TUTORIAL_ARG in OS.get_cmdline_user_args():
+	if saver.wants_tutorial() or TUTORIAL_ARG in OS.get_cmdline_user_args():
 		(%MapZoom as MapZoom).zoom_in()
 		saver.holding = true
 
@@ -345,6 +345,7 @@ func _add_goals() -> void:
 
 # The tutorial is over: whatever is open closes, and the map zooms out.
 func _on_tutorial_finished() -> void:
+	(%GameSaver as GameSaver).finish_tutorial()
 	close_planet()
 	close_bus()
 	(%MapZoom as MapZoom).zoom_out()

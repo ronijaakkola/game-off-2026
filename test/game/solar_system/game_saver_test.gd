@@ -6,15 +6,19 @@ extends GdUnitTestSuite
 const SCENE := "res://game/solar_system/solar_system.tscn"
 # The suite saves to a file of its own, never the player's.
 const TEST_SAVE := "user://test_game_saver_save.json"
+const TEST_TUTORIAL := "user://test_game_saver_tutorial.cfg"
 
 
 func before() -> void:
 	SaveGame.path = TEST_SAVE
+	SaveGame.tutorial_path = TEST_TUTORIAL
 
 
 func after() -> void:
 	SaveGame.delete()
+	SaveGame.forget_tutorial()
 	SaveGame.path = SaveGame.PATH
+	SaveGame.tutorial_path = SaveGame.TUTORIAL_PATH
 
 
 func test_continuing_puts_back_the_research_and_its_open_stages() -> void:

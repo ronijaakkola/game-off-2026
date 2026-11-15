@@ -75,6 +75,18 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	ledger.load_save(_saved.get("ledger", {}))
 
 
+## Whether this run starts with the tutorial: a new run, until the player has been through
+## it once.
+func wants_tutorial() -> bool:
+	return is_new_run() and not SaveGame.is_tutorial_done()
+
+
+## Keeps that the player has been through the tutorial, for a run the main menu started.
+func finish_tutorial() -> void:
+	if _recording:
+		SaveGame.mark_tutorial_done()
+
+
 ## Whether this run continues a save.
 func is_continued() -> bool:
 	return _continued
