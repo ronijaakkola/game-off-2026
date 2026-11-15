@@ -3,10 +3,10 @@ extends VBoxContainer
 ## The On board panel's passengers going to one planet: a header with the planet's icon,
 ## its name, a rule and how many on board are going there, then their cards. The header
 ## holds the gap above the group, and each card the gap above itself, so the header opens
-## with the group's first card ([method fade_in]) and, when the last card has left,
-## [method fold_away] folds it, gap and all, and the groups below move up smoothly.
+## with the group's first card ([method fade_in]) and, as the last card's place folds,
+## [method fold_away] folds it with it, gap and all, and the groups below move up smoothly.
 
-## The group's last card has left, so nobody on board is going to [member planet].
+## The group's last card has slid out, so nobody on board is going to [member planet].
 signal emptied
 ## The group has folded away after [method fold_away]. It can be freed.
 signal folded
@@ -19,6 +19,8 @@ var planet: Planet:
 			_show_planet()
 
 var _fold := 1.0
+# How many of its cards have slid out and are folding away.
+var _folding := 0
 # The header's fade, and its place opening or folding.
 var _motion: Tween
 var _gap: Tween
@@ -35,6 +37,7 @@ func _process(_delta: float) -> void:
 
 ## Adds [param card] at the bottom of the group, and frees it once it has left.
 func add_card(card: PassengerCard) -> void:
+	card.slid_out.connect(_on_card_slid_out)
 	card.left.connect(_on_card_left.bind(card))
 	%GroupCards.add_child(card)
 
@@ -42,6 +45,13 @@ func add_card(card: PassengerCard) -> void:
 ## Shows [param count] passengers on board going to [member planet].
 func show_count(count: int) -> void:
 	(%CountLabel as Label).text = str(count)
+
+
+## Folds the header's place shut and hides the header, until [method fade_in].
+func tuck() -> void:
+	_kill_motion()
+	(%Header as Control).modulate.a = 0.0
+	_set_fold(0.0)
 
 
 ## Opens the header's place and fades the header in, in step with the group's first card.
@@ -53,6 +63,7 @@ func fade_in() -> void:
 	_motion = create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	_motion.tween_property(header, ^"modulate:a", 1.0, PassengerCard.ENTER_SECONDS)
 	if Settings.reduce_motion:
+		_set_fold(1.0)
 		return
 	_set_fold(0.0)
 	_gap = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
@@ -91,11 +102,16 @@ func _show_planet() -> void:
 		label.text = planet.name
 
 
+func _on_card_slid_out() -> void:
+	_folding += 1
+	if _folding == %GroupCards.get_child_count():
+		emptied.emit()
+
+
 func _on_card_left(card: PassengerCard) -> void:
+	_folding -= 1
 	%GroupCards.remove_child(card)
 	card.queue_free()
-	if %GroupCards.get_child_count() == 0:
-		emptied.emit()
 
 
 func _set_fold(value: float) -> void:
@@ -109,6 +125,7 @@ func _fit_slot() -> void:
 	var header := %Header as Control
 	var needed := header.get_combined_minimum_size()
 	header.size = Vector2(slot.size.x, needed.y)
-	var fitted := Vector2(0.0, needed.y * _fold)
+	# Whole pixels, so a header opening as another folds add up to one header throughout.
+	var fitted := Vector2(0.0, roundf(needed.y * _fold))
 	if slot.custom_minimum_size != fitted:
 		slot.custom_minimum_size = fitted

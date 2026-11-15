@@ -32,6 +32,8 @@ extends Control
 signal serve_held(held: bool)
 ## The kick button was pressed: the player wants [member passenger] off the bus.
 signal kick_pressed
+## The card has slid out of sight after [method leave], and its place starts to fold.
+signal slid_out
 ## The card has slid out and folded away after [method leave]. It can be freed.
 signal left
 
@@ -184,6 +186,7 @@ func slide_in() -> void:
 	var panel := %Panel as Control
 	_motion = create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	if Settings.reduce_motion:
+		_set_fold(1.0)
 		panel.modulate.a = 0.0
 		_motion.tween_property(panel, ^"modulate:a", 1.0, ENTER_SECONDS)
 		return
@@ -193,6 +196,11 @@ func slide_in() -> void:
 	var start := _off_left()
 	_set_shift(start)
 	_motion.tween_method(_set_shift, start, 0.0, ENTER_SECONDS)
+
+
+## Folds the card's place shut, so it is out of sight until [method slide_in].
+func tuck() -> void:
+	_set_fold(0.0)
 
 
 ## Shows that the passenger is getting off and rated the ride [param stars] out of
@@ -300,6 +308,7 @@ func _off_left() -> float:
 
 
 func _fold_away() -> void:
+	slid_out.emit()
 	if _gap:
 		_gap.kill()
 	if Settings.reduce_motion:
@@ -346,7 +355,8 @@ func _fit_slot() -> void:
 	panel.size = size_needed
 	var reach := CLIP_ROOM + maxf(-_shift, 0.0)
 	panel.position = Vector2(reach + _shift, GAP)
-	var slot := Vector2(size_needed.x, (size_needed.y + GAP) * _fold)
+	# Whole pixels, so a place opening as another folds add up to one place throughout.
+	var slot := Vector2(size_needed.x, roundf((size_needed.y + GAP) * _fold))
 	if custom_minimum_size != slot:
 		custom_minimum_size = slot
 	var clip := %Clip as Control
