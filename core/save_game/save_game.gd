@@ -7,12 +7,16 @@ extends Node
 ## other way, by a test, a smoke run or F6, never reads or writes the file.
 ## It also keeps, in [constant TUTORIAL_PATH], whether the player has been through the
 ## tutorial: it outlives the run, so a New game after it starts without the tutorial.
+## And it keeps, in [constant HINTS_PATH], which feature hints the player has closed, so
+## each shows once ([FeatureHints]) until the player deletes their save data.
 ## On the web, saves are best effort: without persistent storage, the save lasts for the
 ## session only (docs/web-constraints.md).
 
 const PATH := "user://save_game.json"
 ## Where whether the player has been through the tutorial is kept.
 const TUTORIAL_PATH := "user://tutorial.cfg"
+## Where the feature hints the player has closed are kept.
+const HINTS_PATH := "user://feature_hints.cfg"
 ## Bumped when what the game writes changes so that an older save can't be read: a save
 ## of another version counts as none.
 const VERSION := 1
@@ -23,6 +27,9 @@ var path := PATH
 ## Where whether the player has been through the tutorial is: [constant TUTORIAL_PATH],
 ## pointed elsewhere by a test the way [member path] is.
 var tutorial_path := TUTORIAL_PATH
+## Where the feature hints the player has closed are: [constant HINTS_PATH], pointed
+## elsewhere by a test the way [member path] is.
+var hints_path := HINTS_PATH
 
 # The run the main menu started, until the game claims it: whether there is one, and the
 # saved run it continues, empty for a new one.
@@ -102,6 +109,31 @@ func mark_tutorial_done() -> void:
 func forget_tutorial() -> void:
 	if FileAccess.file_exists(tutorial_path):
 		DirAccess.remove_absolute(tutorial_path)
+
+
+## Whether the player has closed the feature hint [param hint], in any run.
+func has_seen_hint(hint: StringName) -> bool:
+	var file := ConfigFile.new()
+	if file.load(hints_path) != OK:
+		return false
+	return bool(file.get_value("seen", hint, false))
+
+
+## Keeps that the player has closed the feature hint [param hint].
+func mark_hint_seen(hint: StringName) -> void:
+	var file := ConfigFile.new()
+	# Missing the first time: it starts empty.
+	file.load(hints_path)
+	file.set_value("seen", hint, true)
+	var error := file.save(hints_path)
+	if error != OK:
+		push_warning("Couldn't save the hint as seen: %s" % error_string(error))
+
+
+## Forgets every feature hint the player has closed, so each shows again.
+func forget_hints() -> void:
+	if FileAccess.file_exists(hints_path):
+		DirAccess.remove_absolute(hints_path)
 
 
 # The saved run, or empty when there is none, it can't be read or it is of another version.

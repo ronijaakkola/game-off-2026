@@ -6,6 +6,7 @@ extends Node
 ## can charge again. Overheating also scares everyone on board
 ## ([constant OVERHEAT_SHOCK]) and gives them a line about it on their card for the length
 ## of the cooldown.
+## The first time the gauge turns amber, the heat zone's feature hint points at it.
 
 const WARNING_TEXT := "The bus is overheating. Steer away from the star."
 const OVERHEATED_TEXT := "The bus overheated. Cooling down..."
@@ -19,6 +20,9 @@ const COOLED_SECONDS := 6.0
 @export var bus: FrameshiftBus
 @export var notices: NoticeStack
 @export var cabin: Cabin
+@export var hints: FeatureHints
+## Holds the temperature gauge the heat zone's hint points at.
+@export var bus_bars: BusStatusPanel
 
 # The temperature last frame.
 var _last := 0.0
@@ -38,6 +42,7 @@ func _process(_delta: float) -> void:
 	var cooling := temperature.is_cooling()
 	if high and _last < BusStatusPanel.TEMPERATURE_HIGH and not cooling:
 		_warning = notices.push(WARNING_TEXT, Notice.Kind.WARNING, true)
+		hints.offer(&"heat_zone", bus_bars.get_temperature_gauge())
 	elif _warning and (not high or cooling):
 		_dismiss(_warning)
 		_warning = null

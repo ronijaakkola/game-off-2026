@@ -87,6 +87,11 @@ func finish_tutorial() -> void:
 		SaveGame.mark_tutorial_done()
 
 
+## Whether the main menu started this run, new or continued, so it is saved.
+func is_saved_run() -> bool:
+	return _recording
+
+
 ## Whether this run continues a save.
 func is_continued() -> bool:
 	return _continued

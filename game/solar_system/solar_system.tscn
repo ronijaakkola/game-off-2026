@@ -47,12 +47,13 @@
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
 [ext_resource type="Script" uid="uid://dwyqyf3dug5pa" path="res://game/solar_system/heat_zone.gd" id="114_heat_zone"]
-[ext_resource type="Shader" uid="uid://bfd4gbew06myw" path="res://game/solar_system/heat_zone.gdshader" id="115_heat_shader"]
-[ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
 [ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
-[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
 [ext_resource type="Script" uid="uid://c4ehv650d8qwy" path="res://game/tutorial/tutorial_call.gd" id="115_call"]
+[ext_resource type="Shader" uid="uid://bfd4gbew06myw" path="res://game/solar_system/heat_zone.gdshader" id="115_heat_shader"]
+[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
+[ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
+[ext_resource type="Script" uid="uid://bbous2naro572" path="res://game/feature_hints/feature_hints.gd" id="141_hints"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -75,6 +76,16 @@ shader_parameter/inner_radius = 0.78
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
 shader = ExtResource("115_heat_shader")
+shader_parameter/zone_color = null
+shader_parameter/hot_color = null
+shader_parameter/hot_share = null
+shader_parameter/softness = null
+shader_parameter/flash = null
+shader_parameter/flash_gain = null
+shader_parameter/opacity = null
+shader_parameter/smoke_color = null
+shader_parameter/smoke_scale = null
+shader_parameter/drift = null
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_heat_zone"]
 
@@ -233,14 +244,14 @@ cast_shadow = 0
 mesh = SubResource("QuadMesh_halo")
 surface_material_override/0 = SubResource("ShaderMaterial_halo")
 
+[node name="Light" type="OmniLight3D" parent="World/Star" unique_id=1336476973]
+omni_range = 200.0
+omni_attenuation = 0.0
+
 [node name="HeatZoneDisc" type="MeshInstance3D" parent="World" unique_id=786749512]
 material_override = SubResource("ShaderMaterial_heat_zone")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_heat_zone")
-
-[node name="Light" type="OmniLight3D" parent="World/Star" unique_id=1336476973]
-omni_range = 200.0
-omni_attenuation = 0.0
 
 [node name="Ember" type="Node3D" parent="World" unique_id=1760760661]
 script = ExtResource("2_planet")
@@ -422,11 +433,19 @@ star = NodePath("../World/Star")
 map_zoom = NodePath("../MapZoom")
 zone = NodePath("../World/HeatZoneDisc")
 
-[node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin")]
+[node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin", "hints", "bus_bars")]
 script = ExtResource("116_heat_warning")
 bus = NodePath("../Bus")
 notices = NodePath("../Hud/Notices")
 cabin = NodePath("../Cabin")
+hints = NodePath("../FeatureHints")
+bus_bars = NodePath("../Hud/BusStatusPanel")
+
+[node name="FeatureHints" type="Node" parent="." unique_id=534869941 node_paths=PackedStringArray("guide", "tutorial", "saver")]
+script = ExtResource("141_hints")
+guide = NodePath("../Hud/HintCard")
+tutorial = NodePath("../Tutorial")
+saver = NodePath("../GameSaver")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")
@@ -570,6 +589,8 @@ anchors_preset = 11
 [node name="ResearchScreen" parent="Hud" unique_id=2076382170 instance=ExtResource("99_screen")]
 
 [node name="GuideCard" parent="Hud" unique_id=1412722458 instance=ExtResource("116_guide")]
+
+[node name="HintCard" parent="Hud" unique_id=43099574 instance=ExtResource("116_guide")]
 
 [node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 
