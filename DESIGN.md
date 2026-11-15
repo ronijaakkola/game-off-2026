@@ -87,6 +87,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - **Never into the star.** While the straight line the bus heads along would touch the star, it brakes so it comes to rest on that line 0.1 short of touching (2.95 units from the star's centre when heading straight at it), and there it soon overheats. A line that clears the star isn't slowed, however near it passes. Not during a tow, which can't overheat, so stopping there would hold it for good.
 - **Overheating.** At 60° the bus lets go of the Frameshift key and coasts to a stop, keeping its route. The route can be changed meanwhile, but the drive can't charge until the **cooldown** is over: 8 s that bring it back to 21° wherever the bus stands. Then it waits in space with a cold drive, warming slowly again, so going on along the same route, or a new one, takes a charge.
 - **A clear way out.** After a cooldown, until the bus leaves the heat zone, flying anywhere but into the star heats it at a tenth of the usual rate, so the player can keep the course they had or turn away, and get out without overheating again. Only a heading whose line would touch the star heats as usual. Stopped against the star, that leaves courses 75° or more off straight at its centre.
+- **Too hot is uncomfortable.** Above 32°, the top of the gauge's green band, everyone on board slowly loses happiness: what the bus can lift them to drops 0.25 a second, down to 3 below at most, and once the temperature is back in the band it comes back 1 a second. It is a nudge the player can undo, not a cost that stays with the ride: a clean ride on a bare bus (76) keeps its four stars at the worst of it. It counts through a cooldown, since the bus is hot then (about 6 s above 32°): with the −5 scare, an overheat takes a clean bare ride under four stars for about 2 s, and all of it is gone about 9 s after. Not while the temperature is exempt. Frustration's floor of 50 still holds.
 - **Overheating scares everyone on board, −5,** and costs no credits. The time is most of the cost: the cooldown and the charge are about 11 s on a ride of about 20 s, which takes a passenger's on-time bonus and more.
 - **Exempt.** The temperature holds, and can't overheat, during the tutorial until the zoom out is over (the zoomed map scales distances to the star), and during a tow, whose route the player has no say in.
 - **Balance runs steer round it.** The scripted player decides only at docks, so whenever the straight way to the planet ahead passes within 0.5 of the hot zone, now or as the planet moves, it puts a checkpoint beyond the heat zone's edge. Going round just outside the hot zone overheats: half a circle at 5.0 units adds about 25°. After an overheat it sets the same course again once it has cooled.
@@ -158,7 +159,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 **The target** is worked out fresh every frame:
 
-- 64 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), plus timing, less frustration.
+- 64 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), less the heat's discomfort (Temperature), plus timing, less frustration.
 - While a request is open, the target is 0, from 1.5 s of flying after it opened: serving it at once costs nothing. Ignoring a request must always cost more than serving it.
 - While anything is serving the request, happiness holds rather than falling, since they can see it coming.
 
@@ -448,7 +449,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 ## Scope
 
 - **Out for now:** more than one save slot, dialogue, positional or adaptive audio.
-- **Not in temperature:** cold (nothing lies beyond Frost, so it would be an unavoidable tax on Frost trips or never felt; it waits for a system where it is a choice), passengers feeling the temperature below overheating, a player action that cools the bus, and upgrades that change any of it.
+- **Not in temperature:** cold (nothing lies beyond Frost, so it would be an unavoidable tax on Frost trips or never felt; it waits for a system where it is a choice), a player action that cools the bus, and upgrades that change any of it.
 
 ## Not designed yet
 

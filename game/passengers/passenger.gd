@@ -245,7 +245,7 @@ func get_rating() -> float:
 func get_target(comfort: Comfort = null) -> float:
 	if request and _request_age >= REQUEST_LEEWAY:
 		return 0.0
-	var best := _get_best(comfort)
+	var best := _get_best(comfort if comfort else _no_comfort)
 	return best - ride.get_lost(best)
 
 
@@ -467,10 +467,10 @@ func _complain(lines: Array[String], seconds: float) -> void:
 	_activity_left = seconds
 
 
-# The most the bus giving [param comfort] can give them now, before frustration.
+# The most the bus giving [param comfort] can give them now, before frustration, less discomfort.
 func _get_best(comfort: Comfort) -> float:
-	var bonus := (comfort.bonus if comfort else 0.0) + lounge_bonus + quick_bonus
-	var settled := minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS)
+	var bonus := comfort.bonus + lounge_bonus + quick_bonus
+	var settled := minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS) - comfort.discomfort
 	return clampf(settled + ride.get_timing(), 0.0, MAX_HAPPINESS)
 
 

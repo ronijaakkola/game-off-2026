@@ -8,7 +8,8 @@ extends Node
 ## to rest over [member cooldown_time], wherever the bus stands. Then, until it leaves the
 ## heat zone, it rises only [member escape_share] as fast while the bus flies anywhere but
 ## into the star, so getting out is easy; heading into it heats it as usual. It starts at
-## rest.
+## rest. Past [member comfortable_temperature] the passengers are uncomfortable
+## ([method is_uncomfortable]).
 ## Whoever knows where the star is calls [method advance].
 
 ## It reached [member overheat_temperature]. The cooldown has started.
@@ -24,6 +25,8 @@ signal overheated
 @export var rest_temperature := 21.0
 ## Degrees at which it overheats.
 @export var overheat_temperature := 60.0
+## The top of the comfortable band, in degrees: past it the passengers are uncomfortable.
+@export var comfortable_temperature := 32.0
 ## Degrees a second it falls outside the heat zone.
 @export_range(0.0, 100.0, 0.01) var fall_rate := 3.9
 ## Degrees a second it rises in flight at the heat zone's edge, rising to [member hot_rate]
@@ -47,6 +50,8 @@ var temperature := rest_temperature
 var _cooldown_left := 0.0
 # Whether it has cooled down and the bus hasn't left the heat zone since.
 var _escaping := false
+# Whether the last advance was exempt.
+var _exempt := false
 
 
 func _ready() -> void:
@@ -58,6 +63,7 @@ func _ready() -> void:
 ## standing still. While [param exempt] it holds and can't overheat, but a cooldown under way
 ## goes on.
 func advance(delta: float, distance: float, flying: bool, at_star: bool, exempt := false) -> void:
+	_exempt = exempt
 	if is_cooling():
 		_cooldown_left = maxf(_cooldown_left - delta, 0.0)
 		_escaping = _cooldown_left == 0.0
@@ -103,6 +109,22 @@ func set_temperature(degrees: float) -> void:
 ## flying anywhere but into the star then heats it only [member escape_share] as fast.
 func is_escaping() -> bool:
 	return _escaping
+
+
+## Whether it is past [member comfortable_temperature], cooldown included, and not exempt:
+## the passengers feel it.
+func is_uncomfortable() -> bool:
+	return temperature > comfortable_temperature and not _exempt
+
+
+## How far past comfortable it is, from 0 at [member comfortable_temperature] (and while
+## not [method is_uncomfortable]) to 1 at [member overheat_temperature].
+func get_discomfort() -> float:
+	if not is_uncomfortable():
+		return 0.0
+	return clampf(
+		inverse_lerp(comfortable_temperature, overheat_temperature, temperature), 0.0, 1.0
+	)
 
 
 ## Whether it overheated and is cooling down. Meanwhile the drive can't charge.

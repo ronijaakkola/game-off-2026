@@ -7,7 +7,8 @@ extends Node3D
 ## feels and sways back. Angry, the lids slant into a frown over smaller pupils, and past
 ## halfway a red anger mark pops up on the head, which trembles; joyful, lower lids rise
 ## so the eyes smile into crescents, and the head bobs. Content, they beam that way now
-## and then. The skin never changes colour with mood, since it shows the passenger's
+## and then. Too hot, drops of sweat run down the head ([PortraitSweat]), whatever the face.
+## The skin never changes colour with mood, since it shows the passenger's
 ## race. A single eye shows anger with a brow over it and joy as a starry eye over
 ## blushing cheeks, since any curve cut into it reads as a mouth. Eating or drinking, a
 ## [PortraitMeal] holds the food up to the face and nods the head. Watching something, a
@@ -16,7 +17,6 @@ extends Node3D
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
-const ANGER_MARK_SHADER := preload("res://game/passengers/anger_mark.gdshader")
 ## Toward the light that lights the bust, in world space: above, to the left and in front,
 ## like a photographer's lamp. Portraits face +z.
 const LIGHT_DIRECTION := Vector3(-0.48, 0.6, 0.64)
@@ -50,13 +50,6 @@ const EXPRESSION_SPEED := 3.0
 ## At full anger: how far the lids close, and how big the pupils are.
 const ANGRY_OPEN := 0.8
 const ANGRY_PUPIL := 0.7
-## The anger mark: its size, as a share of the head's (the mean of its width and height),
-## and where it sits on the head's upper right, from its middle, as a share of the head's
-## size. It grows in past half anger, and pulses: how fast, and by how much of its size.
-const ANGER_MARK_SIZE := 0.42
-const ANGER_MARK_AT := Vector2(0.3, 0.5)
-const ANGER_MARK_PULSE_SPEED := 7.0
-const ANGER_MARK_PULSE := 0.12
 ## At full joy, how big the pupils are, and how far up the eyes look, from -1 to 1.
 const JOYFUL_PUPIL := 1.15
 const JOYFUL_LOOK := 0.35
@@ -114,11 +107,13 @@ const CENTRED_EYE_REACH := 1.6
 ## (the camera's left, since they face it) and +y forward, toward the camera. The bust
 ## leans with it on a spring, so a jolt makes it sway.
 var felt_acceleration := Vector2.ZERO
+## How hard they sweat, from 0 not at all to 1 as hard as they can.
+var sweat := 0.0
 
 ## The eyes, made on the model's Eye markers.
 var eyes: Array[MeshInstance3D] = []
 ## The red anger mark on the head, shown past half anger.
-var anger_mark: MeshInstance3D
+var anger_mark: AngerMark
 
 var _materials: Dictionary[String, ShaderMaterial] = {}
 # One per eye, since each eye's lid slants its own way in anger.
@@ -155,6 +150,7 @@ var _joy := 0.0
 var _beam_in := randf_range(0.5, 3.0)
 var _beam_left := 0.0
 var _meal: PortraitMeal
+var _sweat: PortraitSweat
 var _screen := PortraitScreen.new()
 
 
@@ -182,12 +178,16 @@ func _ready() -> void:
 				% [head_model.resource_path, HEAD_SUFFIX]
 			)
 		)
-	_add_anger_mark()
+	anger_mark = AngerMark.new()
+	anger_mark.setup(self, _head if _head else self, _get_head_body_bounds())
 	skin_color = skin_color
 	outfit_color = outfit_color
 	eye_style = eye_style
 	if _head:
 		_add_meal()
+		_sweat = PortraitSweat.new()
+		_head.add_child(_sweat)
+		_sweat.setup(_head_shape_meshes())
 	_blink_in = randf_range(1.0, 4.0)
 
 
@@ -259,11 +259,9 @@ func _process(delta: float) -> void:
 		)
 		_stalks[i].rotation = _stalk_rest[i] + wobble * motion
 
-	if anger_mark:
-		var pulse := 1.0 + sin(_time * ANGER_MARK_PULSE_SPEED) * ANGER_MARK_PULSE * motion
-		var grow := ease(_get_fury(), 0.4)
-		anger_mark.scale = Vector3.ONE * maxf(grow * pulse, 0.001)
-		anger_mark.visible = grow > 0.0
+	anger_mark.show_fury(_get_fury(), _time, motion)
+	if _sweat:
+		_sweat.advance(delta, sweat, motion)
 
 	var open := lerpf(eye_openness, 0.0, _sleep) * lerpf(1.0, ANGRY_OPEN, _anger)
 	open *= 1.0 - _blink
@@ -278,8 +276,8 @@ func _process(delta: float) -> void:
 
 
 ## The bounds of the head and what is on it, such as stalks and eyes, but not the anger
-## mark, in this node's space. A shape that is all one piece, such as the Bean, gives its
-## whole body, and so does a model with no head part.
+## mark or the sweat, in this node's space. A shape that is all one piece, such as the Bean,
+## gives its whole body, and so does a model with no head part.
 func get_head_bounds() -> AABB:
 	var parts: Array[Node] = []
 	if _head:
@@ -291,7 +289,7 @@ func get_head_bounds() -> AABB:
 	var first := true
 	for node: Node in parts:
 		var mesh := node as MeshInstance3D
-		if mesh == anger_mark:
+		if not mesh or mesh == anger_mark or (_sweat and _sweat.is_ancestor_of(mesh)):
 			continue
 		var local := global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
 		bounds = local if first else bounds.merge(local)
@@ -367,30 +365,6 @@ func _get_fury() -> float:
 	if not shows_fury:
 		return 0.0
 	return clampf(_anger * 2.0 - 1.0, 0.0, 1.0)
-
-
-# The anger mark, a quad facing the camera on the head's upper right as the camera sees
-# it, on the head so it trembles and leans with it. It goes by the head's own mesh, not
-# the stalks or eyes on it, so it sits clear of them. Hidden until they are angry.
-func _add_anger_mark() -> void:
-	var bounds := _get_head_body_bounds()
-	var quad := QuadMesh.new()
-	quad.size = Vector2.ONE * (bounds.size.x + bounds.size.y) * 0.5 * ANGER_MARK_SIZE
-	var material := ShaderMaterial.new()
-	material.shader = ANGER_MARK_SHADER
-	material.render_priority = 1
-	anger_mark = MeshInstance3D.new()
-	anger_mark.mesh = quad
-	anger_mark.material_override = material
-	anger_mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	anger_mark.visible = false
-	var middle := bounds.get_center()
-	var offset := Vector2(bounds.size.x, bounds.size.y) * ANGER_MARK_AT
-	var at := Vector3(middle.x + offset.x, middle.y + offset.y, bounds.end.z)
-	var parent: Node3D = _head if _head else self
-	parent.add_child(anger_mark)
-	anger_mark.global_position = global_transform * at
-	anger_mark.global_basis = global_basis
 
 
 # The bounds of the head's own mesh in this node's space, without the parts on it, or the
@@ -475,23 +449,29 @@ func _add_meal() -> void:
 	_meal.setup(Vector3(bounds.get_center().x, mouth_y, bounds.end.z), width * MEAL_SIZE)
 
 
-# The bounds of the head's own shape in its space, without the eyes: the head part when it
-# is a mesh, or else the meshes under it.
+# The bounds of the head's own shape in its space ([method _head_shape_meshes]).
 func _head_shape_bounds() -> AABB:
-	var meshes: Array[Node] = [_head]
-	if not _head is MeshInstance3D:
-		meshes = _head.find_children("*", "MeshInstance3D", true, false)
 	var to_head := _head.global_transform.affine_inverse()
 	var bounds := AABB()
 	var first := true
-	for node: Node in meshes:
-		var mesh := node as MeshInstance3D
-		if mesh in eyes:
-			continue
+	for mesh: MeshInstance3D in _head_shape_meshes():
 		var local := to_head * mesh.global_transform * mesh.get_aabb()
 		bounds = local if first else bounds.merge(local)
 		first = false
 	return bounds
+
+
+# The meshes of the head's own shape, without the eyes or the anger mark: the head part
+# when it is a mesh, or else the meshes under it.
+func _head_shape_meshes() -> Array[MeshInstance3D]:
+	var nodes: Array[Node] = [_head]
+	if not _head is MeshInstance3D:
+		nodes = _head.find_children("*", "MeshInstance3D", true, false)
+	var meshes: Array[MeshInstance3D] = []
+	for node: Node in nodes:
+		if node not in eyes and node != anger_mark:
+			meshes.append(node as MeshInstance3D)
+	return meshes
 
 
 func _add_eye(marker: Node3D) -> void:
