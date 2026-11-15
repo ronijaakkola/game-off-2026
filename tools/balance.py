@@ -6,9 +6,13 @@
   uv run tools/balance.py run [--variants FILE] [--seeds N] [--minutes M] [--out DIR]
       Plays every variant on the same seeds and prints one table. A variants file is a
       JSON list of {"name", "policy", "overrides", "project"}: the policy is the scripted
-      player's (tools/balance/player.gd), the overrides are exported numbers set without
-      touching a file (tools/balance/run.gd), and "project" is another checkout to play,
-      for a change to a constant. Without a file it plays the game as it is.
+      player's (tools/balance/player.gd at docks, tools/balance/calls.gd for quest calls:
+      "quests" is "accept", "decline", "ignore" or "off"), the overrides are exported
+      numbers set without touching a file and where the run starts
+      (tools/balance/overrides.gd: by default where a new run starts once the tutorial is
+      over, or "after_tutorial": false for Ember with nothing researched), and "project" is
+      another checkout to play, for a change to a constant. Without a file it plays the
+      game as it is.
   uv run tools/balance.py play DIR [DECISION] [--seed N] [--minutes M] [--policy JSON]
       A game played turn by turn, one dock at a time, for a person or an agent. With no
       DECISION it starts the game in DIR (or shows where it stands). A DECISION is JSON:
@@ -63,6 +67,17 @@ def mean(values: list[float]) -> float:
 
 def share(rows: list, test) -> float:
     return 100.0 * sum(1 for row in rows if test(row)) / len(rows) if rows else float("nan")
+
+
+def measured(report: dict, *keys: str) -> float:
+    """A number a report holds under keys, or nan when it holds none: a report from an
+    older checkout ("project") measured less, and nan says so where 0 would mislead."""
+    value = report
+    for key in keys:
+        if not isinstance(value, dict) or key not in value:
+            return float("nan")
+        value = value[key]
+    return float(value)
 
 
 def at_time(series: list[dict], seconds: float, key: str) -> float:
@@ -126,8 +141,21 @@ def summarize(reports: list[dict]) -> dict:
         "upgrades at 5 min": mean([at_time(r["series"], 300, "upgrades") for r in reports]),
         "upgrades at 10 min": mean([at_time(r["series"], 600, "upgrades") for r in reports]),
         "upgrades at end": mean([len(r["upgrades"]) for r in reports]),
+        "quick stops %": mean(
+            [100.0 * measured(r, "quick_stops") / max(measured(r, "departures"), 1)
+             for r in reports]
+        ),
+        "calls/10 min": mean(
+            [600.0 * measured(r, "quests", "calls") / r["seconds"] for r in reports]
+        ),
+        "quests taken": mean([measured(r, "quests", "accepted") for r in reports]),
+        "quests done": mean([measured(r, "quests", "done") for r in reports]),
+        "quests failed": mean([measured(r, "quests", "failed") for r in reports]),
+        "quest credits %": mean(
+            [100.0 * measured(r, "quests", "credits") / max(r["earned"], 1) for r in reports]
+        ),
         "tows": mean([r["tows"] for r in reports]),
-        "overheats": mean([r.get("overheats", 0) for r in reports]),
+        "overheats": mean([measured(r, "overheats") for r in reports]),
         "waiting at a dock": mean([r["waiting_at_dock"] for r in reports]),
         "empty seats leaving": mean([r["empty_seats_leaving"] for r in reports]),
         "seats at end": mean([r["seats"] for r in reports]),
@@ -201,7 +229,8 @@ def show_state(state: dict) -> None:
     for p in state["on_board"]:
         print(f"  - {p['name']} ({p['type']}, {p['race'].lower()}) to {p['to']}: happiness "
               f"{p['happiness']}/100, would rate {p['stars_now']:g} stars and pay "
-              f"{p['pays_now']} now (fare {p['fare']}; expected a {p['expected_seconds']} s ride)")
+              f"{p['pays_now']} now (fare {p['fare']}; expected a {p['expected_seconds']} s ride)"
+              + (f"; quest: {p['quest']}" if p["quest"] else ""))
     print("Waiting here:" if state["waiting"] else "Nobody waits here.")
     for p in state["waiting"]:
         print(f"  - {p['id']}: {p['name']} ({p['type']}, {p['race'].lower()}) to {p['to']}, "

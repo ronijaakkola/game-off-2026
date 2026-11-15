@@ -136,6 +136,13 @@ func skip() -> void:
 		_reveal(true)
 
 
+## Answers it as the accept button would. Does nothing unless it is open, or once it is
+## closing.
+func accept() -> void:
+	if is_open() and not _answering:
+		_answer(true)
+
+
 ## Closes it as the decline button would, as when what it belongs to is skipped. Does
 ## nothing unless it is open, or once it is closing.
 func close() -> void:

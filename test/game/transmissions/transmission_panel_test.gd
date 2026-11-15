@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## A transmission whose two answers mean the same shows them as two primary buttons of one
-## width, and either one accepts.
+## width, and either one accepts. Answering from code, as a balance run does, accepts and
+## lets the game run again.
 
 const SCENE := "res://game/transmissions/transmission_panel.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -47,3 +48,21 @@ func test_two_answers_alike_are_as_wide_and_either_accepts() -> void:
 	if is_failure():
 		return
 	assert_array(answers).contains_exactly([true])
+
+
+func test_accept_answers_yes_and_unpauses() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as TransmissionPanel
+	var call := Transmission.from_boss()
+	call.text = "Hello."
+	panel.open(call)
+	assert_bool(get_tree().paused).is_true()
+	var answers: Array[bool] = []
+	panel.answered.connect(func(accepted: bool) -> void: answers.append(accepted))
+	panel.accept()
+	var answered := await PauseProofWait.for_signal(panel.answered, 3000)
+	assert_bool(answered).override_failure_message("The transmission never closed").is_true()
+	if is_failure():
+		return
+	assert_array(answers).contains_exactly([true])
+	assert_bool(get_tree().paused).is_false()

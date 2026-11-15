@@ -124,6 +124,11 @@ func seed_dice(value: int) -> void:
 	_rng.seed = value
 
 
+## The quest on offer in the transmission panel, before the player answers, or null.
+func get_offer() -> Quest:
+	return _offer
+
+
 ## The quest under way, or null.
 func get_quest() -> Quest:
 	return _quest

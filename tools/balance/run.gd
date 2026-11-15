@@ -1,31 +1,23 @@
 extends Node
 ## Plays the real solar system headless, at whatever speed the machine manages, with a
 ## seeded dice and a scripted player, and writes what happened as JSON: the balance run
-## behind `tools/balance.py`. The player decides only at docks; in flight a hand model
-## serves requests one at a time, each after a reaction time, and the player steers round
-## the star's hot zone (detour.gd).
+## behind `tools/balance.py`. The player decides only at docks; a hand model serves
+## requests one at a time, each after a reaction time, in flight and at stops, the player
+## steers round the star's hot zone (detour.gd), and answers calls with quests (calls.gd).
+## By default the run starts where a new run does once the tutorial is over
+## (overrides.gd).
 ## Run by `tools/balance.py` as the scene `run.tscn`, with the path of a config file after `--`:
-## "seed", "minutes", "out", "policy" (player.gd), "overrides" (below), and for a
-## turn-by-turn player "decisions" (the list given so far) and "state_out" (where the
+## "seed", "minutes", "out", "policy" (player.gd and calls.gd), "overrides" (overrides.gd,
+## and "rating_goal" and "deliveries_goal", the goals the run is measured against), and for
+## a turn-by-turn player "decisions" (the list given so far) and "state_out" (where the
 ## state to decide on is written when the list runs out).
-## Overrides set exported numbers without touching a file: "waiting.max_per_planet",
-## "commuter.slack", "business.fare_multiplier", "snack.min_interval",
-## "drink.max_interval", "cabin.seats", "tank.burn_per_unit", "bus.charge_time", and
-## "upgrade_credits" / "upgrade_points", a list of costs by tree row, and "upgrade_cost",
-## one upgrade's own {title: [credits, points]}. "start_with" set to
-## "all" starts on a bus with every built upgrade researched, and to a list of titles, with
-## those. "fuel_price_scale" multiplies every planet's fuel price. "open_stages" is how
-## many research stages are open (1 to 3), and "rating_goal" and "deliveries_goal" are the
-## goals the run is measured against.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
-const COMMUTER := "res://game/passengers/types/commuter.tres"
-const BUSINESS := "res://game/passengers/types/business.tres"
-const SNACK := "res://game/passengers/needs/snack.tres"
-const DRINK := "res://game/passengers/needs/drink.tres"
 const Recorder := preload("res://tools/balance/recorder.gd")
 const Player := preload("res://tools/balance/player.gd")
 const Detour := preload("res://tools/balance/detour.gd")
+const Calls := preload("res://tools/balance/calls.gd")
+const Overrides := preload("res://tools/balance/overrides.gd")
 ## Seconds the hand takes to move from one serve button to the next.
 const HAND_SWITCH := 0.3
 ## Seconds a player takes to ask for a tow once the bus has stopped.
@@ -48,13 +40,13 @@ var _decision_count := 0
 var _tow_in := -1.0
 var _tow_notice: Notice
 var _detour: Detour
+var _calls: Calls
+var _overrides: Overrides
 # The hand model: who it serves, when it is free again, and when it notices each request.
 var _hand: Passenger
 var _hand_free_at := 0.0
 var _noticed_at: Dictionary[Passenger, float] = {}
 var _ids: Dictionary[String, Passenger] = {}
-# The shared resources overrides were set on, kept so the scene loads these same ones.
-var _resources: Dictionary[String, Resource] = {}
 
 
 func _ready() -> void:
@@ -66,31 +58,36 @@ func _ready() -> void:
 		get_tree().quit(2)
 		return
 	_config = parsed
-	_apply_resource_overrides()
+	var overrides: Dictionary = _config.get("overrides", {})
+	_overrides = Overrides.new(overrides)
+	_overrides.apply_to_resources()
 	_system = (load(SCENE) as PackedScene).instantiate() as SolarSystem
+	_overrides.apply_before_ready(_system)
 	add_child(_system)
 	_bus = _system.get_node(^"%Bus") as FrameshiftBus
 	_cabin = _system.get_node(^"%Cabin") as Cabin
 	_waiting = _system.get_node(^"%WaitingPassengers") as WaitingPassengers
 	_lab = _system.get_node(^"%ResearchLab") as ResearchLab
-	# Nobody calls with a quest: the scripted player decides only at a dock, so it could
-	# neither answer a call nor reroute for one.
-	(_system.get_node(^"%QuestGiver") as QuestGiver).enabled = false
 	_ledger = _system.get_ledger()
 	_collect_planets(_system)
-	var overrides: Dictionary = _config.get("overrides", {})
 	_recorder.rating_goal = float(overrides.get("rating_goal", SolarSystem.START_RATING))
 	_recorder.deliveries_goal = int(overrides.get("deliveries_goal", SolarSystem.START_DELIVERIES))
-	_apply_node_overrides()
-	# The same dice for the same seed: the lines start over with it.
-	_waiting.seed_dice(int(_config.get("seed", 1)))
+	_overrides.apply_to_scene(_system, _planets)
+	# The same dice for the same seed: the lines start over with it, and the calls.
+	var seed_value := int(_config.get("seed", 1))
+	_waiting.seed_dice(seed_value)
+	(_system.get_node(^"%QuestGiver") as QuestGiver).seed_dice(seed_value + 104729)
 	_waiting.start(_planets, _bus.get_docked_planet(), _ledger)
-	_player = Player.new(_config.get("policy", {}), int(_config.get("seed", 1)) + 7919)
+	_player = Player.new(_config.get("policy", {}), seed_value + 7919)
 	_think_left = float(_player.policy.get("dock_think", 3.0))
 	_bus.docked.connect(_on_docked)
 	_bus.ran_out_of_fuel.connect(_on_ran_out_of_fuel)
 	_bus.temperature.overheated.connect(_on_overheated)
 	_detour = Detour.new(_bus, _system.get_node(^"World/Star") as Node3D)
+	var call_dice := RandomNumberGenerator.new()
+	call_dice.seed = seed_value + 15485863
+	_calls = Calls.new(_player.policy, call_dice, _system, _detour)
+	_bus.left_warm.connect(func() -> void: _recorder.quick_stops += 1)
 	_cabin.boarded.connect(_on_boarded)
 	_cabin.delivered.connect(_on_delivered)
 	_cabin.kicked.connect(func(_passenger: Passenger) -> void: _recorder.kicks += 1)
@@ -108,7 +105,10 @@ func _process(delta: float) -> void:
 	if _tow_in >= 0.0:
 		_tow_in -= delta
 		if _tow_in < 0.0 and is_instance_valid(_tow_notice):
+			# As the notice's own button does: it asks for the tow, then leaves.
 			_tow_notice.action_pressed.emit()
+			_tow_notice.dismiss()
+	_calls.tick(delta)
 	if _bus.is_at_planet():
 		_at_dock(delta)
 	else:
@@ -118,11 +118,13 @@ func _process(delta: float) -> void:
 
 
 func _at_dock(delta: float) -> void:
-	_let_go()
+	# A request open as the bus parks stays open, and is served here.
+	_serve(delta)
 	if _decided:
 		_bus.frameshift_held = not _bus.get_route_stops().is_empty()
 		return
-	if _cabin.is_stopping():
+	# One hand: it serves before it picks anyone up.
+	if _cabin.is_stopping() or _hand:
 		return
 	_think_left -= delta
 	if _think_left > 0.0:
@@ -143,6 +145,7 @@ func _at_dock(delta: float) -> void:
 		decision = _player.decide(state)
 	_decision_count += 1
 	_recorder.news.clear()
+	_calls.news.clear()
 	if not _apply(decision):
 		# Nothing was plotted, so the bus would sit here until the run's time is up.
 		printerr('balance run: "next" must be another planet, not "%s"' % decision.get("next"))
@@ -286,7 +289,7 @@ func _describe() -> Dictionary:
 		"waiting": waiting,
 		"planets": planets,
 		"upgrades": _upgrade_rows(here),
-		"news": _recorder.news.duplicate(),
+		"news": _recorder.news + _calls.news,
 	}
 
 
@@ -299,6 +302,7 @@ func _passenger_row(passenger: Passenger) -> Dictionary:
 		"fare": roundi(passenger.fare),
 		"trip_seconds": roundi(passenger.trip_seconds),
 		"expected_seconds": roundi(passenger.expected_seconds),
+		"quest": passenger.quest_line,
 	}
 
 
@@ -373,6 +377,11 @@ func _finish(done: bool) -> void:
 	report["seed"] = _config.get("seed", 1)
 	report["decisions_made"] = _decision_count
 	report["seats"] = _cabin.seats
+	# What quests paid is income, and their points are earned points. The recorder counts
+	# only what deliveries pay, not the ledger, so this adds them once.
+	report["quests"] = _calls.report()
+	report["earned"] = int(report["earned"]) + _calls.credits
+	report["points_earned"] = int(report["points_earned"]) + _calls.points
 	_write(str(_config.get("out", "")), report)
 	if _config.has("state_out"):
 		_write(str(_config["state_out"]), {"done": true})
@@ -418,56 +427,3 @@ func _on_ran_out_of_fuel() -> void:
 func _on_overheated() -> void:
 	_recorder.overheats += 1
 	_recorder.news.append("Overheated near the star and stopped to cool down")
-
-
-# Numbers on the shared resources, set before the scene loads them.
-func _apply_resource_overrides() -> void:
-	_resources = {
-		"commuter": load(COMMUTER),
-		"business": load(BUSINESS),
-		"snack": load(SNACK),
-		"drink": load(DRINK),
-	}
-	var overrides: Dictionary = _config.get("overrides", {})
-	for key: String in overrides:
-		var parts := key.split(".")
-		if parts.size() == 2 and _resources.has(parts[0]):
-			_resources[parts[0]].set(parts[1], overrides[key])
-
-
-# Numbers on the scene's nodes and the trees, set once the scene is in.
-func _apply_node_overrides() -> void:
-	var nodes := {
-		"waiting": _waiting,
-		"cabin": _cabin,
-		"tank": _bus.get_fuel_tank(),
-		"bus": _bus,
-	}
-	var overrides: Dictionary = _config.get("overrides", {})
-	for key: String in overrides:
-		var parts := key.split(".")
-		if parts.size() == 2 and nodes.has(parts[0]):
-			(nodes[parts[0]] as Node).set(parts[1], overrides[key])
-	for planet: Planet in _planets:
-		planet.fuel_price *= float(overrides.get("fuel_price_scale", 1.0))
-	for i: int in int(overrides.get("open_stages", 1)) - 1:
-		_lab.get_research().open_next_stage()
-	var start_with: Variant = overrides.get("start_with", [])
-	for tree: ResearchTree in _lab.trees:
-		for upgrade: Upgrade in tree.upgrades:
-			var built := not upgrade.description.contains("NOT IMPLEMENTED")
-			var named: bool = start_with is Array and upgrade.title in start_with
-			if named or (start_with is String and start_with == "all" and built):
-				_lab.get_research().research(upgrade)
-			var credits: Array = overrides.get("upgrade_credits", [])
-			if upgrade.tier < credits.size():
-				upgrade.credits = int(credits[upgrade.tier])
-			var own: Variant = (overrides.get("upgrade_cost", {}) as Dictionary).get(upgrade.title)
-			if own is Array:
-				upgrade.credits = int(own[0])
-				for race: Race.Type in upgrade.points:
-					upgrade.points[race] = int(own[1])
-			var points: Array = overrides.get("upgrade_points", [])
-			if upgrade.tier < points.size():
-				for race: Race.Type in upgrade.points:
-					upgrade.points[race] = int(points[upgrade.tier])

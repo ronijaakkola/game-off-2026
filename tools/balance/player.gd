@@ -5,6 +5,7 @@ extends RefCounted
 ## kind of decision, so a bot and an agent play through one door.
 ## A decision is a Dictionary: "board" (ids of waiting passengers), "kick" (names on
 ## board), "research" (upgrade ids), "refuel" (bool) and "next" (a planet's name).
+## The same policy says how it answers calls with quests in flight (calls.gd).
 
 ## Flying this many times the straight distance must fit in the tank, or the bot refuels:
 ## planets move, and the bus chases them.

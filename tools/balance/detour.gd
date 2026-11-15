@@ -23,6 +23,7 @@ func _init(bus: FrameshiftBus, star: Node3D) -> void:
 
 
 ## Sets a course to [param planet], round the hot zone when the straight leg crosses it.
+## In flight, as for a quest, the bus turns there at once.
 func plot(planet: Planet) -> void:
 	_heading_to = planet
 	_bus.plot_course(RouteStop.at_planet(planet))
@@ -48,7 +49,9 @@ func steer() -> void:
 	var from := RouteStop.flat(_bus.global_position - star)
 	var via: Variant = around(from, RouteStop.flat(to - star), clear, out)
 	if via != null:
-		_bus.plot_course(RouteStop.at_point(star + (via as Vector3)), true)
+		# Adding a stop puts it on the end, so the checkpoint goes first and the planet after.
+		_bus.plot_course(RouteStop.at_point(star + (via as Vector3)))
+		_bus.plot_course(stops[0], true)
 
 
 ## The checkpoint that keeps a leg from [param from] to [param to] at least [param clear]
