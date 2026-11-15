@@ -246,6 +246,7 @@ func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() 
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
 	waiting.max_per_planet = 4
+	waiting.max_total = 20
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var ember := bus.get_docked_planet()
 	for i: int in 4:

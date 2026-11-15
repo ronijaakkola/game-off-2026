@@ -265,6 +265,7 @@ func test_a_dispenser_serves_one_at_a_time_while_the_next_waits() -> void:
 
 
 func test_robots_serve_several_at_once() -> void:
+	_cabin.seats = 5
 	_cabin.amenities = [_dispenser(3)]
 	var passengers: Array[Passenger] = []
 	for i: int in 3:

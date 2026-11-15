@@ -4,9 +4,12 @@ extends Node
 ## panel. Each planet gets a new one every so often, up to [member max_per_planet], except
 ## the one the bus waits at: its clock holds until the bus leaves.
 ## Someone waiting is only a count until the player first sees the line
-## ([method get_waiting]). Then each is decided, one after another: a destination that
-## leans toward where those on board and those already in the line are going, a race dealt
-## from a bag, and a type by the band of the player's recent rating ([RatingBand]). Their
+## ([method get_waiting]). Then each is decided, one after another: a destination, which
+## leans toward where those already in the line are going only once the bus has
+## Timetables, a race dealt from a bag, and a type by the band of the player's recent
+## rating ([RatingBand]). The first Business passenger joins the line where the bus is
+## docked as the player delivers their [constant RatingBand.BUSINESS_FROM_DELIVERIES]th
+## passenger, so the player meets them then. Their
 ## trip time and fare come from the distance to their destination then.
 ## Once seen, the one who has waited longest leaves after [member leave_seconds] without
 ## being picked up, so a line the player passes over doesn't stay the same for good.
@@ -29,12 +32,12 @@ const MAX_SAME_DESTINATION := 2
 @export var business: PassengerType
 ## The bus, whose speed and charge time set how long a trip should take.
 @export var bus: FrameshiftBus
-## Who is on board: destinations they are going to turn up more often.
-@export var cabin: Cabin
 @export_range(0, 10) var max_per_planet := 3
+## How many wait at all the planets together at most, so some lines are short or empty.
+@export_range(0, 60) var max_total := 7
 ## Seconds between new passengers at one planet: a random value between these two.
-@export_range(1.0, 300.0, 1.0) var min_interval := 8.0
-@export_range(1.0, 300.0, 1.0) var max_interval := 20.0
+@export_range(1.0, 300.0, 1.0) var min_interval := 12.0
+@export_range(1.0, 300.0, 1.0) var max_interval := 30.0
 ## Credits per world unit from the origin to the destination, before the type's multiplier.
 @export_range(0.0, 50.0, 0.5) var fare_per_unit := 3.0
 ## How many wait at each planet when the game starts, so the first route has somewhere to go.
@@ -42,11 +45,9 @@ const MAX_SAME_DESTINATION := 2
 ## How many wait at the planet the bus starts docked at, whose clock holds while it is
 ## there, so the first stop has someone to pick up.
 @export_range(0, 10) var starting_at_bus := 2
-## How much likelier a destination is when someone on board is going there, and when
-## someone already in the line is. Likelier, never certain.
-@export_range(1.0, 10.0, 0.1) var on_board_weight := 2.5
-@export_range(1.0, 10.0, 0.1) var in_line_weight := 1.5
-## [member in_line_weight] once the bus has Timetables.
+## How much likelier a destination is when someone already in the line is going there,
+## once the bus has Timetables. Likelier, never certain. Without Timetables every
+## destination is as likely as the next.
 @export_range(1.0, 10.0, 0.1) var timetables_in_line_weight := 3.0
 ## Seconds the longest-waiting passenger of a line the player has seen stays before they
 ## leave.
@@ -60,6 +61,9 @@ const MAX_SAME_DESTINATION := 2
 ## The player's ratings, whose recent mean sets how many are Business. Without one, the
 ## lowest band counts.
 var ledger: Ledger
+## Whether the first Business passenger has turned up. Until then, the next passenger
+## decided once enough are delivered is Business for certain.
+var first_business_dealt := false
 
 var _rng := RandomNumberGenerator.new()
 var _planets: Array[Planet] = []
@@ -122,6 +126,7 @@ func set_planets(planets: Array[Planet]) -> void:
 ## [member ledger].
 func start(planets: Array[Planet], bus_planet: Planet, ratings: Ledger) -> void:
 	ledger = ratings
+	ledger.rated.connect(_on_rated)
 	set_planets(planets)
 	add_starting_passengers(bus_planet)
 
@@ -137,9 +142,11 @@ func add_starting_passengers(bus_planet: Planet) -> void:
 
 
 ## Puts someone new in line at [param planet], not yet decided, unless
-## [member max_per_planet] already wait there.
+## [member max_per_planet] already wait there or [member max_total] wait in all.
 func add(planet: Planet) -> void:
 	if not _waiting.has(planet) or count_at(planet) >= max_per_planet:
+		return
+	if count_all() >= max_total:
 		return
 	_undecided[planet] += 1
 	_waited[planet].append(0.0)
@@ -149,6 +156,14 @@ func add(planet: Planet) -> void:
 ## How many wait at [param planet], seen or not.
 func count_at(planet: Planet) -> int:
 	return _waiting.get(planet, []).size() + _undecided.get(planet, 0)
+
+
+## How many wait at all the planets together, seen or not.
+func count_all() -> int:
+	var total := 0
+	for planet: Planet in _planets:
+		total += count_at(planet)
+	return total
 
 
 ## Who waits at [param planet], longest waiting first. Asking is the player seeing the
@@ -226,14 +241,14 @@ func create(origin: Planet) -> Passenger:
 	return passenger
 
 
-# A weighted roll among the other planets: likelier where someone on board or in
-# [param line] is going, and never where MAX_SAME_DESTINATION of the line already go,
-# unless that leaves nowhere.
+# A roll among the other planets: with Timetables likelier where someone in [param line]
+# is going, and never where MAX_SAME_DESTINATION of the line already go, unless that
+# leaves nowhere.
 func _pick_destination(origin: Planet, line: Array) -> Planet:
 	var others := _planets.filter(func(planet: Planet) -> bool: return planet != origin)
 	if others.is_empty():
 		return null
-	var leaning := timetables_in_line_weight if _has(BusTraits.Type.TIMETABLES) else in_line_weight
+	var leaning := timetables_in_line_weight if _has(BusTraits.Type.TIMETABLES) else 1.0
 	var weights := PackedFloat32Array()
 	var total := 0.0
 	for planet: Planet in others:
@@ -243,8 +258,6 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 			weight = 0.0
 		elif same > 0:
 			weight *= leaning
-		if cabin and cabin.count_going_to(planet) > 0:
-			weight *= on_board_weight
 		weights.append(weight)
 		total += weight
 	if total <= 0.0:
@@ -253,17 +266,40 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 
 
 # Business by the share of the band the recent rating is in, while [param line] has room
-# for one more of them and still a place for someone ordinary.
+# for one more of them and still a place for someone ordinary, and none until the player
+# has delivered RatingBand.BUSINESS_FROM_DELIVERIES passengers. The first one decided after
+# that is Business for certain.
 func _pick_type(line: Array) -> PassengerType:
 	var ordinary := types[_rng.randi_range(0, types.size() - 1)]
-	if not business:
+	var delivered := ledger.get_rating_count() if ledger else 0
+	if not business or delivered < RatingBand.BUSINESS_FROM_DELIVERIES:
 		return ordinary
+	if not first_business_dealt:
+		first_business_dealt = true
+		return business
 	var band := RatingBand.of(ledger.get_recent_rating() if ledger else 0.0)
 	var limit := mini(RatingBand.BUSINESS_PER_LINE[band], max_per_planet - 1)
 	var count := line.filter(func(p: Passenger) -> bool: return p.type == business).size()
 	if count < limit and _rng.randf() < RatingBand.BUSINESS_SHARE[band]:
 		return business
 	return ordinary
+
+
+# As the player delivers their RatingBand.BUSINESS_FROM_DELIVERIES th passenger, someone
+# joins the line where the bus is docked, whatever max_total says, and is decided at once:
+# the first Business passenger, where the player is looking.
+func _on_rated(_stars: float) -> void:
+	if first_business_dealt or not business or not bus or not bus.is_at_planet():
+		return
+	var planet := bus.get_docked_planet()
+	if ledger.get_rating_count() != RatingBand.BUSINESS_FROM_DELIVERIES:
+		return
+	if not _waiting.has(planet) or count_at(planet) >= max_per_planet:
+		return
+	_undecided[planet] += 1
+	_waited[planet].append(0.0)
+	get_waiting(planet)
+	changed.emit(planet)
 
 
 ## Makes the next passenger created [param race], in place of a race from the bag, as the

@@ -141,6 +141,7 @@ func _write() -> void:
 		"research_stages": research.get_open_stages(),
 		"cabin": on_board,
 		"lines": lines,
+		"first_business": waiting.first_business_dealt,
 		"goals": progress,
 		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
 	}
@@ -162,6 +163,7 @@ func _restore() -> void:
 	tank.fuel = clampf(float(_saved.get("fuel", tank.capacity)), 0.0, tank.capacity)
 	var by_name := _get_planets_by_name()
 	var types := _get_types_by_path()
+	waiting.first_business_dealt = bool(_saved.get("first_business", false))
 	var lines: Dictionary = _saved.get("lines", {})
 	for planet: Planet in _planets:
 		var line: Dictionary = lines.get(String(planet.name), {})

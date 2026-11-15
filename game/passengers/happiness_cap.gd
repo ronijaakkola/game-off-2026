@@ -5,7 +5,8 @@ extends Control
 ## striped grey, the part they can no longer fill. The stripes run right up to the fill,
 ## round its rounded end too. Happiness still above what they can reach shows there faded,
 ## under the stripes, until it has drained. Put it behind the bar's fill, filling the bar,
-## and keep the fill within [method get_reach].
+## and keep the fill within [method get_reach]. The pointer on the striped end opens a
+## tooltip to its right that says why it is there.
 
 ## Seconds it takes to grow or shrink to a new [member lost], so a stop's cost slides in.
 const GROW_SECONDS := 0.4
@@ -19,6 +20,11 @@ const STRIPE_GAP := 5.0
 const STRIPE_WIDTH := 2.0
 ## How strong the fill's colour is past what they can reach.
 const OVER_ALPHA := 0.35
+const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
+const TOOLTIP_TEXT := "This passenger is getting frustrated which limits their happiness."
+## How far past the bar's top and bottom the striped end takes the pointer, in pixels: the
+## bar alone is too thin to rest on.
+const HOVER_MARGIN := 3.0
 ## How many lines round the lost end's corners off, for cutting the stripes to it.
 const CORNER_STEPS := 6
 
@@ -40,10 +46,24 @@ var color := Color.WHITE:
 
 # The share drawn now, following [member lost].
 var _shown := 0.0
+# The striped end as the pointer finds it, which the tooltip belongs to.
+var _hover := Control.new()
 
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _ready() -> void:
+	# It passes the pointer on, so the card under it still knows it is there.
+	_hover.mouse_filter = Control.MOUSE_FILTER_PASS
+	_hover.hide()
+	add_child(_hover)
+	var tooltip := TOOLTIP.instantiate() as Tooltip
+	tooltip.target = _hover
+	tooltip.sentence = TOOLTIP_TEXT
+	tooltip.side = Tooltip.Side.RIGHT
+	add_child(tooltip)
 
 
 func _process(delta: float) -> void:
@@ -66,6 +86,9 @@ func _get_edge() -> float:
 
 func _draw() -> void:
 	var radius := size.y * 0.5
+	_hover.visible = _shown > 0.0
+	_hover.position = Vector2(size.x * get_reach(), -HOVER_MARGIN)
+	_hover.size = Vector2(size.x * _shown, size.y + HOVER_MARGIN * 2.0)
 	if _shown <= 0.0:
 		_draw_box(Rect2(Vector2.ZERO, size), TRACK_COLOR, radius, radius)
 		return

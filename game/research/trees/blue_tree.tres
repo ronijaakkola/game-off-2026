@@ -20,7 +20,7 @@ script = ExtResource("2_upgrade")
 title = "Speed 1"
 description = "The bus flies 10% faster."
 icon = ExtResource("4_gauge")
-credits = 150
+credits = 120
 points = Dictionary[int, int]({
 0: 2
 })
@@ -37,7 +37,7 @@ script = ExtResource("2_upgrade")
 title = "Fuel tank 1"
 description = "The fuel tank holds 25% more."
 icon = ExtResource("5_fuel")
-credits = 150
+credits = 120
 points = Dictionary[int, int]({
 0: 2
 })
@@ -49,7 +49,7 @@ script = ExtResource("2_upgrade")
 title = "Fuel forecast"
 description = "Shows how much of the tank the course burns, over its last stop."
 icon = ExtResource("6_route")
-credits = 300
+credits = 240
 points = Dictionary[int, int]({
 0: 4
 })
@@ -62,14 +62,14 @@ column = 2
 script = ExtResource("3_modifier")
 stat = 5
 kind = 1
-amount = 50.0
+amount = 100.0
 
 [sub_resource type="Resource" id="Resource_faster_pumps"]
 script = ExtResource("2_upgrade")
 title = "Faster pumps"
-description = "Makes the refueling at a station 50% faster."
+description = "Makes the refueling at a station twice as fast."
 icon = ExtResource("8_flask_conical")
-credits = 300
+credits = 240
 points = Dictionary[int, int]({
 0: 4
 })
@@ -127,7 +127,7 @@ script = ExtResource("2_upgrade")
 title = "Warmer drive"
 description = "Frameshift drive stays warm longer when docking to a planet."
 icon = ExtResource("7_zap")
-credits = 300
+credits = 240
 points = Dictionary[int, int]({
 0: 4
 })

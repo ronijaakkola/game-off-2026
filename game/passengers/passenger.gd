@@ -29,7 +29,7 @@ const MAX_STARS := 5.0
 const MAX_HAPPINESS := 100.0
 ## The happiness a bus that does its job settles them at, before comfort and timing, and
 ## where they stand until they take a seat.
-const BASE_HAPPINESS := 60.0
+const BASE_HAPPINESS := 64.0
 ## How fast happiness falls toward a lower target, and climbs toward a higher one, a second.
 const FALL_RATE := 3.0
 const CLIMB_RATE := 1.0
@@ -40,6 +40,11 @@ const WAKE_SHOCK := -10.0
 ## fault of the player's.
 const UNSERVED_SHOCK := -10.0
 const REQUEST_GRACE := 5.0
+## The most quick stops add to what they can reach over one ride.
+const QUICK_BONUS_MAX := 6.0
+## Seconds of flying a request is open before their happiness starts to fall, so serving
+## it at once costs nothing.
+const REQUEST_LEEWAY := 1.5
 ## While the bus is docked, their ride clock and their needs' timers run at this speed, and
 ## their happiness falls at this much of its speed: a stop barely costs them. Climbing back
 ## isn't slowed, so a stop is a fine place to recover. The cabin can give a faster one.
@@ -82,6 +87,9 @@ var request: Need
 ## Added to the happiness they settle at, all ride long, for the time they waited before
 ## the Station waiting lounge picked them up ([WaitingPassengers]).
 var lounge_bonus := 0.0
+## What the quick stops on their ride add to the most they can reach, up to
+## [constant QUICK_BONUS_MAX] ([method admire]).
+var quick_bonus := 0.0
 ## How much of the open request is served so far, from 0 to 1 ([method feed]).
 var serving := 0.0
 ## Whether they are asleep: their activity is one of the type's sleep lines. Only a bus
@@ -172,6 +180,7 @@ static func from_save(
 	passenger.look = AlienLook.from_save(saved.get("look", {}), passenger.race)
 	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
 	passenger.lounge_bonus = float(saved.get("lounge_bonus", 0.0))
+	passenger.quick_bonus = float(saved.get("quick_bonus", 0.0))
 	passenger.activity = ""
 	passenger._activity_left = 0.0
 	passenger._departed = bool(saved.get("departed", false))
@@ -229,11 +238,12 @@ func get_rating() -> float:
 
 
 ## The happiness they slide toward now, with the bus giving [param comfort]: the most it
-## can give them, less what frustration takes off, or 0 while a request is open, though
+## can give them, less what frustration takes off, or 0 once a request has been open for
+## [constant REQUEST_LEEWAY], though
 ## [method tick] holds them where they are while it is being served. Comfort lifts it no
 ## higher than [constant MAX_HAPPINESS].
 func get_target(comfort: Comfort = null) -> float:
-	if request:
+	if request and _request_age >= REQUEST_LEEWAY:
 		return 0.0
 	var best := _get_best(comfort)
 	return best - ride.get_lost(best)
@@ -250,6 +260,14 @@ func shock(amount: float) -> void:
 	happiness = clampf(happiness + amount, 0.0, MAX_HAPPINESS)
 	if not _departed:
 		_shaken = true
+
+
+## They admire a quick stop: [param amount] more happiness at once, and as much more of
+## what they can reach for the rest of the ride, up to [constant QUICK_BONUS_MAX] in all.
+func admire(amount: float) -> void:
+	var gained := minf(amount, QUICK_BONUS_MAX - quick_bonus)
+	quick_bonus += gained
+	happiness = minf(happiness + gained, MAX_HAPPINESS)
 
 
 ## Puts their happiness at its target on a bus giving [param comfort]: where they start the
@@ -295,7 +313,8 @@ func arrive() -> void:
 		shock(UNSERVED_SHOCK)
 
 
-## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. Happiness and
+## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. A need that
+## comes up opens a request only while [param can_ask]. Happiness and
 ## the ride clock hold until [method depart], and while [param holds] (the bus parks).
 ## While [param docked] the clock and the needs' timers run, and happiness falls (but not
 ## climbs), at [param stop_rate] of their speed. The clock runs as the comfort says
@@ -304,7 +323,12 @@ func arrive() -> void:
 ## fed, happiness holds. While the bus is docked or parks, no request opens, but one
 ## already open stays open and can be served. A request saved on hold opens again.
 func tick(
-	delta: float, docked: bool, holds := false, comfort: Comfort = null, stop_rate := DOCKED_RATE
+	delta: float,
+	docked: bool,
+	holds := false,
+	comfort: Comfort = null,
+	stop_rate := DOCKED_RATE,
+	can_ask := true
 ) -> void:
 	var giving := comfort if comfort else _no_comfort
 	stop_rate = stop_rate if docked else 1.0
@@ -356,7 +380,7 @@ func tick(
 	if not watching or _activity_left <= 0.0:
 		watching = false
 		action = Need.Action.NONE
-	if not stopped and not _held_request:
+	if not stopped and not _held_request and can_ask:
 		for i: int in _need_timers.size():
 			if _need_timers[i] <= 0.0:
 				_open(type.needs[i])
@@ -389,6 +413,7 @@ func to_save() -> Dictionary:
 		"held_need": type.needs.find(held) if held else -1,
 		"request_age": _request_age,
 		"lounge_bonus": lounge_bonus,
+		"quick_bonus": quick_bonus,
 	}
 
 
@@ -444,7 +469,7 @@ func _complain(lines: Array[String], seconds: float) -> void:
 
 # The most the bus giving [param comfort] can give them now, before frustration.
 func _get_best(comfort: Comfort) -> float:
-	var bonus := (comfort.bonus if comfort else 0.0) + lounge_bonus
+	var bonus := (comfort.bonus if comfort else 0.0) + lounge_bonus + quick_bonus
 	var settled := minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS)
 	return clampf(settled + ride.get_timing(), 0.0, MAX_HAPPINESS)
 

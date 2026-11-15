@@ -72,7 +72,7 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	var at := _to_window(camera, button.get_global_rect().get_center())
 
 	_send_click(MOUSE_BUTTON_LEFT, at)
-	await runner.simulate_frames(30, 30)
+	await runner.simulate_frames(60, 30)
 	# The label shows the fuel while held, at most a morph behind it, and the bill waits.
 	assert_str(label.text).ends_with("%")
 	assert_int(ledger.credits).is_equal(100)
@@ -88,7 +88,8 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	assert_str(label.text).starts_with("Hold to fuel (")
 	assert_float(button.get_fill()).is_equal_approx(tank.get_fraction(), 0.01)
 	tank.fill()
-	await runner.simulate_frames(2)
+	# The label finishes its morph back first, a little slower at the game's pace.
+	await runner.simulate_frames(10, 30)
 	assert_bool(button.disabled).is_true()
 	assert_str(label.text).is_equal("Tank full")
 

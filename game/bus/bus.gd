@@ -116,6 +116,10 @@ var frameshift_held: bool:
 var temperature: BusTemperature:
 	get:
 		return %Temperature as BusTemperature
+## The frameshift drive, for the scene to make cold when a stop is spent on research.
+var drive: FrameshiftDrive:
+	get:
+		return _drive
 ## The fastest the bus may fly now. The scene that knows where the star is lowers it as the
 ## bus heads at the star, so it brakes to a stop short of it. INF leaves it to the route.
 var speed_cap := INF

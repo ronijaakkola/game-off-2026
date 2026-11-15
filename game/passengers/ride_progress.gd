@@ -21,9 +21,9 @@ const STOP_COST := 15.0
 ## The happiness each second of their clock past the expected time takes off the most they
 ## can reach: a steady drain that never grows, so a late ride is always worth serving.
 const LATE_RATE := 1.0
-## Frustration never takes them under this, however many stops or however late: annoyed and
-## two stars, so serving them still pays. A request open still heads for 0.
-const CAP_FLOOR := 30.0
+## Frustration never takes them under this, however many stops or however late: okay and
+## three stars, so serving them still pays. A request open still heads for 0.
+const CAP_FLOOR := 50.0
 ## Which stops count. Off, every planet the bus docks at before theirs. On, only one off
 ## their way: going there and on to their destination is more than [constant DETOUR_RATIO]
 ## times the straight way from where the bus last left.

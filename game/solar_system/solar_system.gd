@@ -48,8 +48,11 @@ const FADE_SECONDS := 0.4
 ## everything it follows.
 const CAMERA_HOST_PRIORITY := 300
 ## The goals a run starts with: deliver this many passengers, and keep this average rating.
-const START_DELIVERIES := 30
+const START_DELIVERIES := 20
 const START_RATING := 3.5
+## How fast the game runs, as a share of real time: the bus, the planets and the
+## passengers alike, so nothing about a ride changes but how long it takes to play.
+const PACE := 0.9
 const COURSE_HINT := (
 	"Right-click a planet or space to set a course, and hold %s to add stops."
 	+ " Backspace takes the last stop off."
@@ -97,6 +100,7 @@ func _ready() -> void:
 	# the waiting markers follow where they are now, not where they were a frame
 	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
 	process_priority = CAMERA_HOST_PRIORITY + 1
+	Engine.time_scale = PACE
 	(%OrbitClock as OrbitClock).start(_planets)
 	_course_drag = CourseDrag.new(%Bus as FrameshiftBus, %Camera as Camera3D)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
@@ -140,6 +144,10 @@ func _ready() -> void:
 		_course_hint = (%Notices as NoticeStack).push(
 			COURSE_HINT % QueueKey.get_label(), Notice.Kind.TUTORIAL
 		)
+
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 
 func _process(delta: float) -> void:
@@ -321,6 +329,8 @@ func _start_passengers() -> void:
 		_add_goals()
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
+	# Researching takes the time a quick stop doesn't have.
+	lab.get_research().researched.connect(func(_upgrade: Upgrade) -> void: bus.drive.go_cold())
 	cabin.unloaded.connect(lab.commit)
 	cabin.unloaded.connect(func() -> void: bus.unloading = false)
 	cabin.stop_finished.connect(_on_stop_finished)
@@ -359,6 +369,7 @@ func _on_map_zoomed_out() -> void:
 
 
 func _on_bus_left_warm() -> void:
+	(%Cabin as Cabin).cheer_quick_stop()
 	(%BusQuickText as BusQuickText).show_text(QUICK_STOP, QUICK_STOP_ICON)
 
 

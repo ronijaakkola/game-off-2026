@@ -8,7 +8,7 @@ extends RefCounted
 
 ## The entertainment system: fun, and shows to watch now and then, in seconds, with the
 ## clock speed while watching.
-const ENTERTAINMENT_BONUS := 12.0
+const ENTERTAINMENT_BONUS := 8.0
 const SHOW_MIN := 8.0
 const SHOW_MAX := 12.0
 const WATCH_CLOCK := 0.7

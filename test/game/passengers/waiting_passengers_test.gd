@@ -98,22 +98,6 @@ func test_a_line_holds_at_most_two_going_to_one_planet() -> void:
 			assert_int(going[planet]).is_less_equal(WaitingPassengers.MAX_SAME_DESTINATION)
 
 
-func test_destinations_lean_toward_where_those_on_board_are_going() -> void:
-	var third := _planet()
-	_waiting.set_planets([_home, _away, third])
-	var cabin := auto_free(Cabin.new()) as Cabin
-	add_child(cabin)
-	cabin.board(Passenger.new(PassengerType.new(), _away, 100.0, 40.0))
-	_waiting.cabin = cabin
-	var going: Dictionary[Planet, int] = {_away: 0, third: 0}
-
-	for i: int in 300:
-		going[_waiting.create(_home).destination] += 1
-
-	assert_int(going[_away]).is_greater(going[third] * 3 / 2)
-	assert_int(going[third]).is_greater(0)
-
-
 func test_races_are_dealt_evenly_from_a_bag() -> void:
 	var races: Dictionary[Race.Type, int] = {}
 	var bag := Race.Type.size() * WaitingPassengers.RACE_BAG_COPIES

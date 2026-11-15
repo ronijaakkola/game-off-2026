@@ -10,7 +10,8 @@ extends Node
 ## `-- Reroute` sends the first passenger to Frost instead of Ember a few frames in, as an
 ## express quest does, so their card moves to Frost's group.
 ## `-- Frustrated` takes [constant FRUSTRATION] off what each seat can reach, so the bars'
-## striped ends show, and gives the idle ones a line about why.
+## striped ends show, and gives the idle ones a line about why. With `Tooltip` as well,
+## the first striped end's tooltip opens, as the pointer on it does.
 ## `-- RerouteAlone` sends the only passenger going to Giant to Dust, where nobody goes yet,
 ## so Giant's group folds as Dust's opens.
 
@@ -90,6 +91,10 @@ func _ready() -> void:
 		dust.display_name = "Dust"
 		add_child(dust)
 		cabin.get_passengers()[3].reroute(dust, 60.0, 40.0)
+	if "Tooltip" in OS.get_cmdline_user_args():
+		# The striped ends take a moment to slide in.
+		await get_tree().create_timer(0.6).timeout
+		(panel.find_children("*", "Tooltip", true, false)[0] as Tooltip).open()
 	if "Kick" in OS.get_cmdline_user_args():
 		# The cards lay out a frame in.
 		await get_tree().process_frame
