@@ -251,6 +251,11 @@ func get_serve_button() -> Control:
 	return %ServeButton
 
 
+## The happiness bar, for a guide card to point at.
+func get_happiness_bar() -> Control:
+	return %HappinessBar
+
+
 ## The rating's stars, for a guide card to point at.
 func get_rating_stars() -> Control:
 	return %RatingStars

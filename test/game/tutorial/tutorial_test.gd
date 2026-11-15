@@ -57,6 +57,43 @@ func test_a_new_run_opens_on_the_call_and_answering_it_starts_the_steps() -> voi
 	assert_str(guide.text).starts_with("You are driving this bus.")
 
 
+func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course() -> void:
+	SaveGame.start_new()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var notices := runner.find_child("Notices") as NoticeStack
+	await assert_func(self, "_has_notice", [notices]).wait_until(5000).is_true()
+	await runner.simulate_frames(30)
+	_click(runner, notices.get_notices()[0].find_child("ActionButton") as Control)
+	var panel := runner.find_child("TransmissionPanel") as TransmissionPanel
+	panel.skip()
+	await runner.simulate_frames(60)
+	_click(runner, panel.find_child("DeclineButton") as Control)
+	await PauseProofWait.for_signal(panel.answered, 3000)
+	var guide := runner.find_child("GuideCard") as GuideCard
+	await _wait_for_card(guide, "You are driving this bus.")
+	_click(runner, guide.find_child("GotItButton") as Control)
+
+	var dock := runner.find_child("DockPanel") as DockPanel
+	var waiting := (runner.find_child("Tutorial") as Tutorial).waiting
+	var home := runner.find_child("Terra") as Planet
+	await assert_func(self, "_has_row", [dock, waiting, home]).wait_until(5000).is_true()
+	var row := dock.get_row(waiting.get_waiting(home)[0])
+	_click(runner, row.find_child("BoardButton") as Control)
+	await _wait_for_card(guide, "Here you can see passengers currently inside your bus.")
+	_click(runner, guide.find_child("GotItButton") as Control)
+
+	await _wait_for_card(guide, "This bar shows how happy they are.")
+	var cabin := runner.find_child("Cabin") as Cabin
+	var passengers := runner.find_child("PassengerPanel") as PassengerPanel
+	var card := passengers.get_card(cabin.get_passengers()[0])
+	assert_object(guide.target).is_same(card.get_happiness_bar())
+	assert_bool(guide.got_it).is_true()
+
+	_click(runner, guide.find_child("GotItButton") as Control)
+	await _wait_for_card(guide, "The passenger you just picked up wants to go to")
+
+
 func test_skipping_puts_back_what_it_changed() -> void:
 	SaveGame.start_new()
 	var runner := scene_runner(SCENE)
@@ -99,6 +136,21 @@ func test_the_heat_zone_fades_in_full_size_once_the_map_zooms_out() -> void:
 	assert_float(disc.scale.x).is_equal_approx(bus.temperature.zone_radius, 0.001)
 	var material := disc.material_override as ShaderMaterial
 	assert_float(material.get_shader_parameter(&"opacity") as float).is_equal_approx(1.0, 0.001)
+
+
+# Waits until the guide card shows the card that starts with [param text], fully open.
+func _wait_for_card(guide: GuideCard, text: String) -> void:
+	await assert_func(self, "_shows_card", [guide, text]).wait_until(5000).is_true()
+	await await_millis(int(Tooltip.OPEN_SECONDS * 1000.0) + 100)
+
+
+func _shows_card(guide: GuideCard, text: String) -> bool:
+	return guide.is_visible_in_tree() and guide.text.begins_with(text)
+
+
+func _has_row(dock: DockPanel, waiting: WaitingPassengers, home: Planet) -> bool:
+	var line := waiting.get_waiting(home)
+	return not line.is_empty() and dock.get_row(line[0]) != null
 
 
 func _has_notice(notices: NoticeStack) -> bool:
