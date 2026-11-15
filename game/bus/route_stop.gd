@@ -25,6 +25,15 @@ static func is_planet(stop: RouteStop) -> bool:
 	return stop.planet != null
 
 
+## The planets on [param route], in order.
+static func planets_on(route: Array[RouteStop]) -> Array[Planet]:
+	var planets: Array[Planet] = []
+	for stop: RouteStop in route:
+		if stop.planet:
+			planets.append(stop.planet)
+	return planets
+
+
 ## The point [param gap] off [param target]'s surface in [param direction] from its centre,
 ## on the orbit plane.
 static func approach_point(target: Planet, direction: Vector3, gap: float) -> Vector3:

@@ -5,7 +5,7 @@ extends RefCounted
 ## make the ride teach what it should. Only home's lab badge can show. The station has no
 ## fuel button until the tutorial shows it, and that one is off until it says so, nor a
 ## Board all or Research button, the On board panel holds arrivals and offers no
-## kicks, and the Frameshift key never stops the bus. Fuel is free at home and the
+## kicks. Fuel is free at home and the
 ## destination, a trip between them burns half the tank ([method set_trip_burn]), and the
 ## passenger pays [constant FARE] ([method hold_fare]), so the player has just what Fuel
 ## tank 1 costs, which is one blue research point. Nothing can be researched until the
@@ -46,7 +46,6 @@ func apply() -> void:
 	t.dock_panel.board_all_hidden = true
 	t.passenger_panel.arrivals_held = true
 	t.passenger_panel.kicks_allowed = false
-	t.bus_bars.stop_locked = true
 	t.research_lab.restricted = true
 	_burn = t.bus.get_fuel_tank().burn_per_unit
 	for planet: Planet in [t.home, t.destination]:
@@ -67,7 +66,6 @@ func lift() -> void:
 	t.dock_panel.board_all_hidden = false
 	t.passenger_panel.arrivals_held = false
 	t.passenger_panel.kicks_allowed = true
-	t.bus_bars.stop_locked = false
 	t.research_lab.restricted = false
 	t.research_lab.researchable = []
 	t.research_screen.close_locked = false

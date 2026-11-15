@@ -99,7 +99,9 @@ func _process(delta: float) -> void:
 
 
 func _can_remove(stop: RouteStop) -> bool:
-	return bus != null and not bus.is_towing() and bus.get_route_stops().has(stop)
+	if not bus or bus.is_towing() or bus.route_locked:
+		return false
+	return bus.get_route_stops().has(stop)
 
 
 func _on_remove_pressed(stop: RouteStop) -> void:

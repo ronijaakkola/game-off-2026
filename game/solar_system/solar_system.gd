@@ -185,7 +185,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if (%MapZoom as MapZoom).is_zooming_out() or (%Tutorial as Tutorial).locks_route():
+	if (%MapZoom as MapZoom).is_zooming_out() or (%Bus as FrameshiftBus).route_locked:
 		return
 	if event.is_action_pressed(&"clear_route"):
 		var bus := %Bus as FrameshiftBus

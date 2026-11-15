@@ -13,7 +13,9 @@ extends Node3D
 ## and swings side-on, with its door toward the planet. It has docked once it is parked.
 ## Flying burns fuel from its [FuelTank] by distance. Run dry, it coasts to a stop unless
 ## [method tow_to] tows it, slowly and with no say over its route, to a planet.
-## While its [member temperature] cools down after overheating, its drive can't charge.
+## Overheating clears the route, so it coasts to a stop, and while its [member temperature]
+## cools down its drive can't charge. While [member route_locked], the player can't change
+## the route.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 ## The bus docked at [param planet] after flying there and parking: the end of its route,
@@ -117,6 +119,10 @@ var temperature: BusTemperature:
 ## The fastest the bus may fly now. The scene that knows where the star is lowers it as the
 ## bus heads at the star, so it brakes to a stop short of it. INF leaves it to the route.
 var speed_cap := INF
+## Whether the player can't change the route, as through a tutorial trip, so the bus flies
+## on to where it is headed: [method plot_course], [method remove_stop] and
+## [method cancel_course] do nothing. Running dry and overheating still clear it.
+var route_locked := false
 
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
@@ -140,6 +146,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	(%FuelTank as FuelTank).emptied.connect(_on_fuel_emptied)
+	temperature.overheated.connect(_clear_course)
 	(%FuelTank as FuelTank).follow(_stats.get_stat(BusStats.Type.FUEL_CAPACITY))
 	rotation.y = PI * 0.5
 	if start_planet:
@@ -161,9 +168,9 @@ func _ready() -> void:
 ## Sets the route to [param stop], or with [param add] adds it to the end
 ## ([method RouteEditing.add]). In flight, or in space with the drive warm, the bus
 ## heads off at once; anywhere else, or while it cools down, it waits for the drive. Does
-## nothing while towed or with an empty tank.
+## nothing while towed, with an empty tank or while [member route_locked].
 func plot_course(stop: RouteStop, add := false) -> void:
-	if _towing or (%FuelTank as FuelTank).is_empty():
+	if _towing or route_locked or (%FuelTank as FuelTank).is_empty():
 		return
 	if not add:
 		_route.clear()
@@ -177,25 +184,31 @@ func plot_course(stop: RouteStop, add := false) -> void:
 
 ## Clears the route and lets go of the Frameshift key. A charging drive stops and the bus
 ## stays docked, or holds in space; in flight it slows to a stop where it is. Does nothing
-## while towed.
+## while towed or while [member route_locked].
 func cancel_course() -> void:
+	if not route_locked:
+		_clear_course()
+
+
+## Removes [param stop] from the route, wherever it is, with what
+## [method RouteEditing.remove] takes along. With none left it is the same as
+## [method cancel_course]. Does nothing while towed or while [member route_locked].
+func remove_stop(stop: RouteStop) -> void:
+	if _towing or route_locked:
+		return
+	RouteEditing.remove(_route, stop, _glide.planet if is_at_planet() else null)
+	if _route.is_empty():
+		_clear_course()
+
+
+# What cancel_course does, also while the route is locked, as when the bus overheats.
+func _clear_course() -> void:
 	if _towing:
 		return
 	_route.clear()
 	_drive.held = false
 	if state == State.CHARGING:
 		_stop_charge()
-
-
-## Removes [param stop] from the route, wherever it is, with what
-## [method RouteEditing.remove] takes along. With none left it is the same as
-## [method cancel_course]. Does nothing while towed.
-func remove_stop(stop: RouteStop) -> void:
-	if _towing:
-		return
-	RouteEditing.remove(_route, stop, _glide.planet if is_at_planet() else null)
-	if _route.is_empty():
-		cancel_course()
 
 
 ## Tows the bus to [param planet], [member tow_speed] faster than the planet moves, where it
@@ -249,11 +262,7 @@ func is_at_planet() -> bool:
 
 ## Every planet on the route still ahead.
 func get_route_planets() -> Array[Planet]:
-	var planets: Array[Planet] = []
-	for stop: RouteStop in _route:
-		if stop.planet:
-			planets.append(stop.planet)
-	return planets
+	return RouteStop.planets_on(_route)
 
 
 ## The first planet on the route still ahead, or null when the route has none. While the
@@ -285,7 +294,9 @@ func is_docking() -> bool:
 		return true
 	if state != State.FLYING or _route.is_empty() or not _route[0].planet:
 		return false
-	var distance := _flat(_stop_position(_route[0], global_position) - global_position).length()
+	var distance := (
+		RouteStop.flat(_stop_position(_route[0], global_position) - global_position).length()
+	)
 	var glide := _glide_speed()
 	return distance <= (_speed * _speed - glide * glide) / (2.0 * acceleration) + DOCK_DISTANCE
 
@@ -312,15 +323,8 @@ func estimate_time_to_next_planet() -> float:
 	if not get_next_planet():
 		return -1.0
 	if state == State.PARKING:
-		return DockGlide.park_seconds(_flat(_dock_point() - global_position).length())
-	var from := _flat(global_position)
-	var distance := 0.0
-	for stop: RouteStop in _route:
-		var to := _stop_position(stop, from)
-		distance += from.distance_to(to)
-		from = to
-		if stop.planet:
-			break
+		return DockGlide.park_seconds(RouteStop.flat(_dock_point() - global_position).length())
+	var distance := FlightTime.to_first_planet(_route, global_position, dock_gap)
 	var start_speed := _speed if state == State.FLYING else 0.0
 	# It docks where the glide starts.
 	var time := FlightTime.straight(
@@ -389,7 +393,7 @@ func _fly(delta: float) -> void:
 	var stop := _route[0]
 	var last := _route.size() == 1
 	var target := _stop_position(stop, global_position)
-	var to_target := _flat(target - global_position)
+	var to_target := RouteStop.flat(target - global_position)
 	var distance := to_target.length()
 	if _reached(stop, distance, last):
 		_route.pop_front()
@@ -423,7 +427,7 @@ func _move(distance: float) -> void:
 # At a planet it only drops the route and any charge: the player refuels there.
 func _on_fuel_emptied() -> void:
 	var in_space := not is_at_planet() and state != State.PARKING
-	cancel_course()
+	_clear_course()
 	if in_space:
 		ran_out_of_fuel.emit()
 
@@ -440,7 +444,7 @@ func _top_speed() -> float:
 func _face_next_stop(delta: float) -> void:
 	if _route.is_empty():
 		return
-	var to_target := _flat(_stop_position(_route[0], global_position) - global_position)
+	var to_target := RouteStop.flat(_stop_position(_route[0], global_position) - global_position)
 	if to_target.length_squared() > 1e-6:
 		_turn_toward(to_target, delta)
 
@@ -557,8 +561,4 @@ func _draw_route() -> void:
 
 
 func _forward() -> Vector3:
-	return _flat(global_basis.z).normalized()
-
-
-func _flat(point: Vector3) -> Vector3:
-	return Vector3(point.x, 0.0, point.z)
+	return RouteStop.flat(global_basis.z).normalized()
