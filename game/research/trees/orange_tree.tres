@@ -8,12 +8,11 @@
 [ext_resource type="Texture2D" uid="uid://pnjj8omu16f6" path="res://game/research/icons/ham.svg" id="6_ham"]
 [ext_resource type="Texture2D" uid="uid://bcj82dtecmwyg" path="res://game/research/icons/tv.svg" id="7_tv"]
 [ext_resource type="Texture2D" uid="uid://2uvj2c14gptt" path="res://shared/icons/sandwich.svg" id="8_sandwich"]
-[ext_resource type="Texture2D" uid="uid://b0bgevms180dy" path="res://game/research/icons/bell_ring.svg" id="9_bell_ring"]
 [ext_resource type="Texture2D" uid="uid://ucxtgyvtytk" path="res://game/research/icons/gamepad_2.svg" id="10_gamepad_2"]
 [ext_resource type="Texture2D" uid="uid://cqsul35bsw7i0" path="res://game/research/icons/bed_double.svg" id="11_bed_double"]
 [ext_resource type="Texture2D" uid="uid://b8xlduth3p4wa" path="res://game/research/icons/bot.svg" id="12_bot"]
-[ext_resource type="Texture2D" uid="uid://h7iwjy8dapm2" path="res://game/research/icons/route.svg" id="13_route"]
 [ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="14_star"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="15_flask_conical"]
 
 [sub_resource type="Resource" id="Resource_extra_seat_1_mod"]
 script = ExtResource("3_modifier")
@@ -22,7 +21,7 @@ amount = 1.0
 
 [sub_resource type="Resource" id="Resource_extra_seat_1"]
 script = ExtResource("2_upgrade")
-title = "Extra seat"
+title = "Extra seat I"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
 credits = 150
@@ -36,9 +35,9 @@ script = ExtResource("2_upgrade")
 title = "Pillows"
 description = "Passengers take short naps, and time passes slower while they doze."
 icon = ExtResource("5_bed_single")
-credits = 300
+credits = 150
 points = Dictionary[int, int]({
-1: 4
+1: 2
 })
 traits = Array[int]([2])
 column = 1
@@ -66,26 +65,32 @@ script = ExtResource("2_upgrade")
 title = "In-Flight Movies"
 description = "Movies on board: passengers are happier, and the ride flies by while they watch one."
 icon = ExtResource("7_tv")
-credits = 150
+credits = 300
 points = Dictionary[int, int]({
-1: 2
+1: 4
 })
-requires = Array[Resource]([SubResource("Resource_pillows")])
+requires = Array[Resource]([SubResource("Resource_pillows"), SubResource("Resource_portions_1")])
 traits = Array[int]([5])
 tier = 1
 column = 2
 
-[sub_resource type="Resource" id="Resource_food_dispenser"]
+[sub_resource type="Resource" id="Resource_quick_hands_mod"]
+script = ExtResource("3_modifier")
+stat = 6
+kind = 1
+amount = 50.0
+
+[sub_resource type="Resource" id="Resource_quick_hands"]
 script = ExtResource("2_upgrade")
-title = "Food Dispenser"
-description = "Hungry passengers fetch their own snacks and drinks, one at a time."
-icon = ExtResource("8_sandwich")
-credits = 150
+title = "Quick hands"
+description = "Serving passenger requests is now 50% faster."
+icon = ExtResource("15_flask_conical")
+credits = 300
 points = Dictionary[int, int]({
-1: 2
+1: 4
 })
 requires = Array[Resource]([SubResource("Resource_portions_1")])
-traits = Array[int]([6])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_quick_hands_mod")])
 tier = 1
 column = 4
 
@@ -96,7 +101,7 @@ amount = 1.0
 
 [sub_resource type="Resource" id="Resource_extra_seat_2"]
 script = ExtResource("2_upgrade")
-title = "Extra seat"
+title = "Extra seat II"
 description = "One more passenger fits on board."
 icon = ExtResource("4_armchair")
 credits = 300
@@ -106,19 +111,6 @@ points = Dictionary[int, int]({
 requires = Array[Resource]([SubResource("Resource_extra_seat_1")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_2_mod")])
 tier = 2
-
-[sub_resource type="Resource" id="Resource_earplugs"]
-script = ExtResource("2_upgrade")
-title = "Earplugs"
-description = "Sleeping passengers can't be woken up.
-NOT IMPLEMENTED"
-icon = ExtResource("9_bell_ring")
-credits = 550
-points = Dictionary[int, int]({
-1: 7
-})
-tier = 2
-column = 1
 
 [sub_resource type="Resource" id="Resource_gaming_system"]
 script = ExtResource("2_upgrade")
@@ -154,83 +146,65 @@ modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_portions_2_m
 tier = 2
 column = 3
 
-[sub_resource type="Resource" id="Resource_extra_seat_3_mod"]
-script = ExtResource("3_modifier")
-stat = 2
-amount = 1.0
-
-[sub_resource type="Resource" id="Resource_extra_seat_3"]
-script = ExtResource("2_upgrade")
-title = "Extra seat"
-description = "One more passenger fits on board."
-icon = ExtResource("4_armchair")
-credits = 550
-points = Dictionary[int, int]({
-1: 7
-})
-requires = Array[Resource]([SubResource("Resource_extra_seat_2")])
-modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_3_mod")])
-tier = 3
-
-[sub_resource type="Resource" id="Resource_extra_seat_4_mod"]
-script = ExtResource("3_modifier")
-stat = 2
-amount = 1.0
-
-[sub_resource type="Resource" id="Resource_extra_seat_4"]
-script = ExtResource("2_upgrade")
-title = "Extra seat"
-description = "One more passenger fits on board."
-icon = ExtResource("4_armchair")
-credits = 800
-points = Dictionary[int, int]({
-1: 10
-})
-requires = Array[Resource]([SubResource("Resource_extra_seat_3")])
-modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_4_mod")])
-tier = 4
-
 [sub_resource type="Resource" id="Resource_sleeping_pods"]
 script = ExtResource("2_upgrade")
 title = "Sleeping pods"
 description = "Passengers sleep long and deep, and the ride flies by while they do."
 icon = ExtResource("11_bed_double")
-credits = 550
+credits = 800
 points = Dictionary[int, int]({
-1: 7
+1: 10
 })
 requires = Array[Resource]([SubResource("Resource_pillows")])
 traits = Array[int]([3])
-tier = 4
+tier = 3
 column = 1
-
-[sub_resource type="Resource" id="Resource_serving_robots"]
-script = ExtResource("2_upgrade")
-title = "Waiter Droids"
-description = "Droids bring snacks and drinks to three passengers at a time, and quickly."
-icon = ExtResource("12_bot")
-credits = 550
-points = Dictionary[int, int]({
-1: 7
-})
-requires = Array[Resource]([SubResource("Resource_food_dispenser")])
-traits = Array[int]([7])
-tier = 4
-column = 4
 
 [sub_resource type="Resource" id="Resource_airlock"]
 script = ExtResource("2_upgrade")
 title = "Airlock"
 description = "Other passengers no longer get upset for kicking passengers out.
 NOT IMPLEMENTED"
-icon = ExtResource("13_route")
+icon = ExtResource("14_star")
 credits = 800
 points = Dictionary[int, int]({
 1: 10
 })
-requires = Array[Resource]([SubResource("Resource_sleeping_pods")])
-tier = 5
-column = 1
+requires = Array[Resource]([SubResource("Resource_gaming_system"), SubResource("Resource_portions_2")])
+tier = 3
+column = 3
+
+[sub_resource type="Resource" id="Resource_food_dispenser"]
+script = ExtResource("2_upgrade")
+title = "Food Dispenser"
+description = "Hungry passengers fetch their own snacks and drinks, one at a time."
+icon = ExtResource("8_sandwich")
+credits = 550
+points = Dictionary[int, int]({
+1: 7
+})
+requires = Array[Resource]([SubResource("Resource_quick_hands"), SubResource("Resource_portions_2")])
+traits = Array[int]([6])
+tier = 3
+column = 4
+
+[sub_resource type="Resource" id="Resource_extra_seat_4_mod"]
+script = ExtResource("3_modifier")
+stat = 2
+amount = 2.0
+
+[sub_resource type="Resource" id="Resource_extra_seat_4"]
+script = ExtResource("2_upgrade")
+title = "Extra seats III"
+description = "Two more passengers fit on board."
+icon = ExtResource("4_armchair")
+credits = 800
+points = Dictionary[int, int]({
+1: 10
+})
+requires = Array[Resource]([SubResource("Resource_extra_seat_2")])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_4_mod")])
+tier = 4
 
 [sub_resource type="Resource" id="Resource_karaoke"]
 script = ExtResource("2_upgrade")
@@ -242,11 +216,38 @@ credits = 1100
 points = Dictionary[int, int]({
 1: 14
 })
-requires = Array[Resource]([SubResource("Resource_gaming_system"), SubResource("Resource_sleeping_pods")])
-tier = 5
+requires = Array[Resource]([SubResource("Resource_gaming_system")])
+tier = 4
 column = 2
+
+[sub_resource type="Resource" id="Resource_serving_robots"]
+script = ExtResource("2_upgrade")
+title = "Waiter Droids"
+description = "Droids bring snacks and drinks to three passengers at a time, and quickly."
+icon = ExtResource("12_bot")
+credits = 1100
+points = Dictionary[int, int]({
+1: 14
+})
+requires = Array[Resource]([SubResource("Resource_food_dispenser")])
+traits = Array[int]([7])
+tier = 4
+column = 4
+
+[sub_resource type="Resource" id="Resource_time_dilation_cabin"]
+script = ExtResource("2_upgrade")
+title = "Time dilation cabin"
+description = "NOT IMPLEMENTED"
+icon = ExtResource("15_flask_conical")
+credits = 1100
+points = Dictionary[int, int]({
+1: 14
+})
+requires = Array[Resource]([SubResource("Resource_sleeping_pods"), SubResource("Resource_extra_seat_4")])
+tier = 5
+column = 1
 
 [resource]
 script = ExtResource("1_tree")
 title = "Comfort"
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_extra_seat_1"), SubResource("Resource_pillows"), SubResource("Resource_portions_1"), SubResource("Resource_entertainment_system"), SubResource("Resource_food_dispenser"), SubResource("Resource_extra_seat_2"), SubResource("Resource_earplugs"), SubResource("Resource_gaming_system"), SubResource("Resource_portions_2"), SubResource("Resource_extra_seat_3"), SubResource("Resource_extra_seat_4"), SubResource("Resource_sleeping_pods"), SubResource("Resource_serving_robots"), SubResource("Resource_airlock"), SubResource("Resource_karaoke")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_extra_seat_1"), SubResource("Resource_pillows"), SubResource("Resource_portions_1"), SubResource("Resource_entertainment_system"), SubResource("Resource_quick_hands"), SubResource("Resource_extra_seat_2"), SubResource("Resource_gaming_system"), SubResource("Resource_portions_2"), SubResource("Resource_sleeping_pods"), SubResource("Resource_airlock"), SubResource("Resource_food_dispenser"), SubResource("Resource_extra_seat_4"), SubResource("Resource_karaoke"), SubResource("Resource_serving_robots"), SubResource("Resource_time_dilation_cabin")])

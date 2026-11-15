@@ -12,7 +12,8 @@ extends RefCounted
 var charge_time := 3.0
 ## How many times faster the charge drains than it builds, once let go.
 var drain := 2.0
-## Seconds a warm drive takes to go cold.
+## Seconds a warm drive takes to go cold: the value of the stat it follows
+## ([method follow]).
 var cool_time := 4.0
 ## How many times as fast a charge started warm builds.
 var warm_boost := 1.5
@@ -28,6 +29,17 @@ var _warmth := 0.0
 var _warm_charge := false
 # A warm charge was let go: it drains fast until held again.
 var _dropped := false
+# The stat [member cool_time] follows, once [method follow] is called.
+var _cool_stat: Stat
+
+
+## Makes [param stat] the source of [member cool_time] from now on, with
+## [param base] as its base.
+func follow(stat: Stat, base: float) -> void:
+	_cool_stat = stat
+	stat.base = base
+	_on_cool_stat_changed()
+	stat.changed.connect(_on_cool_stat_changed)
 
 
 ## Empties the charge.
@@ -101,3 +113,7 @@ func is_warm() -> bool:
 ## How much warmth is left, from 1 just docked to 0 cold.
 func get_warmth() -> float:
 	return _warmth / cool_time if cool_time > 0.0 else 0.0
+
+
+func _on_cool_stat_changed() -> void:
+	cool_time = _cool_stat.get_value()

@@ -378,7 +378,7 @@ Titled "Frameshift Bus".
 
 - One row per stat: its name, its value, and once upgrades change it, how much they add in green ("Top speed 1.44 +20%") or take away in red ("Fuel tank 80 -20%").
 - Each row's value right-aligns on one vertical line, and the delta has a fixed 44 px slot to its right (right-aligned, tabular figures, kept when empty), so the deltas form their own column.
-- Seats show whole ("Seats 5 +1"). Portion size shows as "1.5x".
+- Seats show whole ("Seats 5 +1"). Portion size, pump speed and serving speed show as "1.5x", warm time in seconds ("6.0 s").
 - Sections: 8 px between a section's title and its first row and between rows, 16 px between the end of one section and the next section's title.
 - A Traits section names each trait the bus has, or reads "None yet.".
 

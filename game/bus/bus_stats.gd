@@ -20,11 +20,19 @@ enum Type {
 	## How long a served snack or drink lasts, as a multiple of the need's own time: the
 	## next request for it waits that much longer.
 	PORTION_SIZE = 3,
+	## Seconds the drive stays warm at a planet, once the passengers getting off are off.
+	WARM_TIME = 4,
+	## How fast the pump fills the tank, as a multiple of its own rate ([FuelPump]).
+	PUMP_SPEED = 5,
+	## How fast the player serves a request by hand, as a multiple of its own pace ([Cabin]).
+	SERVING_SPEED = 6,
 }
 
 ## The base of each stat no node of the bus sets: a stat missing here starts at 0.
 const BASES: Dictionary[Type, float] = {
 	Type.PORTION_SIZE: 1.0,
+	Type.PUMP_SPEED: 1.0,
+	Type.SERVING_SPEED: 1.0,
 }
 
 ## The lowest each stat goes: the lowest the export it comes from allows.
@@ -33,6 +41,9 @@ const MINIMUMS: Dictionary[Type, float] = {
 	Type.FUEL_CAPACITY: 1.0,
 	Type.SEATS: 1.0,
 	Type.PORTION_SIZE: 0.1,
+	Type.WARM_TIME: 0.1,
+	Type.PUMP_SPEED: 0.1,
+	Type.SERVING_SPEED: 0.1,
 }
 
 var _stats: Dictionary[Type, Stat] = {}

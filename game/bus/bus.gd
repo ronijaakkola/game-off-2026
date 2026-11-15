@@ -63,11 +63,11 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 		_drive.charge_time = value
 ## Seconds the drive stays warm after the bus stops in space: a course set later waits for a charge.
 @export_range(0.0, 30.0, 0.1) var warm_time := 1.0
-## Seconds the drive stays warm at a planet, once the passengers getting off are off.
+## Seconds the drive stays warm at a planet once those getting off are off: WARM_TIME's base.
 @export_range(0.0, 30.0, 0.1) var cool_time := 4.0:
 	set(value):
 		cool_time = value
-		_drive.cool_time = value
+		_stats.get_stat(BusStats.Type.WARM_TIME).base = value
 ## How many times as fast a charge started warm builds.
 @export_range(1.0, 5.0, 0.05) var warm_boost := 1.5:
 	set(value):
@@ -140,7 +140,7 @@ var _felt := FeltPush.new()
 func _init() -> void:
 	_stats.get_stat(BusStats.Type.MAX_SPEED).base = max_speed
 	_drive.charge_time = charge_time
-	_drive.cool_time = cool_time
+	_drive.follow(_stats.get_stat(BusStats.Type.WARM_TIME), cool_time)
 	_drive.warm_boost = warm_boost
 
 
