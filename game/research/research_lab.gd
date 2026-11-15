@@ -8,7 +8,9 @@ extends Node
 ## Resources buttons, which give credits and research points for testing, its Open
 ## research button, which opens the screen from anywhere, and its Promote button, which
 ## opens the next stage until promotions are built. While [member restricted], as in the
-## tutorial, only [member researchable] upgrades can be researched.
+## tutorial, only [member researchable] upgrades can be researched. It remembers which
+## upgrades the player could pay for when they last closed the screen, so the dock panel
+## nudges only when that has changed ([method has_unseen_upgrade]).
 
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
@@ -41,6 +43,8 @@ var restricted := false
 var researchable: Array[Upgrade] = []
 
 var _research: Research
+# The upgrades the player could pay for when they last closed the screen.
+var _seen: Array[Upgrade] = []
 
 
 func _ready() -> void:
@@ -48,6 +52,7 @@ func _ready() -> void:
 	research_screen.research = _research
 	research_screen.upgrade_held.connect(research)
 	research_screen.closed.connect(resource_bar.show)
+	research_screen.closed.connect(_remember_seen)
 	DebugPanel.add_button(DEBUG_OPEN_TEXT, open_screen, self)
 	DebugPanel.add_button(DEBUG_PROMOTE_TEXT, _research.open_next_stage, self)
 	var credits_text := "Add %d credits" % DEBUG_CREDITS
@@ -71,17 +76,31 @@ func get_points() -> Dictionary[Race.Type, int]:
 	return ledger.get_all_research()
 
 
-## Whether the player can pay for any upgrade they could research now, in any tree.
-func can_research_any() -> bool:
+## Whether the player can pay for an upgrade they couldn't pay for when they last closed
+## the screen. The same ones still waiting don't count again, nor fewer of them.
+func has_unseen_upgrade() -> bool:
+	for upgrade: Upgrade in _get_available():
+		if upgrade not in _seen:
+			return true
+	return false
+
+
+# Every upgrade, in any tree, the player could research now and can pay for.
+func _get_available() -> Array[Upgrade]:
+	var available: Array[Upgrade] = []
 	if not ledger:
-		return false
+		return available
 	var credits := get_credits()
 	var points := get_points()
 	for tree: ResearchTree in trees:
 		for upgrade: Upgrade in tree.upgrades:
 			if _research.get_state(upgrade, credits, points) == Research.State.AVAILABLE:
-				return true
-	return false
+				available.append(upgrade)
+	return available
+
+
+func _remember_seen() -> void:
+	_seen = _get_available()
 
 
 ## Opens the research screen on every tree, pausing the game.

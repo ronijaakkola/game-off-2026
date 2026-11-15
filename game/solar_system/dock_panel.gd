@@ -25,9 +25,10 @@ extends Control
 ## calls for its button to be pressed ([member BoardingRow.beckoning]), in one pulse: they
 ## brighten quickly and fade slowly, again and again, and hold bright under Reduce motion.
 ## Board all steps back to a plain button meanwhile, so there is one thing to press.
-## While the player can pay for an upgrade ([method ResearchLab.can_research_any]), the
-## Research button has a thin outline in the Frameshift key's yellow on its edge, fainter
-## than the key's and pulsing in step with it, and holding still under Reduce motion.
+## While the player can pay for an upgrade they couldn't when they last closed the research
+## screen ([method ResearchLab.has_unseen_upgrade]), the Research button has a thin outline
+## in the Frameshift key's yellow on its edge, fainter than the key's and pulsing in step
+## with it, and holding still under Reduce motion.
 ## While [member research_hidden], as through the tutorial, there is no Research button,
 ## and while [member fuel_hidden] no fuel button, while [member fuel_locked] one that is
 ## off, and while [member board_all_hidden] no Board all.
@@ -71,7 +72,7 @@ const NUDGE_BRIGHT := 0.6
 			_sync_rows()
 ## The seats the buttons check.
 @export var cabin: Cabin
-## Says whether there is an upgrade to pay for, which lights the Research button.
+## Says whether there is a new upgrade to pay for, which lights the Research button.
 @export var research_lab: ResearchLab
 ## Where a Board button pressed on a full bus says so.
 @export var notices: NoticeStack
@@ -353,7 +354,7 @@ func _show_buttons() -> void:
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()
-	_nudge_research(_shows_lab() and research_lab != null and research_lab.can_research_any())
+	_nudge_research(_shows_lab() and research_lab != null and research_lab.has_unseen_upgrade())
 
 
 ## The fuel button, for a guide card to point at.
@@ -372,7 +373,7 @@ func get_row(passenger: Passenger) -> Control:
 
 
 ## Whether the Research button's outline shows, as it does while there is an upgrade to pay
-## for.
+## for that the player hasn't seen on the research screen.
 func is_research_nudging() -> bool:
 	return (%ResearchNudge as CanvasItem).visible
 
