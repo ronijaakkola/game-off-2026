@@ -18,15 +18,14 @@ extends Node
 ## Seconds from one hint starting to close to the next one opening: once it has gone, and
 ## a beat, as the tutorial's cards.
 const GAP := Tooltip.CLOSE_SECONDS + 0.25
-## The titles are placeholders.
 const HINTS := {
 	&"heat_zone":
 	{
-		title = "Heat zone",
+		title = "Heat",
 		text =
 		(
-			"Flying near the star heats the bus. If the gauge fills, the bus overheats and "
-			+ "drifts to a stop until it cools down."
+			"Flying near the star heats the bus. The bus will soon overheat. Move away from "
+			+ "the star to cool it down."
 		),
 		side = GuideCard.Side.ABOVE,
 	},
