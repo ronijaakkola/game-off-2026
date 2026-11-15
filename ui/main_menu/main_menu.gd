@@ -81,6 +81,12 @@ func _on_settings_button_pressed() -> void:
 	%SettingsMenu.open(%Items)
 
 
+# Deleted from the settings panel: the menu under it shows as with no save. Its Settings
+# button keeps focus for when the panel closes.
+func _on_settings_menu_save_deleted() -> void:
+	_show_save_buttons()
+
+
 # The debug panel's Delete save: the menu shows as with no save, Play focused, and the
 # next run has the tutorial.
 func _debug_delete_save() -> void:

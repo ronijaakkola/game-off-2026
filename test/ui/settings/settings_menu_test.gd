@@ -1,19 +1,66 @@
 extends GdUnitTestSuite
 
 const SCENE := "res://ui/settings/settings_menu.tscn"
+# Delete save deletes the save, so the suite saves to a file of its own, never the player's.
+const TEST_SAVE := "user://test_settings_menu_save.json"
 
 # The panel binds to the live Settings, which saves the developer's own settings file.
 var _saved: Dictionary[String, Variant] = {}
 
 
 func before() -> void:
+	SaveGame.path = TEST_SAVE
 	for key: String in Settings.get_names():
 		_saved[key] = Settings.get(key)
 
 
 func after() -> void:
+	SaveGame.delete()
+	SaveGame.path = SaveGame.PATH
 	for key: String in Settings.get_names():
 		Settings.set(key, _saved[key])
+
+
+func test_delete_save_is_offered_only_where_asked_and_with_a_save() -> void:
+	SaveGame.write({"credits": 1})
+	var runner := scene_runner(SCENE)
+	var button := runner.find_child("DeleteSaveButton") as Button
+	runner.invoke("open", _covered(runner))
+	assert_bool(button.visible).override_failure_message("Offered by default").is_false()
+	runner.scene().hide()
+
+	(runner.scene() as SettingsMenu).offers_save_deletion = true
+	runner.invoke("open", _covered(runner))
+	assert_bool(button.visible).is_true()
+	runner.scene().hide()
+
+	SaveGame.delete()
+	runner.invoke("open", _covered(runner))
+	assert_bool(button.visible).override_failure_message("Offered with no save").is_false()
+
+
+func test_holding_delete_save_deletes_it_and_a_click_does_not() -> void:
+	SaveGame.write({"credits": 1})
+	var runner := scene_runner(SCENE)
+	(runner.scene() as SettingsMenu).offers_save_deletion = true
+	runner.invoke("open", _covered(runner))
+	var button := runner.find_child("DeleteSaveButton") as HoldButton
+	var deleted := [false]
+	runner.scene().connect(&"save_deleted", func() -> void: deleted[0] = true)
+
+	button.button_down.emit()
+	button.button_up.emit()
+	await runner.simulate_frames(20, 100)
+	assert_bool(SaveGame.has_save()).override_failure_message("A click deleted it").is_true()
+
+	button.button_down.emit()
+	await runner.simulate_frames(20, 100)
+	assert_bool(SaveGame.has_save()).is_false()
+	assert_bool(deleted[0]).is_true()
+	assert_bool(button.disabled).is_true()
+	assert_object(button.get_viewport().gui_get_focus_owner()).is_same(
+		runner.find_child("BackButton")
+	)
 
 
 func test_open_shows_the_current_settings() -> void:

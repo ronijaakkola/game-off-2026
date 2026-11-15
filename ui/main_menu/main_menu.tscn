@@ -71,6 +71,7 @@ text = "Quit"
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+offers_save_deletion = true
 
 [node name="StartOverlay" type="PanelContainer" parent="." unique_id=298445105]
 unique_name_in_owner = true
@@ -119,4 +120,5 @@ theme_type_variation = &"FaintLabel"
 [connection signal="confirmed" from="Center/Column/Items/NewGameButton" to="." method="_on_new_game_button_confirmed"]
 [connection signal="pressed" from="Center/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="Center/Column/Items/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="save_deleted" from="SettingsMenu" to="." method="_on_settings_menu_save_deleted"]
 [connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]

@@ -1,3 +1,4 @@
+class_name SettingsMenu
 extends PanelContainer
 ## The settings panel: one control per setting, bound to [code]Settings[/code]. Each control
 ## is named after its setting in PascalCase and marked [code]unique_name_in_owner[/code]:
@@ -7,8 +8,17 @@ extends PanelContainer
 ## A menu instances it hidden and calls [method open]. Back or Esc hides it again. While
 ## it's open, the menu's own controls under it take no keyboard focus, so Tab stays in the
 ## panel, and when it hides, focus goes back to the control that opened it.
+## Where [member offers_save_deletion] is on and there is a save game, a Delete save button
+## sits above Back; it deletes the save once held, as New game starts over.
+
+## The save game was deleted from the panel.
+signal save_deleted
 
 const DEMO_SFX := preload("res://ui/audio/ui_click.ogg")
+
+## Whether the panel offers to delete the save game. The main menu's panel does; the pause
+## menu's doesn't, since the run under it would save over the deletion at the next planet.
+@export var offers_save_deletion := false
 
 var _covered: Control
 var _opener: Control
@@ -33,6 +43,7 @@ func open(covered: Control) -> void:
 	_opener = get_viewport().gui_get_focus_owner()
 	_covered.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_DISABLED
 	_read_settings()
+	_show_delete_save()
 	show()
 	%MasterVolume.grab_focus()
 
@@ -61,6 +72,24 @@ func _read_settings() -> void:
 			(control as Range).set_value_no_signal(Settings.get(setting))
 		else:
 			(control as BaseButton).set_pressed_no_signal(Settings.get(setting))
+
+
+# Offered only with a save to delete, and enabled again for the next one.
+func _show_delete_save() -> void:
+	var shown := offers_save_deletion and SaveGame.has_save()
+	%SaveDivider.visible = shown
+	%DeleteSaveButton.visible = shown
+	%DeleteSaveButton.disabled = false
+	%DeleteSaveButton.text = "Hold to delete save data"
+
+
+# Stays in place, disabled, so the panel doesn't jump and the player sees it was done.
+func _on_delete_save_button_confirmed() -> void:
+	SaveGame.delete()
+	%DeleteSaveButton.disabled = true
+	%DeleteSaveButton.text = "Save data deleted"
+	%BackButton.grab_focus()
+	save_deleted.emit()
 
 
 func _on_sfx_volume_drag_ended(_value_changed: bool) -> void:
