@@ -119,7 +119,7 @@ func _debug_add_credits() -> void:
 	commit()
 
 
-# The debug panel's Add research, which gives points of every race, each count popping.
+# The debug panel's Add research, which gives points of every race, each shown under its count.
 func _debug_add_research() -> void:
 	for value: int in Race.Type.values():
 		ledger.earn_research(value as Race.Type, DEBUG_RESEARCH)
