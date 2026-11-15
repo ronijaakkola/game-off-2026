@@ -91,6 +91,9 @@ func _open(text: String) -> void:
 	var call := Transmission.from_boss()
 	call.caller_name = CALLER
 	call.text = text
+	# Left ringing, The Boss opens annoyed: the voice's annoyed stinger.
+	if text == UNANSWERED_TEXT:
+		call.mood = Passenger.Mood.ANNOYED
 	call.decline_text = ANSWERS[0]
 	call.accept_text = ANSWERS[1]
 	call.answers_alike = true
