@@ -13,7 +13,7 @@ Folders are by feature:
 | Folder | What goes there |
 |---|---|
 | `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config, and Phantom Camera, vendored without its `examples/` folder. |
-| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/save_game/`, `core/feedback/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`, `core/fps_counter/`. |
+| `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/save_game/`, `core/feedback/`, `core/cursor/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`, `core/fps_counter/`. |
 | `ui/` | Main menu, settings panel, pause menu, the shared Theme, shared widgets. |
 | `game/<feature>/` | The game, one folder per feature: `game/bus/`, `game/goals/`, `game/passengers/`, `game/research/`, `game/solar_system/`, `game/transmissions/`, `game/tutorial/`. |
 | `shared/` | Assets used by more than one feature, such as `shared/two_tone.gdshader`. |
@@ -73,6 +73,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `Settings` | `core/settings/` | The player's **settings**, applied on every change and saved to `user://settings.cfg` once changes stop for a moment. `reset()` puts them all back to their defaults. |
 | `SaveGame` | `core/save_game/` | The player's **save game** in `user://save_game.json`, one run as a plain Dictionary. The main menu starts a run with `start_new()` or `continue_saved()`, and the game scene takes it with `claim_run()`; only a claimed run is written, so tests and F6 runs never touch the save. Tests run in the player's own user folder, so a test that starts a run from the menu points `SaveGame.path` at a file of its own first. It knows nothing of the game: `GameSaver` in the solar system builds and applies the Dictionary. |
 | `Feedback` | `core/feedback/` | Game feel effects: `Feedback.shake(amount, direction)`, and through its `ButtonFeel` child the dip of every pressed `Button`. It owns the camera's `h_offset`/`v_offset`, so game cameras keep them at 0, and with Phantom Camera they stay out of `Camera3DResource`. |
+| `Cursor` | `core/cursor/` | The pointer's image, a system cursor so it never lags. A scene asks for a shape every frame it wants one, `Cursor.show_shape(Cursor.Shape.STEER)`, and it falls back to the default by itself. It shows the pressed dart while the left button is down. |
 | `Talo` | `addons/talo/` | The Talo plugin's autoload. Only `core/online/` names it; see Online. |
 | `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
