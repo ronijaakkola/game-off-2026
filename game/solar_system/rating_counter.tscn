@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="3_theme"]
 [ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="4_star"]
 [ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="9_tooltip"]
+[ext_resource type="PackedScene" uid="uid://c433r8ul8oifw" path="res://game/solar_system/change_chip.tscn" id="10_chip"]
 
 [node name="RatingCounter" type="HBoxContainer" unique_id=976470558]
 mouse_filter = 0
@@ -29,16 +30,9 @@ theme_type_variation = &"PillLabel"
 text = "–"
 horizontal_alignment = 2
 
-[node name="GainSlot" type="Control" parent="AverageLabel" unique_id=532588972]
-unique_name_in_owner = true
-anchors_preset = 0
-mouse_filter = 2
-
-[node name="GainLabel" type="Label" parent="AverageLabel/GainSlot" unique_id=47249099]
+[node name="GainChip" parent="AverageLabel" unique_id=57477935 instance=ExtResource("10_chip")]
 unique_name_in_owner = true
 layout_mode = 0
-theme_type_variation = &"PillGainLabel"
-text = "+0.0"
 
 [node name="Tooltip" parent="." unique_id=512776542 node_paths=PackedStringArray("target") instance=ExtResource("9_tooltip")]
 unique_name_in_owner = true
