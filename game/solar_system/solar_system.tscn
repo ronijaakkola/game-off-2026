@@ -422,11 +422,12 @@ star = NodePath("../World/Star")
 map_zoom = NodePath("../MapZoom")
 zone = NodePath("../World/HeatZoneDisc")
 
-[node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin")]
+[node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin", "portrait_studio")]
 script = ExtResource("116_heat_warning")
 bus = NodePath("../Bus")
 notices = NodePath("../Hud/Notices")
 cabin = NodePath("../Cabin")
+portrait_studio = NodePath("../PortraitStudio")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")

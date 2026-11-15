@@ -15,7 +15,8 @@ const CORNER := 2.0
 @export var minimum := -20.0
 ## Degrees at the bar's right end, where the bus overheats.
 @export var maximum := 60.0
-## The comfortable band, in degrees.
+## The comfortable band, in degrees. Its top is the bus's
+## [member BusTemperature.comfortable_temperature], which the status panel sets.
 @export var band_low := 8.0
 @export var band_high := 32.0
 

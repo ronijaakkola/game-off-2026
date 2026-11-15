@@ -6,7 +6,8 @@ extends Control
 ## photo frees its slot. When the studio is full it waits for the next free slot. Without
 ## a studio or a passenger the frame stays empty. While the passenger rides, it shows on
 ## the portrait every frame whether they are asleep, how angry or content their mood makes
-## them, what they are eating or drinking, and the push they feel on the bus.
+## them, what they are eating or drinking, the push they feel on the bus and how hard
+## they sweat.
 ## The framed photo is drawn at [constant FRAME_SIZE] and scaled to the photo's minimum
 ## size, so a scene can make it smaller. Their type's badges ([member PassengerType.badges])
 ## sit in a row from the photo's top left corner, a little past it, tilted with it, and the
@@ -100,6 +101,7 @@ func _process(_delta: float) -> void:
 	portrait.content = passenger.get_mood() == Passenger.Mood.HAPPY
 	portrait.action = passenger.action
 	portrait.felt_acceleration = studio.felt_acceleration if riding else Vector2.ZERO
+	portrait.sweat = studio.sweat if riding else 0.0
 
 
 func _exit_tree() -> void:

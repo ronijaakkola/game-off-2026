@@ -12,6 +12,9 @@ extends Node
 ## ([method Passenger.settle]).
 ## The bus's comfort upgrades, as traits, set the [Comfort] every passenger rides with and
 ## which amenities are on board, and its PORTION_SIZE stat how long served food lasts.
+## While the bus is [member uncomfortable], everyone's [member Comfort.discomfort] builds
+## by [constant DISCOMFORT_RATE] a second up to [constant DISCOMFORT_MAX], and back in the
+## comfortable band it wears off by [constant DISCOMFORT_RECOVERY] a second.
 
 signal boarded(passenger: Passenger)
 ## [param passenger] left their seat at the stop [method stop_at] started, and will get off
@@ -37,6 +40,12 @@ const COLD_RATE := 0.5
 const QUIET_SEATS := 2
 ## The happiness everyone on board gains when the bus leaves a planet on a quick stop.
 const QUICK_STOP_CHEER := 3.0
+## How fast the bus's temperature past comfortable takes happiness off the most everyone
+## can reach, a second, how much it takes at most, and how fast that wears off once it is
+## comfortable again. Small: a clean ride on a bare bus keeps its four stars.
+const DISCOMFORT_RATE := 0.25
+const DISCOMFORT_MAX := 3.0
+const DISCOMFORT_RECOVERY := 1.0
 ## Seconds the player holds a serve button to serve a request alone, before the bus's
 ## SERVING_SPEED stat.
 const HAND_SECONDS := 1.2
@@ -81,6 +90,10 @@ var cold := false
 ## arrived. The scene that holds the bus sets it.
 var parking := false
 
+## Whether the bus is past its comfortable temperature
+## ([method BusTemperature.is_uncomfortable]). The scene that holds the bus sets it.
+var uncomfortable := false
+
 ## What the bus's comfort upgrades give everyone on board. It follows the bus's traits once
 ## the cabin follows the bus ([method follow]).
 var comfort := Comfort.new()
@@ -110,6 +123,9 @@ func _process(delta: float) -> void:
 		for passenger: Passenger in _passengers:
 			_serve_request(passenger, delta)
 		return
+	var toward := DISCOMFORT_MAX if uncomfortable else 0.0
+	var speed := DISCOMFORT_RATE if uncomfortable else DISCOMFORT_RECOVERY
+	comfort.discomfort = move_toward(comfort.discomfort, toward, speed * delta)
 	var open := _passengers.filter(func(p: Passenger) -> bool: return p.request != null).size()
 	for passenger: Passenger in _passengers:
 		var rate := COLD_RATE if cold else Passenger.DOCKED_RATE
@@ -376,7 +392,9 @@ func _on_portion_changed() -> void:
 
 func _on_trait_changed(_type: BusTraits.Type) -> void:
 	var traits := _bus_stats.get_traits()
+	var discomfort := comfort.discomfort
 	comfort = Comfort.from_traits(traits)
+	comfort.discomfort = discomfort
 	for passenger: Passenger in _passengers:
 		passenger.settle(comfort)
 	amenities.clear()

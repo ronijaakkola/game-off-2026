@@ -5,7 +5,8 @@ extends Node
 ## cooldown is over, and then an info notice for [constant COOLED_SECONDS] says the drive
 ## can charge again. Overheating also scares everyone on board
 ## ([constant OVERHEAT_SHOCK]) and gives them a line about it on their card for the length
-## of the cooldown.
+## of the cooldown. Past the comfortable temperature, it tells the cabin they are
+## uncomfortable, and the portrait studio how much they sweat.
 
 const WARNING_TEXT := "The bus is overheating. Steer away from the star."
 const OVERHEATED_TEXT := "The bus overheated. Cooling down..."
@@ -19,6 +20,7 @@ const COOLED_SECONDS := 6.0
 @export var bus: FrameshiftBus
 @export var notices: NoticeStack
 @export var cabin: Cabin
+@export var portrait_studio: PortraitStudio
 
 # The temperature last frame.
 var _last := 0.0
@@ -36,6 +38,8 @@ func _process(_delta: float) -> void:
 	var degrees := temperature.temperature
 	var high := degrees >= BusStatusPanel.TEMPERATURE_HIGH
 	var cooling := temperature.is_cooling()
+	cabin.uncomfortable = temperature.is_uncomfortable()
+	portrait_studio.sweat = temperature.get_discomfort()
 	if high and _last < BusStatusPanel.TEMPERATURE_HIGH and not cooling:
 		_warning = notices.push(WARNING_TEXT, Notice.Kind.WARNING, true)
 	elif _warning and (not high or cooling):
