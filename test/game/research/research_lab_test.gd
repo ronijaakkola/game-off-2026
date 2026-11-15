@@ -4,7 +4,8 @@ extends GdUnitTestSuite
 ## paying credits and research points from the ledger, and nothing is researched without
 ## the cost or in a stage that isn't open. The pause menu opened over the screen takes Esc,
 ## and closing it leaves the game paused under the screen. The dock panel's Research button
-## is outlined while the player can pay for an upgrade, and not while they can't.
+## is outlined while the player can pay for an upgrade they couldn't when they last closed
+## the screen, and not while they can't, nor for the same ones or fewer.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -92,12 +93,39 @@ func test_the_research_button_is_outlined_while_an_upgrade_can_be_paid_for() -> 
 	_ledger.credits = 0
 
 	await _runner.simulate_frames(1)
-	assert_bool(_lab.can_research_any()).is_false()
+	assert_bool(_lab.has_unseen_upgrade()).is_false()
 	assert_bool(dock.is_research_nudging()).is_false()
 
 	_pay_for(_first_upgrade(), 0)
 	await _runner.simulate_frames(1)
-	assert_bool(_lab.can_research_any()).is_true()
+	assert_bool(_lab.has_unseen_upgrade()).is_true()
+	assert_bool(dock.is_research_nudging()).is_true()
+
+
+func test_the_research_button_is_not_outlined_for_upgrades_already_seen() -> void:
+	var dock := _runner.find_child("DockPanel") as DockPanel
+	var screen := _runner.find_child("ResearchScreen") as ResearchScreen
+	(_runner.find_child("Bus") as FrameshiftBus).get_docked_planet().has_lab = true
+	_pay_for(_first_upgrade(), 0)
+	var credits := _ledger.credits
+	_lab.open_screen()
+	screen.close()
+	await _runner.simulate_frames(1)
+	assert_bool(dock.is_research_nudging()).is_false()
+
+	# Fewer to pay for, then the same ones again: nothing new to see.
+	_ledger.credits = 0
+	await _runner.simulate_frames(1)
+	assert_bool(dock.is_research_nudging()).is_false()
+	_ledger.credits = credits
+	await _runner.simulate_frames(1)
+	assert_bool(dock.is_research_nudging()).is_false()
+
+	# Enough for more of them.
+	_ledger.credits = 100000
+	for race: Race.Type in Race.Type.values():
+		_ledger.earn_research(race, 100)
+	await _runner.simulate_frames(1)
 	assert_bool(dock.is_research_nudging()).is_true()
 
 
