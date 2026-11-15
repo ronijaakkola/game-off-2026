@@ -13,8 +13,9 @@ extends Node3D
 ## and swings side-on, with its door toward the planet. It has docked once it is parked.
 ## Flying burns fuel from its [FuelTank] by distance. Run dry, it coasts to a stop unless
 ## [method tow_to] tows it, slowly and with no say over its route, to a planet.
-## Overheating clears the route, so it coasts to a stop, and while its [member temperature]
-## cools down its drive can't charge. While [member route_locked], the player can't change
+## Overheating lets go of the Frameshift key and keeps the route: the bus coasts to a stop,
+## and once its [member temperature] has cooled down a charge takes it on along the same
+## route. While [member route_locked], the player can't change
 ## the route.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
@@ -121,7 +122,7 @@ var temperature: BusTemperature:
 var speed_cap := INF
 ## Whether the player can't change the route, as through a tutorial trip, so the bus flies
 ## on to where it is headed: [method plot_course], [method remove_stop] and
-## [method cancel_course] do nothing. Running dry and overheating still clear it.
+## [method cancel_course] do nothing. Running dry still clears it.
 var route_locked := false
 
 var _route: Array[RouteStop] = []
@@ -146,7 +147,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	(%FuelTank as FuelTank).emptied.connect(_on_fuel_emptied)
-	temperature.overheated.connect(_clear_course)
+	temperature.overheated.connect(_on_overheated)
 	(%FuelTank as FuelTank).follow(_stats.get_stat(BusStats.Type.FUEL_CAPACITY))
 	rotation.y = PI * 0.5
 	if start_planet:
@@ -201,11 +202,21 @@ func remove_stop(stop: RouteStop) -> void:
 		_clear_course()
 
 
-# What cancel_course does, also while the route is locked, as when the bus overheats.
+# What cancel_course does, also while the route is locked, as when the tank runs dry.
 func _clear_course() -> void:
 	if _towing:
 		return
 	_route.clear()
+	_let_go()
+
+
+# Overheated: the route stays, for a charge once it has cooled down.
+func _on_overheated() -> void:
+	if not _towing:
+		_let_go()
+
+
+func _let_go() -> void:
 	_drive.held = false
 	if state == State.CHARGING:
 		_stop_charge()

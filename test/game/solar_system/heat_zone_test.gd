@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## The heat zone keeping the bus out of the star: a bus sent straight at it brakes to a stop
-## short of its surface and overheats there, its route cleared. A course set while it cools
-## down waits there for a charge until it has cooled. Driven frame by frame with a fixed
+## short of its surface and overheats there, its route kept. The route waits there for a
+## charge until it has cooled. Driven frame by frame with a fixed
 ## step.
 
 const BUS := "res://game/bus/bus.tscn"
@@ -64,12 +64,10 @@ func test_a_bus_sent_through_the_star_stops_short_of_it_and_overheats() -> void:
 			break
 	assert_bool(overheated).is_true()
 	assert_float(nearest).is_greater(temperature.star_radius + FrameshiftBus.RADIUS)
-	assert_array(_bus.get_route_planets()).is_empty()
-	# A course set while it cools down stays, but the bus coasts to a stop and the drive
-	# doesn't charge, though the key is held.
-	_bus.plot_course(RouteStop.at_planet(_far))
+	# The route stays, but the bus coasts to a stop and the drive doesn't charge, though
+	# the key is held.
+	assert_array(_bus.get_route_planets()).contains_exactly([_far])
 	_bus.frameshift_held = true
-	assert_array(_bus.get_route_planets()).is_not_empty()
 	for i: int in roundi(temperature.cooldown_time / STEP) - 2:
 		_step()
 		nearest = minf(nearest, _distance())
@@ -127,10 +125,11 @@ func test_overheated_on_the_way_in_beside_the_star_the_same_course_gets_out() ->
 		_step()
 		if _bus.state == FrameshiftBus.State.HOLDING:
 			break
-	# Stopped short of its nearest point, it still heads toward the star.
+	# Stopped short of its nearest point, it still heads toward the star, its route kept.
 	var forward := _bus.global_basis.z
 	assert_float(forward.dot(_star.global_position - _bus.global_position)).is_greater(0.0)
-	_bus.plot_course(RouteStop.at_planet(beside))
+	assert_array(_bus.get_route_planets()).contains_exactly([beside])
+	# Holding the key once it has cooled takes it on along the same route.
 	_bus.frameshift_held = true
 	var nearest := INF
 	var docked := false
