@@ -105,7 +105,9 @@ func _process(delta: float) -> void:
 	if _tow_in >= 0.0:
 		_tow_in -= delta
 		if _tow_in < 0.0 and is_instance_valid(_tow_notice):
+			# As the notice's own button does: it asks for the tow, then leaves.
 			_tow_notice.action_pressed.emit()
+			_tow_notice.dismiss()
 	_calls.tick(delta)
 	if _bus.is_at_planet():
 		_at_dock(delta)
@@ -375,7 +377,8 @@ func _finish(done: bool) -> void:
 	report["seed"] = _config.get("seed", 1)
 	report["decisions_made"] = _decision_count
 	report["seats"] = _cabin.seats
-	# What quests paid is income, and their points are earned points.
+	# What quests paid is income, and their points are earned points. The recorder counts
+	# only what deliveries pay, not the ledger, so this adds them once.
 	report["quests"] = _calls.report()
 	report["earned"] = int(report["earned"]) + _calls.credits
 	report["points_earned"] = int(report["points_earned"]) + _calls.points

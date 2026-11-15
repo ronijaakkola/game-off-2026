@@ -91,7 +91,9 @@ func report() -> Dictionary:
 func _answer() -> void:
 	var call := _call
 	_call = null
+	# As the notice's own button does: it answers, then leaves, so it is never seen again.
 	call.action_pressed.emit()
+	call.dismiss()
 	var offer := _giver.get_offer()
 	if not offer or not _panel.is_open():
 		return
