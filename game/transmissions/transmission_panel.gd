@@ -59,6 +59,7 @@ var _cascade: Tween
 func _ready() -> void:
 	hide()
 	(%Message as RichTextLabel).install_effect(MoneyEffect.new())
+	(%Message as RichTextLabel).install_effect(ShoutEffect.new())
 
 
 # The pause and the muffled music are the modal's while it shows, so they go with it.

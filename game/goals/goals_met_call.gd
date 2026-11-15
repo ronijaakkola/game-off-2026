@@ -2,21 +2,29 @@ class_name GoalsMetCall
 extends Node
 ## The end of the run's goals: once every goal in [member goals] has been met for
 ## [constant DELAY] seconds of play, The Boss calls with the next job. The call notice's
-## Answer opens their transmission, and either answer shows a notice that the next level
-## isn't there yet. While a passenger's call rings, The Boss waits for it to end, and nobody
-## else calls while The Boss's call rings. It calls once a run.
+## Answer opens their transmission; left unanswered for [constant ANSWER_SECONDS] seconds
+## while it shows, it opens by itself, and The Boss starts by telling the player off.
+## Either answer shows a notice that the next level isn't there yet. While a passenger's
+## call rings, The Boss waits for it to end, and nobody else calls while The Boss's call
+## rings. It calls once while the scene runs, so a continued run calls again.
 
 ## The player closed The Boss's transmission.
 signal ended
 
 ## Seconds of play every goal holds before The Boss calls. A goal dropping back resets it.
 const DELAY := 5.0
+## Seconds of play the call notice shows, unanswered, before the transmission opens by itself.
+const ANSWER_SECONDS := 10.0
 const CALLER := "Your Boss"
-const TEXT := (
-	"What, really? You did it? Most of you don't get this far, but maybe I have a use for "
-	+ "you after all. There's more [money]money[/money] to be made in another system, and I "
-	+ "want you there immediately. I'll send you the coordinates."
+## The job's offer, which ends what The Boss says: [constant TEXT] when the player answered,
+## and [constant UNANSWERED_TEXT] when the call opened by itself.
+const OFFER := (
+	"Most of you don't get this far, but maybe I have a use for you after all. There's more "
+	+ "[money]money[/money] to be made in another system, and I want you there immediately. "
+	+ "I'll send you the coordinates."
 )
+const TEXT := "What, really? You did it? " + OFFER
+const UNANSWERED_TEXT := "Number one rule: when I call, you [shout]pick[/shout] up. " + OFFER
 ## The two answers, which mean the same.
 const ANSWERS: Array[String] = ["Sure boss", "I guess I cannot refuse"]
 const NEXT_LEVEL_MISSING := "The next level is not available yet."
@@ -32,6 +40,10 @@ const NEXT_LEVEL_MISSING := "The next level is not available yet."
 var _met_seconds := 0.0
 var _called := false
 var _notice: Notice
+# Seconds of play the call notice has shown unanswered.
+var _ringing_seconds := 0.0
+# Whether the quest giver had calls on before The Boss's call held them.
+var _quests_were_enabled := false
 
 
 func _ready() -> void:
@@ -39,6 +51,14 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _notice:
+		# Only while the player can see it: not while the notices are hidden behind a panel.
+		if _notice.is_visible_in_tree():
+			_ringing_seconds += delta
+		if _ringing_seconds >= ANSWER_SECONDS:
+			_notice.dismiss()
+			_open(UNANSWERED_TEXT)
+		return
 	if _called or not goals:
 		return
 	_met_seconds = _met_seconds + delta if goals.are_all_met() else 0.0
@@ -57,22 +77,27 @@ func ring() -> void:
 	if _called:
 		return
 	_called = true
-	var quests_were_enabled := quest_giver and quest_giver.enabled
+	_quests_were_enabled = quest_giver and quest_giver.enabled
 	if quest_giver:
 		quest_giver.enabled = false
+	_ringing_seconds = 0.0
 	_notice = notices.announce_transmission()
-	await _notice.action_pressed
+	_notice.action_pressed.connect(_open.bind(TEXT))
+
+
+# The Boss's transmission opens, saying [param text], answered or by itself.
+func _open(text: String) -> void:
 	_notice = null
 	var call := Transmission.from_boss()
 	call.caller_name = CALLER
-	call.text = TEXT
+	call.text = text
 	call.decline_text = ANSWERS[0]
 	call.accept_text = ANSWERS[1]
 	call.answers_alike = true
 	transmission_panel.open(call)
 	await transmission_panel.answered
 	if quest_giver:
-		quest_giver.enabled = quests_were_enabled
+		quest_giver.enabled = _quests_were_enabled
 	notices.push(NEXT_LEVEL_MISSING, Notice.Kind.INFO, true)
 	ended.emit()
 
