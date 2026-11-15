@@ -12,8 +12,8 @@ extends Control
 ## it falls, the more the further it is going soon. They ride the end of the fill, inside it,
 ## and once the fill is too short to hold them they sit just past its end on the track, in
 ## the mood's colour. They fade in and out.
-## What frustration has taken off the most they can reach shows as a hatched end of the
-## bar ([HappinessCap]), the part they can no longer fill.
+## What frustration has taken off the most they can reach shows as a striped end of the
+## bar's track ([HappinessCap]), the part they can no longer fill, and the fill stops there.
 ## Their portrait sits on the left, as a [PassengerPhoto].
 ## When the passenger boards, the card's place in the list opens while the card slides in
 ## from past the left edge of the screen.
@@ -386,8 +386,13 @@ func _show() -> void:
 	var first := _mood == -1
 	_set_text(%NameLabel, passenger.name)
 	var value := passenger.get_happiness_fraction()
+	var cap := %HappinessCap as HappinessCap
+	cap.lost = passenger.frustration / Passenger.MAX_HAPPINESS
+	cap.happiness = value
+	cap.color = _fill.bg_color
+	# The fill stops at what they can reach; the cap shows what is above it.
+	value = minf(value, cap.get_reach())
 	(%HappinessBar as ProgressBar).value = value
-	(%HappinessCap as HappinessCap).lost = passenger.frustration / Passenger.MAX_HAPPINESS
 	if first:
 		(%HappinessTrail as ProgressBar).value = value
 		_shown_happiness = value

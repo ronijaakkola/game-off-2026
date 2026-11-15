@@ -10,7 +10,7 @@ extends Node
 ## `-- Reroute` sends the first passenger to Frost instead of Ember a few frames in, as an
 ## express quest does, so their card moves to Frost's group.
 ## `-- Frustrated` takes [constant FRUSTRATION] off what each seat can reach, so the bars'
-## hatched ends show, and gives the idle ones a line about why.
+## striped ends show, and gives the idle ones a line about why.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
