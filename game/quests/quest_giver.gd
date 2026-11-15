@@ -1,7 +1,7 @@
 class_name QuestGiver
 extends Node
-## Gives the player quests. Every so often while the bus flies, a Business passenger on
-## board calls:
+## Gives the player quests. Every so often while the bus flies, once the player has
+## delivered [constant FIRST_CALL_DELIVERIES] passengers, a passenger on board calls:
 ## an incoming transmission notice, whose Answer opens their [Quest]'s transmission. One
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
@@ -23,11 +23,12 @@ signal quest_added(quest: Quest)
 signal quest_removed(quest: Quest)
 
 ## Seconds into a run before the first call, and between one call or quest ending and the
-## next call: a random value between the two. Only a Business passenger calls, so the
-## real wait is longer: until one rides.
+## next call: a random value between the two.
 const FIRST_CALL_SECONDS := 30.0
-const CALL_MIN_SECONDS := 30.0
-const CALL_MAX_SECONDS := 60.0
+const CALL_MIN_SECONDS := 75.0
+const CALL_MAX_SECONDS := 120.0
+## How many passengers the player has delivered before anyone calls.
+const FIRST_CALL_DELIVERIES := 15
 ## Seconds before trying again when nobody on board could call.
 const RETRY_SECONDS := 3.0
 ## Seconds the bus has flown before anyone calls, so a call never lands on leaving.
@@ -67,6 +68,8 @@ var _waiting: WaitingPassengers
 # and dice made here would differ in every save of it.
 var _rng: RandomNumberGenerator
 var _until_call := FIRST_CALL_SECONDS
+# Whether the next call was asked for, so it comes however few have been delivered.
+var _call_asked := false
 # Seconds the bus has flown since it last stopped.
 var _flight_seconds := 0.0
 # The call ringing, and who calls.
@@ -107,7 +110,7 @@ func _process(delta: float) -> void:
 	if _quest or not enabled:
 		return
 	_until_call -= delta
-	if _until_call > 0.0 or _flight_seconds < FLIGHT_SECONDS or transmission_panel.is_open():
+	if _until_call > 0.0 or not _is_time_to_call():
 		return
 	_caller = _pick_caller()
 	if not _caller:
@@ -151,9 +154,11 @@ func get_quests() -> Array[Quest]:
 	return shown
 
 
-## Has someone call as soon as anyone can, whatever the wait since the last call.
+## Has someone call as soon as anyone can, whatever the wait since the last call and
+## however few passengers have been delivered.
 func call_soon() -> void:
 	_until_call = 0.0
+	_call_asked = true
 
 
 ## The quest under way, for a save game, with its passenger as their place among
@@ -188,13 +193,20 @@ func take_on(quest: Quest) -> void:
 	quest_added.emit(quest)
 
 
-# Someone on board who could call now: a Business passenger, awake, not about to get off,
-# and with a quest to offer as things stand. Only Business for now, while quests are tried
-# out, so who calls is easy to tell and a bus of Commuters is left alone.
+# Whether a call could come now: the bus has flown a moment, no transmission shows, and
+# the player has delivered enough passengers.
+func _is_time_to_call() -> bool:
+	if _flight_seconds < FLIGHT_SECONDS or transmission_panel.is_open():
+		return false
+	return _call_asked or not _ledger or _ledger.get_rating_count() >= FIRST_CALL_DELIVERIES
+
+
+# Someone on board who could call now: awake, not about to get off, and with a quest to
+# offer as things stand.
 func _pick_caller() -> Passenger:
 	var able: Array[Passenger] = []
 	for passenger: Passenger in cabin.get_passengers():
-		if passenger.type != _waiting.business or passenger.asleep or _is_arriving(passenger):
+		if passenger.asleep or _is_arriving(passenger):
 			continue
 		if _plan(passenger):
 			able.append(passenger)
@@ -301,4 +313,5 @@ func _finish() -> void:
 # Nobody calls for a while.
 func _rest() -> void:
 	_caller = null
+	_call_asked = false
 	_until_call = _rng.randf_range(CALL_MIN_SECONDS, CALL_MAX_SECONDS)

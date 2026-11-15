@@ -17,7 +17,7 @@ extends PanelContainer
 ## near an edge it moves along its target only as far as it must.
 
 ## Which edge of the target it sits at.
-enum Side { BELOW = 0, ABOVE = 1 }
+enum Side { BELOW = 0, ABOVE = 1, RIGHT = 2 }
 
 ## Seconds it takes to open, and to close: leaving is the faster of the two.
 const OPEN_SECONDS := 0.15
@@ -222,6 +222,9 @@ func _place() -> void:
 	if not target:
 		return
 	var rect := target.get_global_rect()
+	if side == Side.RIGHT:
+		_place_right(rect)
+		return
 	var below := side == Side.BELOW
 	var top := rect.end.y + gap if below else rect.position.y - gap - size.y
 	var toward := -SLIDE_PIXELS if below else SLIDE_PIXELS
@@ -233,3 +236,15 @@ func _place() -> void:
 	position = Vector2(left, top).round() if snap_to_pixels else Vector2(left, top)
 	pivot_offset = Vector2(centre - position.x, 0.0 if below else size.y)
 	position.y += toward * _slide
+
+
+# To the right of the target and centred on it top to bottom, as near as the screen's top
+# and bottom edges let it, scaling from the point of its left edge at the target's centre.
+func _place_right(rect: Rect2) -> void:
+	var centre := rect.get_center().y
+	var most := get_viewport_rect().size.y - size.y - SCREEN_MARGIN
+	var top := clampf(centre - size.y * 0.5, minf(SCREEN_MARGIN, most), most)
+	var left := rect.end.x + gap
+	position = Vector2(left, top).round() if snap_to_pixels else Vector2(left, top)
+	pivot_offset = Vector2(0.0, centre - position.y)
+	position.x -= SLIDE_PIXELS * _slide

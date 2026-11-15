@@ -22,6 +22,9 @@ const Overrides := preload("res://tools/balance/overrides.gd")
 const HAND_SWITCH := 0.3
 ## Seconds a player takes to ask for a tow once the bus has stopped.
 const TOW_THINK := 3.0
+# Seconds a player who misses a quick stop spends docked: long enough for the drive to
+# go cold.
+const SLOW_STOP_SECONDS := 9.0
 
 var _config: Dictionary
 var _recorder := Recorder.new()
@@ -36,6 +39,7 @@ var _planets: Array[Planet] = []
 var _time := 0.0
 var _decided := false
 var _think_left := 0.0
+var _stop_dice := RandomNumberGenerator.new()
 var _decision_count := 0
 var _tow_in := -1.0
 var _tow_notice: Notice
@@ -84,6 +88,7 @@ func _ready() -> void:
 	_bus.ran_out_of_fuel.connect(_on_ran_out_of_fuel)
 	_bus.temperature.overheated.connect(_on_overheated)
 	_detour = Detour.new(_bus, _system.get_node(^"World/Star") as Node3D)
+	_stop_dice.seed = seed_value + 32452843
 	var call_dice := RandomNumberGenerator.new()
 	call_dice.seed = seed_value + 15485863
 	_calls = Calls.new(_player.policy, call_dice, _system, _detour)
@@ -132,6 +137,7 @@ func _at_dock(delta: float) -> void:
 	var state := _describe()
 	_recorder.lines += 1
 	_recorder.line_total += (state["waiting"] as Array).size()
+	_recorder.empty_lines += 1 if (state["waiting"] as Array).is_empty() else 0
 	var decision: Dictionary
 	var given: Variant = _config.get("decisions")
 	if given is Array:
@@ -300,8 +306,8 @@ func _passenger_row(passenger: Passenger) -> Dictionary:
 		"race": Race.Type.find_key(passenger.race),
 		"to": passenger.destination.display_name,
 		"fare": roundi(passenger.fare),
-		"trip_seconds": roundi(passenger.trip_seconds),
-		"expected_seconds": roundi(passenger.expected_seconds),
+		"trip_seconds": roundi(passenger.ride.trip_seconds),
+		"expected_seconds": roundi(passenger.ride.expected_seconds),
 		"quest": passenger.quest_line,
 	}
 
@@ -400,6 +406,9 @@ func _write(path: String, data: Dictionary) -> void:
 
 func _on_docked(planet: Planet) -> void:
 	_think_left = float(_player.policy.get("dock_think", 3.0))
+	# A player who dawdles past the warm drive, by the policy's "quick_stop_miss" chance.
+	if _stop_dice.randf() < float(_player.policy.get("quick_stop_miss", 0.0)):
+		_think_left = maxf(_think_left, SLOW_STOP_SECONDS)
 	_recorder.dock(planet, _cabin.get_passengers())
 
 

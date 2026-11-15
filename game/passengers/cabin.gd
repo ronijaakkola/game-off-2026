@@ -33,6 +33,10 @@ signal stop_finished
 const KICK_SHOCK := -25.0
 ## How fast a stop runs for those riding on once the bus's drive goes cold ([member cold]).
 const COLD_RATE := 0.5
+## How many fewer requests can be open at once than the bus has seats.
+const QUIET_SEATS := 2
+## The happiness everyone on board gains when the bus leaves a planet on a quick stop.
+const QUICK_STOP_CHEER := 3.0
 ## Seconds the player holds a serve button to serve a request alone, before the bus's
 ## SERVING_SPEED stat.
 const HAND_SECONDS := 1.2
@@ -106,9 +110,13 @@ func _process(delta: float) -> void:
 		for passenger: Passenger in _passengers:
 			_serve_request(passenger, delta)
 		return
+	var open := _passengers.filter(func(p: Passenger) -> bool: return p.request != null).size()
 	for passenger: Passenger in _passengers:
 		var rate := COLD_RATE if cold else Passenger.DOCKED_RATE
-		passenger.tick(delta, docked, parking, comfort, rate)
+		var asking := passenger.request != null
+		passenger.tick(delta, docked, parking, comfort, rate, open < get_request_limit())
+		if passenger.request and not asking:
+			open += 1
 		_serve_request(passenger, delta)
 	if _stopping:
 		_until_step -= delta
@@ -143,6 +151,12 @@ func get_passengers() -> Array[Passenger]:
 
 func has_free_seat() -> bool:
 	return _passengers.size() < seats
+
+
+## How many requests can be open at once: [constant QUIET_SEATS] fewer than the seats, and
+## at least one. A need that comes up past that waits its turn.
+func get_request_limit() -> int:
+	return maxi(seats - QUIET_SEATS, 1)
 
 
 ## Seats no one has taken or been picked up for.
@@ -208,6 +222,12 @@ func shock(amount: float) -> void:
 		passenger.shock(amount)
 
 
+## Everyone on board admires a quick stop ([method Passenger.admire]).
+func cheer_quick_stop() -> void:
+	for passenger: Passenger in _passengers:
+		passenger.admire(QUICK_STOP_CHEER)
+
+
 ## Everyone on board reacts to the bus overheating for [param seconds]
 ## ([method Passenger.react_to_overheat]).
 func react_to_overheat(seconds: float) -> void:
@@ -217,7 +237,8 @@ func react_to_overheat(seconds: float) -> void:
 
 ## Starts a stop at [param planet]. Everyone going there leaves their seat now, and their
 ## happiness stops, so they pay by the mood they arrived in, after any disappointment at a
-## request left unserved ([method Passenger.arrive]); they get off one at a time.
+## request left unserved ([method Passenger.arrive]); they get off one at a time. For
+## everyone riding on it is a stop on the way ([method Passenger.pass_stop]).
 ## The first one goes at once, and [signal stop_finished] comes [member step_seconds] after
 ## the last, or at once when nobody gets off or on.
 func stop_at(planet: Planet) -> void:
@@ -230,6 +251,8 @@ func stop_at(planet: Planet) -> void:
 			passenger.arrive()
 			_payouts.append(passenger.get_payout(tip if _has(BusTraits.Type.TIP_JAR) else 1.0))
 			leaving.append(passenger)
+		else:
+			passenger.pass_stop(planet)
 	for passenger: Passenger in leaving:
 		getting_off.emit(passenger)
 	_unloading = true

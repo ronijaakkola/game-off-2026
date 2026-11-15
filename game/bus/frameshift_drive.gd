@@ -101,6 +101,13 @@ func warm_up(warm := true) -> void:
 	_warmth = cool_time if warm else 0.0
 
 
+## Makes it cold at once, and a charge under way no longer a warm one: it keeps what it
+## has but builds at the cold speed from here.
+func go_cold() -> void:
+	_warmth = 0.0
+	_warm_charge = false
+
+
 ## Cools for [param delta] seconds.
 func cool(delta: float) -> void:
 	_warmth = maxf(_warmth - delta, 0.0)

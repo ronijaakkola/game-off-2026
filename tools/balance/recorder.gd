@@ -27,6 +27,7 @@ var docks := 0
 ## Dock decisions made, and over them how many waited there and how many seats left empty.
 var lines := 0
 var line_total := 0
+var empty_lines := 0
 var free_seats_total := 0
 var requests := 0
 var request_seconds := 0.0
@@ -76,8 +77,8 @@ func deliver(passenger: Passenger, payout: int, ledger: Ledger) -> void:
 		"happiness": snappedf(passenger.happiness, 0.1),
 		"stars": passenger.get_rating(),
 		"ride": snappedf(_time - float(ride["at"]), 0.1),
-		"trip": snappedf(passenger.trip_seconds, 0.1),
-		"expected": snappedf(passenger.expected_seconds, 0.1),
+		"trip": snappedf(passenger.ride.trip_seconds, 0.1),
+		"expected": snappedf(passenger.ride.expected_seconds, 0.1),
 		"stops": ride["stops"],
 		"aboard": ride["aboard"],
 		"requests": ride.get("requests", 0),
@@ -173,6 +174,7 @@ func report(ledger: Ledger) -> Dictionary:
 		"kicks": kicks,
 		"docks": docks,
 		"waiting_at_dock": snappedf(line_total / maxf(lines, 1.0), 0.01),
+		"empty_docks": snappedf(empty_lines / maxf(lines, 1.0), 0.001),
 		"empty_seats_leaving": snappedf(free_seats_total / maxf(lines, 1.0), 0.01),
 		"points_earned": deliveries.size(),
 		"deliveries_goal_at": snappedf(deliveries_goal_at, 0.1),

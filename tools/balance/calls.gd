@@ -35,6 +35,9 @@ var _cabin: Cabin
 var _detour: Detour
 var _call: Notice
 var _answer_in := 0.0
+# Seconds played, and when each call rang.
+var _time := 0.0
+var _call_times: Array[float] = []
 var _quest: Quest
 
 
@@ -58,6 +61,7 @@ func _init(
 
 ## Every frame: notices a new call, and answers it once the thought is over.
 func tick(delta: float) -> void:
+	_time += delta
 	if is_instance_valid(_call) and not _call.is_leaving():
 		_answer_in -= delta
 		if _answer_in <= 0.0 and str(_policy.get("quests", "accept")) != "ignore":
@@ -68,6 +72,7 @@ func tick(delta: float) -> void:
 		if notice.get_text().begins_with(CALL_TEXT) and not notice.is_leaving():
 			_call = notice
 			calls += 1
+			_call_times.append(snappedf(_time, 0.1))
 			_answer_in = float(_policy.get("call_think", 2.0)) * _rng.randf_range(0.5, 1.5)
 			return
 
@@ -76,6 +81,7 @@ func tick(delta: float) -> void:
 func report() -> Dictionary:
 	return {
 		"calls": calls,
+		"call_times": _call_times,
 		"answered": answered,
 		"accepted": accepted,
 		"declined": declined,

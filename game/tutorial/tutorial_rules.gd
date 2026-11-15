@@ -12,7 +12,7 @@ extends RefCounted
 ## tutorial says what ([member ResearchLab.researchable]).
 
 ## What the passenger pays.
-const FARE := 150.0
+const FARE := 120.0
 ## The share of the tank a trip between home and the destination burns.
 const TRIP_FUEL := 0.5
 ## The upgrade the tutorial researches, and what it costs in blue research points then.

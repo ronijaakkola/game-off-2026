@@ -12,8 +12,8 @@ extends Node
 
 ## Fuel a second the pump gives as the button goes down, the most it speeds up to, and the
 ## seconds it takes to get there. The bus's PUMP_SPEED stat scales both rates.
-const START_RATE := 12.0
-const MAX_RATE := 60.0
+const START_RATE := 5.1
+const MAX_RATE := 25.5
 const RAMP_SECONDS := 1.5
 
 ## One cycle of the pump's sound. It repeats while the pump runs, so its import loops it
@@ -62,7 +62,10 @@ func _process(delta: float) -> void:
 	var can_fuel := docked != null and reason.is_empty()
 	dock_panel.show_fuel(tank.get_fraction(), fill_cost, can_fuel, reason.trim_suffix("."))
 	if docked:
-		run(delta, docked, dock_panel.is_fuel_held(), tank, ledger)
+		# Not while the drive is held to charge: the two holds take turns, as they must for
+		# a player with only a mouse.
+		var held := dock_panel.is_fuel_held() and not bus.frameshift_held
+		run(delta, docked, held, tank, ledger)
 	else:
 		stop(ledger)
 

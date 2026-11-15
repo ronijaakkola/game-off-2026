@@ -457,13 +457,12 @@ resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
 research_screen = NodePath("../Hud/ResearchScreen")
 trees = Array[ExtResource("94_research_tree")]([ExtResource("95_blue_tree"), ExtResource("96_green_tree"), ExtResource("97_orange_tree")])
 
-[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus", "cabin")]
+[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus")]
 unique_name_in_owner = true
 script = ExtResource("14_waiting")
 types = Array[ExtResource("16_type")]([ExtResource("15_commuter")])
 business = ExtResource("15_business")
 bus = NodePath("../Bus")
-cabin = NodePath("../Cabin")
 
 [node name="PortraitStudio" parent="." unique_id=1933731670 instance=ExtResource("22_studio")]
 unique_name_in_owner = true

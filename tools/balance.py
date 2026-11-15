@@ -80,6 +80,24 @@ def measured(report: dict, *keys: str) -> float:
     return float(value)
 
 
+def calls_before_goals(report: dict) -> float:
+    """How many calls rang before both goals were first met, or in the whole run when they
+    never were. nan for a report with no call times."""
+    times = report.get("quests", {}).get("call_times")
+    if times is None:
+        return float("nan")
+    end = report["both_goals_at"] if report["both_goals_at"] > 0 else report["seconds"]
+    return float(len([t for t in times if t <= end]))
+
+
+def first_business(report: dict) -> int:
+    """Which delivery, counted from 1, was the first Business passenger, or 0 with none."""
+    for index, ride in enumerate(report["deliveries"]):
+        if ride["type"] == "Business":
+            return index + 1
+    return 0
+
+
 def at_time(series: list[dict], seconds: float, key: str) -> float:
     value = 0.0
     for row in series:
@@ -148,6 +166,11 @@ def summarize(reports: list[dict]) -> dict:
         "calls/10 min": mean(
             [600.0 * measured(r, "quests", "calls") / r["seconds"] for r in reports]
         ),
+        "calls before both goals": mean([calls_before_goals(r) for r in reports]),
+        "3+ calls before goals %": share(reports, lambda r: calls_before_goals(r) >= 3),
+        "first Business at delivery": mean(
+            [first_business(r) for r in reports if first_business(r) > 0]
+        ),
         "quests taken": mean([measured(r, "quests", "accepted") for r in reports]),
         "quests done": mean([measured(r, "quests", "done") for r in reports]),
         "quests failed": mean([measured(r, "quests", "failed") for r in reports]),
@@ -157,6 +180,9 @@ def summarize(reports: list[dict]) -> dict:
         "tows": mean([r["tows"] for r in reports]),
         "overheats": mean([measured(r, "overheats") for r in reports]),
         "waiting at a dock": mean([r["waiting_at_dock"] for r in reports]),
+        "nobody waiting at a dock %": mean(
+            [100.0 * measured(r, "empty_docks") for r in reports]
+        ),
         "empty seats leaving": mean([r["empty_seats_leaving"] for r in reports]),
         "seats at end": mean([r["seats"] for r in reports]),
         "points unspent %": mean(
