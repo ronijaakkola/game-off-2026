@@ -21,11 +21,17 @@ const STAT_NAMES := {
 	BusStats.Type.FUEL_CAPACITY: "Fuel tank",
 	BusStats.Type.SEATS: "Seats",
 	BusStats.Type.PORTION_SIZE: "Portion size",
+	BusStats.Type.WARM_TIME: "Warm time",
+	BusStats.Type.PUMP_SPEED: "Pump speed",
+	BusStats.Type.SERVING_SPEED: "Serving speed",
 }
 ## How each stat's value shows, by type. A stat missing here shows two decimals.
 const VALUE_FORMATS := {
 	BusStats.Type.FUEL_CAPACITY: "%.0f",
 	BusStats.Type.PORTION_SIZE: "%.1fx",
+	BusStats.Type.WARM_TIME: "%.1f s",
+	BusStats.Type.PUMP_SPEED: "%.1fx",
+	BusStats.Type.SERVING_SPEED: "%.1fx",
 }
 ## Each trait's name in its row, by [enum BusTraits.Type]. A trait missing here shows its
 ## type's name.
