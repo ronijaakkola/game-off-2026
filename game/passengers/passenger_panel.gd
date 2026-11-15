@@ -8,11 +8,13 @@ extends MarginContainer
 ## their destination, each card going there shows the stars its passenger rates the ride;
 ## once the passenger gets off and the rating has shown for a moment, the card slides back
 ## out to the left, while the cards below move up to fill the gap, and a group whose last
-## card has left folds away. A card's serve button, held down, serves that passenger's
-## request through the cabin ([method Cabin.hold_serve]), and its kick button kicks them off
-## the bus, so their card slides out at once. A passenger who changes their mind mid-ride
+## card has slid out folds away with that card's place. A card's serve button, held down,
+## serves that passenger's request through the cabin ([method Cabin.hold_serve]), and its
+## kick button kicks them off the bus, so their card slides out at once. A passenger who
+## changes their mind mid-ride
 ## ([signal Passenger.rerouted]) moves to the group for where they now go: their card slides
-## out of the old group and back in at the bottom of the new one. While
+## out of the old group, then slides back in at the bottom of the new one, its place there
+## opening as the old one folds. While
 ## [member arrivals_held], as in the tutorial while the panel itself comes in, a passenger
 ## who boards slides in only once it is let go. Without [member kicks_allowed], as through
 ## the tutorial, no card offers a kick.
@@ -149,13 +151,16 @@ func _on_group_emptied(group: DestinationGroup) -> void:
 	group.fold_away()
 
 
-func _show_counts() -> void:
+# With [param keep_emptied], a group nobody is going to keeps its last count: it is about
+# to fold away.
+func _show_counts(keep_emptied := false) -> void:
 	for planet: Planet in _groups:
 		var count := 0
 		for passenger: Passenger in _cards:
 			if passenger.destination == planet:
 				count += 1
-		_groups[planet].show_count(count)
+		if count > 0 or not keep_emptied:
+			_groups[planet].show_count(count)
 
 
 func _on_getting_off(passenger: Passenger) -> void:
@@ -188,19 +193,31 @@ func _on_kicked(passenger: Passenger) -> void:
 		_show_counts()
 
 
-# [param passenger] goes somewhere else now: their card leaves its group and a new one
-# slides in at the bottom of the group for where they go.
+# [param passenger] goes somewhere else now: their card leaves its group and, once it has
+# slid out, a new one slides in at the bottom of the group for where they go, so the new
+# place opens as the old one folds.
 func _on_rerouted(passenger: Passenger) -> void:
-	var card: PassengerCard = _cards.get(passenger)
-	if not card:
+	var old: PassengerCard = _cards.get(passenger)
+	if not old:
 		return
 	_cards.erase(passenger)
-	card.leave()
 	var new_group := not _groups.has(passenger.destination)
-	_add_card(passenger).slide_in()
+	var card := _add_card(passenger)
+	card.tuck()
 	if new_group:
+		_groups[passenger.destination].tuck()
+	old.slid_out.connect(_on_reroute_slid_out.bind(passenger, card, new_group))
+	old.leave()
+	_show_counts(true)
+
+
+# Unless [param card] stopped being [param passenger]'s meanwhile, as when they were kicked.
+func _on_reroute_slid_out(passenger: Passenger, card: PassengerCard, new_group: bool) -> void:
+	if _cards.get(passenger) != card:
+		return
+	card.slide_in()
+	if new_group and _groups.has(passenger.destination):
 		_groups[passenger.destination].fade_in()
-	_show_counts()
 
 
 # Stops following [param passenger] once they have no card here.

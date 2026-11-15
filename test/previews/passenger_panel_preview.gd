@@ -9,6 +9,8 @@ extends Node
 ## their red trail.
 ## `-- Reroute` sends the first passenger to Frost instead of Ember a few frames in, as an
 ## express quest does, so their card moves to Frost's group.
+## `-- RerouteAlone` sends the only passenger going to Giant to Dust, where nobody goes yet,
+## so Giant's group folds as Dust's opens.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
@@ -73,6 +75,13 @@ func _ready() -> void:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		cabin.get_passengers()[0].reroute(planets[DESTINATIONS.find("Frost")], 60.0, 40.0)
+	if "RerouteAlone" in OS.get_cmdline_user_args():
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var dust := Planet.new()
+		dust.display_name = "Dust"
+		add_child(dust)
+		cabin.get_passengers()[3].reroute(dust, 60.0, 40.0)
 	if "Kick" in OS.get_cmdline_user_args():
 		# The cards lay out a frame in.
 		await get_tree().process_frame
