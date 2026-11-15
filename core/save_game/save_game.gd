@@ -5,10 +5,14 @@ extends Node
 ## The main menu starts a run, new or continued, and the game scene claims it when it
 ## starts ([method claim_run]). Only a claimed run is saved, so a game scene started any
 ## other way, by a test, a smoke run or F6, never reads or writes the file.
+## It also keeps, in [constant TUTORIAL_PATH], whether the player has been through the
+## tutorial: it outlives the run, so a New game after it starts without the tutorial.
 ## On the web, saves are best effort: without persistent storage, the save lasts for the
 ## session only (docs/web-constraints.md).
 
 const PATH := "user://save_game.json"
+## Where whether the player has been through the tutorial is kept.
+const TUTORIAL_PATH := "user://tutorial.cfg"
 ## Bumped when what the game writes changes so that an older save can't be read: a save
 ## of another version counts as none.
 const VERSION := 1
@@ -16,6 +20,9 @@ const VERSION := 1
 ## Where the save is: [constant PATH]. Tests run in the player's own user folder, so a test
 ## that saves points it at a file of its own and puts it back after.
 var path := PATH
+## Where whether the player has been through the tutorial is: [constant TUTORIAL_PATH],
+## pointed elsewhere by a test the way [member path] is.
+var tutorial_path := TUTORIAL_PATH
 
 # The run the main menu started, until the game claims it: whether there is one, and the
 # saved run it continues, empty for a new one.
@@ -72,6 +79,29 @@ func write(run: Dictionary) -> void:
 func delete() -> void:
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
+
+
+## Whether the player has been through the tutorial, done or skipped, in any run.
+func is_tutorial_done() -> bool:
+	var file := ConfigFile.new()
+	if file.load(tutorial_path) != OK:
+		return false
+	return bool(file.get_value("tutorial", "done", false))
+
+
+## Keeps that the player has been through the tutorial.
+func mark_tutorial_done() -> void:
+	var file := ConfigFile.new()
+	file.set_value("tutorial", "done", true)
+	var error := file.save(tutorial_path)
+	if error != OK:
+		push_warning("Couldn't save the tutorial as done: %s" % error_string(error))
+
+
+## Forgets that the player has been through the tutorial, so the next New game has it again.
+func forget_tutorial() -> void:
+	if FileAccess.file_exists(tutorial_path):
+		DirAccess.remove_absolute(tutorial_path)
 
 
 # The saved run, or empty when there is none, it can't be read or it is of another version.

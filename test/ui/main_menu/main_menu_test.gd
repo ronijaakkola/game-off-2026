@@ -5,6 +5,7 @@ const GAME := "res://game/solar_system/solar_system.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
 # Play saves the new run, so the suite saves to a file of its own, never the player's.
 const TEST_SAVE := "user://test_main_menu_save.json"
+const TEST_TUTORIAL := "user://test_main_menu_tutorial.cfg"
 
 var _window_size: Vector2i
 var _runner_scene: Node
@@ -12,6 +13,7 @@ var _runner_scene: Node
 
 func before() -> void:
 	SaveGame.path = TEST_SAVE
+	SaveGame.tutorial_path = TEST_TUTORIAL
 	# In the editor, gdUnit's runner is the current scene, and changing scenes would free
 	# it mid-run. Headless, there is no current scene.
 	_runner_scene = get_tree().current_scene
@@ -24,7 +26,9 @@ func before() -> void:
 
 func after() -> void:
 	SaveGame.delete()
+	SaveGame.forget_tutorial()
 	SaveGame.path = SaveGame.PATH
+	SaveGame.tutorial_path = SaveGame.TUTORIAL_PATH
 	get_tree().root.size = _window_size
 	get_tree().current_scene = _runner_scene
 
