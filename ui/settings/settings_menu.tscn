@@ -110,8 +110,9 @@ custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 text = "Edge pan"
 
-[node name="ShowFps" type="CheckButton" parent="Center/Panel/Items" unique_id=2147462642]
+[node name="ShowFps" type="CheckButton" parent="Center/Panel/Items/Toggles" unique_id=2147462642]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 text = "Show FPS"
 
@@ -128,7 +129,7 @@ horizontal = true
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-text = "Delete save"
+text = "Hold to delete save data"
 script = ExtResource("4_hold")
 
 [node name="BackButton" type="Button" parent="Center/Panel/Items" unique_id=707033197]

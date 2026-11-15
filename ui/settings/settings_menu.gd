@@ -80,14 +80,14 @@ func _show_delete_save() -> void:
 	%SaveDivider.visible = shown
 	%DeleteSaveButton.visible = shown
 	%DeleteSaveButton.disabled = false
-	%DeleteSaveButton.text = "Delete save"
+	%DeleteSaveButton.text = "Hold to delete save data"
 
 
 # Stays in place, disabled, so the panel doesn't jump and the player sees it was done.
 func _on_delete_save_button_confirmed() -> void:
 	SaveGame.delete()
 	%DeleteSaveButton.disabled = true
-	%DeleteSaveButton.text = "Save deleted"
+	%DeleteSaveButton.text = "Save data deleted"
 	%BackButton.grab_focus()
 	save_deleted.emit()
 
