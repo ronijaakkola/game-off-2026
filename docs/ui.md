@@ -263,6 +263,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
 - **When the bus overheats,** everyone on board who is only idling shows one of their type's overheat lines for the length of the cooldown ("Fanning themselves", "Asking for a refund"). A request, a sleep, a show or a meal keeps its own line.
 - **The mood has no name on the card:** the bar's colour says it. When the mood changes, the bar blends into the new colour, Reduce motion or not.
 - **The bar.** A big drop leaves a dark red trail that holds for half a second, then shrinks to the bar.
+- **Frustration** shows as the bar's right end hatched: a dark track with thin red stripes leaning right, as wide as what frustration has taken off the most they can reach, so the part they can no longer fill reads at a glance. It grows or shrinks to a new width over 0.4 s. Nothing shows while nothing is lost.
 - **Trend chevrons** on the bar show which way happiness is moving and how fast, as the motive arrows on The Sims' bars do: `>` while it climbs, `<` while it falls.
   - One to three, by how much it changes in 10 s at the speed it is moving now, whatever moves it (a request, a late ride, recovering): 1.5 or more shows one, 8 two, 20 three. A chevron stays until the change drops 1 under its step, so it doesn't flicker.
   - They sit inside the fill at its end, dark so they read on every mood's colour. Once the fill is too short, they sit just past its end in the mood's colour.

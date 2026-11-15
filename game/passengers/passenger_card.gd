@@ -12,6 +12,8 @@ extends Control
 ## it falls, the more the further it is going soon. They ride the end of the fill, inside it,
 ## and once the fill is too short to hold them they sit just past its end on the track, in
 ## the mood's colour. They fade in and out.
+## What frustration has taken off the most they can reach shows as a hatched end of the
+## bar ([HappinessCap]), the part they can no longer fill.
 ## Their portrait sits on the left, as a [PassengerPhoto].
 ## When the passenger boards, the card's place in the list opens while the card slides in
 ## from past the left edge of the screen.
@@ -55,19 +57,6 @@ const TRAIL_JUMP := 0.05
 ## bars a second. A slow slide it follows at once, so it never shows.
 const TRAIL_HOLD_SECONDS := 0.5
 const TRAIL_SHRINK_RATE := 0.5
-## How much happiness the trend must cover, either way, for each more chevron, and how far
-## under its step a chevron already shown may drop before it goes, so a trend near a step
-## doesn't flicker.
-const TREND_STEPS: Array[float] = [1.5, 8.0, 20.0]
-const TREND_MARGIN := 1.0
-## The chevrons' colour inside the fill, dark so they read on every mood's colour.
-const TREND_INSIDE_COLOR := Color(0.1, 0.06, 0.18, 0.7)
-## Pixels between the chevrons and the fill's end, and between them and the bar's top and
-## bottom.
-const TREND_PAD := 2.0
-const TREND_INSET := 1.0
-## Seconds the chevrons take to fade in or out.
-const TREND_FADE_SECONDS := 0.2
 ## Seconds the bar's colour takes to blend into the new mood's. A blend is no motion, so
 ## Reduce motion keeps it.
 const MOOD_FADE_SECONDS := 0.3
@@ -119,11 +108,6 @@ var _fill: StyleBoxFlat
 # The happiness the bar showed last frame, and seconds the trail holds still for.
 var _shown_happiness := 1.0
 var _trail_hold := 0.0
-# How many chevrons the trend calls for, which way, and how far the chevrons have faded in.
-# The chevrons keep their count while they fade out.
-var _trend_count := 0
-var _trend_rising := true
-var _trend_alpha := 0.0
 # The mood shown, so the colours change only when it does. -1 before the first show.
 var _mood := -1
 # How much of the card's height the slot keeps: 1 in the list, 0 folded away.
@@ -172,7 +156,8 @@ func _process(delta: float) -> void:
 	if not _rated:
 		_show()
 		_follow_trail(delta)
-		_follow_trend(delta)
+		var trend := passenger.trend if passenger else 0.0
+		(%HappinessTrend as TrendChevrons).follow(trend, delta, %HappinessBar, _fill.bg_color)
 	_fade_options(_wants_options())
 	_fit_slot()
 
@@ -402,6 +387,7 @@ func _show() -> void:
 	_set_text(%NameLabel, passenger.name)
 	var value := passenger.get_happiness_fraction()
 	(%HappinessBar as ProgressBar).value = value
+	(%HappinessCap as HappinessCap).lost = passenger.frustration / Passenger.MAX_HAPPINESS
 	if first:
 		(%HappinessTrail as ProgressBar).value = value
 		_shown_happiness = value
@@ -441,53 +427,6 @@ func _follow_trail(delta: float) -> void:
 		_trail_hold -= delta
 	else:
 		trail.value = move_toward(trail.value, value, TRAIL_SHRINK_RATE * delta)
-
-
-# The chevrons: as many as the passenger's trend calls for, fading in and out, placed at
-# the fill's end.
-func _follow_trend(delta: float) -> void:
-	var trend := passenger.trend if passenger else 0.0
-	var rising := trend > 0.0
-	# A chevron shown holds until the trend drops TREND_MARGIN under its step; a turn
-	# starts afresh.
-	var shown := _trend_count if rising == _trend_rising else 0
-	var count := 0
-	for i: int in TREND_STEPS.size():
-		var step := TREND_STEPS[i] - (TREND_MARGIN if i < shown else 0.0)
-		if absf(trend) >= step:
-			count = i + 1
-	_trend_count = count
-	if count > 0:
-		_trend_rising = rising
-	var chevrons := %HappinessTrend as TrendChevrons
-	var target := 1.0 if count > 0 else 0.0
-	_trend_alpha = move_toward(_trend_alpha, target, delta / TREND_FADE_SECONDS)
-	if count > 0:
-		chevrons.count = count
-		chevrons.rising = rising
-	elif _trend_alpha <= 0.0:
-		chevrons.count = 0
-	chevrons.modulate.a = _trend_alpha
-	_place_trend()
-
-
-# Puts the chevrons inside the fill at its end, or just past its end when it is too short to
-# hold them.
-func _place_trend() -> void:
-	var bar := %HappinessBar as ProgressBar
-	var chevrons := %HappinessTrend as TrendChevrons
-	var height := bar.size.y - TREND_INSET * 2.0
-	chevrons.size = Vector2(chevrons.size.x, height)
-	var width := chevrons.get_width()
-	chevrons.size = Vector2(width, height)
-	var end := bar.size.x * bar.value / bar.max_value
-	var x := end - TREND_PAD - width
-	var color := TREND_INSIDE_COLOR
-	if x < TREND_PAD:
-		x = end + TREND_PAD
-		color = _fill.bg_color
-	chevrons.position = Vector2(x, TREND_INSET)
-	chevrons.color = color
 
 
 # Sets text only when it changes, since this runs every frame.

@@ -141,7 +141,7 @@ func test_the_bar_moves_smoothly_rather_than_in_steps() -> void:
 
 func test_chevrons_show_how_fast_and_which_way_happiness_is_heading() -> void:
 	var card := _card(0.5)
-	var steps := PassengerCard.TREND_STEPS
+	var steps := TrendChevrons.STEPS
 
 	card.passenger.trend = steps[steps.size() - 1]
 	await await_millis(400)
@@ -161,21 +161,21 @@ func test_chevrons_show_how_fast_and_which_way_happiness_is_heading() -> void:
 
 func test_a_chevron_shown_holds_until_the_trend_drops_clearly_under_its_step() -> void:
 	var card := _card(0.5)
-	var step := PassengerCard.TREND_STEPS[1]
+	var step := TrendChevrons.STEPS[1]
 	card.passenger.trend = step
 	await await_millis(50)
 	assert_int(_chevrons(card).count).is_equal(2)
 
-	card.passenger.trend = step - PassengerCard.TREND_MARGIN * 0.5
+	card.passenger.trend = step - TrendChevrons.MARGIN * 0.5
 	await await_millis(50)
 	assert_int(_chevrons(card).count).is_equal(2)
 
-	card.passenger.trend = step - PassengerCard.TREND_MARGIN * 1.5
+	card.passenger.trend = step - TrendChevrons.MARGIN * 1.5
 	await await_millis(50)
 	assert_int(_chevrons(card).count).is_equal(1)
 
 	# A turn starts afresh: falling just under the step shows one, not two.
-	card.passenger.trend = -(step - PassengerCard.TREND_MARGIN * 0.5)
+	card.passenger.trend = -(step - TrendChevrons.MARGIN * 0.5)
 	await await_millis(50)
 	assert_int(_chevrons(card).count).is_equal(1)
 

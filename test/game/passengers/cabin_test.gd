@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 ## Boarding, picking up, amenities and getting off, through Cabin's public calls.
 
 # Where a passenger starts the ride on a bare bus.
-const START := Passenger.BASE_HAPPINESS + Passenger.ON_TIME_BONUS
+const START := Passenger.BASE_HAPPINESS + RideProgress.ON_TIME_BONUS
 
 var _cabin: Cabin
 var _home: Planet
@@ -31,13 +31,13 @@ func test_they_take_their_seat_at_the_target_and_the_ride_starts_when_the_bus_le
 	var passenger := _passenger(_away)
 	_cabin.board(passenger)
 	assert_float(passenger.happiness).is_equal(START)
-	passenger.tick(passenger.expected_seconds * 2.0, true)
+	passenger.tick(passenger.ride.expected_seconds * 2.0, true)
 	assert_float(passenger.happiness).is_equal(START)
 
 	_cabin.docked = false
-	passenger.tick(passenger.trip_seconds, false)
+	passenger.tick(passenger.ride.trip_seconds, false)
 	assert_float(passenger.happiness).is_equal(START)
-	passenger.tick(passenger.expected_seconds, false)
+	passenger.tick(passenger.ride.expected_seconds, false)
 
 	assert_float(passenger.happiness).is_less(START)
 

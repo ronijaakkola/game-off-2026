@@ -155,16 +155,24 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 **The target** is worked out fresh every frame:
 
-- 60 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), plus timing.
+- 60 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), plus timing, less frustration.
 - While a request is open, the target is 0. Ignoring a request must always cost more than serving it.
 - While anything is serving the request, happiness holds rather than falling, since they can see it coming.
 
 **Timing** is one line along the ride:
 
-- +12 if they arrive in the direct trip time, 0 at the expected time, then down to −100 one more trip time after that.
+- +12 if they arrive in the direct trip time, falling to 0 at the expected time, and no lower: past it, frustration takes over.
 - It runs on the passenger's own **clock**: real time in flight, a tenth of it while docked (half once the drive is cold), and slower while they sleep or watch a show.
-- **Leeway.** While happiness is 80 or more, every second of their clock adds half a second to the time they expect, up to half a trip time. It never grows past that, so a long enough ride still wears out anyone.
+- **Leeway.** While happiness is 80 or more, every second of their clock adds half a second to the time they expect, up to half a trip time.
 - Getting there sooner (routing, speed, never needing a tow) is the main way to beat timing. Comfort only buys a little.
+
+**Frustration** takes happiness off the most the bus can lift them to. It never drains them to 0: the bus can still lift them up to what is left, with food and comfort, so serving a frustrated passenger always pays.
+
+- **Stops.** Every planet the bus docks at on their ride before theirs is a stop on the way; the planet they boarded at counts only once the bus has left it. Each type tolerates a number of them calmly, and each stop past that costs 15. Delivering the demanding ones first is the routing puzzle.
+- **A late ride** costs 1 a second of their clock past the expected time, with their leeway: steady, never faster, so a late ride never runs away from the player.
+- **The floor.** Frustration never takes them under 30 (annoyed, two stars, half the fare). A request open still heads for 0.
+- *(playtest)* Every stop counts for now. Counting only detours, a stop where going there and on is more than 1.25 times the straight way from where the bus last left, is one switch away (`RideProgress.ONLY_DETOURS`), for if serving several passengers on one route feels punished.
+- They say why: a stop past their tolerance shows one of their type's lines about it at once ("Another stop?!"), and so does the moment the ride runs late ("Late for a meeting"), unless a request, a sleep, a show or a meal holds their line. While frustrated, their idle lines are those, for whichever costs them more.
 
 **Shocks** change happiness at once and leave the target alone, so it climbs back at 1 a second:
 
@@ -228,8 +236,8 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 - A type is data: fare multiplier, slack, needs, and the lines and names it uses.
 - There are two, the Commuter and Business.
 - **Business** pays more and is harder to please, through tighter slack and more frequent requests, never a lower starting happiness. On a bare bus a near-direct trip with requests served within a few seconds gets three stars and the full fare; four stars takes a direct trip with every request served at once, or upgrades.
-- Business pays 1.6× with a slack of 1.2, and asks for the Commuter's snack and drink at 0.6 of the time between requests.
-- The Commuter's slack stays loose (1.5): it is the passenger that makes a route with several stops work.
+- Business pays 1.6× with a slack of 1.2, tolerates 2 stops on the way, and asks for the Commuter's snack and drink at 0.6 of the time between requests.
+- The Commuter's slack stays loose (1.5) and it tolerates 4 stops: it is the passenger that makes a route with several stops work.
 - The player can tell a Business passenger from a Commuter wherever they pick passengers and on board.
 - Race and type are independent: any race can be any type.
 

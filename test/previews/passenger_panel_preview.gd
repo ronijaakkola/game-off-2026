@@ -9,6 +9,8 @@ extends Node
 ## their red trail.
 ## `-- Reroute` sends the first passenger to Frost instead of Ember a few frames in, as an
 ## express quest does, so their card moves to Frost's group.
+## `-- Frustrated` takes [constant FRUSTRATION] off what each seat can reach, so the bars'
+## hatched ends show, and gives the idle ones a line about why.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
@@ -30,6 +32,8 @@ const HAPPINESS: Array[float] = [0.9, 0.5, 0.2, 0.0, 0.75, 0.62, 0.35, 0.1]
 # Where each seat's happiness is heading (Passenger.trend), so the bars show every count of
 # chevrons both ways, inside the fill and, on the short ones, past its end.
 const TRENDS: Array[float] = [5.0, -30.0, 10.0, 10.0, -30.0, 0.0, -3.0, -12.0]
+# What frustration takes off each seat's reach with `-- Frustrated`, one per seat.
+const FRUSTRATION: Array[float] = [10.0, 15.0, 30.0, 45.0, 0.0, 30.0, 15.0, 60.0]
 # The seats whose passenger has a request open.
 const ASKING: Array[int] = [1, 4, 6]
 
@@ -61,6 +65,10 @@ func _ready() -> void:
 		if seat in ASKING:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line
+		if "Frustrated" in OS.get_cmdline_user_args():
+			passenger.frustration = FRUSTRATION[seat]
+			if not passenger.request and not type.stop_lines.is_empty():
+				passenger.activity = type.stop_lines[seat % type.stop_lines.size()]
 		cabin.board(passenger)
 	var panel := %PassengerPanel as PassengerPanel
 	panel.portrait_studio = %PortraitStudio as PortraitStudio

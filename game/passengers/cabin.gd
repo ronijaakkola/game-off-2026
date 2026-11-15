@@ -216,7 +216,8 @@ func react_to_overheat(seconds: float) -> void:
 
 ## Starts a stop at [param planet]. Everyone going there leaves their seat now, and their
 ## happiness stops, so they pay by the mood they arrived in, after any disappointment at a
-## request left unserved ([method Passenger.arrive]); they get off one at a time.
+## request left unserved ([method Passenger.arrive]); they get off one at a time. For
+## everyone riding on it is a stop on the way ([method Passenger.pass_stop]).
 ## The first one goes at once, and [signal stop_finished] comes [member step_seconds] after
 ## the last, or at once when nobody gets off or on.
 func stop_at(planet: Planet) -> void:
@@ -229,6 +230,8 @@ func stop_at(planet: Planet) -> void:
 			passenger.arrive()
 			_payouts.append(passenger.get_payout(tip if _has(BusTraits.Type.TIP_JAR) else 1.0))
 			leaving.append(passenger)
+		else:
+			passenger.pass_stop(planet)
 	for passenger: Passenger in leaving:
 		getting_off.emit(passenger)
 	_unloading = true

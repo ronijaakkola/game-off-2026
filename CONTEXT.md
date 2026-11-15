@@ -142,8 +142,11 @@ _Never_: customer, rider, NPC
 
 **Happiness**:
 How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. It sets the mood and the rating. `Passenger.happiness` in code.
-_Avoid_: satisfaction, frustration
+_Avoid_: satisfaction
 _Never_: morale, patience (what it replaced)
+
+**Frustration**:
+What a ride running past the time a passenger expects, or a stop past their type's **stop tolerance** (how many stops on the way they take calmly), takes off the most the bus can lift their happiness to. It never takes them under a floor, and the bus still lifts them up to what is left. `Passenger.frustration` in code, worked out by `RideProgress`.
 
 **Comfort**:
 What the bus's comfort upgrades give everyone on board: a bonus on the happiness they settle at, and how long and how slowly their ride's clock runs while they sleep or watch a show. `Comfort` in code, read off the bus's traits.

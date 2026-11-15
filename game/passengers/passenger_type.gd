@@ -27,7 +27,27 @@ extends Resource
 ## Idle lines they show while watching a show, on a bus with an entertainment system. Each
 ## comes up as often as any one idle line.
 @export var watch_lines: Array[String] = []
+## How many stops the bus can make on their ride before theirs, before they grow frustrated
+## ([RideProgress]).
+@export_range(0, 10) var stop_tolerance := 4
+## Idle lines they show once a stop past their tolerance has frustrated them, and one of
+## them at once at that stop.
+@export var stop_lines: Array[String] = []
+## Idle lines they show once the ride runs past the time they expect, and one of them at
+## once when it does.
+@export var late_lines: Array[String] = []
 ## What the card says, one of them at random, while the bus cools down after overheating.
 @export var overheat_lines: Array[String] = []
 ## The names a passenger of this type picks from.
 @export var names: Array[String] = ["Passenger"]
+
+
+## The idle lines a passenger of this type picks from, a copy: while frustrated for
+## [param reason], its own lines, when there are some.
+func get_idle_lines(reason: RideProgress.Reason) -> Array[String]:
+	var lines := idle_lines
+	if reason == RideProgress.Reason.STOPS and not stop_lines.is_empty():
+		lines = stop_lines
+	elif reason == RideProgress.Reason.LATE and not late_lines.is_empty():
+		lines = late_lines
+	return lines.duplicate()

@@ -300,8 +300,8 @@ func _passenger_row(passenger: Passenger) -> Dictionary:
 		"race": Race.Type.find_key(passenger.race),
 		"to": passenger.destination.display_name,
 		"fare": roundi(passenger.fare),
-		"trip_seconds": roundi(passenger.trip_seconds),
-		"expected_seconds": roundi(passenger.expected_seconds),
+		"trip_seconds": roundi(passenger.ride.trip_seconds),
+		"expected_seconds": roundi(passenger.ride.expected_seconds),
 		"quest": passenger.quest_line,
 	}
 

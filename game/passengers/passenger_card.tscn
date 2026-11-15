@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dis4faq8oc0vt" path="res://game/passengers/kick_icon.svg" id="6_kick"]
 [ext_resource type="Script" uid="uid://cucadeex8lgly" path="res://game/passengers/serve_button.gd" id="7_serve"]
 [ext_resource type="Script" uid="uid://bqo5syprxwynd" path="res://game/passengers/trend_chevrons.gd" id="8_trend"]
+[ext_resource type="Script" uid="uid://dh4pg5hem25kd" path="res://game/passengers/happiness_cap.gd" id="9_cap"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
 bg_color = Color(1, 1, 1, 0.1412)
@@ -157,6 +158,17 @@ max_value = 1.0
 step = 0.0
 value = 1.0
 show_percentage = false
+
+[node name="HappinessCap" type="Control" parent="Clip/Panel/Layout/Rows/Middle/Trip/HappinessBar" unique_id=425767245]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9_cap")
 
 [node name="HappinessTrend" type="Control" parent="Clip/Panel/Layout/Rows/Middle/Trip/HappinessBar" unique_id=1924373784]
 unique_name_in_owner = true
