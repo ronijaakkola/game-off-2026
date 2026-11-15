@@ -55,6 +55,18 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
   - The tutorial's steps show them: right of the bus; left of the waiting passenger's row, once the station card has come in; right of the On board panel, once it has come in and the passenger's card has slid into it, 0.5 s after that card starts; left of the Moon; above the Frameshift key; right of the passenger's serve button; right of their rating stars; under the resource bar once it has come in, while the credits and the blue research count breathe (growing to 115 % and back every 1.2 s, easing both ways; still under Reduce motion); left of the station's fuel button; right of Terra's lab badge, once it has popped in (0.5 s after the tank is full it fades in growing from 40 % with a slight overshoot over 0.35 s, then 0.2 s on the card; under Reduce motion it only fades); left of the station's Research button, 0.6 s after the bus docks at Terra; and in the research screen, once its sheet has grown in, right of its title, right of Fuel tank 1's tile, and left of its close button, which is off until then.
 - The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
 
+### Pointer
+
+A faceted dart, off-white on its lit side and lilac on its night side, with a 2 px navy outline: a 32 px system cursor, so it never lags. One shape for every state, with no hands and no change over a control, which lights up itself.
+
+- **Pressed.** While the left button is down, anywhere, the dart shrinks to 85 % toward its tip, and stays so for as long as the button is held.
+- **Add stop.** Over the map while the queue key is held, a navy badge with a plus in the route's orange sits at the dart's upper right. While the right button is down the dart shrinks as Pressed does, and it stays in place of Steer for as long as the key is held.
+- **Locked.** Over the map while it takes no clicks (the tutorial's flights, the zoom out), a red no-entry badge at the dart's upper right.
+- **Edge pan.** A two-tone arrowhead pointing the way the camera pans, in 8 directions, its night side always the lower half, as on the dart.
+- **Steer.** While a point in space follows the pointer, four off-white corners frame it, leaving the route's diamond clear.
+- **Drag camera.** A four-point star in the dart's two tones while the camera is dragged.
+- When two apply, the later in this list wins. A paused game shows the plain dart.
+
 ### Races
 
 A race shows in two ways, so it reads without colour: its skin colour, and the build both its head shapes share.
@@ -172,7 +184,7 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - Past seven stops the rest fold into a "+N" pill as tall as a planet's disc. The links shrink to fit, none under 14 px, and the first, where the bus is, stays at least 40 px.
 - **The bus** sits on the line with room round it: the line and any planet under it are cut away there, so the glass shows through, and no sliver of line is left beside it. It waits just past the start, flies along its link, and stops with its nose at a planet it docks at on the way. Docking there, the flown part folds away to the left and the bus drives over the planet, which becomes the start. At the last stop it stops short, never covering it.
 - The pointer over a stop rings it and opens a tooltip above it with the planet's name, or "Point in space". The bus has none.
-- **Remove.** The pointer over a stop that can come off (Route and flight) also shows a 12 px round X on its top right corner: dark with a faint light rim and a white X, red under the pointer, with a pointing-hand cursor. It stays while the pointer moves from the icon onto it. Over it, a tooltip above it reads "Remove from route", at the same gap as the stop's name, which gives way to it. A click takes the stop off, and its icon leaves as any stop taken off does. The start of the line never shows one, nor does any stop during a tow.
+- **Remove.** The pointer over a stop that can come off (Route and flight) also shows a 12 px round X on its top right corner: dark with a faint light rim and a white X, red under the pointer. It stays while the pointer moves from the icon onto it. Over it, a tooltip above it reads "Remove from route", at the same gap as the stop's name, which gives way to it. A click takes the stop off, and its icon leaves as any stop taken off does. The start of the line never shows one, nor does any stop during a tow.
 - **Motion.** Opening to two rows eases out over 0.3 s while the line fades in, and closing back over 0.2 s; the line is in place as it opens, so its stops don't come in one by one. In the open bar a new stop slides in from 8 px past its place, growing from half size and fading in, in 0.25 s; one taken off fades and shrinks where it is in 0.15 s; the rest glide to their new places from wherever they are, so quick clicks never jump. The header's text morphs as a passenger's activity line does.
 - Under Reduce motion the height changes at once and only the fade is left, stops fade in and out where they stand, and the fold and the drive over are a cut.
 - **The bus bar** holds the fuel gauge, the temperature gauge and the bus's keys, the Frameshift key among them, with a faint divider between each.

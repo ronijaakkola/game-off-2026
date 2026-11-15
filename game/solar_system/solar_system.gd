@@ -159,6 +159,8 @@ func _process(delta: float) -> void:
 	var mouse := get_viewport().get_mouse_position()
 	_course_drag.follow(mouse)
 	var over_hud := get_viewport().gui_get_hovered_control() != null
+	var locked := (%MapZoom as MapZoom).is_zooming_out() or bus.route_locked
+	MapCursor.show(rig, _course_drag.is_following(), over_hud, locked)
 	# What a left click would open shows the white border.
 	var picked: Node3D = null if over_hud else _pick_at(mouse)
 	var under := picked as Planet

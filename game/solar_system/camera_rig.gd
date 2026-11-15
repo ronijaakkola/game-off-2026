@@ -182,6 +182,16 @@ func is_focused() -> bool:
 	return _focus_target != null
 
 
+## Whether the player is dragging the camera now.
+func is_dragging() -> bool:
+	return _dragging
+
+
+## The screen direction the pointer at a window edge pans in now, -1, 0 or 1 on each axis.
+func get_edge_pan() -> Vector2:
+	return Vector2.ZERO if locked or is_focused() else _edge_pan_input()
+
+
 ## Sets the zoom at once to [param value], within [member min_distance] and
 ## [member max_distance], for a script that moves the camera.
 func set_distance(value: float) -> void:

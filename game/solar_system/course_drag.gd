@@ -36,6 +36,11 @@ func start(stop: RouteStop) -> void:
 	_stop = null if stop.planet else stop
 
 
+## Whether a point in space follows the pointer now.
+func is_following() -> bool:
+	return _stop != null
+
+
 ## Moves the point being followed to under [param screen_point], once a frame. Lets go when
 ## the button comes up, or when the point leaves the route other than by the bus resting
 ## there.
