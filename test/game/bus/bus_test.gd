@@ -390,7 +390,7 @@ func test_cancel_while_flying_is_stopping_until_it_holds_in_space() -> void:
 
 # The route bar's remove badge reached the bus around the tutorial's lock on the course in
 # flight, and taking the last stop off stopped the bus in space.
-func test_a_locked_route_ignores_the_player_but_overheating_still_clears_it() -> void:
+func test_a_locked_route_ignores_the_player_and_overheating_keeps_it() -> void:
 	var stop := RouteStop.at_planet(_near)
 	_bus.plot_course(stop)
 	_step_for(_bus.charge_time + 2.0)
@@ -401,7 +401,8 @@ func test_a_locked_route_ignores_the_player_but_overheating_still_clears_it() ->
 	assert_array(_bus.get_route_planets()).contains_exactly([_near])
 	assert_bool(_bus.is_stopping()).is_false()
 	_bus.temperature.set_temperature(_bus.temperature.overheat_temperature)
-	assert_array(_bus.get_route_planets()).is_empty()
+	assert_array(_bus.get_route_planets()).contains_exactly([_near])
+	assert_bool(_bus.is_stopping()).is_true()
 
 
 func test_on_board_speeding_up_pushes_back_a_turn_pushes_out_and_braking_forward() -> void:

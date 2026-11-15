@@ -11,7 +11,7 @@ const HEAT_ZONE_MARGIN := 0.3
 
 var _bus: FrameshiftBus
 var _star: Node3D
-# The planet the course goes to, and whether an overheat cleared it.
+# The planet the course goes to, and whether it overheated since the course was set.
 var _heading_to: Planet
 var _overheated := false
 

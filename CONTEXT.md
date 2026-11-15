@@ -99,7 +99,7 @@ The area round the star where flying raises the temperature. Its inner part, nea
 _Avoid_: core (that is core systems'), danger zone
 
 **Overheated**:
-The bus at the top of its temperature: its route clears and it coasts to a stop. Through the **cooldown** that follows, a course can be set but the drive can't charge.
+The bus at the top of its temperature: it coasts to a stop, keeping its route. Through the **cooldown** that follows, the route can be changed but the drive can't charge.
 _Avoid_: burnt out, meltdown
 
 **Stat**:

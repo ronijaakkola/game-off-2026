@@ -85,7 +85,7 @@ func _debug_heat_to_warning() -> void:
 	bus.temperature.set_temperature(BusStatusPanel.TEMPERATURE_HIGH)
 
 
-# Overheat: the route clears and the cooldown starts, wherever the bus is.
+# Overheat: the bus lets go of the key and the cooldown starts, wherever the bus is.
 func _debug_overheat() -> void:
 	bus.temperature.set_temperature(bus.temperature.overheat_temperature)
 
