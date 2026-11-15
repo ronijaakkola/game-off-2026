@@ -12,7 +12,8 @@ extends Node
 ## Hints show only in a run the main menu started ([method GameSaver.is_saved_run]), so a
 ## test, a smoke run or F6 never pauses on one or touches what the player has seen; with
 ## no [member saver], as in a test of the hints themselves, they always do. The debug
-## panel's Forget hints shows them all again.
+## panel's Forget hints shows them all again. Which the player has seen is read from the
+## save game once per hint and kept for the scene: deleting the save data is the main menu's.
 ## [constant HINTS] has each hint's title, what it says, and the side of its target it
 ## sits on.
 
@@ -30,6 +31,16 @@ const HINTS := {
 		),
 		side = GuideCard.Side.ABOVE,
 	},
+	&"business":
+	{
+		title = "This means business",
+		text =
+		(
+			"You have attracted your first business passenger! They are more demanding but "
+			+ "pay better if you treat them well."
+		),
+		side = GuideCard.Side.LEFT,
+	},
 }
 
 ## The card the hints show on: its own, never the tutorial's.
@@ -45,6 +56,8 @@ var _showing := &""
 var _waiting: Array[Dictionary] = []
 # Whether the hints hold the game paused and the music muffled.
 var _held := false
+# The hints the player has closed, as read once from the save game.
+var _seen: Dictionary[StringName, bool] = {}
 
 
 func _ready() -> void:
@@ -60,19 +73,28 @@ func _exit_tree() -> void:
 
 ## Shows the hint [param hint] on [param target], pausing the game until the player
 ## presses Got it, if the player has never closed it. Nothing happens if it is showing or
-## waiting already.
-func offer(hint: StringName, target: Control) -> void:
+## waiting already. Returns whether it shows or waits its turn, so an owner that offers it
+## every frame can stop; one that wasn't taken may be offered again.
+func offer(hint: StringName, target: Control) -> bool:
 	assert(HINTS.has(hint), "No feature hint named %s" % hint)
 	if hint == _showing or _waiting.any(func(entry: Dictionary) -> bool: return entry.hint == hint):
-		return
+		return true
 	if (saver and not saver.is_saved_run()) or (tutorial and tutorial.is_running()):
-		return
-	if SaveGame.has_seen_hint(hint):
-		return
+		return false
+	if _has_seen(hint) or not is_instance_valid(target) or not target.is_visible_in_tree():
+		return false
 	if not _showing.is_empty():
 		_waiting.append({hint = hint, target = target})
-		return
+		return true
 	_show(hint, target)
+	return true
+
+
+# Whether the player has closed the hint [param hint].
+func _has_seen(hint: StringName) -> bool:
+	if not _seen.has(hint):
+		_seen[hint] = SaveGame.has_seen_hint(hint)
+	return _seen[hint]
 
 
 ## Whether a hint is showing.
@@ -100,6 +122,7 @@ func _show(hint: StringName, target: Control) -> void:
 # Kept as seen only once closed, so a run left with a hint showing shows it again.
 func _on_acknowledged() -> void:
 	SaveGame.mark_hint_seen(_showing)
+	_seen[_showing] = true
 	_showing = &""
 	guide.close()
 	if _waiting.is_empty():
@@ -130,3 +153,4 @@ func _let_go() -> void:
 # The debug panel's Forget hints: every hint shows again the next time it is offered.
 func _debug_forget_hints() -> void:
 	SaveGame.forget_hints()
+	_seen.clear()

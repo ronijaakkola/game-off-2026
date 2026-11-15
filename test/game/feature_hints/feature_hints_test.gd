@@ -65,7 +65,10 @@ func test_shows_once_and_got_it_resumes() -> void:
 	_hints.offer(&"heat_zone", _target)
 	assert_bool(_hints.is_showing()).is_false()
 
-	SaveGame.forget_hints()
+	# The debug panel's Forget hints; deleting the save data happens in the main menu, so
+	# the next game scene reads the hints afresh.
+	_hints._debug_forget_hints()
+	assert_bool(SaveGame.has_seen_hint(&"heat_zone")).is_false()
 	_hints.offer(&"heat_zone", _target)
 	assert_bool(_hints.is_showing()).is_true()
 

@@ -54,6 +54,7 @@
 [ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
 [ext_resource type="Script" uid="uid://bbous2naro572" path="res://game/feature_hints/feature_hints.gd" id="141_hints"]
+[ext_resource type="Script" uid="uid://d0yafx2jib6ve" path="res://game/feature_hints/business_hint.gd" id="142_business_hint"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -446,6 +447,11 @@ script = ExtResource("141_hints")
 guide = NodePath("../Hud/HintCard")
 tutorial = NodePath("../Tutorial")
 saver = NodePath("../GameSaver")
+
+[node name="BusinessHint" type="Node" parent="." unique_id=20515709 node_paths=PackedStringArray("hints", "dock_panel")]
+script = ExtResource("142_business_hint")
+hints = NodePath("../FeatureHints")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")
