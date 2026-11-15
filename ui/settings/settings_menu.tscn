@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dmlvqmysra4tp" path="res://ui/settings/settings_menu.gd" id="1_settings"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="Script" uid="uid://dcy77e65i1dbl" path="res://ui/hold_button.gd" id="4_hold"]
 [ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 
 [node name="SettingsMenu" type="PanelContainer" unique_id=432771015]
@@ -114,6 +115,22 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Show FPS"
 
+[node name="SaveDivider" type="Control" parent="Center/Panel/Items" unique_id=1072961561]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("90_hairline")
+horizontal = true
+
+[node name="DeleteSaveButton" type="Button" parent="Center/Panel/Items" unique_id=1014371880]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Delete save"
+script = ExtResource("4_hold")
+
 [node name="BackButton" type="Button" parent="Center/Panel/Items" unique_id=707033197]
 unique_name_in_owner = true
 layout_mode = 2
@@ -121,4 +138,5 @@ theme_type_variation = &"PrimaryButton"
 text = "Back"
 
 [connection signal="drag_ended" from="Center/Panel/Items/Volumes/SfxVolume" to="." method="_on_sfx_volume_drag_ended"]
+[connection signal="confirmed" from="Center/Panel/Items/DeleteSaveButton" to="." method="_on_delete_save_button_confirmed"]
 [connection signal="pressed" from="Center/Panel/Items/BackButton" to="." method="_on_back_button_pressed"]

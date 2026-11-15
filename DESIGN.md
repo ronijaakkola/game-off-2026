@@ -424,7 +424,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 
 ## Save game
 
-- **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save once the tutorial is over, so it is held to confirm, like refuelling, and a stray click can't lose a run.
+- **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save once the tutorial is over, so it is held to confirm, like refuelling, and a stray click can't lose a run. The main menu's settings can delete the save, held the same way; the pause menu's can't, since the run in play would save it again at the next planet.
 - **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next New game starts the tutorial again.
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
 - **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, and the quest under way.
