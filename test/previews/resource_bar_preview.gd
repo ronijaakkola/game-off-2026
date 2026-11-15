@@ -1,9 +1,10 @@
 extends Node
 ## Resource bars stacked down the right edge over the solar system, for capturing that the
 ## bar keeps its width until a number gains a digit: the design's small to large values. The last
-## three animate during the capture: a payment counts 990 up past 1,000, a refuel's bill
-## counts 1,005 down past it, and the debug panel's 1,000 credits count up from 0. The last
-## takes about 1.7 s: capture it with --frames 120.
+## four animate during the capture: a payment counts 990 up past 1,000, a refuel's bill
+## counts 1,005 down past it, the debug panel's 1,000 credits count up from 0, and a busy
+## stop holds two fares, two points and a rating while fuel is bought, then ends. The
+## counts take about 1.7 s: capture it with --frames 110.
 
 const BAR := preload("res://game/solar_system/resource_bar.tscn")
 ## Credits, research points (blue, orange, green), and the average rating or -1 for none.
@@ -25,12 +26,23 @@ func _ready() -> void:
 	var paid := _add_bar(stack, 990, [3, 2, 1], 4.0)
 	var billed := _add_bar(stack, 1005, [3, 2, 1], 4.0)
 	var debug := _add_bar(stack, 0, [3, 2, 1], 4.0)
+	var busy := _add_bar(stack, 990, [3, 2, 1], 4.0)
+	# At the top, where its chips are clear of the screen's edge.
+	stack.move_child(busy, 0)
 	paid.ledger.earn(15)
+	busy.ledger.earn(100)
+	busy.ledger.earn_research(Race.Type.BLUE)
+	busy.ledger.rate(5.0)
 	await get_tree().create_timer(MOVE_AT).timeout
 	paid.commit()
 	billed.ledger.spend(15)
 	debug.ledger.earn(1000)
 	debug.commit()
+	busy.ledger.earn(50)
+	busy.ledger.earn_research(Race.Type.BLUE)
+	busy.ledger.spend(100)
+	await get_tree().create_timer(MOVE_AT * 4.0).timeout
+	busy.commit()
 
 
 func _add_bar(stack: VBoxContainer, credits: int, research: Array, rating: float) -> ResourceBar:

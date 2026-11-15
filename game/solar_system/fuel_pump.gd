@@ -11,7 +11,7 @@ extends Node
 ## can pump.
 
 ## Fuel a second the pump gives as the button goes down, the most it speeds up to, and the
-## seconds it takes to get there.
+## seconds it takes to get there. The bus's PUMP_SPEED stat scales both rates.
 const START_RATE := 12.0
 const MAX_RATE := 60.0
 const RAMP_SECONDS := 1.5
@@ -90,7 +90,8 @@ func run(delta: float, planet: Planet, held: bool, tank: FuelTank, ledger: Ledge
 	var ramp := clampf(_pump_time / RAMP_SECONDS, 0.0, 1.0)
 	var rise := clampf(_pump_time / pitch_rise_seconds, 0.0, 1.0)
 	_player.pitch_scale = lerpf(pitch_start, pitch_end, rise)
-	var amount := minf(lerpf(START_RATE, MAX_RATE, ramp) * delta, _affordable(planet, ledger))
+	var rate := lerpf(START_RATE, MAX_RATE, ramp) * _get_speed()
+	var amount := minf(rate * delta, _affordable(planet, ledger))
 	amount = minf(amount, tank.capacity - tank.fuel)
 	tank.refuel(amount)
 	_owed += amount * planet.fuel_price
@@ -123,6 +124,11 @@ func _set_sounding(on: bool) -> void:
 	_fade = create_tween()
 	_fade.tween_property(_player, ^"volume_linear", 0.0, fade_seconds)
 	_fade.tween_callback(_player.stop)
+
+
+# How many times as fast as its own rates it pumps: the bus's PUMP_SPEED stat.
+func _get_speed() -> float:
+	return bus.get_stats().get_stat(BusStats.Type.PUMP_SPEED).get_value() if bus else 1.0
 
 
 # How much fuel the credits left buy at [param planet].

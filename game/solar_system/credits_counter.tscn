@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Texture2D" uid="uid://b2w4upsxpmhrb" path="res://shared/icons/dollar_sign.svg" id="3_dollar"]
 [ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="4_tooltip"]
+[ext_resource type="PackedScene" uid="uid://c433r8ul8oifw" path="res://game/solar_system/change_chip.tscn" id="5_chip"]
 
 [node name="CreditsCounter" type="HBoxContainer" unique_id=15544917]
 mouse_filter = 0
@@ -29,24 +30,13 @@ theme_type_variation = &"PillLabel"
 text = "0"
 horizontal_alignment = 2
 
-[node name="GainSlot" type="Control" parent="TotalLabel" unique_id=399299186]
-unique_name_in_owner = true
-anchors_preset = 0
-mouse_filter = 2
-
-[node name="GainLabel" type="Label" parent="TotalLabel/GainSlot" unique_id=758914984]
+[node name="GainChip" parent="TotalLabel" unique_id=1499564972 instance=ExtResource("5_chip")]
 unique_name_in_owner = true
 layout_mode = 0
-theme_type_variation = &"PillGainLabel"
-theme_override_colors/font_color = Color(0.55, 0.85, 0.4, 1)
-text = "+0"
 
-[node name="LossLabel" type="Label" parent="TotalLabel/GainSlot" unique_id=2017559192]
+[node name="LossChip" parent="TotalLabel" unique_id=2042420910 instance=ExtResource("5_chip")]
 unique_name_in_owner = true
 layout_mode = 0
-theme_type_variation = &"PillGainLabel"
-theme_override_colors/font_color = Color(0.95, 0.3, 0.4, 1)
-text = "-0"
 
 [node name="Tooltip" parent="." unique_id=1708742256 node_paths=PackedStringArray("target") instance=ExtResource("4_tooltip")]
 layout_mode = 2

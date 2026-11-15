@@ -150,10 +150,13 @@ A frosted-glass pill with a thin border and no shadow: what is behind it shows b
 - **Credits:** beside a gold dollar sign, with a comma between thousands (12,480). The pointer over it shows a tooltip: "Credits", "Fares you have earned. Fuel and tows cost credits."
 - **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour, in the research screen's order: blue, green, orange. The pointer over them shows a tooltip: "Research points", "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
 - **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: "Recent rating", "Your last 10 rides. A higher rating brings more Business passengers."
-- **Gains and losses** float under the pill, taking no room in it: green "+15", red "-12". Each new payment at a stop pops the gain bigger and shows the new sum.
-- Once the stop is over, after a short delay the total counts to its new value one credit at a time while the gain fades out drifting upward.
-- The rating does the same: each one pops a gain with how far the average moved ("+0.2", "-0.3", "±0.0"). The very first just appears with a pop.
-- A research count pops as it goes up.
+- **Gains and losses** show on chips hanging 4 px under the pill, centred under their number and taking no room in it: a solid dark chip (the tooltip's fill) 18 px tall with 8 px corners, a thin border in the change's colour and 12 px digits. Green "+15", red "-12", grouped as the totals are ("+1,000").
+- A chip slides 6 px down from the pill's edge while fading in, in 0.15 s, easing out, and leaves the same way back, easing in. When its number changes it dips 2 px and comes back in 0.12 s. It sits on whole pixels and nothing scales. Under Reduce motion it only fades.
+- **Credits.** Each payment at a stop adds to the gain, which shows the new sum. Once the stop is over, every chip it left stays 0.6 s more and then they leave together, the credits', the points' and the rating's. As it leaves, the total counts to its new value one credit at a time, in 0.6 s at most, in green; then it turns white again over 0.2 s.
+- Spending shows at once and goes in the way a gain does: 0.6 s after the last of it, the loss leaves while the total counts down in red, together with the chips of any points spent with it. More spent meanwhile adds to it. While a gain waits, the loss sits left of it, so the gain stays put and neither reaches under the research counts.
+- The total never jumps. A count starts from what the total shows, so a change that comes during one carries on from there, and a stop ending while a loss waits takes both in at once, counting to what is left.
+- **The rating** does the same: each one shows how far the average moved ("+0.2", "-0.3", "±0.0" in grey), and the average moves in that colour. The very first just appears with a pop.
+- **Research.** A point shows as "+1" in its race's colour under its count until the stop's chips leave. Another change the same way meanwhile adds to it ("+2"). Points spent show the same way, in red, for 0.6 s.
 - **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 264 px and first changes at 1,000 credits or 100 points.
 - When a number gains or loses a digit, the pill stays centred and glides to the new width in 0.3 s, easing out. A count makes room for its widest number before it starts, so the pill changes width once per count.
 - Under Reduce motion nothing pops or drifts, and the width changes at once.
@@ -277,7 +280,8 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
   - Amenities have their own lines: "Getting a snack from the dispenser", "Waiting for the dispenser", "A droid brings a snack", "Waiting for a droid".
   - A request on hold at a stop shows them idling.
 - **Options.** The pointer over a card fades its options in to the right of the On board panel, with no slide; Reduce motion keeps the fade. There is one: Kick, with a kicking shoe icon. A card showing a rating has none, nor does any during the tutorial.
-- **A change of destination,** as when the player accepts an express quest: the card slides out of its group as a kicked one does, and slides back in at the bottom of the new destination's group, which opens at the bottom when there is none yet. The old group folds away if it emptied, and both counts update.
+- **A change of destination,** as when the player accepts an express quest: the card slides out of its group as a kicked one does, and only then slides back in at the bottom of the new destination's group, which opens at the bottom when there is none yet. Its new place opens as its old one folds, and a new group's header as an emptied group's, so the panel keeps its height and the cards between move up one place. Both counts update at once, but an emptied group keeps its last count as it folds.
+- **A group's header folds** with its last card's place, not after it, whether that card was rerouted, kicked or got off.
 - **Getting off.** When the bus docks, everyone going there shows their rating at once.
   - The middle row sinks a few pixels and fades out while five empty stars drop in from just above. Then the stars fill to the rating one after another, each swelling as it turns yellow. The line morphs to "Getting off".
   - The card lingers for 2.2 s from when the stop starts, long enough for five stars to fill and be read. Only then, and at their turn, does it leave.
@@ -371,7 +375,7 @@ Every tile is flat, with no gradient, glow or shadow, and each state has its own
 
 - **The tooltip.** The pointer over an upgrade opens its tooltip above it, so it covers neither the rows under it, which the upgrade opens, nor the tiles beside it: name, a line on what it does, then, 4 px further apart than the lines above it, its cost with the resource bar's icons, what the player lacks in red. Under the cost, one the player can't afford reads "Insufficient funds" in red.
 - A hidden one shows "???" and no cost; one whose stage is shut shows "???" and "Requires promotion.". A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
-- **Researching.** Holding an available tile sweeps the hold buttons' faint cyan fill up from its bottom, evenly; at the top, 0.6 s on, it is researched: the credits come off as a loss and the points come off their counts. The tile turns lit and pops as the research count does (to 106 % and back), while the fill fades off it in 0.15 s. Letting go or leaving first drains the fill in 0.2 s, fast at first.
+- **Researching.** Holding an available tile sweeps the hold buttons' faint cyan fill up from its bottom, evenly; at the top, 0.6 s on, it is researched: the credits come off as a loss and the points come off their counts. The tile turns lit and pops (to 106 % and back), while the fill fades off it in 0.15 s. Letting go or leaving first drains the fill in 0.2 s, fast at first.
 - **A press on a tile that can't be researched** flashes its border for 0.3 s; on one the player can't afford, the red badge pulses too.
 - **Sound.** A click as a hold completes, and a different click for a press on a tile that can't be researched. Both are placeholders.
 - Under Reduce motion nothing pops or pulses; the fills, fades and flashes stay.
@@ -382,7 +386,7 @@ Titled "Frameshift Bus".
 
 - One row per stat: its name, its value, and once upgrades change it, how much they add in green ("Top speed 1.44 +20%") or take away in red ("Fuel tank 80 -20%").
 - Each row's value right-aligns on one vertical line, and the delta has a fixed 44 px slot to its right (right-aligned, tabular figures, kept when empty), so the deltas form their own column.
-- Seats show whole ("Seats 5 +1"). Portion size shows as "1.5x".
+- Seats show whole ("Seats 5 +1"). Portion size, pump speed and serving speed show as "1.5x", warm time in seconds ("6.0 s").
 - Sections: 8 px between a section's title and its first row and between rows, 16 px between the end of one section and the next section's title.
 - A Traits section names each trait the bus has, or reads "None yet.".
 

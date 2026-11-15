@@ -213,6 +213,28 @@ func test_cards_group_by_destination_in_the_order_the_planets_came_up() -> void:
 	assert_array(_names(groups[1])).is_equal([second.name])
 
 
+func test_the_panel_keeps_its_height_while_a_rerouted_card_changes_groups() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var terra: Planet = auto_free(Planet.new())
+	terra.name = "Terra"
+	var frost: Planet = auto_free(Planet.new())
+	frost.name = "Frost"
+	var first := _passenger(terra, 1000.0)
+	cabin.board(first)
+	cabin.board(_passenger(terra, 1000.0))
+	cabin.board(_passenger(frost, 1000.0))
+	await runner.simulate_frames(30, 30)
+	var panel := runner.scene() as PassengerPanel
+	var height := panel.size.y
+
+	# The old place folds as the new one opens, so the panel never grows or shrinks.
+	first.reroute(frost, 10.0, 0.0)
+	for frame: int in 60:
+		await runner.simulate_frames(1, 16)
+		assert_float(panel.size.y).is_equal(height)
+
+
 func test_a_rerouted_passenger_s_card_moves_to_their_new_destination_s_group() -> void:
 	var runner := scene_runner(SCENE)
 	var cabin := _cabin(runner)

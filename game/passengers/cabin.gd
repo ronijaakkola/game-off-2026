@@ -33,7 +33,8 @@ signal stop_finished
 const KICK_SHOCK := -25.0
 ## How fast a stop runs for those riding on once the bus's drive goes cold ([member cold]).
 const COLD_RATE := 0.5
-## Seconds the player holds a serve button to serve a request alone.
+## Seconds the player holds a serve button to serve a request alone, before the bus's
+## SERVING_SPEED stat.
 const HAND_SECONDS := 1.2
 const FOOD_DISPENSER := preload("res://game/passengers/amenities/food_dispenser.tres")
 const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.tres")
@@ -310,7 +311,7 @@ func _serve_request(passenger: Passenger, delta: float) -> void:
 	else:
 		passenger.show_request("")
 	if _hands.has(passenger):
-		rate += 1.0 / HAND_SECONDS
+		rate += _get_hand_speed() / HAND_SECONDS
 	if rate > 0.0:
 		passenger.feed(rate * delta, portion)
 	if not passenger.request:
@@ -332,6 +333,12 @@ func _take_seat(passenger: Passenger) -> void:
 	_passengers.append(passenger)
 	passenger.settle(comfort)
 	boarded.emit(passenger)
+
+
+# How many times as fast as [constant HAND_SECONDS] the player serves: the SERVING_SPEED
+# stat of the bus the cabin follows, or 1 before it follows one.
+func _get_hand_speed() -> float:
+	return _bus_stats.get_stat(BusStats.Type.SERVING_SPEED).get_value() if _bus_stats else 1.0
 
 
 # Whether the bus the cabin follows has [param type]. Before it follows one, nothing.

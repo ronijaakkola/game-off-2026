@@ -39,7 +39,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **The queue key** is Shift or Q, both in every browser. Firefox opens its own context menu on Shift + right-click and a page can't stop it, so in Firefox the hints name Q. Not Ctrl: a page can't block Ctrl+W, and W pans the camera.
 - **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
 - **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. With the drive cold, the player charges it by holding the Frameshift key for 3 s. The bus turns toward its next stop meanwhile.
-- **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 4 s, which picking someone up and refuelling spend; research pauses the game and the cooling with it. Holding the Frameshift key while warm starts the charge from the warmth left, building 1.5 times as fast, so a quick stop takes a short hold. Letting go of it drains the charge four times as fast as it builds (0.75 s from full), and the drive is cold from then on: held again, it charges at the normal speed. The bus never leaves by itself. Towed in, the drive is cold.
+- **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 4 s (6 s with Warmer drive), which picking someone up and refuelling spend; research pauses the game and the cooling with it. Holding the Frameshift key while warm starts the charge from the warmth left, building 1.5 times as fast, so a quick stop takes a short hold. Letting go of it drains the charge four times as fast as it builds (0.75 s from full), and the drive is cold from then on: held again, it charges at the normal speed. The bus never leaves by itself. Towed in, the drive is cold.
 - The reward is for leaving quickly; a queued route only makes that easier. A cold drive costs the passengers riding on (Happiness).
 - **Letting go** drains the charge twice as fast as it built and keeps the course; holding again charges from what is left. Cancelling keeps the bus docked.
 - **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
@@ -52,7 +52,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Tank.** A full tank holds 100 fuel. The bus burns 2.5 per unit flown, so a tank flies 40 units: about one trip from Ember to Frost and back.
 - **Only flying burns fuel.** Charging, parking and floating while docked don't.
 - **Prices.** For now every planet sells fuel, each at its own price per unit. A full tank from empty costs 6 credits at Giant, 8 at Frost, 10 at Ember, 12 at Terra and 15 at the Moon. A planet can be set to sell none; none is yet.
-- **Refuelling is a hold.** While the bus is docked or charging at the planet, holding the button pumps fuel from 12 a second, speeding up to 60 a second over 1.5 s. It stops when the player lets go, the tank is full or the credits run out.
+- **Refuelling is a hold.** While the bus is docked or charging at the planet, holding the button pumps fuel from 12 a second, speeding up to 60 a second over 1.5 s; Faster pumps makes both 1.5× as fast. It stops when the player lets go, the tank is full or the credits run out.
 - **The bill** is paid when the pump stops, not as fuel flows: the whole credits it adds up to come off at once, and what is left under a credit carries over to the next refuel.
 - **Fuel is cheap next to fares** for now: about 0.25 credits of fuel per unit flown, against fares of 3 per unit.
 - **An empty tank at a planet** (only the debug panel causes it) keeps the bus docked: a charge under way stops and no course can be set until it refuels.
@@ -194,7 +194,7 @@ There are no good shocks: one would fall away at 3 a second, gone in seconds.
 - A need asks again a random while after the last one's served activity ends: 8 to 20 s for a snack, 10 to 25 s for a drink. An open one is a **request**. The times are short because rides are (about 20 s): half of all rides should hold a request, or serving decides nothing and the food upgrades answer nothing.
 - **One request at a time.** The other needs' timers wait while one is open, so serving one doesn't set off the rest.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
-- **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s, and letting go keeps what was served so far.
+- **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s (0.8 s with Quick hands), and letting go keeps what was served so far.
 - **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers run as slowly as the clock while docked. A request already open when the bus stops stays open, and the player or an amenity can serve it there; one going with a passenger who gets off goes with them.
 - Fun and sleep aren't needs that ask: upgrades give them.
 - *(not built)* **Food and drink become one need,** so the player isn't asked to tell them apart: one request, served as a snack or a drink at random.
@@ -292,6 +292,9 @@ An upgrade is in one of five states:
 | Fuel tank | 100 | 1 | A bigger tank's new room starts empty; a smaller one spills what no longer fits |
 | Seats | 4 | 1 | Rounded to the nearest whole seat. Fewer seats than passengers leaves everyone on board, and nobody else boards until enough have got off |
 | Portion size | 1 | 0.1 | How long a served snack or drink lasts, as a multiple of its need's time |
+| Warm time | 4 | 0.1 | Seconds the drive stays warm at a planet (Warm at a planet) |
+| Pump speed | 1 | 0.1 | How fast the pump fills the tank, as a multiple of its rates |
+| Serving speed | 1 | 0.1 | How fast the player serves by hand, as a multiple of the 1.2 s hold |
 
 - A continued run researches its saved upgrades again on load, so their modifiers and traits come from the same place as in play (Save game).
 
@@ -310,19 +313,19 @@ An upgrade is in one of five states:
 There are three trees, each paid for with one race's points. Frost, Terra and Giant have a lab; the rest have none.
 
 - They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that either of two branches reaches. An upgrade can need nothing even below the top row, open once its stage is. Only a stage that isn't open hides an upgrade; none is marked hidden.
-- **Costs come in five levels,** the same in every tree: 150 credits and 2 points, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Speed 3 on row 5 costs 550 and 7, Station waiting lounge on row 1 costs 300 and 4. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
+- **Costs come in five levels,** the same in every tree: 150 credits and 2 points, then 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Express service on row 5 costs 800 and 10, Station cameras on row 3 costs 300 and 4. Credits come in at about 400 a minute and points of one race at 2.5, so in the first stage either can be what the player waits for. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
 "A ← B" means A needs B; "A ← B or C" means either one opens it.
 
-- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Fuel forecast and Fuel tank 2 ← Fuel tank 1. Speed 2 and Warm drive ← Speed 1; Speed 3 ← Speed 2. How is my driving? ← Warm drive. Pit crew ← Fuel tank 2; Tow loyalty card ← Pit crew. Efficient burn ← Fuel forecast. Solar fuel ← Fuel tank 2 or Efficient burn. Last row: Slingshot ← Warm drive or Speed 3; Warp gate ← Efficient burn or Solar fuel.
-  - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait.
-  - *(not built)* Warm drive, Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel, Slingshot, Warp gate.
-- **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras; Research grant ← Remote terminal. Last row: Bottomless complaints box ← Station cameras or Honk; Express service ← Passenger loyalty program or Business lounge.
+- **Blue** (performance). Speed 1 and Fuel tank 1 at the top. Warmer drive and Speed 2 ← Speed 1; Speed 3 ← Speed 2. Fuel forecast, Faster pumps and Fuel tank 2 ← Fuel tank 1. Pit crew ← Faster pumps. How is my driving? ← Warmer drive or Speed 2. Efficient burn ← Fuel forecast or Fuel tank 2. Tow loyalty card ← Pit crew or Fuel tank 2. Slingshot ← Warmer drive. Solar fuel ← Fuel tank 2 or Efficient burn. Last row: Warp gate ← Efficient burn, Solar fuel or Slingshot.
+  - Speed is +10 % top speed a step, Fuel tank +25 % a step, Fuel forecast gives its trait, Warmer drive +50 % warm time, Faster pumps +50 % pump speed.
+  - *(not built)* Pit crew, How is my driving?, Efficient burn, Tow loyalty card, Solar fuel, Slingshot, Warp gate.
+- **Green** (the stops). Door chime and Station waiting lounge at the top. Tip jar and Station cameras ← Door chime; Honk ← Tip jar; Passenger happiness survey ← Honk. Free station coffee, Timetables and Business lounge ← Station waiting lounge. Destination sign ← Timetables; Passenger loyalty program ← Destination sign. Remote terminal ← Station cameras or Business lounge; Research grant ← Remote terminal, alone on the last row. Bottomless complaints box ← Station cameras or Passenger happiness survey; Express service ← Passenger loyalty program or Business lounge.
   - Door chime gives the waiting markers, Station cameras the station cameras; Station waiting lounge, Tip jar, Free station coffee and Timetables their traits.
-  - *(not built)* The other eight.
-- **Orange** (comfort). Extra seat, Pillows and Bigger portions I at the top. Four Extra seats in a chain (+1 seat each). In-Flight Movies ← Pillows; Space Invaders ← In-Flight Movies. Sleeping pods ← Pillows; Airlock ← Sleeping pods. Food Dispenser and Bigger portions II ← Bigger portions I; Waiter Droids ← Food Dispenser. Bigger portions I and II are +50 % portion size each, 2× in all. Earplugs needs nothing, in the second stage. Last row: Karaoke ← Space Invaders or Sleeping pods.
-  - *(not built)* Earplugs, Airlock, Karaoke. The rest is implemented.
+  - *(not built)* The other nine.
+- **Orange** (comfort). Extra seat I, Pillows and Bigger portions I at the top. Extra seat II ← Extra seat I; Extra seats III ← Extra seat II (+1, +1, then +2 seats). In-Flight Movies ← Pillows or Bigger portions I; Space Invaders ← In-Flight Movies. Sleeping pods ← Pillows. Quick hands and Bigger portions II ← Bigger portions I. Airlock ← Space Invaders or Bigger portions II. Food Dispenser ← Quick hands or Bigger portions II; Waiter Droids ← Food Dispenser. Karaoke ← Space Invaders. Last row: Time dilation cabin ← Sleeping pods or Extra seats III. Bigger portions I and II are +50 % portion size each, 2× in all; Quick hands is +50 % serving speed.
+  - *(not built)* Airlock, Karaoke, Time dilation cabin. The rest is implemented.
 
 ## Goals
 
@@ -338,7 +341,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 - **Declining costs the caller 5 happiness,** as a shock, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
 - **A done quest pays** 30 credits and 2 research points of the caller's race, on top of the delivery.
 - **A failed quest costs the caller 15 happiness,** as a shock, if they still ride: more than declining, or accepting and ignoring it would beat saying no. When a kick fails it, the kick's shock is the cost.
-- **Express.** The caller changes their mind and wants another planet to be the bus's next stop: one that isn't where they were going, where they boarded, or on the route, so it is always a detour for everyone else. Accepting changes their destination. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
+- **Express.** The caller changes their mind and wants another planet to be the bus's next stop: one that isn't where they were going, where they boarded, or on the route, so it is always a detour for everyone else. Accepting changes their destination, and so does declining: they still go there, only not next, so saying no costs the shock and their ride there. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
   - It is done when they get off there, and fails when the bus docks at any other planet first, by a tow as much as by a course, or when they are kicked. Points in space are no stop.
   - There is no clock: a time limit didn't feel good in play, and the passenger's own timing already rewards getting there soon.
 - *(not built)* **Photo stop:** hold still in space near a planet. **Pick up my friend:** fetch a named passenger at another planet and deliver both.
@@ -453,10 +456,10 @@ Features we will very probably build, but that need more design work first.
 
 ## Open questions
 
-- **The first stage runs out.** Its 14 built upgrades cost 3,250 credits in all and are all researched by about minute 10; nothing gives a promotion yet, so after that credits (2,500 unspent by minute 15) and points (60 % unspent) pile up with nothing to buy.
+- **The first stage runs out.** Its 15 upgrades, all built, cost 3,450 credits in all; the scripted player has 12 by minute 10 and 14 by minute 15, and nothing gives a promotion yet, so points (63 % unspent at minute 15) pile up with nothing to buy.
 - **The first stage tops out at 4 stars.** In-Flight Movies and a full lounge bonus reach 89, so no ride gets 5 stars, the recent rating stops at 4.0, and the top band of Who turns up (4.25) is out of reach until a promotion. With every stage open, half of all rides get 5 stars and the recent rating ends near 4.9.
 - **Serving speed barely shows once research starts.** Over a run a hand that reacts in 4 s rates within 0.05 stars of one that reacts in 0.7 s and earns the same; on a bare bus it is 0.1 stars. In-Flight Movies does most of it: its +12 is four seconds of an open request for free.
-- **In-Flight Movies is the best upgrade by far,** at the lowest price: alone on a bare bus it adds 70 credits a minute and 0.4 stars, twice Speed 1 and four times any other. Researching it first still gains only 3 % over a run, since the whole stage is bought so soon, and at a higher price the player waits on orange points with credits to spare.
+- **In-Flight Movies is the best upgrade by far,** at the second-lowest price: alone on a bare bus it adds 70 credits a minute and 0.4 stars, twice Speed 1 and four times any other. Researching it first still gains only 3 % over a run, since the whole stage is bought so soon, and at a higher price the player waits on orange points with credits to spare.
 - **Business passengers are no trade-off.** They pay 1.6× and rate 0.1 stars lower than Commuters, 0.3 lower on a bare bus; leaving them behind loses 30 % of the credits and gains no rating.
 - **Fuel tanks do nothing.** With fuel on sale everywhere a tank never runs low, so Fuel tank 1 and 2 change no number in a run. They matter only if some planets stop selling fuel (Not designed yet, Depots).
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
