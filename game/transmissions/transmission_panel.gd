@@ -58,6 +58,7 @@ var _cascade: Tween
 
 func _ready() -> void:
 	hide()
+	(%Message as RichTextLabel).install_effect(MoneyEffect.new())
 
 
 # The pause and the muffled music are the modal's while it shows, so they go with it.
@@ -103,7 +104,7 @@ func open(transmission: Transmission) -> void:
 	for part: Control in _cascaded():
 		part.modulate.a = 0.0
 	_set_buttons_live(false)
-	var message := %Message as Label
+	var message := %Message as RichTextLabel
 	message.visible_characters = 0
 	if _typing:
 		_typing.kill()
@@ -112,7 +113,7 @@ func open(transmission: Transmission) -> void:
 		return
 	_typing = create_tween()
 	_typing.tween_interval(TALK_DELAY)
-	var text := message.text
+	var text := message.get_parsed_text()
 	for i: int in text.length():
 		var wait := TalkPace.wait_after(text[i])
 		_typing.tween_callback(_say.bind(i + 1, wait < QUIET_SECONDS))
@@ -123,10 +124,10 @@ func open(transmission: Transmission) -> void:
 
 # Shows the first [param letters] letters, talking unless a pause comes next.
 func _say(letters: int, talking: bool) -> void:
-	var message := %Message as Label
+	var message := %Message as RichTextLabel
 	message.visible_characters = letters
 	_set_talking(talking)
-	get_voice().letter(message.text, letters - 1)
+	get_voice().letter(message.get_parsed_text(), letters - 1)
 
 
 ## Shows the whole text at once and fades in the rest, as a click on the modal does.
@@ -200,7 +201,7 @@ func _reveal(skipped: bool) -> void:
 	_revealed = true
 	if _typing:
 		_typing.kill()
-	(%Message as Label).visible_characters = -1
+	(%Message as RichTextLabel).visible_characters = -1
 	_set_talking(false)
 	if _cascade:
 		_cascade.kill()
@@ -249,7 +250,7 @@ func _fill(transmission: Transmission) -> void:
 	(%Destination as Control).visible = transmission.destination != null
 	(%DestinationIcon as PlanetIcon).planet = transmission.destination
 	(%DestinationLabel as Label).text = _planet_name(transmission.destination)
-	(%Message as Label).text = transmission.text
+	(%Message as RichTextLabel).text = transmission.text
 	(%Quest as Control).visible = transmission.is_quest()
 	(%QuestLabel as Label).text = transmission.quest
 	(%QuestPlanetIcon as PlanetIcon).planet = transmission.quest_planet

@@ -14,8 +14,8 @@ const DELAY := 5.0
 const CALLER := "Your Boss"
 const TEXT := (
 	"What, really? You did it? Most of you don't get this far, but maybe I have a use for "
-	+ "you after all. There's more money to be made in another system, and I want you there "
-	+ "immediately. I'll send you the coordinates."
+	+ "you after all. There's more [money]money[/money] to be made in another system, and I "
+	+ "want you there immediately. I'll send you the coordinates."
 )
 ## The two answers, which mean the same.
 const ANSWERS: Array[String] = ["Sure boss", "I guess I cannot refuse"]
