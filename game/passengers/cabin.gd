@@ -153,13 +153,13 @@ func has_free_seat() -> bool:
 	return _passengers.size() < seats
 
 
-## Seats no one has taken or been picked up for.
 ## How many requests can be open at once: [constant QUIET_SEATS] fewer than the seats, and
 ## at least one. A need that comes up past that waits its turn.
 func get_request_limit() -> int:
 	return maxi(seats - QUIET_SEATS, 1)
 
 
+## Seats no one has taken or been picked up for.
 func get_free_seats() -> int:
 	return maxi(seats - _passengers.size() - _getting_on.size(), 0)
 
