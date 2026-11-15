@@ -1,8 +1,8 @@
 extends Node
-## The solar system with a transmission open: the boss's message by default, from the dark or with
-## `revealed` in the light, or with
-## `quest` a passenger's quest with a reward and Yes and No. `skip` shows it all at once,
-## as a click on the modal does.
+## The solar system with a transmission open: the boss's message by default, from the dark
+## or with `revealed` in the light; with `quest` a passenger's quest with a reward and Yes
+## and No; or with `goals_met` The Boss's call once every goal is met (`unanswered` for the
+## call left ringing). `skip` shows it all at once, as a click on the modal does.
 
 
 func _ready() -> void:
@@ -21,6 +21,14 @@ func _ready() -> void:
 		transmission.reward_research = {Race.Type.BLUE: 2}
 		transmission.accept_text = "Yes"
 		transmission.decline_text = "No"
+	elif "goals_met" in args:
+		transmission = Transmission.from_boss()
+		transmission.caller_name = GoalsMetCall.CALLER
+		var unanswered := "unanswered" in args
+		transmission.text = GoalsMetCall.UNANSWERED_TEXT if unanswered else GoalsMetCall.TEXT
+		transmission.decline_text = GoalsMetCall.ANSWERS[0]
+		transmission.accept_text = GoalsMetCall.ANSWERS[1]
+		transmission.answers_alike = true
 	else:
 		transmission = Transmission.from_boss("revealed" in args)
 		transmission.mood = Passenger.Mood.HAPPY

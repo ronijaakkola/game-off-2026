@@ -28,7 +28,8 @@ var mood := Passenger.Mood.OKAY
 ## Whether the caller glares whatever their mood: the eyes of full anger, with no anger
 ## mark and no tremble.
 var stern := false
-## What they say.
+## What they say, in BBCode: [code][money]...[/code] shows the words in gold, shimmering
+## ([MoneyEffect]), and [code][shout]...[/code] shakes them ([ShoutEffect]).
 var text := ""
 ## What a quest asks, as a short line, or empty for a message. [member quest_planet], when
 ## set, follows it with its icon and name.
