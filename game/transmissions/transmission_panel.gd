@@ -167,6 +167,12 @@ func _on_decline_button_pressed() -> void:
 
 func _answer(accepted: bool) -> void:
 	_answering = true
+	# Closed while the caller still talks, as when what it belongs to is skipped, they stop.
+	if not _revealed:
+		if _typing:
+			_typing.kill()
+		get_voice().stop()
+		_set_talking(false)
 	_set_buttons_live(false)
 	Audio.muffle_music(false)
 	(%Screen as TransmissionScreen).turn_off()
