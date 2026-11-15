@@ -438,7 +438,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 
 - **The first time the player meets a feature in play,** the game pauses with a feature hint pointing at it, until the player presses Got it; the pause menu can open over it, and closing that leaves the game paused. Each hint shows once across every run, kept beside the save; deleting the save data, from the main menu's settings or the debug panel's Delete save, forgets them, so they show again.
 - **Never during the tutorial,** which has its own cards, and never on a hidden target: a hint passed over that way isn't kept as seen, so the next meeting offers it again. Two at once show one after the other.
-- **The heat zone:** the first time the temperature turns amber, a hint above the gauge says the star heats the bus, that it will soon overheat, and to move away from the star to cool it (the words are in `feature_hints.gd`).
+- **The heat zone:** the first time the temperature leaves the gauge's green band upward (32°), a hint above the gauge says the star heats the bus, that passengers are getting uncomfortable and it will soon overheat, and to move away from the star to cool it (the words are in `feature_hints.gd`).
 
 ## Save game
 

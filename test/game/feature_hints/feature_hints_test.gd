@@ -52,8 +52,12 @@ func test_shows_once_and_got_it_resumes() -> void:
 	assert_bool(_hints.is_showing()).is_true()
 	assert_bool(get_tree().paused).is_true()
 	assert_bool(_guide.visible).is_true()
+	await get_tree().create_timer(Audio.MUFFLE_IN_SECONDS + 0.1).timeout
+	assert_float(Audio.get_muffle()).is_equal_approx(1.0, 0.01)
 
 	await _press_got_it()
+	await get_tree().create_timer(Audio.MUFFLE_OUT_SECONDS + 0.1).timeout
+	assert_float(Audio.get_muffle()).is_equal_approx(0.0, 0.01)
 
 	assert_bool(_hints.is_showing()).is_false()
 	assert_bool(get_tree().paused).is_false()

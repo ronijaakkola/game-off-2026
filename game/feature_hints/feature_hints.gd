@@ -1,7 +1,8 @@
 class_name FeatureHints
 extends Node
-## Feature hints: the first time the player meets a feature during play, the game pauses
-## and a guide card points at it and says what it is, until the player presses Got it.
+## Feature hints: the first time the player meets a feature during play, the game pauses,
+## the music muffles, and a guide card points at it and says what it is, until the player
+## presses Got it.
 ## Game code [method offer]s a hint when the player meets its feature; it shows only if
 ## the player has never closed it ([method SaveGame.has_seen_hint]), so each shows once
 ## across every run until the player deletes their save data.
@@ -24,8 +25,8 @@ const HINTS := {
 		title = "Heat",
 		text =
 		(
-			"Flying near the star heats the bus. The bus will soon overheat. Move away from "
-			+ "the star to cool it down."
+			"Flying near the star heats the bus. Passengers are getting uncomfortable and the "
+			+ "bus will soon overheat. Move away from the star to cool it down."
 		),
 		side = GuideCard.Side.ABOVE,
 	},
@@ -42,6 +43,8 @@ const HINTS := {
 # target.
 var _showing := &""
 var _waiting: Array[Dictionary] = []
+# Whether the hints hold the game paused and the music muffled.
+var _held := false
 
 
 func _ready() -> void:
@@ -50,9 +53,9 @@ func _ready() -> void:
 	DebugPanel.add_button("Forget hints", _debug_forget_hints, self)
 
 
-# The pause is the hint's, so it goes with the scene.
+# The pause and the muffled music are the hints', so they go with the scene.
 func _exit_tree() -> void:
-	PauseMenu.release(self)
+	_let_go()
 
 
 ## Shows the hint [param hint] on [param target], pausing the game until the player
@@ -87,7 +90,10 @@ func _show(hint: StringName, target: Control) -> void:
 	guide.title = card.title
 	guide.text = card.text
 	guide.side = card.side
-	PauseMenu.hold(self)
+	if not _held:
+		_held = true
+		PauseMenu.hold(self)
+		Audio.muffle_music(true)
 	guide.open()
 
 
@@ -97,7 +103,7 @@ func _on_acknowledged() -> void:
 	_showing = &""
 	guide.close()
 	if _waiting.is_empty():
-		PauseMenu.release(self)
+		_let_go()
 		return
 	# Still paused: the next one opens once this one has gone.
 	await get_tree().create_timer(GAP).timeout
@@ -106,10 +112,19 @@ func _on_acknowledged() -> void:
 
 func _show_next() -> void:
 	if _waiting.is_empty():
-		PauseMenu.release(self)
+		_let_go()
 		return
 	var next: Dictionary = _waiting.pop_front()
 	_show(next.hint, next.target)
+
+
+# The game runs again, unless something else holds it, and the music clears.
+func _let_go() -> void:
+	if not _held:
+		return
+	_held = false
+	PauseMenu.release(self)
+	Audio.muffle_music(false)
 
 
 # The debug panel's Forget hints: every hint shows again the next time it is offered.
