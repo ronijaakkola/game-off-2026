@@ -16,7 +16,7 @@ func test_a_ledger_given_before_it_is_ready_shows_its_points() -> void:
 	var counts: Array[String] = []
 	var tooltip := counter.get_node(^"Tooltip")
 	for label: Node in counter.find_children("*", "Label", true, false):
-		if not tooltip.is_ancestor_of(label):
+		if not tooltip.is_ancestor_of(label) and label.get_parent() is not ChangeChip:
 			counts.append((label as Label).text)
 	assert_array(counts).is_equal(["0", "0", "7"])
 
@@ -40,3 +40,19 @@ func test_the_races_show_in_the_research_trees_order() -> void:
 			]
 		)
 	)
+
+
+func test_points_show_in_a_chip_that_adds_up_and_spending_shows_in_red() -> void:
+	var counter: ResearchCounter = auto_free(SCENE.instantiate())
+	add_child(counter)
+	var chip := counter.find_children("*", "ChangeChip", true, false)[0] as ChangeChip
+	var label := chip.find_child("Label", true, false) as Label
+
+	counter.ledger.earn_research(Race.Type.BLUE)
+	counter.ledger.earn_research(Race.Type.BLUE)
+
+	assert_str(label.text).is_equal("+2")
+	assert_that(label.get_theme_color(&"font_color")).is_equal(Race.SKIN_COLORS[Race.Type.BLUE])
+	counter.ledger.spend_research(Race.Type.BLUE, 2)
+	assert_str(label.text).is_equal("-2")
+	assert_that(label.get_theme_color(&"font_color")).is_equal(ChangeChip.LOSS_COLOR)

@@ -30,8 +30,9 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	var ledger := (runner.scene() as SolarSystem).get_ledger()
 	assert_int(ledger.credits).is_equal(payout)
 	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	var gain := counter.find_child("GainLabel", true, false) as Label
-	assert_str(gain.text).is_equal("+%d" % payout)
+	var gain := counter.find_child("GainChip", true, false) as ChangeChip
+	var sum := (gain.find_child("Label", true, false) as Label).text
+	assert_str(sum).is_equal("+%s" % CreditsCounter.group_digits(payout))
 	# Once they are off, the total counts up to include the fare.
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
@@ -483,8 +484,9 @@ func test_requesting_a_tow_costs_its_fee_even_into_debt() -> void:
 	bus.ran_out_of_fuel.emit()
 	notices.get_notices()[0].action_pressed.emit()
 	assert_int(ledger.credits).is_equal(50 - TowDispatch.TOW_FEE)
-	var loss := runner.find_child("LossLabel") as Label
-	assert_str(loss.text).is_equal("-%d" % TowDispatch.TOW_FEE)
+	var loss := runner.find_child("LossChip") as ChangeChip
+	var bill := (loss.find_child("Label", true, false) as Label).text
+	assert_str(bill).is_equal("-%s" % CreditsCounter.group_digits(TowDispatch.TOW_FEE))
 
 	ledger.credits = TowDispatch.TOW_FEE - 5
 	bus.ran_out_of_fuel.emit()

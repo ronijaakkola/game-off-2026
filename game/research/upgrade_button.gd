@@ -291,7 +291,7 @@ func _set_progress(value: float) -> void:
 	queue_redraw()
 
 
-# Swells a little and settles, as the research count pops.
+# Swells a little and settles.
 func _pop_tile() -> void:
 	if Settings.reduce_motion:
 		return

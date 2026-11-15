@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## The average rating in the resource bar: a dash until the first rating, then the mean of
-## every rating to one decimal. Like the credits, ratings collect in a gain under it that
-## shows how far the average moved, and on commit the average moves while the gain fades.
+## every rating to one decimal. Like the credits, ratings collect in a gain chip under it
+## that shows how far the average moved, and on commit the average moves while it leaves.
 
 const SCENE := "res://game/solar_system/rating_counter.tscn"
 
@@ -10,12 +10,12 @@ func test_shows_a_dash_until_the_first_rating_is_committed() -> void:
 	var runner := scene_runner(SCENE)
 	var counter := runner.scene() as RatingCounter
 	var label := runner.find_child("AverageLabel") as Label
-	var gain := runner.find_child("GainLabel") as Label
+	var gain := runner.find_child("GainChip") as ChangeChip
 	assert_str(label.text).is_equal(RatingCounter.NO_RATING)
 
 	counter.ledger.rate(4.0)
 	# Nothing to move from yet, so no gain.
-	assert_float(gain.modulate.a).is_equal(0.0)
+	assert_bool(gain.visible).is_false()
 	assert_str(label.text).is_equal(RatingCounter.NO_RATING)
 	counter.commit()
 	await runner.simulate_frames(30, 30)
@@ -28,36 +28,33 @@ func test_ratings_show_the_change_in_the_gain_while_the_average_waits() -> void:
 	var runner := scene_runner(SCENE)
 	var counter := runner.scene() as RatingCounter
 	var label := runner.find_child("AverageLabel") as Label
-	var gain := runner.find_child("GainLabel") as Label
+	var gain := runner.find_child("GainChip") as ChangeChip
 	counter.ledger.rate(5.0)
 	counter.ledger.rate(5.0)
 	counter.commit()
 	await runner.simulate_frames(30, 30)
 
 	counter.ledger.rate(2.0)
-	await runner.simulate_frames(2, 20)
-	assert_float(gain.scale.x).is_greater(1.0)
 
-	assert_str(gain.text).is_equal("-1.0")
-	assert_that(gain.get_theme_color(&"font_color")).is_equal(RatingCounter.DOWN_COLOR)
-	assert_float(gain.modulate.a).is_equal(1.0)
+	assert_str(_label(gain).text).is_equal("-1.0")
+	assert_that(_label(gain).get_theme_color(&"font_color")).is_equal(RatingCounter.DOWN_COLOR)
+	assert_bool(gain.is_showing()).is_true()
 	assert_float(counter.ledger.get_average_rating()).is_equal_approx(4.0, 0.001)
 	assert_str(label.text).is_equal("5.0")
 
 
-func test_commit_moves_the_average_and_fades_the_gain_upward() -> void:
+func test_commit_moves_the_average_as_the_gain_leaves() -> void:
 	var runner := scene_runner(SCENE)
 	var counter := runner.scene() as RatingCounter
 	var label := runner.find_child("AverageLabel") as Label
-	var gain := runner.find_child("GainLabel") as Label
+	var gain := runner.find_child("GainChip") as ChangeChip
 	counter.ledger.rate(0.0)
 	counter.commit()
 	await runner.simulate_frames(30, 30)
 	counter.ledger.rate(5.0)
-	assert_str(gain.text).is_equal("+2.5")
-	assert_that(gain.get_theme_color(&"font_color")).is_equal(RatingCounter.UP_COLOR)
+	assert_str(_label(gain).text).is_equal("+2.5")
+	assert_that(_label(gain).get_theme_color(&"font_color")).is_equal(RatingCounter.UP_COLOR)
 	await runner.simulate_frames(10, 30)
-	var resting_y := gain.position.y
 
 	counter.commit()
 	await runner.simulate_frames(4, 30)
@@ -66,8 +63,7 @@ func test_commit_moves_the_average_and_fades_the_gain_upward() -> void:
 	await runner.simulate_frames(60, 30)
 
 	assert_str(label.text).is_equal("2.5")
-	assert_float(gain.modulate.a).is_equal(0.0)
-	assert_float(gain.position.y).is_less(resting_y)
+	assert_bool(gain.visible).is_false()
 
 
 func test_gain_text_rounds_to_a_tenth_with_its_sign() -> void:
@@ -75,3 +71,8 @@ func test_gain_text_rounds_to_a_tenth_with_its_sign() -> void:
 	assert_str(RatingCounter.gain_text(-0.04)).is_equal("±0.0")
 	assert_str(RatingCounter.gain_text(-1.5)).is_equal("-1.5")
 	assert_that(RatingCounter.gain_color(0.01)).is_equal(RatingCounter.SAME_COLOR)
+
+
+# The label [param chip] reads in.
+func _label(chip: ChangeChip) -> Label:
+	return chip.find_child("Label", true, false) as Label

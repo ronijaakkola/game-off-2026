@@ -133,6 +133,20 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_change_chip"]
+content_margin_left = 6.0
+content_margin_right = 6.0
+bg_color = Color(0.0431, 0.0353, 0.1255, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1216)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [sub_resource type="FontVariation" id="FontVariation_500"]
 base_font = ExtResource("1_baloo")
 variation_opentype = {
@@ -639,6 +653,8 @@ CallNoticePanel/base_type = &"PanelContainer"
 CallNoticePanel/styles/panel = SubResource("StyleBoxFlat_call")
 CardPanel/base_type = &"PanelContainer"
 CardPanel/styles/panel = SubResource("StyleBoxFlat_glass")
+ChangeChipPanel/base_type = &"PanelContainer"
+ChangeChipPanel/styles/panel = SubResource("StyleBoxFlat_change_chip")
 CheckButton/colors/font_color = Color(0.957, 0.945, 1, 1)
 CheckButton/colors/font_focus_color = Color(0.957, 0.945, 1, 1)
 CheckButton/colors/font_hover_color = Color(0.957, 0.945, 1, 1)
@@ -697,7 +713,7 @@ Label/colors/font_color = Color(0.957, 0.945, 1, 1)
 NoticePanel/base_type = &"PanelContainer"
 NoticePanel/styles/panel = SubResource("StyleBoxFlat_notice")
 PillGainLabel/base_type = &"Label"
-PillGainLabel/font_sizes/font_size = 11
+PillGainLabel/font_sizes/font_size = 12
 PillGainLabel/fonts/font = SubResource("FontVariation_700_small")
 PillLabel/base_type = &"Label"
 PillLabel/colors/font_color = Color(0.957, 0.945, 1, 1)

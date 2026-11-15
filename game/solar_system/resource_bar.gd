@@ -46,9 +46,10 @@ func _ready() -> void:
 
 
 ## Shows the credits and ratings earned since the last commit: the total counts up and the
-## average moves to include them.
+## average moves to include them, as their gains and the research points' leave together.
 func commit() -> void:
 	(%CreditsCounter as CreditsCounter).commit()
+	(%ResearchCounter as ResearchCounter).commit()
 	(%RatingCounter as RatingCounter).commit()
 
 
