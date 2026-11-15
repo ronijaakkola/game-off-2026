@@ -42,6 +42,17 @@ const CARDS := {
 		side = GuideCard.Side.RIGHT,
 		got_it = true,
 	},
+	"HAPPINESS":
+	{
+		title = "Happiness",
+		text =
+		(
+			"This bar shows how happy they are. Keep them as happy as possible, and they will "
+			+ "pay more and rate your company better."
+		),
+		side = GuideCard.Side.RIGHT,
+		got_it = true,
+	},
 	"ROUTE":
 	{
 		title = "Set a course",

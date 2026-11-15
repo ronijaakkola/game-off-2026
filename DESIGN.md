@@ -395,6 +395,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
   - **The bus**, beside it. Got it moves on. Until then, still no clicks but on the card, and no pan or zoom.
   - **The pick-up**, on the waiting passenger's row once the station panel is in. It goes once they board.
   - **On board**, beside the On board panel, once it has come in and the passenger's card has slid into it. Got it moves on.
+  - **Happiness**, beside the happiness bar on the passenger's card. Got it moves on.
   - **The course**, beside the Moon. It goes once the Moon is on the route.
   - **The charge**, above the Frameshift key. It goes once the bus leaves.
   - **The snack.** Halfway to the Moon the passenger asks for a snack, and the game pauses, all but serving and the portraits, with a card beside their serve button. The game runs again once it is served.

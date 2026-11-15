@@ -4,14 +4,14 @@ extends Node
 ## ([MapZoom]): one ride from [member home] to [member destination] and back, a step at a
 ## time. It opens on The Boss's call ([TutorialCall]), and once the player closes The
 ## Boss's transmission, the steps start.
-## A step shows a guide card that points at what it is about and goes once the player has
-## done what it says: the bus, the passenger waiting at home, the On board panel they come
-## into, setting a course to the destination, charging the drive, serving the snack the
-## passenger asks for halfway, the stars they rate the ride, the fare and research point
-## they pay, refuelling, home's lab badge and setting a course back home, charging again,
-## the lab's Research button, and in the research screen its title, Fuel tank 1 to
-## research, and its close button. Then The Boss calls again, and once the player
-## answers, the HUD goes and it is over; the HUD comes back once the map has zoomed out.
+## A step shows a guide card that points at what it is about and goes once the player has done what
+## it says: the bus, the passenger waiting at home, the On board panel they come into and the
+## happiness bar on their card, setting a course to the destination, charging the drive, serving the
+## snack the passenger asks for halfway, the stars they rate the ride, the fare and research point
+## they pay, refuelling, home's lab badge and setting a course back home, charging again, the lab's
+## Research button, and in the research screen its title, Fuel tank 1 to research, and its close
+## button. Then The Boss calls again, and once the player answers, the HUD goes and it is over; the
+## HUD comes back once the map has zoomed out.
 ## Most steps wait for the player to do something in the game; one that only tells them
 ## something has a Got it button. The snack and the stars pause the game, and the
 ## portraits keep moving. The cards are [TutorialCards].
@@ -36,6 +36,7 @@ enum Step {
 	BUS,
 	BOARD,
 	ON_BOARD,
+	HAPPINESS,
 	ROUTE,
 	CHARGE,
 	FLY,
@@ -81,9 +82,11 @@ const PASSENGER_RACE := Race.Type.BLUE
 ## the card on the panel opens.
 const ON_BOARD_DELAY := PassengerCard.ENTER_SECONDS + 0.15
 ## The steps through which the passenger's trip shows, on the way to the destination.
-const TRIP_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE]
+const TRIP_STEPS: Array[Step] = [Step.ON_BOARD, Step.HAPPINESS, Step.ROUTE, Step.CHARGE]
 ## The steps in which the passenger rides to the destination, paying what they should.
-const RIDE_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE, Step.FLY, Step.SERVE]
+const RIDE_STEPS: Array[Step] = [
+	Step.ON_BOARD, Step.HAPPINESS, Step.ROUTE, Step.CHARGE, Step.FLY, Step.SERVE
+]
 
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
@@ -264,6 +267,8 @@ func _go_to(step: Step) -> void:
 			_bring_in_station()
 		Step.ON_BOARD:
 			_bring_in_on_board()
+		Step.HAPPINESS:
+			_open_happiness()
 		Step.ROUTE:
 			guide.target_rect = _screen_rect(
 				destination.get_body_global_position(), destination.get_body_radius()
@@ -316,6 +321,8 @@ func _on_guide_acknowledged() -> void:
 		Step.BUS:
 			_go_to(Step.BOARD)
 		Step.ON_BOARD:
+			_go_to(Step.HAPPINESS)
+		Step.HAPPINESS:
 			_go_to(Step.ROUTE)
 		Step.RATING:
 			_rules.pause(false)
@@ -465,6 +472,12 @@ func _bring_in_on_board() -> void:
 	await get_tree().create_timer(ON_BOARD_DELAY).timeout
 	if _step == Step.ON_BOARD:
 		_open_card(passenger_panel)
+
+
+# The card beside the passenger's happiness bar on their card in the On board panel.
+func _open_happiness() -> void:
+	var card := passenger_panel.get_card(_passenger)
+	_open_card(card.get_happiness_bar() if card else passenger_panel)
 
 
 # How far the bus is from where it is headed.
