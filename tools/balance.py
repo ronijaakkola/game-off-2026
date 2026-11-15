@@ -69,6 +69,17 @@ def share(rows: list, test) -> float:
     return 100.0 * sum(1 for row in rows if test(row)) / len(rows) if rows else float("nan")
 
 
+def measured(report: dict, *keys: str) -> float:
+    """A number a report holds under keys, or nan when it holds none: a report from an
+    older checkout ("project") measured less, and nan says so where 0 would mislead."""
+    value = report
+    for key in keys:
+        if not isinstance(value, dict) or key not in value:
+            return float("nan")
+        value = value[key]
+    return float(value)
+
+
 def at_time(series: list[dict], seconds: float, key: str) -> float:
     value = 0.0
     for row in series:
@@ -131,17 +142,20 @@ def summarize(reports: list[dict]) -> dict:
         "upgrades at 10 min": mean([at_time(r["series"], 600, "upgrades") for r in reports]),
         "upgrades at end": mean([len(r["upgrades"]) for r in reports]),
         "quick stops %": mean(
-            [100.0 * r["quick_stops"] / max(r["departures"], 1) for r in reports]
+            [100.0 * measured(r, "quick_stops") / max(measured(r, "departures"), 1)
+             for r in reports]
         ),
-        "calls/10 min": mean([600.0 * r["quests"]["calls"] / r["seconds"] for r in reports]),
-        "quests taken": mean([r["quests"]["accepted"] for r in reports]),
-        "quests done": mean([r["quests"]["done"] for r in reports]),
-        "quests failed": mean([r["quests"]["failed"] for r in reports]),
+        "calls/10 min": mean(
+            [600.0 * measured(r, "quests", "calls") / r["seconds"] for r in reports]
+        ),
+        "quests taken": mean([measured(r, "quests", "accepted") for r in reports]),
+        "quests done": mean([measured(r, "quests", "done") for r in reports]),
+        "quests failed": mean([measured(r, "quests", "failed") for r in reports]),
         "quest credits %": mean(
-            [100.0 * r["quests"]["credits"] / max(r["earned"], 1) for r in reports]
+            [100.0 * measured(r, "quests", "credits") / max(r["earned"], 1) for r in reports]
         ),
         "tows": mean([r["tows"] for r in reports]),
-        "overheats": mean([r["overheats"] for r in reports]),
+        "overheats": mean([measured(r, "overheats") for r in reports]),
         "waiting at a dock": mean([r["waiting_at_dock"] for r in reports]),
         "empty seats leaving": mean([r["empty_seats_leaving"] for r in reports]),
         "seats at end": mean([r["seats"] for r in reports]),
