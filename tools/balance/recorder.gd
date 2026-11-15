@@ -20,6 +20,8 @@ var capacity_seconds := 0.0
 var fuel_credits := 0
 var tows := 0
 var overheats := 0
+## Times the bus left a planet on a charge started warm: a quick stop.
+var quick_stops := 0
 var kicks := 0
 var docks := 0
 ## Dock decisions made, and over them how many waited there and how many seats left empty.
@@ -166,6 +168,8 @@ func report(ledger: Ledger) -> Dictionary:
 		"worst_request": snappedf(worst_request, 0.1),
 		"tows": tows,
 		"overheats": overheats,
+		"quick_stops": quick_stops,
+		"departures": lines,
 		"kicks": kicks,
 		"docks": docks,
 		"waiting_at_dock": snappedf(line_total / maxf(lines, 1.0), 0.01),
