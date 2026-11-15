@@ -9,11 +9,10 @@ extends PanelContainer
 ## The colours of a gain and of a loss.
 const GAIN_COLOR := Color(0.55, 0.85, 0.4)
 const LOSS_COLOR := Color(0.95, 0.3, 0.4)
-## Seconds the chips of a stop stay once it is over, before they leave together. Each of
-## the resource bar's counters waits this long from its commit.
+## Seconds the chips of a stop stay once it is over, before they leave together, and the
+## chips of a spending from the last of it. Each of the resource bar's counters waits this
+## long.
 const HOLD_SECONDS := 0.6
-## Seconds a spending's chips stay, so the credits and the points of one bill leave together.
-const SPENT_SECONDS := 1.2
 ## How far under its row's bottom edge it rests, in pixels: the pill's padding and edge,
 ## then 4 px clear of it.
 const DROP := 11.0
@@ -145,7 +144,10 @@ func _place() -> void:
 	reset_size()
 	var under := target.get_global_rect()
 	var x := under.position.x + (under.size.x - size.x) * 0.5
-	if beside and beside.is_showing():
+	if not _showing:
+		# On its way out it keeps its place, though the chip it sat beside may be leaving.
+		x = global_position.x
+	elif beside and beside.is_showing():
 		x = beside.global_position.x - GAP - size.x
 	var bottom := row.get_global_rect().end.y if row else under.end.y
 	global_position = Vector2(x, bottom + DROP + _offset).round()

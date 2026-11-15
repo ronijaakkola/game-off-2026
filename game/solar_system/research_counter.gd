@@ -125,7 +125,7 @@ func _on_earned(race: Race.Type, amount: int) -> void:
 # Shows [param race]'s new count, and the [param change] to it in its chip. A change the
 # same way as one still showing adds to it. Points earned stay until commit(), and one
 # that comes during a commit's wait puts it off to the next; points spent leave after
-# SPENT_SECONDS.
+# HOLD_SECONDS, as the credits' loss does.
 func _show_change(race: Race.Type, change: int) -> void:
 	var label := _labels.get(race) as Label
 	if not label:
@@ -145,7 +145,7 @@ func _show_change(race: Race.Type, change: int) -> void:
 			_commit.kill()
 		return
 	var hold := create_tween()
-	hold.tween_interval(ChangeChip.SPENT_SECONDS)
+	hold.tween_interval(ChangeChip.HOLD_SECONDS)
 	hold.tween_callback(chip.leave)
 	_holds[race] = hold
 

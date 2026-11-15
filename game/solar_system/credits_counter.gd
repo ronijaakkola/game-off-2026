@@ -7,10 +7,11 @@ extends HBoxContainer
 ## Once [method commit] is called, after a short delay the gain slides back under the bar
 ## while the total counts up to include it, number by number, in the gain's colour. The
 ## ledger already counts every payment; only what shows waits.
-## Spending shows the same way, in red ("-12"), at once: after a short delay the total
-## counts down in red, and the loss leaves [constant ChangeChip.SPENT_SECONDS] after the
-## last spending. It shows in the gain's place, or left of
-## the gain while one waits. Credits set outright show at once and clear the gain and the
+## Spending shows the same way, in red ("-12"), at once, and adds up while it shows: after
+## the same delay the loss slides back under the bar while the total counts down in red.
+## It shows in the gain's place, or left of the gain while one waits; a commit meanwhile
+## takes both in at once, the total counting to what is left. The total never jumps: it
+## counts from what it shows. Credits set outright show at once and clear the gain and the
 ## loss.
 ## The total sits right-aligned in a slot with room for three digits, so the resource bar
 ## keeps its width while the credits stay under 1,000 and glides to fit a longer number:
@@ -42,14 +43,16 @@ var ledger: Ledger:
 
 # Paid since the last commit, so not yet in the total shown.
 var _pending := 0
-# The commit: the delay, then the gain leaving as the total counts up.
-var _fade: Tween
-# The spending: the delay, the count down, then the loss leaving.
+# What the total shows, which a count moves.
+var _shown := 0
+# The wait from commit() to the gain going into the total.
+var _commit: Tween
+# The wait from the last spending to the loss going into the total, and what the loss
+# shows, which adds up spendings while it waits.
 var _loss: Tween
-# What the loss shows, which adds up spendings while it shows, and the total shown before
-# the first of them.
 var _loss_amount := 0
-var _loss_from := 0
+# The total counting to a new value, in the change's colour, and turning white again.
+var _count: Tween
 
 
 func _ready() -> void:
@@ -66,60 +69,41 @@ func _ready() -> void:
 
 
 # A payment of [param amount], already in the ledger: it joins the gain, which shows the
-# new sum. The total shown waits for [method commit].
+# new sum. The total shown waits for [method commit]; one waiting out its delay is put
+# off to the next, so the gain goes in whole.
 func _on_earned(amount: int) -> void:
 	_pending += amount
-	# A commit or a spending still under way finishes at once, so the total stays right.
-	_end_count()
-	_finish_loss()
-	_show_total(ledger.credits - _pending)
+	if _commit:
+		_commit.kill()
 	(%GainChip as ChangeChip).show_change("+%s" % group_digits(_pending), ChangeChip.GAIN_COLOR)
 
 
-# A bill of [param amount], already in the ledger: it shows in the loss ("-12"); after
-# COMMIT_DELAY the total counts down to it, and the loss leaves SPENT_SECONDS after it
-# showed, however long the count took. While a loss still
-# shows, it adds to it, and the count down starts over from where it began. A count up
-# under way finishes at once first; a gain still waiting for commit() stays.
+# A bill of [param amount], already in the ledger: it shows in the loss ("-12"), and after
+# COMMIT_DELAY the loss leaves as the total counts down to it. While a loss still waits,
+# it adds to it and the wait starts over. A gain still waiting for commit() stays.
 func _on_spent(amount: int) -> void:
-	if _fade and _fade.is_running():
-		_end_count()
-		(%GainChip as ChangeChip).hide_now()
-	var chip := %LossChip as ChangeChip
 	if _loss and _loss.is_running():
 		_loss.kill()
 		_loss_amount += amount
 	else:
 		_loss_amount = amount
-		_loss_from = ledger.credits + amount - _pending
-	chip.show_change("-%s" % group_digits(_loss_amount), ChangeChip.LOSS_COLOR)
-	var seconds := minf(_loss_amount * SECONDS_PER_CREDIT, MAX_COUNT_SECONDS)
+	(%LossChip as ChangeChip).show_change("-%s" % group_digits(_loss_amount), ChangeChip.LOSS_COLOR)
 	_loss = create_tween()
 	_loss.tween_interval(COMMIT_DELAY)
-	_loss.tween_callback(_tint.bind(ChangeChip.LOSS_COLOR))
-	_loss.tween_method(_show_total, _loss_from, ledger.credits - _pending, seconds)
-	_loss.tween_property(%TotalLabel, ^"self_modulate", Color.WHITE, TINT_OUT_SECONDS)
-	var left := ChangeChip.SPENT_SECONDS - COMMIT_DELAY - seconds
-	_loss.parallel().tween_callback(chip.leave).set_delay(maxf(left, 0.0))
+	_loss.tween_callback(_take_in_loss)
 
 
 ## Moves the gain into the total: after [constant COMMIT_DELAY], the gain slides back
-## under the bar while the total counts up one credit at a time. Nothing happens without
-## a gain.
+## under the bar while the total counts up one credit at a time. A loss still waiting
+## goes in with it. Nothing happens without a gain.
 func commit() -> void:
 	if _pending == 0:
 		return
-	_finish_loss()
-	var from := ledger.credits - _pending
-	var seconds := minf(_pending * SECONDS_PER_CREDIT, MAX_COUNT_SECONDS)
-	_pending = 0
-	_end_count()
-	_fade = create_tween()
-	_fade.tween_interval(COMMIT_DELAY)
-	_fade.tween_callback((%GainChip as ChangeChip).leave)
-	_fade.tween_callback(_tint.bind(ChangeChip.GAIN_COLOR))
-	_fade.tween_method(_show_total, from, ledger.credits, seconds)
-	_fade.tween_property(%TotalLabel, ^"self_modulate", Color.WHITE, TINT_OUT_SECONDS)
+	if _commit:
+		_commit.kill()
+	_commit = create_tween()
+	_commit.tween_interval(COMMIT_DELAY)
+	_commit.tween_callback(_take_in_gain)
 
 
 ## The total, for something that points it out.
@@ -130,12 +114,13 @@ func get_total_label() -> Control:
 # The credits were set outright: shows them at once, and clears the gain and the loss.
 func _on_set() -> void:
 	_pending = 0
-	_end_count()
-	if _loss:
-		_loss.kill()
+	for tween: Tween in [_commit, _loss, _count]:
+		if tween:
+			tween.kill()
 	if is_node_ready():
 		(%GainChip as ChangeChip).hide_now()
 		(%LossChip as ChangeChip).hide_now()
+		(%TotalLabel as Label).self_modulate = Color.WHITE
 		_show_total(ledger.credits)
 
 
@@ -166,31 +151,39 @@ static func format_credits(value: int) -> String:
 
 
 func _show_total(value: int) -> void:
+	_shown = value
 	var label := %TotalLabel as Label
 	var text := format_credits(value)
 	if label.text != text:
 		label.text = text
 
 
-# Turns the total [param color] while it counts.
-func _tint(color: Color) -> void:
-	(%TotalLabel as Label).self_modulate = color
+# The gain goes into the total, and with it a loss still waiting.
+func _take_in_gain() -> void:
+	_pending = 0
+	if _loss:
+		_loss.kill()
+	(%GainChip as ChangeChip).leave()
+	(%LossChip as ChangeChip).leave()
+	_count_to(ledger.credits)
 
 
-# Ends a commit under way at once, the total white again. What the total shows is for
-# whoever ends it to set.
-func _end_count() -> void:
-	if _fade:
-		_fade.kill()
-	if is_node_ready():
-		(%TotalLabel as Label).self_modulate = Color.WHITE
+# The loss goes into the total. A gain still waiting stays out of it.
+func _take_in_loss() -> void:
+	(%LossChip as ChangeChip).leave()
+	_count_to(ledger.credits - _pending)
 
 
-# Ends a spending under way at once: the total at its new value, the loss gone.
-func _finish_loss() -> void:
-	if not _loss or not _loss.is_running():
-		return
-	_loss.kill()
-	(%LossChip as ChangeChip).hide_now()
-	(%TotalLabel as Label).self_modulate = Color.WHITE
-	_show_total(ledger.credits - _pending)
+# Counts the total from what it shows to [param value], one credit at a time, green on
+# the way up and red on the way down, then turns it white again. A count under way goes
+# on from where it is.
+func _count_to(value: int) -> void:
+	if _count:
+		_count.kill()
+	var label := %TotalLabel as Label
+	if value != _shown:
+		label.self_modulate = (ChangeChip.GAIN_COLOR if value > _shown else ChangeChip.LOSS_COLOR)
+	var seconds := minf(absi(value - _shown) * SECONDS_PER_CREDIT, MAX_COUNT_SECONDS)
+	_count = create_tween()
+	_count.tween_method(_show_total, _shown, value, seconds)
+	_count.tween_property(label, ^"self_modulate", Color.WHITE, TINT_OUT_SECONDS)
