@@ -162,6 +162,18 @@ func pin(passenger: Passenger) -> void:
 	_preview()
 
 
+## Whether the card is all the way in, not sliding.
+func is_in() -> bool:
+	return visible and is_zero_approx(_offset)
+
+
+## The passengers in the shown line with a row.
+func get_row_passengers() -> Array[Passenger]:
+	var passengers: Array[Passenger] = []
+	passengers.assign(_rows.keys())
+	return passengers
+
+
 ## Whether the fuel button is held down.
 func is_fuel_held() -> bool:
 	return (%FuelButton as FuelButton).is_held()
