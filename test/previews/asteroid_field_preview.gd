@@ -5,7 +5,8 @@ extends Node
 ## their happiness, and "Rough ride!" shows over the bus as it flies into the rocks.
 ## `-- Rocks` sends the bus from Ember straight into the rocks, with the camera on it;
 ## `-- Gap` sends it out along a gap instead. Either takes 12 to 20 s to get there
-## (`capture <this scene> --frames 1000 -- Rocks`).
+## (`capture <this scene> --frames 1000 -- Rocks`). `-- Hover` rests the pointer on the belt,
+## so its tooltip shows.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const ALERT := preload("res://game/solar_system/icons/triangle_alert.svg")
@@ -33,6 +34,26 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	if "Rocks" in args or "Gap" in args:
 		_send_out(system, field, bus, "Gap" in args)
+	if "Hover" in args:
+		_hover(field)
+
+
+# Moves the pointer onto the belt, at the spot of it nearest the middle of the screen.
+func _hover(field: AsteroidField) -> void:
+	await get_tree().create_timer(0.2).timeout
+	var camera := get_viewport().get_camera_3d()
+	var middle := get_viewport().get_visible_rect().get_center()
+	var radius := (field.belt.inner_radius + field.belt.outer_radius) * 0.5
+	var nearest := Vector2.INF
+	for degrees: int in range(0, 360, 5):
+		var spot := field.to_global(AsteroidBelt.get_gap_direction(degrees) * radius)
+		var on_screen := camera.unproject_position(spot)
+		if on_screen.distance_to(middle) < nearest.distance_to(middle):
+			nearest = on_screen
+	var motion := InputEventMouseMotion.new()
+	motion.position = nearest
+	motion.global_position = nearest
+	Input.parse_input_event(motion)
 
 
 # Sends the bus from where it is docked out across the belt: through the rocks halfway

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://h243o6pyxsj5" path="res://game/asteroid_field/asteroid_field.gd" id="1_field"]
 [ext_resource type="Script" uid="uid://djm0drj0kjupe" path="res://game/asteroid_field/asteroid_belt.gd" id="2_belt"]
 [ext_resource type="Shader" uid="uid://dj1vxj3jqf574" path="res://game/asteroid_field/asteroid.gdshader" id="3_rock"]
+[ext_resource type="Script" uid="uid://cs6fspmwymami" path="res://game/asteroid_field/asteroid_field_tooltip.gd" id="4_tooltip"]
 
 [sub_resource type="Resource" id="Resource_belt"]
 script = ExtResource("2_belt")
@@ -29,3 +30,9 @@ cast_shadow = 0
 unique_name_in_owner = true
 material_override = SubResource("ShaderMaterial_rock")
 cast_shadow = 0
+
+[node name="Tooltip" type="Control" parent="." unique_id=271812208 node_paths=PackedStringArray("field")]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("4_tooltip")
+field = NodePath("..")
