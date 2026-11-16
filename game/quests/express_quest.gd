@@ -3,7 +3,6 @@ extends Quest
 ## A quest: the passenger changes their mind mid-ride and wants another planet, one that
 ## isn't on the route, to be the bus's next stop. Accepting it changes their destination
 ## ([method Passenger.reroute]), so it is always a detour for everyone else on board.
-## Declining changes it all the same: they still go there, only not next.
 
 const KIND := "express"
 ## Seconds the bus takes to park, on top of the flight.
@@ -90,10 +89,6 @@ func get_transmission() -> Transmission:
 func accept() -> void:
 	passenger.reroute(planet, trip_seconds, base_fare)
 	goal = ExpressGoal.new(passenger)
-
-
-func decline() -> void:
-	passenger.reroute(planet, trip_seconds, base_fare)
 
 
 func _planet_name() -> String:
