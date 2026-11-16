@@ -93,3 +93,22 @@ func _press_got_it() -> void:
 	assert_bool(got_it.is_visible_in_tree()).is_true()
 	got_it.pressed.emit()
 	await await_idle_frame()
+
+
+func test_a_second_hint_waits_its_turn_and_opens_after_the_gap() -> void:
+	var other := Control.new()
+	other.position = Vector2(800, 100)
+	other.size = Vector2(40, 40)
+	_target.get_parent().add_child(other)
+	_hints.offer(&"heat_zone", _target)
+	assert_bool(_hints.offer(&"business", other)).is_true()
+
+	await _press_got_it()
+
+	assert_bool(_hints.is_showing()).is_false()
+	assert_bool(get_tree().paused).is_true()
+	await get_tree().create_timer(FeatureHints.GAP + 0.1).timeout
+	assert_bool(_hints.is_showing()).is_true()
+	assert_object(_guide.target).is_same(other)
+	await _press_got_it()
+	assert_bool(get_tree().paused).is_false()

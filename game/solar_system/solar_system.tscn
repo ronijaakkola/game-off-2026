@@ -78,16 +78,6 @@ shader_parameter/inner_radius = 0.78
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
 shader = ExtResource("115_heat_shader")
-shader_parameter/zone_color = null
-shader_parameter/hot_color = null
-shader_parameter/hot_share = null
-shader_parameter/softness = null
-shader_parameter/flash = null
-shader_parameter/flash_gain = null
-shader_parameter/opacity = null
-shader_parameter/smoke_color = null
-shader_parameter/smoke_scale = null
-shader_parameter/drift = null
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_heat_zone"]
 

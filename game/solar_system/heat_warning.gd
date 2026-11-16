@@ -7,7 +7,8 @@ extends Node
 ## ([constant OVERHEAT_SHOCK]) and gives them a line about it on their card for the length
 ## of the cooldown. Past the comfortable temperature, it tells the cabin they are
 ## uncomfortable, and the portrait studio how much they sweat. The first time they
-## become uncomfortable, the heat zone's feature hint points at the temperature gauge.
+## become uncomfortable, the heat zone's feature hint points at the temperature gauge,
+## offered every frame they are until the hints take it.
 
 const WARNING_TEXT := "The bus is overheating. Steer away from the star."
 const OVERHEATED_TEXT := "The bus overheated. Cooling down..."
@@ -30,6 +31,8 @@ const COOLED_SECONDS := 6.0
 var _last := 0.0
 var _warning: Notice
 var _overheated: Notice
+# Whether the hints took the heat zone's hint, so it isn't offered again.
+var _hint_taken := false
 
 
 func _ready() -> void:
@@ -43,8 +46,8 @@ func _process(_delta: float) -> void:
 	var high := degrees >= BusStatusPanel.TEMPERATURE_HIGH
 	var cooling := temperature.is_cooling()
 	var uncomfortable := temperature.is_uncomfortable()
-	if uncomfortable and not cabin.uncomfortable and not cooling:
-		hints.offer(&"heat_zone", bus_bars.get_temperature_gauge())
+	if uncomfortable and not cooling and not _hint_taken:
+		_hint_taken = hints.offer(&"heat_zone", bus_bars.get_temperature_gauge())
 	cabin.uncomfortable = uncomfortable
 	portrait_studio.sweat = temperature.get_discomfort()
 	if high and _last < BusStatusPanel.TEMPERATURE_HIGH and not cooling:

@@ -56,6 +56,8 @@ var _showing := &""
 var _waiting: Array[Dictionary] = []
 # Whether the hints hold the game paused and the music muffled.
 var _held := false
+# Whether one hint has gone and the next is about to open: a hint offered meanwhile waits.
+var _between := false
 # The hints the player has closed, as read once from the save game.
 var _seen: Dictionary[StringName, bool] = {}
 
@@ -83,7 +85,7 @@ func offer(hint: StringName, target: Control) -> bool:
 		return false
 	if _has_seen(hint) or not is_instance_valid(target) or not target.is_visible_in_tree():
 		return false
-	if not _showing.is_empty():
+	if not _showing.is_empty() or _between:
 		_waiting.append({hint = hint, target = target})
 		return true
 	_show(hint, target)
@@ -129,7 +131,9 @@ func _on_acknowledged() -> void:
 		_let_go()
 		return
 	# Still paused: the next one opens once this one has gone.
+	_between = true
 	await get_tree().create_timer(GAP).timeout
+	_between = false
 	_show_next()
 
 
