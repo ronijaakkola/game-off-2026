@@ -400,7 +400,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 
 ## Tutorial
 
-- **A new run starts with it until the player has been through it once,** done or skipped; after that New game starts without it, as does a continued run. Whether they have is kept beside the save, outlives it, and only the debug panel's Delete save forgets it. The pause menu's Skip tutorial skips it, as does the debug panel: what shows closes, and it goes straight to the zoom out it ends with. A passenger still waiting at Terra leaves the line while the HUD is out, unseen.
+- **A new run starts with it until the player has been through it once,** done or skipped; after that New game starts without it, as does a continued run. Whether they have is kept beside the save and outlives the run; deleting the save data, from the main menu's settings or the debug panel's Delete save, forgets it, so the next run has it again. The pause menu's Skip tutorial skips it, as does the debug panel: what shows closes, and it goes straight to the zoom out it ends with. A passenger still waiting at Terra leaves the line while the HUD is out, unseen.
 - **The zoomed map.** Only Terra and the Moon, the map zoomed in 6.5× on Terra, so the Moon orbits 13 units out, about as far as a trip across the whole map. The bus keeps its size, speed and fuel burn, so the ride costs the time, fuel and fare a trip across the whole map does.
 - **Nothing orbits.** Terra and the Moon hold still on their orbits, still spinning, so the bus always finds them where they were and stays in view.
 - **A clear way out.** The bus starts docked on the side of Terra facing the Moon, so the straight flight there never crosses Terra.
