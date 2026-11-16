@@ -59,7 +59,7 @@ func follow(screen_point: Vector2) -> void:
 		return
 	var resting := (
 		_bus.state == FrameshiftBus.State.HOLDING
-		and _bus.get_last_stop() == null
+		and _bus.last_stop == null
 		and _bus.global_position.distance_to(_stop.point) < REACHED_DISTANCE
 	)
 	if not resting:

@@ -156,7 +156,10 @@ func hide_all() -> void:
 	for control: Control in leaving:
 		tween.tween_property(control, "modulate:a", 0.0, LEAVE_SECONDS).set_delay(delay)
 		# The notices' place is the layout's to keep, every frame.
-		if not Settings.reduce_motion and control != %Notices:
+		var moves := not Settings.reduce_motion and control != %Notices
+		if moves and control == %BusStatusPanel:
+			tween.tween_method(_drop_bars, 0.0, REVEAL_DROP, LEAVE_SECONDS).set_delay(delay)
+		elif moves:
 			rests[control] = control.position.y
 			var away := -REVEAL_DROP if control in tops else REVEAL_DROP
 			var to := control.position.y + away
@@ -165,6 +168,7 @@ func hide_all() -> void:
 	await tween.finished
 	for control: Control in rests:
 		control.position.y = rests[control]
+	_drop_bars(0.0)
 	for control: Control in tops:
 		control.hide()
 
@@ -181,10 +185,17 @@ func reveal_all() -> void:
 	for control: Control in [%BusStatusPanel, %Notices]:
 		tween.tween_property(control, "modulate:a", 1.0, REVEAL_SECONDS)
 	if not Settings.reduce_motion:
-		var bars := %BusStatusPanel as Control
-		var rest := bars.position.y
-		bars.position.y = rest + REVEAL_DROP
-		tween.tween_property(bars, "position:y", rest, REVEAL_SECONDS)
+		_drop_bars(REVEAL_DROP)
+		tween.tween_method(_drop_bars, REVEAL_DROP, 0.0, REVEAL_SECONDS)
+
+
+# Puts the bus bars [param drop] pixels below their place on the bottom edge, at the height
+# they have now: they grow and shrink as the route bar opens and closes, which a fixed
+# position would leave off the edge.
+func _drop_bars(drop: float) -> void:
+	var bars := %BusStatusPanel as Control
+	bars.offset_bottom = drop
+	bars.offset_top = drop - bars.size.y
 
 
 func _control(part: Part) -> Control:

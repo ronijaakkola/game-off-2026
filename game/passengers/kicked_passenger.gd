@@ -22,6 +22,9 @@ const SCREAM := preload("res://game/passengers/wilhelm_scream.ogg")
 ## The seconds the scream, which starts at its mixed level, takes to fade out.
 @export_range(0.1, 5.0, 0.05) var scream_fade_seconds := 1.6
 
+## Where the star that lights it is, in global space. Set before [method throw].
+var light_source := Vector3.ZERO
+
 var _velocity := Vector3.ZERO
 var _spin_axis := Vector3.RIGHT
 var _spin := 0.0
@@ -36,6 +39,7 @@ func throw(from: Vector3, out: Vector3, color: Color) -> void:
 	var material := ShaderMaterial.new()
 	material.shader = SHADER
 	material.set_shader_parameter(&"color", color)
+	material.set_shader_parameter(&"light_source", light_source)
 	for node: Node in find_children("*", "MeshInstance3D", true, false):
 		(node as MeshInstance3D).material_override = material
 	var side := out.cross(Vector3.UP).normalized()

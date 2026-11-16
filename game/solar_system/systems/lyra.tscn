@@ -1,0 +1,242 @@
+[gd_scene format=3 uid="uid://bnmgxp1mhbefp"]
+
+[ext_resource type="Script" uid="uid://b60byqdjkmg8f" path="res://game/solar_system/star_system.gd" id="1_system"]
+[ext_resource type="Script" uid="uid://bcxthsqtxqd30" path="res://game/solar_system/planet.gd" id="2_planet"]
+[ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
+[ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
+[ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_star"]
+radius = 2.0
+height = 4.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_star"]
+shading_mode = 0
+albedo_color = Color(1, 0.55, 0.3, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_halo"]
+size = Vector2(6.4, 6.4)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_halo"]
+render_priority = -1
+shader = ExtResource("5_halo")
+shader_parameter/halo_color = Color(1, 0.45, 0.3, 0.4)
+shader_parameter/ring_count = 2
+shader_parameter/inner_radius = 0.78
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cinder"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
+shader_parameter/base_color = Color(0.86, 0.36, 0.26, 1)
+shader_parameter/mid_color = Color(0.62, 0.22, 0.2, 1)
+shader_parameter/top_color = Color(1, 0.66, 0.4, 1)
+shader_parameter/mid_threshold = 0.5
+shader_parameter/top_threshold = 0.7
+shader_parameter/noise_scale = 2.8
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
+shader_parameter/seed = 41.0
+shader_parameter/terminator_softness = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orbit"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.8, 0.8, 1, 0.3)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_verdance"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
+shader_parameter/base_color = Color(0.36, 0.7, 0.56, 1)
+shader_parameter/mid_color = Color(0.24, 0.52, 0.46, 1)
+shader_parameter/top_color = Color(0.78, 0.9, 0.6, 1)
+shader_parameter/mid_threshold = 0.48
+shader_parameter/top_threshold = 0.62
+shader_parameter/noise_scale = 1.6
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.12
+shader_parameter/seed = 43.0
+shader_parameter/terminator_softness = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pip"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
+shader_parameter/base_color = Color(0.88, 0.84, 0.76, 1)
+shader_parameter/mid_color = Color(0.72, 0.68, 0.64, 1)
+shader_parameter/top_color = Color(0.72, 0.68, 0.64, 1)
+shader_parameter/mid_threshold = 0.6
+shader_parameter/top_threshold = 1.0
+shader_parameter/noise_scale = 3.2
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
+shader_parameter/seed = 47.0
+shader_parameter/terminator_softness = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tidewell"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
+shader_parameter/base_color = Color(0.3, 0.52, 0.92, 1)
+shader_parameter/mid_color = Color(0.22, 0.38, 0.8, 1)
+shader_parameter/top_color = Color(0.62, 0.84, 1, 1)
+shader_parameter/mid_threshold = 0.55
+shader_parameter/top_threshold = 0.75
+shader_parameter/noise_scale = 2.0
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.18
+shader_parameter/seed = 53.0
+shader_parameter/terminator_softness = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_brume"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
+shader_parameter/base_color = Color(0.66, 0.52, 0.92, 1)
+shader_parameter/mid_color = Color(0.5, 0.38, 0.8, 1)
+shader_parameter/top_color = Color(0.86, 0.78, 1, 1)
+shader_parameter/mid_threshold = 0.45
+shader_parameter/top_threshold = 0.8
+shader_parameter/noise_scale = 1.3
+shader_parameter/stripes = 1.0
+shader_parameter/stripe_count = 7.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
+shader_parameter/seed = 59.0
+shader_parameter/terminator_softness = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_brume_rings"]
+render_priority = 0
+shader = ExtResource("4_rings")
+shader_parameter/color_a = Color(1, 0.8, 0.6, 1)
+shader_parameter/color_b = Color(0.9, 0.62, 0.5, 1)
+shader_parameter/band_count = 2.0
+shader_parameter/gap = 0.16
+shader_parameter/opacity = 1.0
+
+[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("home")]
+script = ExtResource("1_system")
+display_name = "Lyra"
+home = NodePath("Verdance")
+bounds_radius = 15.0
+deliveries = 40
+rating = 3.8
+
+[node name="Star" type="Node3D" parent="." unique_id=286386886]
+
+[node name="Surface" type="MeshInstance3D" parent="Star" unique_id=734419982]
+cast_shadow = 0
+mesh = SubResource("SphereMesh_star")
+surface_material_override/0 = SubResource("StandardMaterial3D_star")
+
+[node name="Halo" type="MeshInstance3D" parent="Star" unique_id=1146276888]
+cast_shadow = 0
+mesh = SubResource("QuadMesh_halo")
+surface_material_override/0 = SubResource("ShaderMaterial_halo")
+
+[node name="Light" type="OmniLight3D" parent="Star" unique_id=1624305893]
+omni_range = 40.0
+omni_attenuation = 0.0
+
+[node name="Cinder" type="Node3D" parent="." unique_id=1276197841]
+script = ExtResource("2_planet")
+display_name = "Cinder"
+radius = 0.35
+orbit_radius = 5.2
+orbit_period = 70.0
+start_angle = 80.0
+spin_period = 22.0
+surface_material = SubResource("ShaderMaterial_cinder")
+icon_color = Color(0.86, 0.36, 0.26, 1)
+fuel_price = 0.14
+tagline = "Glassworks on the day side"
+lore = "Cinder is too close to Lyra to be comfortable and too rich in sand to leave alone. Its glassblowers work through the long noon behind mirrored shutters, and every window in the system was made here."
+orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="Verdance" type="Node3D" parent="." unique_id=1580065921]
+script = ExtResource("2_planet")
+display_name = "Verdance"
+radius = 0.55
+orbit_radius = 8.0
+orbit_period = 110.0
+start_angle = 200.0
+spin_period = 30.0
+tilt = 12.0
+surface_material = SubResource("ShaderMaterial_verdance")
+icon_color = Color(0.36, 0.7, 0.56, 1)
+fuel_price = 0.11
+has_lab = true
+tagline = "Gardens all the way down"
+lore = "Verdance grows the food for the whole of Lyra in terraced valleys that never see frost. The depot here is new and very proud of its timetable, which it reprints every week whether anything changed or not."
+orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="Pip" type="Node3D" parent="Verdance" unique_id=1295435038]
+script = ExtResource("2_planet")
+display_name = "Pip"
+radius = 0.14
+orbit_radius = 1.6
+start_angle = 300.0
+spin_period = 0.0
+surface_material = SubResource("ShaderMaterial_pip")
+icon_color = Color(0.88, 0.84, 0.76, 1)
+fuel_price = 0.16
+tagline = "One street, one café"
+lore = "Pip is small enough to walk round before lunch, and most visitors do. The café at the end of its only street claims to have served every bus driver in Lyra, and keeps a photo of each on the wall."
+orbit_width = 0.03
+orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="Tidewell" type="Node3D" parent="." unique_id=1154454698]
+script = ExtResource("2_planet")
+display_name = "Tidewell"
+radius = 0.45
+orbit_radius = 11.5
+orbit_period = 170.0
+start_angle = 330.0
+spin_period = 34.0
+tilt = -8.0
+surface_material = SubResource("ShaderMaterial_tidewell")
+icon_color = Color(0.3, 0.52, 0.92, 1)
+fuel_price = 0.07
+tagline = "A city on every wave"
+lore = "Tidewell is all ocean, and its towns float, drifting with tides that can move a harbour across the planet in a week. Fuel is pumped from the deep vents and sold cheap to anyone who can find the dock today."
+orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="Brume" type="Node3D" parent="." unique_id=204288623]
+script = ExtResource("2_planet")
+display_name = "Brume"
+radius = 0.85
+orbit_radius = 14.0
+orbit_period = 260.0
+start_angle = 120.0
+spin_period = 44.0
+tilt = 20.0
+surface_material = SubResource("ShaderMaterial_brume")
+icon_color = Color(0.66, 0.52, 0.92, 1)
+fuel_price = 0.09
+has_lab = true
+tagline = "Labs in the haze"
+lore = "Brume's violet clouds hide floating labs that study the storms below. The researchers pay well for anything brought in from outside, and better for a quiet ride: the haze is loud enough."
+orbit_material = SubResource("StandardMaterial3D_orbit")
+ring_material = SubResource("ShaderMaterial_brume_rings")
+ring_outer = 2.0
+icon_ring_color = Color(1, 0.8, 0.6, 1)

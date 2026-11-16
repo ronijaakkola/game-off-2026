@@ -123,6 +123,20 @@ A stamp of a few words with an icon that lands over the bus when something about
 - Once the bus starts to park, the ship reels the cable in over a third of a second, veers off and frameshifts out.
 - **A frameshift jump** takes 0.3 s and 2.5 units: the ship stretches long and thin along its heading, and a thin white-cyan streak fades over half a second.
 
+### The jump to the next star system
+
+- It reads as a scene change: the two systems never show together.
+- The open planet or bus closes, the HUD leaves as at the tutorial's end, and nothing can be clicked until the bus is out of the jump. The camera closes in on the bus, centred on screen and far enough back for the shift out to stay in view.
+- The bus swings round to face the next system over 0.6 s, easing in and out and banking into the turn, its thrusters lighting. Then it winds up for 0.7 s: it draws back 0.2 units, easing in and out, as a smooth rumble builds to 0.02 units, a few waves that don't line up rather than the charge's random shake, which jitters up close.
+- It frameshifts out as the tow ship does: stretched long and thin along its heading, leaving the same streak. Meanwhile black closes in on a circle round where it was, over 0.9 s, easing in, until the screen is black.
+- The screen stays black for 0.4 s while the old system hides and the camera cuts to the new one.
+- A circle opens from where the bus will come out, over 0.9 s, easing out, a little way off the new system's home planet. 0.35 s in, the bus frameshifts in there.
+- It flies in, parks and docks with the bell, while the camera eases back out to the map over the new system and the HUD comes back. A notice says "Welcome to Lyra. Deliver passengers to get promotion." for 8 s.
+- Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the screen fades to black and back over 0.5 s each way.
+- **The join**, in the last system, is the first time two systems show at once: every system appears, and the camera pulls back over 5 s, easing in and out, from where it is to over the middle of them all at its farthest zoom, zooming by the same factor every step so it reads as a steady rise. Pan and zoom wait until it ends. Under Reduce motion it cuts there.
+- Under Reduce motion the camera and the bus cut straight there, and the bus flies in from where it comes out.
+- **Joining the systems,** the camera eases out toward the farthest zoom, and a notice says every star system is open for 8 s.
+
 ## The map
 
 - **Hover.** The pointer over a planet shows a white border round it, over its orange route border. Where the bus and a planet overlap, only the one a left click would open shows it. Over the HUD, the pointer picks nothing.
@@ -225,6 +239,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
   - A Research button, where the planet has a lab and the tutorial is over, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen. While the player can pay for an upgrade they couldn't pay for when they last closed the research screen, it has a nudge, quieter than the Frameshift key's: a 1 px outline in the bus's yellow on its own edge, fading between 15 % and 60 % once every two seconds in step with the key, and holding at 60 % under Reduce motion. With nothing affordable, or only the same upgrades as then or fewer of them, no outline; a run continued from a save has seen none yet.
+  - After a promotion, at every planet until the bus jumps, a Jump button in the primary style with an arrow on its tile: "Jump to Lyra". While anyone is on board it reads "Drop everyone off to jump" and is off; it is off during a stop too. A notice says where to jump until the bus does: "Promoted! The Lyra system is open. Drop off your passengers, then jump there from a station."
 - Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons; a click on an off Board button brings the bus full notice.
 - Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
@@ -418,7 +433,7 @@ Titled "Frameshift Bus".
 
 ## Debug panel
 
-F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. The Rendering group is there in every scene: MSAA off, 2x or 4x, and toggles for the glass blur and the stencil, each for this session only, so a slow frame can be traced on the machine where it is slow, with Show FPS on. Open research opens the research screen from anywhere, and Promote opens the next research stage.
+F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. The Rendering group is there in every scene: MSAA off, 2x or 4x, and toggles for the glass blur and the stencil, each for this session only, so a slow frame can be traced on the machine where it is slow, with Show FPS on. Open research opens the research screen from anywhere. The Star systems card has Promote, which promotes at once, and Complete system, which also jumps the bus to the next system at once, from wherever it is, kicking anyone on board, or joins every system in the last one.
 
 ## Mixer
 
@@ -434,3 +449,5 @@ Debug panel (F2) › Mixer, on the main menu: one scrolling card for setting how
 - **Passenger cards while a planet is open.** The On board panel stays in the top left corner and can cover part of the open planet. Hide it, shrink it, or leave it?
 - **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button and it has no fuel button, so the player closes it to pick anyone up or refuel.
 - **The charge ring** is temporary.
+- **The goal panel once the systems are joined** still says "To get promoted", though there is nothing left to be promoted to.
+- **The jump** has no sound of its own yet.

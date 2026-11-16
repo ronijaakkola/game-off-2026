@@ -8,8 +8,9 @@ extends Node
 ## docked at [member new_run_planet]. A continued run starts docked at the planet it was
 ## saved at, so quitting in flight loses only the flight. It keeps where each planet is on
 ## its orbit, the bus's planet and fuel, the [Ledger], the researched upgrades and open
-## research stages, the passengers on board and in every line, the goals' progress and the
-## quest under way. The course, the charge and what passengers were doing start afresh.
+## research stages, the passengers on board and in every line, the goals' progress, the
+## quest under way and how far through the star systems the player has got. The course,
+## the charge and what passengers were doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
@@ -35,6 +36,8 @@ const PLANET_TREES: Dictionary[String, String] = {
 @export var quest_giver: QuestGiver
 ## Which upgrades are researched, which stages are open, and every research tree.
 @export var research_lab: ResearchLab
+## Which star systems are open and joined. The bus's planet says which one it works in.
+@export var star_map: StarMap
 
 ## Who waits at each planet. The parent sets it before [method start].
 var waiting: WaitingPassengers
@@ -80,6 +83,12 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	ledger.load_save(_saved.get("ledger", {}))
 
 
+## What the continued run kept of the [StarMap], for [method StarMap.restore]: empty for a
+## new run. Only before [method start].
+func get_saved_star_map() -> Dictionary:
+	return _saved.get("star_map", {})
+
+
 ## Whether this run starts with the tutorial: a new run, until the player has been through
 ## it once.
 func wants_tutorial() -> bool:
@@ -115,6 +124,8 @@ func start() -> void:
 	cabin.kicked.connect(_on_changed.unbind(1))
 	if quest_giver:
 		quest_giver.changed.connect(_on_changed)
+	if star_map:
+		star_map.changed.connect(_on_changed)
 	research_lab.get_research().researched.connect(_on_changed.unbind(1))
 	research_lab.get_research().stage_opened.connect(_on_changed.unbind(1))
 	_ledger.credits_earned.connect(_on_changed.unbind(1))
@@ -156,6 +167,7 @@ func _write() -> void:
 		"ledger": _ledger.to_save(),
 		"research": researched,
 		"research_stages": research.get_open_stages(),
+		"star_map": star_map.to_save() if star_map else {},
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,

@@ -34,9 +34,9 @@ var request_seconds := 0.0
 var worst_request := 0.0
 var earned := 0
 var spent_on_research := 0
-## The run's two goals: this many delivered, and this recent rating.
-var deliveries_goal := SolarSystem.START_DELIVERIES
-var rating_goal := SolarSystem.START_RATING
+## The run's two goals: this many delivered, and this recent rating. The run sets them.
+var deliveries_goal := 0
+var rating_goal := 0.0
 ## When each goal was first met, and when both first held at once, in seconds, or -1.
 var deliveries_goal_at := -1.0
 var rating_goal_at := -1.0
