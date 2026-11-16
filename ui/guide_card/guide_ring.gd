@@ -15,7 +15,7 @@ const LINE := 2.0
 const OUTLINE := 1.0
 ## The corners the ring assumes its target has, in pixels: its own run round them from the
 ## same centres. A target too small for them gets a round ring.
-const CORNER := 10.0
+const CORNER := 2.0
 const COLOR := Color(1, 1, 1, 1)
 const OUTLINE_COLOR := Color(0.078, 0.071, 0.188, 0.7)
 ## How far out the ring starts as it closes in, and how long that takes, in seconds.
