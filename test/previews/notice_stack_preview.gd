@@ -1,6 +1,6 @@
 extends Node
 ## The solar system with every kind of notice stacked above the bus bars, as in the design:
-## the course hint (tutorial) at the bottom, then a closable tutorial, info, warning, the
+## a closable tutorial at the bottom, then info, warning, the
 ## out of fuel tow offer and the incoming transmission on top. `-- dismiss` closes the info
 ## notice 1 s in, so the ones above it glide down (about 1.5 s in, `--frames 90`).
 
