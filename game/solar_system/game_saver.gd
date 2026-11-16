@@ -4,12 +4,12 @@ extends Node
 ## back. Only a run the main menu started is saved or continued; a scene started any other
 ## way runs a new run and saves nothing.
 ## The run is saved at checkpoints: once something it keeps has changed and the bus waits
-## at a planet with no stop under way. A new run saves at once, over any save. A continued
-## run starts docked at the planet it was saved at, so quitting in flight loses only the
-## flight. It keeps where each planet is on its orbit, the bus's planet and fuel, the
-## [Ledger], the researched upgrades and open research stages, the passengers on board and
-## in every line, the goals' progress and the quest under way. The course, the charge and
-## what passengers were doing start afresh.
+## at a planet with no stop under way. A new run saves at once, over any save, and starts
+## docked at [member new_run_planet]. A continued run starts docked at the planet it was
+## saved at, so quitting in flight loses only the flight. It keeps where each planet is on
+## its orbit, the bus's planet and fuel, the [Ledger], the researched upgrades and open
+## research stages, the passengers on board and in every line, the goals' progress and the
+## quest under way. The course, the charge and what passengers were doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
@@ -26,6 +26,8 @@ const PLANET_TREES: Dictionary[String, String] = {
 
 ## The bus whose planet, fuel and stats are kept.
 @export var bus: FrameshiftBus
+## Where a new run's bus starts docked, with the tutorial or without it.
+@export var new_run_planet: Planet
 ## Who is on board.
 @export var cabin: Cabin
 @export var goals: GoalTracker
@@ -53,7 +55,8 @@ func _process(_delta: float) -> void:
 		_write()
 
 
-## Takes the run the main menu started, if any. Continuing one, it puts [param planets]
+## Takes the run the main menu started, if any. A new one starts the bus at
+## [member new_run_planet]. Continuing one, it puts [param planets]
 ## back on their orbits, the bus at its planet and [param ledger] as it was: call it before
 ## the scene is ready, so everything starts there and the HUD shows the saved values.
 func place_world(planets: Array[Planet], ledger: Ledger) -> void:
@@ -63,6 +66,8 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	_saved = SaveGame.claim_run()
 	_continued = not _saved.is_empty()
 	if not _continued:
+		if _recording and new_run_planet:
+			bus.start_planet = new_run_planet
 		return
 	var by_name := _get_planets_by_name()
 	var orbits: Dictionary = _saved.get("planets", {})

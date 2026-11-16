@@ -100,7 +100,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
 - Happiness holds while they wait.
 - **Station waiting lounge.** Someone picked up gets +1 on their target for every 10 s they waited, up to +5 at 50 s, for their whole ride. A wait counts while the planet's clock runs, so waiting docked there builds none. +5 at most keeps In-Flight Movies alone short of 5 stars (84 + 5 = 89).
-- **The start.** A new run starts with the tutorial (Tutorial) while the player hasn't been through it, and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A run without the tutorial (a New game after it, or a scene run on its own) starts docked at Ember.
+- **The start.** A new run starts with the tutorial (Tutorial) while the player hasn't been through it, and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A New game after the tutorial starts docked at Terra, where the tutorial does; a scene run on its own starts docked at Ember.
 
 ### Who turns up
 
