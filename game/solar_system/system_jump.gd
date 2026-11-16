@@ -1,40 +1,54 @@
 class_name SystemJump
 extends Node
-## The bus's jump from one star system to the next, which [method start] begins with the
-## bus docked. The bus turns to face the next system's home planet, its drive shaking and
-## its thrusters lit, then frameshifts out as the tow ship does ([FrameshiftShift]). The
-## camera, locked, eases across to the next system meanwhile, and the bus frameshifts in a
-## little way off its home planet, then flies in and docks there. The bus does nothing of
-## its own through it. Under Reduce motion the camera and the bus cut straight there.
+## The bus's jump from one star system to the next, which [method start] begins. It plays
+## as a scene change, so the player never sees two systems at once: the HUD goes and takes
+## no clicks, and the camera closes in on the bus. The bus turns smoothly to face the next
+## system's home planet, its thrusters lighting, then winds up: it draws back a little as a
+## rumble builds, and frameshifts out as the tow ship does ([FrameshiftShift]) while the
+## [JumpIris] closes on where it was. In the black
+## the old system hides and the camera cuts to the new one, a little way off its home
+## planet. The iris opens there, the bus frameshifts in, and as it flies in to dock the
+## camera eases back out to the map and the HUD comes back. The bus does nothing of its own
+## through it. Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the
+## screen only fades to black and back.
 
-## The camera is over [param system] and the bus is about to shift in there.
+## The screen is black: the bus is about to come out at [param system].
 signal crossed(system: StarSystem)
 ## The bus has come out of the jump at [param system] and is flying in to its home planet.
 signal finished(system: StarSystem)
 
-enum Phase { NONE, TURNING, SHIFTING_OUT, CROSSING, SHIFTING_IN }
+enum Phase { NONE, CLOSING_IN, TURNING, WINDING_UP, LEAVING, ARRIVING }
 
-## Seconds the bus turns and its drive builds up before it shifts out.
-const TURN_SECONDS := 1.0
-## Radians a second the bus turns at meanwhile.
-const TURN_SPEED := 2.5
-## Seconds the camera takes to cross to the next system.
-const CROSS_SECONDS := 2.6
+## Seconds the bus takes to turn to face the next system, easing in and out.
+const TURN_SECONDS := 0.6
+## Seconds it then winds up before it shifts out: it draws back [constant PULL_BACK] units
+## along its heading, easing in and out, as a rumble grows to [constant RUMBLE] units.
+const WIND_UP_SECONDS := 0.7
+const PULL_BACK := 0.2
+const RUMBLE := 0.02
+## The rumble's waves, a second: a few that don't line up, so it never repeats or jitters.
+const RUMBLE_RATES: Array[float] = [17.0, 23.0, 29.0]
+## Seconds the screen stays black between the systems.
+const DARK_SECONDS := 0.4
+## Seconds after the iris starts to open that the bus shifts in.
+const SHIFT_IN_DELAY := 0.35
 ## How far off its home planet's surface the bus comes out of the jump, and how fast it
 ## flies in from there, as a share of its top speed.
 const ARRIVE_GAP := 2.0
 const ARRIVE_SPEED := 0.6
-## How far the camera's look-at point may go while it crosses: anywhere.
+## How far the camera's look-at point may go during the jump: anywhere.
 const CROSS_BOUNDS := 10000.0
 
 @export var bus: FrameshiftBus
 @export var rig: CameraRig
+@export var hud: HudLayout
 
 var _phase := Phase.NONE
 var _target: StarSystem
 var _direction := Vector3.BACK
 var _time := 0.0
-var _motion: Tween
+# The bus's heading as the turn starts.
+var _start_heading := 0.0
 
 
 func _ready() -> void:
@@ -43,15 +57,19 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	(%Shift as FrameshiftShift).advance(delta)
-	if _phase != Phase.TURNING:
-		return
 	_time += delta
-	var heading := atan2(_direction.x, _direction.z)
-	bus.rotation.y = rotate_toward(bus.rotation.y, heading, TURN_SPEED * delta)
-	var charge := clampf(_time / TURN_SECONDS, 0.0, 1.0)
-	bus.get_model().animate(delta, true, charge, 0.0, 1.0)
-	if _time >= TURN_SECONDS:
-		_shift_out()
+	match _phase:
+		Phase.CLOSING_IN:
+			if _time >= _close_in_seconds():
+				_time = 0.0
+				_start_heading = bus.rotation.y
+				_phase = Phase.TURNING
+				if Settings.reduce_motion:
+					_leave()
+		Phase.TURNING:
+			_turn(delta)
+		Phase.WINDING_UP:
+			_wind_up(delta)
 
 
 ## Whether a jump is under way.
@@ -59,7 +77,7 @@ func is_jumping() -> bool:
 	return _phase != Phase.NONE
 
 
-## Jumps the docked bus to [param target], to dock at its home planet.
+## Jumps the bus to [param target], to dock at its home planet.
 func start(target: StarSystem) -> void:
 	if is_jumping() or not target.home:
 		return
@@ -67,47 +85,88 @@ func start(target: StarSystem) -> void:
 	_direction = _flat(target.home.get_body_global_position() - bus.global_position)
 	_direction = _direction.normalized() if _direction.length_squared() > 1e-6 else Vector3.BACK
 	bus.process_mode = Node.PROCESS_MODE_DISABLED
+	hud.cover()
+	hud.hide_all()
 	rig.locked = true
 	rig.bounds_radius = CROSS_BOUNDS
-	target.visible = true
+	var anchor := %Anchor as Node3D
+	anchor.global_position = bus.global_position
+	# The whole screen, wide enough for the shift out to stay in it.
+	rig.focus_rect = Rect2()
+	rig.focus(anchor, FrameshiftBus.RADIUS, FrameshiftShift.DISTANCE)
+	_time = 0.0
+	_phase = Phase.CLOSING_IN
+
+
+# Swings the bus round to face the next system, banking into the turn.
+func _turn(delta: float) -> void:
+	var before := bus.rotation.y
+	var heading := atan2(_direction.x, _direction.z)
+	var done := clampf(_time / TURN_SECONDS, 0.0, 1.0)
+	bus.rotation.y = lerp_angle(_start_heading, heading, smoothstep(0.0, 1.0, done))
+	var turn_rate := angle_difference(before, bus.rotation.y) / maxf(delta, 1e-6)
+	bus.get_model().animate(delta, true, 0.0, turn_rate, 1.0)
+	if done >= 1.0:
+		_time = 0.0
+		_phase = Phase.WINDING_UP
+
+
+# Draws the bus back as a smooth rumble builds, then lets it go.
+func _wind_up(delta: float) -> void:
+	var model := bus.get_model()
+	model.animate(delta, true, 0.0, 0.0, 1.0)
+	var done := clampf(_time / WIND_UP_SECONDS, 0.0, 1.0)
+	var rumble := Vector2.ZERO
+	for i: int in RUMBLE_RATES.size():
+		var phase := TAU * RUMBLE_RATES[i] * _time
+		rumble += Vector2(sin(phase + i), cos(phase * 1.3 + i * 2.0)) / RUMBLE_RATES.size()
+	rumble *= RUMBLE * done * done
+	# The model's own space: x across, y up, z forward along its heading.
+	model.position += Vector3(rumble.x, rumble.y, -PULL_BACK * smoothstep(0.0, 1.0, done))
+	if done >= 1.0:
+		_leave()
+
+
+# Out of the old system: the bus shifts out as the iris closes on where it was, and in
+# the black the new system takes its place.
+func _leave() -> void:
+	_phase = Phase.LEAVING
+	bus.get_model().position = Vector3.ZERO
+	var anchor := %Anchor as Node3D
 	if Settings.reduce_motion:
-		rig.move_to(target.position)
-		crossed.emit(target)
-		bus.rotation.y = atan2(_direction.x, _direction.z)
-		bus.global_position = _arrival_point()
+		bus.get_model().hide()
+	else:
+		var from := bus.global_position
+		var to := from + _direction * FrameshiftShift.DISTANCE
+		(%Shift as FrameshiftShift).shift_out(bus, bus.get_model(), from, to)
+	await (%Iris as JumpIris).close(_on_screen(anchor.global_position))
+	rig.move_to(_target.position)
+	crossed.emit(_target)
+	bus.rotation.y = atan2(_direction.x, _direction.z)
+	var arrival := _arrival_point()
+	bus.global_position = arrival
+	anchor.global_position = arrival
+	await get_tree().create_timer(DARK_SECONDS, false).timeout
+	_arrive_in(arrival)
+
+
+# Into the new system: the iris opens on where the bus comes out, and it shifts in.
+func _arrive_in(arrival: Vector3) -> void:
+	_phase = Phase.ARRIVING
+	var iris := %Iris as JumpIris
+	iris.open(_on_screen(arrival))
+	if Settings.reduce_motion:
+		bus.get_model().show()
+		await iris.opened
 		_arrive()
 		return
-	_time = 0.0
-	_phase = Phase.TURNING
-
-
-func _shift_out() -> void:
-	_phase = Phase.SHIFTING_OUT
-	var from := bus.global_position
-	var to := from + _direction * FrameshiftShift.DISTANCE
-	(%Shift as FrameshiftShift).shift_out(bus, bus.get_model(), from, to)
-	if _motion:
-		_motion.kill()
-	_motion = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_motion.tween_method(_cross.bind(rig.position, _target.position), 0.0, 1.0, CROSS_SECONDS)
-	_motion.finished.connect(_shift_in)
-
-
-func _cross(progress: float, from: Vector3, to: Vector3) -> void:
-	rig.move_to(from.lerp(to, progress))
-
-
-func _shift_in() -> void:
-	crossed.emit(_target)
-	_phase = Phase.SHIFTING_IN
-	bus.rotation.y = atan2(_direction.x, _direction.z)
-	var to := _arrival_point()
-	var from := to - _direction * FrameshiftShift.DISTANCE
-	(%Shift as FrameshiftShift).shift_in(bus, bus.get_model(), from, to)
+	await get_tree().create_timer(SHIFT_IN_DELAY, false).timeout
+	var from := arrival - _direction * FrameshiftShift.DISTANCE
+	(%Shift as FrameshiftShift).shift_in(bus, bus.get_model(), from, arrival)
 
 
 func _on_shift_finished() -> void:
-	if _phase == Phase.SHIFTING_IN:
+	if _phase == Phase.ARRIVING:
 		_arrive()
 
 
@@ -116,13 +175,27 @@ func _arrive() -> void:
 	bus.get_model().show()
 	bus.process_mode = Node.PROCESS_MODE_INHERIT
 	bus.fly_in(_target.home, bus.max_speed * ARRIVE_SPEED)
+	rig.release_focus()
 	rig.locked = false
+	hud.reveal_all()
 	finished.emit(_target)
+
+
+# Seconds the camera takes to close in on the bus: none under Reduce motion, where it cuts.
+func _close_in_seconds() -> float:
+	return 0.0 if Settings.reduce_motion else rig.get_focus_seconds()
 
 
 # Where the bus comes out of the jump: off the home planet's side it came from.
 func _arrival_point() -> Vector3:
 	return RouteStop.approach_point(_target.home, -_direction, ARRIVE_GAP)
+
+
+func _on_screen(point: Vector3) -> Vector2:
+	var camera := get_viewport().get_camera_3d()
+	if not camera:
+		return get_viewport().get_visible_rect().get_center()
+	return camera.unproject_position(point)
 
 
 func _flat(point: Vector3) -> Vector3:

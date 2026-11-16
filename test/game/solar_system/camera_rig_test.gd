@@ -165,14 +165,15 @@ func test_focus_frames_the_target_beside_the_panel_and_release_goes_back() -> vo
 	var target := Node3D.new()
 	target.position = Vector3(4.0, 0.0, 3.0)
 	runner.scene().add_child(target)
+	# The space left of a side panel, as the solar system sets it while one is open.
+	var screen := rig.get_viewport().get_visible_rect().size
+	rig.focus_rect = Rect2(0.0, 0.0, screen.x - 360.0, screen.y)
 
 	rig.focus(target, 0.5, 0.5)
 	# Past the blend.
 	await runner.simulate_frames(30, FRAME_MS)
 
-	# The solar system sets focus_rect every frame: the space left of its planet panel.
 	var space := rig.focus_rect
-	assert_float(space.size.x).is_between(600.0, 1000.0)
 	var center := camera.unproject_position(target.global_position)
 	assert_vector(center).is_equal_approx(space.get_center(), Vector2.ONE)
 	# The body fills its share of the rect's height.
@@ -192,6 +193,8 @@ func test_focus_keeps_wide_rings_inside_the_rect() -> void:
 	await runner.simulate_frames(2, FRAME_MS)
 	var target := Node3D.new()
 	runner.scene().add_child(target)
+	var screen := rig.get_viewport().get_visible_rect().size
+	rig.focus_rect = Rect2(0.0, 0.0, screen.x - 360.0, screen.y)
 
 	rig.focus(target, 0.5, 3.0)
 	await runner.simulate_frames(30, FRAME_MS)

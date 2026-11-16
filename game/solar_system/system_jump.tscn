@@ -2,9 +2,16 @@
 
 [ext_resource type="Script" uid="uid://5s5ytm52noj2" path="res://game/solar_system/system_jump.gd" id="1_jump"]
 [ext_resource type="PackedScene" uid="uid://dsx7t06sbogl0" path="res://game/bus/frameshift_shift.tscn" id="2_shift"]
+[ext_resource type="PackedScene" uid="uid://bnxlvcq32hy0b" path="res://game/solar_system/jump_iris.tscn" id="3_iris"]
 
 [node name="SystemJump" type="Node" unique_id=660306429]
 script = ExtResource("1_jump")
 
 [node name="Shift" parent="." unique_id=1563839863 instance=ExtResource("2_shift")]
+unique_name_in_owner = true
+
+[node name="Anchor" type="Node3D" parent="." unique_id=1522072073]
+unique_name_in_owner = true
+
+[node name="Iris" parent="." unique_id=1848772248 instance=ExtResource("3_iris")]
 unique_name_in_owner = true

@@ -82,6 +82,8 @@ func _process(delta: float) -> void:
 ## bus works in, or where to jump when a promotion already opened the next one.
 func start() -> void:
 	_started = true
+	if star_map.is_joined():
+		waiting.max_total = star_map.joined_max_waiting
 	quest_giver.start(star_map.get_active_planets(), ledger, waiting)
 	if star_map.get_jump_target():
 		_announce_jump()
@@ -106,6 +108,7 @@ func promote() -> void:
 
 
 func _join() -> void:
+	waiting.max_total = star_map.joined_max_waiting
 	waiting.add_planets(star_map.get_active_planets())
 	quest_giver.start(star_map.get_active_planets(), ledger, waiting)
 	notices.push(JOINED, Notice.Kind.INFO, false, NOTICE_SECONDS)

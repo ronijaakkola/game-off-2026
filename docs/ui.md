@@ -125,11 +125,15 @@ A stamp of a few words with an icon that lands over the bus when something about
 
 ### The jump to the next star system
 
-- The dock panel closes, the open planet or bus closes, and nothing on the map can be clicked until the bus is out of the jump.
-- The bus turns to face the next system for 1 s, shaking as when charging, its thrusters lit.
-- It frameshifts out as the tow ship does: stretched long and thin along its heading, leaving the same streak.
-- The camera glides across to the next system over 2.6 s, easing in and out, with both systems showing on the way. The one left behind hides once the camera is over the new one.
-- The bus frameshifts in a little way off the new system's home planet, flies in, parks and docks with the bell. A notice says "Welcome to Lyra. Deliver passengers to get promotion." for 8 s.
+- It reads as a scene change: the two systems never show together.
+- The open planet or bus closes, the HUD leaves as at the tutorial's end, and nothing can be clicked until the bus is out of the jump. The camera closes in on the bus, centred on screen and far enough back for the shift out to stay in view.
+- The bus swings round to face the next system over 0.6 s, easing in and out and banking into the turn, its thrusters lighting. Then it winds up for 0.7 s: it draws back 0.2 units, easing in and out, as a smooth rumble builds to 0.02 units, a few waves that don't line up rather than the charge's random shake, which jitters up close.
+- It frameshifts out as the tow ship does: stretched long and thin along its heading, leaving the same streak. Meanwhile black closes in on a circle round where it was, over 0.9 s, easing in, until the screen is black.
+- The screen stays black for 0.4 s while the old system hides and the camera cuts to the new one.
+- A circle opens from where the bus will come out, over 0.9 s, easing out, a little way off the new system's home planet. 0.35 s in, the bus frameshifts in there.
+- It flies in, parks and docks with the bell, while the camera eases back out to the map over the new system and the HUD comes back. A notice says "Welcome to Lyra. Deliver passengers to get promotion." for 8 s.
+- Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the screen fades to black and back over 0.5 s each way.
+- **The join**, in the last system, is the first time two systems show at once: every system appears, and the camera pulls back over 5 s, easing in and out, from where it is to over the middle of them all at its farthest zoom, zooming by the same factor every step so it reads as a steady rise. Pan and zoom wait until it ends. Under Reduce motion it cuts there.
 - Under Reduce motion the camera and the bus cut straight there, and the bus flies in from where it comes out.
 - **Joining the systems,** the camera eases out toward the farthest zoom, and a notice says every star system is open for 8 s.
 
@@ -446,4 +450,4 @@ Debug panel (F2) › Mixer, on the main menu: one scrolling card for setting how
 - **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button and it has no fuel button, so the player closes it to pick anyone up or refuel.
 - **The charge ring** is temporary.
 - **The goal panel once the systems are joined** still says "To get promoted", though there is nothing left to be promoted to.
-- **The jump** has no sound of its own yet, and the camera's crossing is a plain glide.
+- **The jump** has no sound of its own yet.

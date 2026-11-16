@@ -105,8 +105,11 @@ func seed_dice(value: int) -> void:
 	_rng.seed = value
 
 
-## The planets passengers wait at and travel between. Starts every planet empty.
+## The planets passengers wait at and travel between. Starts every planet empty, those
+## left out too, and says so ([signal changed]) for each, so nothing still shows a line
+## that is gone, as when the bus jumps to another star system.
 func set_planets(planets: Array[Planet]) -> void:
+	var emptied: Array[Planet] = _waiting.keys()
 	_planets = planets.duplicate()
 	_waiting.clear()
 	_undecided.clear()
@@ -116,6 +119,10 @@ func set_planets(planets: Array[Planet]) -> void:
 	_waited.clear()
 	for planet: Planet in _planets:
 		_open_line(planet)
+		if planet not in emptied:
+			emptied.append(planet)
+	for planet: Planet in emptied:
+		changed.emit(planet)
 
 
 ## Adds [param planets] that have no line yet, each with [member starting_per_planet]

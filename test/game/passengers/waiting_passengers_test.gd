@@ -255,3 +255,17 @@ func _count_business(created: int) -> int:
 		if _waiting.create(_home).type == _waiting.business:
 			count += 1
 	return count
+
+
+func test_set_planets_says_every_line_it_empties_has_changed() -> void:
+	_quiet()
+	_waiting.add(_home)
+	var next := _planet()
+	var changed: Array[Planet] = []
+	_waiting.changed.connect(func(planet: Planet) -> void: changed.append(planet))
+
+	# As when the bus jumps to another star system: the lines left behind empty.
+	_waiting.set_planets([next])
+
+	assert_int(_waiting.count_at(_home)).is_equal(0)
+	assert_array(changed).contains_exactly_in_any_order([_home, _away, next])

@@ -6,7 +6,8 @@ extends Node
 ## there opens the next system ([method promote]), and the bus jumps to it once it is empty
 ## ([method enter]). It never goes back. The promotion in the last system joins them: every
 ## system shows, the camera roams over all of them and zooms out further, and passengers
-## travel between them.
+## travel between them. As they join, the camera pulls slowly back from the system the bus
+## is in until all of them show, locked meanwhile; under Reduce motion it cuts there.
 
 ## The systems the bus works in, or the one it can jump to, changed.
 signal changed
@@ -14,14 +15,21 @@ signal changed
 ## Holds the [StarSystem]s, in the order they open.
 @export var world: Node3D
 @export var rig: CameraRig
-## How far the camera may zoom out once the systems are joined.
+## How far the camera may zoom out once the systems are joined, and where it zooms out to
+## as they join.
 @export_range(1.0, 400.0, 0.1, "or_greater") var joined_max_distance := 110.0
+## Seconds the camera takes to pull back over every system as they join.
+@export_range(0.1, 20.0, 0.1) var join_seconds := 5.0
 
 @export_group("Joined goals")
 ## The goals once the systems are joined: deliver this many passengers, and keep this
 ## recent rating.
 @export_range(1, 1000, 1) var joined_deliveries := 60
 @export_range(0.0, 5.0, 0.05) var joined_rating := 4.0
+## How many passengers may wait at every planet together once the systems are joined:
+## [member WaitingPassengers.max_total] for the joined map, about 2 to a planet, busier
+## than one system's 1.4.
+@export_range(1, 200, 1) var joined_max_waiting := 30
 
 var _systems: Array[StarSystem] = []
 # The system the bus works in.
@@ -30,6 +38,7 @@ var _current := 0
 # promotion opens it.
 var _opened := 1
 var _joined := false
+var _reveal: Tween
 
 
 ## Puts the map as a saved run had it: [param saved] from [method to_save], with the bus at
@@ -107,7 +116,7 @@ func promote() -> void:
 	if _current + 1 >= get_systems().size():
 		_joined = true
 		show_systems()
-		rig.zoom_to(joined_max_distance)
+		_pull_back()
 	else:
 		_opened = maxi(_opened, _current + 2)
 	changed.emit()
@@ -122,6 +131,29 @@ func enter(system: StarSystem) -> void:
 	_opened = maxi(_opened, index + 1)
 	show_systems()
 	changed.emit()
+
+
+# The camera eases from where it is to over every system, zooming out by the same factor
+# in every equal step so the pull back reads as steady rather than rushing at the end.
+func _pull_back() -> void:
+	var from := rig.position
+	var from_distance := rig.distance
+	var to := get_bounds_center()
+	if Settings.reduce_motion:
+		_pull_back_step(1.0, from, from_distance, to)
+		return
+	rig.locked = true
+	if _reveal:
+		_reveal.kill()
+	_reveal = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_reveal.tween_method(_pull_back_step.bind(from, from_distance, to), 0.0, 1.0, join_seconds)
+	await _reveal.finished
+	rig.locked = false
+
+
+func _pull_back_step(progress: float, from: Vector3, from_distance: float, to: Vector3) -> void:
+	rig.move_to(from.lerp(to, progress))
+	rig.set_distance(from_distance * pow(joined_max_distance / from_distance, progress))
 
 
 ## Shows the systems the bus works in and hides the rest, and keeps the camera over them.

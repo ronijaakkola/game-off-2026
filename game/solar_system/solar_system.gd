@@ -154,7 +154,7 @@ func _process(delta: float) -> void:
 	_place_labels()
 	_update_fade(delta)
 	var rig := %CameraRig as CameraRig
-	if rig.is_focused():
+	if rig.is_focused() and (get_open_planet() or is_bus_open()):
 		rig.focus_rect = _focus_rect()
 	var mouse := get_viewport().get_mouse_position()
 	_course_drag.follow(mouse)

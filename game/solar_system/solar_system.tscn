@@ -294,10 +294,11 @@ dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 system_jump = NodePath("../SystemJump")
 saver = NodePath("../GameSaver")
 
-[node name="SystemJump" parent="." unique_id=380382441 node_paths=PackedStringArray("bus", "rig") instance=ExtResource("119_jump")]
+[node name="SystemJump" parent="." unique_id=380382441 node_paths=PackedStringArray("bus", "rig", "hud") instance=ExtResource("119_jump")]
 unique_name_in_owner = true
 bus = NodePath("../Bus")
 rig = NodePath("../CameraRig")
+hud = NodePath("../Hud")
 
 [node name="PortraitStudio" parent="." unique_id=1933731670 instance=ExtResource("22_studio")]
 unique_name_in_owner = true
