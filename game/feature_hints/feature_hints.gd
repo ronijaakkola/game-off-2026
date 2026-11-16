@@ -1,8 +1,8 @@
 class_name FeatureHints
 extends Node
 ## Feature hints: the first time the player meets a feature during play, the game pauses,
-## the music muffles, and a guide card points at it and says what it is, until the player
-## presses Got it.
+## the music muffles, and a guide card rings it, points at it and says what it is, until
+## the player presses Got it.
 ## Game code [method offer]s a hint when the player meets its feature; it shows only if
 ## the player has never closed it ([method SaveGame.has_seen_hint]), so each shows once
 ## across every run until the player deletes their save data.
@@ -64,6 +64,7 @@ var _seen: Dictionary[StringName, bool] = {}
 
 func _ready() -> void:
 	guide.kind = GuideCard.Kind.FEATURE_HINT
+	guide.ring = true
 	guide.acknowledged.connect(_on_acknowledged)
 	DebugPanel.add_button("Forget hints", _debug_forget_hints, self)
 
