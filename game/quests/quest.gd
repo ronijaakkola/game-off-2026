@@ -46,11 +46,6 @@ func accept() -> void:
 	pass
 
 
-## The player said no: makes whatever change happens all the same.
-func decline() -> void:
-	pass
-
-
 ## The quest under way, for a save game. The passenger is kept by whoever saves it.
 func to_save() -> Dictionary:
 	var research := {}
