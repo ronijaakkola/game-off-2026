@@ -53,10 +53,6 @@ const START_RATING := 3.5
 ## How fast the game runs, as a share of real time: the bus, the planets and the
 ## passengers alike, so nothing about a ride changes but how long it takes to play.
 const PACE := 0.9
-const COURSE_HINT := (
-	"Right-click a planet or space to set a course, and hold %s to add stops."
-	+ " Backspace takes the last stop off."
-)
 ## What the quick text over the bus says when it leaves a planet with the drive warm.
 const QUICK_STOP := "Quick stop!"
 const QUICK_STOP_ICON := preload("res://game/solar_system/icons/clock.svg")
@@ -76,8 +72,6 @@ var _fade := 1.0
 # The planet whose hover border fades: the open one, and after it closes, until the fade
 # is back to 1.
 var _faded_planet: Planet
-# How to set a course, until the player first sets one.
-var _course_hint: Notice
 # The point in space a held right click drags.
 var _course_drag: CourseDrag
 
@@ -139,11 +133,6 @@ func _ready() -> void:
 		zoom.zoomed_out.connect(_on_map_zoomed_out)
 		(%Tutorial as Tutorial).waiting = %WaitingPassengers as WaitingPassengers
 		(%Tutorial as Tutorial).start()
-	# A continued run has set courses before.
-	elif not (%GameSaver as GameSaver).is_continued():
-		_course_hint = (%Notices as NoticeStack).push(
-			COURSE_HINT % QueueKey.get_label(), Notice.Kind.TUTORIAL
-		)
 
 
 func _exit_tree() -> void:
@@ -215,9 +204,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	(%Bus as FrameshiftBus).plot_course(stop, QueueKey.is_held())
 	_course_drag.start(stop)
-	if _course_hint:
-		_course_hint.dismiss()
-		_course_hint = null
 	get_viewport().set_input_as_handled()
 
 

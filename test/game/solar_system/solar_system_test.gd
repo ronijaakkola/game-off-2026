@@ -315,19 +315,17 @@ func test_runs_after_the_camera_host_so_labels_follow_this_frame() -> void:
 	assert_int(system.process_priority).is_greater(host.process_priority)
 
 
-func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
+func test_right_click_on_a_planet_sets_course_with_no_hint_shown() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
-	var hint := (runner.find_child("Notices") as NoticeStack).get_notices()[0]
-	assert_str(hint.get_text()).is_equal(SolarSystem.COURSE_HINT % QueueKey.get_label())
-	assert_bool(hint.is_leaving()).is_false()
+	# No notice tells the player how to set a course.
+	assert_array((runner.find_child("Notices") as NoticeStack).get_notices()).is_empty()
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_array(bus.get_route_planets()).contains_exactly([terra])
-	assert_bool(hint.is_leaving()).is_true()
 
 
 func test_right_click_sets_the_route_and_with_the_queue_key_adds_to_it() -> void:
