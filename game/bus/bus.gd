@@ -129,6 +129,10 @@ var speed_cap := INF
 ## [method cancel_course] do nothing. Running dry still clears it.
 var route_locked := false
 
+## The push someone on board feels ([method get_felt_acceleration]). A knock on the bus
+## goes in through [method FeltPush.jolt].
+var felt_push := FeltPush.new()
+
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
 var _stats := BusStats.new()
@@ -137,7 +141,6 @@ var _glide := DockGlide.new()
 var _speed := 0.0
 var _turn_rate := 0.0
 var _holding_time := 0.0
-var _felt := FeltPush.new()
 
 
 # Sets the stats' bases from the exports' defaults. A value the scene sets comes later,
@@ -327,7 +330,7 @@ func is_stopping() -> bool:
 ## left pushes right, and parking eases off a forward push as the bus glides to a stop.
 ## Following a planet while docked pushes nothing.
 func get_felt_acceleration() -> Vector2:
-	return _felt.get_value()
+	return felt_push.get_value()
 
 
 ## Seconds until the bus docks at [method get_next_planet], from where everything is now:
@@ -567,7 +570,7 @@ func _stop_position(stop: RouteStop, from: Vector3) -> Vector3:
 # Parking, the bus moves by its glide, measured from the planet.
 func _feel(delta: float) -> void:
 	var velocity := _glide.velocity if state == State.PARKING else _forward() * _speed
-	_felt.feel(velocity, _forward(), delta)
+	felt_push.feel(velocity, _forward(), delta)
 
 
 # The line through the route still ahead.

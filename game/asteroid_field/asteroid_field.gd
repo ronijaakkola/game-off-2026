@@ -4,8 +4,9 @@ extends Node3D
 ## slowly about it as the planets do, with gaps the bus flies through freely. Flying among
 ## the rocks, the bus is slowed to [member rough_speed], braking into it rather than
 ## stopping dead, and every [member bump_seconds] a rock knocks it: everyone on board takes
-## a shock of [member bump_shock] and the camera shakes. Holding still among them, or
-## towed, costs nothing. Put it at the star's centre.
+## a shock of [member bump_shock] and is thrown about in their seat, the bus rocks and the
+## camera shakes. Holding still among them, or towed, costs nothing. Put it at the star's
+## centre.
 ##
 ## The rocks are two MultiMeshes, big rocks and pebbles, each one draw call, built at load
 ## from [RockMesh] shapes, so there is nothing to model and nothing to update per frame but
@@ -40,16 +41,25 @@ signal bumped
 ## Seconds between bumps among the rocks. The first comes on flying in.
 @export_range(0.1, 10.0, 0.05) var bump_seconds := 0.8
 ## How much happiness each bump takes from everyone on board.
-@export_range(-50.0, 0.0, 0.5) var bump_shock := -1.5
+@export_range(-50.0, 0.0, 0.5) var bump_shock := -1.0
+## How hard the hardest bump throws the passengers about and rocks the bus, in units a
+## second, each second, from one side or the other. Each bump is a third of that or more.
+@export_range(0.0, 3.5, 0.1) var bump_jolt := 3.0
 ## How hard each bump shakes the camera, from 0 to 1.
 @export_range(0.0, 1.0, 0.01) var bump_shake := 0.15
 ## How far the bus may brush the rocks without hitting them: the gaps count this much wider
 ## and the band this much narrower, for the bus's centre.
 @export_range(0.0, 1.0, 0.01) var clearance := 0.2
+## How much further the bus may stray past a gap's side, among its first rocks, before they
+## count: a gap flies this much wider on each side than it looks.
+@export_range(0.0, 2.0, 0.01) var gap_leeway := 0.5
 @export_group("Look")
 @export var rock_seed := 7
-@export_range(0, 10000) var rock_count := 900
-@export_range(0, 20000) var pebble_count := 2400
+@export_range(0, 10000) var rock_count := 350
+@export_range(0, 20000) var pebble_count := 300
+## The widest open spot left among the rocks, outside the gaps, in units: a wider one gets
+## a rock of its own, so nothing but a gap looks wide enough to fly through. 0 leaves them.
+@export_range(0.0, 5.0, 0.05) var open_spot := 1.3
 ## How far above or below the orbit plane the rocks reach, at the band's middle.
 @export_range(0.0, 2.0, 0.01) var height := 0.35
 
@@ -66,7 +76,7 @@ func _ready() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = rock_seed
 	(%Rocks as MultiMeshInstance3D).multimesh = RockScatter.scatter(
-		belt, RockMesh.build(rock_seed, 1, 0.55), rock_count, 0.12, 0.42, height, rng
+		belt, RockMesh.build(rock_seed, 1, 0.55), rock_count, 0.12, 0.75, height, rng, open_spot
 	)
 	(%Pebbles as MultiMeshInstance3D).multimesh = RockScatter.scatter(
 		belt, RockMesh.build(rock_seed + 1, 0, 0.4), pebble_count, 0.03, 0.09, height, rng
@@ -91,7 +101,12 @@ func _process(delta: float) -> void:
 func _ride(delta: float) -> void:
 	var flying := bus.state == FrameshiftBus.State.FLYING and not bus.is_towing()
 	var was_in := _in_rocks
-	_in_rocks = flying and belt.is_in_rocks(to_local(bus.global_position), clearance)
+	var at := to_local(bus.global_position)
+	_in_rocks = (
+		flying
+		and belt.is_in_band(at, clearance)
+		and not belt.is_in_gap(at, -clearance - gap_leeway)
+	)
 	if not _in_rocks:
 		_cap = INF
 		return
@@ -110,6 +125,10 @@ func _ride(delta: float) -> void:
 func _bump() -> void:
 	if cabin:
 		cabin.shock(bump_shock)
+	# From one side or the other, a light knock or a hard one.
+	var side := randf_range(0.35, 1.0) * (1.0 if randf() < 0.5 else -1.0)
+	bus.felt_push.jolt(Vector2(side, randf_range(-0.5, 0.5)) * bump_jolt)
+	bus.get_model().jolt(side * bump_jolt / FeltPush.MAX)
 	var heading := bus.global_basis.z
 	Feedback.shake(bump_shake, Vector2(heading.x, heading.z))
 	bumped.emit()
