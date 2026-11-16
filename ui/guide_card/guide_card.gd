@@ -18,6 +18,7 @@ extends PanelContainer
 ## closing, it only fades and shrinks back. Either turns round from where it is. Just
 ## after it opens, its step dots move on from the step it showed last to [member step].
 ## Under Reduce motion it only fades, and the dots change at once.
+## With [member ring], a [GuideRing] goes round the target while the card is open.
 
 ## The player pressed Got it.
 signal acknowledged
@@ -71,6 +72,9 @@ const DOT_TO_COME := Color(1, 1, 1, 0.141)
 		if is_node_ready():
 			_show_content()
 @export var side := Side.BELOW
+## Whether a white ring goes round the target while the card is open, so the eye finds it.
+## Set before [method open].
+@export var ring := false
 ## A control to point at. While set, the card follows it; otherwise it points at
 ## [member target_rect].
 @export var target: Control
@@ -103,12 +107,15 @@ var _motion: Tween
 # first show.
 var _dots_at := -1.0
 var _dots: Tween
+var _ring: GuideRing
 
 
 func _ready() -> void:
 	modulate.a = 0.0
 	scale = Vector2.ONE * Tooltip.CLOSED_SCALE
 	set_process(false)
+	_ring = GuideRing.new()
+	add_child(_ring)
 	(%StepDots as Control).draw.connect(_draw_step_dots)
 	(%GotItButton as Button).pressed.connect(_on_got_it_pressed)
 	_show_content()
@@ -153,6 +160,8 @@ func open() -> void:
 	_place()
 	show()
 	set_process(true)
+	if ring:
+		_ring.show_ring()
 	_animate(1.0, 1.0, Tooltip.OPEN_SECONDS)
 	if not Settings.reduce_motion:
 		_motion.tween_method(_set_slide, _slide, 0.0, Tooltip.OPEN_SECONDS)
@@ -164,6 +173,7 @@ func close() -> void:
 	if not _open:
 		return
 	_open = false
+	_ring.hide_ring()
 	_animate(0.0, Tooltip.CLOSED_SCALE, Tooltip.CLOSE_SECONDS)
 	_motion.chain().tween_callback(_on_closed)
 
@@ -255,6 +265,7 @@ func _draw_step_dots() -> void:
 # near as the screen's edges let it; then the notch slides to stay on the target.
 func _place() -> void:
 	var rect := target.get_global_rect() if target else target_rect
+	_ring.target_rect = rect
 	var screen := get_viewport_rect().size
 	var centre := rect.get_center()
 	var away := TIP_GAP + NOTCH_LENGTH
