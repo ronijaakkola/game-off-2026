@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## Continuing a saved run puts its research back: the upgrades, whether the save keys them
 ## by their tree or, from before trees left their planets, by the planet their tree was at,
-## and the research stages that were open.
+## and the research stages that were open. A New game after the tutorial starts at Terra.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 # The suite saves to a file of its own, never the player's.
@@ -35,6 +35,18 @@ func test_continuing_puts_back_the_research_and_its_open_stages() -> void:
 	assert_bool(research.is_researched(_upgrade_at(lab, "Stops", 0, 1))).is_true()
 	assert_bool(research.is_researched(_upgrade_at(lab, "Comfort", 0, 0))).is_false()
 	assert_int(research.get_open_stages()).is_equal(2)
+
+
+func test_a_new_game_after_the_tutorial_starts_docked_at_terra() -> void:
+	SaveGame.mark_tutorial_done()
+	SaveGame.start_new()
+
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_bool((runner.find_child("MapZoom") as MapZoom).is_zoomed()).is_false()
+	assert_object(bus.get_docked_planet()).is_same(runner.find_child("Terra"))
 
 
 func _upgrade_at(lab: ResearchLab, tree_title: String, tier: int, column: int) -> Upgrade:
