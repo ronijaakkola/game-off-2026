@@ -1,0 +1,115 @@
+class_name AsteroidField
+extends Node3D
+## An asteroid field: a band of rocks round the star, where [member belt] says, turning
+## slowly about it as the planets do, with gaps the bus flies through freely. Flying among
+## the rocks, the bus is slowed to [member rough_speed], braking into it rather than
+## stopping dead, and every [member bump_seconds] a rock knocks it: everyone on board takes
+## a shock of [member bump_shock] and the camera shakes. Holding still among them, or
+## towed, costs nothing. Put it at the star's centre.
+##
+## The rocks are two MultiMeshes, big rocks and pebbles, each one draw call, built at load
+## from [RockMesh] shapes, so there is nothing to model and nothing to update per frame but
+## the belt's turn. They tumble in their shader.
+##
+## It lowers [member FrameshiftBus.speed_cap] after the [HeatZone] has set it for the frame
+## ([member Node.process_priority] 1), so the lower of the two holds.
+
+## The bus flew into the rocks.
+signal entered_rocks
+## A rock knocked the bus.
+signal bumped
+
+## Where the rocks are and where the gaps are.
+@export var belt: AsteroidBelt
+## The bus it slows. None, and the field only draws.
+@export var bus: FrameshiftBus
+## Whose passengers the bumps shock. None shocks nobody.
+@export var cabin: Cabin
+## Turns the belt at the planets' pace, slowing when they do. None turns it at full speed.
+@export var orbit_clock: OrbitClock
+## Seconds per turn of the belt, at full speed. Negative turns it the other way. The gaps
+## move with it, so the slower it turns the easier they are to hit: at 600 a gap halfway
+## across the belt drifts about 0.18 units a second, a third of a unit while the bus crosses.
+@export var orbit_period := 600.0
+@export_group("Ride")
+## The fastest the bus flies among the rocks, in units a second.
+@export_range(0.05, 5.0, 0.05) var rough_speed := 0.4
+## How fast the bus brakes to [member rough_speed] on flying in, in units a second, each
+## second.
+@export_range(0.1, 20.0, 0.1) var brake := 3.0
+## Seconds between bumps among the rocks. The first comes on flying in.
+@export_range(0.1, 10.0, 0.05) var bump_seconds := 0.8
+## How much happiness each bump takes from everyone on board.
+@export_range(-50.0, 0.0, 0.5) var bump_shock := -1.5
+## How hard each bump shakes the camera, from 0 to 1.
+@export_range(0.0, 1.0, 0.01) var bump_shake := 0.15
+## How far the bus may brush the rocks without hitting them: the gaps count this much wider
+## and the band this much narrower, for the bus's centre.
+@export_range(0.0, 1.0, 0.01) var clearance := 0.2
+@export_group("Look")
+@export var rock_seed := 7
+@export_range(0, 10000) var rock_count := 900
+@export_range(0, 20000) var pebble_count := 2400
+## How far above or below the orbit plane the rocks reach, at the band's middle.
+@export_range(0.0, 2.0, 0.01) var height := 0.35
+
+# The cap it puts on the bus's speed, easing down to rough_speed among the rocks.
+var _cap := INF
+var _in_rocks := false
+var _until_bump := 0.0
+
+
+func _ready() -> void:
+	process_priority = 1
+	if not belt:
+		belt = AsteroidBelt.new()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = rock_seed
+	(%Rocks as MultiMeshInstance3D).multimesh = RockScatter.scatter(
+		belt, RockMesh.build(rock_seed, 1, 0.55), rock_count, 0.12, 0.42, height, rng
+	)
+	(%Pebbles as MultiMeshInstance3D).multimesh = RockScatter.scatter(
+		belt, RockMesh.build(rock_seed + 1, 0, 0.4), pebble_count, 0.03, 0.09, height, rng
+	)
+
+
+## Whether the bus is among the rocks now, flying.
+func is_bus_in_rocks() -> bool:
+	return _in_rocks
+
+
+func _process(delta: float) -> void:
+	var pace := orbit_clock.get_speed() if orbit_clock else 1.0
+	if orbit_period != 0.0:
+		rotation.y = wrapf(rotation.y + TAU / orbit_period * pace * delta, 0.0, TAU)
+	var material := (%Rocks as MultiMeshInstance3D).material_override as ShaderMaterial
+	material.set_shader_parameter(&"tumble", 0.0 if Settings.reduce_motion else 1.0)
+	if bus:
+		_ride(delta)
+
+
+func _ride(delta: float) -> void:
+	var flying := bus.state == FrameshiftBus.State.FLYING and not bus.is_towing()
+	var was_in := _in_rocks
+	_in_rocks = flying and belt.is_in_rocks(to_local(bus.global_position), clearance)
+	if not _in_rocks:
+		_cap = INF
+		return
+	if not was_in:
+		_cap = bus.get_stats().get_stat(BusStats.Type.MAX_SPEED).get_value()
+		_until_bump = 0.0
+		entered_rocks.emit()
+	_cap = move_toward(_cap, rough_speed, brake * delta)
+	bus.speed_cap = minf(bus.speed_cap, _cap)
+	_until_bump -= delta
+	if _until_bump <= 0.0:
+		_until_bump += bump_seconds
+		_bump()
+
+
+func _bump() -> void:
+	if cabin:
+		cabin.shock(bump_shock)
+	var heading := bus.global_basis.z
+	Feedback.shake(bump_shake, Vector2(heading.x, heading.z))
+	bumped.emit()

@@ -34,6 +34,12 @@ func start(planets: Array[Planet]) -> void:
 	run(0.0)
 
 
+## How fast the planets orbit now, from 0 (still) to 1 (full speed), before the map zoom's
+## share. Anything else that turns with the planets, such as an [AsteroidField], goes at it.
+func get_speed() -> float:
+	return _speed
+
+
 ## Eases the speed [param delta] seconds toward what the bus calls for, and sets it on every
 ## planet. The solar system calls it every frame, before anything reads where they are.
 func run(delta: float) -> void:

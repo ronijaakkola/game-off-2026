@@ -466,6 +466,7 @@ Features we will very probably build, but that need more design work first.
 - **VIPs.** Rare passengers who turn up as announced events once the recent rating is in the top band, outside the rules for who turns up, with requests of another kind, such as visiting planets.
 - **Environment.** How space affects the bus and passengers beyond the star's heat (Temperature): a big planet's gravity slows the bus down near it.
 - **Depots.** Whether fuel stays on sale at every planet.
+- **Asteroid field,** for the second level: a band of rocks round the star with gaps the bus flies through freely; through the rocks it slows to a third of its speed and every bump shocks the passengers. An experiment on a test map so far; its numbers and open questions are in `docs/asteroid-field.md`.
 
 ## Open questions
 

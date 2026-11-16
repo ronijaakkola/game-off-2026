@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://qv3tpe8vkcn4"]
+
+[ext_resource type="Script" uid="uid://h243o6pyxsj5" path="res://game/asteroid_field/asteroid_field.gd" id="1_field"]
+[ext_resource type="Script" uid="uid://djm0drj0kjupe" path="res://game/asteroid_field/asteroid_belt.gd" id="2_belt"]
+[ext_resource type="Shader" uid="uid://dj1vxj3jqf574" path="res://game/asteroid_field/asteroid.gdshader" id="3_rock"]
+
+[sub_resource type="Resource" id="Resource_belt"]
+script = ExtResource("2_belt")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rock"]
+render_priority = 0
+shader = ExtResource("3_rock")
+shader_parameter/light_source = null
+shader_parameter/light_is_directional = null
+shader_parameter/shadow_color = null
+shader_parameter/color = null
+shader_parameter/tumble = null
+
+[node name="AsteroidField" type="Node3D" unique_id=1365222423]
+script = ExtResource("1_field")
+belt = SubResource("Resource_belt")
+
+[node name="Rocks" type="MultiMeshInstance3D" parent="." unique_id=1701836041]
+unique_name_in_owner = true
+material_override = SubResource("ShaderMaterial_rock")
+cast_shadow = 0
+
+[node name="Pebbles" type="MultiMeshInstance3D" parent="." unique_id=648499766]
+unique_name_in_owner = true
+material_override = SubResource("ShaderMaterial_rock")
+cast_shadow = 0
