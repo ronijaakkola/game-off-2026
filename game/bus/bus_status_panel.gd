@@ -107,7 +107,9 @@ func _show_fuel() -> void:
 
 func _show_temperature() -> void:
 	var temperature := bus.temperature
-	(%TemperatureBar as TemperatureGauge).degrees = temperature.temperature
+	var gauge := %TemperatureBar as TemperatureGauge
+	gauge.band_high = temperature.comfortable_temperature
+	gauge.degrees = temperature.temperature
 	var amount := %TemperatureAmount as Label
 	_set_text(amount, "%d°" % roundi(temperature.temperature))
 	var color := TEMPERATURE_COLOR

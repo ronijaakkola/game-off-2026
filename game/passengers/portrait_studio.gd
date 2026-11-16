@@ -34,6 +34,10 @@ const SINK := 0.06
 ## [member AlienPortrait.felt_acceleration]: +x toward the passenger's right, +y forward.
 ## The scene that holds the bus sets it every frame.
 var felt_acceleration := Vector2.ZERO
+## How hard the passengers riding the bus sweat, as [member AlienPortrait.sweat]: above 0
+## while the bus is past its comfortable temperature, 1 as it overheats. The scene that
+## holds the bus sets it every frame.
+var sweat := 0.0
 
 # The portrait in each slot, or null.
 var _slots: Array[AlienPortrait] = []

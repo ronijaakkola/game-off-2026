@@ -77,7 +77,7 @@ func test_close_while_talking_stops_the_voice() -> void:
 	call.text = TutorialCall.FIRST_TEXT
 	panel.open(call)
 	await runner.simulate_frames(60, 30)
-	var message := runner.find_child("Message") as Label
+	var message := runner.find_child("Message") as RichTextLabel
 	assert_int(message.visible_characters).is_greater(0)
 	panel.close()
 	var answered := await PauseProofWait.for_signal(panel.answered, 3000)

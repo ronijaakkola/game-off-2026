@@ -53,6 +53,7 @@
 [ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
 [ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
+[ext_resource type="Script" uid="uid://bu4j550daikvp" path="res://game/goals/goals_met_call.gd" id="141_goals_met_call"]
 [ext_resource type="Script" uid="uid://bbous2naro572" path="res://game/feature_hints/feature_hints.gd" id="141_hints"]
 [ext_resource type="Script" uid="uid://d0yafx2jib6ve" path="res://game/feature_hints/business_hint.gd" id="142_business_hint"]
 
@@ -417,6 +418,13 @@ transmission_panel = NodePath("../TransmissionPanel")
 quests = NodePath("../Quests")
 quick_text = NodePath("../Hud/BusQuickText")
 
+[node name="GoalsMetCall" type="Node" parent="." unique_id=1075418356 node_paths=PackedStringArray("goals", "notices", "transmission_panel", "quest_giver")]
+script = ExtResource("141_goals_met_call")
+goals = NodePath("../Goals")
+notices = NodePath("../Hud/Notices")
+transmission_panel = NodePath("../TransmissionPanel")
+quest_giver = NodePath("../QuestGiver")
+
 [node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quest_giver", "test_destination", "test_flyby_planet")]
 script = ExtResource("103_debug")
 bus = NodePath("../Bus")
@@ -434,21 +442,22 @@ star = NodePath("../World/Star")
 map_zoom = NodePath("../MapZoom")
 zone = NodePath("../World/HeatZoneDisc")
 
-[node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin", "hints", "bus_bars")]
+[node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin", "portrait_studio", "hints", "bus_bars")]
 script = ExtResource("116_heat_warning")
 bus = NodePath("../Bus")
 notices = NodePath("../Hud/Notices")
 cabin = NodePath("../Cabin")
+portrait_studio = NodePath("../PortraitStudio")
 hints = NodePath("../FeatureHints")
 bus_bars = NodePath("../Hud/BusStatusPanel")
 
-[node name="FeatureHints" type="Node" parent="." unique_id=534869941 node_paths=PackedStringArray("guide", "tutorial", "saver")]
+[node name="FeatureHints" type="Node" parent="." unique_id=1633059782 node_paths=PackedStringArray("guide", "tutorial", "saver")]
 script = ExtResource("141_hints")
 guide = NodePath("../Hud/HintCard")
 tutorial = NodePath("../Tutorial")
 saver = NodePath("../GameSaver")
 
-[node name="BusinessHint" type="Node" parent="." unique_id=20515709 node_paths=PackedStringArray("hints", "dock_panel")]
+[node name="BusinessHint" type="Node" parent="." unique_id=538199482 node_paths=PackedStringArray("hints", "dock_panel")]
 script = ExtResource("142_business_hint")
 hints = NodePath("../FeatureHints")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
@@ -596,7 +605,7 @@ anchors_preset = 11
 
 [node name="GuideCard" parent="Hud" unique_id=1412722458 instance=ExtResource("116_guide")]
 
-[node name="HintCard" parent="Hud" unique_id=43099574 instance=ExtResource("116_guide")]
+[node name="HintCard" parent="Hud" unique_id=1380757466 instance=ExtResource("116_guide")]
 
 [node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 

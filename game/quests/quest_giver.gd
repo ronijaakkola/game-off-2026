@@ -140,6 +140,11 @@ func get_offer() -> Quest:
 	return _offer
 
 
+## Whether a passenger's call rings, before it is answered or goes.
+func is_calling() -> bool:
+	return _call != null
+
+
 ## The quest under way, or null.
 func get_quest() -> Quest:
 	return _quest

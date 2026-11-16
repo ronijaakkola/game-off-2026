@@ -7,8 +7,8 @@ extends Control
 ## portrait, so their photo doesn't ride and set it by mood. The eating and
 ## drinking ones asked for a snack or a drink and were served it, and the watching ones
 ## watch a show, as on a bus with an entertainment system. Pass
-## `big` to show them three times the size, and `swap` to give every head the other eye
-## style.
+## `big` to show them three times the size, `swap` to give every head the other eye
+## style, and `sweat` to have them all sweat as hard as they can.
 
 const PHOTO := preload("res://game/passengers/passenger_photo.tscn")
 const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
@@ -62,10 +62,14 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	var sweat := 1.0 if "sweat" in OS.get_cmdline_user_args() else 0.0
+	for studio: PortraitStudio in _studios:
+		studio.sweat = sweat
 	for photo: PassengerPhoto in _joyful:
 		var portrait := photo.studio.get_portrait(photo.get_photo() as AtlasTexture)
 		if portrait:
 			portrait.joy = 1.0
+			portrait.sweat = sweat
 
 
 func _studio_with_room() -> PortraitStudio:
