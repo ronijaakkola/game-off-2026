@@ -87,11 +87,6 @@ func finish_tutorial() -> void:
 		SaveGame.mark_tutorial_done()
 
 
-## Whether this run continues a save.
-func is_continued() -> bool:
-	return _continued
-
-
 ## Whether the main menu started this run afresh, rather than continuing a save or the
 ## scene being run on its own.
 func is_new_run() -> bool:
