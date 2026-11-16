@@ -116,8 +116,8 @@ var _rng: RandomNumberGenerator
 var _activity_left := 0.0
 # Whether the current activity is a served need, which no new request interrupts.
 var _busy := false
-# Seconds until each need in type.needs asks again.
-var _need_timers := PackedFloat32Array()
+# When each of their needs asks again.
+var _needs: NeedTimers
 # Whether the bus has left the planet they boarded at. Happiness holds until it has.
 var _departed := false
 # Whether a shock reached them before the bus left, so they no longer start at the target.
@@ -148,8 +148,7 @@ func _init(
 	name = _pick(type.names)
 	fare = base_fare * type.fare_multiplier
 	ride = RideProgress.new(trip_seconds, trip_seconds * type.slack, type.stop_tolerance)
-	for need: Need in type.needs:
-		_need_timers.append(_interval(need))
+	_needs = NeedTimers.new(type, _rng)
 	activity = BOARDING_LINE
 	_activity_left = BOARDING_SECONDS
 	race = Race.random(_rng)
@@ -171,11 +170,7 @@ static func from_save(
 	passenger.origin = planets.get(saved.get("origin", ""))
 	passenger.name = saved.get("name", passenger.name)
 	passenger.fare = float(saved.get("fare", 0.0))
-	var ride := passenger.ride
-	ride.expected_seconds = float(saved.get("expected_seconds", ride.expected_seconds))
-	ride.leeway = float(saved.get("leeway", 0.0))
-	ride.clock = float(saved.get("clock", 0.0))
-	ride.stops = int(saved.get("stops", 0))
+	passenger.ride.load_save(saved)
 	passenger.race = int(saved.get("race", passenger.race)) as Race.Type
 	passenger.look = AlienLook.from_save(saved.get("look", {}), passenger.race)
 	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
@@ -185,9 +180,7 @@ static func from_save(
 	passenger._activity_left = 0.0
 	passenger._departed = bool(saved.get("departed", false))
 	passenger._shaken = bool(saved.get("shaken", false))
-	var timers: Array = saved.get("need_timers", [])
-	for i: int in mini(timers.size(), passenger._need_timers.size()):
-		passenger._need_timers[i] = float(timers[i])
+	passenger._needs.load_save(saved.get("need_timers", []))
 	var held := int(saved.get("held_need", -1))
 	if held >= 0 and held < kind.needs.size():
 		passenger._held_request = kind.needs[held]
@@ -227,8 +220,7 @@ func get_payout(tip := 1.0) -> int:
 ## next one is [param scale] times as long. For someone just on board, as Free station
 ## coffee does.
 func delay_requests(scale: float) -> void:
-	for i: int in _need_timers.size():
-		_need_timers[i] *= scale
+	_needs.delay(scale)
 
 
 ## The stars they rate the ride on getting off now, from 0 to [constant MAX_STARS]: their
@@ -370,9 +362,7 @@ func tick(
 		return
 	_activity_left -= delta
 	if not asleep and not _held_request:
-		var need_step := delta * stop_rate
-		for i: int in _need_timers.size():
-			_need_timers[i] -= need_step
+		_needs.run(delta * stop_rate)
 	if (_busy or asleep) and _activity_left > 0.0:
 		return
 	_busy = false
@@ -380,11 +370,9 @@ func tick(
 	if not watching or _activity_left <= 0.0:
 		watching = false
 		action = Need.Action.NONE
-	if not stopped and not _held_request and can_ask:
-		for i: int in _need_timers.size():
-			if _need_timers[i] <= 0.0:
-				_open(type.needs[i])
-				return
+	if not stopped and not _held_request and can_ask and _needs.get_due():
+		_open(_needs.get_due())
+		return
 	if _activity_left <= 0.0:
 		_idle(giving)
 
@@ -393,28 +381,25 @@ func tick(
 ## go by name, and their type by its resource path.
 func to_save() -> Dictionary:
 	var held := request if request else _held_request
-	return {
+	var saved := {
 		"type": type.resource_path,
 		"name": name,
 		"origin": String(origin.name) if origin else "",
 		"destination": String(destination.name),
 		"fare": fare,
-		"trip_seconds": ride.trip_seconds,
-		"expected_seconds": ride.expected_seconds,
 		"race": race,
 		"look": look.to_save(race),
 		"happiness": happiness,
-		"leeway": ride.leeway,
-		"stops": ride.stops,
 		"departed": _departed,
 		"shaken": _shaken,
-		"clock": ride.clock,
-		"need_timers": Array(_need_timers),
+		"need_timers": _needs.to_save(),
 		"held_need": type.needs.find(held) if held else -1,
 		"request_age": _request_age,
 		"lounge_bonus": lounge_bonus,
 		"quick_bonus": quick_bonus,
 	}
+	saved.merge(ride.to_save())
+	return saved
 
 
 ## Serves the open request at once, all of it, as [method feed] would once full. Does
@@ -485,11 +470,8 @@ func _open(need: Need) -> void:
 
 
 func _close(line: String, seconds: float) -> void:
-	# The next request waits its interval from when this activity ends. A request that
-	# isn't one of the type's needs has no timer to reset.
-	var index := type.needs.find(request)
-	if index >= 0:
-		_need_timers[index] = seconds + _interval(request)
+	# The next request waits its interval from when this activity ends.
+	_needs.restart(request, seconds)
 	action = request.served_action
 	request = null
 	serving = 0.0
@@ -521,11 +503,6 @@ func _idle(comfort: Comfort) -> void:
 		_activity_left = _rng.randf_range(comfort.watch_min, comfort.watch_max)
 	else:
 		_activity_left = _rng.randf_range(IDLE_MIN, IDLE_MAX)
-
-
-func _interval(need: Need) -> float:
-	var seconds := _rng.randf_range(need.min_interval, maxf(need.min_interval, need.max_interval))
-	return seconds * type.need_interval_scale
 
 
 func _pick(lines: Array[String]) -> String:

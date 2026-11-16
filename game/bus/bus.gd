@@ -135,7 +135,7 @@ var _stats := BusStats.new()
 var _towing := false
 var _glide := DockGlide.new()
 var _speed := 0.0
-var _turn_rate := 0.0
+var _turning := BusTurning.new()
 var _holding_time := 0.0
 var _felt := FeltPush.new()
 
@@ -158,16 +158,9 @@ func _ready() -> void:
 		global_position = RouteStop.approach_point(start_planet, start_direction, dock_gap)
 		_dock(start_planet, start_direction)
 		rotation.y = _glide.get_heading()
-	# Draws the route line and charge ring once while SceneFlow's fade covers the screen,
-	# so their materials compile now and not on the first click.
-	%RouteLine.draw_route(
-		PackedVector3Array([global_position, global_position + Vector3.LEFT]),
-		PackedVector3Array([global_position + Vector3.LEFT])
-	)
-	%ChargeRing.show_progress(global_position, 1.0)
-	await get_tree().process_frame
-	%ChargeRing.show_progress(global_position, 0.0)
-	_draw_route()
+	# Where the bus starts, while SceneFlow's fade covers the screen.
+	(%RouteLine as RouteLine).warm_up(global_position)
+	%ChargeRing.warm_up(global_position)
 
 
 ## Sets the route to [param stop], or with [param add] adds it to the end
@@ -383,14 +376,14 @@ func _process(delta: float) -> void:
 			_holding_time = 0.0
 			_fly(delta)
 		State.HOLDING:
-			_turn_rate = 0.0
+			_turning.stop()
 			_holding_time += delta
 			_start_charge()
 	_feel(delta)
 	# The thrusters light up as the drive charges, burn in flight (not towed) and fade after.
 	var thrust := 1.0 if state == State.FLYING and not _towing else get_charge_progress()
 	var still := state != State.FLYING
-	(%Model as BusModel).animate(delta, still, get_charge_progress(), _turn_rate, thrust)
+	(%Model as BusModel).animate(delta, still, get_charge_progress(), _turning.rate, thrust)
 	var burn := (%Model as BusModel).thrust if state == State.FLYING else 0.0
 	(%ThrusterTrail as ThrusterTrail).advance(global_transform * TRAIL_START, burn, delta)
 	_draw_route()
@@ -401,7 +394,7 @@ func _fly(delta: float) -> void:
 	if _route.is_empty() or temperature.is_cooling():
 		_speed = minf(move_toward(_speed, 0.0, acceleration * delta), speed_cap)
 		_move(_speed * delta)
-		_turn_rate = 0.0
+		_turning.stop()
 		if _speed == 0.0:
 			state = State.HOLDING
 		return
@@ -415,7 +408,7 @@ func _fly(delta: float) -> void:
 		if stop.planet or last:
 			_arrive(stop)
 		return
-	_turn_toward(to_target, delta)
+	rotation.y = _turning.toward(rotation.y, to_target, turn_speed, delta)
 	# Slow to a crawl while facing away, so the bus turns toward a stop behind it rather
 	# than circling it.
 	var facing := maxf(_forward().dot(to_target / distance), 0.0)
@@ -461,27 +454,18 @@ func _face_next_stop(delta: float) -> void:
 		return
 	var to_target := RouteStop.flat(_stop_position(_route[0], global_position) - global_position)
 	if to_target.length_squared() > 1e-6:
-		_turn_toward(to_target, delta)
+		rotation.y = _turning.toward(rotation.y, to_target, turn_speed, delta)
 
 
 # Docked, so the door on the bus's left faces the planet. Eases out at the end of the swing.
 func _face_dock_side(delta: float) -> void:
-	var previous := rotation.y
-	var left := absf(angle_difference(rotation.y, _glide.get_heading()))
-	var step := minf(turn_speed * delta, left * (1.0 - exp(-DOCK_TURN_EASE * delta)))
-	rotation.y = rotate_toward(rotation.y, _glide.get_heading(), step)
-	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
+	var heading := _glide.get_heading()
+	rotation.y = _turning.ease_to(rotation.y, heading, turn_speed, DOCK_TURN_EASE, delta)
 
 
 # The speed the bus glides into its dock at, from where the glide starts.
 func _glide_speed() -> float:
 	return minf(DOCK_SMOOTHING * DOCK_DISTANCE, _top_speed())
-
-
-func _turn_toward(direction: Vector3, delta: float) -> void:
-	var previous := rotation.y
-	rotation.y = rotate_toward(rotation.y, atan2(direction.x, direction.z), turn_speed * delta)
-	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
 
 
 func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
@@ -494,7 +478,7 @@ func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
 
 func _arrive(stop: RouteStop) -> void:
 	_speed = 0.0
-	_turn_rate = 0.0
+	_turning.stop()
 	if not stop.planet:
 		state = State.HOLDING
 		return
@@ -547,7 +531,7 @@ func _undock() -> void:
 # Glides toward the dock point, measured from the planet, so the bus keeps up with a
 # moving planet without lagging behind it.
 func _follow_dock(delta: float) -> void:
-	_turn_rate = 0.0
+	_turning.stop()
 	if _glide.planet:
 		global_position = _glide.follow(delta, _dock_gap())
 

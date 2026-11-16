@@ -2,7 +2,8 @@ class_name TutorialRules
 extends RefCounted
 ## What the [Tutorial] changes about the game while it runs, and puts back once it is over
 ## ([method lift]): what the HUD holds back, what the player can't do, and the numbers that
-## make the ride teach what it should. Only home's lab badge can show. The station has no
+## make the ride teach what it should. Nobody joins or leaves a line, and the pause menu
+## offers to skip it. Only home's lab badge can show. The station has no
 ## fuel button until the tutorial shows it, and that one is off until it says so, nor a
 ## Board all or Research button, the On board panel holds arrivals and offers no
 ## kicks. Fuel is free at home and the
@@ -47,6 +48,8 @@ func apply() -> void:
 	t.passenger_panel.arrivals_held = true
 	t.passenger_panel.kicks_allowed = false
 	t.research_lab.restricted = true
+	t.waiting.set_process(false)
+	t.pause_menu.offers_skip_tutorial = true
 	_burn = t.bus.get_fuel_tank().burn_per_unit
 	for planet: Planet in [t.home, t.destination]:
 		_prices[planet] = planet.fuel_price
@@ -56,7 +59,8 @@ func apply() -> void:
 		_fuel_tank.points = FUEL_TANK_POINTS.duplicate()
 
 
-## Puts the game back as it was.
+## Puts the game back as it was, wherever the tutorial got to: unpaused, with the route
+## free, the lines running and nothing beckoning or breathing.
 func lift() -> void:
 	var t := _tutorial
 	t.lab_badges.only = []
@@ -69,6 +73,12 @@ func lift() -> void:
 	t.research_lab.restricted = false
 	t.research_lab.researchable = []
 	t.research_screen.close_locked = false
+	t.waiting.set_process(true)
+	t.pause_menu.offers_skip_tutorial = false
+	t.bus.route_locked = false
+	t.dock_panel.beckon_boarding = false
+	t.resource_bar.breathe(Tutorial.PASSENGER_RACE, false)
+	pause(false)
 	t.bus.get_fuel_tank().burn_per_unit = _burn
 	for planet: Planet in _prices:
 		planet.fuel_price = _prices[planet]

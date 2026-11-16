@@ -22,6 +22,15 @@ func _ready() -> void:
 	_material.albedo_color = color
 
 
+## Draws a short line at [param at] for one frame, so its material compiles now, while
+## something such as SceneFlow's fade covers the screen, and not when the first route
+## shows.
+func warm_up(at: Vector3) -> void:
+	draw_route(PackedVector3Array([at, at + Vector3.LEFT]), PackedVector3Array([at + Vector3.LEFT]))
+	await get_tree().process_frame
+	_mesh.clear_surfaces()
+
+
 ## Draws the line from [param from] through [param stops]. It runs to a planet's surface
 ## rather than to where the bus docks, so the planet reads as part of the route, and
 ## leaves it from the side facing the next stop. Points in space get a diamond.

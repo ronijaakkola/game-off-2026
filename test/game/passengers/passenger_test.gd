@@ -522,6 +522,31 @@ func test_the_trend_is_0_while_happiness_holds() -> void:
 	assert_float(settled.trend).override_failure_message("at the target").is_equal(0.0)
 
 
+func test_a_saved_ride_comes_back_where_it_stood_with_the_next_request_on_time() -> void:
+	var snack := _need(10.0)
+	var kind := _type([snack])
+	_planet.name = &"Frost"
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.depart()
+	passenger.tick(6.0, false)
+	passenger.pass_stop(auto_free(Planet.new()) as Planet)
+	passenger.ride.leeway = 3.0
+	var types: Dictionary[String, PassengerType] = {kind.resource_path: kind}
+	var planets: Dictionary[String, Planet] = {"Frost": _planet}
+
+	var loaded := Passenger.from_save(passenger.to_save(), types, planets)
+
+	assert_float(loaded.ride.trip_seconds).is_equal(TRIP)
+	assert_float(loaded.ride.expected_seconds).is_equal(passenger.ride.expected_seconds)
+	assert_float(loaded.ride.clock).is_equal(6.0)
+	assert_float(loaded.ride.leeway).is_equal(3.0)
+	assert_int(loaded.ride.stops).is_equal(1)
+	loaded.tick(3.9, false)
+	assert_object(loaded.request).is_null()
+	loaded.tick(0.2, false)
+	assert_object(loaded.request).is_same(snack)
+
+
 # A passenger whose bus has left, so their ride runs.
 func _departed() -> Passenger:
 	var passenger := Passenger.new(_type(), _planet, TRIP, FARE)

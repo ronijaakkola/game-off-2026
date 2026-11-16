@@ -21,6 +21,14 @@ func _ready() -> void:
 	material_override = material
 
 
+## Shows the full ring at [param center] for one frame, so its material compiles now, while
+## something such as SceneFlow's fade covers the screen, and not on the first charge.
+func warm_up(center: Vector3) -> void:
+	show_progress(center, 1.0)
+	await get_tree().process_frame
+	show_progress(center, 0.0)
+
+
 ## Shows the ring at [param center], filled to [param progress] (0 to 1). 0 hides it.
 func show_progress(center: Vector3, progress: float) -> void:
 	_mesh.clear_surfaces()
