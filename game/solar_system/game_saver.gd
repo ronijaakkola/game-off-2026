@@ -92,11 +92,6 @@ func is_saved_run() -> bool:
 	return _recording
 
 
-## Whether this run continues a save.
-func is_continued() -> bool:
-	return _continued
-
-
 ## Whether the main menu started this run afresh, rather than continuing a save or the
 ## scene being run on its own.
 func is_new_run() -> bool:
