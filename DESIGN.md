@@ -405,7 +405,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 - **Nothing orbits.** Terra and the Moon hold still on their orbits, still spinning, so the bus always finds them where they were and stays in view.
 - **A clear way out.** The bus starts docked on the side of Terra facing the Moon, so the straight flight there never crosses Terra.
 - **One ride, and back.** One passenger waits at Terra, going to the Moon, always a blue one, so the research point they pay is always blue. Nobody else turns up, and nobody leaves a line. Then the bus flies back to Terra to research.
-- **A trip burns half the tank,** each way, more than the bus burns outside the tutorial, so refuelling has a reason. Fuel is free at Terra and the Moon.
+- **A trip burns half the tank,** each way, more than the bus burns outside the tutorial, so refuelling has a reason. Fuel is free at Terra and the Moon. Done or skipped, the run starts on a full tank.
 - **Just enough for the first upgrade.** The passenger pays 120 credits whatever their mood, and Fuel tank 1 costs 120 credits and 1 blue research point (not 2) until it is over.
 - **It opens on a call from their boss,** who tells them they are on a trial period. Until the player answers it and closes the transmission, the call notice's Answer is the one thing they can do: no clicks on the map or the bus bars, no pan or zoom.
 - **Each step is a guide card** (placeholder titles; what each says is in `tutorial_cards.gd`, the calls' words in `tutorial_call.gd`), most waiting for the player to do something in the game; a card that only tells them something has a Got it button, offered on purpose and rarely.

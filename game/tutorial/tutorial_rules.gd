@@ -56,7 +56,8 @@ func apply() -> void:
 		_fuel_tank.points = FUEL_TANK_POINTS.duplicate()
 
 
-## Puts the game back as it was.
+## Puts the game back as it was, and fills the tank, so the run proper starts full
+## however much the tutorial's trips burnt.
 func lift() -> void:
 	var t := _tutorial
 	t.lab_badges.only = []
@@ -70,6 +71,7 @@ func lift() -> void:
 	t.research_lab.researchable = []
 	t.research_screen.close_locked = false
 	t.bus.get_fuel_tank().burn_per_unit = _burn
+	t.bus.get_fuel_tank().fill()
 	for planet: Planet in _prices:
 		planet.fuel_price = _prices[planet]
 	put_back_upgrade()
