@@ -5,27 +5,16 @@ extends GdUnitTestSuite
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const BUSINESS_HINT := preload("res://game/feature_hints/business_hint.gd")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
-# A run started this way saves, so the suite saves to files of its own.
-const TEST_SAVE := "user://test_business_hint_save.json"
-const TEST_TUTORIAL := "user://test_business_hint_tutorial.cfg"
-const TEST_HINTS := "user://test_business_hint_hints.cfg"
 
 
 func before() -> void:
-	SaveGame.path = TEST_SAVE
-	SaveGame.tutorial_path = TEST_TUTORIAL
-	SaveGame.hints_path = TEST_HINTS
+	SaveGame.use_test_files("business_hint")
 	# Through the tutorial already, so the run starts docked with the lines going.
 	SaveGame.mark_tutorial_done()
 
 
 func after() -> void:
-	SaveGame.delete()
-	SaveGame.forget_tutorial()
-	SaveGame.forget_hints()
-	SaveGame.path = SaveGame.PATH
-	SaveGame.tutorial_path = SaveGame.TUTORIAL_PATH
-	SaveGame.hints_path = SaveGame.HINTS_PATH
+	SaveGame.use_player_files()
 
 
 func after_test() -> void:

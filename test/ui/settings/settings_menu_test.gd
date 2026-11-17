@@ -1,31 +1,19 @@
 extends GdUnitTestSuite
 
 const SCENE := "res://ui/settings/settings_menu.tscn"
-# Delete save deletes the save and forgets the tutorial and the hints, so the suite keeps
-# them in files of its own, never the player's.
-const TEST_SAVE := "user://test_settings_menu_save.json"
-const TEST_TUTORIAL := "user://test_settings_menu_tutorial.cfg"
-const TEST_HINTS := "user://test_settings_menu_hints.cfg"
 
 # The panel binds to the live Settings, which saves the developer's own settings file.
 var _saved: Dictionary[String, Variant] = {}
 
 
 func before() -> void:
-	SaveGame.path = TEST_SAVE
-	SaveGame.tutorial_path = TEST_TUTORIAL
-	SaveGame.hints_path = TEST_HINTS
+	SaveGame.use_test_files("settings_menu")
 	for key: String in Settings.get_names():
 		_saved[key] = Settings.get(key)
 
 
 func after() -> void:
-	SaveGame.delete()
-	SaveGame.forget_tutorial()
-	SaveGame.forget_hints()
-	SaveGame.path = SaveGame.PATH
-	SaveGame.tutorial_path = SaveGame.TUTORIAL_PATH
-	SaveGame.hints_path = SaveGame.HINTS_PATH
+	SaveGame.use_player_files()
 	for key: String in Settings.get_names():
 		Settings.set(key, _saved[key])
 
