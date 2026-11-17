@@ -19,11 +19,13 @@ static func covers(camera: Camera3D, center: Vector3, radius: float, screen_poin
 
 
 ## The planet nearest [param camera] among [param planets] whose body covers
-## [param screen_point] on screen, or null.
+## [param screen_point] on screen, or null. A hidden planet covers nothing.
 static func planet_at(camera: Camera3D, planets: Array[Planet], screen_point: Vector2) -> Planet:
 	var best: Planet
 	var best_depth := INF
 	for planet: Planet in planets:
+		if not planet.is_visible_in_tree():
+			continue
 		var center := planet.get_body_global_position()
 		if not covers(camera, center, planet.get_body_radius(), screen_point):
 			continue
@@ -32,3 +34,21 @@ static func planet_at(camera: Camera3D, planets: Array[Planet], screen_point: Ve
 			best = planet
 			best_depth = depth
 	return best
+
+
+## What a click at [param screen_point] picks: [param bus] where it covers the point, else
+## [param planet], the planet there or null. Where both cover it, as when the bus is
+## docked, whichever centre is nearer the point wins, so the docked planet stays easy to
+## pick.
+static func bus_or_planet_at(
+	camera: Camera3D, bus: FrameshiftBus, planet: Planet, screen_point: Vector2
+) -> Node3D:
+	if not covers(camera, bus.global_position, FrameshiftBus.RADIUS, screen_point):
+		return planet
+	if not planet:
+		return bus
+	var to_bus := screen_point.distance_to(camera.unproject_position(bus.global_position))
+	var to_planet := screen_point.distance_to(
+		camera.unproject_position(planet.get_body_global_position())
+	)
+	return bus if to_bus < to_planet else planet

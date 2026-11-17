@@ -70,7 +70,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	var stop := bus.get_last_stop() if bus else null
+	var stop := bus.last_stop if bus else null
 	var shown := (
 		stop != null
 		and camera != null

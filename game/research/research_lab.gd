@@ -5,10 +5,9 @@ extends Node
 ## researches an upgrade the player holds there when the player can pay for it, taking its
 ## credits and research points off first. Which planets open the screen is the dock
 ## panel's to say: those with a lab ([member Planet.has_lab]). It adds the debug panel's
-## Resources buttons, which give credits and research points for testing, its Open
-## research button, which opens the screen from anywhere, and its Promote button, which
-## opens the next stage until promotions are built. While [member restricted], as in the
-## tutorial, only [member researchable] upgrades can be researched. It remembers which
+## Resources buttons, which give credits and research points for testing, and its Open
+## research button, which opens the screen from anywhere. While [member restricted], as in
+## the tutorial, only [member researchable] upgrades can be researched. It remembers which
 ## upgrades the player could pay for when they last closed the screen, so the dock panel
 ## nudges only when that has changed ([method has_unseen_upgrade]).
 
@@ -18,9 +17,8 @@ const DEBUG_CREDITS := 1000
 const DEBUG_RESEARCH := 100
 ## The debug panel's group for the buttons that give credits and research points.
 const DEBUG_RESOURCES_GROUP := "Resources"
-## The debug panel's buttons that open the screen from anywhere and open the next stage.
+## The debug panel's button that opens the screen from anywhere.
 const DEBUG_OPEN_TEXT := "Open research"
-const DEBUG_PROMOTE_TEXT := "Promote (open next research stage)"
 
 ## The bus whose stats upgrades change.
 @export var bus: FrameshiftBus
@@ -54,7 +52,6 @@ func _ready() -> void:
 	research_screen.closed.connect(resource_bar.show)
 	research_screen.closed.connect(_remember_seen)
 	DebugPanel.add_button(DEBUG_OPEN_TEXT, open_screen, self)
-	DebugPanel.add_button(DEBUG_PROMOTE_TEXT, _research.open_next_stage, self)
 	var credits_text := "Add %d credits" % DEBUG_CREDITS
 	DebugPanel.add_button(credits_text, _debug_add_credits, self, DEBUG_RESOURCES_GROUP)
 	var research_text := "Add %d research of each" % DEBUG_RESEARCH

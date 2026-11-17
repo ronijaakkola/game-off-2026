@@ -133,7 +133,7 @@ The guided first ride at the start of a new run, on the zoomed map: a call from 
 _Avoid_: onboarding, intro, level
 
 **Zoomed map**:
-The map zoomed in on Terra and the Moon for the tutorial: the star and the planets scaled up together, so the Moon is as far out as a trip across the whole map, while the bus keeps its size and speed. The **zoom out** shrinks it back to the whole solar system. `MapZoom` in code; the node it scales is `World`.
+The map zoomed in on Terra and the Moon for the tutorial: the star and the planets scaled up together, so the Moon is as far out as a trip across the whole map, while the bus keeps its size and speed. The **zoom out** shrinks it back to the whole solar system. `MapZoom` in code; the node it scales is Sol's `StarSystem`.
 _Avoid_: mini map, small map
 
 **Passenger**:
@@ -199,7 +199,15 @@ A band of rows across every research tree, opened one at a time: the first from 
 What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
 
 **Promotion**:
-What opens the next stage of research. Only a debug button gives one so far.
+What the player earns by meeting every goal a star system gives at once: it opens the next stage of research and the next star system, or joins every system after the last one. `Progression.promote()` in code.
+
+**Star system**:
+A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
+_Avoid_: level, galaxy, sector, stage (a band of research rows)
+
+**Jump**:
+The bus's frameshift from one star system to the next, once a promotion opens it: it leaves with nobody on board and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
+_Avoid_: warp, hyperspace, travel (a trip between planets)
 
 **Upgrade**:
 One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.

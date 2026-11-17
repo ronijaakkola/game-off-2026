@@ -363,7 +363,7 @@ func test_right_click_on_the_docked_planet_with_no_route_does_nothing() -> void:
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, bus.get_docked_planet()))
 
-	assert_object(bus.get_last_stop()).is_null()
+	assert_object(bus.last_stop).is_null()
 	assert_float(bus.get_charge_progress()).is_equal(0.0)
 
 

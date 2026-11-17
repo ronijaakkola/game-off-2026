@@ -105,6 +105,10 @@ var boarding := false
 ## Whether passengers are getting off. Meanwhile a warm drive doesn't cool. The scene that
 ## runs the passengers sets it.
 var unloading := false
+## The last stop on the route, or null when there is no route.
+var last_stop: RouteStop:
+	get:
+		return _route.back() if not _route.is_empty() else null
 ## Whether the player holds the Frameshift key. Docked or holding in space with a course,
 ## the drive charges while it is held and drains once let go. Leaving lets go, as does
 ## clearing the course.
@@ -236,6 +240,17 @@ func tow_to(planet: Planet) -> void:
 		state = State.FLYING
 
 
+## Sends the bus from where it is straight to [param planet] at [param speed], with no
+## charge, to park and dock there: how it comes out of a jump to another star system.
+func fly_in(planet: Planet, speed: float) -> void:
+	_drive.clear()
+	_drive.held = false
+	_glide.planet = null
+	_route = [RouteStop.at_planet(planet)]
+	_speed = speed
+	state = State.FLYING
+
+
 func is_towing() -> bool:
 	return _towing
 
@@ -253,11 +268,6 @@ func get_model() -> BusModel:
 ## The bus's fuel tank.
 func get_fuel_tank() -> FuelTank:
 	return %FuelTank as FuelTank
-
-
-## The last stop on the route, or null when there is no route.
-func get_last_stop() -> RouteStop:
-	return _route.back() if not _route.is_empty() else null
 
 
 ## Every stop on the route still ahead, in order.

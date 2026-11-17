@@ -172,6 +172,15 @@ var orbit_speed := 1.0
 ## the orbit comes from it alone, however the speed changed on the way, so a save game keeps
 ## it to put the planet back. Set before the planet is ready, it starts there.
 var orbit_time := 0.0
+## Where the star that lights its surface is, in global space. Its [StarSystem] sets it.
+var light_source := Vector3.ZERO:
+	set(value):
+		if value == light_source:
+			return
+		light_source = value
+		var surface := surface_material as ShaderMaterial
+		if surface:
+			surface.set_shader_parameter(&"light_source", value)
 
 var _time := 0.0
 # How fast the orbit's centre moves, in global space: a moon's planet's body velocity.
