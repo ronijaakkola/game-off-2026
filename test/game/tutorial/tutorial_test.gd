@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## A new run opens on the boss's call with only the bus bars showing; answering it with
 ## either of the two answers starts the steps on the guide card beside the bus. Skipping the
-## tutorial puts back every rule it changed, and the next new run starts without it.
+## tutorial puts back every rule it changed and fills the tank, and the next new run starts
+## without it.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -122,6 +123,20 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	var dock := runner.find_child("DockPanel") as DockPanel
 	assert_bool(dock.fuel_hidden or dock.fuel_locked or dock.board_all_hidden).is_false()
 	assert_bool((runner.find_child("Bus") as FrameshiftBus).route_locked).is_false()
+
+
+func test_the_run_starts_on_a_full_tank_after_the_tutorial() -> void:
+	SaveGame.start_new()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var tank := (runner.find_child("Bus") as FrameshiftBus).get_fuel_tank()
+	# As after the tutorial's trips and Fuel tank 1's empty new room.
+	tank.capacity *= 1.25
+	tank.fuel = tank.capacity * 0.5
+
+	(runner.find_child("Tutorial") as Tutorial).skip()
+
+	assert_float(tank.get_fraction()).is_equal(1.0)
 
 
 func test_a_new_run_after_the_tutorial_starts_without_it() -> void:
