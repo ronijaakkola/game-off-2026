@@ -42,26 +42,37 @@
 [ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
 [ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
+[ext_resource type="Script" uid="uid://dwyqyf3dug5pa" path="res://game/solar_system/heat_zone.gd" id="114_heat_zone"]
+[ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
 [ext_resource type="PackedScene" uid="uid://dl00qj1joo6lh" path="res://game/solar_system/systems/sol.tscn" id="114_sol"]
+[ext_resource type="Script" uid="uid://c4ehv650d8qwy" path="res://game/tutorial/tutorial_call.gd" id="115_call"]
+[ext_resource type="Shader" uid="uid://bfd4gbew06myw" path="res://game/solar_system/heat_zone.gdshader" id="115_heat_shader"]
 [ext_resource type="PackedScene" uid="uid://bnmgxp1mhbefp" path="res://game/solar_system/systems/lyra.tscn" id="115_lyra"]
 [ext_resource type="PackedScene" uid="uid://c27bke4n6kwiy" path="res://game/solar_system/systems/draco.tscn" id="116_draco"]
+[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
+[ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
 [ext_resource type="Script" uid="uid://bungk47fldg1l" path="res://game/solar_system/star_map.gd" id="117_star_map"]
 [ext_resource type="Script" uid="uid://bxqoome8abxs1" path="res://game/solar_system/progression.gd" id="118_progression"]
 [ext_resource type="PackedScene" uid="uid://d2tkvslrbiqae" path="res://game/solar_system/system_jump.tscn" id="119_jump"]
 [ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
-[ext_resource type="Script" uid="uid://dwyqyf3dug5pa" path="res://game/solar_system/heat_zone.gd" id="114_heat_zone"]
-[ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
-[ext_resource type="Script" uid="uid://c4ehv650d8qwy" path="res://game/tutorial/tutorial_call.gd" id="115_call"]
-[ext_resource type="Shader" uid="uid://bfd4gbew06myw" path="res://game/solar_system/heat_zone.gdshader" id="115_heat_shader"]
-[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
-[ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
 [ext_resource type="Script" uid="uid://bu4j550daikvp" path="res://game/goals/goals_met_call.gd" id="141_goals_met_call"]
 [ext_resource type="Script" uid="uid://bbous2naro572" path="res://game/feature_hints/feature_hints.gd" id="141_hints"]
 [ext_resource type="Script" uid="uid://d0yafx2jib6ve" path="res://game/feature_hints/business_hint.gd" id="142_business_hint"]
+[ext_resource type="PackedScene" uid="uid://dhfaboh7sticu" path="res://ui/pause_menu/pause_button.tscn" id="143_pause_button"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
 shader = ExtResource("115_heat_shader")
+shader_parameter/zone_color = null
+shader_parameter/hot_color = null
+shader_parameter/hot_share = null
+shader_parameter/softness = null
+shader_parameter/flash = null
+shader_parameter/flash_gain = null
+shader_parameter/opacity = null
+shader_parameter/smoke_color = null
+shader_parameter/smoke_scale = null
+shader_parameter/drift = null
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_heat_zone"]
 
@@ -380,6 +391,9 @@ unique_name_in_owner = true
 anchors_preset = 7
 bus = NodePath("../../Bus")
 
+[node name="PauseButton" parent="Hud" unique_id=1942403847 instance=ExtResource("143_pause_button")]
+unique_name_in_owner = true
+
 [node name="Curtain" type="ColorRect" parent="Hud" unique_id=1536382013]
 unique_name_in_owner = true
 visible = false
@@ -412,3 +426,5 @@ anchors_preset = 11
 [node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]
+
+[connection signal="pressed" from="Hud/PauseButton" to="PauseMenu" method="open"]
