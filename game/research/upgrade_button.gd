@@ -2,8 +2,8 @@ class_name UpgradeButton
 extends Control
 ## One upgrade in the research screen: a rounded square tile with its icon, and, where its
 ## title ends in a step ("Speed 2", "Bigger portions II"), that step as a numeral in the
-## top left corner. It shows its [enum Research.State] in the shades of the race whose
-## points it costs most ([method Upgrade.get_race]):
+## top left corner. It shows its [enum Research.State] in the shades of its tree's race
+## ([member palette]):
 ## researched is a solid fill in the race's colour with the icon in its deep shade;
 ## available is dark, tinted toward the race's colour, with a border in it; can't afford is
 ## dark with a faint border in it, a dim icon and a red badge for what the player lacks;
@@ -86,6 +86,8 @@ const HELD_SOUND := preload("res://ui/audio/ui_click.ogg")
 const REFUSED_SOUND := preload("res://ui/audio/key_click.ogg")
 const ROMAN := ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]
 
+## The race whose shades it shows in, its tree's ([member ResearchTree.palette]).
+var palette := Race.Type.BLUE
 var upgrade: Upgrade:
 	set(value):
 		upgrade = value
@@ -206,7 +208,7 @@ func get_line_color() -> Color:
 
 ## Its race's skin colour, for its fill and border.
 func get_accent() -> Color:
-	return Race.SKIN_COLORS[upgrade.get_race()] if upgrade else Color.WHITE
+	return Race.SKIN_COLORS[palette] if upgrade else Color.WHITE
 
 
 ## The step at the end of [param title] as a Roman numeral, "II" for "Speed 2" or for
@@ -354,7 +356,7 @@ func _apply_ink() -> void:
 
 
 func _shades() -> Dictionary:
-	return SHADES[upgrade.get_race() if upgrade else Race.Type.BLUE]
+	return SHADES[palette]
 
 
 func _silhouette() -> bool:

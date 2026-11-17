@@ -36,8 +36,7 @@ func test_researching_an_upgrade_pays_its_cost() -> void:
 
 	assert_bool(_lab.get_research().is_researched(upgrade)).is_true()
 	assert_int(_ledger.credits).is_equal(7)
-	for race: Race.Type in upgrade.points:
-		assert_int(_ledger.get_research(race)).is_equal(1)
+	assert_int(_ledger.get_research()).is_equal(1)
 	# Researched already, a second try costs nothing.
 	_lab.research(upgrade)
 	assert_int(_ledger.credits).is_equal(7)
@@ -121,10 +120,10 @@ func test_the_research_button_is_not_outlined_for_upgrades_already_seen() -> voi
 	await _runner.simulate_frames(1)
 	assert_bool(dock.is_research_nudging()).is_false()
 
-	# Enough for more of them.
+	# More of them: what the first upgrade opens, and enough to pay for it.
+	_lab.get_research().research(_first_upgrade())
 	_ledger.credits = 100000
-	for race: Race.Type in Race.Type.values():
-		_ledger.earn_research(race, 100)
+	_ledger.earn_research(300)
 	await _runner.simulate_frames(1)
 	assert_bool(dock.is_research_nudging()).is_true()
 
@@ -267,8 +266,7 @@ func _all_required(upgrade: Upgrade) -> Array[Upgrade]:
 # Gives the player what [param upgrade] costs, with [param spare] credits over.
 func _pay_for(upgrade: Upgrade, spare: int) -> void:
 	_ledger.credits = upgrade.credits + spare
-	for race: Race.Type in upgrade.points:
-		_ledger.earn_research(race, upgrade.points[race] + (1 if spare > 0 else 0))
+	_ledger.earn_research(upgrade.points + (1 if spare > 0 else 0))
 
 
 # Esc, the pause action, through Input as a key press would come.

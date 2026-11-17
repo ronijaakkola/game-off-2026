@@ -134,8 +134,7 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 		(system.find_child("Ember") as Planet).has_lab = true
 		if "rich" in args:
 			system.get_ledger().credits = 500
-			for value: int in Race.Type.values():
-				system.get_ledger().earn_research(value as Race.Type, 20)
+			system.get_ledger().earn_research(60)
 		return
 	var research := lab.get_research()
 	for tree: ResearchTree in lab.trees:
@@ -146,9 +145,7 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 		research.open_next_stage()
 	var ledger := system.get_ledger()
 	ledger.credits = 120
-	ledger.earn_research(Race.Type.BLUE, 5)
-	ledger.earn_research(Race.Type.ORANGE, 3)
-	ledger.earn_research(Race.Type.GREEN, 11)
+	ledger.earn_research(19)
 	(system.find_child("ResourceBar") as ResourceBar).commit()
 	lab.open_screen()
 	if "plain" in args:

@@ -13,7 +13,7 @@ extends Node
 
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
-## The research points of each race the debug panel's Add research button gives.
+## The research points the debug panel's Add research button gives.
 const DEBUG_RESEARCH := 100
 ## The debug panel's group for the buttons that give credits and research points.
 const DEBUG_RESOURCES_GROUP := "Resources"
@@ -54,7 +54,7 @@ func _ready() -> void:
 	DebugPanel.add_button(DEBUG_OPEN_TEXT, open_screen, self)
 	var credits_text := "Add %d credits" % DEBUG_CREDITS
 	DebugPanel.add_button(credits_text, _debug_add_credits, self, DEBUG_RESOURCES_GROUP)
-	var research_text := "Add %d research of each" % DEBUG_RESEARCH
+	var research_text := "Add %d research" % DEBUG_RESEARCH
 	DebugPanel.add_button(research_text, _debug_add_research, self, DEBUG_RESOURCES_GROUP)
 
 
@@ -68,9 +68,9 @@ func get_credits() -> int:
 	return ledger.credits
 
 
-## The research points the player has to pay with, by race.
-func get_points() -> Dictionary[Race.Type, int]:
-	return ledger.get_all_research()
+## The research points the player has to pay with.
+func get_points() -> int:
+	return ledger.get_research()
 
 
 ## Whether the player can pay for an upgrade they couldn't pay for when they last closed
@@ -124,8 +124,8 @@ func research(upgrade: Upgrade) -> void:
 		return
 	if upgrade.credits > 0:
 		ledger.spend(upgrade.credits)
-	for race: Race.Type in upgrade.points:
-		ledger.spend_research(race, upgrade.points[race])
+	if upgrade.points > 0:
+		ledger.spend_research(upgrade.points)
 	_research.research(upgrade)
 
 
@@ -135,7 +135,6 @@ func _debug_add_credits() -> void:
 	commit()
 
 
-# The debug panel's Add research, which gives points of every race, each shown under its count.
+# The debug panel's Add research, shown under the research points' count.
 func _debug_add_research() -> void:
-	for value: int in Race.Type.values():
-		ledger.earn_research(value as Race.Type, DEBUG_RESEARCH)
+	ledger.earn_research(DEBUG_RESEARCH)

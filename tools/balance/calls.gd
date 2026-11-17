@@ -144,8 +144,7 @@ func _on_goal_ended(goal: Goal, completed: bool) -> void:
 	if completed:
 		done += 1
 		credits += _quest.reward_credits
-		for race: Race.Type in _quest.reward_research:
-			points += _quest.reward_research[race]
+		points += _quest.reward_research
 	else:
 		failed += 1
 	news.append("Quest %s: %s" % ["done" if completed else "failed", goal.get_text()])

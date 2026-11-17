@@ -259,8 +259,8 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 ### Races and research points
 
 - Every passenger is one of three races, picked at random: blue, orange or green.
-- Getting off at their destination earns one **research point** of their race, whatever their rating.
-- Each race's points are meant for one part of the bus: blue for its performance, orange for comfort on board, green for the stops.
+- Getting off at their destination earns one **research point,** whatever their race or rating.
+- **Research points are one kind.** Every tree takes them, so race never decides what the player can research, and the player keeps track of one count, not three against three trees.
 - A race must read without colour too, by the build of its head (`docs/ui.md`): with red-green colour blindness, orange and green come close.
 - Skin colour never changes with mood, since it is what shows the race.
 
@@ -280,7 +280,7 @@ Upgrades for the bus, bought with credits and research points.
 - **Researching happens only while the bus is docked or charging at a planet with a lab,** as refuelling does, and there the player researches from every tree.
 - **Each tree splits into three stages** by row: rows 1 and 2, rows 3 and 4, and the rest. The first stage is open from the start, and each **promotion** opens the next (Goals), so the third opens in Draco. The promotion that joins the systems opens none.
 - **The game is paused** while the player researches.
-- **An upgrade** has a cost in credits and research points, usually of the one race whose points are for the part of the bus it improves, so a tree can send the player looking for that race.
+- **An upgrade** has a cost in credits and research points.
 - It needs *one* of the upgrades it lists, from the same tree, and its stage open: each is a path to it. One that lists none needs only its stage.
 - Each is researched once. A bigger step of the same thing is its own upgrade after it (Tank I, then Tank II).
 - Once researched it puts modifiers on the bus's stats, gives it traits, or both.
@@ -325,10 +325,10 @@ An upgrade is in one of five states:
 
 ### The trees
 
-There are three trees, each paid for with one race's points. Frost, Terra and Giant have a lab; the rest have none.
+There are three trees, all paid for with the same research points. Frost, Terra and Giant have a lab; the rest have none.
 
 - They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that either of two branches reaches. An upgrade can need nothing even below the top row, open once its stage is. Only a stage that isn't open hides an upgrade; none is marked hidden.
-- **Costs come in levels,** the same in every tree. The first stage has two: 120 credits and 2 points on its first row, 240 and 4 on its second. After it come 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Express service on row 5 costs 800 and 10, Station cameras on row 3 costs 300 and 4. Credits come in at about 200 a minute and points of one race at 1.3, so in the first stage credits are what the player waits for. At 150 and 300 the scripted player had 8 of the stage's upgrades by minute 10, against 10 now. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
+- **Costs come in levels,** the same in every tree. The first stage has two: 120 credits and 2 points on its first row, 240 and 4 on its second. After it come 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Express service on row 5 costs 800 and 10, Station cameras on row 3 costs 300 and 4. Credits come in at about 200 a minute and research points at about 3.9, so in the first stage credits are what the player waits for. At 150 and 300 the scripted player had 8 of the stage's upgrades by minute 10, against 10 now. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
 "A ← B" means A needs B; "A ← B or C" means either one opens it.
@@ -354,7 +354,7 @@ There are three trees, each paid for with one race's points. Frost, Terra and Gi
 - **One at a time.** Nobody calls while a call rings or a quest is under way, and the wait until the next call starts only once that one has ended. Nobody calls in the first 2 s of a flight, while asleep, or within 6 s of getting off.
 - **Answering** opens their transmission, with what they ask and the reward. The quest is worked out then, from where everything is.
 - **Declining costs the caller 5 happiness,** as a shock, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
-- **A done quest pays** 30 credits and 2 research points of the caller's race, on top of the delivery.
+- **A done quest pays** 30 credits and 2 research points, on top of the delivery.
 - **A failed quest costs the caller 15 happiness,** as a shock, if they still ride: more than declining, or accepting and ignoring it would beat saying no. When a kick fails it, the kick's shock is the cost.
 - **Express.** The caller changes their mind and wants another planet to be the bus's next stop: one that isn't where they were going, where they boarded, or on the route, so it is always a detour for everyone else. Accepting changes their destination. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
   - It is done when they get off there, and fails when the bus docks at any other planet first, by a tow as much as by a course, or when they are kicked. Points in space are no stop.
@@ -416,9 +416,9 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc──
 - **The zoomed map.** Only Terra and the Moon, the map zoomed in 6.5× on Terra, so the Moon orbits 13 units out, about as far as a trip across the whole map. The bus keeps its size, speed and fuel burn, so the ride costs the time, fuel and fare a trip across the whole map does.
 - **Nothing orbits.** Terra and the Moon hold still on their orbits, still spinning, so the bus always finds them where they were and stays in view.
 - **A clear way out.** The bus starts docked on the side of Terra facing the Moon, so the straight flight there never crosses Terra.
-- **One ride, and back.** One passenger waits at Terra, going to the Moon, always a blue one, so the research point they pay is always blue. Nobody else turns up, and nobody leaves a line. Then the bus flies back to Terra to research.
+- **One ride, and back.** One passenger waits at Terra, going to the Moon, always a blue one, so every tutorial looks the same. Nobody else turns up, and nobody leaves a line. Then the bus flies back to Terra to research.
 - **A trip burns half the tank,** each way, more than the bus burns outside the tutorial, so refuelling has a reason. Fuel is free at Terra and the Moon.
-- **Just enough for the first upgrade.** The passenger pays 120 credits whatever their mood, and Fuel tank 1 costs 120 credits and 1 blue research point (not 2) until it is over.
+- **Just enough for the first upgrade.** The passenger pays 120 credits whatever their mood, and Fuel tank 1 costs 120 credits and 1 research point (not 2) until it is over.
 - **It opens on a call from their boss,** who tells them they are on a trial period. Until the player answers it and closes the transmission, the call notice's Answer is the one thing they can do: no clicks on the map or the bus bars, no pan or zoom.
 - **Each step is a guide card** (placeholder titles; what each says is in `tutorial_cards.gd`, the calls' words in `tutorial_call.gd`), most waiting for the player to do something in the game; a card that only tells them something has a Got it button, offered on purpose and rarely.
   - **The bus**, beside it. Got it moves on. Until then, still no clicks but on the card, and no pan or zoom.
@@ -498,7 +498,6 @@ Features we will very probably build, but that need more design work first.
 - **The tow's price and speed.** 100 credits, which can take the credits below zero, and 0.4 units a second over the planet's speed.
 - **Fuel and fare balance.** Fuel is about a twelfth of a fare per unit, and under 2 % of what a run earns, so where to refuel is no decision. At five times the price it is 10 % of earnings and slows research by about one upgrade in ten minutes; the tow's price would have to rise with it.
 - **Research points and rating.** A furious passenger is worth as much research as a happy one. Whether the rating should scale it (say, a point only from 3 stars up).
-- **Race and planets.** Whether a race leans toward some planets, so the player can hunt for one kind of point. Leaning no: it gets confusing quickly.
 - **Seats and waiting passengers.** 4 seats and up to 3 waiting per planet, from the prototype. With 6 seats or more a bus that keeps to two destinations leaves with one or two seats empty; 4 waiting delivers about a tenth more, and fills a bus that takes everyone with more destinations than it can serve well.
 - **Temperature's numbers** are guesses, tuned by hand. Unmeasured: how much a pass clipping the hot zone adds, and what a trip into Ember and out costs (meant to be 4 to 6°).
 - **Temperature's cost.** Over 8 seeds of 10 minutes it costs the scripted player about 8 % of deliveries and a fifth of the credits, and 3.64 stars become 3.46, with no overheats. Part of that is tows, about once in 16 minutes: going to Ember on the far side of the star, it circles just outside the heat zone chasing Ember, which takes about 40 units, and its fuel margin counts only the straight distance.

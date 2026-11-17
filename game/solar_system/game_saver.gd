@@ -131,8 +131,8 @@ func start() -> void:
 	_ledger.credits_earned.connect(_on_changed.unbind(1))
 	_ledger.credits_spent.connect(_on_changed.unbind(1))
 	_ledger.credits_set.connect(_on_changed)
-	_ledger.research_earned.connect(_on_changed.unbind(2))
-	_ledger.research_spent.connect(_on_changed.unbind(2))
+	_ledger.research_earned.connect(_on_changed.unbind(1))
+	_ledger.research_spent.connect(_on_changed.unbind(1))
 	# A new run takes over the save at once, so Continue never brings back an older one.
 	_dirty = not _continued
 

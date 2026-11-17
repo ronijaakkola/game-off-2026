@@ -1,13 +1,14 @@
 class_name ResearchColumn
 extends Control
 ## One research tree in the research screen, on a faint card of its own: its title and a
-## chip in its race's colour counting the upgrades researched of all it has, over the tree
-## drawn top to bottom, each upgrade at its tier and column, centred in the column. A line
-## runs from each upgrade to each one it requires, centre to centre under the tiles: lit
-## in the race's colour once that one is researched, a little brighter while it
-## can be researched, and faint otherwise. The parent places the rows, so every column's
-## stages line up, and tells it each upgrade's state, which each tile's tooltip says
-## ([UpgradeTooltip]). It passes on a tile held long enough; the parent researches it.
+## chip in its colour ([member ResearchTree.palette]) counting the upgrades researched of
+## all it has, over the tree drawn top to bottom, each upgrade at its tier and column,
+## centred in the column. A line runs from each upgrade to each one it requires, centre to
+## centre under the tiles: lit in the tree's colour once that one is researched, a little
+## brighter while it can be researched, and faint otherwise. The parent places the rows, so
+## every column's stages line up, and tells it each upgrade's state, which each tile's
+## tooltip says ([UpgradeTooltip]). It passes on a tile held long enough; the parent
+## researches it.
 
 ## [param upgrade]'s tile was held long enough to research it.
 signal upgrade_held(upgrade: Upgrade)
@@ -33,12 +34,11 @@ const FLASK := preload("res://shared/icons/flask_conical.svg")
 ## The full width of the card.
 const WIDTH := INNER_WIDTH + MARGIN.x * 2.0
 
-var _tree: ResearchTree
 var _buttons: Array[UpgradeButton] = []
 var _research: Research
 # What the tooltips were last filled for, so they change only when that does.
 var _credits := -1
-var _points: Dictionary[Race.Type, int] = {}
+var _points := -1
 var _count: Label
 var _card := StyleBoxFlat.new()
 
@@ -54,10 +54,8 @@ func _init() -> void:
 ## Builds [param tree], each tier's tiles at the height [param row_tops] gives it, from the
 ## top of the tiles.
 func build(tree: ResearchTree, row_tops: Array[float]) -> void:
-	_tree = tree
 	custom_minimum_size.x = WIDTH
-	var race := _race()
-	var accent: Color = Race.SKIN_COLORS[race]
+	var accent: Color = Race.SKIN_COLORS[tree.palette]
 	add_child(_make_header(tree.title, accent))
 	var columns := 0
 	for upgrade: Upgrade in tree.upgrades:
@@ -66,6 +64,7 @@ func build(tree: ResearchTree, row_tops: Array[float]) -> void:
 	var left := MARGIN.x + (INNER_WIDTH - tree_width) * 0.5
 	for upgrade: Upgrade in tree.upgrades:
 		var button := UpgradeButton.new()
+		button.palette = tree.palette
 		button.upgrade = upgrade
 		button.position = Vector2(
 			left + upgrade.column * COLUMN_PITCH, TILES_TOP + row_tops[upgrade.tier]
@@ -78,18 +77,18 @@ func build(tree: ResearchTree, row_tops: Array[float]) -> void:
 ## Shows each upgrade's state from [param research], with [param credits] and
 ## [param points] the player has. Only what changed is redrawn, so the parent can call it
 ## every frame.
-func show_state(research: Research, credits: int, points: Dictionary[Race.Type, int]) -> void:
+func show_state(research: Research, credits: int, points: int) -> void:
 	_research = research
 	var paid_with_changed := credits != _credits or points != _points
 	_credits = credits
-	_points = points.duplicate()
+	_points = points
 	var changed := false
 	var done := 0
 	for button: UpgradeButton in _buttons:
 		var upgrade := button.upgrade
 		var state := research.get_state(upgrade, credits, points)
 		var before := button.get_state()
-		button.show_state(state, _lacks_points(upgrade, points))
+		button.show_state(state, points < upgrade.points)
 		if before != state or paid_with_changed:
 			UpgradeTooltip.show(button.get_info_tooltip(), upgrade, state, credits, points)
 		changed = changed or before != state
@@ -143,26 +142,6 @@ func _draw_link(from: UpgradeButton, to: UpgradeButton) -> void:
 
 func _is_lit(upgrade: Upgrade) -> bool:
 	return _research != null and _research.is_researched(upgrade)
-
-
-func _lacks_points(upgrade: Upgrade, points: Dictionary[Race.Type, int]) -> bool:
-	for race: Race.Type in upgrade.points:
-		if points.get(race, 0) < upgrade.points[race]:
-			return true
-	return false
-
-
-# The race whose points most of the tree costs, for its chip.
-func _race() -> Race.Type:
-	var counts: Dictionary[Race.Type, int] = {}
-	for upgrade: Upgrade in _tree.upgrades:
-		var race := upgrade.get_race()
-		counts[race] = counts.get(race, 0) + 1
-	var best := Race.Type.BLUE
-	for race: Race.Type in counts:
-		if counts[race] > counts.get(best, 0):
-			best = race
-	return best
 
 
 # The title at the left and the progress chip at the right.

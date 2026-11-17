@@ -14,5 +14,5 @@ script = ExtResource("1_counter")
 layout_mode = 2
 target = NodePath("..")
 title = "Research points"
-sentence = "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
+sentence = "One for each passenger you deliver. Planets trade them for upgrades."
 gap = 14.0

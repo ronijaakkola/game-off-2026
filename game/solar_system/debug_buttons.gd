@@ -132,7 +132,7 @@ func _open_test_quest() -> void:
 	transmission.quest = "Stop the bus near"
 	transmission.quest_planet = test_flyby_planet
 	transmission.reward_credits = 40
-	transmission.reward_research = {transmission.race: 2}
+	transmission.reward_research = 2
 	transmission.accept_text = "Yes"
 	transmission.decline_text = "No"
 	transmission_panel.open(transmission)

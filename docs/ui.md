@@ -54,7 +54,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
   - **The step dots move on** a beat after the card is in (0.1 s): the current dot's size and white glide to the next dot over 0.3 s, easing in and out, the one it leaves shrinking and dimming to done. A card that opens on a later step for the first time moves on from the step before. Under Reduce motion the dots change at once.
   - **From one feature hint to the next,** as from one tutorial step to the next. The heat zone's shows above the temperature gauge, the business passenger's left of their row in the dock panel, 0.9 s after the row is in.
   - **From one tutorial step to the next,** the card closes where it is, and the next step's opens on its own target 0.25 s after it has gone, never moving between the two.
-  - The tutorial's steps show them: right of the bus; left of the waiting passenger's row, once the station card has come in; right of the On board panel, once it has come in and the passenger's card has slid into it, 0.5 s after that card starts; left of the Moon; above the Frameshift key; right of the passenger's serve button; right of their rating stars; under the resource bar once it has come in, while the credits and the blue research count breathe (growing to 115 % and back every 1.2 s, easing both ways; still under Reduce motion); left of the station's fuel button; right of Terra's lab badge, once it has popped in (0.5 s after the tank is full it fades in growing from 40 % with a slight overshoot over 0.35 s, then 0.2 s on the card; under Reduce motion it only fades); left of the station's Research button, 0.6 s after the bus docks at Terra; and in the research screen, once its sheet has grown in, right of its title, right of Fuel tank 1's tile, and left of its close button, which is off until then.
+  - The tutorial's steps show them: right of the bus; left of the waiting passenger's row, once the station card has come in; right of the On board panel, once it has come in and the passenger's card has slid into it, 0.5 s after that card starts; left of the Moon; above the Frameshift key; right of the passenger's serve button; right of their rating stars; under the resource bar once it has come in, while the credits and the research count breathe (growing to 115 % and back every 1.2 s, easing both ways; still under Reduce motion); left of the station's fuel button; right of Terra's lab badge, once it has popped in (0.5 s after the tank is full it fades in growing from 40 % with a slight overshoot over 0.35 s, then 0.2 s on the card; under Reduce motion it only fades); left of the station's Research button, 0.6 s after the bus docks at Terra; and in the research screen, once its sheet has grown in, right of its title, right of Fuel tank 1's tile, and left of its close button, which is off until then.
 - The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
 
 ### Pointer
@@ -80,7 +80,8 @@ A race shows in two ways, so it reads without colour: its skin colour, and the b
 | Green | `#99e673` | `#296138` | Middle: a thin neck, eyes out on the ends of things | Stalks; the Hammer, eyes on the ends of a bar |
 
 - With red-green colour blindness, orange and green both turn yellowish. They stay apart because the orange is darker and the green lighter, and their builds are the most different pair.
-- A race's colour marks whatever belongs to that passenger or that race's points: their trip arc, their row's border, a tree's accent.
+- A race's colour marks whatever belongs to that passenger: their trip arc, their row's border. Each research tree is drawn in one race's colours too, only to tell the trees apart: Performance blue, Stops green, Comfort orange.
+- **Research points** are a light violet (`c3a6ff`), wherever they show: their flask, the chip tinted behind them, a gain of them. No race has it, since points are one kind.
 - The planets' hues aren't final: the Giant and Terra come close to the races' colours.
 
 ### Reduce motion
@@ -178,7 +179,7 @@ A stamp of a few words with an icon that lands over the bus when something about
 A frosted-glass pill with a thin border and no shadow: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
 
 - **Credits:** beside a gold dollar sign, with a comma between thousands (12,480). The pointer over it shows a tooltip: "Credits", "Fares you have earned. Fuel and tows cost credits."
-- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour, in the research screen's order: blue, green, orange. The pointer over them shows a tooltip: "Research points", "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
+- **Research:** a flask and the count, on a chip tinted in the research points' violet. The pointer over it shows a tooltip: "Research points", "One for each passenger you deliver. Planets trade them for upgrades."
 - **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: "Recent rating", "Your last 10 rides. A higher rating brings more Business passengers."
 - **Gains and losses** show on chips hanging 4 px under the pill, centred under their number and taking no room in it: a solid dark chip (the tooltip's fill) 18 px tall with 8 px corners, a thin border in the change's colour and 12 px digits. Green "+15", red "-12", grouped as the totals are ("+1,000").
 - A chip slides 6 px down from the pill's edge while fading in, in 0.15 s, easing out, and leaves the same way back, easing in. When its number changes it dips 2 px and comes back in 0.12 s. It sits on whole pixels and nothing scales. Under Reduce motion it only fades.
@@ -186,8 +187,8 @@ A frosted-glass pill with a thin border and no shadow: what is behind it shows b
 - Spending shows at once and goes in the way a gain does: 0.6 s after the last of it, the loss leaves while the total counts down in red, together with the chips of any points spent with it. More spent meanwhile adds to it. While a gain waits, the loss sits left of it, so the gain stays put and neither reaches under the research counts.
 - The total never jumps. A count starts from what the total shows, so a change that comes during one carries on from there, and a stop ending while a loss waits takes both in at once, counting to what is left.
 - **The rating** does the same: each one shows how far the average moved ("+0.2", "-0.3", "±0.0" in grey), and the average moves in that colour. The very first just appears with a pop.
-- **Research.** A point shows as "+1" in its race's colour under its count until the stop's chips leave. Another change the same way meanwhile adds to it ("+2"). Points spent show the same way, in red, for 0.6 s.
-- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 264 px and first changes at 1,000 credits or 100 points.
+- **Research.** A point shows as "+1" in the points' violet under the count until the stop's chips leave. Another change the same way meanwhile adds to it ("+2"). Points spent show the same way, in red, for 0.6 s.
+- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 176 px and first changes at 1,000 credits or 100 points.
 - When a number gains or loses a digit, the pill stays centred and glides to the new width in 0.3 s, easing out. A count makes room for its widest number before it starts, so the pill changes width once per count.
 - Under Reduce motion nothing pops or drifts, and the width changes at once.
 
@@ -225,7 +226,7 @@ In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
 - **Deliver 50 passengers:** the count ("12/50"), and the bar fills with it.
 - **Maintain 3.5 rating:** the recent rating ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
-- **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Go straight to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and each race's research points by a flask in its colour.
+- **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Go straight to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and the research points by a violet flask.
 - **A done quest:** the green tick.
 - **A failed quest:** a red cross (`#F24D66`), the top line at half strength, no reward, and why it failed in the name's place ("Stopped at Moon first", "Reizhis was kicked", "Reizhis left the bus").
 - A finished quest's row stays 8 s, then goes.
@@ -354,7 +355,7 @@ A frosted-glass modal, 552 px wide, in the middle of the screen over a dark scri
 - It looks like an old tube at all times: fine dark scanlines, a dark rim, faint grey snow and a soft bright band rolling down.
 - **Turning on.** It opens dark; a white line opens across the middle and the picture opens out from it in 0.9 s under a burst of static that settles to the faint snow. Answering closes the picture to a line and the line to nothing in 0.4 s; only once the screen is dark, after a short beat, does the modal fade and shrink a little (to 98 %) in 0.2 s.
 - **Beside it:** a phone icon and "Incoming transmission", faint; the caller's name, large; a passenger's destination at the right (arrow, planet icon, name); what they say, in Figtree 13 px. The text starts 4 px down, level with the coloured frame rather than the bezel. Money in what they say (a `[money]` tag) is in the dollar sign's gold, its letters bobbing 1.5 px one after another, with a pale glint running along it every 2.4 s; under Reduce motion it is only gold. A shouted word (a `[shout]` tag) shakes, each letter jumping up to 1.2 px on its own 18 times a second; under Reduce motion it holds still.
-- **A quest** adds a faint row under the text: a flag, its line ("Stop the bus near") and a planet. Over the buttons sits the reward, right-aligned: "Reward", the credits in the gain's green by a gold dollar sign, and a chip per race's research points.
+- **A quest** adds a faint row under the text: a flag, its line ("Stop the bus near") and a planet. Over the buttons sits the reward, right-aligned: "Reward", the credits in the gain's green by a gold dollar sign, and the research points on a violet chip.
 - **Buttons:** a message has one primary button ("Got it"); a quest has a quiet "No" and a primary "Yes". A message can also offer two answers that mean the same, as the boss's calls in the tutorial do: two primary buttons sharing the row equally.
 - **Opening.** The scrim and modal fade in as the modal grows from 96 % in 0.4 s while the tube turns on. A beat after the picture is up, the caller says their text a letter at a time at a speaking pace, about 25 a second for most races (each race's voice can run faster or slower) and never quite even, with a beat between words, a pause at a comma and a longer one at a full stop. Their head bobs as if with each word, stilling in the pauses, and their eyes stay on the player. After a 0.4 s pause to finish reading, the quest, the reward and the buttons fade in and rise into place one after another, 0.18 s apart over 0.5 s each, the quest rising most (8 px) and the buttons least (4 px). The buttons take clicks only once they start to show. A click on the modal before that shows the text whole and brings the rest in at once, with a tight stagger and no pause.
 - **Voice.** As the text types, the caller's race's clips play, tied to the words: each word of three or more letters gets a blip as it starts, picked to fit the time before the next word, and a long word gets a second one halfway. The word before a question or exclamation mark gets that mark's clip instead, timed to end as the mark shows. A long clip sometimes opens the line or sits at a comma or full stop, and holds the blips off until it is over. A clip never plays twice running, and its pitch varies a little. Each race has several voices, evenly spaced in pitch, and each caller's name picks one, so callers of a race sound clearly different. A clip may start a little before the last one ends, so two stack for a moment; a blip that would stack more is skipped, and an ending or a long clip fades out what it would stack on. Every clip fades in and out over a few milliseconds. A happy or annoyed caller opens with a stinger.
@@ -389,20 +390,20 @@ A modal over the whole screen, the game paused and dimmed under it: one frosted 
 - **Header:** a flask and "Research", a "Game paused" tag with a pause icon, the resource bar in the middle, and a Close button with an ✕. Esc closes it too, unless the pause menu is open over it.
 - **Opening** fades it in over 0.2 s while the sheet grows from 97 % to full size in 0.25 s. **Closing** lets the game run at once and fades it out in 0.15 s. Under Reduce motion it only fades.
 - While it is open, the HUD's resource bar hides; the header has its own.
-- **The trees** stand side by side, each on a faint card with its name ("Performance", "Stops", "Comfort") and a chip in its race's colour counting what is researched ("3/11").
+- **The trees** stand side by side, each on a faint card with its name ("Performance", "Stops", "Comfort") and a chip in its colour counting what is researched ("3/11").
 - Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral in its top left corner.
 - **Stages.** The rows of every tree line up, with more room between two stages and a faint line across all the trees there. While the stage under it is shut, a "Requires promotion" tag with a lock sits in the middle of the line.
 - **A stage opening** shows the next time the screen is open, once it has faded in: the tag fades off the line in 0.2 s and the line closes up, and the stage's tiles fade in from silhouettes over 0.3 s, each row 40 ms after the one above.
-- A line runs from each upgrade to each one it needs, centre to centre: lit in the race's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
-- **The colours** are those of the race whose points the upgrade costs most.
+- A line runs from each upgrade to each one it needs, centre to centre: lit in the tree's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
+- **The colours** are the tree's: one race's, Performance blue, Stops green, Comfort orange.
 
 Every tile is flat, with no gradient, glow or shadow, and each state has its own fill.
 
 | Tile | Look |
 |---|---|
-| Researched | A solid fill in the race's colour; the icon and numeral in its deep shade |
-| Available | Dark, tinted toward the race's colour, with a 2 px border in it; a white icon |
-| Can't afford | Dark with a faint border in the race's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
+| Researched | A solid fill in the tree's colour; the icon and numeral in its deep shade |
+| Available | Dark, tinted toward the tree's colour, with a 2 px border in it; a white icon |
+| Can't afford | Dark with a faint border in the tree's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
 | Locked | Dark and dim, with a thin grey outline |
 | Hidden, or its stage shut | Near-black with no border, and a faint silhouette of its icon |
 
