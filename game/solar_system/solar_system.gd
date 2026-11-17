@@ -325,6 +325,8 @@ func _start_passengers() -> void:
 	(%Goals as GoalTracker).ledger = _ledger
 	var progression := %Progression as Progression
 	progression.ledger = _ledger
+	# Playtest build only: meeting the goals ends on The Boss's call, not a promotion.
+	progression.promotes = false
 	if not (%MapZoom as MapZoom).is_zoomed():
 		progression.start()
 	var lab := %ResearchLab as ResearchLab
