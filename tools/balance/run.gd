@@ -322,7 +322,7 @@ func _upgrade_rows(here: Planet) -> Array[Dictionary]:
 		for i: int in tree.upgrades.size():
 			var upgrade := tree.upgrades[i]
 			var state := research.get_state(upgrade, _ledger.credits, _ledger.get_research())
-			if state == Research.State.HIDDEN or state == Research.State.NEEDS_PROMOTION:
+			if state == Research.State.HIDDEN or state == Research.State.SHUT:
 				continue
 			var seats := 0
 			for modifier: StatModifier in upgrade.modifiers:

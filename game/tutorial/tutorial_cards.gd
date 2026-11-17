@@ -5,7 +5,7 @@ extends RefCounted
 ## from one target to the next. [constant CARDS] has each card, by the name of the step it
 ## is on ([enum Tutorial.Step]): its title, what it says, the side of its target it sits
 ## on, and whether it has a Got it button, which only a card that just tells the player
-## something has. {home} and
+## something has. The [ResearchGuide] opens its own cards through it the same way. {home} and
 ## {destination} stand for the planets' names, {stars} for the rating the passenger gave.
 ## The titles are placeholders.
 
@@ -119,71 +119,18 @@ const CARDS := {
 		side = GuideCard.Side.LEFT,
 		got_it = false,
 	},
-	"LAB_ROUTE":
-	{
-		title = "Research",
-		text =
-		(
-			"Now that we got some research points, let's spend them! You can only research at certain "
-			+ "planets, but luckily {home} has a research lab that you can see from this icon. Right "
-			+ "click {home} to set it as our destination."
-		),
-		side = GuideCard.Side.RIGHT,
-		got_it = false,
-	},
-	"LAB":
-	{
-		title = "Services",
-		text =
-		(
-			"Here you can see services the planet has to offer. Click here to open the "
-			+ "research lab."
-		),
-		side = GuideCard.Side.LEFT,
-		got_it = false,
-	},
-	"RESEARCH":
-	{
-		title = "The research lab",
-		text =
-		(
-			"Welcome to the research lab. Here you can spend research points to upgrade your bus, "
-			+ "stations at all planets, and the comfort-level of your bus."
-		),
-		side = GuideCard.Side.RIGHT,
-		got_it = true,
-	},
-	"UPGRADE":
-	{
-		title = "An upgrade",
-		text =
-		(
-			"This one we can afford. It upgrades the fuel tank of your bus. Press and hold "
-			+ "it to research it."
-		),
-		side = GuideCard.Side.RIGHT,
-		got_it = false,
-	},
-	"CLOSE":
-	{
-		title = "Close the lab",
-		text =
-		(
-			"Make sure to check the lab regularly to see if you could improve your services. "
-			+ "Now, let's close the lab view."
-		),
-		side = GuideCard.Side.LEFT,
-		got_it = false,
-	},
 }
 
 var _guide: GuideCard
+var _cards: Dictionary
 # The step whose card is open or on its way, or empty for none.
 var _open_for := ""
 
 
-func _init(guide: GuideCard) -> void:
+## Opens cards on [param guide]: the tutorial's, or [param cards] in the same shape.
+func _init(guide: GuideCard, cards: Dictionary = CARDS) -> void:
 	_guide = guide
+	_cards = cards
 
 
 ## Opens [param step]'s card on [param target], or on [member GuideCard.target_rect] when
@@ -196,7 +143,7 @@ func open(step: String, target: Control, names: Dictionary) -> void:
 		await _guide.get_tree().create_timer(GAP).timeout
 		if _open_for != step:
 			return
-	var card: Dictionary = CARDS[step]
+	var card: Dictionary = _cards[step]
 	_guide.target = target
 	_guide.title = card.title
 	_guide.text = (card.text as String).format(names)

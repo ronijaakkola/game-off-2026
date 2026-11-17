@@ -59,6 +59,8 @@
 [ext_resource type="Script" uid="uid://bbous2naro572" path="res://game/feature_hints/feature_hints.gd" id="141_hints"]
 [ext_resource type="Script" uid="uid://d0yafx2jib6ve" path="res://game/feature_hints/business_hint.gd" id="142_business_hint"]
 [ext_resource type="PackedScene" uid="uid://dhfaboh7sticu" path="res://ui/pause_menu/pause_button.tscn" id="143_pause_button"]
+[ext_resource type="Script" uid="uid://bh8bscq7fi6lc" path="res://game/research/mechanic_call.gd" id="144_mechanic_call"]
+[ext_resource type="Script" uid="uid://cpcbx8tu81xmd" path="res://game/research/research_guide.gd" id="145_research_guide"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -153,7 +155,7 @@ bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 
-[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "map_zoom", "lab_badges", "research_lab", "research_screen", "pause_menu", "guide")]
+[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "map_zoom", "lab_badges", "pause_menu", "guide")]
 unique_name_in_owner = true
 script = ExtResource("112_tutorial")
 bus = NodePath("../Bus")
@@ -171,8 +173,6 @@ hud = NodePath("../Hud")
 rig = NodePath("../CameraRig")
 map_zoom = NodePath("../MapZoom")
 lab_badges = NodePath("../Hud/LabBadges")
-research_lab = NodePath("../ResearchLab")
-research_screen = NodePath("../Hud/ResearchScreen")
 pause_menu = NodePath("../PauseMenu")
 guide = NodePath("../Hud/GuideCard")
 
@@ -214,6 +214,31 @@ goals = NodePath("../Goals")
 notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
 quest_giver = NodePath("../QuestGiver")
+
+[node name="MechanicCall" type="Node" parent="." unique_id=475023092 node_paths=PackedStringArray("research_lab", "star_map", "notices", "transmission_panel", "quest_giver", "cabin", "system_jump", "lab_badges", "dock_panel")]
+unique_name_in_owner = true
+script = ExtResource("144_mechanic_call")
+research_lab = NodePath("../ResearchLab")
+star_map = NodePath("../StarMap")
+notices = NodePath("../Hud/Notices")
+transmission_panel = NodePath("../TransmissionPanel")
+quest_giver = NodePath("../QuestGiver")
+cabin = NodePath("../Cabin")
+system_jump = NodePath("../SystemJump")
+lab_badges = NodePath("../Hud/LabBadges")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+
+[node name="ResearchGuide" type="Node" parent="." unique_id=1846885118 node_paths=PackedStringArray("mechanic", "bus", "star_map", "dock_panel", "lab_badges", "research_lab", "research_screen", "guide", "saver")]
+script = ExtResource("145_research_guide")
+mechanic = NodePath("../MechanicCall")
+bus = NodePath("../Bus")
+star_map = NodePath("../StarMap")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+lab_badges = NodePath("../Hud/LabBadges")
+research_lab = NodePath("../ResearchLab")
+research_screen = NodePath("../Hud/ResearchScreen")
+guide = NodePath("../Hud/GuideCard")
+saver = NodePath("../GameSaver")
 
 [node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quest_giver", "test_destination", "test_flyby_planet")]
 script = ExtResource("103_debug")
@@ -290,12 +315,11 @@ types = Array[ExtResource("16_type")]([ExtResource("15_commuter")])
 business = ExtResource("15_business")
 bus = NodePath("../Bus")
 
-[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "research_lab", "waiting", "quest_giver", "notices", "bus", "cabin", "dock_panel", "system_jump", "saver")]
+[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "notices", "bus", "cabin", "dock_panel", "system_jump", "saver")]
 unique_name_in_owner = true
 script = ExtResource("118_progression")
 star_map = NodePath("../StarMap")
 goals = NodePath("../Goals")
-research_lab = NodePath("../ResearchLab")
 waiting = NodePath("../WaitingPassengers")
 quest_giver = NodePath("../QuestGiver")
 notices = NodePath("../Hud/Notices")

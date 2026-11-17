@@ -56,6 +56,7 @@ theme_override_constants/margin_bottom = 24
 [node name="Sheet" type="PanelContainer" parent="Margin" unique_id=1837199431]
 material = ExtResource("3_glass")
 layout_mode = 2
+size_flags_vertical = 4
 theme_type_variation = &"SheetPanel"
 
 [node name="Pad" type="MarginContainer" parent="Margin/Sheet" unique_id=1631119581]

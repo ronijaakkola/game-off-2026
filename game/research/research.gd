@@ -1,16 +1,21 @@
 class_name Research
 extends RefCounted
-## Which [Upgrade]s the player has researched, from every research tree, which of the
-## three stages are open, and the state each upgrade shows in its tree. Each tree splits
-## into stages by row ([method get_stage]); the first is open from the start, and each
-## promotion opens the next ([method open_next_stage]). [method research] applies an
-## upgrade's modifiers and traits to the bus's [BusStats]; whoever calls it takes the cost
-## off first.
+## Which [Upgrade]s the player has researched, from every research tree, which trees and
+## which of the three stages are open, and the state each upgrade shows in its tree. Each
+## tree splits into stages by row ([method get_stage]). An upgrade is open once its tree
+## and its stage both are: the trees open one at a time, in order, on the first stage
+## ([method open_next_tree]), and each next stage opens in every tree at once, opening
+## every tree with it ([method open_next_stage]). The mechanic's calls open both
+## ([MechanicCall]). An upgrade in no tree it was given counts as in an open tree.
+## [method research] applies an upgrade's modifiers and traits to the bus's [BusStats];
+## whoever calls it takes the cost off first.
 
 ## [param upgrade] was researched, and its effects are on the bus.
 signal researched(upgrade: Upgrade)
 ## [param stage] opened, counting from 0.
 signal stage_opened(stage: int)
+## [param tree] opened.
+signal tree_opened(tree: ResearchTree)
 
 ## How an upgrade shows in its tree.
 enum State {
@@ -24,8 +29,8 @@ enum State {
 	UNAFFORDABLE,
 	## Researched: its effects are on the bus.
 	RESEARCHED,
-	## In a stage that isn't open yet: it needs a promotion. A silhouette, as a hidden one.
-	NEEDS_PROMOTION,
+	## Its tree or its stage isn't open yet: the research screen leaves it out.
+	SHUT,
 }
 
 ## How many stages each tree splits into.
@@ -34,12 +39,21 @@ const STAGES := 3
 const ROWS_PER_STAGE := 2
 
 var _stats: BusStats
+var _trees: Array[ResearchTree] = []
+# Each upgrade's tree, by its place in [member _trees].
+var _tree_of: Dictionary[Upgrade, int] = {}
 var _researched: Dictionary[Upgrade, bool] = {}
 var _open_stages := 1
+var _open_trees := 0
 
 
-func _init(stats: BusStats) -> void:
+## The bus's [param stats], and every tree, in the order they open.
+func _init(stats: BusStats, trees: Array[ResearchTree] = []) -> void:
 	_stats = stats
+	_trees = trees.duplicate()
+	for i: int in _trees.size():
+		for upgrade: Upgrade in _trees[i].upgrades:
+			_tree_of[upgrade] = i
 
 
 ## The stage [param upgrade] is in, counting from 0, by its row in its tree.
@@ -78,10 +92,44 @@ func get_open_stages() -> int:
 	return _open_stages
 
 
-## Opens the next stage, as a promotion does. With every stage open, it does nothing.
+## Whether [param tree] is open.
+func is_tree_open(tree: ResearchTree) -> bool:
+	var index := _trees.find(tree)
+	return index < 0 or index < _open_trees
+
+
+## How many trees are open, from the first.
+func get_open_trees() -> int:
+	return _open_trees
+
+
+## The tree that opens next, or null with every tree open.
+func get_next_tree() -> ResearchTree:
+	return _trees[_open_trees] if _open_trees < _trees.size() else null
+
+
+## Whether [param upgrade]'s tree and its stage are both open.
+func is_open(upgrade: Upgrade) -> bool:
+	if _tree_of.get(upgrade, -1) >= _open_trees:
+		return false
+	return is_stage_open(get_stage(upgrade))
+
+
+## Opens the next tree on the open stages. With every tree open, it does nothing.
+func open_next_tree() -> void:
+	if _open_trees >= _trees.size():
+		return
+	_open_trees += 1
+	tree_opened.emit(_trees[_open_trees - 1])
+
+
+## Opens the next stage in every tree, and every tree not open yet. With every stage open,
+## it does nothing.
 func open_next_stage() -> void:
 	if _open_stages >= STAGES:
 		return
+	while _open_trees < _trees.size():
+		open_next_tree()
 	_open_stages += 1
 	stage_opened.emit(_open_stages - 1)
 
@@ -91,8 +139,8 @@ func open_next_stage() -> void:
 func get_state(upgrade: Upgrade, credits: int, points: int) -> State:
 	if is_researched(upgrade):
 		return State.RESEARCHED
-	if not is_stage_open(get_stage(upgrade)):
-		return State.NEEDS_PROMOTION
+	if not is_open(upgrade):
+		return State.SHUT
 	if not is_unlocked(upgrade):
 		return State.HIDDEN if upgrade.hidden else State.LOCKED
 	if not upgrade.can_afford(credits, points):

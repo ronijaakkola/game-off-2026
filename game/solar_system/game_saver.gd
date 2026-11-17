@@ -7,10 +7,10 @@ extends Node
 ## at a planet with no stop under way. A new run saves at once, over any save, and starts
 ## docked at [member new_run_planet]. A continued run starts docked at the planet it was
 ## saved at, so quitting in flight loses only the flight. It keeps where each planet is on
-## its orbit, the bus's planet and fuel, the [Ledger], the researched upgrades and open
-## research stages, the passengers on board and in every line, the goals' progress, the
-## quest under way and how far through the star systems the player has got. The course,
-## the charge and what passengers were doing start afresh.
+## its orbit, the bus's planet and fuel, the [Ledger], the researched upgrades and the open
+## research trees and stages, the passengers on board and in every line, the goals'
+## progress, the quest under way and how far through the star systems the player has got.
+## The course, the charge and what passengers were doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
@@ -34,7 +34,7 @@ const PLANET_TREES: Dictionary[String, String] = {
 @export var goals: GoalTracker
 ## Whose quest under way is kept.
 @export var quest_giver: QuestGiver
-## Which upgrades are researched, which stages are open, and every research tree.
+## Which upgrades are researched, which trees and stages are open, and every research tree.
 @export var research_lab: ResearchLab
 ## Which star systems are open and joined. The bus's planet says which one it works in.
 @export var star_map: StarMap
@@ -128,6 +128,7 @@ func start() -> void:
 		star_map.changed.connect(_on_changed)
 	research_lab.get_research().researched.connect(_on_changed.unbind(1))
 	research_lab.get_research().stage_opened.connect(_on_changed.unbind(1))
+	research_lab.get_research().tree_opened.connect(_on_changed.unbind(1))
 	_ledger.credits_earned.connect(_on_changed.unbind(1))
 	_ledger.credits_spent.connect(_on_changed.unbind(1))
 	_ledger.credits_set.connect(_on_changed)
@@ -167,6 +168,7 @@ func _write() -> void:
 		"ledger": _ledger.to_save(),
 		"research": researched,
 		"research_stages": research.get_open_stages(),
+		"research_trees": research.get_open_trees(),
 		"star_map": star_map.to_save() if star_map else {},
 		"cabin": on_board,
 		"lines": lines,
@@ -188,6 +190,10 @@ func _restore() -> void:
 			research.research(upgrades[found])
 	for stage: int in range(1, int(_saved.get("research_stages", 1))):
 		research.open_next_stage()
+	# A save from before the trees opened one at a time had every tree open.
+	var trees := int(_saved.get("research_trees", research_lab.trees.size()))
+	while research.get_open_trees() < trees and research.get_next_tree():
+		research.open_next_tree()
 	var tank := bus.get_fuel_tank()
 	tank.fuel = clampf(float(_saved.get("fuel", tank.capacity)), 0.0, tank.capacity)
 	var by_name := _get_planets_by_name()

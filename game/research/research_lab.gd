@@ -6,10 +6,9 @@ extends Node
 ## credits and research points off first. Which planets open the screen is the dock
 ## panel's to say: those with a lab ([member Planet.has_lab]). It adds the debug panel's
 ## Resources buttons, which give credits and research points for testing, and its Open
-## research button, which opens the screen from anywhere. While [member restricted], as in
-## the tutorial, only [member researchable] upgrades can be researched. It remembers which
-## upgrades the player could pay for when they last closed the screen, so the dock panel
-## nudges only when that has changed ([method has_unseen_upgrade]).
+## research button, which opens the screen from anywhere. It remembers which upgrades the
+## player could pay for when they last closed the screen, so the dock panel nudges only when
+## that has changed ([method has_unseen_upgrade]).
 
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
@@ -36,17 +35,13 @@ var ledger: Ledger:
 		if research_screen:
 			research_screen.ledger = value
 
-## Whether only [member researchable] upgrades can be researched.
-var restricted := false
-var researchable: Array[Upgrade] = []
-
 var _research: Research
 # The upgrades the player could pay for when they last closed the screen.
 var _seen: Array[Upgrade] = []
 
 
 func _ready() -> void:
-	_research = Research.new(bus.get_stats())
+	_research = Research.new(bus.get_stats(), trees)
 	research_screen.research = _research
 	research_screen.upgrade_held.connect(research)
 	research_screen.closed.connect(resource_bar.show)
@@ -58,7 +53,7 @@ func _ready() -> void:
 	DebugPanel.add_button(research_text, _debug_add_research, self, DEBUG_RESOURCES_GROUP)
 
 
-## Which upgrades are researched, and which stages are open.
+## Which upgrades are researched, and which trees and stages are open.
 func get_research() -> Research:
 	return _research
 
@@ -118,8 +113,6 @@ func commit() -> void:
 ## Researches [param upgrade] when it is available, paying its cost. Otherwise it does
 ## nothing.
 func research(upgrade: Upgrade) -> void:
-	if restricted and upgrade not in researchable:
-		return
 	if _research.get_state(upgrade, get_credits(), get_points()) != Research.State.AVAILABLE:
 		return
 	if upgrade.credits > 0:

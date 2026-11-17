@@ -2,92 +2,58 @@ class_name TutorialRules
 extends RefCounted
 ## What the [Tutorial] changes about the game while it runs, and puts back once it is over
 ## ([method lift]): what the HUD holds back, what the player can't do, and the numbers that
-## make the ride teach what it should. Only home's lab badge can show. The station has no
-## fuel button until the tutorial shows it, and that one is off until it says so, nor a
-## Board all or Research button, the On board panel holds arrivals and offers no
-## kicks. Fuel is free at home and the
-## destination, a trip between them burns half the tank ([method set_trip_burn]), and the
-## passenger pays [constant FARE] ([method hold_fare]), so the player has just what Fuel
-## tank 1 costs, which is one research point. Nothing can be researched until the
-## tutorial says what ([member ResearchLab.researchable]).
+## make the ride teach what it should. The lab badges hide. The station has no fuel button
+## until the tutorial shows it, and that one is off until it says so, nor a Board all or
+## Research button, and the On board panel holds arrivals and offers no kicks. Fuel is free
+## at home and the destination, a trip between them burns half the tank
+## ([method set_trip_burn]), and the passenger pays [constant FARE] ([method hold_fare]).
+## The lab badges and the Research button stay hidden once it is over, until the mechanic
+## opens research ([MechanicCall]).
 
 ## What the passenger pays.
 const FARE := 120.0
 ## The share of the tank a trip between home and the destination burns.
 const TRIP_FUEL := 0.5
-## The upgrade the tutorial researches, and what it costs in research points then.
-const FUEL_TANK := "Fuel tank 1"
-const FUEL_TANK_POINTS := 1
 
 var _tutorial: Tutorial
 # What it changed, as it was.
 var _burn := 0.0
 var _prices: Dictionary[Planet, float] = {}
-var _fuel_tank: Upgrade
-# What the upgrade costs in research points outside the tutorial, or -1 while unchanged.
-var _fuel_tank_points := -1
 
 
 func _init(tutorial: Tutorial) -> void:
 	_tutorial = tutorial
-	for tree: ResearchTree in tutorial.research_lab.trees:
-		for upgrade: Upgrade in tree.upgrades:
-			if upgrade.title == FUEL_TANK:
-				_fuel_tank = upgrade
 
 
 ## Changes the game for the tutorial.
 func apply() -> void:
 	var t := _tutorial
 	t.lab_badges.hide()
-	t.lab_badges.only = [t.home]
 	t.dock_panel.research_hidden = true
 	t.dock_panel.fuel_hidden = true
 	t.dock_panel.fuel_locked = true
 	t.dock_panel.board_all_hidden = true
 	t.passenger_panel.arrivals_held = true
 	t.passenger_panel.kicks_allowed = false
-	t.research_lab.restricted = true
 	_burn = t.bus.get_fuel_tank().burn_per_unit
 	for planet: Planet in [t.home, t.destination]:
 		_prices[planet] = planet.fuel_price
 		planet.fuel_price = 0.0
-	if _fuel_tank:
-		_fuel_tank_points = _fuel_tank.points
-		_fuel_tank.points = FUEL_TANK_POINTS
 
 
 ## Puts the game back as it was, and fills the tank, so the run proper starts full
 ## however much the tutorial's trips burnt.
 func lift() -> void:
 	var t := _tutorial
-	t.lab_badges.only = []
-	t.dock_panel.research_hidden = false
 	t.dock_panel.fuel_hidden = false
 	t.dock_panel.fuel_locked = false
 	t.dock_panel.board_all_hidden = false
 	t.passenger_panel.arrivals_held = false
 	t.passenger_panel.kicks_allowed = true
-	t.research_lab.restricted = false
-	t.research_lab.researchable = []
-	t.research_screen.close_locked = false
 	t.bus.get_fuel_tank().burn_per_unit = _burn
 	t.bus.get_fuel_tank().fill()
 	for planet: Planet in _prices:
 		planet.fuel_price = _prices[planet]
-	put_back_upgrade()
-
-
-## Puts Fuel tank 1's cost back. The upgrade is shared, and outlives the scene, so this
-## runs even when the scene goes mid-tutorial.
-func put_back_upgrade() -> void:
-	if _fuel_tank and _fuel_tank_points >= 0:
-		_fuel_tank.points = _fuel_tank_points
-
-
-## The upgrade the tutorial researches, or null when no tree has it.
-func get_fuel_tank() -> Upgrade:
-	return _fuel_tank
 
 
 ## Burns fuel so that the way from where the bus is to where it docks at [param goal] takes

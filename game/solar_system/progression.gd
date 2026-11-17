@@ -2,11 +2,12 @@ class_name Progression
 extends Node
 ## The player's way through the star systems ([StarMap]). Each system gives the goals a
 ## promotion takes there, and once they are all met at once, and still are a moment later,
-## the player is promoted: the goals go, the next research stage opens, and the next system
-## opens. Then the dock panel offers to jump there, which it allows only with nobody on
-## board, and the [SystemJump] takes the bus across. There the lines start at the new
-## system's planets and its goals come. The promotion in the last system joins every system
-## instead: lines start at every planet, passengers go anywhere, and the last goals come.
+## the player is promoted: the goals go, and the next system opens. Then the dock panel
+## offers to jump there, which it allows only with nobody on board, and the [SystemJump]
+## takes the bus across. There the lines start at the new system's planets and its goals
+## come, and the mechanic calls with the next research stage ([MechanicCall]). The promotion
+## in the last system joins every system instead: lines start at every planet, passengers go
+## anywhere, and the last goals come.
 ## The debug panel's Star systems card promotes at once, or completes the system: promoted,
 ## the bus jumps to the next one at once, from wherever it is, kicking anyone on board.
 
@@ -31,8 +32,6 @@ const DEBUG_GROUP := "Star systems"
 @export var star_map: StarMap
 ## The goals a promotion takes.
 @export var goals: GoalTracker
-## Opens the next research stage on a promotion.
-@export var research_lab: ResearchLab
 @export var waiting: WaitingPassengers
 @export var quest_giver: QuestGiver
 @export var notices: NoticeStack
@@ -47,7 +46,7 @@ const DEBUG_GROUP := "Star systems"
 ## The player's credits and ratings, for the quests. The parent sets it.
 var ledger: Ledger
 ## Whether meeting every goal promotes. A balance run (`tools/balance.py`) turns it off, so
-## it plays on the first research stage throughout.
+## it plays in the first system throughout.
 var promotes := true
 
 var _started := false
@@ -91,15 +90,14 @@ func start() -> void:
 		_add_goals()
 
 
-## Promotes the player: the goals go, the next research stage opens, and the next star
-## system opens, or every system joins after the last one.
+## Promotes the player: the goals go, and the next star system opens, or every system
+## joins after the last one.
 func promote() -> void:
 	if star_map.is_joined():
 		return
 	_until_promotion = -1.0
 	for goal: Goal in goals.get_goals():
 		goals.remove(goal)
-	research_lab.get_research().open_next_stage()
 	star_map.promote()
 	if star_map.is_joined():
 		_join()
