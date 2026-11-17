@@ -11,8 +11,9 @@ func test_the_preview_shows_each_race_s_heads_with_their_eyes_in_its_colour() ->
 	await runner.simulate_frames(2)
 
 	var portraits := runner.find_child("Portraits").get_children()
-	assert_int(portraits.size()).is_equal(12)
-	# Two rows per race, one per eye style: Dome and Bean, Blob and Mound, Stalks and Hammer.
+	assert_int(portraits.size()).is_equal(24)
+	# Two rows per race, one per eye style: Dome and Bean, Blob and Mound, Stalks and Hammer,
+	# plain and then in a bow tie.
 	var eye_counts: Array[int] = []
 	for node: Node in portraits:
 		var portrait := node as AlienPortrait
@@ -22,9 +23,12 @@ func test_the_preview_shows_each_race_s_heads_with_their_eyes_in_its_colour() ->
 		)
 		var skin := head.get_surface_override_material(0) as ShaderMaterial
 		assert_that(skin.get_shader_parameter(&"color")).is_equal(portrait.skin_color)
-	var blue: Array[int] = [2, 2]
-	var orange: Array[int] = [1, 2]
-	var green: Array[int] = [2, 2]
+		var ties := portrait.find_children("*Tie", "MeshInstance3D", true, false)
+		assert_int(ties.size()).is_equal(1)
+		assert_bool((ties[0] as MeshInstance3D).visible).is_equal(portrait.wears_bow_tie)
+	var blue: Array[int] = [2, 2, 2, 2]
+	var orange: Array[int] = [1, 2, 1, 2]
+	var green: Array[int] = [2, 2, 2, 2]
 	assert_array(eye_counts).is_equal(blue + blue + orange + orange + green + green)
 
 

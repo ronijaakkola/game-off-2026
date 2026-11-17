@@ -69,6 +69,7 @@ func show_caller(transmission: Transmission) -> void:
 	_portrait = PORTRAIT.instantiate() as AlienPortrait
 	_portrait.head_model = transmission.look.head
 	_portrait.eye_style = transmission.look.eye_style
+	_portrait.wears_bow_tie = transmission.type and transmission.type.wears_bow_tie
 	var dark := transmission.shadowed
 	_portrait.skin_color = SHADOW_SKIN if dark else transmission.look.skin_color
 	if dark:

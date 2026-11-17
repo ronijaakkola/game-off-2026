@@ -51,9 +51,9 @@ func _ready() -> void:
 	_update_rendering()
 
 
-## Puts a portrait of [param look] in a free slot and returns the photo of it to show, or
-## null when every slot is taken.
-func add(look: AlienLook) -> AtlasTexture:
+## Puts a portrait of [param look] in a free slot, in a bow tie when [param wears_bow_tie],
+## and returns the photo of it to show, or null when every slot is taken.
+func add(look: AlienLook, wears_bow_tie := false) -> AtlasTexture:
 	var slot := _slots.find(null)
 	if slot < 0:
 		return null
@@ -61,6 +61,7 @@ func add(look: AlienLook) -> AtlasTexture:
 	portrait.head_model = look.head
 	portrait.eye_style = look.eye_style
 	portrait.skin_color = look.skin_color
+	portrait.wears_bow_tie = wears_bow_tie
 	%Portraits.add_child(portrait)
 	var pitch := _pitch() * SLOT / TILE
 	frame(portrait)
