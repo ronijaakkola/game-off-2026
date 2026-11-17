@@ -27,6 +27,7 @@ const OUTFIT_MATERIAL := "AlienOutfit"
 const HEAD_SUFFIX := "Head"
 const EYE_PART := "Eye"
 const STALK_PART := "Stalk"
+const TIE_SUFFIX := "Tie"
 ## How fast the eyes shut as they fall asleep, and open as they wake, per second.
 const SLEEP_SPEED := 0.8
 const WAKE_SPEED := 4.0
@@ -87,6 +88,8 @@ const CENTRED_EYE_REACH := 1.6
 		if value:
 			for material: ShaderMaterial in _eye_materials:
 				value.apply(material)
+## Whether the model's bow tie shows. Set it before the portrait enters the tree.
+@export var wears_bow_tie := false
 ## How far the eyes open at rest: 1 wide awake, lower for a drowsy or sullen look.
 @export_range(0.0, 1.0) var eye_openness := 1.0
 ## Whether they are asleep: the eyes drift shut and stop blinking and wandering, and the
@@ -163,7 +166,9 @@ func _ready() -> void:
 		var part := node as Node3D
 		if part is MeshInstance3D:
 			_recolour(part as MeshInstance3D)
-		if part.name.contains(EYE_PART):
+		if part.name.ends_with(TIE_SUFFIX):
+			part.visible = wears_bow_tie
+		elif part.name.contains(EYE_PART):
 			_add_eye(part)
 		elif part.name.ends_with(HEAD_SUFFIX):
 			_head = part
