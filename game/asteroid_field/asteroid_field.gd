@@ -13,7 +13,8 @@ extends Node3D
 ## the belt's turn. They tumble in their shader.
 ##
 ## It lowers [member FrameshiftBus.speed_cap] after the [HeatZone] has set it for the frame
-## ([member Node.process_priority] 1), so the lower of the two holds.
+## ([member Node.process_priority] 1), so the lower of the two holds, and lifts it again as
+## the bus leaves the rocks, so it works with no HeatZone too.
 
 ## The bus flew into the rocks.
 signal entered_rocks
@@ -92,8 +93,10 @@ func _process(delta: float) -> void:
 	var pace := orbit_clock.get_speed() if orbit_clock else 1.0
 	if orbit_period != 0.0:
 		rotation.y = wrapf(rotation.y + TAU / orbit_period * pace * delta, 0.0, TAU)
-	var material := (%Rocks as MultiMeshInstance3D).material_override as ShaderMaterial
-	material.set_shader_parameter(&"tumble", 0.0 if Settings.reduce_motion else 1.0)
+	# Each on its own, so the pebbles stop tumbling too should they get their own material.
+	for node: Node in [%Rocks, %Pebbles]:
+		var material := (node as MultiMeshInstance3D).material_override as ShaderMaterial
+		material.set_shader_parameter(&"tumble", 0.0 if Settings.reduce_motion else 1.0)
 	if bus:
 		_ride(delta)
 
@@ -108,6 +111,10 @@ func _ride(delta: float) -> void:
 		and not belt.is_in_gap(at, -clearance - gap_leeway)
 	)
 	if not _in_rocks:
+		# Leaving, it lifts the cap it put on, unless something has set another since, as
+		# a HeatZone does every frame. With none, nothing else would give the speed back.
+		if was_in and bus.speed_cap == _cap:
+			bus.speed_cap = INF
 		_cap = INF
 		return
 	if not was_in:
