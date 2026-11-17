@@ -383,7 +383,7 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 | W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
 | Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
 | Mouse wheel | Zoom toward the point under the pointer |
-| Esc | Pause |
+| Esc, or the pause button | Pause |
 | F2 | The debug panel |
 
 - **Left click selects, right click routes.**
@@ -398,13 +398,14 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 ## Scenes and flow
 
 ```
-main menu ──Play / Continue / New game──▶ solar system ──Esc──▶ pause menu ──Main menu──▶ main menu
+main menu ──Play / Continue / New game──▶ solar system ──Esc / pause button──▶ pause menu ──Main menu──▶ main menu
     │                                          │
     └──Settings──▶ settings panel ◀──────────Settings
 ```
 
 - The game is one scene, the solar system, which holds every star system. A new run opens on the tutorial's zoomed map (Tutorial) until the player has been through it.
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
+- **The pause button** opens the pause menu as Esc does, wherever Esc would, so a player in browser fullscreen, where Esc never reaches the game, can still pause.
 - **A transmission** pauses the game until the player answers it. Closing the pause menu over one leaves the game paused.
 - **A caller's voice:** each race has its own set of short recorded clips (`game/transmissions/voice/`), strung together while the text types out. A race with no clips yet is silent. Every caller of a race has a pitch of their own, fixed by their name. The voice lab, from the debug panel on the main menu, is where the delivery is tuned.
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
