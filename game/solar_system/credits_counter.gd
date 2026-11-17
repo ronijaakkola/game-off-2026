@@ -70,8 +70,11 @@ func _ready() -> void:
 
 # A payment of [param amount], already in the ledger: it joins the gain, which shows the
 # new sum. The total shown waits for [method commit]; one waiting out its delay is put
-# off to the next, so the gain goes in whole.
+# off to the next, so the gain goes in whole. A payment of nothing, as a furious
+# passenger's, shows nothing: commit() would have no gain to take in, and "+0" would stay.
 func _on_earned(amount: int) -> void:
+	if amount == 0:
+		return
 	_pending += amount
 	if _commit:
 		_commit.kill()

@@ -59,6 +59,20 @@ func test_commit_with_nothing_paid_changes_nothing() -> void:
 	assert_bool((runner.find_child("GainChip") as ChangeChip).visible).is_false()
 
 
+func test_a_payment_of_nothing_shows_no_gain() -> void:
+	var runner := scene_runner(SCENE)
+	var counter := runner.scene() as CreditsCounter
+	counter.ledger.credits = 5
+	var gain := runner.find_child("GainChip") as ChangeChip
+
+	counter.ledger.earn(0)
+	counter.commit()
+	await runner.simulate_frames(60, 30)
+
+	assert_bool(gain.visible).is_false()
+	assert_str((runner.find_child("TotalLabel") as Label).text).is_equal("5")
+
+
 func test_spending_shows_a_red_loss_and_counts_the_total_down() -> void:
 	var runner := scene_runner(SCENE)
 	var counter := runner.scene() as CreditsCounter
