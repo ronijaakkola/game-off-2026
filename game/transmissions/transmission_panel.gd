@@ -42,7 +42,7 @@ const CLOSE_DELAY := TransmissionScreen.OFF_SECONDS + 0.15
 const END_SCALE := 0.98
 ## A reward's colour, as a gain.
 const GAIN_COLOR := Color(0.549, 0.851, 0.4)
-## How strongly a research reward's chip is tinted in its race's colour.
+## How strongly a research reward's chip is tinted in the research points' colour.
 const CHIP_TINT := 0.18
 
 var _transmission: Transmission
@@ -276,13 +276,13 @@ func _fill_reward(transmission: Transmission) -> void:
 	for chip: Node in chips.get_children():
 		chips.remove_child(chip)
 		chip.queue_free()
-	for race: Race.Type in transmission.reward_research:
-		chips.add_child(_research_chip(race, transmission.reward_research[race]))
+	if transmission.reward_research > 0:
+		chips.add_child(_research_chip(transmission.reward_research))
 
 
-# A chip tinted in the race's colour, with its flask and the points.
-func _research_chip(race: Race.Type, points: int) -> Control:
-	var color := Race.SKIN_COLORS[race]
+# A chip tinted in the research points' colour, with their flask and the points.
+func _research_chip(points: int) -> Control:
+	var color := ResearchCounter.COLOR
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(color, CHIP_TINT)
 	style.set_corner_radius_all(6)

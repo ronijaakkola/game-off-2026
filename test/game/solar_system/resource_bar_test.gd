@@ -26,7 +26,7 @@ func test_the_bar_keeps_its_width_while_credits_stay_under_1000() -> void:
 	var bars := (runner.find_child("Bars") as VBoxContainer).get_children()
 	# The bar with 40 credits and the one with 990 about to take a payment.
 	assert_float((bars[6] as Control).size.x).is_equal((bars[1] as Control).size.x)
-	assert_float((bars[1] as Control).size.x).is_equal(264.0)
+	assert_float((bars[1] as Control).size.x).is_equal(176.0)
 
 
 func test_the_bar_widens_when_the_credits_gain_a_digit() -> void:
@@ -60,7 +60,7 @@ func test_every_chip_hangs_at_the_same_height() -> void:
 	bar.ledger.rate(3.0)
 	bar.commit()
 	bar.ledger.earn(15)
-	bar.ledger.earn_research(Race.Type.BLUE)
+	bar.ledger.earn_research()
 	bar.ledger.rate(5.0)
 	await await_millis(400)
 

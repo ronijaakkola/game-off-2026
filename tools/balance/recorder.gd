@@ -135,7 +135,7 @@ func tick(delta: float, bus: FrameshiftBus, cabin: Cabin, ledger: Ledger) -> voi
 				{
 					"t": snappedf(_time, 0.1),
 					"credits": ledger.credits,
-					"points": _points(ledger),
+					"points": ledger.get_research(),
 					"recent": snappedf(ledger.get_recent_rating(), 0.01),
 					"average": snappedf(ledger.get_average_rating(), 0.01),
 					"delivered": deliveries.size(),
@@ -152,7 +152,7 @@ func report(ledger: Ledger) -> Dictionary:
 	return {
 		"seconds": snappedf(_time, 0.1),
 		"credits": ledger.credits,
-		"points": _points(ledger),
+		"points": ledger.get_research(),
 		"earned": earned,
 		"spent_on_research": spent_on_research,
 		"fuel_credits": fuel_credits,
@@ -185,10 +185,3 @@ func report(ledger: Ledger) -> Dictionary:
 		"upgrades": upgrades,
 		"series": series,
 	}
-
-
-func _points(ledger: Ledger) -> Dictionary:
-	var points := {}
-	for value: int in Race.Type.values():
-		points[Race.Type.find_key(value)] = ledger.get_research(value as Race.Type)
-	return points

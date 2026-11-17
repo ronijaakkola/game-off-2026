@@ -103,7 +103,7 @@ const CARDS := {
 		text =
 		(
 			"The passenger paid for the trip with some credits. They also awarded you with a research "
-			+ "point of their color (this one was blue)."
+			+ "point. Every passenger you deliver gives you one."
 		),
 		side = GuideCard.Side.BELOW,
 		got_it = true,
@@ -148,8 +148,7 @@ const CARDS := {
 		text =
 		(
 			"Welcome to the research lab. Here you can spend research points to upgrade your bus, "
-			+ "stations at all planets, and the comfort-level of your bus. All trees use different "
-			+ "color research points that you can gain from different colored passengers."
+			+ "stations at all planets, and the comfort-level of your bus."
 		),
 		side = GuideCard.Side.RIGHT,
 		got_it = true,

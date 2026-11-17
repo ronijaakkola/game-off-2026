@@ -180,7 +180,7 @@ A call that pauses the game: someone, a passenger or the player's boss, talks fr
 _Avoid_: dialog, popup, call screen
 
 **Research point**:
-What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `Ledger.earn_research()` in code.
+What delivering a passenger earns, one per delivery whatever their race or rating, spent on upgrades in any research tree. One kind: points aren't kept apart by race. `Ledger.earn_research()` in code.
 _Avoid_: science, XP, tech points
 
 **Resource bar**:

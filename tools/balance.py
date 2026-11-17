@@ -186,7 +186,7 @@ def summarize(reports: list[dict]) -> dict:
         "empty seats leaving": mean([r["empty_seats_leaving"] for r in reports]),
         "seats at end": mean([r["seats"] for r in reports]),
         "points unspent %": mean(
-            [100.0 * sum(r["points"].values()) / max(r["points_earned"], 1) for r in reports]
+            [100.0 * r["points"] / max(r["points_earned"], 1) for r in reports]
         ),
         "direct ride stars": mean([ride["stars"] for ride in rides if ride["stops"] == 0]),
         "1-2 stop ride stars": mean([ride["stars"] for ride in rides if ride["stops"] in (1, 2)]),
@@ -245,8 +245,7 @@ def show_state(state: dict) -> None:
           f"{state['time']} s of {state['ends_at']} s played ===")
     for line in state["news"]:
         print(f"  * {line}")
-    points = ", ".join(f"{count} {race.lower()}" for race, count in state["points"].items())
-    print(f"Credits {state['credits']}. Research points: {points}.")
+    print(f"Credits {state['credits']}. Research points: {state['points']}.")
     print(f"Rating (last 10 rides) {state['rating']} stars, all-time {state['average_rating']}; "
           f"{state['delivered']} delivered.")
     print(f"Fuel {fuel['fuel']}/{fuel['capacity']} (flies {fuel['range']} units); "
@@ -278,9 +277,8 @@ def show_state(state: dict) -> None:
     for upgrade in state["upgrades"]:
         if upgrade["state"] in ("researched", "locked"):
             continue
-        cost = ", ".join(f"{n} {race.lower()}" for race, n in upgrade["points"].items())
         print(f"  - {upgrade['id']} {upgrade['title']} ({upgrade['state']}): "
-              f"{upgrade['credits']} credits + {cost}. {upgrade['does']}")
+              f"{upgrade['credits']} credits + {upgrade['points']} points. {upgrade['does']}")
     done = [u["title"] for u in state["upgrades"] if u["state"] == "researched"]
     print("Researched so far: " + (", ".join(done) if done else "nothing"))
 

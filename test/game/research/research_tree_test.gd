@@ -28,10 +28,7 @@ func _problems(tree: ResearchTree) -> Array[String]:
 		if slots.has(slot):
 			problems.append("%s shares a slot with %s" % [label, slots[slot].title])
 		slots[slot] = upgrade
-		var cost := upgrade.credits
-		for amount: int in upgrade.points.values():
-			cost += amount
-		if cost <= 0:
+		if upgrade.credits + upgrade.points <= 0:
 			problems.append("%s costs nothing" % label)
 		if upgrade.requires.is_empty():
 			roots += 1

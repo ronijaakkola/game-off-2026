@@ -18,7 +18,7 @@ func _ready() -> void:
 		transmission.quest = "Stop the bus near"
 		transmission.quest_planet = $SolarSystem.find_child("Frost") as Planet
 		transmission.reward_credits = 40
-		transmission.reward_research = {Race.Type.BLUE: 2}
+		transmission.reward_research = 2
 		transmission.accept_text = "Yes"
 		transmission.decline_text = "No"
 	elif "goals_met" in args:

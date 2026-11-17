@@ -34,7 +34,7 @@ func _show_quest() -> void:
 	quest.planet = passenger.destination
 	quest.goal = goal
 	quest.reward_credits = ExpressQuest.REWARD_CREDITS
-	quest.reward_research = {passenger.race: ExpressQuest.REWARD_RESEARCH}
+	quest.reward_research = ExpressQuest.REWARD_RESEARCH
 	var giver := $SolarSystem/QuestGiver as QuestGiver
 	giver.enabled = false
 	giver.take_on(quest)

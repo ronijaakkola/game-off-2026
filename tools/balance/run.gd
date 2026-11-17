@@ -321,12 +321,9 @@ func _upgrade_rows(here: Planet) -> Array[Dictionary]:
 	for tree: ResearchTree in _lab.trees:
 		for i: int in tree.upgrades.size():
 			var upgrade := tree.upgrades[i]
-			var state := research.get_state(upgrade, _ledger.credits, _ledger.get_all_research())
+			var state := research.get_state(upgrade, _ledger.credits, _ledger.get_research())
 			if state == Research.State.HIDDEN or state == Research.State.NEEDS_PROMOTION:
 				continue
-			var points := {}
-			for race: Race.Type in upgrade.points:
-				points[Race.Type.find_key(race)] = upgrade.points[race]
 			var seats := 0
 			for modifier: StatModifier in upgrade.modifiers:
 				if modifier.stat == BusStats.Type.SEATS:
@@ -345,7 +342,7 @@ func _upgrade_rows(here: Planet) -> Array[Dictionary]:
 						"does": upgrade.description,
 						"not_built": upgrade.description.contains("NOT IMPLEMENTED"),
 						"credits": upgrade.credits,
-						"points": points,
+						"points": upgrade.points,
 						"requires": requires,
 						"seats": seats,
 						"state": (Research.State.find_key(state) as String).to_lower(),

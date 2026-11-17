@@ -112,12 +112,12 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	var lab := runner.find_child("ResearchLab") as ResearchLab
 	var fuel_tank := _fuel_tank(lab)
 	assert_float(moon.fuel_price).is_zero()
-	assert_int(fuel_tank.points.get(Race.Type.BLUE, 0)).is_equal(1)
+	assert_int(fuel_tank.points).is_equal(1)
 
 	(runner.find_child("Tutorial") as Tutorial).skip()
 
 	assert_float(moon.fuel_price).is_greater(0.0)
-	assert_int(fuel_tank.points.get(Race.Type.BLUE, 0)).is_equal(2)
+	assert_int(fuel_tank.points).is_equal(2)
 	assert_bool(lab.restricted).is_false()
 	assert_bool((runner.find_child("PassengerPanel") as PassengerPanel).kicks_allowed).is_true()
 	var dock := runner.find_child("DockPanel") as DockPanel

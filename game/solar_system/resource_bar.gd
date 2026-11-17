@@ -7,7 +7,7 @@ extends PanelContainer
 ## glides to fit, staying centred, while the items stay centred in it; under Reduce motion
 ## it changes at once. The glass shader draws the pill, and needs the panel's size to find
 ## its edge, so each bar gets its own copy of the material. [method breathe] makes the
-## credits and one race's research points grow and shrink, slowly and again and again, as
+## credits and the research points grow and shrink, slowly and again and again, as
 ## the tutorial points them out; under Reduce motion they hold still.
 
 ## Seconds the pill takes to reach its new width.
@@ -53,9 +53,9 @@ func commit() -> void:
 	(%RatingCounter as RatingCounter).commit()
 
 
-## Makes the credits and [param race]'s research points breathe in size, or, without
-## [param on], stops them.
-func breathe(race: Race.Type, on: bool) -> void:
+## Makes the credits and the research points breathe in size, or, without [param on],
+## stops them.
+func breathe(on: bool) -> void:
 	if _breath:
 		_breath.kill()
 	_set_breath(0.0)
@@ -63,7 +63,7 @@ func breathe(race: Race.Type, on: bool) -> void:
 	if not on or Settings.reduce_motion:
 		return
 	_breathing.append((%CreditsCounter as CreditsCounter).get_total_label())
-	_breathing.append((%ResearchCounter as ResearchCounter).get_count_label(race))
+	_breathing.append((%ResearchCounter as ResearchCounter).get_count_label())
 	_breath = create_tween().set_loops()
 	_breath.tween_method(_set_breath, 0.0, TAU, BREATH_SECONDS)
 

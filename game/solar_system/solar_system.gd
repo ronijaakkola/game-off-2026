@@ -21,8 +21,8 @@ extends Node3D
 ## two is open at a time: opening either closes the other.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one, pay and rate the ride,
-## which goes into the average rating beside the credits, and earn a research point of
-## their race, whatever their rating. Under each planet's name, dots say how many wait
+## which goes into the average rating beside the credits, and earn a research point,
+## whatever their race or rating. Under each planet's name, dots say how many wait
 ## there ([WaitingMarkers]), and a badge on its rim says it has a lab ([LabBadges]). While
 ## the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
@@ -394,7 +394,7 @@ func _on_research_pressed(_planet: Planet) -> void:
 func _on_delivered(passenger: Passenger, payout: int) -> void:
 	_ledger.earn(payout)
 	_ledger.rate(passenger.get_rating())
-	_ledger.earn_research(passenger.race)
+	_ledger.earn_research()
 
 
 func _on_kicked(passenger: Passenger) -> void:

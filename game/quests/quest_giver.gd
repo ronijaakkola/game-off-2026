@@ -286,8 +286,8 @@ func _on_goal_completed(goal: Goal) -> void:
 		return
 	if _ledger:
 		_ledger.earn(_quest.reward_credits)
-		for race: Race.Type in _quest.reward_research:
-			_ledger.earn_research(race, _quest.reward_research[race])
+		if _quest.reward_research > 0:
+			_ledger.earn_research(_quest.reward_research)
 	notices.push("Quest done: %s" % goal.get_text(), Notice.Kind.INFO, false, NOTICE_SECONDS)
 	if quick_text:
 		quick_text.show_text(COMPLETED_TEXT, COMPLETED_ICON, BusQuickText.Kind.GAIN)
