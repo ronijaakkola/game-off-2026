@@ -8,7 +8,6 @@ extends PanelContainer
 ## [method turn_on] starts the tube with a burst of static; while [member talking], the
 ## caller's head bobs as if with each word and their eyes stay on the player.
 
-const PORTRAIT := preload("res://game/passengers/alien_portrait.tscn")
 const BADGE := preload("res://game/passengers/photo_badge.tscn")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 ## Seconds the tube takes to turn on, and to turn off.
@@ -66,13 +65,10 @@ func _process(delta: float) -> void:
 ## Puts [param transmission]'s caller on the screen, with the tube off.
 func show_caller(transmission: Transmission) -> void:
 	clear()
-	_portrait = PORTRAIT.instantiate() as AlienPortrait
-	_portrait.head_model = transmission.look.head
-	_portrait.eye_style = transmission.look.eye_style
-	_portrait.wears_bow_tie = transmission.type and transmission.type.wears_bow_tie
+	_portrait = PortraitStudio.new_portrait(transmission.look, transmission.type)
 	var dark := transmission.shadowed
-	_portrait.skin_color = SHADOW_SKIN if dark else transmission.look.skin_color
 	if dark:
+		_portrait.skin_color = SHADOW_SKIN
 		_portrait.outfit_color = SHADOW_SKIN
 	elif transmission.stern:
 		_portrait.anger = 1.0
