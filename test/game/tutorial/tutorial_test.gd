@@ -6,32 +6,25 @@ extends GdUnitTestSuite
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
-# The suite saves to a file of its own, never the player's.
-const TEST_SAVE := "user://test_tutorial_save.json"
-const TEST_TUTORIAL := "user://test_tutorial_tutorial.cfg"
 
 var _window_size: Vector2i
 
 
 func before() -> void:
-	SaveGame.path = TEST_SAVE
-	SaveGame.tutorial_path = TEST_TUTORIAL
+	SaveGame.use_test_files("tutorial")
 	# Headless, the window is 64×64 and the canvas_items stretch would scale every click.
 	_window_size = get_tree().root.size
 	get_tree().root.size = Vector2i(1152, 648)
 
 
 func after() -> void:
-	SaveGame.delete()
-	SaveGame.forget_tutorial()
-	SaveGame.path = SaveGame.PATH
-	SaveGame.tutorial_path = SaveGame.TUTORIAL_PATH
+	SaveGame.use_player_files()
 	get_tree().root.size = _window_size
 
 
 func before_test() -> void:
 	# A test that ends the tutorial keeps it as done, and the next would start without it.
-	SaveGame.forget_tutorial()
+	SaveGame.delete()
 
 
 func after_test() -> void:
