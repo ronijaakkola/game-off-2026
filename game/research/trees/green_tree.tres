@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://h7iwjy8dapm2" path="res://game/research/icons/route.svg" id="11_route"]
 [ext_resource type="Texture2D" uid="uid://dkvmrjt67ew4c" path="res://game/research/icons/zap.svg" id="12_zap"]
 [ext_resource type="Texture2D" uid="uid://cskdmuwvt8g6f" path="res://game/research/icons/gauge.svg" id="13_gauge"]
+[ext_resource type="Texture2D" uid="uid://cuy347k31em51" path="res://game/research/icons/globe.svg" id="20_globe"]
 
 [sub_resource type="Resource" id="Resource_door_chime"]
 script = ExtResource("2_upgrade")
@@ -189,6 +190,7 @@ column = 3
 
 [resource]
 script = ExtResource("1_tree")
-title = "Stops"
+title = "Planets"
+icon = ExtResource("20_globe")
 palette = 2
 upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_door_chime"), SubResource("Resource_station_waiting_lounge"), SubResource("Resource_tip_jar"), SubResource("Resource_free_station_coffee"), SubResource("Resource_timetables"), SubResource("Resource_honk"), SubResource("Resource_station_cameras"), SubResource("Resource_destination_sign"), SubResource("Resource_business_lounge"), SubResource("Resource_passenger_happiness_survey"), SubResource("Resource_remote_terminal"), SubResource("Resource_passenger_loyalty_program"), SubResource("Resource_bottomless_complaints_box"), SubResource("Resource_research_grant"), SubResource("Resource_express_service")])

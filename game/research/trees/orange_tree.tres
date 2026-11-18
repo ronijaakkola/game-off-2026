@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://b8xlduth3p4wa" path="res://game/research/icons/bot.svg" id="12_bot"]
 [ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="14_star"]
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="15_flask_conical"]
+[ext_resource type="Texture2D" uid="uid://okb3f2gln87o" path="res://game/research/icons/heart.svg" id="20_heart"]
 
 [sub_resource type="Resource" id="Resource_extra_seat_1_mod"]
 script = ExtResource("3_modifier")
@@ -220,5 +221,6 @@ column = 1
 [resource]
 script = ExtResource("1_tree")
 title = "Comfort"
+icon = ExtResource("20_heart")
 palette = 1
 upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_extra_seat_1"), SubResource("Resource_pillows"), SubResource("Resource_portions_1"), SubResource("Resource_entertainment_system"), SubResource("Resource_quick_hands"), SubResource("Resource_extra_seat_2"), SubResource("Resource_gaming_system"), SubResource("Resource_portions_2"), SubResource("Resource_sleeping_pods"), SubResource("Resource_airlock"), SubResource("Resource_food_dispenser"), SubResource("Resource_extra_seat_4"), SubResource("Resource_karaoke"), SubResource("Resource_serving_robots"), SubResource("Resource_time_dilation_cabin")])

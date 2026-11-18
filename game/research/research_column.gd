@@ -1,6 +1,6 @@
 class_name ResearchColumn
 extends Control
-## One research tree in the research screen, on a faint card of its own: its title and a
+## One research tree in the research screen, on a faint card of its own: its icon, title and a
 ## chip in its colour ([member ResearchTree.palette]) counting the upgrades researched of
 ## all it has, over the tree drawn top to bottom, each upgrade at its tier and column,
 ## centred in the column. A line runs from each upgrade to each one it requires, centre to
@@ -56,7 +56,7 @@ func _init() -> void:
 func build(tree: ResearchTree, row_tops: Array[float]) -> void:
 	custom_minimum_size.x = WIDTH
 	var accent: Color = Race.SKIN_COLORS[tree.palette]
-	add_child(_make_header(tree.title, accent))
+	add_child(_make_header(tree, accent))
 	var columns := 0
 	for upgrade: Upgrade in tree.upgrades:
 		columns = maxi(columns, upgrade.column + 1)
@@ -144,15 +144,30 @@ func _is_lit(upgrade: Upgrade) -> bool:
 	return _research != null and _research.is_researched(upgrade)
 
 
-# The title at the left and the progress chip at the right.
-func _make_header(title: String, accent: Color) -> Control:
+# The tree's icon and title at the left and the progress chip at the right.
+func _make_header(tree: ResearchTree, accent: Color) -> Control:
 	var header := HBoxContainer.new()
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.position = Vector2(MARGIN.x, MARGIN.y + 2.0)
 	header.size = Vector2(INNER_WIDTH, 20)
+	header.add_theme_constant_override(&"separation", 6)
+	var tree_icon := TextureRect.new()
+	tree_icon.texture = tree.icon
+	tree_icon.modulate = accent
+	tree_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tree_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tree_icon.custom_minimum_size = Vector2(14, 14)
+	# The title's letters sit below the middle of its line, so a centred icon rides high:
+	# 2 px lower it reads as level with them.
+	var nudge := MarginContainer.new()
+	nudge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	nudge.add_theme_constant_override(&"margin_top", 4)
+	nudge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	nudge.add_child(tree_icon)
+	header.add_child(nudge)
 	var label := Label.new()
 	label.theme_type_variation = &"StrongLabel"
-	label.text = title
+	label.text = tree.title
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header.add_child(label)
