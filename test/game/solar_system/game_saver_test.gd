@@ -32,7 +32,7 @@ func test_continuing_puts_back_the_research_and_its_open_stages() -> void:
 	var lab := runner.find_child("ResearchLab") as ResearchLab
 	var research := lab.get_research()
 	assert_bool(research.is_researched(_upgrade_at(lab, "Performance", 0, 0))).is_true()
-	assert_bool(research.is_researched(_upgrade_at(lab, "Stops", 0, 1))).is_true()
+	assert_bool(research.is_researched(_upgrade_at(lab, "Planets", 0, 1))).is_true()
 	assert_bool(research.is_researched(_upgrade_at(lab, "Comfort", 0, 0))).is_false()
 	assert_int(research.get_open_stages()).is_equal(2)
 
