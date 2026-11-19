@@ -88,8 +88,6 @@ func _show_delete_save() -> void:
 # Stays in place, disabled, so the panel doesn't jump and the player sees it was done.
 func _on_delete_save_button_confirmed() -> void:
 	SaveGame.delete()
-	SaveGame.forget_tutorial()
-	SaveGame.forget_hints()
 	%DeleteSaveButton.disabled = true
 	%DeleteSaveButton.text = "Save data deleted"
 	%BackButton.grab_focus()

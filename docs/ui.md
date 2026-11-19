@@ -81,7 +81,7 @@ A race shows in two ways, so it reads without colour: its skin colour, and the b
 | Green | `#99e673` | `#296138` | Middle: a thin neck, eyes out on the ends of things | Stalks; the Hammer, eyes on the ends of a bar |
 
 - With red-green colour blindness, orange and green both turn yellowish. They stay apart because the orange is darker and the green lighter, and their builds are the most different pair.
-- A race's colour marks whatever belongs to that passenger: their trip arc, their row's border. Each research tree is drawn in one race's colours too, only to tell the trees apart: Performance blue, Stops green, Comfort orange.
+- A race's colour marks whatever belongs to that passenger: their trip arc, their row's border. Each research tree is drawn in one race's colours too, only to tell the trees apart: Performance blue, Planets green, Comfort orange.
 - **Research points** are a light violet (`c3a6ff`), wherever they show: their flask, the chip tinted behind them, a gain of them. No race has it, since points are one kind.
 - The planets' hues aren't final: the Giant and Terra come close to the races' colours.
 
@@ -393,12 +393,12 @@ A modal over the whole screen, the game paused and dimmed under it: one frosted 
 - **Header:** a flask and "Research", a "Game paused" tag with a pause icon, the resource bar in the middle, and a Close button with an ✕. Esc closes it too, unless the pause menu is open over it.
 - **Opening** fades it in over 0.2 s while the sheet grows from 97 % to full size in 0.25 s. **Closing** lets the game run at once and fades it out in 0.15 s. Under Reduce motion it only fades.
 - While it is open, the HUD's resource bar hides; the header has its own.
-- **The open trees** stand side by side, centred, each on a faint card with its name ("Performance", "Stops", "Comfort") and a chip in its colour counting what is researched of all it has ("3/15"). A tree that isn't open isn't there, nor are the rows of a stage that isn't: the cards end 16 px under the last open row.
+- **The open trees** stand side by side, centred, each on a faint card with its icon and name (a rocket and "Performance", a globe and "Planets", a heart and "Comfort") and a chip in its colour counting what is researched of all it has ("3/15"). The icon is 14 px in the tree's colour, 6 px before the name, its middle level with the middle of the name's capitals. A tree that isn't open isn't there, nor are the rows of a stage that isn't: the cards end 16 px under the last open row.
 - Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral in its top left corner.
 - **Stages.** The rows of every tree line up, with more room between two open stages and a faint line across all the trees there.
 - **What opened** shows the next time the screen is open, once it has faded in: a tree's card fades in over 0.2 s, and its tiles, or a stage's tiles, fade in over 0.3 s, each row 40 ms after the one above.
 - A line runs from each upgrade to each one it needs, centre to centre: lit in the tree's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
-- **The colours** are the tree's: one race's, Performance blue, Stops green, Comfort orange.
+- **The colours** are the tree's: one race's, Performance blue, Planets green, Comfort orange.
 
 Every tile is flat, with no gradient, glow or shadow, and each state has its own fill.
 

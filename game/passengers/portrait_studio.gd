@@ -51,17 +51,13 @@ func _ready() -> void:
 	_update_rendering()
 
 
-## Puts a portrait of [param look] in a free slot, in a bow tie when [param wears_bow_tie],
-## and returns the photo of it to show, or null when every slot is taken.
-func add(look: AlienLook, wears_bow_tie := false) -> AtlasTexture:
+## Puts a portrait of [param look], dressed as [param type], in a free slot and returns the
+## photo of it to show, or null when every slot is taken.
+func add(look: AlienLook, type: PassengerType) -> AtlasTexture:
 	var slot := _slots.find(null)
 	if slot < 0:
 		return null
-	var portrait := PORTRAIT.instantiate() as AlienPortrait
-	portrait.head_model = look.head
-	portrait.eye_style = look.eye_style
-	portrait.skin_color = look.skin_color
-	portrait.wears_bow_tie = wears_bow_tie
+	var portrait := new_portrait(look, type)
 	%Portraits.add_child(portrait)
 	var pitch := _pitch() * SLOT / TILE
 	frame(portrait)
@@ -73,6 +69,19 @@ func add(look: AlienLook, wears_bow_tie := false) -> AtlasTexture:
 	_photos[photo] = portrait
 	_update_rendering()
 	return photo
+
+
+## A portrait, not yet in the tree, with [param look]'s head, eyes and skin, dressed as
+## [param type] (a bow tie for a type that wears one); none for a caller of no type. Every
+## portrait of someone the player meets is made here, so whatever a look or type puts on
+## the portrait shows on the photos and the transmission screen alike.
+static func new_portrait(look: AlienLook, type: PassengerType) -> AlienPortrait:
+	var portrait := PORTRAIT.instantiate() as AlienPortrait
+	portrait.head_model = look.head
+	portrait.eye_style = look.eye_style
+	portrait.skin_color = look.skin_color
+	portrait.wears_bow_tie = type != null and type.wears_bow_tie
+	return portrait
 
 
 ## Scales and places [param portrait], already in the tree, for a close-up of its head in

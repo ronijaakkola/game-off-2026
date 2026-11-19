@@ -119,7 +119,7 @@ func _show() -> void:
 		return
 	_backdrop().set_shader_parameter(&"backdrop_color", Race.BACKDROP_COLORS[passenger.race])
 	if studio and not _photo and is_inside_tree():
-		_photo = studio.add(passenger.look, passenger.type.wears_bow_tie)
+		_photo = studio.add(passenger.look, passenger.type)
 		if not _photo and not studio.slot_freed.is_connected(_show):
 			studio.slot_freed.connect(_show, CONNECT_ONE_SHOT)
 	(%Photo as TextureRect).texture = _photo

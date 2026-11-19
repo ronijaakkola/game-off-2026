@@ -1,6 +1,6 @@
 class_name ResearchColumn
 extends Control
-## One research tree in the research screen, on a faint card of its own: its title and a
+## One research tree in the research screen, on a faint card of its own: its icon, title and a
 ## chip in its colour ([member ResearchTree.palette]) counting the upgrades researched of
 ## all it has, over the tree drawn top to bottom, each upgrade at its tier and column,
 ## centred in the column. Only the upgrades that are open show: one whose tree or stage
@@ -61,7 +61,7 @@ func build(shown: ResearchTree, row_tops: Array[float]) -> void:
 	tree = shown
 	custom_minimum_size.x = WIDTH
 	var accent: Color = Race.SKIN_COLORS[shown.palette]
-	add_child(_make_header(shown.title, accent))
+	add_child(_make_header(accent))
 	var columns := 0
 	for upgrade: Upgrade in shown.upgrades:
 		columns = maxi(columns, upgrade.column + 1)
@@ -150,18 +150,37 @@ func _is_lit(upgrade: Upgrade) -> bool:
 	return _research != null and _research.is_researched(upgrade)
 
 
-# The title at the left and the progress chip at the right.
-func _make_header(title: String, accent: Color) -> Control:
+# The tree's icon and title at the left and the progress chip at the right.
+func _make_header(accent: Color) -> Control:
 	var header := HBoxContainer.new()
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.position = Vector2(MARGIN.x, MARGIN.y + 2.0)
 	header.size = Vector2(INNER_WIDTH, 20)
+	header.add_theme_constant_override(&"separation", 6)
+	var tree_icon := TextureRect.new()
+	tree_icon.texture = tree.icon
+	tree_icon.modulate = accent
+	tree_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tree_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tree_icon.custom_minimum_size = Vector2(14, 14)
+	# 2 px under the middle of the header, where it is level with the title's capitals.
+	var nudge := MarginContainer.new()
+	nudge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	nudge.add_theme_constant_override(&"margin_top", 4)
+	nudge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	nudge.add_child(tree_icon)
+	header.add_child(nudge)
 	var label := Label.new()
 	label.theme_type_variation = &"StrongLabel"
-	label.text = title
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	header.add_child(label)
+	label.text = tree.title
+	# 1 px under the middle too, which puts its capitals level with the icon.
+	var label_nudge := MarginContainer.new()
+	label_nudge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label_nudge.add_theme_constant_override(&"margin_top", 2)
+	label_nudge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label_nudge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	label_nudge.add_child(label)
+	header.add_child(label_nudge)
 	var chip := PanelContainer.new()
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()
