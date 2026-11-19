@@ -4,9 +4,11 @@ extends Control
 ## [enum Kind], with an optional action button and an optional close button on the right.
 ## The notice is the card's slot in the stack: it is as tall as the card plus the gap under
 ## it, so shrinking it closes the gap. [method dismiss] fades the card out, then shrinks the
-## slot and frees it. Under Reduce motion the card only fades, and the gap closes at once.
+## slot and frees it, even while the game is paused. Under Reduce motion the card only
+## fades, and the gap closes at once.
 ## A call's phone rattles every [constant RING_PAUSE] seconds while it shows, except under
-## Reduce motion.
+## Reduce motion, and its ringtone plays on a loop until it starts to leave, started on the
+## music's next beat, and again on one when the notices come back or the game resumes.
 
 ## The action button was pressed. The notice dismisses itself after.
 signal action_pressed
@@ -32,6 +34,10 @@ const END_SCALE := 0.97
 const RING_PAUSE := 1.6
 const RING_SWINGS: Array[float] = [0.3, -0.3, 0.24, -0.18, 0.1, 0.0]
 const RING_SWING_SECONDS := 0.06
+## A call's ringtone, which its import loops, and the seconds it takes to fade once the call
+## starts to leave.
+const RINGTONE := preload("res://game/solar_system/ringtone.ogg")
+const RINGTONE_FADE_SECONDS := 0.15
 
 const DIM := Color(0.957, 0.945, 1, 0.651)
 const ICONS: Dictionary[Kind, Texture2D] = {
@@ -39,21 +45,23 @@ const ICONS: Dictionary[Kind, Texture2D] = {
 	Kind.INFO: preload("res://game/solar_system/icons/info.svg"),
 	Kind.WARNING: preload("res://game/solar_system/icons/triangle_alert.svg"),
 	Kind.ERROR: preload("res://game/solar_system/icons/circle_alert.svg"),
-	Kind.CALL: preload("res://game/solar_system/icons/phone_call.svg"),
+	Kind.CALL: preload("res://shared/icons/phone_call.svg"),
 }
 const ICON_COLORS: Dictionary[Kind, Color] = {
 	Kind.TUTORIAL: DIM,
 	Kind.INFO: DIM,
 	Kind.WARNING: Color(0.98, 0.8, 0.38),
 	Kind.ERROR: Color(0.949, 0.302, 0.4),
-	Kind.CALL: Color(0.957, 0.945, 1),
+	Kind.CALL: Color(0.812, 0.745, 1),
 }
+## How much of the call card's colour covers the screen behind it, in place of the glass's own.
+const CALL_FILL_OPACITY := 0.85
 const PANELS: Dictionary[Kind, StringName] = {
 	Kind.TUTORIAL: &"NoticePanel",
 	Kind.INFO: &"NoticePanel",
 	Kind.WARNING: &"WarningNoticePanel",
 	Kind.ERROR: &"ErrorNoticePanel",
-	Kind.CALL: &"NoticePanel",
+	Kind.CALL: &"CallNoticePanel",
 }
 
 # From 1 while it shows to 0 once its gap has closed.
@@ -64,6 +72,7 @@ var _seconds := 0.0
 var _leaving := false
 # Pushed while the stack was hidden: it comes in once the stack shows.
 var _postponed := false
+var _held := false
 # The card's rise and fade, and the gap closing.
 var _motion: Tween
 var _gap: Tween
@@ -71,6 +80,18 @@ var _gap: Tween
 var _life: Tween
 # A call's phone rattling, on a loop.
 var _ring: Tween
+# A call's ringtone, and its fade as the call leaves.
+var _ringtone: AudioStreamPlayer
+var _ringtone_fade: Tween
+# The wait for the music's beat before the ringtone starts.
+var _ringtone_start: Tween
+
+
+func _notification(what: int) -> void:
+	# The music plays through a pause, so the ringtone comes back on its beat.
+	if what == NOTIFICATION_UNPAUSED and _ringtone and not _held and not _leaving:
+		_ringtone.stop()
+		_ring_on_beat()
 
 
 func _ready() -> void:
@@ -90,7 +111,13 @@ func setup(kind: Kind, text: String, closable: bool, seconds: float, action: Str
 	var icon := %Icon as TextureRect
 	icon.texture = ICONS[kind]
 	icon.self_modulate = ICON_COLORS[kind]
-	(%Card as PanelContainer).theme_type_variation = PANELS[kind]
+	var card := %Card as PanelContainer
+	card.theme_type_variation = PANELS[kind]
+	if kind == Kind.CALL:
+		var glass := card.material.duplicate() as ShaderMaterial
+		glass.set_shader_parameter(&"fill_opacity", CALL_FILL_OPACITY)
+		card.material = glass
+	(%Glow as Control).visible = kind == Kind.CALL
 	(%Label as Label).text = text
 	var button := %ActionButton as Button
 	button.text = action
@@ -135,10 +162,18 @@ func postpone() -> void:
 ## With [param held], stops its countdown and the phone while the stack is hidden; without,
 ## carries on, or brings it in if it was postponed.
 func hold(held: bool) -> void:
+	_held = held
 	if not held and _postponed:
 		_postponed = false
 		enter()
 		return
+	if _ringtone and not _leaving:
+		# The music carries on while it is held, so it comes back on the beat, not where it left.
+		if _ringtone_start:
+			_ringtone_start.kill()
+		_ringtone.stop()
+		if not held:
+			_ring_on_beat()
 	for tween: Tween in [_life, _ring]:
 		if not tween or not tween.is_valid():
 			continue
@@ -160,11 +195,30 @@ func enter() -> void:
 	_motion.tween_property(card, ^"position:y", 0.0, ENTER_SECONDS)
 	_motion.tween_property(card, ^"scale", Vector2.ONE, ENTER_SECONDS)
 	if _seconds > 0.0:
-		_life = create_tween()
-		_life.tween_interval(_seconds)
-		_life.tween_callback(dismiss)
-	if _kind == Kind.CALL and not Settings.reduce_motion:
-		_start_ring()
+		_start_life()
+	if _kind == Kind.CALL:
+		_start_ringtone()
+		if not Settings.reduce_motion:
+			_start_ring()
+
+
+## Starts its countdown to closing by itself over from the whole time, for a notice whose
+## cause came up again. Does nothing for one that never closes by itself, one not yet in,
+## whose countdown starts as it comes in, or one leaving. Held, it stays held.
+func prolong() -> void:
+	if _leaving or not _life or not _life.is_valid():
+		return
+	var held := not _life.is_running()
+	_life.kill()
+	_start_life()
+	if held:
+		_life.pause()
+
+
+func _start_life() -> void:
+	_life = create_tween()
+	_life.tween_interval(_seconds)
+	_life.tween_callback(dismiss)
 
 
 ## Fades the card out, sinking it a little, then closes its gap and frees it. From wherever
@@ -173,11 +227,15 @@ func dismiss() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	# It finishes leaving even if the game pauses, as it does when an Answer opens a
+	# transmission.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	# One that never came in stays out: showing the stack mustn't bring it back.
 	_postponed = false
 	if _life:
 		_life.kill()
 	(%Card as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stop_ringtone()
 	dismissed.emit()
 	var card := %Card as Control
 	var still := Settings.reduce_motion
@@ -201,6 +259,38 @@ func _start_ring() -> void:
 		_ring.tween_property(icon, ^"rotation", swing, RING_SWING_SECONDS).set_trans(
 			Tween.TRANS_SINE
 		)
+
+
+# Its own player, not Audio.play_sfx: the ringtone has to stop when the call does.
+func _start_ringtone() -> void:
+	_ringtone = AudioStreamPlayer.new()
+	_ringtone.stream = RINGTONE
+	_ringtone.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
+	_ringtone.volume_linear = Audio.get_clip_volume(RINGTONE)
+	add_child(_ringtone)
+	_ring_on_beat()
+
+
+# Starts the ringtone on the music's next beat. Its loop is whole beats long, so it then
+# stays in time with the music.
+func _ring_on_beat() -> void:
+	var wait := Audio.seconds_to_beat()
+	if wait <= 0.0:
+		_ringtone.play()
+		return
+	_ringtone_start = create_tween()
+	_ringtone_start.tween_interval(wait)
+	_ringtone_start.tween_callback(_ringtone.play)
+
+
+func _stop_ringtone() -> void:
+	if not _ringtone:
+		return
+	if _ringtone_start:
+		_ringtone_start.kill()
+	_ringtone_fade = create_tween()
+	_ringtone_fade.tween_property(_ringtone, ^"volume_linear", 0.0, RINGTONE_FADE_SECONDS)
+	_ringtone_fade.tween_callback(_ringtone.stop)
 
 
 func _close_gap(still: bool) -> void:

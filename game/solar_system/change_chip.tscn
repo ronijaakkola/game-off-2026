@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://c433r8ul8oifw"]
+
+[ext_resource type="Script" uid="uid://cy0verpkpn3nn" path="res://game/solar_system/change_chip.gd" id="1_chip"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+
+[node name="ChangeChip" type="PanelContainer" unique_id=1939526600]
+visible = false
+modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(0, 18)
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_type_variation = &"ChangeChipPanel"
+script = ExtResource("1_chip")
+
+[node name="Label" type="Label" parent="." unique_id=1334937192]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"PillGainLabel"
+text = "+0"
+horizontal_alignment = 1
+vertical_alignment = 1

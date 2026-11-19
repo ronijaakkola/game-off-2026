@@ -35,6 +35,11 @@ var edge_pan := true:
 	set(value):
 		edge_pan = value
 		_queue_save()
+## Whether the frame rate shows in the top right corner, for checking performance.
+var show_fps := false:
+	set(value):
+		show_fps = value
+		_queue_save()
 
 var _loaded := false
 var _save_timer: Timer

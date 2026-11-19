@@ -23,11 +23,11 @@ The ordered stops the bus flies through, each a planet or a point in space. A **
 _Avoid_: path, waypoints list
 
 **Checkpoint**:
-A point in space on the route before a planet, which the bus flies through on its way there. Right-clicking space puts one just before the first planet on the route, replacing the one there: one at a time.
+A point in space on the route before a planet, which the bus flies through on its way there.
 _Never_: waypoint
 
 **Docked**:
-The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key.
+The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, which starts from the warmth left while the drive is still **warm**, just after docking, and builds faster, until it goes **cold**. Leaving on a warm charge never let go is a **quick stop**.
 _Avoid_: landed, parked
 
 **Signal bus**:
@@ -70,7 +70,7 @@ _Avoid_: logging, metrics
 _Never_: telemetry
 
 **Open planet**:
-The planet the player left-clicked to look at: the camera follows it on the left of the screen, and its **planet panel** on the right shows who is waiting there. One at a time. `SolarSystem.open_planet()` in code.
+The planet the player left-clicked to look at: the camera follows it on the left of the screen, and its **planet panel** on the right shows who is waiting there and a little of its lore. One at a time. `SolarSystem.open_planet()` in code.
 _Avoid_: selected planet, focused planet, planet view
 
 **Open bus**:
@@ -87,8 +87,20 @@ _Avoid_: dev menu, dev console (that is LimboConsole's, F1)
 _Never_: cheat menu
 
 **Fuel**:
-What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the dock panel or the open planet's panel, at that planet's **fuel price**.
+What the bus burns as it flies, by distance flown, held in its **fuel tank** (`FuelTank` in code). Shown in the bus status. **Refuelling** is buying it at the planet the bus is docked at, from the dock panel, at that planet's **fuel price**.
 _Avoid_: energy, gas, charge (that is the frameshift drive's)
+
+**Temperature**:
+How hot the bus is, in degrees, shown in the bus bar. It rests at 21° and climbs while the bus flies through the heat zone. `BusTemperature` in code.
+_Avoid_: warm and cold (those are the frameshift drive's), cabin temperature, heat level
+
+**Heat zone**:
+The area round the star where flying raises the temperature. Its inner part, nearest the star, is the **hot zone**, where it rises much faster.
+_Avoid_: core (that is core systems'), danger zone
+
+**Overheated**:
+The bus at the top of its temperature: it coasts to a stop, keeping its route. Through the **cooldown** that follows, the route can be changed but the drive can't charge.
+_Avoid_: burnt out, meltdown
 
 **Stat**:
 A number on the bus that upgrades change, such as its top speed: a base value, with **modifiers** applied on top. `Stat` in code; the bus's are its `BusStats`, one of each `BusStats.Type`. Not the stats `Online.add_stat` sends to Talo, which count what players do.
@@ -112,14 +124,29 @@ _Never_: respawn
 A card above the bus bars telling the player something: a tutorial, info, a warning, an error or an incoming call, optionally with an action button, a close button, or a time after which it closes by itself. `Notice` in code, pushed onto the `NoticeStack`, which returns it so its owner can dismiss it.
 _Avoid_: toast, notification, popup, alert, hint (one kind of notice is a tutorial)
 
+**Guide card**:
+A card that points with a notch at one thing on screen, a control, a panel or a planet, and says what to do with it. Two kinds: a **tutorial step**, with step dots, which goes once the player does what it says (or, rarely, has a Got it button), and a **feature hint**, shown over the paused game when the player meets a feature, which the player closes with Got it. `GuideCard` in code. Not a **notice**, which sits above the bus bars and points at nothing.
+_Avoid_: tooltip (that names a counter under the pointer), callout, coach mark
+
+**Tutorial**:
+The guided first ride at the start of a new run, on the zoomed map: a call from The Boss, then one passenger from Terra to the Moon, with a guide card for each step, then the zoom out. `Tutorial` in code.
+_Avoid_: onboarding, intro, level
+
+**Zoomed map**:
+The map zoomed in on Terra and the Moon for the tutorial: the star and the planets scaled up together, so the Moon is as far out as a trip across the whole map, while the bus keeps its size and speed. The **zoom out** shrinks it back to the whole solar system. `MapZoom` in code; the node it scales is Sol's `StarSystem`.
+_Avoid_: mini map, small map
+
 **Passenger**:
 Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
 _Never_: customer, rider, NPC
 
 **Happiness**:
 How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. It sets the mood and the rating. `Passenger.happiness` in code.
-_Avoid_: satisfaction, frustration
+_Avoid_: satisfaction
 _Never_: morale, patience (what it replaced)
+
+**Frustration**:
+What a ride running past the time a passenger expects, or a stop past their type's **stop tolerance** (how many stops on the way they take calmly), takes off the most the bus can lift their happiness to. It never takes them under a floor, and the bus still lifts them up to what is left. `Passenger.frustration` in code, worked out by `RideProgress`.
 
 **Comfort**:
 What the bus's comfort upgrades give everyone on board: a bonus on the happiness they settle at, and how long and how slowly their ride's clock runs while they sleep or watch a show. `Comfort` in code, read off the bus's traits.
@@ -145,15 +172,19 @@ Something the player is asked to do and the game tracks, several at a time: a **
 _Avoid_: objective, mission, achievement (a one-off reward, not something asked)
 
 **Quest**:
-A goal about one passenger, such as delivering them, or a **flyby**: flying them past a planet (`FlybyGoal`). It fails if they are kicked.
-_Avoid_: task, errand
+What one passenger asks of the player mid-ride, in a transmission, for a reward: an **express** quest has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each such as `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
+_Avoid_: task, errand, mission
+
+**Transmission**:
+A call that pauses the game: someone, a passenger or the player's boss, talks from a screen in a modal, and the player answers with a button. A **message** only says something; a quest transmission asks the player to take on a quest, shows its reward, and is accepted or declined. `Transmission`, shown by the `TransmissionPanel`, in code.
+_Avoid_: dialog, popup, call screen
 
 **Research point**:
-What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `Ledger.earn_research()` in code.
+What delivering a passenger earns, one per delivery whatever their race or rating, spent on upgrades in any research tree. One kind: points aren't kept apart by race. `Ledger.earn_research()` in code.
 _Avoid_: science, XP, tech points
 
 **Resource bar**:
-The pill at the top centre showing the player's credits, research points and average rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
+The pill at the top centre showing the player's credits, research points and recent rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
 _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
 
@@ -168,7 +199,15 @@ A band of rows across every research tree, opened one at a time: the first from 
 What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
 
 **Promotion**:
-What opens the next stage of research. Only a debug button gives one so far.
+What the player earns by meeting every goal a star system gives at once: it opens the next stage of research and the next star system, or joins every system after the last one. `Progression.promote()` in code.
+
+**Star system**:
+A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
+_Avoid_: level, galaxy, sector, stage (a band of research rows)
+
+**Jump**:
+The bus's frameshift from one star system to the next, once a promotion opens it: it leaves with nobody on board and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
+_Avoid_: warp, hyperspace, travel (a trip between planets)
 
 **Upgrade**:
 One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.

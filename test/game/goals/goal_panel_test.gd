@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
-## The goal panel: "To get promotion" and a row for each goal, with its text, how far
+## The goal panel: "To get promoted" and a row for each goal, with its text, how far
 ## along it is, and a tick once it is met.
 
 const PANEL := "res://game/goals/goal_panel.tscn"
-const CIRCLE_CHECK := preload("res://game/goals/icons/circle_check.svg")
+const CIRCLE_CHECK := preload("res://shared/icons/circle_check.svg")
 
 
 func test_the_preview_shows_the_designed_goals() -> void:

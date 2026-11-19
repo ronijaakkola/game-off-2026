@@ -31,18 +31,18 @@ func get_text() -> String:
 
 func _on_delivered(who: Passenger) -> void:
 	if who == passenger:
-		_fail()
+		_fail("%s left the bus" % passenger.name)
 
 
 func _on_kicked(who: Passenger) -> void:
 	if who == passenger:
-		_fail()
+		_fail("%s was kicked" % passenger.name)
 
 
 func _on_bus_moved(position: Vector3, on_board: Array[Passenger], in_flight: bool) -> void:
 	if passenger not in on_board:
 		if _boarded:
-			_fail()
+			_fail("%s left the bus" % passenger.name)
 		return
 	_boarded = true
 	var near := (

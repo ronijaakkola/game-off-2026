@@ -4,8 +4,12 @@ extends Node
 ## name follows `--`: `uv run tools/check.py capture <this scene> -- Giant`. `-- Bus` opens
 ## the bus instead, with +20 % top speed, -20 % fuel tank and +1 seat, so its rows show a
 ## bonus, a penalty and a seat, and the fuel forecast trait. `-- Forecast` opens nothing,
-## and gives the bus the fuel forecast and waiting markers traits, a course to Terra and
-## someone waiting there, so the forecast shows over it and the marker under it. `-- Trip`
+## and gives the bus the fuel forecast, waiting markers and station cameras traits, a
+## course by Giant to Terra and lines of one, two and three, so the forecast shows over
+## Terra, each leg's cost over it and the dots under the names; `hover` puts the pointer on
+## Giant, so its line shows as photos, and `hover leave` takes it off again after 40 frames.
+## `chime` leaves out the station cameras, so the hover shows how many wait in a tooltip.
+## `-- Trip`
 ## opens nothing, puts two passengers in line at Ember, where the bus is docked, boards one
 ## going where the first one is, so their row shows "1 aboard", and pins the first one's
 ## row in the dock panel, so their trip arc shows. `-- Research` opens the research screen
@@ -16,12 +20,20 @@ extends Node
 ## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
 ## it part way), and
 ## `dock` gives Ember, where the bus is docked, a lab and opens nothing, so the dock panel
-## shows its Research button. `-- Tow` opens
-## the bus, so the camera follows it, and sends it off with fuel for eight units, so it runs
-## dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
+## shows its Research button; `rich` gives credits and points too, so its outline shows.
+## `-- Tow` opens the bus, so the camera follows it, and sends it off with fuel for eight units, so
+## it runs dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
 ## the whole tow takes about 32 s (`--frames 1900`).
+## `-- Quick` opens nothing and shows a quick text over the bus, a remark; `gain` or `loss`
+## shows that kind instead, and `quest` or `quest failed` has the quest giver take on a
+## quest and end it so. It holds from about frame 20 to 80.
+## `-- Full` opens nothing, fills every seat and puts one in line at Ember, then clicks
+## their Board button once the dock panel has slid in, so the bus full notice shows.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
+const TIMER := preload("res://game/bus/icons/timer.svg")
+const CHECK := preload("res://shared/icons/circle_check.svg")
+const FUEL := preload("res://shared/icons/fuel.svg")
 
 
 func _ready() -> void:
@@ -32,9 +44,23 @@ func _ready() -> void:
 		var forecast_bus := system.find_child("Bus") as FrameshiftBus
 		forecast_bus.get_stats().get_traits().add(BusTraits.Type.FUEL_FORECAST)
 		forecast_bus.get_stats().get_traits().add(BusTraits.Type.WAITING_MARKERS)
+		if "chime" not in name_given:
+			forecast_bus.get_stats().get_traits().add(BusTraits.Type.STATION_CAMERAS)
 		var terra := system.find_child("Terra") as Planet
-		(system.find_child("WaitingPassengers") as WaitingPassengers).add(terra)
-		forecast_bus.plot_course(RouteStop.at_planet(terra))
+		var giant := system.find_child("Giant") as Planet
+		var line := system.find_child("WaitingPassengers") as WaitingPassengers
+		for planet: Planet in [terra, giant, giant, giant, forecast_bus.get_docked_planet()]:
+			line.add(planet)
+		forecast_bus.plot_course(RouteStop.at_planet(giant))
+		forecast_bus.plot_course(RouteStop.at_planet(terra), true)
+		if "hover" in name_given:
+			# With `leave`, the pointer moves off after 40 frames, so the card closes.
+			var frames := 0
+			while not ("leave" in name_given and frames >= 40):
+				await get_tree().process_frame
+				_point_at(giant)
+				frames += 1
+			_point_at(null)
 		return
 	if planet_name == "Trip":
 		var trip_bus := system.find_child("Bus") as FrameshiftBus
@@ -71,8 +97,13 @@ func _ready() -> void:
 		await get_tree().create_timer(1.0).timeout
 		cabin.kick(cabin.get_passengers()[1])
 		return
-	if planet_name == "Research":
-		await _open_research(system, name_given)
+	if planet_name in ["Research", "Quick", "Full"]:
+		if planet_name == "Research":
+			await _open_research(system, name_given)
+		elif planet_name == "Quick":
+			await _show_quick_text(system, name_given)
+		else:
+			await _board_on_a_full_bus(system)
 		return
 	if planet_name == "Bus":
 		var bus := system.find_child("Bus") as FrameshiftBus
@@ -90,6 +121,8 @@ func _ready() -> void:
 	var planet := system.find_child(planet_name) as Planet
 	assert(planet != null, "no planet named %s" % planet_name)
 	var waiting := system.find_child("WaitingPassengers") as WaitingPassengers
+	# A full line here, whoever waits elsewhere.
+	waiting.max_total += waiting.max_per_planet
 	for i: int in waiting.max_per_planet:
 		waiting.add(planet)
 	system.open_planet(planet)
@@ -99,6 +132,9 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 	var lab := system.find_child("ResearchLab") as ResearchLab
 	if "dock" in args:
 		(system.find_child("Ember") as Planet).has_lab = true
+		if "rich" in args:
+			system.get_ledger().credits = 500
+			system.get_ledger().earn_research(60)
 		return
 	var research := lab.get_research()
 	for tree: ResearchTree in lab.trees:
@@ -109,9 +145,7 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 		research.open_next_stage()
 	var ledger := system.get_ledger()
 	ledger.credits = 120
-	ledger.earn_research(Race.Type.BLUE, 5)
-	ledger.earn_research(Race.Type.ORANGE, 3)
-	ledger.earn_research(Race.Type.GREEN, 11)
+	ledger.earn_research(19)
 	(system.find_child("ResourceBar") as ResourceBar).commit()
 	lab.open_screen()
 	if "plain" in args:
@@ -132,6 +166,45 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 			return
 
 
+func _show_quick_text(system: SolarSystem, args: PackedStringArray) -> void:
+	var quick := system.find_child("BusQuickText") as BusQuickText
+	await get_tree().process_frame
+	if "quest" in args:
+		_end_a_quest(system, "failed" in args)
+	elif "gain" in args:
+		quick.show_text("Straight to the Moon!", CHECK, BusQuickText.Kind.GAIN)
+	elif "loss" in args:
+		quick.show_text("Rough stop!", FUEL, BusQuickText.Kind.LOSS)
+	else:
+		quick.show_text("Quick stop!", TIMER)
+
+
+# The quest giver takes on a quest about a passenger on board, and it ends at once.
+func _end_a_quest(system: SolarSystem, failed: bool) -> void:
+	var bus := system.find_child("Bus") as FrameshiftBus
+	var passenger := Passenger.new(COMMUTER, bus.get_docked_planet(), 60.0, 40.0)
+	(system.find_child("Cabin") as Cabin).board(passenger)
+	var quest := ExpressQuest.new()
+	quest.passenger = passenger
+	quest.goal = ExpressGoal.new(passenger)
+	(system.find_child("QuestGiver") as QuestGiver).take_on(quest)
+	if failed:
+		quest.goal._fail()
+	else:
+		quest.goal._complete()
+
+
+func _board_on_a_full_bus(system: SolarSystem) -> void:
+	var bus := system.find_child("Bus") as FrameshiftBus
+	var cabin := system.find_child("Cabin") as Cabin
+	for i: int in cabin.get_free_seats():
+		cabin.board(Passenger.new(COMMUTER, bus.get_docked_planet(), 60.0, 40.0))
+	(system.find_child("WaitingPassengers") as WaitingPassengers).add(bus.get_docked_planet())
+	# Once the dock panel has slid in.
+	await get_tree().create_timer(0.6).timeout
+	_press(system.find_child("BoardButton", true, false) as Control)
+
+
 # Moves the pointer onto [param control] and presses the left button there, without letting go.
 func _press(control: Control) -> void:
 	var at := get_viewport().get_final_transform() * control.get_global_rect().get_center()
@@ -148,3 +221,17 @@ func _press(control: Control) -> void:
 	press.pressed = true
 	Input.parse_input_event(press)
 	Input.flush_buffered_events()
+
+
+# Moves the pointer onto [param planet] as the camera sees it, or with null to the top
+# left corner, over nothing.
+func _point_at(planet: Planet) -> void:
+	var camera := get_viewport().get_camera_3d()
+	var at := Vector2(4.0, 300.0)
+	if planet:
+		at = camera.unproject_position(planet.get_body_global_position())
+	get_viewport().warp_mouse(at)
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	Input.parse_input_event(motion)

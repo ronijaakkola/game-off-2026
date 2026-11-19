@@ -3,12 +3,16 @@ extends MarginContainer
 ## and New game takes Play's place: it starts over and replaces the save, so it has to be
 ## held, and a stray click can't lose a run. On the web, a "Click to start" title card
 ## comes first, because Safari starts audio only after a click in the game.
-## The debug panel's Delete save button deletes the save, so the menu shows as on a first
-## visit, and its Reset settings puts every setting back to its default.
+## The debug panel's Delete save button deletes the save and forgets the tutorial, so the
+## game starts as on a first visit, its Reset settings puts every setting back to its
+## default, its Voice lab opens the scene for trying the alien voices, and its Mixer opens
+## the scene for setting how loud each sound and voice is.
 
 const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
 ## PROTOTYPE: the lab for trying the serve minigames, opened from the debug panel.
 const SERVE_LAB_SCENE := "res://game/passengers/serve_minigame_lab_prototype.tscn"
+const VOICE_LAB_SCENE := "res://game/transmissions/voice_lab.tscn"
+const MIXER_SCENE := "res://ui/mixer/mixer.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
 # Written into exports by `check.py export`, so the editor has none.
 const BUILD_COMMIT := "res://ui/main_menu/build_commit.txt"
@@ -23,6 +27,8 @@ func _ready() -> void:
 	DebugPanel.add_button("Delete save", _debug_delete_save, self)
 	DebugPanel.add_button("Reset settings", Settings.reset, self)
 	DebugPanel.add_button("Serve games lab", SceneFlow.go_to.bind(SERVE_LAB_SCENE), self)
+	DebugPanel.add_button("Voice lab", _debug_voice_lab, self)
+	DebugPanel.add_button("Mixer", _debug_mixer, self)
 	if FileAccess.file_exists(BUILD_COMMIT):
 		%BuildLabel.text = "Commit %s" % FileAccess.get_file_as_string(BUILD_COMMIT).strip_edges()
 		%BuildLabel.show()
@@ -78,11 +84,28 @@ func _on_settings_button_pressed() -> void:
 	%SettingsMenu.open(%Items)
 
 
-# The debug panel's Delete save: the menu shows as with no save, Play focused.
+# Deleted from the settings panel: the menu under it shows as with no save. Its Settings
+# button keeps focus for when the panel closes.
+func _on_settings_menu_save_deleted() -> void:
+	_show_save_buttons()
+
+
+# The debug panel's Delete save: the menu shows as with no save, Play focused, and the
+# next run has the tutorial.
 func _debug_delete_save() -> void:
 	SaveGame.delete()
 	_show_save_buttons()
 	_first_button().grab_focus()
+
+
+# The debug panel's Voice lab: the scene for trying the alien voices.
+func _debug_voice_lab() -> void:
+	SceneFlow.go_to(VOICE_LAB_SCENE)
+
+
+# The debug panel's Mixer: the scene for setting how loud each sound and voice is.
+func _debug_mixer() -> void:
+	SceneFlow.go_to(MIXER_SCENE)
 
 
 func _on_quit_button_pressed() -> void:

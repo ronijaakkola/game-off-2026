@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## The bus status panel in the solar system: it says what the bus is doing and how much
-## fuel is left, and holding its Frameshift key charges the drive.
+## fuel is left, and holding its Frameshift key charges the drive, but not while the bus
+## cools down after overheating.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -39,7 +40,6 @@ func test_holding_the_key_charges_and_letting_go_drains_and_keeps_the_course() -
 
 	assert_int(bus.state).is_equal(FrameshiftBus.State.CHARGING)
 	assert_str(_text(runner, "StateLabel")).is_equal("Charging frameshift")
-	assert_str(_text(runner, "ToLabel")).is_equal("Terra")
 	assert_float(key.charge).is_greater(0.0)
 
 	runner.simulate_mouse_button_release(MOUSE_BUTTON_LEFT)
@@ -51,6 +51,26 @@ func test_holding_the_key_charges_and_letting_go_drains_and_keeps_the_course() -
 	assert_float(key.charge).is_equal(0.0)
 	assert_array(bus.get_route_planets()).contains_exactly([terra])
 	assert_bool(key.disabled).is_false()
+
+
+# Space used to work the key only once a click had given it focus.
+func test_space_charges_without_clicking_the_key_first() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	bus.plot_course(RouteStop.at_planet(runner.find_child("Terra") as Planet))
+	await runner.simulate_frames(2)
+
+	runner.simulate_key_press(KEY_SPACE)
+	await runner.await_input_processed()
+	await runner.simulate_frames(5)
+
+	assert_int(bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	assert_float((runner.find_child("FrameshiftKey") as FrameshiftKey).charge).is_greater(0.0)
+
+	runner.simulate_key_release(KEY_SPACE)
+	await runner.await_input_processed()
+	assert_bool(bus.frameshift_held).is_false()
 
 
 func test_the_key_pops_up_once_charged_and_its_release_doesnt_stop_the_bus() -> void:
@@ -91,6 +111,29 @@ func test_shows_the_fuel_left_and_says_when_it_runs_out_at_a_planet() -> void:
 
 	assert_str(_text(runner, "FuelAmount")).is_equal("0%")
 	assert_str(_text(runner, "StateLabel")).is_equal("Out of fuel: refuel here")
+
+
+func test_overheated_a_course_can_be_set_but_the_key_is_off_until_it_cools_down() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var terra := runner.find_child("Terra") as Planet
+	var key := runner.find_child("FrameshiftKey") as FrameshiftKey
+	bus.temperature.cooldown_time = 0.3
+	bus.temperature.set_temperature(bus.temperature.overheat_temperature)
+	bus.plot_course(RouteStop.at_planet(terra))
+	bus.frameshift_held = true
+	await runner.simulate_frames(2)
+
+	assert_array(bus.get_route_planets()).contains([terra])
+	assert_int(bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_str(_text(runner, "StateLabel")).is_equal("Overheated: cooling down")
+	assert_bool(key.disabled).is_true()
+
+	await assert_func(bus.temperature, "is_cooling").wait_until(2000).is_false()
+	await runner.simulate_frames(2)
+	assert_bool(key.disabled).is_false()
+	assert_int(bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 
 func _text(runner: GdUnitSceneRunner, label: String) -> String:

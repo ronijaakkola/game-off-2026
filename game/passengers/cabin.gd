@@ -12,6 +12,9 @@ extends Node
 ## ([method Passenger.settle]).
 ## The bus's comfort upgrades, as traits, set the [Comfort] every passenger rides with and
 ## which amenities are on board, and its PORTION_SIZE stat how long served food lasts.
+## While the bus is [member uncomfortable], everyone's [member Comfort.discomfort] builds
+## by [constant DISCOMFORT_RATE] a second up to [constant DISCOMFORT_MAX], and back in the
+## comfortable band it wears off by [constant DISCOMFORT_RECOVERY] a second.
 
 signal boarded(passenger: Passenger)
 ## [param passenger] left their seat at the stop [method stop_at] started, and will get off
@@ -31,7 +34,20 @@ signal stop_finished
 
 ## The scare everyone left on board takes when the player kicks someone off.
 const KICK_SHOCK := -25.0
-## Seconds the player holds a serve button to serve a request alone.
+## How fast a stop runs for those riding on once the bus's drive goes cold ([member cold]).
+const COLD_RATE := 0.5
+## How many fewer requests can be open at once than the bus has seats.
+const QUIET_SEATS := 2
+## The happiness everyone on board gains when the bus leaves a planet on a quick stop.
+const QUICK_STOP_CHEER := 3.0
+## How fast the bus's temperature past comfortable takes happiness off the most everyone
+## can reach, a second, how much it takes at most, and how fast that wears off once it is
+## comfortable again. Small: a clean ride on a bare bus keeps its four stars.
+const DISCOMFORT_RATE := 0.25
+const DISCOMFORT_MAX := 3.0
+const DISCOMFORT_RECOVERY := 1.0
+## Seconds the player holds a serve button to serve a request alone, before the bus's
+## SERVING_SPEED stat.
 const HAND_SECONDS := 1.2
 const FOOD_DISPENSER := preload("res://game/passengers/amenities/food_dispenser.tres")
 const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.tres")
@@ -48,6 +64,12 @@ const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.
 @export var amenities: Array[Amenity] = []
 ## Seconds each passenger takes to get off or on at a stop.
 @export_range(0.0, 3.0, 0.05) var step_seconds := 0.6
+## What a happy passenger pays, as a multiple of what they would without it, once the bus
+## has the Tip jar.
+@export_range(1.0, 3.0, 0.05) var tip := 1.2
+## How many times as long someone picked up waits for their first requests, once the bus
+## has Free station coffee.
+@export_range(1.0, 3.0, 0.05) var coffee_delay := 1.5
 
 ## Whether the bus waits at a planet, docked or charging, so ride clocks run at half
 ## speed. The scene that holds the bus sets it. When it turns false the bus has left, and
@@ -59,9 +81,18 @@ var docked := true:
 				passenger.depart(comfort)
 		docked = value
 
+## Whether the bus waits at a planet with its drive cold. Then the ride clocks of those
+## riding on run, and their happiness falls, at [constant COLD_RATE] of their speed rather
+## than [constant Passenger.DOCKED_RATE]. The scene that holds the bus sets it.
+var cold := false
+
 ## Whether the bus is parking at a planet, so everyone's happiness holds: the bus has
 ## arrived. The scene that holds the bus sets it.
 var parking := false
+
+## Whether the bus is past its comfortable temperature
+## ([method BusTemperature.is_uncomfortable]). The scene that holds the bus sets it.
+var uncomfortable := false
 
 ## What the bus's comfort upgrades give everyone on board. It follows the bus's traits once
 ## the cabin follows the bus ([method follow]).
@@ -86,8 +117,22 @@ var _hands: Dictionary[Passenger, bool] = {}
 
 
 func _process(delta: float) -> void:
+	# Kept running through a pause, as for the tutorial's first request: only serving goes
+	# on, and the ride holds still.
+	if get_tree().paused:
+		for passenger: Passenger in _passengers:
+			_serve_request(passenger, delta)
+		return
+	var toward := DISCOMFORT_MAX if uncomfortable else 0.0
+	var speed := DISCOMFORT_RATE if uncomfortable else DISCOMFORT_RECOVERY
+	comfort.discomfort = move_toward(comfort.discomfort, toward, speed * delta)
+	var open := _passengers.filter(func(p: Passenger) -> bool: return p.request != null).size()
 	for passenger: Passenger in _passengers:
-		passenger.tick(delta, docked, parking, comfort)
+		var rate := COLD_RATE if cold else Passenger.DOCKED_RATE
+		var asking := passenger.request != null
+		passenger.tick(delta, docked, parking, comfort, rate, open < get_request_limit())
+		if passenger.request and not asking:
+			open += 1
 		_serve_request(passenger, delta)
 	if _stopping:
 		_until_step -= delta
@@ -122,6 +167,12 @@ func get_passengers() -> Array[Passenger]:
 
 func has_free_seat() -> bool:
 	return _passengers.size() < seats
+
+
+## How many requests can be open at once: [constant QUIET_SEATS] fewer than the seats, and
+## at least one. A need that comes up past that waits its turn.
+func get_request_limit() -> int:
+	return maxi(seats - QUIET_SEATS, 1)
 
 
 ## Seats no one has taken or been picked up for.
@@ -194,9 +245,23 @@ func shock(amount: float) -> void:
 		passenger.shock(amount)
 
 
+## Everyone on board admires a quick stop ([method Passenger.admire]).
+func cheer_quick_stop() -> void:
+	for passenger: Passenger in _passengers:
+		passenger.admire(QUICK_STOP_CHEER)
+
+
+## Everyone on board reacts to the bus overheating for [param seconds]
+## ([method Passenger.react_to_overheat]).
+func react_to_overheat(seconds: float) -> void:
+	for passenger: Passenger in _passengers:
+		passenger.react_to_overheat(seconds)
+
+
 ## Starts a stop at [param planet]. Everyone going there leaves their seat now, and their
 ## happiness stops, so they pay by the mood they arrived in, after any disappointment at a
-## request left unserved ([method Passenger.arrive]); they get off one at a time.
+## request left unserved ([method Passenger.arrive]); they get off one at a time. For
+## everyone riding on it is a stop on the way ([method Passenger.pass_stop]).
 ## The first one goes at once, and [signal stop_finished] comes [member step_seconds] after
 ## the last, or at once when nobody gets off or on.
 func stop_at(planet: Planet) -> void:
@@ -207,8 +272,10 @@ func stop_at(planet: Planet) -> void:
 			_forget(passenger)
 			_getting_off.append(passenger)
 			passenger.arrive()
-			_payouts.append(passenger.get_payout())
+			_payouts.append(passenger.get_payout(tip if _has(BusTraits.Type.TIP_JAR) else 1.0))
 			leaving.append(passenger)
+		else:
+			passenger.pass_stop(planet)
 	for passenger: Passenger in leaving:
 		getting_off.emit(passenger)
 	_unloading = true
@@ -246,7 +313,10 @@ func _step() -> void:
 		unloaded.emit()
 	if not _getting_on.is_empty():
 		# Picked up with a seat promised, so they get on even if seats went since.
-		_take_seat(_getting_on.pop_front())
+		var boarding: Passenger = _getting_on.pop_front()
+		if _has(BusTraits.Type.FREE_COFFEE):
+			boarding.delay_requests(coffee_delay)
+		_take_seat(boarding)
 		_until_step += step_seconds
 		return
 	_stopping = false
@@ -284,7 +354,7 @@ func _serve_request(passenger: Passenger, delta: float) -> void:
 	else:
 		passenger.show_request("")
 	if _hands.has(passenger):
-		rate += 1.0 / HAND_SECONDS
+		rate += _get_hand_speed() / HAND_SECONDS
 	if rate > 0.0:
 		passenger.feed(rate * delta, portion)
 	if not passenger.request:
@@ -308,6 +378,17 @@ func _take_seat(passenger: Passenger) -> void:
 	boarded.emit(passenger)
 
 
+# How many times as fast as [constant HAND_SECONDS] the player serves: the SERVING_SPEED
+# stat of the bus the cabin follows, or 1 before it follows one.
+func _get_hand_speed() -> float:
+	return _bus_stats.get_stat(BusStats.Type.SERVING_SPEED).get_value() if _bus_stats else 1.0
+
+
+# Whether the bus the cabin follows has [param type]. Before it follows one, nothing.
+func _has(type: BusTraits.Type) -> bool:
+	return _bus_stats != null and _bus_stats.get_traits().has(type)
+
+
 func _on_seats_stat_changed() -> void:
 	seats = _bus_stats.get_seats()
 
@@ -318,7 +399,9 @@ func _on_portion_changed() -> void:
 
 func _on_trait_changed(_type: BusTraits.Type) -> void:
 	var traits := _bus_stats.get_traits()
+	var discomfort := comfort.discomfort
 	comfort = Comfort.from_traits(traits)
+	comfort.discomfort = discomfort
 	for passenger: Passenger in _passengers:
 		passenger.settle(comfort)
 	amenities.clear()

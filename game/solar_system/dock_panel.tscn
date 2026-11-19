@@ -6,12 +6,22 @@
 [ext_resource type="PackedScene" uid="uid://bbs2kxbdg7qyr" path="res://game/solar_system/fuel_button.tscn" id="4_fuel"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="5_glass"]
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
-[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://game/solar_system/icons/flask_conical.svg" id="7_flask"]
+[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="7_flask"]
 [ext_resource type="Texture2D" uid="uid://bx5fr0dpvayyy" path="res://game/solar_system/icons/chevron_right.svg" id="8_chevron"]
+[ext_resource type="Texture2D" uid="uid://c1lifb3j2j53u" path="res://game/solar_system/icons/arrow_big_right.svg" id="9_jump"]
+[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rule"]
-content_margin_top = 1.0
-bg_color = Color(1, 1, 1, 0.1216)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nudge"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.961, 0.78, 0.29, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_empty"]
 content_margin_bottom = 4.0
@@ -104,28 +114,18 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ResearchButton" type="Button" parent="Card/Clip/Content" unique_id=1934796713]
+[node name="ResearchRow" type="HBoxContainer" parent="Card/Clip/Content" unique_id=1934796713]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
-theme_type_variation = &"RowButton"
-
-[node name="Row" type="HBoxContainer" parent="Card/Clip/Content/ResearchButton" unique_id=1468555162]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="ResearchTile" type="PanelContainer" parent="Card/Clip/Content/ResearchButton/Row" unique_id=515759577]
+[node name="ResearchTile" type="PanelContainer" parent="Card/Clip/Content/ResearchRow" unique_id=515759577]
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"IconTilePanel"
 
-[node name="ResearchIcon" type="TextureRect" parent="Card/Clip/Content/ResearchButton/Row/ResearchTile" unique_id=1875448864]
+[node name="ResearchIcon" type="TextureRect" parent="Card/Clip/Content/ResearchRow/ResearchTile" unique_id=1875448864]
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 mouse_filter = 2
@@ -133,28 +133,79 @@ texture = ExtResource("7_flask")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ResearchLabel" type="Label" parent="Card/Clip/Content/ResearchButton/Row" unique_id=1408588537]
+[node name="ResearchButton" type="Button" parent="Card/Clip/Content/ResearchRow" unique_id=1408588537]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"SmallLabel"
+theme_type_variation = &"SmallButton"
 text = "Research"
 
-[node name="Chevron" type="TextureRect" parent="Card/Clip/Content/ResearchButton/Row" unique_id=757989064]
+[node name="ResearchNudge" type="Panel" parent="Card/Clip/Content/ResearchRow/ResearchButton" unique_id=764144757]
+unique_name_in_owner = true
+visible = false
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nudge")
+
+[node name="Chevron" type="TextureRect" parent="Card/Clip/Content/ResearchRow/ResearchButton" unique_id=757989064]
 self_modulate = Color(0.957, 0.945, 1, 0.651)
-custom_minimum_size = Vector2(14, 14)
-layout_mode = 2
-size_flags_vertical = 4
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -26.0
+offset_top = -7.0
+offset_right = -12.0
+offset_bottom = 7.0
+grow_horizontal = 0
+grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("8_chevron")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="FuelRule" type="Panel" parent="Card/Clip/Content" unique_id=1536806567]
+[node name="JumpRow" type="HBoxContainer" parent="Card/Clip/Content" unique_id=769569729]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="JumpTile" type="PanelContainer" parent="Card/Clip/Content/JumpRow" unique_id=1310388386]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"IconTilePanel"
+
+[node name="JumpIcon" type="TextureRect" parent="Card/Clip/Content/JumpRow/JumpTile" unique_id=1745325878]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("9_jump")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="JumpButton" type="Button" parent="Card/Clip/Content/JumpRow" unique_id=1904540432]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SmallPrimaryButton"
+text = "Jump"
+
+[node name="FuelRule" type="Control" parent="Card/Clip/Content" unique_id=1536806567]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rule")
+script = ExtResource("90_hairline")
+horizontal = true
 
 [node name="WaitingLabel" type="Label" parent="Card/Clip/Content" unique_id=1032200223]
 unique_name_in_owner = true
@@ -189,5 +240,6 @@ size_flags_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 0
 
+[connection signal="pressed" from="Card/Clip/Content/ResearchRow/ResearchButton" to="." method="_on_research_button_pressed"]
+[connection signal="pressed" from="Card/Clip/Content/JumpRow/JumpButton" to="." method="_on_jump_button_pressed"]
 [connection signal="pressed" from="Card/Clip/Content/BoardAllButton" to="." method="_on_board_all_button_pressed"]
-[connection signal="pressed" from="Card/Clip/Content/ResearchButton" to="." method="_on_research_button_pressed"]

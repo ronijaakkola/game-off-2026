@@ -17,7 +17,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [audio]
 
-buses/default_bus_layout="res://core/audio/default_bus_layout.tres"
+buses/default_bus_layout="uid://r4x2py7qv14j"
 
 [autoload]
 
@@ -28,10 +28,12 @@ Settings="*res://core/settings/settings.gd"
 SaveGame="*res://core/save_game/save_game.gd"
 SceneFlow="*res://core/scene_flow/scene_flow.gd"
 Feedback="*res://core/feedback/feedback.gd"
+Cursor="*res://core/cursor/cursor.gd"
 Talo="*uid://bpmdn8oc34pg7"
 Online="*res://core/online/online.gd"
 DevConsole="*res://core/dev_console/dev_console.gd"
 DebugPanel="*res://core/debug_panel/debug_panel.tscn"
+FpsCounter="*res://core/fps_counter/fps_counter.tscn"
 PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 
 [debug]
@@ -102,6 +104,17 @@ clear_route={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194308,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194312,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+frameshift={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":32,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+queue_stop={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194325,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+, Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":81,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
 }
 pause={

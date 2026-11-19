@@ -5,28 +5,46 @@ extends Control
 ## arrow, an icon of the planet and its name, then, fainter, how many on the bus are going
 ## there too, from [member along]), and a button that picks them up. It reads the passenger
 ## when [member passenger] is set; a passenger's details don't change while they wait.
-## The root is a slot that holds the row's place in the list, and the panel moves inside it,
-## so the row can slide out to the right once they board. The slot is as tall as the panel
-## and the gap under it, so it closes up without a jump when it shrinks.
+## The root is a slot that holds the row's place in the list, and the panel moves inside it:
+## a passenger who turns up opens the slot while the row slides in from past the right
+## edge ([method enter]), and once they board the row slides back out past it and the slot
+## closes ([method leave]). The slot is as tall as the panel and the gap under it, so it
+## opens and closes without a jump, and clips the panel meanwhile. The row never fades as
+## it moves: its portrait blends by adding, so see-through it would flash white.
 ## The pointer over the row, or a click on it, shows where they are going (the dock panel
 ## decides which), and the row whose trip shows is [member highlighted]: a step lighter,
 ## with a border in their race's skin colour.
+## A row that is [member beckoning] calls for its button to be pressed, as the tutorial
+## does: the whole row shows the highlight's border and the button turns primary. The
+## border glows and the button swells by [member beckon_glow], which the dock panel pulses;
+## under Reduce motion the button doesn't swell.
 
 ## The player pressed the button to pick up [member passenger].
 signal board_pressed(passenger: Passenger)
+## The player clicked the button while it was off for every seat being taken.
+signal full_pressed
 ## The player clicked the row anywhere but its button.
 signal clicked(passenger: Passenger)
 
 ## Pixels under the row, kept in its slot.
 const GAP := 4.0
-## Seconds to slide out past the right edge, and then to close up.
-const SLIDE_OUT_SECONDS := 0.3
-const CLOSE_SECONDS := 0.2
-# How far past the slot's right edge the panel ends up, so it ends out of sight.
+## Seconds to slide in, and to slide back out.
+const ENTER_SECONDS := 0.35
+const EXIT_SECONDS := 0.25
+## Seconds for the slot to open to the row's height, and to close up once the row is out.
+const GAP_SECONDS := 0.25
+## How far past its own right edge the row starts and ends, in pixels, so it is past the
+## dock panel's edge, which cuts it off.
 const OFF_RIGHT := 32.0
 ## The highlighted row's border width, in pixels, and how much lighter its background is.
 const HIGHLIGHT_BORDER := 2
 const HIGHLIGHT_LIGHTEN := 0.0706
+## How much the beckoning button swells at the height of a pulse.
+const BECKON_SCALE := 1.1
+## A beckoning row's border opacity between pulses, and how much lighter its background is
+## at the height of one, as a multiple of the highlight's.
+const BECKON_BORDER_LOW := 0.35
+const BECKON_LIGHTEN := 2.0
 
 var passenger: Passenger:
 	set(value):
@@ -62,16 +80,39 @@ var highlighted := false:
 		if is_node_ready():
 			_show_highlight()
 
+## Whether the button calls to be pressed: primary, and swelling by [member beckon_glow].
+var beckoning := false:
+	set(value):
+		if value == beckoning:
+			return
+		beckoning = value
+		if is_node_ready():
+			_show_beckon()
+
+## How strongly a beckoning row glows now, from 0 between pulses to 1 at the height of one.
+var beckon_glow := 1.0:
+	set(value):
+		beckon_glow = value
+		if is_node_ready() and beckoning:
+			_show_beckon()
+
 var _leaving := false
-var _slide: Tween
+# How much of the row's height the slot keeps: 1 in the list, 0 closed.
+var _open := 1.0
+# The tween that slides the panel, and the one that opens and closes the slot.
+var _motion: Tween
+var _gap: Tween
 
 
 func _ready() -> void:
 	resized.connect(_fit)
 	(%Panel as Control).minimum_size_changed.connect(_fit)
+	# An off button still gets its clicks as input, though it never emits pressed.
+	(%BoardButton as Control).gui_input.connect(_on_board_button_gui_input)
 	_show()
 	_show_button()
 	_show_along()
+	_show_beckon()
 	_fit()
 
 
@@ -88,33 +129,65 @@ func is_hovered() -> bool:
 	return hovered != null and (hovered == panel or panel.is_ancestor_of(hovered))
 
 
-## Slides the row out past the right edge, closes up its place, and frees it. Under Reduce
-## motion it fades out in place instead of sliding.
+## Opens the row's place in the list while the row slides in from past the right edge.
+## Under Reduce motion it fades in in place, its place open at once.
+func enter() -> void:
+	_kill_motion()
+	var panel := %Panel as Control
+	_motion = create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	if Settings.reduce_motion:
+		panel.modulate.a = 0.0
+		_motion.tween_property(panel, ^"modulate:a", 1.0, ENTER_SECONDS)
+		return
+	clip_contents = true
+	_set_open(0.0)
+	_gap = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_gap.tween_method(_set_open, 0.0, 1.0, GAP_SECONDS)
+	_gap.tween_callback(func() -> void: clip_contents = false)
+	panel.position.x = size.x + OFF_RIGHT
+	_motion.tween_property(panel, ^"position:x", 0.0, ENTER_SECONDS)
+
+
+## Slides the row out past the right edge, from wherever it is, then closes up its place
+## and frees it. Under Reduce motion it fades out in place and its place closes at once.
 func leave() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	beckoning = false
 	_show_button()
-	if _slide:
-		_slide.kill()
+	if _motion:
+		_motion.kill()
 	var panel := %Panel as Control
-	_slide = create_tween()
+	_motion = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	if Settings.reduce_motion:
-		_slide.tween_property(panel, ^"modulate:a", 0.0, SLIDE_OUT_SECONDS)
+		_motion.tween_property(panel, ^"modulate:a", 0.0, EXIT_SECONDS)
 	else:
-		(
-			_slide
-			. tween_property(panel, ^"position:x", size.x + OFF_RIGHT, SLIDE_OUT_SECONDS)
-			. set_trans(Tween.TRANS_CUBIC)
-			. set_ease(Tween.EASE_OUT)
-		)
-	(
-		_slide
-		. tween_property(self, ^"custom_minimum_size:y", 0.0, CLOSE_SECONDS)
-		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_OUT)
-	)
-	_slide.tween_callback(queue_free)
+		_motion.tween_property(panel, ^"position:x", size.x + OFF_RIGHT, EXIT_SECONDS)
+	_motion.tween_callback(_close_up)
+
+
+func _close_up() -> void:
+	if _gap:
+		_gap.kill()
+	if Settings.reduce_motion:
+		queue_free()
+		return
+	clip_contents = true
+	_gap = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_gap.tween_method(_set_open, _open, 0.0, GAP_SECONDS)
+	_gap.tween_callback(queue_free)
+
+
+func _kill_motion() -> void:
+	for tween: Tween in [_motion, _gap]:
+		if tween:
+			tween.kill()
+
+
+func _set_open(share: float) -> void:
+	_open = share
+	_fit()
 
 
 func _show() -> void:
@@ -128,17 +201,23 @@ func _show() -> void:
 	(%DestinationLabel as Label).text = _destination_name()
 
 
+# The border in their race's skin colour while highlighted or beckoning; beckoning, it
+# glows by beckon_glow.
 func _show_highlight() -> void:
 	var panel := %Panel as Control
 	panel.remove_theme_stylebox_override(&"panel")
-	if not highlighted or not passenger or not passenger.destination:
+	if not (highlighted or beckoning) or not passenger or not passenger.destination:
 		return
 	var style := panel.get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
 	if not style:
 		return
 	style.set_border_width_all(HIGHLIGHT_BORDER)
 	style.border_color = Race.SKIN_COLORS[passenger.race]
-	style.bg_color.a += HIGHLIGHT_LIGHTEN
+	var lighten := HIGHLIGHT_LIGHTEN
+	if beckoning:
+		style.border_color.a = lerpf(BECKON_BORDER_LOW, 1.0, beckon_glow)
+		lighten = lerpf(HIGHLIGHT_LIGHTEN, HIGHLIGHT_LIGHTEN * BECKON_LIGHTEN, beckon_glow)
+	style.bg_color.a += lighten
 	panel.add_theme_stylebox_override(&"panel", style)
 
 
@@ -152,6 +231,15 @@ func _show_button() -> void:
 	(%BoardButton as Button).disabled = _leaving or not can_board
 
 
+func _show_beckon() -> void:
+	var button := %BoardButton as Button
+	button.theme_type_variation = &"SmallPrimaryButton" if beckoning else &"SmallButton"
+	var swell := beckon_glow if beckoning and not Settings.reduce_motion else 0.0
+	button.pivot_offset_ratio = Vector2(0.5, 0.5)
+	button.scale = Vector2.ONE * lerpf(1.0, BECKON_SCALE, swell)
+	_show_highlight()
+
+
 func _destination_name() -> String:
 	if not passenger.destination:
 		return "?"
@@ -160,21 +248,27 @@ func _destination_name() -> String:
 	return passenger.destination.name
 
 
-# The slot is as tall as the panel needs plus the gap, and the panel fills its width. Once
-# the row leaves, the slot's height is the close-up tween's.
+# The slot is as tall as the panel needs plus the gap, by how far open it is, and the panel
+# fills its width.
 func _fit() -> void:
 	var panel := %Panel as Control
 	var needed := panel.get_combined_minimum_size()
 	panel.size = Vector2(size.x, needed.y)
-	if _leaving:
-		return
-	var slot := Vector2(needed.x, needed.y + GAP)
+	var slot := Vector2(needed.x, (needed.y + GAP) * _open)
 	if custom_minimum_size != slot:
 		custom_minimum_size = slot
 
 
 func _on_board_button_pressed() -> void:
 	board_pressed.emit(passenger)
+
+
+func _on_board_button_gui_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if not click or click.button_index != MOUSE_BUTTON_LEFT or not click.pressed:
+		return
+	if not can_board and not _leaving:
+		full_pressed.emit()
 
 
 func _on_panel_gui_input(event: InputEvent) -> void:

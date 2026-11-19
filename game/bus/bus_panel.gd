@@ -21,11 +21,17 @@ const STAT_NAMES := {
 	BusStats.Type.FUEL_CAPACITY: "Fuel tank",
 	BusStats.Type.SEATS: "Seats",
 	BusStats.Type.PORTION_SIZE: "Portion size",
+	BusStats.Type.WARM_TIME: "Warm time",
+	BusStats.Type.PUMP_SPEED: "Pump speed",
+	BusStats.Type.SERVING_SPEED: "Serving speed",
 }
 ## How each stat's value shows, by type. A stat missing here shows two decimals.
 const VALUE_FORMATS := {
 	BusStats.Type.FUEL_CAPACITY: "%.0f",
 	BusStats.Type.PORTION_SIZE: "%.1fx",
+	BusStats.Type.WARM_TIME: "%.1f s",
+	BusStats.Type.PUMP_SPEED: "%.1fx",
+	BusStats.Type.SERVING_SPEED: "%.1fx",
 }
 ## Each trait's name in its row, by [enum BusTraits.Type]. A trait missing here shows its
 ## type's name.
@@ -36,9 +42,17 @@ const TRAIT_NAMES := {
 	BusTraits.Type.SLEEPING_PODS: "Sleeping pods",
 	BusTraits.Type.GAMING_SYSTEM: "Space Invaders",
 	BusTraits.Type.ENTERTAINMENT_SYSTEM: "In-Flight Movies",
-	BusTraits.Type.FOOD_DISPENSER: "Food Replicator",
+	BusTraits.Type.FOOD_DISPENSER: "Food Dispenser",
 	BusTraits.Type.SERVING_ROBOTS: "Waiter Droids",
+	BusTraits.Type.STATION_CAMERAS: "Station cameras",
+	BusTraits.Type.WAITING_LOUNGE: "Station waiting lounge",
+	BusTraits.Type.TIP_JAR: "Tip jar",
+	BusTraits.Type.FREE_COFFEE: "Free station coffee",
+	BusTraits.Type.TIMETABLES: "Timetables",
 }
+
+## The width of each row's delta slot, wide enough for "+100%".
+const BONUS_WIDTH := 44.0
 
 var _bus: FrameshiftBus
 var _open := false
@@ -101,8 +115,11 @@ func _make_row(type: BusStats.Type) -> HBoxContainer:
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_label)
 	var value_label := _make_label("ValueLabel")
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(value_label)
 	var bonus_label := _make_label("BonusLabel")
+	bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	bonus_label.custom_minimum_size.x = BONUS_WIDTH
 	row.add_child(bonus_label)
 	_value_labels[type] = value_label
 	_bonus_labels[type] = bonus_label
@@ -138,7 +155,6 @@ func _show_stats() -> void:
 		_value_labels[type].text = _value_text(type, stat)
 		var bonus := _bonus_labels[type]
 		bonus.text = _bonus_text(type, stat)
-		bonus.visible = not bonus.text.is_empty()
 		var color := PENALTY_COLOR if bonus.text.begins_with("-") else BONUS_COLOR
 		bonus.add_theme_color_override(&"font_color", color)
 

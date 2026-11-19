@@ -29,23 +29,24 @@ func test_a_boarding_passenger_gets_a_card_and_loses_it_on_getting_off() -> void
 	await runner.simulate_frames(2)
 
 	var cards := runner.find_child("Cards") as Control
-	assert_int(cards.get_child_count()).is_equal(1)
-	var card := cards.get_child(0)
+	assert_int(_cards_in(cards).size()).is_equal(1)
+	var card := _cards_in(cards)[0]
 	assert_str((card.find_child("NameLabel") as Label).text).is_equal(passenger.name)
-	assert_str((card.find_child("DestinationLabel") as Label).text).contains("Ember")
+	assert_str((runner.find_child("PlanetLabel") as Label).text).is_equal("Ember")
 
-	# Done sliding in.
+	# Done coming in.
 	await runner.simulate_frames(30, 30)
 	cabin.stop_at(planet)
 	# It shows their rating and stays in place almost until it has lingered its time.
 	await await_millis(roundi(PassengerCard.LINGER_SECONDS * 1000.0) - 300)
 	assert_bool((card as PassengerCard).is_rated()).is_true()
 	var panel := card.find_child("Panel") as Control
-	assert_float(panel.position.x).is_equal(0.0)
+	assert_float(_shift_of(panel, card)).is_equal(0.0)
 	# Then it slides out to the left and folds away before it goes.
-	await assert_func(self, "_slid_out", [panel]).wait_until(2000).is_true()
-	assert_int(cards.get_child_count()).is_equal(1)
-	await runner.simulate_frames(30, 30)
+	await assert_func(self, "_slid_out", [panel, card]).wait_until(2000).is_true()
+	assert_int(_cards_in(cards).size()).is_equal(1)
+	# Its group's header folds away after it.
+	await runner.simulate_frames(40, 30)
 	assert_int(cards.get_child_count()).is_equal(0)
 
 
@@ -69,18 +70,21 @@ func test_a_card_shows_a_portrait_and_gives_it_back_when_the_passenger_gets_off(
 	assert_int(studio.get_portrait_count()).is_equal(0)
 
 
-func test_a_boarding_card_slides_in_from_the_left() -> void:
+func test_a_boarding_card_opens_its_place_and_slides_in_from_the_left() -> void:
 	var runner := scene_runner(SCENE)
 	var cabin := _cabin(runner)
 	await runner.simulate_frames(1)
 
 	cabin.board(_passenger(auto_free(Planet.new()), 1000.0))
 
-	var panel := runner.find_child("Panel") as Control
-	# Its right edge is past the screen's left edge.
+	var card := _cards_in(runner.find_child("Cards"))[0]
+	var panel := card.find_child("Panel") as Control
+	# It starts past the left edge of the screen, its place in the list closed.
 	assert_float(panel.global_position.x + panel.size.x).is_less(0.0)
+	assert_float(card.custom_minimum_size.y).is_equal(0.0)
 	await runner.simulate_frames(30, 30)
-	assert_float(panel.position.x).is_equal(0.0)
+	assert_float(_shift_of(panel, card)).is_equal(0.0)
+	assert_float(card.custom_minimum_size.y).is_equal(panel.size.y + PassengerCard.GAP)
 
 
 func test_holding_serve_on_a_card_serves_the_request() -> void:
@@ -89,7 +93,8 @@ func test_holding_serve_on_a_card_serves_the_request() -> void:
 	var passenger := _passenger(auto_free(Planet.new()), 0.05)
 	cabin.board(passenger)
 	cabin.docked = false
-	await runner.simulate_frames(10, 20)
+	# Long enough for the card to come in: it takes no clicks while its place opens.
+	await runner.simulate_frames(20, 20)
 	assert_object(passenger.request).is_not_null()
 
 	var button := runner.find_child("ServeButton") as Button
@@ -110,7 +115,7 @@ func test_holding_serve_on_a_card_serves_the_request() -> void:
 	assert_str((runner.find_child("ActivityLabel") as Label).text).is_equal("Munching")
 
 
-func test_each_card_shows_an_icon_in_its_own_destination_colour() -> void:
+func test_each_destination_s_group_shows_an_icon_in_its_colour() -> void:
 	var runner := scene_runner(SCENE)
 	var cabin := _cabin(runner)
 	var colors: Array[Color] = [Color.ORANGE, Color.TEAL]
@@ -121,7 +126,7 @@ func test_each_card_shows_an_icon_in_its_own_destination_colour() -> void:
 	await runner.simulate_frames(2)
 
 	var icons := (runner.find_child("Cards") as Control).find_children(
-		"DestinationIcon", "", true, false
+		"DestinationPlanetIcon", "", true, false
 	)
 	assert_int(icons.size()).is_equal(2)
 	for i: int in icons.size():
@@ -136,7 +141,7 @@ func test_the_preview_shows_a_full_cabin_with_three_requests() -> void:
 	await runner.simulate_frames(2)
 
 	var cards := runner.find_child("Cards") as Control
-	assert_int(cards.get_child_count()).is_equal(8)
+	assert_int(_cards_in(cards).size()).is_equal(8)
 	var serving := 0
 	for button: Node in cards.find_children("ServeButton", "", true, false):
 		if (button as Button).is_visible_in_tree():
@@ -185,8 +190,115 @@ func test_a_card_s_kick_button_fades_in_outside_the_board() -> void:
 	assert_float(kick.global_position.x).is_greater(board.global_position.x + board.size.x)
 
 
-func _slid_out(panel: Control) -> bool:
-	return panel.position.x < 0.0
+func test_cards_group_by_destination_in_the_order_the_planets_came_up() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var terra: Planet = auto_free(Planet.new())
+	terra.name = "Terra"
+	var frost: Planet = auto_free(Planet.new())
+	frost.name = "Frost"
+	var first := _passenger(terra, 1000.0)
+	var second := _passenger(frost, 1000.0)
+	var third := _passenger(terra, 1000.0)
+	for passenger: Passenger in [first, second, third]:
+		cabin.board(passenger)
+	await runner.simulate_frames(2)
+
+	var groups := (runner.find_child("Cards") as Control).get_children()
+	assert_int(groups.size()).is_equal(2)
+	assert_str((groups[0].find_child("PlanetLabel") as Label).text).is_equal("Terra")
+	assert_str((groups[0].find_child("CountLabel") as Label).text).is_equal("2")
+	assert_array(_names(groups[0])).is_equal([first.name, third.name])
+	assert_str((groups[1].find_child("PlanetLabel") as Label).text).is_equal("Frost")
+	assert_array(_names(groups[1])).is_equal([second.name])
+
+
+func test_the_panel_keeps_its_height_while_a_rerouted_card_changes_groups() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var terra: Planet = auto_free(Planet.new())
+	terra.name = "Terra"
+	var frost: Planet = auto_free(Planet.new())
+	frost.name = "Frost"
+	var first := _passenger(terra, 1000.0)
+	cabin.board(first)
+	cabin.board(_passenger(terra, 1000.0))
+	cabin.board(_passenger(frost, 1000.0))
+	await runner.simulate_frames(30, 30)
+	var panel := runner.scene() as PassengerPanel
+	var height := panel.size.y
+
+	# The old place folds as the new one opens, so the panel never grows or shrinks.
+	first.reroute(frost, 10.0, 0.0)
+	for frame: int in 60:
+		await runner.simulate_frames(1, 16)
+		assert_float(panel.size.y).is_equal(height)
+
+
+func test_a_rerouted_passenger_s_card_moves_to_their_new_destination_s_group() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var terra: Planet = auto_free(Planet.new())
+	terra.name = "Terra"
+	var frost: Planet = auto_free(Planet.new())
+	frost.name = "Frost"
+	var first := _passenger(terra, 1000.0)
+	var second := _passenger(frost, 1000.0)
+	cabin.board(first)
+	cabin.board(second)
+	await runner.simulate_frames(30, 30)
+
+	# An express quest accepted: they go to Frost now.
+	first.reroute(frost, 10.0, 0.0)
+	var card := (runner.scene() as PassengerPanel).get_card(first)
+	assert_object(card).is_not_null()
+	await runner.simulate_frames(60, 30)
+
+	# Their old card has left, and with it Terra's group; they ride under Frost, last.
+	var groups := (runner.find_child("Cards") as Control).get_children()
+	assert_int(groups.size()).is_equal(1)
+	assert_str((groups[0].find_child("PlanetLabel") as Label).text).is_equal("Frost")
+	assert_str((groups[0].find_child("CountLabel") as Label).text).is_equal("2")
+	assert_array(_names(groups[0])).is_equal([second.name, first.name])
+	assert_object((runner.scene() as PassengerPanel).get_card(first)).is_same(card)
+
+
+func test_a_passenger_boarding_while_arrivals_are_held_comes_in_once_let_go() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var planet: Planet = auto_free(Planet.new())
+	runner.set_property("arrivals_held", true)
+
+	cabin.board(_passenger(planet, 1000.0))
+	await runner.simulate_frames(2)
+	var cards := runner.find_child("Cards") as Control
+	assert_int(_cards_in(cards).size()).is_equal(0)
+
+	runner.set_property("arrivals_held", false)
+	await runner.simulate_frames(2)
+	assert_int(_cards_in(cards).size()).is_equal(1)
+
+
+func _names(group: Node) -> Array[String]:
+	var names: Array[String] = []
+	for card: PassengerCard in _cards_in(group):
+		names.append((card.find_child("NameLabel") as Label).text)
+	return names
+
+
+func _cards_in(node: Node) -> Array[PassengerCard]:
+	var cards: Array[PassengerCard] = []
+	cards.assign(node.find_children("*", "PassengerCard", true, false))
+	return cards
+
+
+func _slid_out(panel: Control, card: Control) -> bool:
+	return _shift_of(panel, card) < 0.0
+
+
+# How far right of its place in the card the panel sits, in pixels.
+func _shift_of(panel: Control, card: Control) -> float:
+	return panel.global_position.x - card.global_position.x
 
 
 func _cabin(runner: GdUnitSceneRunner) -> Cabin:

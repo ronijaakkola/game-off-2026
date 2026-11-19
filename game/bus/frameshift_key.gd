@@ -2,9 +2,10 @@ class_name FrameshiftKey
 extends BusKey
 ## The Frameshift key in the bus bar, a [BusKey] with a label. The bus status sets what it
 ## shows: [member charge], how far the drive has charged, fills the cap in the bus's yellow
-## and latches the key down; [member stop] turns it into the red Stop key; disabled, the
+## and latches the key down; [member warmth], how warm the drive is, fills it the same way
+## with the key up and ready; [member stop] turns it into the red Stop key; disabled, the
 ## cap is dim. Enabled and neither charging nor Stop, it is ready: the cap pulses slightly
-## lighter, with a thin glow in the bus's yellow round it. [method release] pops it up
+## lighter, with a hard outline in the bus's yellow round it. [method release] pops it up
 ## while the pointer still holds it down.
 
 const SIZE := Vector2(104.0, 44.0)
@@ -13,13 +14,13 @@ const STOP_FACE_COLOR := Color(0.949, 0.302, 0.4)
 const STOP_PRESSED_COLOR := Color(0.839, 0.247, 0.345)
 const CHARGE_COLOR := Color(0.961, 0.78, 0.29, 0.6)
 const TEXT_COLOR := Color(0.957, 0.945, 1.0)
-const GLOW_COLOR := Color(0.961, 0.78, 0.29)
-const GLOW_SIZE := 4
-# Ready, the cap lightens by up to PULSE_LIGHTEN and the glow's opacity swings between
-# GLOW_DIM and GLOW_BRIGHT, once every PULSE_SECONDS.
+const OUTLINE_COLOR := Color(0.961, 0.78, 0.29)
+const OUTLINE_WIDTH := 2
+# Ready, the cap lightens by up to PULSE_LIGHTEN and the outline's opacity swings between
+# OUTLINE_DIM and OUTLINE_BRIGHT, once every PULSE_SECONDS.
 const PULSE_LIGHTEN := 0.1
-const GLOW_DIM := 0.1
-const GLOW_BRIGHT := 0.3
+const OUTLINE_DIM := 0.35
+const OUTLINE_BRIGHT := 1.0
 const PULSE_SECONDS := 2.0
 
 ## How far the drive has charged, from 0 to 1. Above 0 the key latches down and fills.
@@ -28,6 +29,12 @@ var charge := 0.0:
 		if not is_equal_approx(value, charge):
 			charge = value
 			queue_redraw()
+## How warm the drive is, from 0 to 1. Fills the cap without latching the key down.
+var warmth := 0.0:
+	set(value):
+		if not is_equal_approx(value, warmth):
+			warmth = value
+			queue_redraw()
 ## Whether the key is the red Stop key.
 var stop := false:
 	set(value):
@@ -35,31 +42,33 @@ var stop := false:
 			stop = value
 			queue_redraw()
 
-var _fill := StyleBoxFlat.new()
+var _outline := StyleBoxFlat.new()
 
 
 func _ready() -> void:
 	super()
 	custom_minimum_size = custom_minimum_size.max(SIZE)
-	_fill.bg_color = CHARGE_COLOR
-	_fill.set_corner_radius_all(8)
+	_outline.draw_center = false
+	_outline.set_border_width_all(OUTLINE_WIDTH)
+	_outline.set_corner_radius_all(CAP_RADIUS + OUTLINE_WIDTH)
 
 
-# The cap and its glow pulse, so the key redraws every frame while it shows.
+# The cap and its outline pulse, so the key redraws every frame while it shows.
 func _process(_delta: float) -> void:
 	if _is_ready() and not Settings.reduce_motion:
 		queue_redraw()
 
 
 func _draw() -> void:
-	# The glow is the shadow of the cap's edge, which draws over the cap's side.
-	_edge.shadow_size = GLOW_SIZE if _is_ready() else 0
-	_edge.shadow_color = Color(GLOW_COLOR, lerpf(GLOW_DIM, GLOW_BRIGHT, _pulse()))
 	var face := _draw_cap()
-	if charge > 0.0:
-		_fill.draw(
-			get_canvas_item(), Rect2(face.position, Vector2(face.size.x * charge, face.size.y))
-		)
+	if _is_ready():
+		# Round the whole cap, its side too, in the well's gap.
+		var cap := Rect2(WELL_PAD, WELL_PAD, face.size.x, CAP_HEIGHT + RAISE)
+		_outline.border_color = Color(OUTLINE_COLOR, lerpf(OUTLINE_DIM, OUTLINE_BRIGHT, _pulse()))
+		_outline.draw(get_canvas_item(), cap.grow(OUTLINE_WIDTH))
+	var fill := maxf(charge, warmth)
+	if fill > 0.0:
+		RoundedFill.draw(self, face, CAP_RADIUS, fill, CHARGE_COLOR)
 	var font := get_theme_font(&"font")
 	var font_size := get_theme_font_size(&"font_size")
 	var label := "Stop" if stop else "Frameshift"

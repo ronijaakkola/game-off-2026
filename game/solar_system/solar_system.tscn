@@ -1,10 +1,6 @@
 [gd_scene format=3 uid="uid://dl44qfykqfvcv"]
 
 [ext_resource type="Script" uid="uid://cg1xeqno6p0ek" path="res://game/space_sky/space_sky.gd" id="1_sky"]
-[ext_resource type="Script" uid="uid://bcxthsqtxqd30" path="res://game/solar_system/planet.gd" id="2_planet"]
-[ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
-[ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
-[ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
 [ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_pcam_host"]
 [ext_resource type="PackedScene" uid="uid://kekyce3aucic" path="res://ui/pause_menu/pause_menu.tscn" id="9_pause"]
 [ext_resource type="PackedScene" uid="uid://dn06wx2ui5uuu" path="res://game/solar_system/camera_rig.tscn" id="10_rig"]
@@ -40,134 +36,45 @@
 [ext_resource type="AudioStream" uid="uid://mbqncsuy76e2" path="res://game/solar_system/fuel.ogg" id="106_fuel_sound"]
 [ext_resource type="Script" uid="uid://dpaw5dcmq6r0m" path="res://game/solar_system/low_fuel_warning.gd" id="107_low_fuel"]
 [ext_resource type="Script" uid="uid://ddmhb277n5sw7" path="res://game/solar_system/game_saver.gd" id="108_saver"]
+[ext_resource type="Script" uid="uid://dl6s4c30gtvik" path="res://game/solar_system/orbit_clock.gd" id="109_orbit_clock"]
+[ext_resource type="PackedScene" uid="uid://dt5lffwqtfh1" path="res://game/transmissions/transmission_panel.tscn" id="109_transmission"]
+[ext_resource type="Script" uid="uid://h318eugw35ag" path="res://game/solar_system/map_zoom.gd" id="110_map_zoom"]
+[ext_resource type="Script" uid="uid://cfxvq7xof4cvo" path="res://game/solar_system/tow_dispatch.gd" id="111_tow"]
+[ext_resource type="Script" uid="uid://b8g5hsmk4cxc8" path="res://game/tutorial/tutorial.gd" id="112_tutorial"]
+[ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
+[ext_resource type="Script" uid="uid://dwyqyf3dug5pa" path="res://game/solar_system/heat_zone.gd" id="114_heat_zone"]
+[ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
+[ext_resource type="PackedScene" uid="uid://dl00qj1joo6lh" path="res://game/solar_system/systems/sol.tscn" id="114_sol"]
+[ext_resource type="Script" uid="uid://c4ehv650d8qwy" path="res://game/tutorial/tutorial_call.gd" id="115_call"]
+[ext_resource type="Shader" uid="uid://bfd4gbew06myw" path="res://game/solar_system/heat_zone.gdshader" id="115_heat_shader"]
+[ext_resource type="PackedScene" uid="uid://bnmgxp1mhbefp" path="res://game/solar_system/systems/lyra.tscn" id="115_lyra"]
+[ext_resource type="PackedScene" uid="uid://c27bke4n6kwiy" path="res://game/solar_system/systems/draco.tscn" id="116_draco"]
+[ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
+[ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
+[ext_resource type="Script" uid="uid://bungk47fldg1l" path="res://game/solar_system/star_map.gd" id="117_star_map"]
+[ext_resource type="Script" uid="uid://bxqoome8abxs1" path="res://game/solar_system/progression.gd" id="118_progression"]
+[ext_resource type="PackedScene" uid="uid://d2tkvslrbiqae" path="res://game/solar_system/system_jump.tscn" id="119_jump"]
+[ext_resource type="Script" uid="uid://bxr0vas50wip8" path="res://game/quests/quest_giver.gd" id="140_quests"]
+[ext_resource type="Script" uid="uid://bu4j550daikvp" path="res://game/goals/goals_met_call.gd" id="141_goals_met_call"]
+[ext_resource type="Script" uid="uid://bbous2naro572" path="res://game/feature_hints/feature_hints.gd" id="141_hints"]
+[ext_resource type="Script" uid="uid://d0yafx2jib6ve" path="res://game/feature_hints/business_hint.gd" id="142_business_hint"]
+[ext_resource type="PackedScene" uid="uid://dhfaboh7sticu" path="res://ui/pause_menu/pause_button.tscn" id="143_pause_button"]
 
-[sub_resource type="SphereMesh" id="SphereMesh_star"]
-radius = 2.4
-height = 4.8
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
+render_priority = -2
+shader = ExtResource("115_heat_shader")
+shader_parameter/zone_color = null
+shader_parameter/hot_color = null
+shader_parameter/hot_share = null
+shader_parameter/softness = null
+shader_parameter/flash = null
+shader_parameter/flash_gain = null
+shader_parameter/opacity = null
+shader_parameter/smoke_color = null
+shader_parameter/smoke_scale = null
+shader_parameter/drift = null
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_star"]
-shading_mode = 0
-albedo_color = Color(1, 0.82, 0.25, 1)
-
-[sub_resource type="QuadMesh" id="QuadMesh_halo"]
-size = Vector2(7.7, 7.7)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_halo"]
-render_priority = -1
-shader = ExtResource("5_halo")
-shader_parameter/halo_color = Color(1, 0.7, 0.3, 0.4)
-shader_parameter/ring_count = 2
-shader_parameter/inner_radius = 0.78
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ember"]
-render_priority = 0
-shader = ExtResource("3_surface")
-shader_parameter/light_source = Vector3(0, 0, 0)
-shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(0.82, 0.58, 0.4, 1)
-shader_parameter/mid_color = Color(0.66, 0.43, 0.3, 1)
-shader_parameter/top_color = Color(0.94, 0.78, 0.58, 1)
-shader_parameter/mid_threshold = 0.55
-shader_parameter/top_threshold = 0.68
-shader_parameter/noise_scale = 2.6
-shader_parameter/stripes = 0.0
-shader_parameter/stripe_count = 6.0
-shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.0
-shader_parameter/seed = 3.0
-shader_parameter/terminator_softness = 0.0
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orbit"]
-transparency = 1
-cull_mode = 2
-shading_mode = 0
-albedo_color = Color(0.8, 0.8, 1, 0.3)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_terra"]
-render_priority = 0
-shader = ExtResource("3_surface")
-shader_parameter/light_source = Vector3(0, 0, 0)
-shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(0.5, 0.82, 0.34, 1)
-shader_parameter/mid_color = Color(0.84, 0.95, 0.56, 1)
-shader_parameter/top_color = Color(0.36, 0.71, 0.35, 1)
-shader_parameter/mid_threshold = 0.5
-shader_parameter/top_threshold = 0.54
-shader_parameter/noise_scale = 1.8
-shader_parameter/stripes = 0.0
-shader_parameter/stripe_count = 6.0
-shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.0
-shader_parameter/seed = 11.0
-shader_parameter/terminator_softness = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_moon"]
-render_priority = 0
-shader = ExtResource("3_surface")
-shader_parameter/light_source = Vector3(0, 0, 0)
-shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(0.95, 0.93, 1, 1)
-shader_parameter/mid_color = Color(0.8, 0.78, 0.95, 1)
-shader_parameter/top_color = Color(0.8, 0.78, 0.95, 1)
-shader_parameter/mid_threshold = 0.6
-shader_parameter/top_threshold = 1.0
-shader_parameter/noise_scale = 3.0
-shader_parameter/stripes = 0.0
-shader_parameter/stripe_count = 6.0
-shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.0
-shader_parameter/seed = 5.0
-shader_parameter/terminator_softness = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_giant"]
-render_priority = 0
-shader = ExtResource("3_surface")
-shader_parameter/light_source = Vector3(0, 0, 0)
-shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(1, 0.6, 0.25, 1)
-shader_parameter/mid_color = Color(0.95, 0.42, 0.22, 1)
-shader_parameter/top_color = Color(1, 0.8, 0.5, 1)
-shader_parameter/mid_threshold = 0.45
-shader_parameter/top_threshold = 0.8
-shader_parameter/noise_scale = 1.4
-shader_parameter/stripes = 1.0
-shader_parameter/stripe_count = 5.0
-shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.0
-shader_parameter/seed = 21.0
-shader_parameter/terminator_softness = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_giant_rings"]
-render_priority = 0
-shader = ExtResource("4_rings")
-shader_parameter/color_a = Color(0.72, 0.72, 1, 1)
-shader_parameter/color_b = Color(0.56, 0.56, 0.92, 1)
-shader_parameter/band_count = 3.0
-shader_parameter/gap = 0.12
-shader_parameter/opacity = 1.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_frost"]
-render_priority = 0
-shader = ExtResource("3_surface")
-shader_parameter/light_source = Vector3(0, 0, 0)
-shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(1, 0.62, 0.74, 1)
-shader_parameter/mid_color = Color(1, 0.76, 0.84, 1)
-shader_parameter/top_color = Color(1, 0.92, 0.95, 1)
-shader_parameter/mid_threshold = 0.5
-shader_parameter/top_threshold = 0.66
-shader_parameter/noise_scale = 2.2
-shader_parameter/stripes = 0.0
-shader_parameter/stripe_count = 6.0
-shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.22
-shader_parameter/seed = 37.0
-shader_parameter/terminator_softness = 0.0
+[sub_resource type="PlaneMesh" id="PlaneMesh_heat_zone"]
 
 [node name="SolarSystem" type="Node3D" unique_id=1939531791]
 script = ExtResource("11_system")
@@ -199,98 +106,81 @@ min_distance = 8.0
 max_distance = 55.0
 distance = 43.0
 
-[node name="Star" type="Node3D" parent="." unique_id=1616161291]
+[node name="World" type="Node3D" parent="." unique_id=425802452]
+unique_name_in_owner = true
 
-[node name="Surface" type="MeshInstance3D" parent="Star" unique_id=600828084]
+[node name="HeatZoneDisc" type="MeshInstance3D" parent="World" unique_id=786749512]
+material_override = SubResource("ShaderMaterial_heat_zone")
 cast_shadow = 0
-mesh = SubResource("SphereMesh_star")
-surface_material_override/0 = SubResource("StandardMaterial3D_star")
+mesh = SubResource("PlaneMesh_heat_zone")
 
-[node name="Halo" type="MeshInstance3D" parent="Star" unique_id=209002715]
-cast_shadow = 0
-mesh = SubResource("QuadMesh_halo")
-surface_material_override/0 = SubResource("ShaderMaterial_halo")
+[node name="Sol" parent="World" unique_id=1865132520 instance=ExtResource("114_sol")]
 
-[node name="Light" type="OmniLight3D" parent="Star" unique_id=1336476973]
-omni_range = 200.0
-omni_attenuation = 0.0
+[node name="Lyra" parent="World" unique_id=616666113 instance=ExtResource("115_lyra")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 0, -6)
 
-[node name="Ember" type="Node3D" parent="." unique_id=1760760661]
-script = ExtResource("2_planet")
-display_name = "Ember"
-radius = 0.39
-orbit_radius = 5.2
-orbit_period = 70.0
-start_angle = 200.0
-spin_period = 27.0
-surface_material = SubResource("ShaderMaterial_ember")
-icon_color = Color(0.82, 0.58, 0.4, 1)
-orbit_material = SubResource("StandardMaterial3D_orbit")
+[node name="Draco" parent="World" unique_id=1231504114 instance=ExtResource("116_draco")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -42)
 
-[node name="Terra" type="Node3D" parent="." unique_id=310922244]
-script = ExtResource("2_planet")
-display_name = "Terra"
-radius = 0.5
-orbit_radius = 8.6
-orbit_period = 120.0
-start_angle = 300.0
-spin_period = 36.0
-tilt = 15.0
-surface_material = SubResource("ShaderMaterial_terra")
-icon_color = Color(0.5, 0.82, 0.34, 1)
-fuel_price = 0.12
-has_lab = true
-orbit_material = SubResource("StandardMaterial3D_orbit")
-
-[node name="Moon" type="Node3D" parent="Terra" unique_id=247044122]
-script = ExtResource("2_planet")
-display_name = "Moon"
-radius = 0.15
-orbit_radius = 2.0
-start_angle = 40.0
-spin_period = 0.0
-surface_material = SubResource("ShaderMaterial_moon")
-icon_color = Color(0.95, 0.93, 1, 1)
-fuel_price = 0.15
-orbit_width = 0.03
-orbit_material = SubResource("StandardMaterial3D_orbit")
-
-[node name="Giant" type="Node3D" parent="." unique_id=1488920163]
-script = ExtResource("2_planet")
-display_name = "Giant"
-orbit_radius = 13.2
-orbit_period = 220.0
-start_angle = 140.0
-spin_period = 48.0
-tilt = 18.0
-surface_material = SubResource("ShaderMaterial_giant")
-icon_color = Color(1, 0.6, 0.25, 1)
-fuel_price = 0.06
-has_lab = true
-orbit_material = SubResource("StandardMaterial3D_orbit")
-ring_material = SubResource("ShaderMaterial_giant_rings")
-ring_inner = 1.35
-ring_outer = 2.2
-icon_ring_color = Color(0.72, 0.72, 1, 1)
-
-[node name="Frost" type="Node3D" parent="." unique_id=2128267833]
-script = ExtResource("2_planet")
-display_name = "Frost"
-radius = 0.425
-orbit_radius = 17.5
-orbit_period = 320.0
-start_angle = 20.0
-spin_period = 42.0
-tilt = -10.0
-surface_material = SubResource("ShaderMaterial_frost")
-icon_color = Color(1, 0.62, 0.74, 1)
-fuel_price = 0.08
-has_lab = true
-orbit_material = SubResource("StandardMaterial3D_orbit")
+[node name="StarMap" type="Node" parent="." unique_id=1875360574 node_paths=PackedStringArray("world", "rig")]
+unique_name_in_owner = true
+script = ExtResource("117_star_map")
+world = NodePath("../World")
+rig = NodePath("../CameraRig")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
 unique_name_in_owner = true
-start_planet = NodePath("../Ember")
+start_planet = NodePath("../World/Sol/Ember")
+
+[node name="OrbitClock" type="Node" parent="." unique_id=466363001 node_paths=PackedStringArray("bus", "map_zoom")]
+unique_name_in_owner = true
+script = ExtResource("109_orbit_clock")
+bus = NodePath("../Bus")
+map_zoom = NodePath("../MapZoom")
+
+[node name="MapZoom" type="Node" parent="." unique_id=1364752133 node_paths=PackedStringArray("world", "bus", "pivot", "rig")]
+unique_name_in_owner = true
+script = ExtResource("110_map_zoom")
+world = NodePath("../World/Sol")
+bus = NodePath("../Bus")
+pivot = NodePath("../World/Sol/Terra")
+rig = NodePath("../CameraRig")
+
+[node name="TowDispatch" type="Node" parent="." unique_id=1140975013 node_paths=PackedStringArray("bus", "cabin", "notices")]
+unique_name_in_owner = true
+script = ExtResource("111_tow")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+notices = NodePath("../Hud/Notices")
+
+[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "map_zoom", "lab_badges", "research_lab", "research_screen", "pause_menu", "guide")]
+unique_name_in_owner = true
+script = ExtResource("112_tutorial")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+intro = NodePath("Call")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+passenger_panel = NodePath("../Hud/PassengerPanel")
+portrait_studio = NodePath("../PortraitStudio")
+bus_bars = NodePath("../Hud/BusStatusPanel")
+resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
+trip_arc = NodePath("../TripArc")
+home = NodePath("../World/Sol/Terra")
+destination = NodePath("../World/Sol/Terra/Moon")
+hud = NodePath("../Hud")
+rig = NodePath("../CameraRig")
+map_zoom = NodePath("../MapZoom")
+lab_badges = NodePath("../Hud/LabBadges")
+research_lab = NodePath("../ResearchLab")
+research_screen = NodePath("../Hud/ResearchScreen")
+pause_menu = NodePath("../PauseMenu")
+guide = NodePath("../Hud/GuideCard")
+
+[node name="Call" type="Node" parent="Tutorial" unique_id=1313732372 node_paths=PackedStringArray("hud", "notices", "transmission_panel")]
+script = ExtResource("115_call")
+hud = NodePath("../../Hud")
+notices = NodePath("../../Hud/Notices")
+transmission_panel = NodePath("../../TransmissionPanel")
 
 [node name="Cabin" type="Node" parent="." unique_id=1517490635]
 unique_name_in_owner = true
@@ -302,32 +192,88 @@ script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices")]
+[node name="Quests" type="Node" parent="." unique_id=668166964 node_paths=PackedStringArray("bus", "cabin")]
+unique_name_in_owner = true
+script = ExtResource("104_goals")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+
+[node name="QuestGiver" type="Node" parent="." unique_id=1899460635 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quests", "quick_text")]
+unique_name_in_owner = true
+script = ExtResource("140_quests")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+notices = NodePath("../Hud/Notices")
+transmission_panel = NodePath("../TransmissionPanel")
+quests = NodePath("../Quests")
+quick_text = NodePath("../Hud/BusQuickText")
+
+[node name="GoalsMetCall" type="Node" parent="." unique_id=1075418356 node_paths=PackedStringArray("goals", "notices", "transmission_panel", "quest_giver")]
+script = ExtResource("141_goals_met_call")
+goals = NodePath("../Goals")
+notices = NodePath("../Hud/Notices")
+transmission_panel = NodePath("../TransmissionPanel")
+quest_giver = NodePath("../QuestGiver")
+
+[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quest_giver", "test_destination", "test_flyby_planet")]
 script = ExtResource("103_debug")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
+transmission_panel = NodePath("../TransmissionPanel")
+quest_giver = NodePath("../QuestGiver")
+test_destination = NodePath("../World/Sol/Giant")
+test_flyby_planet = NodePath("../World/Sol/Frost")
+
+[node name="HeatZone" type="Node" parent="." unique_id=743044272 node_paths=PackedStringArray("bus", "star", "map_zoom", "zone")]
+script = ExtResource("114_heat_zone")
+bus = NodePath("../Bus")
+star = NodePath("../World/Sol/Star")
+map_zoom = NodePath("../MapZoom")
+zone = NodePath("../World/HeatZoneDisc")
+
+[node name="HeatWarning" type="Node" parent="." unique_id=165021034 node_paths=PackedStringArray("bus", "notices", "cabin", "portrait_studio", "hints", "bus_bars")]
+script = ExtResource("116_heat_warning")
+bus = NodePath("../Bus")
+notices = NodePath("../Hud/Notices")
+cabin = NodePath("../Cabin")
+portrait_studio = NodePath("../PortraitStudio")
+hints = NodePath("../FeatureHints")
+bus_bars = NodePath("../Hud/BusStatusPanel")
+
+[node name="FeatureHints" type="Node" parent="." unique_id=1633059782 node_paths=PackedStringArray("guide", "tutorial", "saver")]
+script = ExtResource("141_hints")
+guide = NodePath("../Hud/HintCard")
+tutorial = NodePath("../Tutorial")
+saver = NodePath("../GameSaver")
+
+[node name="BusinessHint" type="Node" parent="." unique_id=538199482 node_paths=PackedStringArray("hints", "dock_panel")]
+script = ExtResource("142_business_hint")
+hints = NodePath("../FeatureHints")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")
 bus = NodePath("../Bus")
 notices = NodePath("../Hud/Notices")
 
-[node name="FuelPump" type="Node" parent="." unique_id=2138476615 node_paths=PackedStringArray("bus", "dock_panel", "planet_panel")]
+[node name="FuelPump" type="Node" parent="." unique_id=2138476615 node_paths=PackedStringArray("bus", "dock_panel")]
 unique_name_in_owner = true
 script = ExtResource("27_pump")
 sound = ExtResource("106_fuel_sound")
 bus = NodePath("../Bus")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
-planet_panel = NodePath("../Hud/PlanetPanel")
 
-[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "cabin", "goals", "research_lab")]
+[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "new_run_planet", "cabin", "goals", "quest_giver", "research_lab", "star_map")]
 unique_name_in_owner = true
 script = ExtResource("108_saver")
 bus = NodePath("../Bus")
+new_run_planet = NodePath("../World/Sol/Terra")
 cabin = NodePath("../Cabin")
 goals = NodePath("../Goals")
+quest_giver = NodePath("../QuestGiver")
 research_lab = NodePath("../ResearchLab")
+star_map = NodePath("../StarMap")
 
 [node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "research_screen")]
 unique_name_in_owner = true
@@ -337,13 +283,33 @@ resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
 research_screen = NodePath("../Hud/ResearchScreen")
 trees = Array[ExtResource("94_research_tree")]([ExtResource("95_blue_tree"), ExtResource("96_green_tree"), ExtResource("97_orange_tree")])
 
-[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus", "cabin")]
+[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("bus")]
 unique_name_in_owner = true
 script = ExtResource("14_waiting")
 types = Array[ExtResource("16_type")]([ExtResource("15_commuter")])
 business = ExtResource("15_business")
 bus = NodePath("../Bus")
+
+[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "research_lab", "waiting", "quest_giver", "notices", "bus", "cabin", "dock_panel", "system_jump", "saver")]
+unique_name_in_owner = true
+script = ExtResource("118_progression")
+star_map = NodePath("../StarMap")
+goals = NodePath("../Goals")
+research_lab = NodePath("../ResearchLab")
+waiting = NodePath("../WaitingPassengers")
+quest_giver = NodePath("../QuestGiver")
+notices = NodePath("../Hud/Notices")
+bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+system_jump = NodePath("../SystemJump")
+saver = NodePath("../GameSaver")
+
+[node name="SystemJump" parent="." unique_id=380382441 node_paths=PackedStringArray("bus", "rig", "hud") instance=ExtResource("119_jump")]
+unique_name_in_owner = true
+bus = NodePath("../Bus")
+rig = NodePath("../CameraRig")
+hud = NodePath("../Hud")
 
 [node name="PortraitStudio" parent="." unique_id=1933731670 instance=ExtResource("22_studio")]
 unique_name_in_owner = true
@@ -355,18 +321,31 @@ camera = NodePath("../Camera")
 [node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
 script = ExtResource("102_hud")
 
-[node name="WaitingMarkers" parent="Hud" unique_id=1789310111 instance=ExtResource("22_markers")]
+[node name="LabBadges" parent="Hud" unique_id=26987481 node_paths=PackedStringArray("camera") instance=ExtResource("113_lab_badges")]
 unique_name_in_owner = true
+camera = NodePath("../../Camera")
 
 [node name="FuelForecast" parent="Hud" unique_id=1670509518 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("25_forecast")]
 unique_name_in_owner = true
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")
 
+[node name="WaitingMarkers" parent="Hud" unique_id=1789310111 node_paths=PackedStringArray("bus", "camera") instance=ExtResource("22_markers")]
+unique_name_in_owner = true
+bus = NodePath("../../Bus")
+camera = NodePath("../../Camera")
+
+[node name="BusQuickText" parent="Hud" unique_id=1403942728 node_paths=PackedStringArray("camera", "bus", "panels") instance=ExtResource("114_quick_text")]
+unique_name_in_owner = true
+camera = NodePath("../../Camera")
+bus = NodePath("../../Bus")
+panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
+
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
 
 [node name="TopRight" type="MarginContainer" parent="Hud" unique_id=304030688]
+unique_name_in_owner = true
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -380,14 +359,19 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="GoalPanel" parent="Hud/TopRight/Stack" unique_id=693263101 node_paths=PackedStringArray("tracker") instance=ExtResource("105_goal_panel")]
+[node name="GoalPanel" parent="Hud/TopRight/Stack" unique_id=693263101 node_paths=PackedStringArray("tracker", "quest_giver", "portrait_studio") instance=ExtResource("105_goal_panel")]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
 tracker = NodePath("../../../../Goals")
+quest_giver = NodePath("../../../../QuestGiver")
+portrait_studio = NodePath("../../../../PortraitStudio")
 
-[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 instance=ExtResource("23_dock")]
+[node name="DockPanel" parent="Hud/TopRight/Stack" unique_id=609881460 node_paths=PackedStringArray("research_lab", "notices") instance=ExtResource("23_dock")]
 unique_name_in_owner = true
 layout_mode = 2
+research_lab = NodePath("../../../../ResearchLab")
+notices = NodePath("../../../Notices")
 
 [node name="TopCentre" type="MarginContainer" parent="Hud" unique_id=1703736930]
 unique_name_in_owner = true
@@ -402,14 +386,28 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Notices" parent="Hud" unique_id=307714029 instance=ExtResource("100_notices")]
-unique_name_in_owner = true
-anchors_preset = 7
-
 [node name="BusStatusPanel" parent="Hud" unique_id=923292603 node_paths=PackedStringArray("bus") instance=ExtResource("19_status")]
 unique_name_in_owner = true
 anchors_preset = 7
 bus = NodePath("../../Bus")
+
+[node name="PauseButton" parent="Hud" unique_id=1942403847 instance=ExtResource("143_pause_button")]
+unique_name_in_owner = true
+
+[node name="Curtain" type="ColorRect" parent="Hud" unique_id=1536382013]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Notices" parent="Hud" unique_id=307714029 instance=ExtResource("100_notices")]
+unique_name_in_owner = true
+anchors_preset = 7
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
 unique_name_in_owner = true
@@ -421,4 +419,12 @@ anchors_preset = 11
 
 [node name="ResearchScreen" parent="Hud" unique_id=2076382170 instance=ExtResource("99_screen")]
 
+[node name="GuideCard" parent="Hud" unique_id=1412722458 instance=ExtResource("116_guide")]
+
+[node name="HintCard" parent="Hud" unique_id=1380757466 instance=ExtResource("116_guide")]
+
+[node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
+
 [node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]
+
+[connection signal="pressed" from="Hud/PauseButton" to="PauseMenu" method="open"]

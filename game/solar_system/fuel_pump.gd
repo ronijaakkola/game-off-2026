@@ -7,14 +7,13 @@ extends Node
 ## together, and what is left under a credit carries over to the next refuel.
 ## [member sound] plays from the moment fuel starts to flow until it stops, however that
 ## happens.
-## The buttons are the dock panel's fuel button, and the open planet's refuel button when
-## that is the planet the bus is docked at. Each frame it shows in both panels whether it
-## can pump, and in the open planet's the fuel, the price and what stops it.
+## The button is the dock panel's fuel button, and each frame it shows there whether it
+## can pump.
 
 ## Fuel a second the pump gives as the button goes down, the most it speeds up to, and the
-## seconds it takes to get there.
-const START_RATE := 12.0
-const MAX_RATE := 60.0
+## seconds it takes to get there. The bus's PUMP_SPEED stat scales both rates.
+const START_RATE := 5.1
+const MAX_RATE := 25.5
 const RAMP_SECONDS := 1.5
 
 ## One cycle of the pump's sound. It repeats while the pump runs, so its import loops it
@@ -23,16 +22,14 @@ const RAMP_SECONDS := 1.5
 ## [member pitch_rise_seconds], slower than the flow itself speeds up. The sound fades out
 ## over [member fade_seconds] when the pump stops, so it doesn't click.
 @export var sound: AudioStream
-@export_range(0.0, 1.0, 0.01) var sound_volume := 1.0
 @export_range(0.1, 4.0, 0.01) var pitch_start := 0.6
 @export_range(0.1, 4.0, 0.01) var pitch_end := 1.0
 @export_range(0.1, 10.0, 0.1, "or_greater") var pitch_rise_seconds := 2.0
 @export_range(0.0, 1.0, 0.01) var fade_seconds := 0.34
 ## The bus whose tank it fills, at the planet it is docked at.
 @export var bus: FrameshiftBus
-## The panels whose fuel buttons it runs on.
+## The panel whose fuel button it runs on.
 @export var dock_panel: DockPanel
-@export var planet_panel: PlanetPanel
 
 ## The credits that pay for fuel. The parent sets it; without one, it does nothing.
 var ledger: Ledger
@@ -60,24 +57,17 @@ func _process(delta: float) -> void:
 		return
 	var tank := bus.get_fuel_tank()
 	var docked: Planet = bus.get_docked_planet() if bus.is_at_planet() else null
-	var open := planet_panel.get_planet()
 	var reason := get_stop(docked, tank, ledger) if docked else ""
 	var fill_cost := ceili((tank.capacity - tank.fuel) * docked.fuel_price) if docked else 0
 	var can_fuel := docked != null and reason.is_empty()
 	dock_panel.show_fuel(tank.get_fraction(), fill_cost, can_fuel, reason.trim_suffix("."))
 	if docked:
-		var held := dock_panel.is_fuel_held() or (open == docked and planet_panel.is_refuel_held())
+		# Not while the drive is held to charge: the two holds take turns, as they must for
+		# a player with only a mouse.
+		var held := dock_panel.is_fuel_held() and not bus.frameshift_held
 		run(delta, docked, held, tank, ledger)
 	else:
 		stop(ledger)
-	if not open:
-		return
-	var open_reason := reason if open == docked else "Dock here to refuel."
-	if not open.sells_fuel:
-		open_reason = "No fuel sold here."
-	var note := open_reason if open_reason else "%d credits" % ledger.credits
-	var full_tank_cost := ceili(tank.capacity * open.fuel_price)
-	planet_panel.show_fuel(tank.get_fraction(), full_tank_cost, open_reason.is_empty(), note)
 
 
 ## Why [param tank] can't take fuel at [param planet] now, or "" when it can.
@@ -103,7 +93,8 @@ func run(delta: float, planet: Planet, held: bool, tank: FuelTank, ledger: Ledge
 	var ramp := clampf(_pump_time / RAMP_SECONDS, 0.0, 1.0)
 	var rise := clampf(_pump_time / pitch_rise_seconds, 0.0, 1.0)
 	_player.pitch_scale = lerpf(pitch_start, pitch_end, rise)
-	var amount := minf(lerpf(START_RATE, MAX_RATE, ramp) * delta, _affordable(planet, ledger))
+	var rate := lerpf(START_RATE, MAX_RATE, ramp) * _get_speed()
+	var amount := minf(rate * delta, _affordable(planet, ledger))
 	amount = minf(amount, tank.capacity - tank.fuel)
 	tank.refuel(amount)
 	_owed += amount * planet.fuel_price
@@ -129,13 +120,18 @@ func _set_sounding(on: bool) -> void:
 		_fade.kill()
 		_fade = null
 	if on:
-		_player.volume_linear = sound_volume
+		_player.volume_linear = Audio.get_clip_volume(sound)
 		_player.pitch_scale = pitch_start
 		_player.play()
 		return
 	_fade = create_tween()
 	_fade.tween_property(_player, ^"volume_linear", 0.0, fade_seconds)
 	_fade.tween_callback(_player.stop)
+
+
+# How many times as fast as its own rates it pumps: the bus's PUMP_SPEED stat.
+func _get_speed() -> float:
+	return bus.get_stats().get_stat(BusStats.Type.PUMP_SPEED).get_value() if bus else 1.0
 
 
 # How much fuel the credits left buy at [param planet].

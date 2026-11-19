@@ -34,6 +34,10 @@ const SINK := 0.06
 ## [member AlienPortrait.felt_acceleration]: +x toward the passenger's right, +y forward.
 ## The scene that holds the bus sets it every frame.
 var felt_acceleration := Vector2.ZERO
+## How hard the passengers riding the bus sweat, as [member AlienPortrait.sweat]: above 0
+## while the bus is past its comfortable temperature, 1 as it overheats. The scene that
+## holds the bus sets it every frame.
+var sweat := 0.0
 
 # The portrait in each slot, or null.
 var _slots: Array[AlienPortrait] = []
@@ -47,27 +51,17 @@ func _ready() -> void:
 	_update_rendering()
 
 
-## Puts a portrait of [param look] in a free slot and returns the photo of it to show, or
-## null when every slot is taken.
-func add(look: AlienLook) -> AtlasTexture:
+## Puts a portrait of [param look], dressed as [param type], in a free slot and returns the
+## photo of it to show, or null when every slot is taken.
+func add(look: AlienLook, type: PassengerType) -> AtlasTexture:
 	var slot := _slots.find(null)
 	if slot < 0:
 		return null
-	var portrait := PORTRAIT.instantiate() as AlienPortrait
-	portrait.head_model = look.head
-	portrait.eye_style = look.eye_style
-	portrait.skin_color = look.skin_color
+	var portrait := new_portrait(look, type)
 	%Portraits.add_child(portrait)
-	var head := portrait.get_head_bounds()
-	var height := minf(head.size.y, MAX_HEAD)
-	var fit := minf(FILL_HEIGHT * SLOT / height, FILL_WIDTH * SLOT / head.size.x)
-	portrait.scale = Vector3.ONE * fit
 	var pitch := _pitch() * SLOT / TILE
-	# The head's top just under the tile's top, unless that leaves the base in view.
-	var y := minf(SLOT / 2.0 - HEADROOM * SLOT - head.end.y * fit, -SLOT / 2.0 - SINK)
-	portrait.position = Vector3(
-		(slot - (SLOTS - 1) / 2.0) * pitch - head.get_center().x * fit, y, 0.0
-	)
+	frame(portrait)
+	portrait.position.x += (slot - (SLOTS - 1) / 2.0) * pitch
 	_slots[slot] = portrait
 	var photo := AtlasTexture.new()
 	photo.atlas = get_texture()
@@ -75,6 +69,31 @@ func add(look: AlienLook) -> AtlasTexture:
 	_photos[photo] = portrait
 	_update_rendering()
 	return photo
+
+
+## A portrait, not yet in the tree, with [param look]'s head, eyes and skin, dressed as
+## [param type] (a bow tie for a type that wears one); none for a caller of no type. Every
+## portrait of someone the player meets is made here, so whatever a look or type puts on
+## the portrait shows on the photos and the transmission screen alike.
+static func new_portrait(look: AlienLook, type: PassengerType) -> AlienPortrait:
+	var portrait := PORTRAIT.instantiate() as AlienPortrait
+	portrait.head_model = look.head
+	portrait.eye_style = look.eye_style
+	portrait.skin_color = look.skin_color
+	portrait.wears_bow_tie = type != null and type.wears_bow_tie
+	return portrait
+
+
+## Scales and places [param portrait], already in the tree, for a close-up of its head in
+## a square [constant SLOT] wide around the origin, facing a camera on +z.
+static func frame(portrait: AlienPortrait) -> void:
+	var head := portrait.get_head_bounds()
+	var height := minf(head.size.y, MAX_HEAD)
+	var fit := minf(FILL_HEIGHT * SLOT / height, FILL_WIDTH * SLOT / head.size.x)
+	portrait.scale = Vector3.ONE * fit
+	# The head's top just under the tile's top, unless that leaves the base in view.
+	var y := minf(SLOT / 2.0 - HEADROOM * SLOT - head.end.y * fit, -SLOT / 2.0 - SINK)
+	portrait.position = Vector3(-head.get_center().x * fit, y, 0.0)
 
 
 ## Takes down the portrait behind [param photo], freeing its slot.

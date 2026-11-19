@@ -10,6 +10,8 @@ Godot 4.7.2, GDScript only, Compatibility renderer, played on the web (itch.io) 
 - `docs/cameras.md`: read it before touching a camera, a shot, or anything placed from the camera.
 - `docs/online.md`: read it before wiring analytics, stats or leaderboards.
 
+Before changing a balance number (fares, costs, happiness, who turns up), measure it: `uv run tools/balance.py run` plays the real game headless on fixed seeds with a scripted player and prints ratings, income and pace, and `--variants` compares changes side by side (`uv run tools/balance.py --help`).
+
 Both design docs hold the current state only: change a bullet in place, never append what happened, and leave out what the code already says.
 
 Ask the human before changing anything outside the repo, such as export templates, editor settings or global git config.

@@ -3,11 +3,20 @@ extends VBoxContainer
 ## The notices above the bus bars, centred, the newest on top so a new one never moves
 ## those already showing. [method push] adds one and returns it, so its owner can listen
 ## for its action or dismiss it; one that leaves lets those above it glide down into its
-## place. While the stack is hidden, a new notice waits to come in until it shows, and the
+## place. A new one goes under any still leaving, so one replacing another, as the
+## tutorial's steps do, comes in where it rests and never drops as the old one's gap
+## closes. While the stack is hidden, a new notice waits to come in until it shows, and the
 ## countdowns of those showing stop. [method offer_tow] and [method announce_transmission]
-## are the notices with an action of their own.
+## are the notices with an action of their own, and [method tell_bus_full] one that shows
+## once however often its cause comes up.
 
 const NOTICE := preload("res://game/solar_system/notice.tscn")
+const BUS_FULL := "The bus is already full!"
+## Seconds the bus full notice shows after the last try to board.
+const BUS_FULL_SECONDS := 2.5
+
+# The bus full notice while it shows, so another try prolongs it rather than adding one.
+var _bus_full: Notice
 
 
 func _ready() -> void:
@@ -27,12 +36,19 @@ func push(
 	var notice := NOTICE.instantiate() as Notice
 	notice.setup(kind, text, closable, seconds, action)
 	add_child(notice)
-	move_child(notice, 0)
+	move_child(notice, _top_of_showing())
 	if is_visible_in_tree():
 		notice.enter()
 	else:
 		notice.postpone()
 	return notice
+
+
+# Where a new notice goes: just above the top one not leaving, so those leaving close
+# their gaps above it. The new one, already added at the bottom, counts.
+func _top_of_showing() -> int:
+	var notices := get_notices()
+	return notices.find_custom(func(notice: Notice) -> bool: return not notice.is_leaving())
 
 
 ## The notices showing, top first, leaving ones included until they are gone.
@@ -52,6 +68,16 @@ func offer_tow(fee: int) -> Notice:
 ## answered.
 func announce_transmission() -> Notice:
 	return push("Incoming transmission...", Notice.Kind.CALL, false, 0.0, "Answer")
+
+
+## The player tried to pick someone up with every seat taken: an info notice that closes by
+## itself. While one shows, another try starts its time over rather than adding a second.
+func tell_bus_full() -> Notice:
+	if is_instance_valid(_bus_full) and not _bus_full.is_leaving():
+		_bus_full.prolong()
+		return _bus_full
+	_bus_full = push(BUS_FULL, Notice.Kind.INFO, false, BUS_FULL_SECONDS)
+	return _bus_full
 
 
 func _on_visibility_changed() -> void:

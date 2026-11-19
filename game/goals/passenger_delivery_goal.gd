@@ -21,4 +21,4 @@ func _on_delivered(who: Passenger) -> void:
 
 func _on_kicked(who: Passenger) -> void:
 	if who == passenger:
-		_fail()
+		_fail("%s was kicked" % passenger.name)

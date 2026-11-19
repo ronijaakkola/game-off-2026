@@ -17,7 +17,7 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="NameLabel" type="Label" parent="Rows" unique_id=685038464]
+[node name="TitleLabel" type="Label" parent="Rows" unique_id=685038464]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallStrongLabel"

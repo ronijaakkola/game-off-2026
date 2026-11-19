@@ -1,13 +1,17 @@
 class_name SolarSystem
 extends Node3D
-## The solar system. The pointer picks a planet, which shows a white border, or else the
-## diamond of the route's last stop when that is a point in space, which turns white; a
-## pointer over the HUD picks nothing. A right click adds a stop to the end of the bus's
-## route: the planet under the pointer, or the point on the orbit plane under it. A right
-## click on the route's last stop removes it, and the clear_route action clears the whole
-## route. No modifier keys: Firefox opens its own context menu on Shift + right click
-## whatever the page does. Planets on the route show an orange border. A tutorial notice
-## says how to set a course until the player first sets one.
+## The solar system. The pointer picks a planet, which shows a white border; a pointer over
+## the HUD picks nothing. A right click sets the bus's route to a stop: the planet under the
+## pointer, or the point on the orbit plane under it. With the [QueueKey] held, it adds the
+## stop to the end of the route instead. A point in space follows the pointer for as long
+## as the button stays down ([CourseDrag]). The clear_route action takes the last stop off,
+## as the route bar's X does any planet's.
+## Planets on the route show an orange border.
+## A new run from the main menu starts with the [Tutorial], on the map zoomed in on Terra
+## and the Moon ([MapZoom]); once it is over, the map zooms out to the whole solar system,
+## and only then do the other planets' lines start, the goals come and the run saves. A run
+## without it shows a tutorial notice on how to set a course until the player first sets
+## one.
 ## A left click on a planet opens it: the camera follows it on the left side of the screen
 ## and its panel opens on the right. A left click on the open planet or on empty space, or
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
@@ -17,25 +21,23 @@ extends Node3D
 ## two is open at a time: opening either closes the other.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one, pay and rate the ride,
-## which goes into the average rating beside the credits, and earn a research point of
-## their race, whatever their rating. Under each planet
-## where someone waits, a small person and a number say how many. While the bus is docked
+## which goes into the average rating beside the credits, and earn a research point,
+## whatever their race or rating. Under each planet's name, dots say how many wait
+## there ([WaitingMarkers]), and a badge on its rim says it has a lab ([LabBadges]). While
+## the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
 ## picks them up one by one while seats are free; the row under the pointer, or a clicked
 ## one, shows their trip as an arc to their destination. The bus can't charge, and a
 ## charge under way holds, until the stop is over. The game starts with the bus empty.
 ## A passenger kicked off from their card is thrown out of the bus's door as a small figure
 ## in their skin colour.
-## Docked at a planet that sells fuel, the player refuels there from the dock panel or its
-## open planet's panel ([FuelPump]).
-## Running out of fuel in space scares everyone on board ([constant OUT_OF_FUEL_SHOCK]),
-## and a notice offers a tow for [constant TOW_FEE] credits. Requesting it pays,
-## into debt when the player has less, and a tow ship comes from the nearest planet and
-## pulls the bus there, where it docks with a full tank.
-## The planets orbit at full speed only while the bus frameshifts: they ease down to
-## [member idle_orbit_speed] once it starts parking at a planet, comes to rest in space, or
-## starts coasting to a stop because its course was cleared or its tank ran dry, and speed
-## up again once it heads off.
+## Docked at a planet that sells fuel, the player refuels there from the dock panel
+## ([FuelPump]).
+## Running out of fuel in space brings the [TowDispatch].
+## The star systems are on the [StarMap]: the bus works in one at a time until they join,
+## and the [Progression] promotes the player and sends the bus on to the next one. Nothing
+## can be clicked while it jumps.
+## How fast the planets orbit is the [OrbitClock]'s.
 
 ## The border's width on screen, in pixels at the base window height.
 const OUTLINE_PIXELS := 3.0
@@ -43,33 +45,24 @@ const OUTLINE_PIXELS := 3.0
 const LABEL_PIXELS := 13.0
 ## The gap between a planet's lower edge on screen and its name, in pixels.
 const LABEL_GAP_PIXELS := 0.0
-const ORBIT_PLANE := Plane(Vector3.UP, 0.0)
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
 ## The process priority Phantom Camera's host sets on itself to move the camera, after
 ## everything it follows.
 const CAMERA_HOST_PRIORITY := 300
-## Pixels between a planet's name and the marker for who waits there.
-const MARKER_GAP_PIXELS := 4.0
-## What a tow costs, in credits.
-const TOW_FEE := 100
-## The goals a run starts with: deliver this many passengers, and keep this average rating.
-const START_DELIVERIES := 30
-const START_RATING := 4.0
-## How fast the planets' speed changes once the bus stops frameshifting, and once it heads
-## off: the seconds it would take to go all the way between full speed and still. Linear
-## in speed, so the planets ease out as they slow.
-const ORBIT_STOP_SECONDS := 1.2
-const ORBIT_START_SECONDS := 0.6
-## The scare everyone on board takes when the bus runs out of fuel in space.
-const OUT_OF_FUEL_SHOCK := -15.0
-const COURSE_HINT := "Right-click planets or space to add stops. Backspace clears the route."
-const TOW_SHIP := preload("res://game/bus/tow_ship.tscn")
+## How fast the game runs, as a share of real time: the bus, the planets and the
+## passengers alike, so nothing about a ride changes but how long it takes to play.
+const PACE := 0.9
+## What the quick text over the bus says when it leaves a planet with the drive warm.
+const QUICK_STOP := "Quick stop!"
+const QUICK_STOP_ICON := preload("res://game/solar_system/icons/clock.svg")
+const MAP_OPENED := "The whole solar system is open. Deliver passengers to get promotion."
+## Seconds the notice that the map is open shows.
+const MAP_OPENED_SECONDS := 8.0
+## The user argument that starts the scene with the tutorial, as a new run from the main
+## menu does: [code]capture <scene> -- --tutorial[/code].
+const TUTORIAL_ARG := "--tutorial"
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
-
-## How fast the planets orbit while the bus isn't frameshifting, from 0 (still) to 1 (full
-## speed).
-@export_range(0.0, 1.0, 0.01) var idle_orbit_speed := 0.5
 
 var _planets: Array[Planet] = []
 # The player's credits, research points and ratings. The resource bar shows them.
@@ -79,18 +72,23 @@ var _fade := 1.0
 # The planet whose hover border fades: the open one, and after it closes, until the fade
 # is back to 1.
 var _faded_planet: Planet
-# How fast the planets orbit, from 0 to 1: full speed while the bus frameshifts,
-# idle_orbit_speed otherwise.
-var _orbit_speed := 1.0
-# How to set a course, until the player first sets one.
-var _course_hint: Notice
+# The point in space a held right click drags.
+var _course_drag: CourseDrag
 
 
-# Before the planets and the bus are ready, so a continued run starts where it was saved.
+# Before the planets, the bus and the camera are ready, so a continued run starts where it
+# was saved, and the tutorial on the zoomed map.
 func _enter_tree() -> void:
-	if _planets.is_empty():
-		_collect_planets(self)
-		(%GameSaver as GameSaver).place_world(_planets, _ledger)
+	if not _planets.is_empty():
+		return
+	_collect_planets(self)
+	var saver := %GameSaver as GameSaver
+	saver.place_world(_planets, _ledger)
+	var bus_planet := (%Bus as FrameshiftBus).start_planet
+	(%StarMap as StarMap).restore(saver.get_saved_star_map(), bus_planet)
+	if saver.wants_tutorial() or TUTORIAL_ARG in OS.get_cmdline_user_args():
+		(%MapZoom as MapZoom).zoom_in()
+		saver.holding = true
 
 
 func _ready() -> void:
@@ -98,8 +96,9 @@ func _ready() -> void:
 	# the waiting markers follow where they are now, not where they were a frame
 	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
 	process_priority = CAMERA_HOST_PRIORITY + 1
-	_orbit_speed = 1.0 if _is_frameshifting() else idle_orbit_speed
-	_run_orbits(0.0)
+	Engine.time_scale = PACE
+	(%OrbitClock as OrbitClock).start(_planets)
+	_course_drag = CourseDrag.new(%Bus as FrameshiftBus, %Camera as Camera3D)
 	# Draws the border's material once while SceneFlow's fade covers the screen, so it
 	# compiles now and not on the first hover. The first _process() clears it.
 	for planet: Planet in _planets:
@@ -118,44 +117,61 @@ func _ready() -> void:
 	bus_panel.slide_seconds = panel.slide_seconds
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.waiting = %WaitingPassengers as WaitingPassengers
+	markers.portrait_studio = studio
 	markers.set_planets(_planets)
+	(%LabBadges as LabBadges).set_planets(_planets)
 	var dock_panel := %DockPanel as DockPanel
 	dock_panel.waiting = %WaitingPassengers as WaitingPassengers
 	dock_panel.cabin = %Cabin as Cabin
 	dock_panel.board_pressed.connect(_on_board_pressed)
 	dock_panel.trip_previewed.connect((%TripArc as TripArc).show_passenger)
 	dock_panel.research_pressed.connect(_on_research_pressed)
-	var bus := %Bus as FrameshiftBus
-	bus.ran_out_of_fuel.connect(_on_bus_ran_out_of_fuel)
-	# A continued run has set courses before.
-	if not (%GameSaver as GameSaver).is_continued():
-		_course_hint = (%Notices as NoticeStack).push(COURSE_HINT, Notice.Kind.TUTORIAL)
+	var tow := %TowDispatch as TowDispatch
+	tow.ledger = _ledger
+	tow.planets = _planets
+	(%Progression as Progression).jump_started.connect(_on_jump_started)
+	var zoom := %MapZoom as MapZoom
+	if zoom.is_zoomed():
+		(%Tutorial as Tutorial).finished.connect(_on_tutorial_finished)
+		zoom.zoomed_out.connect(_on_map_zoomed_out)
+		(%Tutorial as Tutorial).waiting = %WaitingPassengers as WaitingPassengers
+		(%Tutorial as Tutorial).start()
+
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 
 func _process(delta: float) -> void:
-	_run_orbits(delta)
-	(%Cabin as Cabin).docked = (%Bus as FrameshiftBus).is_at_planet()
+	(%OrbitClock as OrbitClock).run(delta)
+	var bus := %Bus as FrameshiftBus
+	(%Cabin as Cabin).docked = bus.is_at_planet()
+	# Charging only starts cold, and warmth holds until everyone getting off is off.
+	(%Cabin as Cabin).cold = bus.is_at_planet() and bus.get_warmth() <= 0.0 and not bus.unloading
 	(%Cabin as Cabin).parking = (%Bus as FrameshiftBus).state == FrameshiftBus.State.PARKING
 	var felt := (%Bus as FrameshiftBus).get_felt_acceleration()
 	(%PortraitStudio as PortraitStudio).felt_acceleration = felt
 	_place_labels()
 	_update_fade(delta)
 	var rig := %CameraRig as CameraRig
-	if rig.is_focused():
+	if rig.is_focused() and (get_open_planet() or is_bus_open()):
 		rig.focus_rect = _focus_rect()
 	var mouse := get_viewport().get_mouse_position()
+	_course_drag.follow(mouse)
 	var over_hud := get_viewport().gui_get_hovered_control() != null
+	var locked := (%MapZoom as MapZoom).is_zooming_out() or bus.route_locked
+	MapCursor.show(rig, _course_drag.is_following(), over_hud, locked)
 	# What a left click would open shows the white border.
 	var picked: Node3D = null if over_hud else _pick_at(mouse)
 	var under := picked as Planet
-	_place_waiting()
-	var bus := %Bus as FrameshiftBus
+	_place_waiting(under)
 	var model := bus.get_model()
+	model.light_source = (
+		(%StarMap as StarMap).get_nearest_system(bus.global_position).global_position
+	)
 	model.border = picked == bus and not is_bus_open()
 	if model.border:
 		model.outline_width = _pixels_to_world(OUTLINE_PIXELS, bus.global_position)
-	# A right click removes any point in space on the route.
-	bus.hovered_stop = null if picked or over_hud else _marker_at(mouse)
 	var on_route := bus.get_route_planets()
 	for planet: Planet in _planets:
 		var hover_opacity := _fade if planet == _faded_planet else 1.0
@@ -174,8 +190,15 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if (
+		(%MapZoom as MapZoom).is_zooming_out()
+		or (%SystemJump as SystemJump).is_jumping()
+		or (%Bus as FrameshiftBus).route_locked
+	):
+		return
 	if event.is_action_pressed(&"clear_route"):
-		(%Bus as FrameshiftBus).cancel_course()
+		var bus := %Bus as FrameshiftBus
+		bus.remove_stop(bus.last_stop)
 		get_viewport().set_input_as_handled()
 		return
 	var click := event as InputEventMouseButton
@@ -186,18 +209,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
-	var bus := %Bus as FrameshiftBus
-	var removed := _removable_stop_at(click.position)
-	if removed:
-		bus.remove_stop(removed)
-	else:
-		var stop := _stop_at(click.position)
-		if not stop:
-			return
-		bus.plot_course(stop, true)
-		if _course_hint:
-			_course_hint.dismiss()
-			_course_hint = null
+	var stop := _stop_at(click.position)
+	if not stop or not (%Tutorial as Tutorial).allows_course(stop):
+		return
+	(%Bus as FrameshiftBus).plot_course(stop, QueueKey.is_held())
+	_course_drag.start(stop)
 	get_viewport().set_input_as_handled()
 
 
@@ -255,14 +271,14 @@ func is_bus_open() -> bool:
 	return (%BusPanel as BusPanel).is_open()
 
 
-# A left click: on the bus or a planet opens it, on what is open or on empty space closes
-# it.
+# A left click: on the bus or a planet opens it, but no planet in the tutorial; on what is
+# open or on empty space closes it.
 func _select_at(screen_point: Vector2) -> void:
 	var picked := _pick_at(screen_point)
 	var planet := picked as Planet
 	if picked is FrameshiftBus and not is_bus_open():
 		open_bus()
-	elif planet and planet != get_open_planet():
+	elif planet and planet != get_open_planet() and not (%Tutorial as Tutorial).is_running():
 		open_planet(planet)
 	elif get_open_planet():
 		close_planet()
@@ -297,20 +313,26 @@ func _update_fade(delta: float) -> void:
 func _start_passengers() -> void:
 	var bus := %Bus as FrameshiftBus
 	var waiting := %WaitingPassengers as WaitingPassengers
-	waiting.start(_planets, bus.get_docked_planet(), _ledger)
+	var planets := (%StarMap as StarMap).get_active_planets()
+	waiting.start(planets, bus.get_docked_planet(), _ledger)
 	bus.docked.connect(_on_bus_docked)
+	bus.left_warm.connect(_on_bus_left_warm)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
 	cabin.kicked.connect(_on_kicked)
 	var bar := %ResourceBar as ResourceBar
 	bar.ledger = _ledger
-	var goals := %Goals as GoalTracker
-	goals.ledger = _ledger
-	goals.add(DeliveryCountGoal.new(START_DELIVERIES))
-	goals.add(RatingGoal.new(START_RATING))
+	(%Goals as GoalTracker).ledger = _ledger
+	var progression := %Progression as Progression
+	progression.ledger = _ledger
+	if not (%MapZoom as MapZoom).is_zoomed():
+		progression.start()
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
-	cabin.unloaded.connect(bar.commit)
+	# Researching takes the time a quick stop doesn't have.
+	lab.get_research().researched.connect(func(_upgrade: Upgrade) -> void: bus.drive.go_cold())
+	cabin.unloaded.connect(lab.commit)
+	cabin.unloaded.connect(func() -> void: bus.unloading = false)
 	cabin.stop_finished.connect(_on_stop_finished)
 	(%PassengerPanel as PassengerPanel).cabin = cabin
 	cabin.follow(bus.get_stats())
@@ -320,8 +342,32 @@ func _start_passengers() -> void:
 	saver.start()
 
 
+# The tutorial is over: whatever is open closes, and the map zooms out.
+func _on_tutorial_finished() -> void:
+	(%GameSaver as GameSaver).finish_tutorial()
+	close_planet()
+	close_bus()
+	(%MapZoom as MapZoom).zoom_out()
+
+
+# The run proper starts on the whole map: every planet's line, the goals, and saving.
+func _on_map_zoomed_out() -> void:
+	var waiting := %WaitingPassengers as WaitingPassengers
+	waiting.set_planets((%StarMap as StarMap).get_active_planets())
+	waiting.add_starting_passengers((%Bus as FrameshiftBus).get_docked_planet())
+	(%Progression as Progression).start()
+	(%GameSaver as GameSaver).holding = false
+	(%Notices as NoticeStack).push(MAP_OPENED, Notice.Kind.INFO, false, MAP_OPENED_SECONDS)
+
+
+func _on_bus_left_warm() -> void:
+	(%Cabin as Cabin).cheer_quick_stop()
+	(%BusQuickText as BusQuickText).show_text(QUICK_STOP, QUICK_STOP_ICON)
+
+
 func _on_bus_docked(planet: Planet) -> void:
 	(%Bus as FrameshiftBus).boarding = true
+	(%Bus as FrameshiftBus).unloading = true
 	(%Cabin as Cabin).stop_at(planet)
 
 
@@ -340,24 +386,6 @@ func _on_board_pressed(passenger: Passenger) -> void:
 	cabin.pick_up(passenger)
 
 
-func _on_bus_ran_out_of_fuel() -> void:
-	(%Cabin as Cabin).shock(OUT_OF_FUEL_SHOCK)
-	(%Notices as NoticeStack).offer_tow(TOW_FEE).action_pressed.connect(_on_tow_requested)
-
-
-# Bills the tow and sends a tow ship from the planet nearest to the bus, to tow it there.
-func _on_tow_requested() -> void:
-	_ledger.spend(TOW_FEE)
-	var bus := %Bus as FrameshiftBus
-	var nearest := Planet.nearest_to(bus.global_position, _planets)
-	if not nearest:
-		return
-	var ship := TOW_SHIP.instantiate() as TowShip
-	add_child(ship)
-	ship.hitched.connect(bus.tow_to.bind(nearest))
-	ship.come_for(bus, nearest)
-
-
 # The dock panel's Research button: opens the research screen on every tree.
 func _on_research_pressed(_planet: Planet) -> void:
 	(%ResearchLab as ResearchLab).open_screen()
@@ -366,15 +394,22 @@ func _on_research_pressed(_planet: Planet) -> void:
 func _on_delivered(passenger: Passenger, payout: int) -> void:
 	_ledger.earn(payout)
 	_ledger.rate(passenger.get_rating())
-	_ledger.earn_research(passenger.race)
+	_ledger.earn_research()
 
 
 func _on_kicked(passenger: Passenger) -> void:
 	var bus := %Bus as FrameshiftBus
 	var figure := KICKED_PASSENGER.instantiate() as KickedPassenger
+	figure.light_source = bus.get_model().light_source
 	add_child(figure)
 	var door := bus.global_transform * FrameshiftBus.DOOR
 	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color)
+
+
+# The bus jumps to the next star system: whatever is open closes.
+func _on_jump_started() -> void:
+	close_planet()
+	close_bus()
 
 
 func _on_stop_finished() -> void:
@@ -387,99 +422,42 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 	var planet := _planet_at(screen_point)
 	if planet:
 		return RouteStop.at_planet(planet)
-	var camera := %Camera as Camera3D
-	var hit: Variant = ORBIT_PLANE.intersects_ray(
-		camera.project_ray_origin(screen_point), camera.project_ray_normal(screen_point)
-	)
+	var hit: Variant = CourseDrag.point_under(%Camera as Camera3D, screen_point)
 	if hit == null:
 		return null
 	return RouteStop.at_point(hit)
-
-
-# The stop on the route a right click at screen_point removes, or null: the last stop
-# when it is the planet there, or else any point in space whose diamond is there. A planet
-# earlier on the route isn't removed, so a route can come back to it. The same pick as the
-# hover, so what turns white is what a click removes.
-func _removable_stop_at(screen_point: Vector2) -> RouteStop:
-	var planet := _planet_at(screen_point)
-	if planet:
-		var last := (%Bus as FrameshiftBus).get_last_stop()
-		return last if last and last.planet == planet else null
-	return _marker_at(screen_point)
-
-
-# The point in space on the route whose diamond covers screen_point on screen. Where
-# diamonds overlap, the one latest on the route. Null when there is none.
-func _marker_at(screen_point: Vector2) -> RouteStop:
-	var bus := %Bus as FrameshiftBus
-	return ScreenPick.point_stop_at(
-		%Camera as Camera3D, bus.get_route_stops(), bus.get_marker_size(), screen_point
-	)
 
 
 # What a left click at screen_point opens: the bus, a planet, or null. Where the bus and a
 # planet overlap, as when it is docked, whichever centre is nearer wins, so the docked
 # planet stays easy to open.
 func _pick_at(screen_point: Vector2) -> Node3D:
-	var planet := _planet_at(screen_point)
 	var bus := %Bus as FrameshiftBus
-	var camera := %Camera as Camera3D
-	if not ScreenPick.covers(camera, bus.global_position, FrameshiftBus.RADIUS, screen_point):
-		return planet
-	if not planet:
-		return bus
-	var to_bus := screen_point.distance_to(camera.unproject_position(bus.global_position))
-	var to_planet := screen_point.distance_to(
-		camera.unproject_position(planet.get_body_global_position())
-	)
-	return bus if to_bus < to_planet else planet
+	var planet := _planet_at(screen_point)
+	return ScreenPick.bus_or_planet_at(%Camera as Camera3D, bus, planet, screen_point)
 
 
+# The planet under screen_point among those on the map: hidden ones, such as those of a star
+# system the bus doesn't work in, can't be picked.
 func _planet_at(screen_point: Vector2) -> Planet:
 	return ScreenPick.planet_at(%Camera as Camera3D, _planets, screen_point)
 
 
-# The planets orbit at full speed only while the bus frameshifts, and ease down to
-# idle_orbit_speed once it stops: the trip takes far longer than it looks, and the time
-# spent stopped is partly wound back.
-func _run_orbits(delta: float) -> void:
-	var shifting := _is_frameshifting()
-	var seconds := ORBIT_START_SECONDS if shifting else ORBIT_STOP_SECONDS
-	var target := 1.0 if shifting else idle_orbit_speed
-	_orbit_speed = move_toward(_orbit_speed, target, delta / seconds)
-	for planet: Planet in _planets:
-		planet.orbit_speed = _orbit_speed
-
-
-# Whether the bus flies a course, towed or not, rather than waiting, parking, charging or
-# coasting to a stop.
-func _is_frameshifting() -> bool:
+# Shows the dock panel for the planet the bus waits at, docked or charging, and tells the
+# waiting markers and the lab badges which planet is under the pointer. The markers, lab
+# badges and the fuel forecast fade with the names.
+func _place_waiting(under: Planet) -> void:
 	var bus := %Bus as FrameshiftBus
-	return bus.state == FrameshiftBus.State.FLYING and not bus.is_stopping()
-
-
-# Shows the dock panel for the planet the bus waits at, docked or charging, and puts each
-# planet's waiting marker under its name, while the bus has the waiting markers trait. The
-# markers and the fuel forecast fade with the names.
-func _place_waiting() -> void:
-	var bus := %Bus as FrameshiftBus
-	var camera := %Camera as Camera3D
-	(%DockPanel as DockPanel).planet = bus.get_docked_planet() if bus.is_at_planet() else null
+	var docked := bus.is_at_planet() and not (%SystemJump as SystemJump).is_jumping()
+	(%DockPanel as DockPanel).planet = bus.get_docked_planet() if docked else null
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.modulate.a = _fade
+	markers.hovered = under
+	var badges := %LabBadges as LabBadges
+	badges.modulate.a = _fade
+	badges.hovered = under
 	(%FuelForecast as Control).modulate.a = _fade
 	(%TripArc as TripArc).opacity = _fade
-	var unlocked := bus.get_stats().get_traits().has(BusTraits.Type.WAITING_MARKERS)
-	var below := LABEL_PIXELS + MARKER_GAP_PIXELS
-	for planet: Planet in _planets:
-		var center := planet.get_body_global_position()
-		if camera.is_position_behind(center):
-			markers.place(planet, Vector2.ZERO, false)
-			continue
-		var bottom := camera.unproject_position(
-			center - camera.global_basis.y * planet.get_body_radius()
-		)
-		markers.place(planet, bottom + Vector2(0.0, below), unlocked and _fade > 0.0)
 
 
 # Hangs each planet's name just under its body on screen, at the same size at any zoom.

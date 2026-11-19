@@ -1,11 +1,11 @@
 class_name Tooltip
 extends PanelContainer
-## A small dark card naming the thing under the pointer: a [member title] and, when it
-## helps, one [member sentence], and under them, where the caller gives one, an
-## [member extra] row such as a cost. It belongs to its [member target]: once the pointer has
-## rested on that for [member rest_seconds] it opens, or as the pointer arrives where that is
-## 0, centred on the target and [member gap] pixels from it, and it closes when the pointer
-## leaves. It comes from the target: it
+## A small solid dark card naming the thing under the pointer: a [member title] and, when it
+## helps, one [member sentence], or the sentence alone with no title, and under them,
+## where the caller gives one, an [member extra] row such as a cost. It belongs to its
+## [member target]: once the pointer has rested on that for [member rest_seconds] it opens,
+## or as the pointer arrives where that is 0, centred on the target and [member gap] pixels
+## from it, and it closes when the pointer leaves. It comes from the target: it
 ## slides out from it into place, growing out of the edge that faces it while fading in.
 ## Closing is simpler and a little faster: it fades and shrinks back where it is. A pointer
 ## that leaves while it opens, or comes back while it closes, turns it round from where it
@@ -17,7 +17,7 @@ extends PanelContainer
 ## near an edge it moves along its target only as far as it must.
 
 ## Which edge of the target it sits at.
-enum Side { BELOW = 0, ABOVE = 1 }
+enum Side { BELOW = 0, ABOVE = 1, RIGHT = 2 }
 
 ## Seconds it takes to open, and to close: leaving is the faster of the two.
 const OPEN_SECONDS := 0.15
@@ -58,6 +58,9 @@ static var _leaving: Tooltip
 ## Seconds the pointer rests on the target before the card opens. 0 opens it as the pointer
 ## arrives, for a grid of targets read one after another, such as the research trees.
 @export var rest_seconds := 0.3
+## Whether it sits on whole pixels once in place, so its text stays sharp. Off for a
+## target that moves, such as a badge on a planet, which it then follows smoothly.
+@export var snap_to_pixels := true
 
 ## A row of the caller's under the sentence, such as a cost, or null for none. Set it
 ## before the card opens; changing it while open resizes the card.
@@ -186,7 +189,8 @@ func _set_slide(value: float) -> void:
 
 
 func _show_text() -> void:
-	(%NameLabel as Label).text = title
+	(%TitleLabel as Label).text = title
+	(%TitleLabel as Label).visible = not title.is_empty()
 	var label := %SentenceLabel as Label
 	label.text = sentence
 	label.visible = not sentence.is_empty()
@@ -218,6 +222,9 @@ func _place() -> void:
 	if not target:
 		return
 	var rect := target.get_global_rect()
+	if side == Side.RIGHT:
+		_place_right(rect)
+		return
 	var below := side == Side.BELOW
 	var top := rect.end.y + gap if below else rect.position.y - gap - size.y
 	var toward := -SLIDE_PIXELS if below else SLIDE_PIXELS
@@ -226,6 +233,18 @@ func _place() -> void:
 	var centre := rect.get_center().x
 	var most := get_viewport_rect().size.x - size.x - SCREEN_MARGIN
 	var left := clampf(centre - size.x * 0.5, minf(SCREEN_MARGIN, most), most)
-	position = Vector2(left, top).round()
+	position = Vector2(left, top).round() if snap_to_pixels else Vector2(left, top)
 	pivot_offset = Vector2(centre - position.x, 0.0 if below else size.y)
 	position.y += toward * _slide
+
+
+# To the right of the target and centred on it top to bottom, as near as the screen's top
+# and bottom edges let it, scaling from the point of its left edge at the target's centre.
+func _place_right(rect: Rect2) -> void:
+	var centre := rect.get_center().y
+	var most := get_viewport_rect().size.y - size.y - SCREEN_MARGIN
+	var top := clampf(centre - size.y * 0.5, minf(SCREEN_MARGIN, most), most)
+	var left := rect.end.x + gap
+	position = Vector2(left, top).round() if snap_to_pixels else Vector2(left, top)
+	pivot_offset = Vector2(0.0, centre - position.y)
+	position.x -= SLIDE_PIXELS * _slide

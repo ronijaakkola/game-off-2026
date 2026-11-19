@@ -4,12 +4,16 @@ extends RefCounted
 ## doing, and the needs they ask to have served. The [Cabin] ticks every passenger on
 ## board; the card only reads them.
 ## Happiness slides toward a target: [constant BASE_HAPPINESS], plus the bus's [Comfort]
-## bonus, plus their timing (how their ride compares with the trip time), or 0 while a
+## bonus, plus their timing (how their ride compares with the trip time), less what
+## frustration with a late ride or too many stops takes off ([RideProgress]), or 0 while a
 ## request is open and nobody serves it. They start the ride at that target
 ## ([method settle]), so a quick ride keeps them there; it falls fast and climbs back
 ## slowly. A [method shock] changes it at once.
 ## A request is served over time: the player's hold on the serve button and the bus's food
 ## amenities [method feed] it, and it closes once full.
+
+## They changed their mind mid-ride and are going somewhere else ([method reroute]).
+signal rerouted
 
 enum Mood { HAPPY, OKAY, ANNOYED, FURIOUS }
 
@@ -25,15 +29,10 @@ const MAX_STARS := 5.0
 const MAX_HAPPINESS := 100.0
 ## The happiness a bus that does its job settles them at, before comfort and timing, and
 ## where they stand until they take a seat.
-const BASE_HAPPINESS := 60.0
+const BASE_HAPPINESS := 64.0
 ## How fast happiness falls toward a lower target, and climbs toward a higher one, a second.
 const FALL_RATE := 3.0
 const CLIMB_RATE := 1.0
-## Timing's bonus while the ride takes no longer than the direct trip.
-const ON_TIME_BONUS := 12.0
-## Where timing ends up, one more trip time after the expected time: low enough that
-## everyone reaches 0, however comfortable the bus.
-const WORN_OUT := -100.0
 ## What being woken by a shock adds to it.
 const WAKE_SHOCK := -10.0
 ## The shock of arriving with a request still unserved, once it has been open at least
@@ -41,16 +40,17 @@ const WAKE_SHOCK := -10.0
 ## fault of the player's.
 const UNSERVED_SHOCK := -10.0
 const REQUEST_GRACE := 5.0
+## The most quick stops add to what they can reach over one ride.
+const QUICK_BONUS_MAX := 6.0
+## Seconds of flying a request is open before their happiness starts to fall, so serving
+## it at once costs nothing.
+const REQUEST_LEEWAY := 1.5
 ## While the bus is docked, their ride clock and their needs' timers run at this speed, and
 ## their happiness falls at this much of its speed: a stop barely costs them. Climbing back
-## isn't slowed, so a stop is a fine place to recover.
+## isn't slowed, so a stop is a fine place to recover. The cabin can give a faster one.
 const DOCKED_RATE := 0.1
-## A good ride makes them patient: while their happiness is at least this, they grant the
-## bus leeway, [constant LEEWAY_RATE] seconds of it per second of their ride clock, added to
-## the time they expect, up to [constant LEEWAY_MAX] trip times.
-const LEEWAY_HAPPINESS := 80.0
-const LEEWAY_RATE := 0.5
-const LEEWAY_MAX := 0.5
+## Seconds a complaint shows on their card: a stop too many, or the ride running late.
+const COMPLAINT_SECONDS := 4.0
 ## The seconds of change [member trend] gives.
 const TREND_SECONDS := 10.0
 ## How long an idle line shows before the next one, in seconds.
@@ -75,17 +75,21 @@ var happiness := BASE_HAPPINESS
 ## [constant TREND_SECONDS] at the speed it moved then, so positive while it climbs and
 ## negative while it falls, and larger the faster it goes. 0 while it holds.
 var trend := 0.0
-## The direct trip time, and the time they expect the ride to take at boarding, the trip
-## with the type's slack, in seconds of their ride clock.
-var trip_seconds: float
-var expected_seconds: float
-## Seconds a good ride has added to the time they expect, up to [constant LEEWAY_MAX] trip
-## times.
-var leeway := 0.0
+## Their ride's timing and the stops on the way, which frustrate them past a point.
+var ride: RideProgress
+## How much happiness frustration takes off the most they can reach, as of the last
+## [method tick]: the part of the bar they can no longer fill.
+var frustration := 0.0
 ## The card's line: what they are doing now.
 var activity := ""
 ## The need they are asking for, or null.
 var request: Need
+## Added to the happiness they settle at, all ride long, for the time they waited before
+## the Station waiting lounge picked them up ([WaitingPassengers]).
+var lounge_bonus := 0.0
+## What the quick stops on their ride add to the most they can reach, up to
+## [constant QUICK_BONUS_MAX] ([method admire]).
+var quick_bonus := 0.0
 ## How much of the open request is served so far, from 0 to 1 ([method feed]).
 var serving := 0.0
 ## Whether they are asleep: their activity is one of the type's sleep lines. Only a bus
@@ -103,6 +107,9 @@ var race: Race.Type
 var action := Need.Action.NONE
 ## What they look like in their portrait.
 var look: AlienLook
+## What the quest about them asks, such as "Rush Zib to Frost", or empty while there is
+## none. Their portrait wears a flag while it is set. Whoever gives the quest sets it.
+var quest_line := ""
 
 var _rng: RandomNumberGenerator
 # Seconds left of the current activity line.
@@ -115,8 +122,6 @@ var _need_timers := PackedFloat32Array()
 var _departed := false
 # Whether a shock reached them before the bus left, so they no longer start at the target.
 var _shaken := false
-# Seconds of the ride so far, on their clock, which timing reads.
-var _clock := 0.0
 # A request put on hold while the bus stops, which opens again once it flies on.
 var _held_request: Need
 # Seconds of flying the open or held request has gone unserved.
@@ -142,8 +147,7 @@ func _init(
 	_rng = rng if rng else RandomNumberGenerator.new()
 	name = _pick(type.names)
 	fare = base_fare * type.fare_multiplier
-	self.trip_seconds = trip_seconds
-	expected_seconds = trip_seconds * type.slack
+	ride = RideProgress.new(trip_seconds, trip_seconds * type.slack, type.stop_tolerance)
 	for need: Need in type.needs:
 		_need_timers.append(_interval(need))
 	activity = BOARDING_LINE
@@ -167,16 +171,20 @@ static func from_save(
 	passenger.origin = planets.get(saved.get("origin", ""))
 	passenger.name = saved.get("name", passenger.name)
 	passenger.fare = float(saved.get("fare", 0.0))
-	passenger.expected_seconds = float(saved.get("expected_seconds", passenger.expected_seconds))
+	var ride := passenger.ride
+	ride.expected_seconds = float(saved.get("expected_seconds", ride.expected_seconds))
+	ride.leeway = float(saved.get("leeway", 0.0))
+	ride.clock = float(saved.get("clock", 0.0))
+	ride.stops = int(saved.get("stops", 0))
 	passenger.race = int(saved.get("race", passenger.race)) as Race.Type
 	passenger.look = AlienLook.from_save(saved.get("look", {}), passenger.race)
 	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
-	passenger.leeway = float(saved.get("leeway", 0.0))
+	passenger.lounge_bonus = float(saved.get("lounge_bonus", 0.0))
+	passenger.quick_bonus = float(saved.get("quick_bonus", 0.0))
 	passenger.activity = ""
 	passenger._activity_left = 0.0
 	passenger._departed = bool(saved.get("departed", false))
 	passenger._shaken = bool(saved.get("shaken", false))
-	passenger._clock = float(saved.get("clock", 0.0))
 	var timers: Array = saved.get("need_timers", [])
 	for i: int in mini(timers.size(), passenger._need_timers.size()):
 		passenger._need_timers[i] = float(timers[i])
@@ -208,9 +216,19 @@ func get_mood() -> Mood:
 	return mood_for(happiness)
 
 
-## The credits they pay on getting off now, by their mood.
-func get_payout() -> int:
-	return roundi(fare * PAY[get_mood()])
+## The credits they pay on getting off now, by their mood. Happy, they pay [param tip] times
+## that again: the Tip jar's.
+func get_payout(tip := 1.0) -> int:
+	var mood := get_mood()
+	return roundi(fare * PAY[mood] * (tip if mood == Mood.HAPPY else 1.0))
+
+
+## Puts off the first request for each of their needs: what is left of each wait to the
+## next one is [param scale] times as long. For someone just on board, as Free station
+## coffee does.
+func delay_requests(scale: float) -> void:
+	for i: int in _need_timers.size():
+		_need_timers[i] *= scale
 
 
 ## The stars they rate the ride on getting off now, from 0 to [constant MAX_STARS]: their
@@ -219,31 +237,16 @@ func get_rating() -> float:
 	return clampf(roundf(happiness / MAX_HAPPINESS * MAX_STARS), 0.0, MAX_STARS)
 
 
-## What their ride's timing adds to the happiness they settle at, now: [constant
-## ON_TIME_BONUS] up to the direct trip time, falling to 0 at the expected time with their
-## [member leeway], then on to [constant WORN_OUT] one more trip time after that.
-func get_timing() -> float:
-	if _clock <= trip_seconds:
-		return ON_TIME_BONUS
-	var expected := expected_seconds + leeway
-	if _clock < expected:
-		return lerpf(ON_TIME_BONUS, 0.0, inverse_lerp(trip_seconds, expected, _clock))
-	var worn := expected + trip_seconds
-	if _clock >= worn:
-		return WORN_OUT
-	return lerpf(0.0, WORN_OUT, inverse_lerp(expected, worn, _clock))
-
-
-## The happiness they slide toward now, with the bus giving [param comfort]: 0 while a
-## request is open, though [method tick] holds them where they are while it is being
-## served. Comfort lifts it no higher than [constant MAX_HAPPINESS] before timing,
-## so a worn-out ride brings anyone to 0.
+## The happiness they slide toward now, with the bus giving [param comfort]: the most it
+## can give them, less what frustration takes off, or 0 once a request has been open for
+## [constant REQUEST_LEEWAY], though
+## [method tick] holds them where they are while it is being served. Comfort lifts it no
+## higher than [constant MAX_HAPPINESS].
 func get_target(comfort: Comfort = null) -> float:
-	if request:
+	if request and _request_age >= REQUEST_LEEWAY:
 		return 0.0
-	var bonus := comfort.bonus if comfort else 0.0
-	var settled := minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS)
-	return clampf(settled + get_timing(), 0.0, MAX_HAPPINESS)
+	var best := _get_best(comfort if comfort else _no_comfort)
+	return best - ride.get_lost(best)
 
 
 ## Changes their happiness by [param amount] at once, as a scare does, leaving the target
@@ -257,6 +260,14 @@ func shock(amount: float) -> void:
 	happiness = clampf(happiness + amount, 0.0, MAX_HAPPINESS)
 	if not _departed:
 		_shaken = true
+
+
+## They admire a quick stop: [param amount] more happiness at once, and as much more of
+## what they can reach for the rest of the ride, up to [constant QUICK_BONUS_MAX] in all.
+func admire(amount: float) -> void:
+	var gained := minf(amount, QUICK_BONUS_MAX - quick_bonus)
+	quick_bonus += gained
+	happiness = minf(happiness + gained, MAX_HAPPINESS)
 
 
 ## Puts their happiness at its target on a bus giving [param comfort]: where they start the
@@ -275,6 +286,25 @@ func depart(comfort: Comfort = null) -> void:
 	_departed = true
 
 
+## They change their mind mid-ride and go to [param to] instead: a new trip of
+## [param seconds] direct from here, which their timing counts from now with the type's
+## slack and no leeway yet. Their fare becomes [param base_fare] times the type's
+## multiplier, when that is more than the one they had.
+func reroute(to: Planet, seconds: float, base_fare: float) -> void:
+	destination = to
+	fare = maxf(fare, base_fare * type.fare_multiplier)
+	ride.restart(seconds, type.slack)
+	rerouted.emit()
+
+
+## The bus docked at [param planet] on their ride, which isn't where they are going. A stop
+## past their type's tolerance frustrates them, and they say so unless busy. The planet
+## they boarded at doesn't count before the bus has left it.
+func pass_stop(planet: Planet) -> void:
+	if _departed and ride.pass_stop(planet, origin, destination):
+		_complain(type.stop_lines, COMPLAINT_SECONDS)
+
+
 ## They have reached their destination. A request they have had open, or on hold, for
 ## [constant REQUEST_GRACE] seconds of flying or more disappoints them
 ## ([constant UNSERVED_SHOCK]).
@@ -283,24 +313,27 @@ func arrive() -> void:
 		shock(UNSERVED_SHOCK)
 
 
-## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. Happiness and
+## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. A need that
+## comes up opens a request only while [param can_ask]. Happiness and
 ## the ride clock hold until [method depart], and while [param holds] (the bus parks).
 ## While [param docked] the clock and the needs' timers run, and happiness falls (but not
-## climbs), at [constant DOCKED_RATE] of their speed. The clock runs as the comfort says
+## climbs), at [param stop_rate] of their speed. The clock runs as the comfort says
 ## while asleep or watching a show. Needs wait while they sleep, so a sleep runs its
 ## length, but not while they watch: a request stops the show. While a request is being
-## fed, happiness holds. While
-## the bus is docked or parks, no request opens, and an open one goes on hold until the
-## bus flies on.
-func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -> void:
+## fed, happiness holds. While the bus is docked or parks, no request opens, but one
+## already open stays open and can be served. A request saved on hold opens again.
+func tick(
+	delta: float,
+	docked: bool,
+	holds := false,
+	comfort: Comfort = null,
+	stop_rate := DOCKED_RATE,
+	can_ask := true
+) -> void:
 	var giving := comfort if comfort else _no_comfort
+	stop_rate = stop_rate if docked else 1.0
 	var stopped := docked or holds
-	if stopped and request:
-		_held_request = request
-		request = null
-		activity = ""
-		_activity_left = 0.0
-	elif not stopped and _held_request:
+	if _held_request:
 		request = _held_request
 		_held_request = null
 		asleep = false
@@ -316,26 +349,28 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 			rate = giving.sleep_clock
 		elif watching:
 			rate = giving.watch_clock
-		var ride := delta * rate * (DOCKED_RATE if docked else 1.0)
-		_clock += ride
-		if happiness >= LEEWAY_HAPPINESS:
-			leeway = minf(leeway + ride * LEEWAY_RATE, trip_seconds * LEEWAY_MAX)
+		var was_late := ride.get_late_seconds() > 0.0
+		ride.run(delta * rate * stop_rate, happiness)
+		if not was_late and ride.get_late_seconds() > 0.0:
+			_complain(type.late_lines, COMPLAINT_SECONDS)
+		frustration = ride.get_lost(_get_best(giving))
 		# A request on its way holds them where they are: they can see it coming.
 		var target := happiness if fed else get_target(giving)
 		var speed := CLIMB_RATE
 		if target < happiness:
-			speed = FALL_RATE * (DOCKED_RATE if docked else 1.0)
+			speed = FALL_RATE * stop_rate
 		var before := happiness
 		happiness = move_toward(happiness, target, speed * delta)
 		if delta > 0.0:
 			trend = (happiness - before) / delta * TREND_SECONDS
 	if request:
-		if _departed:
+		# Parking counts for nothing, so one asked as the bus pulls in is forgiven.
+		if _departed and not holds:
 			_request_age += delta
 		return
 	_activity_left -= delta
 	if not asleep and not _held_request:
-		var need_step := delta * (DOCKED_RATE if docked else 1.0)
+		var need_step := delta * stop_rate
 		for i: int in _need_timers.size():
 			_need_timers[i] -= need_step
 	if (_busy or asleep) and _activity_left > 0.0:
@@ -345,7 +380,7 @@ func tick(delta: float, docked: bool, holds := false, comfort: Comfort = null) -
 	if not watching or _activity_left <= 0.0:
 		watching = false
 		action = Need.Action.NONE
-	if not stopped and not _held_request:
+	if not stopped and not _held_request and can_ask:
 		for i: int in _need_timers.size():
 			if _need_timers[i] <= 0.0:
 				_open(type.needs[i])
@@ -364,18 +399,21 @@ func to_save() -> Dictionary:
 		"origin": String(origin.name) if origin else "",
 		"destination": String(destination.name),
 		"fare": fare,
-		"trip_seconds": trip_seconds,
-		"expected_seconds": expected_seconds,
+		"trip_seconds": ride.trip_seconds,
+		"expected_seconds": ride.expected_seconds,
 		"race": race,
 		"look": look.to_save(race),
 		"happiness": happiness,
-		"leeway": leeway,
+		"leeway": ride.leeway,
+		"stops": ride.stops,
 		"departed": _departed,
 		"shaken": _shaken,
-		"clock": _clock,
+		"clock": ride.clock,
 		"need_timers": Array(_need_timers),
 		"held_need": type.needs.find(held) if held else -1,
 		"request_age": _request_age,
+		"lounge_bonus": lounge_bonus,
+		"quick_bonus": quick_bonus,
 	}
 
 
@@ -400,11 +438,40 @@ func feed(amount: float, portion := 1.0) -> void:
 		_close(request.served_line, seconds)
 
 
+## Shows one of their type's overheat lines for [param seconds], as the bus cools down
+## after overheating, unless something else holds their line: a request, a sleep, a show
+## or a served need.
+func react_to_overheat(seconds: float) -> void:
+	_complain(type.overheat_lines, seconds)
+
+
+## Asks for [param need] now, whatever their timers say: the tutorial's way of showing a
+## request when it wants one.
+func ask_for(need: Need) -> void:
+	_open(need)
+
+
 ## Shows [param line] while the request is open, such as who serves it, or the request's
 ## own line when [param line] is empty. Does nothing when none is open.
 func show_request(line: String) -> void:
 	if request:
 		activity = line if not line.is_empty() else request.request_line
+
+
+# Shows one of [param lines] for [param seconds], unless a request, a sleep, a show or a
+# served need holds their line.
+func _complain(lines: Array[String], seconds: float) -> void:
+	if request or asleep or watching or _busy or lines.is_empty():
+		return
+	activity = _pick(lines)
+	_activity_left = seconds
+
+
+# The most the bus giving [param comfort] can give them now, before frustration, less discomfort.
+func _get_best(comfort: Comfort) -> float:
+	var bonus := comfort.bonus + lounge_bonus + quick_bonus
+	var settled := minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS) - comfort.discomfort
+	return clampf(settled + ride.get_timing(), 0.0, MAX_HAPPINESS)
 
 
 func _open(need: Need) -> void:
@@ -436,7 +503,7 @@ func _close(line: String, seconds: float) -> void:
 # one idle line, and lasts as long as the comfort's sleeps do; where it has shows, so does
 # a watch line, as long as the comfort's shows.
 func _idle(comfort: Comfort) -> void:
-	var lines := type.idle_lines.duplicate()
+	var lines := type.get_idle_lines(ride.get_reason())
 	var sleep_from := lines.size()
 	if comfort.can_sleep():
 		lines.append_array(type.sleep_lines)

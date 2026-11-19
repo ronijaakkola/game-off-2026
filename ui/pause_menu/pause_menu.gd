@@ -7,6 +7,12 @@ extends CanvasLayer
 ## Whatever else pauses the game, such as the research screen, holds the pause the same
 ## way ([method hold], [method release]), so the game runs again only once nothing holds it.
 ## It fades in; it closes at once, as the game picks up again at once.
+## While [member offers_skip_tutorial], as through the tutorial, a Skip tutorial button
+## sits at the top, a little apart from the rest: it closes the menu and
+## [signal skip_tutorial_pressed].
+
+## The player pressed Skip tutorial.
+signal skip_tutorial_pressed
 
 ## The nodes holding the game paused.
 const HOLDERS := &"pause_holders"
@@ -19,6 +25,14 @@ const MAIN_MENU_SCENE := "res://ui/main_menu/main_menu.tscn"
 ## fullscreen and the game never receives it, so leaving fullscreen opens the menu, as that Esc
 ## would have. On only on the web; a test turns it on to reach it.
 var opens_when_window_shrinks := OS.has_feature("web")
+
+## Whether the menu offers to skip the tutorial.
+var offers_skip_tutorial := false:
+	set(value):
+		offers_skip_tutorial = value
+		if is_node_ready():
+			(%SkipTutorialButton as Control).visible = value
+			(%SkipGap as Control).visible = value
 
 var _window_size := Vector2i.ZERO
 
@@ -93,6 +107,11 @@ func close() -> void:
 	%SettingsMenu.hide()
 	hide()
 	release(self)
+
+
+func _on_skip_tutorial_button_pressed() -> void:
+	close()
+	skip_tutorial_pressed.emit()
 
 
 func _on_resume_button_pressed() -> void:

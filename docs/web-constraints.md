@@ -14,7 +14,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 - Ambient light from the sky or a constant pastel colour.
 - **SSAO**: only Radius and Intensity apply.
 - **Glow**, simplified: Screen blend only, with a low threshold for soft bloom on emissives.
-- **Frosted UI**: a `canvas_item` shader reading `hint_screen_texture, filter_linear_mipmap` with `textureLod` sees the screen behind it blurred, each level a Gaussian blur of the one before. `game/solar_system/resource_bar.gdshader` does it (checked in Chromium).
+- **Frosted UI**: a `canvas_item` shader reading `hint_screen_texture, filter_linear` sees the screen behind it, and blurs it itself with a few samples round each pixel (`ui/screen_blur.gdshaderinc`, checked in Chromium). Never read it with `filter_linear_mipmap`: see Costs.
 - **Depth and height fog**, with Sun Scatter.
 - One shadowed DirectionalLight with soft PCF filtering, plus a few unshadowed omni lights. The limit is 8 omni and 8 spot lights per mesh.
 - **Toon** diffuse in StandardMaterial3D, or a two-tone ramp worked out in `fragment()` of an `unshaded` shader (`shared/two_tone_light.gdshaderinc`). Not a custom `light()`: see Costs.
@@ -27,11 +27,13 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 **Costs to plan for:**
 
 - Each post effect (glow, SSAO, adjustments) adds a full-screen pass. Test on a laptop iGPU in a browser.
+- **A `canvas_item` shader reading the screen with `filter_linear_mipmap` makes Godot blur the whole screen into a mipmap chain every frame**: a full-screen copy plus about six render passes at 1080p, for each CanvasLayer that shows such an item, however small ([`rasterizer_canvas_gles3.cpp#L429`](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/rasterizer_canvas_gles3.cpp#L429), [`copy_effects.cpp#L253`](https://github.com/godotengine/godot/blob/4.7.2-stable/drivers/gles3/effects/copy_effects.cpp#L253)). Without the mipmaps it is the copy alone. Players reported the game slow in Firefox with the mipmap glass and better without it; whether the copy alone is fast enough there is unmeasured.
 - Fog and gradients band, because there is no debanding. Add dither or noise in materials.
 - Shaders compile the first time they're seen, which stutters. Show every material for one frame while the screen is black after a scene change; `SceneFlow` does it under its loading card, one new material a frame. In Chrome on Windows (ANGLE on Direct3D 11, measured 2026-11-08), a first draw costs about 200 ms per material, and the solar system's first draw was 90 % of its load.
 - **A custom `light()` function costs about 1.5 s to compile**, even one that only adds a constant, against about 0.2 s for the same shader `unshaded` (measured as above). Light in `fragment()` instead, as `shared/two_tone_light.gdshaderinc` does. In `light()`, Compatibility also used `source_color` uniforms as stored, without the sRGB to linear conversion `fragment()` gets, so a colour moved out of `light()` needs its value converted to keep its look.
 - `vertex_color_is_srgb` does nothing in Compatibility. Check vertex-coloured models in the engine.
 - Shadowed lights render in sRGB, so they can look brighter or darker than unshadowed ones. Adjust energy by eye.
+- **Don't set Scaling 3D below 1.0 on 4.7.2.** In every browser on Windows, ANGLE upscales the depth-stencil buffer on the CPU, about 6× slower at 4K and worst in fullscreen. Fixed in 4.8 ([godot#119317](https://github.com/godotengine/godot/issues/119317), [PR #124310](https://github.com/godotengine/godot/pull/124310)).
 
 **Particles:**
 
@@ -75,7 +77,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 
 ## Still unverified in a browser
 
-Check these before relying on them: the pause on leaving fullscreen in Firefox, Safari and on itch itself (checked in Chromium only), stencil outlines on WebGL 2 (the bus's hover border relies on them: hover the bus in the preview build), the frosted UI blur in Firefox and Safari, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI laptops.
+Check these before relying on them: the pause on leaving fullscreen in Firefox, Safari and on itch itself (checked in Chromium only), stencil outlines on WebGL 2 (the bus's hover border relies on them: hover the bus in the preview build), the frosted UI blur in Firefox and Safari, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI screens: Firefox on itch drops to about 40 FPS in fullscreen on a 144 Hz screen that holds 144 everywhere else. The debug panel's Rendering switches and Show FPS are there to find which cost does it.
 
 ## Sources
 

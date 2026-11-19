@@ -98,22 +98,6 @@ func test_a_line_holds_at_most_two_going_to_one_planet() -> void:
 			assert_int(going[planet]).is_less_equal(WaitingPassengers.MAX_SAME_DESTINATION)
 
 
-func test_destinations_lean_toward_where_those_on_board_are_going() -> void:
-	var third := _planet()
-	_waiting.set_planets([_home, _away, third])
-	var cabin := auto_free(Cabin.new()) as Cabin
-	add_child(cabin)
-	cabin.board(Passenger.new(PassengerType.new(), _away, 100.0, 40.0))
-	_waiting.cabin = cabin
-	var going: Dictionary[Planet, int] = {_away: 0, third: 0}
-
-	for i: int in 300:
-		going[_waiting.create(_home).destination] += 1
-
-	assert_int(going[_away]).is_greater(going[third] * 3 / 2)
-	assert_int(going[third]).is_greater(0)
-
-
 func test_races_are_dealt_evenly_from_a_bag() -> void:
 	var races: Dictionary[Race.Type, int] = {}
 	var bag := Race.Type.size() * WaitingPassengers.RACE_BAG_COPIES
@@ -122,6 +106,20 @@ func test_races_are_dealt_evenly_from_a_bag() -> void:
 		var race := _waiting.create(_home).race
 		races[race] = races.get(race, 0) + 1
 
+	for value: int in Race.Type.values():
+		assert_int(races.get(value as Race.Type, 0)).is_equal(WaitingPassengers.RACE_BAG_COPIES)
+
+
+func test_a_race_dealt_next_comes_before_the_bag_and_leaves_it_whole() -> void:
+	_waiting.deal_next(Race.Type.BLUE)
+	_waiting.deal_next(Race.Type.BLUE)
+
+	assert_int(_waiting.create(_home).race).is_equal(Race.Type.BLUE)
+	assert_int(_waiting.create(_home).race).is_equal(Race.Type.BLUE)
+	var races: Dictionary[Race.Type, int] = {}
+	for i: int in Race.Type.size() * WaitingPassengers.RACE_BAG_COPIES:
+		var race := _waiting.create(_home).race
+		races[race] = races.get(race, 0) + 1
 	for value: int in Race.Type.values():
 		assert_int(races.get(value as Race.Type, 0)).is_equal(WaitingPassengers.RACE_BAG_COPIES)
 
@@ -191,6 +189,46 @@ func test_nobody_leaves_where_the_bus_waits() -> void:
 	assert_int(_waiting.count_at(_home)).is_equal(1)
 
 
+func test_with_the_lounge_someone_picked_up_rides_happier_the_longer_they_waited() -> void:
+	_quiet()
+	_waiting.leave_seconds = 1000.0
+	_waiting.bus = _bus_at(_away)
+	_waiting.bus.get_stats().get_traits().add(BusTraits.Type.WAITING_LOUNGE)
+	_waiting.add(_home)
+	_waiting.add(_home)
+
+	_run(23.0)
+	var line := _waiting.get_waiting(_home)
+	_waiting.take(_home, line[0])
+	_run(60.0)
+	_waiting.take(_home, line[1])
+
+	assert_float(line[0].lounge_bonus).is_equal(2.0)
+	assert_float(line[1].lounge_bonus).is_equal(_waiting.lounge_bonus_max)
+
+
+func test_without_the_lounge_waiting_gives_nothing() -> void:
+	_quiet()
+	_waiting.leave_seconds = 1000.0
+	_waiting.bus = _bus_at(_away)
+	_waiting.add(_home)
+
+	_run(60.0)
+	var passenger := _waiting.get_waiting(_home)[0]
+	_waiting.take(_home, passenger)
+
+	assert_float(passenger.lounge_bonus).is_equal(0.0)
+
+
+# A bus docked at [param planet], standing still.
+func _bus_at(planet: Planet) -> FrameshiftBus:
+	var bus := BUS_SCENE.instantiate() as FrameshiftBus
+	bus.start_planet = planet
+	(_home.get_parent() as Node).add_child(bus)
+	bus.set_process(false)
+	return bus
+
+
 func _planet() -> Planet:
 	var planet := Planet.new()
 	(_home.get_parent() as Node).add_child(planet)
@@ -217,3 +255,17 @@ func _count_business(created: int) -> int:
 		if _waiting.create(_home).type == _waiting.business:
 			count += 1
 	return count
+
+
+func test_set_planets_says_every_line_it_empties_has_changed() -> void:
+	_quiet()
+	_waiting.add(_home)
+	var next := _planet()
+	var changed: Array[Planet] = []
+	_waiting.changed.connect(func(planet: Planet) -> void: changed.append(planet))
+
+	# As when the bus jumps to another star system: the lines left behind empty.
+	_waiting.set_planets([next])
+
+	assert_int(_waiting.count_at(_home)).is_equal(0)
+	assert_array(changed).contains_exactly_in_any_order([_home, _away, next])

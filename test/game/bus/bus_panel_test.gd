@@ -20,13 +20,13 @@ func test_shows_each_stat_and_what_upgrades_add_and_take_away_as_they_change() -
 	panel.open(bus)
 	assert_bool(panel.visible).is_true()
 	var seats := _row(runner, BusStats.Type.SEATS)
-	assert_bool(_row_label(seats, "BonusLabel").visible).is_false()
+	assert_str(_row_label(seats, "BonusLabel").text).is_empty()
 
 	stats.add_modifier(StatModifier.new(BusStats.Type.SEATS, StatModifier.Kind.FLAT, 1.0))
 	var smaller := StatModifier.new(BusStats.Type.FUEL_CAPACITY, StatModifier.Kind.PERCENT, -20.0)
 	stats.add_modifier(smaller)
 
-	assert_bool(_row_label(seats, "BonusLabel").visible).is_true()
+	assert_str(_row_label(seats, "BonusLabel").text).is_not_empty()
 	assert_str(_row_label(seats, "NameLabel").text).is_equal("Seats")
 	assert_str(_row_label(seats, "ValueLabel").text).is_equal("5")
 	assert_str(_row_label(seats, "BonusLabel").text).is_equal("+1")
@@ -36,6 +36,28 @@ func test_shows_each_stat_and_what_upgrades_add_and_take_away_as_they_change() -
 	var penalty := _row_label(fuel, "BonusLabel")
 	assert_str(penalty.text).is_equal("-20%")
 	assert_object(penalty.get_theme_color(&"font_color")).is_equal(BusPanel.PENALTY_COLOR)
+
+
+func test_every_stat_row_keeps_its_delta_slot_so_the_values_form_one_column() -> void:
+	var bus := auto_free((load(BUS) as PackedScene).instantiate()) as FrameshiftBus
+	add_child(bus)
+	bus.get_stats().add_modifier(
+		StatModifier.new(BusStats.Type.FUEL_CAPACITY, StatModifier.Kind.PERCENT, -20.0)
+	)
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as BusPanel
+	panel.open(bus)
+	await runner.simulate_frames(1)
+	await runner.simulate_frames(1)
+
+	var edges := []
+	for type: BusStats.Type in BusStats.Type.values():
+		var row := _row(runner, type)
+		var bonus := _row_label(row, "BonusLabel")
+		assert_bool(bonus.visible).is_true()
+		assert_float(bonus.size.x).is_equal(BusPanel.BONUS_WIDTH)
+		edges.append(snappedf(_row_label(row, "ValueLabel").get_global_rect().end.x, 0.1))
+	assert_array(edges.filter(func(x: float) -> bool: return x != edges[0])).is_empty()
 
 
 func test_shows_the_traits_the_bus_has_as_they_come_and_go() -> void:
@@ -76,11 +98,16 @@ func test_left_click_on_the_bus_opens_it_and_again_closes_it() -> void:
 	assert_bool((runner.find_child("BusPanel") as Control).visible).is_true()
 	await runner.simulate_frames(1)
 	assert_bool((runner.find_child("Notices") as Control).visible).is_false()
+	var goals := runner.find_child("GoalPanel") as Control
+	await await_millis(400)
+	assert_float(goals.modulate.a).is_equal(0.0)
 
 	await runner.simulate_frames(2)
 	_send_click(MOUSE_BUTTON_LEFT, _bus_screen_point(runner))
 
 	assert_bool(system.is_bus_open()).is_false()
+	await await_millis(1200)
+	assert_float(goals.modulate.a).is_equal(1.0)
 	assert_bool(rig.is_focused()).is_false()
 
 

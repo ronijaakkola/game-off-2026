@@ -4,9 +4,12 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="Script" uid="uid://bf21dpk28ap5b" path="res://game/bus/frameshift_key.gd" id="4_key"]
-[ext_resource type="Texture2D" uid="uid://bv3he6oofkmxy" path="res://game/bus/icons/route.svg" id="5_route"]
+[ext_resource type="PackedScene" uid="uid://ce3hkauxdygws" path="res://game/bus/route_bar.tscn" id="5_route_bar"]
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
 [ext_resource type="Script" uid="uid://djxl2kxm0tghb" path="res://game/bus/bus_key.gd" id="7_bus_key"]
+[ext_resource type="Texture2D" uid="uid://dt7n63aq7jtgn" path="res://game/bus/icons/thermometer.svg" id="8_thermometer"]
+[ext_resource type="Script" uid="uid://dcdn22pu2jb5x" path="res://game/bus/temperature_gauge.gd" id="9_gauge"]
+[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="10_hairline"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuel"]
 bg_color = Color(0.6, 0.949, 1, 1)
@@ -26,74 +29,12 @@ grow_vertical = 0
 mouse_filter = 2
 theme = ExtResource("2_theme")
 theme_override_constants/separation = 0
+alignment = 2
 script = ExtResource("1_panel")
 
-[node name="RouteBar" type="PanelContainer" parent="." unique_id=1056280419]
-material = ExtResource("3_glass")
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-theme_type_variation = &"RouteBarPanel"
-
-[node name="Row" type="HBoxContainer" parent="RouteBar" unique_id=432325167]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="RouteNudge" type="MarginContainer" parent="RouteBar/Row" unique_id=1448027967]
+[node name="RouteBar" parent="." unique_id=1017829025 instance=ExtResource("5_route_bar")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_override_constants/margin_top = 2
-
-[node name="RouteIcon" type="TextureRect" parent="RouteBar/Row/RouteNudge" unique_id=1737471946]
-self_modulate = Color(0.957, 0.945, 1, 0.4)
-custom_minimum_size = Vector2(12, 12)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("5_route")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="StateLabel" type="Label" parent="RouteBar/Row" unique_id=196512966]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"StrongLabel"
-theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
-text = "No course"
-
-[node name="FromLabel" type="Label" parent="RouteBar/Row" unique_id=218105738]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 0)
-layout_mode = 2
-theme_type_variation = &"SmallLabel"
-theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
-text = "From"
-
-[node name="Track" type="Control" parent="RouteBar/Row" unique_id=647450832]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 12)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-mouse_filter = 2
-
-[node name="ToLabel" type="Label" parent="RouteBar/Row" unique_id=1048281388]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 0)
-layout_mode = 2
-theme_type_variation = &"StrongLabel"
-text = "To"
-
-[node name="EtaLabel" type="Label" parent="RouteBar/Row" unique_id=635715567]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(36, 0)
-layout_mode = 2
-theme_type_variation = &"SmallStrongLabel"
-text = "0 s"
-horizontal_alignment = 2
 
 [node name="BusBar" type="PanelContainer" parent="." unique_id=1889564419]
 material = ExtResource("3_glass")
@@ -105,25 +46,30 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 12
 
-[node name="FuelGauge" type="VBoxContainer" parent="BusBar/Row" unique_id=812908986]
+[node name="FuelBox" type="MarginContainer" parent="BusBar/Row" unique_id=581405897]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/margin_bottom = 6
 
-[node name="FuelRow" type="HBoxContainer" parent="BusBar/Row/FuelGauge" unique_id=1784337636]
+[node name="FuelGauge" type="VBoxContainer" parent="BusBar/Row/FuelBox" unique_id=812908986]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="FuelNudge" type="MarginContainer" parent="BusBar/Row/FuelGauge/FuelRow" unique_id=1652748653]
+[node name="FuelRow" type="HBoxContainer" parent="BusBar/Row/FuelBox/FuelGauge" unique_id=1784337636]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="FuelNudge" type="MarginContainer" parent="BusBar/Row/FuelBox/FuelGauge/FuelRow" unique_id=1652748653]
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/margin_top = 2
 
-[node name="FuelIcon" type="TextureRect" parent="BusBar/Row/FuelGauge/FuelRow/FuelNudge" unique_id=1211769540]
+[node name="FuelIcon" type="TextureRect" parent="BusBar/Row/FuelBox/FuelGauge/FuelRow/FuelNudge" unique_id=1211769540]
 self_modulate = Color(0.6, 0.949, 1, 1)
 custom_minimum_size = Vector2(11, 11)
 layout_mode = 2
@@ -133,20 +79,20 @@ texture = ExtResource("6_fuel")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="FuelLabel" type="Label" parent="BusBar/Row/FuelGauge/FuelRow" unique_id=492183118]
+[node name="FuelLabel" type="Label" parent="BusBar/Row/FuelBox/FuelGauge/FuelRow" unique_id=492183118]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"DimLabel"
 text = "Fuel"
 
-[node name="FuelAmount" type="Label" parent="BusBar/Row/FuelGauge/FuelRow" unique_id=2031955704]
+[node name="FuelAmount" type="Label" parent="BusBar/Row/FuelBox/FuelGauge/FuelRow" unique_id=2031955704]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallStrongLabel"
 text = "100%"
 horizontal_alignment = 2
 
-[node name="FuelBar" type="ProgressBar" parent="BusBar/Row/FuelGauge" unique_id=1218609742]
+[node name="FuelBar" type="ProgressBar" parent="BusBar/Row/FuelBox/FuelGauge" unique_id=1218609742]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
@@ -155,12 +101,74 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_fuel")
 max_value = 1.0
 show_percentage = false
 
-[node name="Divider" type="ColorRect" parent="BusBar/Row" unique_id=2105485791]
+[node name="FuelDivider" type="Control" parent="BusBar/Row" unique_id=24434892]
 custom_minimum_size = Vector2(1, 30)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
-color = Color(1, 1, 1, 0.1216)
+script = ExtResource("10_hairline")
+
+[node name="TemperatureBox" type="MarginContainer" parent="BusBar/Row" unique_id=855712255]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_bottom = 4
+
+[node name="TemperatureColumn" type="VBoxContainer" parent="BusBar/Row/TemperatureBox" unique_id=1787444508]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="TemperatureRow" type="HBoxContainer" parent="BusBar/Row/TemperatureBox/TemperatureColumn" unique_id=340941190]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="TemperatureNudge" type="MarginContainer" parent="BusBar/Row/TemperatureBox/TemperatureColumn/TemperatureRow" unique_id=1417081630]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="TemperatureIcon" type="TextureRect" parent="BusBar/Row/TemperatureBox/TemperatureColumn/TemperatureRow/TemperatureNudge" unique_id=1980883492]
+unique_name_in_owner = true
+self_modulate = Color(0.549, 0.851, 0.4, 1)
+custom_minimum_size = Vector2(11, 11)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("8_thermometer")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TemperatureLabel" type="Label" parent="BusBar/Row/TemperatureBox/TemperatureColumn/TemperatureRow" unique_id=363116489]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"DimLabel"
+text = "Temperature"
+
+[node name="TemperatureAmount" type="Label" parent="BusBar/Row/TemperatureBox/TemperatureColumn/TemperatureRow" unique_id=265599786]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallStrongLabel"
+text = "21°"
+horizontal_alignment = 2
+
+[node name="TemperatureBar" type="Control" parent="BusBar/Row/TemperatureBox/TemperatureColumn" unique_id=872206640]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 9)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("9_gauge")
+
+[node name="Divider" type="Control" parent="BusBar/Row" unique_id=2105485791]
+custom_minimum_size = Vector2(1, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("10_hairline")
 
 [node name="Controls" type="HBoxContainer" parent="BusBar/Row" unique_id=413320870]
 layout_mode = 2
@@ -169,6 +177,7 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="WindowsKey" type="Button" parent="BusBar/Row/Controls" unique_id=609719169]
+visible = false
 custom_minimum_size = Vector2(42, 44)
 layout_mode = 2
 size_flags_vertical = 4
@@ -176,6 +185,7 @@ theme_type_variation = &"KeyButton"
 script = ExtResource("7_bus_key")
 
 [node name="HonkKey" type="Button" parent="BusBar/Row/Controls" unique_id=1020392020]
+visible = false
 custom_minimum_size = Vector2(42, 44)
 layout_mode = 2
 size_flags_vertical = 4

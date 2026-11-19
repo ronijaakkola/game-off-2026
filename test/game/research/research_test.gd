@@ -11,13 +11,11 @@ func before_test() -> void:
 	_research = Research.new(_stats)
 
 
-func test_an_upgrade_is_available_once_everything_it_requires_is_researched() -> void:
+func test_an_upgrade_is_available_once_one_path_to_it_is_researched() -> void:
 	var first := _upgrade()
 	var second := _upgrade()
 	var third := _upgrade([first, second])
 
-	assert_int(_state(third)).is_equal(Research.State.LOCKED)
-	_research.research(first)
 	assert_int(_state(third)).is_equal(Research.State.LOCKED)
 	_research.research(second)
 	assert_int(_state(third)).is_equal(Research.State.AVAILABLE)
@@ -36,15 +34,11 @@ func test_a_hidden_upgrade_shows_as_hidden_only_until_it_is_unlocked() -> void:
 
 
 func test_an_upgrade_the_player_cannot_pay_for_is_unaffordable() -> void:
-	var upgrade := _upgrade([], 20, {Race.Type.BLUE: 3})
-	var blue_3: Dictionary[Race.Type, int] = {Race.Type.BLUE: 3}
-	var blue_2: Dictionary[Race.Type, int] = {Race.Type.BLUE: 2}
-	var other_race: Dictionary[Race.Type, int] = {Race.Type.GREEN: 10}
+	var upgrade := _upgrade([], 20, 3)
 
-	assert_int(_research.get_state(upgrade, 20, blue_3)).is_equal(Research.State.AVAILABLE)
-	assert_int(_research.get_state(upgrade, 19, blue_3)).is_equal(Research.State.UNAFFORDABLE)
-	assert_int(_research.get_state(upgrade, 20, blue_2)).is_equal(Research.State.UNAFFORDABLE)
-	assert_int(_research.get_state(upgrade, 99, other_race)).is_equal(Research.State.UNAFFORDABLE)
+	assert_int(_research.get_state(upgrade, 20, 3)).is_equal(Research.State.AVAILABLE)
+	assert_int(_research.get_state(upgrade, 19, 3)).is_equal(Research.State.UNAFFORDABLE)
+	assert_int(_research.get_state(upgrade, 20, 2)).is_equal(Research.State.UNAFFORDABLE)
 
 
 func test_researching_puts_its_modifiers_and_traits_on_the_bus_once() -> void:
@@ -87,27 +81,12 @@ func test_an_upgrade_past_the_open_stages_needs_a_promotion() -> void:
 	assert_int(_state(last)).is_equal(Research.State.AVAILABLE)
 
 
-func test_an_upgrade_takes_the_colours_of_the_race_it_costs_most() -> void:
-	assert_int(_upgrade([], 0, {Race.Type.GREEN: 1, Race.Type.ORANGE: 4}).get_race()).is_equal(
-		Race.Type.ORANGE
-	)
-	# A tie goes to the first race.
-	assert_int(_upgrade([], 0, {Race.Type.ORANGE: 2, Race.Type.BLUE: 2}).get_race()).is_equal(
-		Race.Type.BLUE
-	)
-
-
 # The state of [param upgrade] for a player with plenty to pay with.
 func _state(upgrade: Upgrade) -> Research.State:
-	var points: Dictionary[Race.Type, int] = {}
-	for value: int in Race.Type.values():
-		points[value as Race.Type] = 1000
-	return _research.get_state(upgrade, 1000, points)
+	return _research.get_state(upgrade, 1000, 1000)
 
 
-func _upgrade(
-	requires: Array[Upgrade] = [], credits := 0, points: Dictionary[Race.Type, int] = {}
-) -> Upgrade:
+func _upgrade(requires: Array[Upgrade] = [], credits := 0, points := 0) -> Upgrade:
 	var upgrade := Upgrade.new()
 	upgrade.requires.assign(requires)
 	upgrade.credits = credits

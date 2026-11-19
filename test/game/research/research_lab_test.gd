@@ -3,7 +3,9 @@ extends GdUnitTestSuite
 ## panel's Research button and pauses the game, holding an upgrade's tile researches it,
 ## paying credits and research points from the ledger, and nothing is researched without
 ## the cost or in a stage that isn't open. The pause menu opened over the screen takes Esc,
-## and closing it leaves the game paused under the screen.
+## and closing it leaves the game paused under the screen. The dock panel's Research button
+## is outlined while the player can pay for an upgrade they couldn't when they last closed
+## the screen, and not while they can't, nor for the same ones or fewer.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -34,11 +36,23 @@ func test_researching_an_upgrade_pays_its_cost() -> void:
 
 	assert_bool(_lab.get_research().is_researched(upgrade)).is_true()
 	assert_int(_ledger.credits).is_equal(7)
-	for race: Race.Type in upgrade.points:
-		assert_int(_ledger.get_research(race)).is_equal(1)
+	assert_int(_ledger.get_research()).is_equal(1)
 	# Researched already, a second try costs nothing.
 	_lab.research(upgrade)
 	assert_int(_ledger.credits).is_equal(7)
+
+
+func test_while_restricted_only_the_researchable_upgrades_can_be_researched() -> void:
+	var upgrade := _first_upgrade()
+	_pay_for(upgrade, 0)
+	_lab.restricted = true
+
+	_lab.research(upgrade)
+	assert_bool(_lab.get_research().is_researched(upgrade)).is_false()
+
+	_lab.researchable = [upgrade]
+	_lab.research(upgrade)
+	assert_bool(_lab.get_research().is_researched(upgrade)).is_true()
 
 
 func test_nothing_is_researched_without_the_cost_or_the_promotion() -> void:
@@ -70,6 +84,48 @@ func test_the_research_button_opens_the_screen_and_pauses_the_game() -> void:
 	assert_bool(_system.get_tree().paused).is_true()
 	screen.close()
 	assert_bool(_system.get_tree().paused).is_false()
+
+
+func test_the_research_button_is_outlined_while_an_upgrade_can_be_paid_for() -> void:
+	var dock := _runner.find_child("DockPanel") as DockPanel
+	(_runner.find_child("Bus") as FrameshiftBus).get_docked_planet().has_lab = true
+	_ledger.credits = 0
+
+	await _runner.simulate_frames(1)
+	assert_bool(_lab.has_unseen_upgrade()).is_false()
+	assert_bool(dock.is_research_nudging()).is_false()
+
+	_pay_for(_first_upgrade(), 0)
+	await _runner.simulate_frames(1)
+	assert_bool(_lab.has_unseen_upgrade()).is_true()
+	assert_bool(dock.is_research_nudging()).is_true()
+
+
+func test_the_research_button_is_not_outlined_for_upgrades_already_seen() -> void:
+	var dock := _runner.find_child("DockPanel") as DockPanel
+	var screen := _runner.find_child("ResearchScreen") as ResearchScreen
+	(_runner.find_child("Bus") as FrameshiftBus).get_docked_planet().has_lab = true
+	_pay_for(_first_upgrade(), 0)
+	var credits := _ledger.credits
+	_lab.open_screen()
+	screen.close()
+	await _runner.simulate_frames(1)
+	assert_bool(dock.is_research_nudging()).is_false()
+
+	# Fewer to pay for, then the same ones again: nothing new to see.
+	_ledger.credits = 0
+	await _runner.simulate_frames(1)
+	assert_bool(dock.is_research_nudging()).is_false()
+	_ledger.credits = credits
+	await _runner.simulate_frames(1)
+	assert_bool(dock.is_research_nudging()).is_false()
+
+	# More of them: what the first upgrade opens, and enough to pay for it.
+	_lab.get_research().research(_first_upgrade())
+	_ledger.credits = 100000
+	_ledger.earn_research(300)
+	await _runner.simulate_frames(1)
+	assert_bool(dock.is_research_nudging()).is_true()
 
 
 func test_the_pause_menu_over_the_screen_leaves_the_game_paused() -> void:
@@ -159,6 +215,28 @@ func test_holding_an_upgrade_tile_researches_it() -> void:
 	assert_int(_ledger.credits).is_equal(0)
 
 
+func test_the_screens_bar_shows_the_fares_the_huds_bar_shows() -> void:
+	var hud_bar := _runner.find_child("TopCentre").find_child("ResourceBar") as ResourceBar
+	var screen := _runner.find_child("ResearchScreen") as ResearchScreen
+	var screen_bar := screen.find_child("ResourceBar") as ResourceBar
+	_ledger.credits = 0
+	_ledger.earn(119)
+	_ledger.rate(4.0)
+
+	# As when everyone going to the planet has got off.
+	(_runner.find_child("Cabin") as Cabin).unloaded.emit()
+	await await_millis(1900)
+
+	assert_str(_shown(hud_bar, "TotalLabel")).is_equal("119")
+	assert_str(_shown(screen_bar, "TotalLabel")).is_equal("119")
+	assert_str(_shown(hud_bar, "AverageLabel")).is_not_equal(RatingCounter.NO_RATING)
+	assert_str(_shown(screen_bar, "AverageLabel")).is_equal(_shown(hud_bar, "AverageLabel"))
+
+
+func _shown(bar: ResourceBar, label: String) -> String:
+	return (bar.find_child(label, true, false) as Label).text
+
+
 func _first_upgrade() -> Upgrade:
 	for upgrade: Upgrade in _lab.trees[0].upgrades:
 		if upgrade.requires.is_empty():
@@ -188,8 +266,7 @@ func _all_required(upgrade: Upgrade) -> Array[Upgrade]:
 # Gives the player what [param upgrade] costs, with [param spare] credits over.
 func _pay_for(upgrade: Upgrade, spare: int) -> void:
 	_ledger.credits = upgrade.credits + spare
-	for race: Race.Type in upgrade.points:
-		_ledger.earn_research(race, upgrade.points[race] + (1 if spare > 0 else 0))
+	_ledger.earn_research(upgrade.points + (1 if spare > 0 else 0))
 
 
 # Esc, the pause action, through Input as a key press would come.

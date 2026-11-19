@@ -19,9 +19,11 @@ const SCREAM := preload("res://game/passengers/wilhelm_scream.ogg")
 ## Seconds it flies before it shrinks away, and the seconds the shrink takes.
 @export_range(0.0, 10.0, 0.1) var flight_seconds := 4.0
 @export_range(0.05, 2.0, 0.05) var shrink_seconds := 0.35
-## How loud the scream starts, from 0 to 1, and the seconds it takes to fade out.
-@export_range(0.0, 1.0, 0.05) var scream_volume := 0.3
+## The seconds the scream, which starts at its mixed level, takes to fade out.
 @export_range(0.1, 5.0, 0.05) var scream_fade_seconds := 1.6
+
+## Where the star that lights it is, in global space. Set before [method throw].
+var light_source := Vector3.ZERO
 
 var _velocity := Vector3.ZERO
 var _spin_axis := Vector3.RIGHT
@@ -37,6 +39,7 @@ func throw(from: Vector3, out: Vector3, color: Color) -> void:
 	var material := ShaderMaterial.new()
 	material.shader = SHADER
 	material.set_shader_parameter(&"color", color)
+	material.set_shader_parameter(&"light_source", light_source)
 	for node: Node in find_children("*", "MeshInstance3D", true, false):
 		(node as MeshInstance3D).material_override = material
 	var side := out.cross(Vector3.UP).normalized()
@@ -64,7 +67,7 @@ func _scream() -> void:
 	var player := AudioStreamPlayer.new()
 	player.stream = SCREAM
 	player.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
-	player.volume_linear = scream_volume
+	player.volume_linear = Audio.get_clip_volume(SCREAM)
 	add_child(player)
 	player.play()
 	if _scream_fade:

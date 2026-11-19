@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 const TRIP := 100.0
 const FARE := 50.0
 # Where a passenger starts the ride on a bare bus.
-const START := Passenger.BASE_HAPPINESS + Passenger.ON_TIME_BONUS
+const START := Passenger.BASE_HAPPINESS + RideProgress.ON_TIME_BONUS
 
 var _planet: Planet
 
@@ -30,7 +30,7 @@ func test_they_wait_at_the_base_and_expect_the_trip_with_the_type_s_slack() -> v
 	kind.slack = 1.5
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
 	assert_float(passenger.happiness).is_equal(Passenger.BASE_HAPPINESS)
-	assert_float(passenger.expected_seconds).is_equal(150.0)
+	assert_float(passenger.ride.expected_seconds).is_equal(150.0)
 
 
 func test_happiness_holds_until_they_depart() -> void:
@@ -67,38 +67,71 @@ func test_settling_does_nothing_after_a_shock_or_once_the_bus_has_left() -> void
 	assert_float(riding.happiness).is_equal(40.0)
 
 
-func test_an_open_request_sends_them_toward_0_at_the_falling_rate() -> void:
+func test_an_open_request_sends_them_toward_0_at_the_falling_rate_after_its_leeway() -> void:
 	var snack := _need(1.0)
 	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
 	passenger.depart()
 	passenger.tick(1.0, false)
 	assert_object(passenger.request).is_same(snack)
 	var before := passenger.happiness
+	passenger.tick(Passenger.REQUEST_LEEWAY, false)
+	assert_float(passenger.happiness).is_equal(before)
 	passenger.tick(4.0, false)
 	assert_float(before - passenger.happiness).is_equal_approx(4.0 * Passenger.FALL_RATE, 0.001)
 	assert_float(passenger.get_target()).is_equal(0.0)
 
 
-func test_timing_falls_to_0_at_the_expected_time_and_on_to_worn_out() -> void:
+func test_timing_falls_to_0_at_the_expected_time_and_no_further() -> void:
 	var passenger := _departed()
-	assert_float(passenger.get_timing()).is_equal(Passenger.ON_TIME_BONUS)
+	assert_float(passenger.ride.get_timing()).is_equal(RideProgress.ON_TIME_BONUS)
 	passenger.tick(TRIP, false)
-	assert_float(passenger.get_timing()).is_equal(Passenger.ON_TIME_BONUS)
-	passenger.tick(passenger.expected_seconds - TRIP, false)
-	assert_float(passenger.get_timing()).is_equal_approx(0.0, 0.001)
-	passenger.tick(TRIP * 0.5, false)
-	assert_float(passenger.get_timing()).is_equal_approx(Passenger.WORN_OUT * 0.5, 0.001)
+	assert_float(passenger.ride.get_timing()).is_equal(RideProgress.ON_TIME_BONUS)
+	passenger.tick(passenger.ride.expected_seconds - TRIP, false)
+	assert_float(passenger.ride.get_timing()).is_equal_approx(0.0, 0.001)
 	passenger.tick(TRIP, false)
-	assert_float(passenger.get_timing()).is_equal(Passenger.WORN_OUT)
+	assert_float(passenger.ride.get_timing()).is_equal(0.0)
 
 
-func test_given_enough_time_anyone_reaches_0_however_comfortable() -> void:
-	var comfort := Comfort.new()
-	comfort.bonus = Passenger.MAX_HAPPINESS
+func test_a_late_ride_drains_them_steadily_down_to_the_floor_never_to_0() -> void:
 	var passenger := _departed()
+	passenger.tick(passenger.ride.expected_seconds, false)
+	var settled := Passenger.BASE_HAPPINESS
+	assert_float(passenger.get_target()).is_equal_approx(settled, 0.001)
+	passenger.tick(10.0, false)
+	assert_float(passenger.get_target()).is_equal_approx(
+		settled - 10.0 * RideProgress.LATE_RATE, 0.001
+	)
 	for i: int in 400:
-		passenger.tick(1.0, false, false, comfort)
-	assert_float(passenger.happiness).is_equal(0.0)
+		passenger.tick(1.0, false)
+	assert_float(passenger.happiness).is_equal_approx(RideProgress.CAP_FLOOR, 0.001)
+	assert_float(passenger.frustration).is_equal_approx(settled - RideProgress.CAP_FLOOR, 0.001)
+
+
+func test_each_stop_past_the_tolerance_takes_off_what_they_can_reach() -> void:
+	var kind := _type()
+	kind.stop_tolerance = 1
+	kind.stop_lines = ["Another stop?"]
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	var other: Planet = auto_free(Planet.new())
+	passenger.depart()
+	passenger.pass_stop(other)
+	assert_float(passenger.get_target()).is_equal(START)
+	passenger.pass_stop(other)
+	assert_float(passenger.get_target()).is_equal(START - RideProgress.STOP_COST)
+	assert_int(passenger.ride.get_reason()).is_equal(RideProgress.Reason.STOPS)
+	assert_str(passenger.activity).is_equal("Another stop?")
+	# Comfort still lifts them, up to what is left.
+	var comfort := Comfort.new()
+	comfort.bonus = 20.0
+	assert_float(passenger.get_target(comfort)).is_equal(START + 20.0 - RideProgress.STOP_COST)
+
+
+func test_the_planet_they_boarded_at_is_no_stop_before_the_bus_leaves() -> void:
+	var kind := _type()
+	kind.stop_tolerance = 0
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.pass_stop(_planet)
+	assert_int(passenger.ride.stops).is_equal(0)
 
 
 func test_while_docked_the_clock_runs_and_happiness_falls_slowly() -> void:
@@ -106,8 +139,8 @@ func test_while_docked_the_clock_runs_and_happiness_falls_slowly() -> void:
 	var docked := _departed()
 	flying.tick(TRIP + 20.0, false)
 	docked.tick(TRIP + 20.0, true)
-	assert_float(docked.get_timing()).is_equal(Passenger.ON_TIME_BONUS)
-	assert_float(flying.get_timing()).is_less(Passenger.ON_TIME_BONUS)
+	assert_float(docked.ride.get_timing()).is_equal(RideProgress.ON_TIME_BONUS)
+	assert_float(flying.ride.get_timing()).is_less(RideProgress.ON_TIME_BONUS)
 
 	var cheerful := _departed()
 	cheerful.happiness = Passenger.MAX_HAPPINESS
@@ -133,21 +166,21 @@ func test_no_request_opens_at_a_stop_and_their_needs_run_slowly_there() -> void:
 	assert_object(passenger.request).is_same(snack)
 
 
-func test_an_open_request_goes_on_hold_at_a_stop_and_returns_when_the_bus_leaves() -> void:
+func test_an_open_request_stays_open_at_a_stop_and_can_be_served_there() -> void:
 	var snack := _need(1.0)
 	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
 	passenger.depart()
 	passenger.tick(1.5, false)
 	assert_object(passenger.request).is_same(snack)
 
+	passenger.tick(0.1, false, true)
 	passenger.tick(0.1, true)
-	assert_object(passenger.request).is_null()
-	assert_str(passenger.activity).is_not_equal(snack.request_line)
-	assert_float(passenger.get_target()).is_greater(0.0)
-
-	passenger.tick(0.1, false)
 	assert_object(passenger.request).is_same(snack)
 	assert_str(passenger.activity).is_equal(snack.request_line)
+
+	passenger.serve()
+	passenger.tick(0.1, true)
+	assert_object(passenger.request).is_null()
 
 
 func test_arriving_with_a_long_unserved_request_disappoints_them() -> void:
@@ -179,16 +212,16 @@ func test_a_happy_passenger_grants_leeway_up_to_a_limit() -> void:
 	var comfort := Comfort.new()
 	comfort.bonus = 30.0
 	var happy := _departed()
-	happy.happiness = Passenger.LEEWAY_HAPPINESS
+	happy.happiness = RideProgress.LEEWAY_HAPPINESS
 	happy.tick(10.0, false, false, comfort)
-	assert_float(happy.leeway).is_equal_approx(10.0 * Passenger.LEEWAY_RATE, 0.001)
+	assert_float(happy.ride.leeway).is_equal_approx(10.0 * RideProgress.LEEWAY_RATE, 0.001)
 	for i: int in 300:
 		happy.tick(1.0, false, false, comfort)
-	assert_float(happy.leeway).is_equal_approx(TRIP * Passenger.LEEWAY_MAX, 0.001)
+	assert_float(happy.ride.leeway).is_equal_approx(TRIP * RideProgress.LEEWAY_MAX, 0.001)
 
 	var content := _departed()
 	content.tick(TRIP, false)
-	assert_float(content.leeway).is_equal(0.0)
+	assert_float(content.ride.leeway).is_equal(0.0)
 
 
 func test_comfort_raises_the_target() -> void:
@@ -196,7 +229,15 @@ func test_comfort_raises_the_target() -> void:
 	comfort.bonus = 20.0
 	var passenger := _departed()
 	assert_float(passenger.get_target(comfort)).is_equal(
-		Passenger.BASE_HAPPINESS + 20.0 + Passenger.ON_TIME_BONUS
+		Passenger.BASE_HAPPINESS + 20.0 + RideProgress.ON_TIME_BONUS
+	)
+
+
+func test_the_lounge_bonus_raises_the_target_all_ride() -> void:
+	var passenger := _departed()
+	passenger.lounge_bonus = 5.0
+	assert_float(passenger.get_target()).is_equal(
+		Passenger.BASE_HAPPINESS + 5.0 + RideProgress.ON_TIME_BONUS
 	)
 
 
@@ -229,7 +270,7 @@ func test_pay_follows_mood_at_the_end() -> void:
 func test_rating_is_happiness_in_fifths_to_the_nearest_star() -> void:
 	var passenger := Passenger.new(_type(), _planet, TRIP, FARE)
 	assert_float(passenger.get_rating()).is_equal(3.0)
-	passenger.happiness = Passenger.BASE_HAPPINESS + Passenger.ON_TIME_BONUS
+	passenger.happiness = Passenger.BASE_HAPPINESS + RideProgress.ON_TIME_BONUS
 	assert_float(passenger.get_rating()).is_equal(4.0)
 	passenger.happiness = 100.0
 	assert_float(passenger.get_rating()).is_equal(5.0)
@@ -247,6 +288,31 @@ func test_finds_their_seat_then_idles_on_one_of_the_type_s_lines() -> void:
 	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, true)
 	assert_array(kind.idle_lines).contains([passenger.activity])
 	assert_bool(passenger.asleep).is_false()
+
+
+func test_overheating_shows_an_overheat_line_for_the_cooldown_then_they_idle_again() -> void:
+	var kind := _type()
+	kind.idle_lines = ["Reading"]
+	kind.overheat_lines = ["Fanning themselves"]
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, true)
+	passenger.react_to_overheat(8.0)
+	assert_str(passenger.activity).is_equal("Fanning themselves")
+	passenger.tick(7.0, true)
+	assert_str(passenger.activity).is_equal("Fanning themselves")
+	passenger.tick(1.5, true)
+	assert_str(passenger.activity).is_equal("Reading")
+
+
+func test_overheating_leaves_an_open_request_on_their_card() -> void:
+	var snack := _need(Passenger.BOARDING_SECONDS + 1.0)
+	var kind := _type([snack])
+	kind.overheat_lines = ["Fanning themselves"]
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.tick(Passenger.BOARDING_SECONDS + 1.5, false)
+	assert_object(passenger.request).is_same(snack)
+	passenger.react_to_overheat(8.0)
+	assert_str(passenger.activity).is_equal(snack.request_line)
 
 
 func test_nobody_sleeps_on_a_bus_with_nowhere_to_sleep() -> void:
@@ -291,7 +357,7 @@ func test_their_clock_runs_as_slow_as_the_comfort_says_while_asleep() -> void:
 	passenger.tick(0.1, false, false, comfort)
 	passenger.tick(TRIP * 2.0, false, false, comfort)
 	assert_bool(passenger.asleep).is_true()
-	assert_float(passenger.get_timing()).is_equal(Passenger.ON_TIME_BONUS)
+	assert_float(passenger.ride.get_timing()).is_equal(RideProgress.ON_TIME_BONUS)
 
 
 func test_a_show_slows_their_clock_until_a_request_stops_it() -> void:
@@ -352,6 +418,26 @@ func test_a_shock_wakes_a_sleeper_and_waking_costs_more() -> void:
 	)
 
 
+func test_a_tip_is_paid_only_by_a_happy_passenger() -> void:
+	var kind := _type()
+	kind.fare_multiplier = 2.0
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.happiness = 80.0
+	assert_int(passenger.get_payout(1.5)).is_equal(180)
+	passenger.happiness = 60.0
+	assert_int(passenger.get_payout(1.5)).is_equal(100)
+
+
+func test_delayed_requests_come_that_many_times_later() -> void:
+	var snack := _need(10.0)
+	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
+	passenger.delay_requests(1.5)
+	passenger.tick(14.0, false)
+	assert_object(passenger.request).is_null()
+	passenger.tick(2.0, false)
+	assert_object(passenger.request).is_same(snack)
+
+
 func test_asks_for_a_need_when_its_timer_runs_out() -> void:
 	var snack := _need(10.0)
 	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
@@ -406,6 +492,7 @@ func test_the_trend_is_where_happiness_gets_to_in_the_next_seconds() -> void:
 	var asking := Passenger.new(_type([snack]), _planet, TRIP, FARE)
 	asking.depart()
 	asking.tick(1.0, false)
+	asking.tick(Passenger.REQUEST_LEEWAY, false)
 	asking.tick(0.01, false)
 	assert_object(asking.request).is_same(snack)
 	assert_float(asking.trend).is_less(0.0)

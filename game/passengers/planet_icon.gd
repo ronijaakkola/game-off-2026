@@ -38,3 +38,12 @@ func _show() -> void:
 	_material.set_shader_parameter(&"has_rings", planet.has_rings())
 	_material.set_shader_parameter(&"ring_color", planet.icon_ring_color)
 	_material.set_shader_parameter(&"ring_tilt", deg_to_rad(planet.tilt))
+
+
+## Cuts a circle of [param radius] pixels at [param center], in the icon's own pixels, out
+## of the icon, as where something sits on top of it and the background should show
+## between. A radius of 0 cuts nothing.
+func cut(center: Vector2, radius: float) -> void:
+	var width := size.x if size.x > 0.0 else 1.0
+	_material.set_shader_parameter(&"cut_center", center / width)
+	_material.set_shader_parameter(&"cut_radius", radius / width)

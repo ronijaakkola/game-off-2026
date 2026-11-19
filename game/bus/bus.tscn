@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" uid="uid://binbtwxaodhoe" path="res://game/bus/models/bus.glb" id="6_glb"]
 [ext_resource type="Script" uid="uid://cq4kscykvshix" path="res://game/bus/thruster_trail.gd" id="7_trail"]
 [ext_resource type="Script" uid="uid://bl44x5cob22py" path="res://game/bus/fuel_tank.gd" id="8_fuel"]
+[ext_resource type="Script" uid="uid://dnnnb7j2pc502" path="res://game/bus/bus_temperature.gd" id="9_temperature"]
+[ext_resource type="Script" uid="uid://bku3behogiyk5" path="res://game/bus/heat_smoke.gd" id="10_smoke"]
 
 [node name="Bus" type="Node3D" unique_id=845724280]
 script = ExtResource("1_bus")
@@ -35,3 +37,13 @@ script = ExtResource("7_trail")
 [node name="FuelTank" type="Node" parent="." unique_id=53952394]
 unique_name_in_owner = true
 script = ExtResource("8_fuel")
+
+[node name="Temperature" type="Node" parent="." unique_id=671619690]
+unique_name_in_owner = true
+script = ExtResource("9_temperature")
+
+[node name="HeatSmoke" type="CPUParticles3D" parent="." unique_id=1473411700 node_paths=PackedStringArray("temperature", "model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, -0.15)
+script = ExtResource("10_smoke")
+temperature = NodePath("../Temperature")
+model = NodePath("../Model")

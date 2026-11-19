@@ -1,11 +1,19 @@
 extends Node
-## A full cabin for capturing the passenger cards: eight passengers, Commuters but for two
+## A full cabin for capturing the passenger cards: eight passengers going to five planets,
+## so three planets group two each and two planets one, Commuters but for two
 ## Business passengers, so their badge shows, one in each mood and some in between, three
 ## of them asking for something, their happiness heading every which way. The cabin stands
 ## still, so every frame shows the same state. `-- Kick` puts the pointer over the second
 ## card, so its options slide out.
 ## `-- Scare` gives everyone a kick's scare a few frames in, so the bars drop and leave
 ## their red trail.
+## `-- Reroute` sends the first passenger to Frost instead of Ember a few frames in, as an
+## express quest does, so their card moves to Frost's group.
+## `-- Frustrated` takes [constant FRUSTRATION] off what each seat can reach, so the bars'
+## striped ends show, and gives the idle ones a line about why. With `Tooltip` as well,
+## the first striped end's tooltip opens, as the pointer on it does.
+## `-- RerouteAlone` sends the only passenger going to Giant to Dust, where nobody goes yet,
+## so Giant's group folds as Dust's opens.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
@@ -27,6 +35,8 @@ const HAPPINESS: Array[float] = [0.9, 0.5, 0.2, 0.0, 0.75, 0.62, 0.35, 0.1]
 # Where each seat's happiness is heading (Passenger.trend), so the bars show every count of
 # chevrons both ways, inside the fill and, on the short ones, past its end.
 const TRENDS: Array[float] = [5.0, -30.0, 10.0, 10.0, -30.0, 0.0, -3.0, -12.0]
+# What frustration takes off each seat's reach with `-- Frustrated`, one per seat.
+const FRUSTRATION: Array[float] = [10.0, 15.0, 30.0, 45.0, 0.0, 30.0, 15.0, 60.0]
 # The seats whose passenger has a request open.
 const ASKING: Array[int] = [1, 4, 6]
 
@@ -37,16 +47,20 @@ func _ready() -> void:
 	cabin.set_process(false)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
+	var planets: Array[Planet] = []
+	for i: int in DESTINATIONS.size():
+		var planet := Planet.new()
+		planet.display_name = DESTINATIONS[i]
+		planet.icon_color = ICON_COLORS[i]
+		if i == RINGED:
+			planet.ring_material = ShaderMaterial.new()
+			planet.icon_ring_color = Color(0.72, 0.72, 1.0)
+			planet.tilt = 18.0
+		add_child(planet)
+		planets.append(planet)
 	for seat: int in HAPPINESS.size():
-		var destination := Planet.new()
-		var planet := seat % DESTINATIONS.size()
-		destination.display_name = DESTINATIONS[planet]
-		destination.icon_color = ICON_COLORS[planet]
-		if planet == RINGED:
-			destination.ring_material = ShaderMaterial.new()
-			destination.icon_ring_color = Color(0.72, 0.72, 1.0)
-			destination.tilt = 18.0
-		add_child(destination)
+		# Seats wrap round the planets, so the first three go to the same as another seat.
+		var destination := planets[seat % planets.size()]
 		var type := BUSINESS if seat in BUSINESS_SEATS else COMMUTER
 		var passenger := Passenger.new(type, destination, 60.0, 40.0, rng)
 		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]
@@ -54,6 +68,10 @@ func _ready() -> void:
 		if seat in ASKING:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line
+		if "Frustrated" in OS.get_cmdline_user_args():
+			passenger.frustration = FRUSTRATION[seat]
+			if not passenger.request and not type.stop_lines.is_empty():
+				passenger.activity = type.stop_lines[seat % type.stop_lines.size()]
 		cabin.board(passenger)
 	# PROTOTYPE: `-- Serve:TIMING` shows that serve minigame on the asking cards.
 	for arg: String in OS.get_cmdline_user_args():
@@ -66,6 +84,21 @@ func _ready() -> void:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		cabin.shock(Cabin.KICK_SHOCK)
+	if "Reroute" in OS.get_cmdline_user_args():
+		await get_tree().process_frame
+		await get_tree().process_frame
+		cabin.get_passengers()[0].reroute(planets[DESTINATIONS.find("Frost")], 60.0, 40.0)
+	if "RerouteAlone" in OS.get_cmdline_user_args():
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var dust := Planet.new()
+		dust.display_name = "Dust"
+		add_child(dust)
+		cabin.get_passengers()[3].reroute(dust, 60.0, 40.0)
+	if "Tooltip" in OS.get_cmdline_user_args():
+		# The striped ends take a moment to slide in.
+		await get_tree().create_timer(0.6).timeout
+		(panel.find_children("*", "Tooltip", true, false)[0] as Tooltip).open()
 	if "Kick" in OS.get_cmdline_user_args():
 		# The cards lay out a frame in.
 		await get_tree().process_frame

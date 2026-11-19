@@ -2,13 +2,14 @@ class_name BusKey
 extends Button
 ## A physical key in the bus bar: a cap that sits proud in a dark well and sinks while it is
 ## pressed. Disabled, the cap is dim. It draws itself; the button's own text and styles stay
-## empty. The small keys are blank caps for now; [FrameshiftKey] adds a label and a glow.
+## empty. The small keys are blank caps for now; [FrameshiftKey] adds a label and an outline.
 ## Pressing it down clicks.
 
 # The well around the cap, and how far the cap sits above its sunk place.
 const WELL_PAD := 3.0
 const RAISE := 3.0
 const CAP_HEIGHT := 35.0
+const CAP_RADIUS := 8
 const WELL_COLOR := Color(0.043, 0.035, 0.125)
 const SIDE_COLOR := Color(0.133, 0.118, 0.239)
 const FACE_COLOR := Color(0.227, 0.208, 0.361)
@@ -24,11 +25,15 @@ var _well := StyleBoxFlat.new()
 
 
 func _ready() -> void:
+	# Never takes keyboard focus, so a click doesn't leave Space or Enter pressing it.
+	focus_mode = FOCUS_NONE
+	# The cap sinks, so the button itself doesn't dip.
+	add_to_group(ButtonFeel.OWN_PRESS)
 	_well.bg_color = WELL_COLOR
 	_well.set_corner_radius_all(12)
-	_side.set_corner_radius_all(8)
-	_face.set_corner_radius_all(8)
-	_edge.set_corner_radius_all(8)
+	_side.set_corner_radius_all(CAP_RADIUS)
+	_face.set_corner_radius_all(CAP_RADIUS)
+	_edge.set_corner_radius_all(CAP_RADIUS)
 	mouse_entered.connect(queue_redraw)
 	mouse_exited.connect(queue_redraw)
 	button_down.connect(queue_redraw)

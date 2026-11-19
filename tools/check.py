@@ -229,6 +229,7 @@ AUTOLOADS = "CODING_STANDARDS.md, Autoloads (core systems)"
 TESTS = "CODING_STANDARDS.md, Tests"
 USER_FILES = "CODING_STANDARDS.md, Saved files"
 ASSETS = "CODING_STANDARDS.md, Assets"
+LAYOUT = "CODING_STANDARDS.md, Layout"
 NAMING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
 SCRIPT_SIZE = "CODING_STANDARDS.md, Script size"
@@ -294,6 +295,13 @@ EXT_RESOURCE_UID = re.compile(
     r'^\[ext_resource (?=[^\n]*?\buid="([^"]+)")(?=[^\n]*?\bpath="res://([^"]+)")'
 )
 SCENE_HEADER_UID = re.compile(r'\[gd_(?:scene|resource)\b[^\n]*?\buid="([^"]+)"')
+# Media a feature owns: a second feature using one moves it to shared/ (feature-asset,
+# duplicate-asset). Scripts, scenes and resources are how features compose, so they may be
+# named from anywhere.
+MEDIA = (
+    ".svg", ".png", ".jpg", ".webp", ".ogg", ".wav", ".mp3", ".ttf", ".otf", ".woff2",
+    ".glb", ".gltf", ".gdshader", ".gdshaderinc",
+)
 WOULD_REFORMAT = re.compile(r"^would reformat (.+)$", re.MULTILINE)
 
 
@@ -436,10 +444,17 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
             rules += glossary_problems(path)
         if path.endswith((".tscn", ".tres")):
             rules += wrong_uid_problems(path)
+        if path.endswith((".gd", ".tscn", ".tres")):
+            rules += feature_asset_problems(path)
+        if path.endswith(MEDIA):
+            rules += duplicate_asset_problems(path)
         # The hook leaves this out: a scene is missing its ids for as long as it is being
         # written, and check.py ids fills them in once. The commit hook and CI catch it.
         if path.endswith((".tscn", ".tres")) and not hook:
             rules += missing_id_problems(path)
+        # The hook leaves this out too: a scene may name a sub-scene before it is written.
+        if path.endswith((".tscn", ".tres")) and not hook:
+            rules += missing_ext_resource_problems(path)
         if path.endswith(".uid") and not Path(path[: -len(".uid")]).is_file():
             message = (
                 f"there is no {path[: -len('.uid')]} beside it: Godot left it for a file "
@@ -454,6 +469,106 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
         problems += formatting_problems(formatter, gdlint_failed=linter.returncode != 0)
     warnings = [] if hook else asset_size_warnings(paths) + script_size_warnings(scripts)
     return problems + rules, warnings
+
+
+def feature_of(path: str) -> str | None:
+    """The game/<feature>/ folder a project path is in, or None outside game/."""
+    parts = path.split("/")
+    return "/".join(parts[:2]) + "/" if parts[0] == "game" and len(parts) > 2 else None
+
+
+def shared_path(path: str) -> str:
+    """Where a file used by a second feature moves: its path inside its feature, or inside
+    its top folder (ui/foo.svg, a root icon.svg), under shared/."""
+    if path.startswith("shared/"):
+        return path
+    feature = feature_of(path)
+    return "shared/" + (path.removeprefix(feature) if feature else path.split("/", 1)[-1])
+
+
+def referenced_paths(path: str) -> list[tuple[int, str]]:
+    """Each project path a script, scene or resource names, and its line: a script's
+    res:// and uid:// strings, a scene's or resource's ext_resource paths."""
+    text = Path(path).read_text(encoding="utf-8", errors="replace")
+    if path.endswith(".gd"):
+        found = split_gdscript(text)[1]
+    else:
+        found = [
+            (number, m.group(1))
+            for number, line in enumerate(text.splitlines(), 1)
+            if line.startswith("[ext_resource ") and (m := re.search(r'\bpath="([^"]+)"', line))
+        ]
+    paths = []
+    for line, target in found:
+        if target.startswith("uid://"):
+            target = uid_paths().get(target, "")
+        if target.startswith("res://"):
+            paths.append((line, target.removeprefix("res://").split("::")[0]))
+    return paths
+
+
+def feature_asset_problems(path: str) -> list[str]:
+    """A file lives in the folder of the only feature that uses it, so an icon, sound,
+    model or shader under another game/<feature>/ is that feature's: it renames, recolours
+    or deletes it for its own use and breaks this one without either seeing why. Tests and
+    tools may name anything."""
+    if path.split("/")[0] in ("test", "tools"):
+        return []
+    own = feature_of(path)
+    problems = []
+    for line, target in referenced_paths(path):
+        owner = feature_of(target)
+        if not target.endswith(MEDIA) or owner is None or owner == own:
+            continue
+        # A missing file is path-exists's: moving it to shared/ is the wrong fix.
+        if not Path(target).exists():
+            continue
+        shared = shared_path(target)
+        message = (
+            f"res://{target} belongs to {owner}, and a file used by a second feature lives "
+            f"in shared/. git mv it, with its .import or .uid, to {shared}, move its "
+            "credit line along, and point every reference there."
+        )
+        problems.append(problem(path, line, "feature-asset", message, LAYOUT))
+    return problems
+
+
+def duplicate_asset_problems(path: str) -> list[str]:
+    """A copy of another feature's file, made to dodge feature-asset, is two files to keep
+    in step. It is checked as an asset is linted (the commit hook and CI), not by the edit
+    hook."""
+    data = Path(path).read_bytes()
+    problems = []
+    for other in media_by_size().get(len(data), []):
+        if other == path or feature_of(other) == feature_of(path) or not feature_of(path):
+            continue
+        if Path(other).read_bytes() != data:
+            continue
+        target = shared_path(other)
+        message = (
+            f"{other} is the same file. A file used by a second feature lives once, in "
+            f"shared/: keep one at {target}, delete the other with its .import, and point "
+            "both features there."
+        )
+        problems.append(problem(path, None, "duplicate-asset", message, LAYOUT))
+    return problems
+
+
+@cache
+def media_by_size() -> dict[int, list[str]]:
+    """Every media file of ours outside addons/, by its size in bytes."""
+    found: dict[int, list[str]] = {}
+    for path in project_files():
+        path = path.removeprefix("./")
+        if path.endswith(MEDIA) and ours(path):
+            found.setdefault(Path(path).stat().st_size, []).append(path)
+    return found
+
+
+@cache
+def uid_paths() -> dict[str, str]:
+    """Each uid:// the project has, mapped to its res:// path."""
+    return {uid: f"res://{path}" for path, uid in project_uids().items()}
 
 
 def script_size_warnings(scripts: list[str]) -> list[str]:
@@ -807,6 +922,36 @@ def missing_path_problems(path: str, strings: list[tuple[int, str]]) -> list[str
     return problems
 
 
+def missing_ext_resource_problems(path: str) -> list[str]:
+    """Godot looks an ext_resource's uid up first, so once its file moves a path left
+    behind still loads it, with only a warning: load, smoke and tests pass. Without a
+    uid that resolves, the scene or resource fails to load. Either way the path is fixed
+    here, before a later move or a uid-less copy of the line breaks it for real."""
+    lines = Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
+    problems = []
+    for number, line in enumerate(lines, 1):
+        if not line.startswith("[ext_resource "):
+            continue
+        m = re.search(r'\bpath="res://([^"]+)"', line)
+        if not m or Path(m.group(1)).exists():
+            continue
+        target = m.group(1)
+        uid = re.search(r'\buid="([^"]+)"', line)
+        moved = uid_paths().get(uid.group(1)) if uid else None
+        if moved:
+            message = (
+                f"no file is at res://{target}. Its uid {uid.group(1)} is {moved}'s, so "
+                f'Godot loads that with a warning. Set path="{moved}" and keep the uid.'
+            )
+        else:
+            message = (
+                f"no file is at res://{target}, and no uid on the line finds it elsewhere, "
+                "so this file fails to load. Fix the path, or write the file first."
+            )
+        problems.append(problem(path, number, "path-exists", message, SCENE_COMPOSITION))
+    return problems
+
+
 def saved_enum_problems(path: str, code: str) -> list[str]:
     """A .tres or .tscn saves an exported enum as its member's number, and Godot counts
     unnumbered members from 0 in order. A member added or moved above another renumbers
@@ -1143,7 +1288,7 @@ def wrong_uid_problems(path: str) -> list[str]:
     for number, line in enumerate(lines, 1):
         m = EXT_RESOURCE_UID.match(line)
         if not m or not Path(m.group(2)).is_file():
-            continue  # A missing target fails the load check, naming it.
+            continue  # A missing target is path-exists's.
         uid, target = m.groups()
         if uids.get(target) == uid:
             continue

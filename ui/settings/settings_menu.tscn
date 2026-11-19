@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://dmlvqmysra4tp" path="res://ui/settings/settings_menu.gd" id="1_settings"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="Script" uid="uid://dcy77e65i1dbl" path="res://ui/hold_button.gd" id="4_hold"]
+[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 
 [node name="SettingsMenu" type="PanelContainer" unique_id=432771015]
 anchor_right = 1.0
@@ -34,14 +36,16 @@ text = "Settings"
 [node name="Volumes" type="GridContainer" parent="Center/Panel/Items" unique_id=1472541372]
 layout_mode = 2
 theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 16
+theme_override_constants/v_separation = 0
 columns = 2
 
 [node name="MasterLabel" type="Label" parent="Center/Panel/Items/Volumes" unique_id=461604631]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"SettingLabel"
 text = "Master"
+vertical_alignment = 1
 
 [node name="MasterVolume" type="HSlider" parent="Center/Panel/Items/Volumes" unique_id=641526796]
 unique_name_in_owner = true
@@ -52,10 +56,12 @@ max_value = 1.0
 step = 0.01
 
 [node name="MusicLabel" type="Label" parent="Center/Panel/Items/Volumes" unique_id=1537516988]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"SettingLabel"
 text = "Music"
+vertical_alignment = 1
 
 [node name="MusicVolume" type="HSlider" parent="Center/Panel/Items/Volumes" unique_id=974600151]
 unique_name_in_owner = true
@@ -66,10 +72,12 @@ max_value = 1.0
 step = 0.01
 
 [node name="SfxLabel" type="Label" parent="Center/Panel/Items/Volumes" unique_id=1262025992]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"SettingLabel"
 text = "Sound effects"
+vertical_alignment = 1
 
 [node name="SfxVolume" type="HSlider" parent="Center/Panel/Items/Volumes" unique_id=1456820036]
 unique_name_in_owner = true
@@ -79,26 +87,57 @@ size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
 
-[node name="Divider" type="ColorRect" parent="Center/Panel/Items" unique_id=182092921]
+[node name="Divider" type="Control" parent="Center/Panel/Items" unique_id=182092921]
 custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 mouse_filter = 2
-color = Color(1, 1, 1, 0.1216)
+script = ExtResource("90_hairline")
+horizontal = true
 
-[node name="ReduceMotion" type="CheckButton" parent="Center/Panel/Items" unique_id=20705547]
+[node name="Toggles" type="VBoxContainer" parent="Center/Panel/Items" unique_id=1280329430]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="ReduceMotion" type="CheckButton" parent="Center/Panel/Items/Toggles" unique_id=99440932]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 text = "Reduce motion"
 
-[node name="EdgePan" type="CheckButton" parent="Center/Panel/Items" unique_id=2103737014]
+[node name="EdgePan" type="CheckButton" parent="Center/Panel/Items/Toggles" unique_id=907609201]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 text = "Edge pan"
+
+[node name="ShowFps" type="CheckButton" parent="Center/Panel/Items/Toggles" unique_id=2147462642]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "Show FPS"
+
+[node name="SaveDivider" type="Control" parent="Center/Panel/Items" unique_id=1072961561]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("90_hairline")
+horizontal = true
+
+[node name="DeleteSaveButton" type="Button" parent="Center/Panel/Items" unique_id=1014371880]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Hold to delete save data"
+script = ExtResource("4_hold")
 
 [node name="BackButton" type="Button" parent="Center/Panel/Items" unique_id=707033197]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"PrimaryButton"
 text = "Back"
 
 [connection signal="drag_ended" from="Center/Panel/Items/Volumes/SfxVolume" to="." method="_on_sfx_volume_drag_ended"]
+[connection signal="confirmed" from="Center/Panel/Items/DeleteSaveButton" to="." method="_on_delete_save_button_confirmed"]
 [connection signal="pressed" from="Center/Panel/Items/BackButton" to="." method="_on_back_button_pressed"]

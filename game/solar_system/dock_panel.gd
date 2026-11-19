@@ -11,16 +11,27 @@ extends Control
 ## The board buttons are off while every seat is taken. It only asks: the parent picks the
 ## passenger up, pumps the fuel while [method is_fuel_held], and turns the fuel button on or
 ## off with [method show_fuel]. It slides in from the right when [member planet] is set and
-## back out when it is cleared. A row whose passenger boards slides out to the right,
-## clipped by the card, then closes up. The card fits what it holds every frame, so it
+## back out when it is cleared. A passenger who turns up while it shows opens a row, which
+## shifts in from the right and fades in; a row whose passenger boards fades out, shifting
+## right, then closes up. The card fits what it holds every frame, so it
 ## shrinks as smoothly as the row closes. The root is a slot of no height that marks the
 ## panel's place in the corner, and the card hangs down from it. So the card's top edge
 ## stays put however its height changes, with no container to re-sort a frame later and
-## round the height to whole pixels. "Nobody waiting." sits under the rows, so a row sliding
+## round the height to whole pixels. "Nobody waiting." sits under the rows, so a row going
 ## out uncovers it and the card only shrinks. The pointer over a row shows that passenger's
 ## trip, and a click on a row pins it, so it stays shown once the pointer leaves, until the
 ## row is clicked again, the passenger boards or the bus leaves. The row whose trip shows is
-## highlighted.
+## highlighted. While [member beckon_boarding], the card's border glows and every row
+## calls for its button to be pressed ([member BoardingRow.beckoning]), in one pulse: they
+## brighten quickly and fade slowly, again and again, and hold bright under Reduce motion.
+## Board all steps back to a plain button meanwhile, so there is one thing to press.
+## While the player can pay for an upgrade they couldn't when they last closed the research
+## screen ([method ResearchLab.has_unseen_upgrade]), the Research button has a thin outline
+## in the Frameshift key's yellow on its edge, fainter than the key's and pulsing in step
+## with it, and holding still under Reduce motion.
+## While [member research_hidden], as through the tutorial, there is no Research button,
+## and while [member fuel_hidden] no fuel button, while [member fuel_locked] one that is
+## off, and while [member board_all_hidden] no Board all.
 
 ## The player pressed the button to pick up [param passenger]. Board all presses it for
 ## each one waiting, longest waiting first; the parent stops once the seats are full.
@@ -30,12 +41,26 @@ signal board_pressed(passenger: Passenger)
 signal trip_previewed(passenger: Passenger)
 ## The player pressed the Research button, to research at [param at]'s lab.
 signal research_pressed(at: Planet)
+## The player pressed the Jump button, to jump to the next star system.
+signal jump_pressed
 
 const ROW := preload("res://game/solar_system/boarding_row.tscn")
 ## Seconds to slide in from past the right edge, or back out.
 const SLIDE_SECONDS := 0.35
 # How far past the slot's right edge the card goes, so it is out of sight.
 const OFF_RIGHT := 32.0
+## The seconds a beckoning pulse takes to brighten, and to fade before the next.
+const BECKON_RISE_SECONDS := 0.3
+const BECKON_FADE_SECONDS := 1.0
+## The card's border while beckoning: its width in pixels, its colour at the height of a
+## pulse, and its opacity between pulses, as a share of that.
+const BECKON_BORDER := 2
+const BECKON_COLOR := Color(1.0, 1.0, 1.0, 0.9)
+const BECKON_BORDER_LOW := 0.25
+# The Research button's outline is a nudge, fainter than the Frameshift key's: its opacity
+# swings between these.
+const NUDGE_DIM := 0.15
+const NUDGE_BRIGHT := 0.6
 
 ## Who waits at each planet.
 @export var waiting: WaitingPassengers:
@@ -49,6 +74,10 @@ const OFF_RIGHT := 32.0
 			_sync_rows()
 ## The seats the buttons check.
 @export var cabin: Cabin
+## Says whether there is a new upgrade to pay for, which lights the Research button.
+@export var research_lab: ResearchLab
+## Where a Board button pressed on a full bus says so.
+@export var notices: NoticeStack
 
 ## Where the rows' portraits are rendered.
 var portrait_studio: PortraitStudio
@@ -62,6 +91,44 @@ var planet: Planet:
 		if is_node_ready():
 			_show_planet()
 
+## The star system the Jump button jumps to, by name, or empty to hide the button.
+var jump_target := ""
+## Whether the Jump button is on: the parent turns it off while anyone is on board.
+var can_jump := false
+## Whether the card and its rows call for a pick-up, as in the tutorial's first step.
+var beckon_boarding := false:
+	set(value):
+		if value == beckon_boarding:
+			return
+		beckon_boarding = value
+		for row: BoardingRow in _rows.values():
+			row.beckoning = value
+		var board_all := %BoardAllButton as Button
+		board_all.theme_type_variation = &"SmallButton" if value else &"SmallPrimaryButton"
+		_start_beckon()
+
+## Whether the Research button is hidden even at a planet with a lab.
+var research_hidden := false:
+	set(value):
+		research_hidden = value
+		if is_node_ready():
+			_show_services()
+## Whether the fuel button is hidden even at a planet that sells fuel.
+var fuel_hidden := false:
+	set(value):
+		fuel_hidden = value
+		if is_node_ready():
+			_show_services()
+
+## Whether the fuel button shows but is off, reading what filling up would cost.
+var fuel_locked := false
+## Whether Board all is hidden.
+var board_all_hidden := false:
+	set(value):
+		board_all_hidden = value
+		if is_node_ready():
+			(%BoardAllButton as Control).visible = not value
+
 # The planet whose line the panel lists. It stays while the panel slides out.
 var _shown: Planet
 var _rows: Dictionary[Passenger, BoardingRow] = {}
@@ -72,6 +139,10 @@ var _slide: Tween
 var _pinned: Passenger
 # The passenger whose trip shows, as last sent in trip_previewed.
 var _previewed: Passenger
+var _beckon: Tween
+# Whether "Nobody waiting." shows, or is on its way in, and its fade.
+var _empty := true
+var _empty_fade: Tween
 
 
 func _ready() -> void:
@@ -97,6 +168,18 @@ func pin(passenger: Passenger) -> void:
 	_preview()
 
 
+## Whether the card is all the way in, not sliding.
+func is_in() -> bool:
+	return visible and is_zero_approx(_offset)
+
+
+## The passengers in the shown line with a row.
+func get_row_passengers() -> Array[Passenger]:
+	var passengers: Array[Passenger] = []
+	passengers.assign(_rows.keys())
+	return passengers
+
+
 ## Whether the fuel button is held down.
 func is_fuel_held() -> bool:
 	return (%FuelButton as FuelButton).is_held()
@@ -106,6 +189,9 @@ func is_fuel_held() -> bool:
 ## [param cost], the credits to fill it, and turns it on or off. Off, it lets go and reads
 ## [param reason] instead.
 func show_fuel(fraction: float, cost: int, can_fuel: bool, reason: String) -> void:
+	if fuel_locked and can_fuel:
+		(%FuelButton as FuelButton).show_fuel(fraction, cost, false, FuelButton.IDLE_TEXT % cost)
+		return
 	(%FuelButton as FuelButton).show_fuel(fraction, cost, can_fuel, reason)
 
 
@@ -153,15 +239,28 @@ func _rebuild() -> void:
 	if _shown:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
-		(%FuelRow as Control).visible = _shown.sells_fuel
-		(%ResearchButton as Control).visible = _shown.has_lab
-		var services := _shown.sells_fuel or _shown.has_lab
-		(%FuelRule as Control).visible = services
-	_sync_rows()
+		_show_services()
+	_sync_rows(false)
 
 
-# Adds a row for each passenger new in line, and slides out those no longer in it.
-func _sync_rows() -> void:
+# The shown planet's services, and the line under them when there are any.
+func _show_services() -> void:
+	if not _shown:
+		return
+	var fuel := _shown.sells_fuel and not fuel_hidden
+	(%FuelRow as Control).visible = fuel
+	(%ResearchRow as Control).visible = _shows_lab()
+	(%FuelRule as Control).visible = fuel or _shows_lab()
+
+
+# Whether the shown planet's lab has its Research button.
+func _shows_lab() -> bool:
+	return _shown != null and _shown.has_lab and not research_hidden
+
+
+# Adds a row for each passenger new in line, which comes in when [param animated], and
+# takes out those no longer in it.
+func _sync_rows(animated := true) -> void:
 	var line: Array[Passenger] = []
 	if waiting and _shown:
 		line = waiting.get_waiting(_shown)
@@ -178,11 +277,74 @@ func _sync_rows() -> void:
 		var row := ROW.instantiate() as BoardingRow
 		row.portrait_studio = portrait_studio
 		row.passenger = passenger
+		row.beckoning = beckon_boarding
 		row.board_pressed.connect(board_pressed.emit)
+		row.full_pressed.connect(_on_row_full_pressed)
 		row.clicked.connect(_on_row_clicked)
 		(%Rows as Control).add_child(row)
 		_rows[passenger] = row
-	(%EmptyLabel as Control).visible = line.is_empty()
+		if animated and visible:
+			row.enter()
+	_show_empty(line.is_empty(), animated and visible)
+
+
+# Shows "Nobody waiting." while [param empty]. When [param animated], it fades in once the
+# last row has faded out, and fades out under the first row to come, staying in the layout
+# until that row's place has opened past it, so the card never snaps shorter.
+func _show_empty(empty: bool, animated: bool) -> void:
+	var label := %EmptyLabel as Control
+	if animated and empty == _empty:
+		return
+	_empty = empty
+	if _empty_fade:
+		_empty_fade.kill()
+	if not animated or Settings.reduce_motion:
+		label.visible = empty
+		label.modulate.a = 1.0
+		return
+	_empty_fade = create_tween()
+	if empty:
+		if not label.visible:
+			label.modulate.a = 0.0
+			label.visible = true
+		_empty_fade.tween_interval(BoardingRow.EXIT_SECONDS)
+		_empty_fade.tween_property(label, ^"modulate:a", 1.0, BoardingRow.EXIT_SECONDS)
+	else:
+		_empty_fade.tween_property(label, ^"modulate:a", 0.0, BoardingRow.EXIT_SECONDS)
+		_empty_fade.tween_interval(BoardingRow.GAP_SECONDS - BoardingRow.EXIT_SECONDS)
+		_empty_fade.tween_callback(label.hide)
+
+
+# Pulses the card's border and the rows while beckoning, or puts the card back.
+func _start_beckon() -> void:
+	if _beckon:
+		_beckon.kill()
+		_beckon = null
+	_set_beckon_glow(1.0)
+	if not beckon_boarding:
+		(%Card as Control).remove_theme_stylebox_override(&"panel")
+		return
+	if Settings.reduce_motion:
+		return
+	_beckon = create_tween().set_loops().set_trans(Tween.TRANS_SINE)
+	_beckon.tween_method(_set_beckon_glow, 0.0, 1.0, BECKON_RISE_SECONDS)
+	_beckon.tween_method(_set_beckon_glow, 1.0, 0.0, BECKON_FADE_SECONDS)
+
+
+func _set_beckon_glow(glow: float) -> void:
+	for row: BoardingRow in _rows.values():
+		row.beckon_glow = glow
+	if not beckon_boarding:
+		return
+	var card := %Card as Control
+	card.remove_theme_stylebox_override(&"panel")
+	var style := card.get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
+	if not style:
+		return
+	style.set_border_width_all(BECKON_BORDER)
+	style.border_color = BECKON_COLOR
+	style.border_color.a *= lerpf(BECKON_BORDER_LOW, 1.0, glow)
+	card.add_theme_stylebox_override(&"panel", style)
 
 
 # Shows the trip of the passenger whose row the pointer is over, else the pinned one's, and
@@ -210,6 +372,42 @@ func _show_buttons() -> void:
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()
+	_show_jump()
+	_nudge_research(_shows_lab() and research_lab != null and research_lab.has_unseen_upgrade())
+
+
+## The fuel button, for a guide card to point at.
+func get_fuel_button() -> Control:
+	return %FuelButton
+
+
+## The Research button, for a guide card to point at.
+func get_research_button() -> Control:
+	return %ResearchButton
+
+
+## The row of [param passenger] in the shown line, or null.
+func get_row(passenger: Passenger) -> Control:
+	return _rows.get(passenger)
+
+
+## Whether the Research button's outline shows, as it does while there is an upgrade to pay
+## for that the player hasn't seen on the research screen.
+func is_research_nudging() -> bool:
+	return (%ResearchNudge as CanvasItem).visible
+
+
+# Shows the pulsing outline on the Research button, or hides it.
+func _nudge_research(nudging: bool) -> void:
+	var outline := %ResearchNudge as CanvasItem
+	outline.visible = nudging
+	if not nudging:
+		return
+	var pulse := 1.0
+	if not Settings.reduce_motion:
+		var seconds := Time.get_ticks_msec() / 1000.0
+		pulse = 0.5 - 0.5 * cos(seconds * TAU / FrameshiftKey.PULSE_SECONDS)
+	outline.self_modulate.a = lerpf(NUDGE_DIM, NUDGE_BRIGHT, pulse)
 
 
 # Sizes the slot to the card's width, and hangs the card down from the slot, as tall as
@@ -254,6 +452,26 @@ func _on_row_clicked(passenger: Passenger) -> void:
 	pin(null if passenger == _pinned else passenger)
 
 
+# The Jump button, while a promotion has opened a system to jump to. It says why it is off
+# while anyone is on board.
+func _show_jump() -> void:
+	var row := %JumpRow as Control
+	row.visible = not jump_target.is_empty()
+	(%FuelRule as Control).visible = (
+		row.visible or (_shown != null and (_shown.sells_fuel or _shown.has_lab))
+	)
+	if not row.visible:
+		return
+	var button := %JumpButton as Button
+	var on_board := cabin != null and not cabin.get_passengers().is_empty()
+	button.text = "Drop everyone off to jump" if on_board else "Jump to %s" % jump_target
+	button.disabled = not can_jump
+
+
+func _on_jump_button_pressed() -> void:
+	jump_pressed.emit()
+
+
 func _on_research_button_pressed() -> void:
 	if _shown:
 		research_pressed.emit(_shown)
@@ -262,3 +480,8 @@ func _on_research_button_pressed() -> void:
 func _on_board_all_button_pressed() -> void:
 	for passenger: Passenger in _rows.keys():
 		board_pressed.emit(passenger)
+
+
+func _on_row_full_pressed() -> void:
+	if notices:
+		notices.tell_bus_full()

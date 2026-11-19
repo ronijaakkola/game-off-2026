@@ -30,8 +30,9 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	var ledger := (runner.scene() as SolarSystem).get_ledger()
 	assert_int(ledger.credits).is_equal(payout)
 	var counter := runner.find_child("CreditsCounter") as CreditsCounter
-	var gain := counter.find_child("GainLabel", true, false) as Label
-	assert_str(gain.text).is_equal("+%d" % payout)
+	var gain := counter.find_child("GainChip", true, false) as ChangeChip
+	var sum := (gain.find_child("Label", true, false) as Label).text
+	assert_str(sum).is_equal("+%s" % CreditsCounter.group_digits(payout))
 	# Once they are off, the total counts up to include the fare.
 	await await_millis(1600)
 	var total := (runner.find_child("TotalLabel") as Label).text
@@ -134,6 +135,32 @@ func test_boarding_a_pinned_passenger_hides_their_trip() -> void:
 	assert_object(arc.get_destination()).is_null()
 
 
+func test_board_on_a_full_bus_says_so_once() -> void:
+	var runner := scene_runner(SCENE)
+	var row := await _wait_for_a_boarding_row(runner)
+	var cabin := runner.find_child("Cabin") as Cabin
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	var planet := (runner.find_child("Bus") as FrameshiftBus).get_docked_planet()
+	for _seat: int in cabin.get_free_seats():
+		cabin.board(waiting.create(planet))
+	await runner.simulate_frames(2)
+	var camera := runner.find_child("Camera") as Camera3D
+	var button := row.find_child("BoardButton", true, false) as Button
+	assert_bool(button.disabled).is_true()
+	var notices := runner.find_child("Notices") as NoticeStack
+
+	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
+	await runner.simulate_frames(2)
+	_send_button_click(_to_window(camera, button.get_global_rect().get_center()))
+	await runner.simulate_frames(2)
+
+	var full := notices.get_notices().filter(
+		func(notice: Notice) -> bool: return notice.get_text() == NoticeStack.BUS_FULL
+	)
+	assert_int(full.size()).is_equal(1)
+	assert_array(cabin.get_passengers()).not_contains([row.passenger])
+
+
 func test_waiting_markers_show_only_while_the_bus_has_the_trait() -> void:
 	var runner := scene_runner(SCENE)
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
@@ -219,6 +246,7 @@ func test_board_all_picks_up_everyone_that_fits_and_then_says_the_bus_is_full() 
 	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
 	waiting.set_process(false)
 	waiting.max_per_planet = 4
+	waiting.max_total = 20
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var ember := bus.get_docked_planet()
 	for i: int in 4:
@@ -287,34 +315,32 @@ func test_runs_after_the_camera_host_so_labels_follow_this_frame() -> void:
 	assert_int(system.process_priority).is_greater(host.process_priority)
 
 
-func test_right_click_on_a_planet_sets_course_and_hides_the_hint() -> void:
+func test_right_click_on_a_planet_sets_course_with_no_hint_shown() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
-	var hint := (runner.find_child("Notices") as NoticeStack).get_notices()[0]
-	assert_str(hint.get_text()).is_equal(SolarSystem.COURSE_HINT)
-	assert_bool(hint.is_leaving()).is_false()
+	# No notice tells the player how to set a course.
+	assert_array((runner.find_child("Notices") as NoticeStack).get_notices()).is_empty()
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_array(bus.get_route_planets()).contains_exactly([terra])
-	assert_bool(hint.is_leaving()).is_true()
 
 
-func test_right_click_on_the_last_planet_removes_it() -> void:
+func test_right_click_sets_the_route_and_with_the_queue_key_adds_to_it() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var giant := runner.find_child("Giant") as Planet
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+	_queued_click(_screen_point(runner, giant))
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	assert_array(bus.get_route_planets()).contains_exactly([terra, giant])
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
 
-	assert_array(bus.get_route_planets()).contains_exactly([terra])
+	assert_array(bus.get_route_planets()).contains_exactly([giant])
 
 
 func test_right_click_on_the_docked_planet_with_a_route_makes_a_round_trip() -> void:
@@ -325,7 +351,7 @@ func test_right_click_on_the_docked_planet_with_a_route_makes_a_round_trip() -> 
 	var home := bus.get_docked_planet()
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
 
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, home))
+	_queued_click(_screen_point(runner, home))
 
 	assert_array(bus.get_route_planets()).contains_exactly([terra, home])
 
@@ -337,17 +363,17 @@ func test_right_click_on_the_docked_planet_with_no_route_does_nothing() -> void:
 
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, bus.get_docked_planet()))
 
-	assert_object(bus.get_last_stop()).is_null()
+	assert_object(bus.last_stop).is_null()
 	assert_float(bus.get_charge_progress()).is_equal(0.0)
 
 
-func test_clear_route_clears_every_stop() -> void:
+func test_clear_route_takes_the_last_stop_off() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var giant := runner.find_child("Giant") as Planet
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+	_queued_click(_screen_point(runner, giant))
 
 	var key := InputEventKey.new()
 	key.keycode = KEY_BACKSPACE
@@ -356,71 +382,31 @@ func test_clear_route_clears_every_stop() -> void:
 	Input.flush_buffered_events()
 
 	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_object(bus.get_last_stop()).is_null()
-	assert_float(bus.get_charge_progress()).is_equal(0.0)
+	assert_array(bus.get_route_planets()).contains_exactly([terra])
 
 
-func test_right_click_on_space_sets_the_one_checkpoint_before_the_planet_ahead() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var terra := runner.find_child("Terra") as Planet
-	var giant := runner.find_child("Giant") as Planet
-	var camera := runner.find_child("Camera") as Camera3D
-	var on_screen := _between_screen_point(runner)
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
-
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(0, 80)))
-
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	# The second click's point replaces the first's.
-	var stops := bus.get_route_stops()
-	assert_int(stops.size()).is_equal(3)
-	assert_object(stops[0].planet).is_null()
-	assert_object(stops[1].planet).is_same(terra)
-	assert_object(stops[2].planet).is_same(giant)
-	var second := on_screen + Vector2(0, 80)
-	assert_vector(camera.unproject_position(stops[0].point)).is_equal_approx(second, Vector2.ONE)
-
-
-func test_right_click_on_a_checkpoint_removes_it() -> void:
+func test_right_click_on_space_with_the_queue_key_adds_a_point_after_the_planet() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var terra := runner.find_child("Terra") as Planet
 	var camera := runner.find_child("Camera") as Camera3D
 	var on_screen := _between_screen_point(runner)
 	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
-	var bus := runner.find_child("Bus") as FrameshiftBus
-	assert_int(bus.get_route_stops().size()).is_equal(2)
 
-	# A few pixels off the point still hits its diamond.
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen + Vector2(4, 4)))
+	_queued_click(_to_window(camera, on_screen))
 
-	var stops := bus.get_route_stops()
-	assert_int(stops.size()).is_equal(1)
+	var stops := (runner.find_child("Bus") as FrameshiftBus).get_route_stops()
+	assert_int(stops.size()).is_equal(2)
 	assert_object(stops[0].planet).is_same(terra)
+	assert_object(stops[1].planet).is_null()
+	assert_vector(camera.unproject_position(stops[1].point)).is_equal_approx(on_screen, Vector2.ONE)
 
 
-func test_hovering_a_checkpoint_before_a_planet_picks_it() -> void:
-	var runner := scene_runner(SCENE)
-	await runner.simulate_frames(2)
-	var terra := runner.find_child("Terra") as Planet
-	var camera := runner.find_child("Camera") as Camera3D
-	var on_screen := _between_screen_point(runner)
-	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
-	_send_click(MOUSE_BUTTON_RIGHT, _to_window(camera, on_screen))
-	var bus := runner.find_child("Bus") as FrameshiftBus
-
-	# A few pixels off the point still hits its diamond.
-	_send_motion(_to_window(camera, on_screen + Vector2(4, 4)))
-	await runner.simulate_frames(1)
-	assert_object(bus.hovered_stop).is_same(bus.get_route_stops()[0])
-
-	_send_motion(_to_window(camera, on_screen + Vector2(200, 0)))
-	await runner.simulate_frames(1)
-	assert_object(bus.hovered_stop).is_null()
+# A right click at [param at] with the queue key held.
+func _queued_click(at: Vector2) -> void:
+	Input.action_press(&"queue_stop")
+	_send_click(MOUSE_BUTTON_RIGHT, at)
+	Input.action_release(&"queue_stop")
 
 
 # One passenger waiting at the planet the bus is docked at, and their row in the dock
@@ -496,11 +482,12 @@ func test_requesting_a_tow_costs_its_fee_even_into_debt() -> void:
 
 	bus.ran_out_of_fuel.emit()
 	notices.get_notices()[0].action_pressed.emit()
-	assert_int(ledger.credits).is_equal(50 - SolarSystem.TOW_FEE)
-	var loss := runner.find_child("LossLabel") as Label
-	assert_str(loss.text).is_equal("-%d" % SolarSystem.TOW_FEE)
+	assert_int(ledger.credits).is_equal(50 - TowDispatch.TOW_FEE)
+	var loss := runner.find_child("LossChip") as ChangeChip
+	var bill := (loss.find_child("Label", true, false) as Label).text
+	assert_str(bill).is_equal("-%s" % CreditsCounter.group_digits(TowDispatch.TOW_FEE))
 
-	ledger.credits = SolarSystem.TOW_FEE - 5
+	ledger.credits = TowDispatch.TOW_FEE - 5
 	bus.ran_out_of_fuel.emit()
 	notices.get_notices()[0].action_pressed.emit()
 	assert_int(ledger.credits).is_equal(-5)
@@ -509,7 +496,7 @@ func test_requesting_a_tow_costs_its_fee_even_into_debt() -> void:
 func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
-	var system := runner.scene() as SolarSystem
+	var dispatch := runner.find_child("TowDispatch") as TowDispatch
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var notices := runner.find_child("Notices") as NoticeStack
 	var is_tow := func(notice: Notice) -> bool: return notice.get_text() == "You ran out of fuel"
@@ -523,17 +510,17 @@ func test_running_dry_in_space_offers_a_tow_and_sends_one_ship_once_requested() 
 
 	var before := passenger.happiness
 	bus.get_fuel_tank().drain()
-	assert_float(passenger.happiness).is_equal(before + SolarSystem.OUT_OF_FUEL_SHOCK)
+	assert_float(passenger.happiness).is_equal(before + TowDispatch.OUT_OF_FUEL_SHOCK)
 	await runner.simulate_frames(1)
 
 	var is_ship := func(node: Node) -> bool: return node is TowShip
 	var offer := notices.get_notices().filter(is_tow)[0] as Notice
 	var button := offer.find_child("ActionButton") as Button
-	assert_str(button.text).is_equal("Tow (%d credits)" % SolarSystem.TOW_FEE)
-	assert_int(system.get_children().filter(is_ship).size()).is_equal(0)
+	assert_str(button.text).is_equal("Tow (%d credits)" % TowDispatch.TOW_FEE)
+	assert_int(dispatch.get_children().filter(is_ship).size()).is_equal(0)
 
 	button.pressed.emit()
 	await runner.simulate_frames(1)
 
 	assert_bool(offer.is_leaving()).is_true()
-	assert_int(system.get_children().filter(is_ship).size()).is_equal(1)
+	assert_int(dispatch.get_children().filter(is_ship).size()).is_equal(1)

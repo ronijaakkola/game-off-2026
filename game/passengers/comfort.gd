@@ -4,11 +4,12 @@ extends RefCounted
 ## settle at, whether and how long they sleep, with how fast their ride's clock runs then,
 ## and whether and how long they watch shows, with how fast the clock runs while they do. A
 ## bare bus gives nothing: nobody sleeps or watches. [method from_traits] reads it off the
-## bus's traits, which the upgrades give.
+## bus's traits, which the upgrades give. It also carries what the bus's temperature takes
+## off, [member discomfort], which the [Cabin] sets.
 
 ## The entertainment system: fun, and shows to watch now and then, in seconds, with the
 ## clock speed while watching.
-const ENTERTAINMENT_BONUS := 12.0
+const ENTERTAINMENT_BONUS := 8.0
 const SHOW_MIN := 8.0
 const SHOW_MAX := 12.0
 const WATCH_CLOCK := 0.7
@@ -27,6 +28,9 @@ const POD_CLOCK := 0.4
 
 ## Added to the happiness every passenger settles at.
 var bonus := 0.0
+## Taken off the most every passenger can reach, after comfort's bonus, while the bus is
+## past its comfortable temperature. It wears off once it is back in the band.
+var discomfort := 0.0
 ## How long each sleep lasts, a random while between these, in seconds. Nobody sleeps
 ## while the longest is 0.
 var sleep_min := 0.0
