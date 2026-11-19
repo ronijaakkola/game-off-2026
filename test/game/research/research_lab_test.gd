@@ -22,6 +22,9 @@ func before_test() -> void:
 	(_runner.find_child("WaitingPassengers") as Node).set_process(false)
 	_lab = _runner.find_child("ResearchLab") as ResearchLab
 	_ledger = _system.get_ledger()
+	# As the mechanic's first call does: the first tree opens, and the Research button shows.
+	_lab.get_research().open_next_tree()
+	(_runner.find_child("DockPanel") as DockPanel).research_hidden = false
 
 
 func after_test() -> void:
@@ -40,19 +43,6 @@ func test_researching_an_upgrade_pays_its_cost() -> void:
 	# Researched already, a second try costs nothing.
 	_lab.research(upgrade)
 	assert_int(_ledger.credits).is_equal(7)
-
-
-func test_while_restricted_only_the_researchable_upgrades_can_be_researched() -> void:
-	var upgrade := _first_upgrade()
-	_pay_for(upgrade, 0)
-	_lab.restricted = true
-
-	_lab.research(upgrade)
-	assert_bool(_lab.get_research().is_researched(upgrade)).is_false()
-
-	_lab.researchable = [upgrade]
-	_lab.research(upgrade)
-	assert_bool(_lab.get_research().is_researched(upgrade)).is_true()
 
 
 func test_nothing_is_researched_without_the_cost_or_the_promotion() -> void:

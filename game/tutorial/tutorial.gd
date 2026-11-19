@@ -1,29 +1,29 @@
 class_name Tutorial
 extends Node
 ## The tutorial at the start of a new run, on the map zoomed in on [member home]
-## ([MapZoom]): one ride from [member home] to [member destination] and back, a step at a
-## time. It opens on The Boss's call ([TutorialCall]), and once the player closes The
-## Boss's transmission, the steps start.
+## ([MapZoom]): one ride from [member home] to [member destination], a step at a time. It
+## opens on The Boss's call ([TutorialCall]), and once the player closes The Boss's
+## transmission, the steps start.
 ## A step shows a guide card that points at what it is about and goes once the player has done what
 ## it says: the bus, the passenger waiting at home, the On board panel they come into and the
 ## happiness bar on their card, setting a course to the destination, charging the drive, serving the
 ## snack the passenger asks for halfway, the stars they rate the ride, the fare and research point
-## they pay, refuelling, home's lab badge and setting a course back home, charging again, the lab's
-## Research button, and in the research screen its title, Fuel tank 1 to research, and its close
-## button. Then The Boss calls again, and once the player answers, the HUD goes and it is over; the
-## HUD comes back once the map has zoomed out.
+## they pay, and refuelling. Then The Boss calls again, and once the player answers, the HUD goes
+## and it is over; the HUD comes back once the map has zoomed out. Research comes later, with
+## the mechanic's first call ([MechanicCall], [ResearchGuide]).
 ## Most steps wait for the player to do something in the game; one that only tells them
 ## something has a Got it button. The snack and the stars pause the game, and the
 ## portraits keep moving. The cards are [TutorialCards].
 ## The HUD only shows what a step has brought in: the station panel comes in with the
 ## pick-up, the On board panel once the passenger boards, before their card slides into
 ## it, and the resource bar once their card has left it. The station's fuel button shows
-## from the flight on, and its Research button and home's lab badge from the course home.
-## The station's Board all button stays hidden throughout, and no other planet shows its
-## lab badge. Until the pick-up, the screen takes no clicks but on the guide card.
-## A course can be set only to where the step heads ([method allows_course]), the route
-## can't change in flight ([member FrameshiftBus.route_locked]), and the research screen
-## can't be closed until the step says so. What else it changes about the game is [TutorialRules]'.
+## from the flight on. The station's Board all and Research buttons stay hidden throughout,
+## and so do the lab badges. Until the pick-up, the screen takes no clicks but on the guide
+## card.
+## A course can be set only to the destination, while a step asks for it
+## ([method allows_course]), and the route can't change in flight
+## ([member FrameshiftBus.route_locked]). What else it changes about the game is
+## [TutorialRules]'.
 ## Through it, only home and the destination have lines, with the one passenger at home,
 ## and nobody joins or leaves a line. The passenger asks for nothing but the snack. The
 ## debug panel's Skip tutorial finishes it at once.
@@ -44,11 +44,6 @@ enum Step {
 	RATING,
 	MONEY,
 	REFUEL,
-	LAB_ROUTE,
-	LAB,
-	RESEARCH,
-	UPGRADE,
-	CLOSE,
 	LAST_CALL,
 	DONE,
 }
@@ -64,17 +59,7 @@ const STARS_BEAT := 0.2
 ## Seconds after the passenger's card has left the On board panel, for its group to fold
 ## away, before the resource bar comes in.
 const LEFT_BEAT := 0.3
-## Seconds after the bus docks at home before the card on the Research button opens, once
-## the station panel has slid in.
-const LAB_DELAY := 0.6
-## Seconds after the tank is full before home's lab badge pops in.
-const BADGE_DELAY := 0.5
-## Seconds after the badge is in before its card opens.
-const BADGE_BEAT := 0.2
-## Seconds after the research screen opens, once its sheet has grown in, before the card
-## on its title opens.
-const SCREEN_DELAY := ResearchScreen.OPEN_SECONDS + 0.15
-## Seconds after the research screen closes before The Boss calls again.
+## Seconds after the tank is full before The Boss calls again.
 const LAST_CALL_DELAY := 1.0
 ## The race of the tutorial's passenger.
 const PASSENGER_RACE := Race.Type.BLUE
@@ -104,7 +89,7 @@ const RIDE_STEPS: Array[Step] = [
 @export var resource_bar: ResourceBar
 ## Shows the passenger's trip once they are on board.
 @export var trip_arc: TripArc
-## Where the bus starts and the passenger waits, and where the lab is.
+## Where the bus starts and the passenger waits.
 @export var home: Planet
 ## Where the passenger goes.
 @export var destination: Planet
@@ -114,12 +99,8 @@ const RIDE_STEPS: Array[Step] = [
 @export var rig: CameraRig
 ## Zooms the map out once it is over, and says when the run proper starts.
 @export var map_zoom: MapZoom
-## Only home's shows, from the course home.
+## Hidden throughout.
 @export var lab_badges: LabBadges
-## Where Fuel tank 1 is researched.
-@export var research_lab: ResearchLab
-## The research screen, which can't close until the last step in it.
-@export var research_screen: ResearchScreen
 ## Offers to skip it while it runs.
 @export var pause_menu: PauseMenu
 ## Points at what a step is about and says what to do.
@@ -133,7 +114,7 @@ var _running := false
 # The passenger the tutorial is about, once picked up, and their card.
 var _passenger: Passenger
 var _card: PassengerCard
-# Where the bus is headed: the destination, then home.
+# Where the bus is headed: the destination.
 var _goal: Planet
 # Whether the station panel has come in, so the card on the passenger can show.
 var _station_in := false
@@ -153,12 +134,6 @@ var _rules: TutorialRules
 func _ready() -> void:
 	set_process(false)
 	DebugPanel.add_button("Skip tutorial", _debug_skip_tutorial, self)
-
-
-# Leaving mid-tutorial, as to the main menu: what outlives the scene goes back.
-func _exit_tree() -> void:
-	if _running:
-		_rules.put_back_upgrade()
 
 
 func _process(_delta: float) -> void:
@@ -184,16 +159,13 @@ func _process(_delta: float) -> void:
 			)
 			if on_route:
 				_go_to(Step.CHARGE)
-		Step.LAB_ROUTE:
-			if on_route:
-				_go_to(Step.CHARGE)
 		Step.CHARGE:
 			if bus.state == FrameshiftBus.State.FLYING:
 				_leg = _distance_left()
 				_rules.set_trip_burn(_goal)
 				_go_to(Step.FLY)
 			elif not on_route:
-				_go_to(_route_step())
+				_go_to(Step.ROUTE)
 		Step.FLY:
 			_fly()
 		Step.SERVE:
@@ -204,7 +176,7 @@ func _process(_delta: float) -> void:
 		Step.REFUEL:
 			var full := bus.get_fuel_tank().get_fraction() >= 1.0
 			if full and bus.is_at_planet() and not cabin.is_stopping():
-				_go_to(Step.LAB_ROUTE)
+				_go_to(Step.LAST_CALL)
 
 
 ## Starts it with the call: only home and the destination have lines, with the one
@@ -220,11 +192,8 @@ func start() -> void:
 	_rules.apply()
 	_rules.set_trip_burn(_goal)
 	guide.acknowledged.connect(_on_guide_acknowledged)
-	research_lab.get_research().researched.connect(_on_researched)
-	research_screen.closed.connect(_on_research_closed)
 	pause_menu.skip_tutorial_pressed.connect(skip)
 	cabin.getting_off.connect(_on_getting_off)
-	dock_panel.research_pressed.connect(_on_research_pressed)
 	intro.ended.connect(_on_call_ended)
 	_go_to(Step.CALL)
 	intro.play(home, destination)
@@ -234,12 +203,12 @@ func is_running() -> bool:
 	return _running
 
 
-## Whether the player may add [param stop] to the course: only where a step heads, while it
-## asks for the course.
+## Whether the player may add [param stop] to the course: only where the step heads, while
+## it asks for the course.
 func allows_course(stop: RouteStop) -> bool:
 	if not _running:
 		return true
-	return _step in [Step.ROUTE, Step.LAB_ROUTE] and stop.planet == _goal
+	return _step == Step.ROUTE and stop.planet == _goal
 
 
 ## Finishes it now, wherever it got to. Does nothing unless it is running.
@@ -284,22 +253,8 @@ func _go_to(step: Step) -> void:
 			_bring_in_money()
 		Step.REFUEL:
 			_open_refuel()
-		Step.LAB_ROUTE:
-			_bring_in_badge()
-		Step.LAB:
-			_open_lab()
-		Step.RESEARCH:
-			_open_research()
-		Step.UPGRADE:
-			var fuel_tank := _rules.get_fuel_tank()
-			research_lab.researchable = [fuel_tank]
-			_open_card(research_screen.get_button(fuel_tank))
 		Step.LAST_CALL:
 			_call_again()
-		Step.CLOSE:
-			research_lab.researchable = []
-			research_screen.close_locked = false
-			_open_card(research_screen.get_close_button())
 
 
 # Opens this step's guide card on [param target], or on what [method GuideCard.point_at_ball]
@@ -328,26 +283,17 @@ func _on_guide_acknowledged() -> void:
 		Step.MONEY:
 			resource_bar.breathe(false)
 			_go_to(Step.REFUEL)
-		Step.RESEARCH:
-			_go_to(Step.UPGRADE)
 
 
-# In flight: halfway to the destination the passenger asks for their snack; docked at home,
-# the lab's card comes; stopped short, the course is set again.
+# In flight: halfway to the destination the passenger asks for their snack; stopped short,
+# the course is set again.
 func _fly() -> void:
-	if _goal == destination and not _asked and _distance_left() <= _leg * 0.5:
+	if not _asked and _distance_left() <= _leg * 0.5:
 		_asked = true
 		_passenger.ask_for(SNACK)
 		_go_to(Step.SERVE)
-	elif _goal == home and bus.is_at_planet() and bus.get_docked_planet() == home:
-		_go_to(Step.LAB)
 	elif _goal not in bus.get_route_planets() and _is_stranded():
-		_go_to(_route_step())
-
-
-# The step that sets the course to where the bus is headed.
-func _route_step() -> Step:
-	return Step.ROUTE if _goal == destination else Step.LAB_ROUTE
+		_go_to(Step.ROUTE)
 
 
 # The game pauses on the passenger's request, with the card beside their serve button.
@@ -396,62 +342,11 @@ func _bring_in_money() -> void:
 		resource_bar.breathe(true)
 
 
-# Docked at home: once the station panel has slid in with its Research button, the card
-# points at it.
-func _open_lab() -> void:
-	dock_panel.research_hidden = false
-	await get_tree().create_timer(LAB_DELAY).timeout
-	if _step == Step.LAB:
-		_open_card(dock_panel.get_research_button())
-
-
 # The card on the fuel button opens, and only then can the player fuel.
 func _open_refuel() -> void:
 	await _open_card(dock_panel.get_fuel_button())
 	if _step == Step.REFUEL:
 		dock_panel.fuel_locked = false
-
-
-# Research: the lab opens.
-func _on_research_pressed(_at: Planet) -> void:
-	if _step == Step.LAB:
-		_go_to(Step.RESEARCH)
-
-
-# After the tank is full, home's lab badge pops in, then a card beside it.
-func _bring_in_badge() -> void:
-	_goal = home
-	await get_tree().create_timer(BADGE_DELAY).timeout
-	if _step != Step.LAB_ROUTE:
-		return
-	# Back to the course after clearing it, the badge is already in.
-	if not lab_badges.visible:
-		lab_badges.show()
-		await lab_badges.pop_in(home)
-		await get_tree().create_timer(BADGE_BEAT).timeout
-	if _step == Step.LAB_ROUTE:
-		_open_card(lab_badges.get_badge(home))
-
-
-# The research screen has opened, and can't close yet: once it has grown in, a card on its
-# title, and nothing can be researched until it is read.
-func _open_research() -> void:
-	research_screen.close_locked = true
-	await get_tree().create_timer(SCREEN_DELAY).timeout
-	if _step == Step.RESEARCH:
-		_open_card(research_screen.get_title())
-
-
-# Fuel tank 1 is researched.
-func _on_researched(upgrade: Upgrade) -> void:
-	if _step == Step.UPGRADE and upgrade == _rules.get_fuel_tank():
-		_go_to(Step.CLOSE)
-
-
-# The research screen closed.
-func _on_research_closed() -> void:
-	if _step == Step.CLOSE:
-		_go_to(Step.LAST_CALL)
 
 
 # The screen takes clicks and the camera is the player's, and the station panel comes in.
@@ -514,8 +409,8 @@ func _on_call_ended() -> void:
 		_finish()
 
 
-# The lab closed: the screen takes no clicks and the camera holds still, and a moment later
-# The Boss calls again.
+# The tank is full: the screen takes no clicks and the camera holds still, and a moment
+# later The Boss calls again.
 func _call_again() -> void:
 	hud.cover()
 	rig.locked = true
@@ -543,8 +438,6 @@ func _finish() -> void:
 	# The camera stays locked: the zoom out holds it until the run starts.
 	map_zoom.zoomed_out.connect(_on_zoomed_out, CONNECT_ONE_SHOT)
 	_rules.lift()
-	# Skipped over the research screen, it closes, so the zoom out isn't held paused.
-	research_screen.close()
 	if _step in TRIP_STEPS:
 		trip_arc.hide_trip()
 	_step = Step.DONE
@@ -565,7 +458,6 @@ func _empty_home_line() -> void:
 # The map has zoomed out and settled: the HUD comes back, and the player can play.
 func _on_zoomed_out() -> void:
 	hud.reveal_all()
-	lab_badges.show()
 
 
 # Skip tutorial: finishes it, and the map zooms out.

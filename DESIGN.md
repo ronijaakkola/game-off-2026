@@ -20,7 +20,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Just after docking the drive is still warm for a while, and the charge starts from the warmth left and builds faster. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
 5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
-6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every tree.
+6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every open tree.
 
 ## The solar system
 
@@ -110,7 +110,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - Nobody new turns up at the planet the bus is docked at: its clock holds until the bus leaves, so waiting there gains nothing.
 - Happiness holds while they wait.
 - **Station waiting lounge.** Someone picked up gets +1 on their target for every 10 s they waited, up to +5 at 50 s, for their whole ride. A wait counts while the planet's clock runs, so waiting docked there builds none. +5 at most keeps In-Flight Movies alone short of 5 stars (84 + 5 = 89).
-- **The start.** A new run starts with the tutorial (Tutorial) while the player hasn't been through it, and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A New game after the tutorial starts docked at Terra, where the tutorial does; a scene run on its own starts docked at Ember.
+- **The start.** A new run starts with the tutorial (Tutorial) while the player hasn't been through it, and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A New game after the tutorial starts docked at Terra, where the tutorial does, and the run after the tutorial at the Moon, where it ends; a scene run on its own starts docked at Ember.
 
 ### Who turns up
 
@@ -278,18 +278,24 @@ Upgrades for the bus, bought with credits and research points.
 
 - **Research trees aren't tied to planets.** Each is the upgrades for one part of the bus, linked by what each needs first.
 - **Researching happens only while the bus is docked or charging at a planet with a lab,** as refuelling does, and there the player researches from every tree.
-- **Each tree splits into three stages** by row: rows 1 and 2, rows 3 and 4, and the rest. The first stage is open from the start, and each **promotion** opens the next (Goals), so the third opens in Draco. The promotion that joins the systems opens none.
+- **Research opens a part at a time,** so the first research screen isn't a wall of upgrades. Each tree splits into three stages by row: rows 1 and 2, rows 3 and 4, and the rest. An upgrade is open once its tree and its stage both are, and the research screen shows nothing that isn't.
+- **The mechanic opens it, with a call** as a passenger calls: a transmission that only says something, with two answers that mean the same; left ringing for 10 s of play, it opens by itself. What it brings opens once the player closes it.
+  - **In Sol the trees open one at a time,** on their first stage: Performance once the player can pay for one of its top upgrades (120 credits and 2 points, about one delivery after the tutorial), Planets at 7 deliveries in the run and Comfort at 14. Until Performance opens there is nothing to research: no lab badges and no Research button. Over 8 seeds the scripted player earns 258 credits a minute and rates 3.98 against 265 and 4.02 with every tree open from the start, and has as many upgrades by minute 10; at 4 and 9 deliveries it is no better.
+  - **Each system after Sol opens the next stage in every tree,** with a call once the bus works there, so the second opens on arriving in Lyra and the third in Draco. A promotion opens no research, and nor does joining the systems.
+  - **Nobody else calls over it.** It rings only when no other transmission is open or ringing, and not during a stop or a jump; passengers' calls wait while it rings.
+- **The research guide.** After the mechanic's first call, guide cards show the player how to research, the game running: beside the badge of the nearest planet with a lab until the bus docks at one; on the station's Research button until the research screen opens (back to the badge if the bus leaves first); in the screen, beside its title with a Got it button, beside Fuel tank 1, or the first upgrade the player can research, until one is researched, and on the close button until it closes. Closing the screen early ends it. It shows once, as a feature hint does (Feature hints), and only in a run the main menu started.
+- **Every other call that opens research leaves a reminder,** so the player goes to the lab: a guide card saying what is new (a tree's upgrades, or new ones in every tree) beside the nearest lab's badge, and on the station's Research button once the bus docks at a lab, with a Got it button. It goes as the research screen opens or on Got it, and shows in every run, every time; a call while one shows replaces it. While the research guide shows, a call leaves none.
 - **The game is paused** while the player researches.
 - **An upgrade** has a cost in credits and research points.
 - It needs *one* of the upgrades it lists, from the same tree, and its stage open: each is a path to it. One that lists none needs only its stage.
 - Each is researched once. A bigger step of the same thing is its own upgrade after it (Tank I, then Tank II).
 - Once researched it puts modifiers on the bus's stats, gives it traits, or both.
 
-An upgrade is in one of five states:
+An upgrade is in one of six states:
 
 | State | When |
 |---|---|
-| Needs promotion | Its stage isn't open. Its name, description and cost don't show |
+| Shut | Its tree or its stage isn't open. The research screen leaves it out |
 | Hidden | Marked hidden, and nothing it needs is researched. Its name, description and cost don't show |
 | Locked | Nothing it needs is researched |
 | Available | Something it needs is researched and the player can pay |
@@ -327,7 +333,7 @@ An upgrade is in one of five states:
 
 There are three trees, all paid for with the same research points. Frost, Terra and Giant have a lab; the rest have none.
 
-- They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that either of two branches reaches. An upgrade can need nothing even below the top row, open once its stage is. Only a stage that isn't open hides an upgrade; none is marked hidden.
+- They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that either of two branches reaches. An upgrade can need nothing even below the top row, open once its stage is. Only a tree or a stage that isn't open hides an upgrade; none is marked hidden.
 - **Costs come in levels,** the same in every tree. The first stage has two: 120 credits and 2 points on its first row, 240 and 4 on its second. After it come 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Express service on row 5 costs 800 and 10, Station cameras on row 3 costs 300 and 4. Credits come in at about 200 a minute and research points at about 3.9, so in the first stage credits are what the player waits for. At 150 and 300 the scripted player had 8 of the stage's upgrades by minute 10, against 10 now. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
@@ -363,7 +369,7 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 - Two older quest goals are built but nothing gives them: deliver one passenger, and fly one past a planet (the bus comes within 3 units of its surface in flight, having been out of reach since they boarded).
 - **Balance runs answer calls** by the scripted player's policy: they take every quest unless told to decline, ignore or switch off calls, or to decline a detour past a set length, and fly straight to an express quest's planet.
 - **All met** means every milestone done and every standing goal holding.
-- **A promotion** comes once every goal it takes is met and still is 1.5 s later, so the player sees them ticked. The goals go, the next research stage opens, and the next star system opens (Star systems). The debug panel's Promote gives one at once, and its Complete system also jumps to the next system at once. Balance runs are never promoted, so they play on the first stage throughout.
+- **A promotion** comes once every goal it takes is met and still is 1.5 s later, so the player sees them ticked. The goals go, and the next star system opens (Star systems); its research comes with the mechanic once the bus is there (Research). The debug panel's Promote gives one at once, and its Complete system also jumps to the next system at once. Balance runs are never promoted, so they play on the first stage throughout, with every tree open unless told to have the mechanic open them.
 - **Each star system gives its own two goals** when the bus arrives: deliver 20 and keep 3.5 in Sol, 40 and 3.8 in Lyra, 50 and 4.0 in Draco, and 60 and 4.0 once the systems are joined. Lyra's and Draco's numbers are guesses, not measured yet.
 - **A run starts with Sol's two goals:** deliver 20 passengers, and keep a 3.5 rating. 3.5 is under what a bare bus averages (3.7), so it is met about when the deliveries are: the scripted player has both after about 5 minutes, and one who takes everyone and serves slowly after about 7. A higher target shuts that player out: they end a run near 3.6.
 - **The run ends** once all the goals have been met for 5 s of play, still met then: The Boss calls with the next job, in another star system. Left unanswered for 10 s of play while the call notice shows, the call opens by itself, and The Boss opens annoyed, telling the player to pick up. Both answers mean the same, and either shows that the next level isn't there yet; the run goes on. While a passenger's call rings The Boss waits for it, and nobody calls while The Boss's call rings. Once a session: a continued run calls again.
@@ -417,9 +423,9 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **The zoomed map.** Only Terra and the Moon, the map zoomed in 6.5× on Terra, so the Moon orbits 13 units out, about as far as a trip across the whole map. The bus keeps its size, speed and fuel burn, so the ride costs the time, fuel and fare a trip across the whole map does.
 - **Nothing orbits.** Terra and the Moon hold still on their orbits, still spinning, so the bus always finds them where they were and stays in view.
 - **A clear way out.** The bus starts docked on the side of Terra facing the Moon, so the straight flight there never crosses Terra.
-- **One ride, and back.** One passenger waits at Terra, going to the Moon, always a blue one, so every tutorial looks the same. Nobody else turns up, and nobody leaves a line. Then the bus flies back to Terra to research.
-- **A trip burns half the tank,** each way, more than the bus burns outside the tutorial, so refuelling has a reason. Fuel is free at Terra and the Moon. Done or skipped, the run starts on a full tank.
-- **Just enough for the first upgrade.** The passenger pays 120 credits whatever their mood, and Fuel tank 1 costs 120 credits and 1 research point (not 2) until it is over.
+- **One ride.** One passenger waits at Terra, going to the Moon, always a blue one, so every tutorial looks the same. Nobody else turns up, and nobody leaves a line. Research isn't in it: the mechanic brings it once the run has started (Research).
+- **The trip burns half the tank,** more than the bus burns outside the tutorial, so refuelling has a reason. Fuel is free at Terra and the Moon. Done or skipped, the run starts on a full tank.
+- **The passenger pays 120 credits** whatever their mood, so the first upgrade is one delivery away once it is over.
 - **It opens on a call from their boss,** who tells them they are on a trial period. Until the player answers it and closes the transmission, the call notice's Answer is the one thing they can do: no clicks on the map or the bus bars, no pan or zoom.
 - **Each step is a guide card** (placeholder titles; what each says is in `tutorial_cards.gd`, the calls' words in `tutorial_call.gd`), most waiting for the player to do something in the game; a card that only tells them something has a Got it button, offered on purpose and rarely.
   - **The bus**, beside it. Got it moves on. Until then, still no clicks but on the card, and no pan or zoom.
@@ -432,14 +438,8 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
   - **The rating.** Getting off at the Moon, once their card has filled its stars, the game pauses, all but the portraits, with a card beside them. Got it moves on.
   - **The fare.** Once their card has left the On board panel, the resource bar comes in, then a card under it. Got it moves on.
   - **Refuelling**, beside the Moon's fuel button. It goes once the tank is full.
-  - **The course home.** Half a second after the tank is full, Terra's lab badge pops in, then a card beside it. It goes once Terra is on the route.
-  - **The charge** again, then the flight home, as before but with no request.
-  - **The lab.** Docked at Terra, the station has its Research button, with a card on it. It goes as the research screen opens.
-  - **The research screen**, which can't be closed until the last card, with a card beside its title. Nothing can be researched until Got it.
-  - **The upgrade**, beside Fuel tank 1, the only one that can be researched. It goes once it is researched.
-  - **Closing the lab**, beside the close button, which now works. It goes as the screen closes.
-- **It ends on another call from their boss,** a second after the lab closes: the player passed their trial period, and the boss unlocks the frameshift planet lock for the whole star system. The call notice's Answer is again the one thing the player can do. Both calls offer two answers that mean the same, for flavour, and either one goes on. Answering the last ends the tutorial.
-- **Only what a step brings in shows.** After the call, only the bus bars; the station panel comes in with the pick-up, the On board panel once the passenger boards, and the resource bar with the fare. The station's fuel button shows from the flight to the Moon on, off until the refuelling card opens, and its Research button and Terra's lab badge from the course home; the Moon's lab badge and Board all stay hidden until it is over.
+- **It ends on another call from their boss,** a second after the tank is full: the player passed their trial period, and the boss unlocks the frameshift planet lock for the whole star system. The call notice's Answer is again the one thing the player can do. Both calls offer two answers that mean the same, for flavour, and either one goes on. Answering the last ends the tutorial.
+- **Only what a step brings in shows.** After the call, only the bus bars; the station panel comes in with the pick-up, the On board panel once the passenger boards, and the resource bar with the fare. The station's fuel button shows from the flight to the Moon on, off until the refuelling card opens; the lab badges and the station's Research and Board all buttons stay hidden.
 - **The course holds in flight.** From the flight's start until the bus docks, the player can't change the route: no Stop, no stop taken off the route bar, no new course.
 - **No planet opens** on a click through it.
 - **Courses only when asked for.** Right clicks set a course only in the steps about setting one, and only to the planet the step names: no points in space, no other planet, and nothing more once it is set. A stop short of where the bus is headed asks for the course again.
@@ -461,7 +461,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save once the tutorial is over, so it is held to confirm, like refuelling, and a stray click can't lose a run. The main menu's settings can delete the save, held the same way; the pause menu's can't, since the run in play would save it again at the next planet.
 - **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next New game starts the tutorial again. Once it has ended, done or skipped, it is kept as done, even if the player quits in the zoom out.
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
-- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, the quest under way, and how many star systems are open and whether they are joined. The system the bus works in is the one its planet is in, so a run continued after a promotion still offers the jump.
+- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades and which trees and stages are open, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, the quest under way, and how many star systems are open and whether they are joined. The system the bus works in is the one its planet is in, so a run continued after a promotion still offers the jump.
 - **Nothing saves through a jump.** Quitting mid-jump keeps the save from before it.
 - **What starts afresh:** the course, the charge, the wait until the next call, what each passenger was doing (an open request opens again at once), and the lines' clocks.
 - **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.

@@ -9,6 +9,9 @@ extends RefCounted
 const BOSS_HEAD := preload("res://game/transmissions/models/head_boss.glb")
 const BOSS_EYES := preload("res://game/passengers/eye_styles/googly.tres")
 const BOSS_RACE := Race.Type.ORANGE
+## Who the mechanic is: a blue alien, so they have a voice.
+const MECHANIC_NAME := "Your mechanic"
+const MECHANIC_RACE := Race.Type.BLUE
 
 ## Who calls, and how their portrait looks.
 var caller_name := ""
@@ -71,6 +74,20 @@ static func from_boss(revealed := false) -> Transmission:
 	transmission.race = BOSS_RACE
 	transmission.shadowed = not revealed
 	transmission.stern = true
+	return transmission
+
+
+## A transmission from the company's mechanic: a blue alien with a bean of a head and bead
+## eyes, in a good mood.
+static func from_mechanic() -> Transmission:
+	var transmission := Transmission.new()
+	transmission.caller_name = MECHANIC_NAME
+	transmission.look = AlienLook.new()
+	transmission.look.head = AlienLook.HEADS[MECHANIC_RACE][1]
+	transmission.look.eye_style = AlienLook.EYE_STYLES[1]
+	transmission.look.skin_color = Race.SKIN_COLORS[MECHANIC_RACE]
+	transmission.race = MECHANIC_RACE
+	transmission.mood = Passenger.Mood.HAPPY
 	return transmission
 
 

@@ -340,6 +340,11 @@ func _start_passengers() -> void:
 	var saver := %GameSaver as GameSaver
 	saver.waiting = waiting
 	saver.start()
+	# After the save is back, so the mechanic sees what research it opened.
+	var mechanic := %MechanicCall as MechanicCall
+	mechanic.ledger = _ledger
+	if not (%MapZoom as MapZoom).is_zoomed():
+		mechanic.start()
 
 
 # The tutorial is over: whatever is open closes, and the map zooms out.
@@ -356,6 +361,7 @@ func _on_map_zoomed_out() -> void:
 	waiting.set_planets((%StarMap as StarMap).get_active_planets())
 	waiting.add_starting_passengers((%Bus as FrameshiftBus).get_docked_planet())
 	(%Progression as Progression).start()
+	(%MechanicCall as MechanicCall).start()
 	(%GameSaver as GameSaver).holding = false
 	(%Notices as NoticeStack).push(MAP_OPENED, Notice.Kind.INFO, false, MAP_OPENED_SECONDS)
 

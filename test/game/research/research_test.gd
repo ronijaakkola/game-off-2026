@@ -61,7 +61,7 @@ func test_researching_puts_its_modifiers_and_traits_on_the_bus_once() -> void:
 	assert_bool(_stats.get_traits().has(BusTraits.Type.PILLOWS)).is_false()
 
 
-func test_an_upgrade_past_the_open_stages_needs_a_promotion() -> void:
+func test_an_upgrade_past_the_open_stages_is_shut() -> void:
 	var first := _upgrade()
 	var second := _upgrade([first])
 	second.tier = Research.ROWS_PER_STAGE
@@ -70,15 +70,37 @@ func test_an_upgrade_past_the_open_stages_needs_a_promotion() -> void:
 	_research.research(first)
 
 	assert_int(Research.get_stage(last)).is_equal(Research.STAGES - 1)
-	assert_int(_state(second)).is_equal(Research.State.NEEDS_PROMOTION)
+	assert_int(_state(second)).is_equal(Research.State.SHUT)
 	_research.open_next_stage()
 	assert_int(_state(second)).is_equal(Research.State.AVAILABLE)
-	assert_int(_state(last)).is_equal(Research.State.NEEDS_PROMOTION)
+	assert_int(_state(last)).is_equal(Research.State.SHUT)
 	_research.open_next_stage()
 	_research.open_next_stage()
 	assert_bool(_research.is_stage_open(Research.STAGES - 1)).is_true()
 	assert_bool(_research.is_stage_open(Research.STAGES)).is_false()
 	assert_int(_state(last)).is_equal(Research.State.AVAILABLE)
+
+
+func test_trees_open_one_at_a_time_and_a_stage_opens_every_tree() -> void:
+	var first := _tree()
+	var second := _tree()
+	var later := _upgrade()
+	later.tier = Research.ROWS_PER_STAGE
+	first.upgrades.append(later)
+	_research = Research.new(_stats, [first, second])
+
+	assert_int(_state(first.upgrades[0])).is_equal(Research.State.SHUT)
+	_research.open_next_tree()
+	assert_int(_state(first.upgrades[0])).is_equal(Research.State.AVAILABLE)
+	assert_int(_state(later)).is_equal(Research.State.SHUT)
+	assert_int(_state(second.upgrades[0])).is_equal(Research.State.SHUT)
+	assert_object(_research.get_next_tree()).is_same(second)
+
+	_research.open_next_stage()
+	assert_int(_research.get_open_trees()).is_equal(2)
+	assert_object(_research.get_next_tree()).is_null()
+	assert_int(_state(second.upgrades[0])).is_equal(Research.State.AVAILABLE)
+	assert_int(_state(later)).is_equal(Research.State.AVAILABLE)
 
 
 # The state of [param upgrade] for a player with plenty to pay with.
@@ -92,3 +114,10 @@ func _upgrade(requires: Array[Upgrade] = [], credits := 0, points := 0) -> Upgra
 	upgrade.credits = credits
 	upgrade.points = points
 	return upgrade
+
+
+# A tree with one upgrade at its top.
+func _tree() -> ResearchTree:
+	var tree := ResearchTree.new()
+	tree.upgrades.append(_upgrade())
+	return tree

@@ -3,8 +3,7 @@ extends RefCounted
 ## What an upgrade's [Tooltip] says, by its state: its name and a short line on what it
 ## does, and under them, set a little apart, its cost with the resource bar's icons, what the
 ## player lacks in red. Under the cost, one the player can't afford says so in red. A
-## hidden one shows "???" and no cost, one in a stage not open yet "???" and that it
-## requires a promotion, and a researched one no cost.
+## hidden one, or one not open yet, shows "???" and no cost, and a researched one no cost.
 
 ## The cost's icons, the resource bar's: a dollar sign in its gold for credits, and a flask
 ## in the research points' colour for them.
@@ -13,7 +12,6 @@ const DOLLAR := preload("res://shared/icons/dollar_sign.svg")
 const FLASK := preload("res://shared/icons/flask_conical.svg")
 const CREDITS_COLOR := Color(1, 0.831, 0.361)
 const LACKING_TEXT := "Insufficient funds"
-const PROMOTION_TEXT := "Requires promotion."
 ## Extra room between the description and the cost, over the card's own 4 px between rows.
 const COST_GAP := 4
 ## Between the cost and the line under it.
@@ -25,13 +23,9 @@ const NOTE_GAP := 4
 static func show(
 	tooltip: Tooltip, upgrade: Upgrade, state: Research.State, credits: int, points: int
 ) -> void:
-	var sealed := state == Research.State.NEEDS_PROMOTION
-	var unknown := state == Research.State.HIDDEN or sealed
+	var unknown := state == Research.State.HIDDEN or state == Research.State.SHUT
 	tooltip.title = "???" if unknown else upgrade.title
-	var sentence := "" if unknown else upgrade.description
-	if sealed:
-		sentence = PROMOTION_TEXT
-	tooltip.sentence = sentence
+	tooltip.sentence = "" if unknown else upgrade.description
 	var priced := not unknown and state != Research.State.RESEARCHED
 	tooltip.extra = _cost_block(upgrade, state, credits, points) if priced else null
 

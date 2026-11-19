@@ -13,9 +13,10 @@ extends Node
 ## opens nothing, puts two passengers in line at Ember, where the bus is docked, boards one
 ## going where the first one is, so their row shows "1 aboard", and pins the first one's
 ## row in the dock panel, so their trip arc shows. `-- Research` opens the research screen
-## with a few upgrades of each tree researched, credits and points to spend on some of
-## the rest, and the pointer over one the player can research so its card shows.
-## `-- Research promoted` opens the second stage too, `plain` leaves out the tooltip,
+## on every tree, with a few upgrades of each researched, credits and points to spend on
+## some of the rest, and the pointer over one the player can research so its card shows.
+## `one` or `two` opens only the first tree or the first two, as the mechanic's first calls
+## do. `-- Research promoted` opens the second stage too, `plain` leaves out the tooltip,
 ## `lacking` hovers one the player can't afford instead, `hold`
 ## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
 ## it part way), and
@@ -130,13 +131,17 @@ func _ready() -> void:
 
 func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 	var lab := system.find_child("ResearchLab") as ResearchLab
+	var research := lab.get_research()
+	var trees := 1 if "one" in args else 2 if "two" in args else lab.trees.size()
+	for i: int in trees:
+		research.open_next_tree()
+	(system.find_child("DockPanel") as DockPanel).research_hidden = false
 	if "dock" in args:
 		(system.find_child("Ember") as Planet).has_lab = true
 		if "rich" in args:
 			system.get_ledger().credits = 500
 			system.get_ledger().earn_research(60)
 		return
-	var research := lab.get_research()
 	for tree: ResearchTree in lab.trees:
 		for upgrade: Upgrade in tree.upgrades:
 			if upgrade.tier == 0 and upgrade.column % 2 == 0:
