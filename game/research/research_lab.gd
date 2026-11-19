@@ -5,22 +5,20 @@ extends Node
 ## researches an upgrade the player holds there when the player can pay for it, taking its
 ## credits and research points off first. Which planets open the screen is the dock
 ## panel's to say: those with a lab ([member Planet.has_lab]). It adds the debug panel's
-## Resources buttons, which give credits and research points for testing, its Open
-## research button, which opens the screen from anywhere, and its Promote button, which
-## opens the next stage until promotions are built. While [member restricted], as in the
-## tutorial, only [member researchable] upgrades can be researched. It remembers which
+## Resources buttons, which give credits and research points for testing, and its Open
+## research button, which opens the screen from anywhere. While [member restricted], as in
+## the tutorial, only [member researchable] upgrades can be researched. It remembers which
 ## upgrades the player could pay for when they last closed the screen, so the dock panel
 ## nudges only when that has changed ([method has_unseen_upgrade]).
 
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
-## The research points of each race the debug panel's Add research button gives.
+## The research points the debug panel's Add research button gives.
 const DEBUG_RESEARCH := 100
 ## The debug panel's group for the buttons that give credits and research points.
 const DEBUG_RESOURCES_GROUP := "Resources"
-## The debug panel's buttons that open the screen from anywhere and open the next stage.
+## The debug panel's button that opens the screen from anywhere.
 const DEBUG_OPEN_TEXT := "Open research"
-const DEBUG_PROMOTE_TEXT := "Promote (open next research stage)"
 
 ## The bus whose stats upgrades change.
 @export var bus: FrameshiftBus
@@ -54,10 +52,9 @@ func _ready() -> void:
 	research_screen.closed.connect(resource_bar.show)
 	research_screen.closed.connect(_remember_seen)
 	DebugPanel.add_button(DEBUG_OPEN_TEXT, open_screen, self)
-	DebugPanel.add_button(DEBUG_PROMOTE_TEXT, _research.open_next_stage, self)
 	var credits_text := "Add %d credits" % DEBUG_CREDITS
 	DebugPanel.add_button(credits_text, _debug_add_credits, self, DEBUG_RESOURCES_GROUP)
-	var research_text := "Add %d research of each" % DEBUG_RESEARCH
+	var research_text := "Add %d research" % DEBUG_RESEARCH
 	DebugPanel.add_button(research_text, _debug_add_research, self, DEBUG_RESOURCES_GROUP)
 
 
@@ -71,9 +68,9 @@ func get_credits() -> int:
 	return ledger.credits
 
 
-## The research points the player has to pay with, by race.
-func get_points() -> Dictionary[Race.Type, int]:
-	return ledger.get_all_research()
+## The research points the player has to pay with.
+func get_points() -> int:
+	return ledger.get_research()
 
 
 ## Whether the player can pay for an upgrade they couldn't pay for when they last closed
@@ -127,8 +124,8 @@ func research(upgrade: Upgrade) -> void:
 		return
 	if upgrade.credits > 0:
 		ledger.spend(upgrade.credits)
-	for race: Race.Type in upgrade.points:
-		ledger.spend_research(race, upgrade.points[race])
+	if upgrade.points > 0:
+		ledger.spend_research(upgrade.points)
 	_research.research(upgrade)
 
 
@@ -138,7 +135,6 @@ func _debug_add_credits() -> void:
 	commit()
 
 
-# The debug panel's Add research, which gives points of every race, each shown under its count.
+# The debug panel's Add research, shown under the research points' count.
 func _debug_add_research() -> void:
-	for value: int in Race.Type.values():
-		ledger.earn_research(value as Race.Type, DEBUG_RESEARCH)
+	ledger.earn_research(DEBUG_RESEARCH)

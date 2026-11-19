@@ -86,9 +86,9 @@ func open_next_stage() -> void:
 	stage_opened.emit(_open_stages - 1)
 
 
-## How [param upgrade] shows, with [param credits] and [param points], research points by
-## race, to pay with.
-func get_state(upgrade: Upgrade, credits: int, points: Dictionary[Race.Type, int]) -> State:
+## How [param upgrade] shows, with [param credits] and [param points], research points, to
+## pay with.
+func get_state(upgrade: Upgrade, credits: int, points: int) -> State:
 	if is_researched(upgrade):
 		return State.RESEARCHED
 	if not is_stage_open(get_stage(upgrade)):

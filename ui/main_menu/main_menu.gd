@@ -91,7 +91,6 @@ func _on_settings_menu_save_deleted() -> void:
 # next run has the tutorial.
 func _debug_delete_save() -> void:
 	SaveGame.delete()
-	SaveGame.forget_tutorial()
 	_show_save_buttons()
 	_first_button().grab_focus()
 

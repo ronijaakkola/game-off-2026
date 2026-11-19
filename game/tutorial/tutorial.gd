@@ -326,7 +326,7 @@ func _on_guide_acknowledged() -> void:
 			_rules.pause(false)
 			_go_to(Step.MONEY)
 		Step.MONEY:
-			resource_bar.breathe(PASSENGER_RACE, false)
+			resource_bar.breathe(false)
 			_go_to(Step.REFUEL)
 		Step.RESEARCH:
 			_go_to(Step.UPGRADE)
@@ -393,7 +393,7 @@ func _bring_in_money() -> void:
 	await hud.reveal([HudLayout.Part.RESOURCE_BAR])
 	if _step == Step.MONEY:
 		_open_card(resource_bar)
-		resource_bar.breathe(PASSENGER_RACE, true)
+		resource_bar.breathe(true)
 
 
 # Docked at home: once the station panel has slid in with its Research button, the card
@@ -483,8 +483,7 @@ func _distance_left() -> float:
 	return bus.global_position.distance_to(_goal.get_body_global_position())
 
 
-# The tutorial's passenger waits at home: always blue, so the research point they pay is
-# always blue too.
+# The tutorial's passenger waits at home, always blue, so every tutorial looks the same.
 func _add_passenger() -> void:
 	waiting.deal_next(PASSENGER_RACE)
 	waiting.add(home)

@@ -3,12 +3,11 @@ extends Quest
 ## A quest: the passenger changes their mind mid-ride and wants another planet, one that
 ## isn't on the route, to be the bus's next stop. Accepting it changes their destination
 ## ([method Passenger.reroute]), so it is always a detour for everyone else on board.
-## Declining changes it all the same: they still go there, only not next.
 
 const KIND := "express"
 ## Seconds the bus takes to park, on top of the flight.
 const PARK_SECONDS := 2.0
-## What it pays: credits, and research points of the passenger's race.
+## What it pays: credits and research points.
 const REWARD_CREDITS := 30
 const REWARD_RESEARCH := 2
 const LINES: Array[String] = [
@@ -53,7 +52,7 @@ func plan(
 	trip_seconds = waiting.get_trip_seconds(distance, flying) + PARK_SECONDS
 	base_fare = distance * waiting.fare_per_unit
 	reward_credits = REWARD_CREDITS
-	reward_research = {who.race: REWARD_RESEARCH}
+	reward_research = REWARD_RESEARCH
 	_line = LINES[rng.randi_range(0, LINES.size() - 1)]
 	return true
 
@@ -90,10 +89,6 @@ func get_transmission() -> Transmission:
 func accept() -> void:
 	passenger.reroute(planet, trip_seconds, base_fare)
 	goal = ExpressGoal.new(passenger)
-
-
-func decline() -> void:
-	passenger.reroute(planet, trip_seconds, base_fare)
 
 
 func _planet_name() -> String:

@@ -72,10 +72,13 @@ func _ready() -> void:
 	_cabin = _system.get_node(^"%Cabin") as Cabin
 	_waiting = _system.get_node(^"%WaitingPassengers") as WaitingPassengers
 	_lab = _system.get_node(^"%ResearchLab") as ResearchLab
+	# Nobody is promoted, so the run stays on the first research stage after the goals.
+	(_system.get_node(^"%Progression") as Progression).promotes = false
+	var first := (_system.get_node(^"%StarMap") as StarMap).get_current()
 	_ledger = _system.get_ledger()
-	_collect_planets(_system)
-	_recorder.rating_goal = float(overrides.get("rating_goal", SolarSystem.START_RATING))
-	_recorder.deliveries_goal = int(overrides.get("deliveries_goal", SolarSystem.START_DELIVERIES))
+	_planets = (_system.get_node(^"%StarMap") as StarMap).get_active_planets()
+	_recorder.rating_goal = float(overrides.get("rating_goal", first.rating))
+	_recorder.deliveries_goal = int(overrides.get("deliveries_goal", first.deliveries))
 	_overrides.apply_to_scene(_system, _planets)
 	# The same dice for the same seed: the lines start over with it, and the calls.
 	var seed_value := int(_config.get("seed", 1))
@@ -87,7 +90,7 @@ func _ready() -> void:
 	_bus.docked.connect(_on_docked)
 	_bus.ran_out_of_fuel.connect(_on_ran_out_of_fuel)
 	_bus.temperature.overheated.connect(_on_overheated)
-	_detour = Detour.new(_bus, _system.get_node(^"World/Star") as Node3D)
+	_detour = Detour.new(_bus, _system.get_node(^"World/Sol/Star") as Node3D)
 	_stop_dice.seed = seed_value + 32452843
 	var call_dice := RandomNumberGenerator.new()
 	call_dice.seed = seed_value + 15485863
@@ -318,12 +321,9 @@ func _upgrade_rows(here: Planet) -> Array[Dictionary]:
 	for tree: ResearchTree in _lab.trees:
 		for i: int in tree.upgrades.size():
 			var upgrade := tree.upgrades[i]
-			var state := research.get_state(upgrade, _ledger.credits, _ledger.get_all_research())
+			var state := research.get_state(upgrade, _ledger.credits, _ledger.get_research())
 			if state == Research.State.HIDDEN or state == Research.State.NEEDS_PROMOTION:
 				continue
-			var points := {}
-			for race: Race.Type in upgrade.points:
-				points[Race.Type.find_key(race)] = upgrade.points[race]
 			var seats := 0
 			for modifier: StatModifier in upgrade.modifiers:
 				if modifier.stat == BusStats.Type.SEATS:
@@ -342,7 +342,7 @@ func _upgrade_rows(here: Planet) -> Array[Dictionary]:
 						"does": upgrade.description,
 						"not_built": upgrade.description.contains("NOT IMPLEMENTED"),
 						"credits": upgrade.credits,
-						"points": points,
+						"points": upgrade.points,
 						"requires": requires,
 						"seats": seats,
 						"state": (Research.State.find_key(state) as String).to_lower(),
@@ -361,13 +361,6 @@ func _upgrade(id: String) -> Upgrade:
 			var index := int(parts[1])
 			return tree.upgrades[index] if index >= 0 and index < tree.upgrades.size() else null
 	return null
-
-
-func _collect_planets(node: Node) -> void:
-	for child: Node in node.get_children():
-		if child is Planet:
-			_planets.append(child as Planet)
-		_collect_planets(child)
 
 
 func _planet(planet_name: String) -> Planet:

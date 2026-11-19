@@ -98,12 +98,10 @@ func _set_cost(upgrade: Upgrade) -> void:
 	var own: Variant = (_overrides.get("upgrade_cost", {}) as Dictionary).get(upgrade.title)
 	if own is Array:
 		upgrade.credits = int(own[0])
-		for race: Race.Type in upgrade.points:
-			upgrade.points[race] = int(own[1])
+		upgrade.points = int(own[1])
 	var points: Array = _overrides.get("upgrade_points", [])
 	if upgrade.tier < points.size():
-		for race: Race.Type in upgrade.points:
-			upgrade.points[race] = int(points[upgrade.tier])
+		upgrade.points = int(points[upgrade.tier])
 
 
 # Sets each "owner.member" override whose owner is among [param owners].

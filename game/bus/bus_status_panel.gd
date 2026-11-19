@@ -57,6 +57,11 @@ func get_frameshift_key() -> Control:
 	return %FrameshiftKey
 
 
+## The temperature gauge, its name and degrees with its bar, for a guide card to point at.
+func get_temperature_gauge() -> Control:
+	return %TemperatureColumn
+
+
 func _show() -> void:
 	if not bus:
 		return

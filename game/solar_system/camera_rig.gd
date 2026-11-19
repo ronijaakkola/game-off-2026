@@ -200,6 +200,12 @@ func set_distance(value: float) -> void:
 	_place_shot()
 
 
+## Eases the zoom to [param to], within [member min_distance] and [member max_distance], as
+## the wheel does.
+func zoom_to(to: float) -> void:
+	_target_distance = clampf(to, min_distance, max_distance)
+
+
 ## Puts the look-at point at [param point] at once, within the bounds, and stops any pan.
 func move_to(point: Vector3) -> void:
 	_pan_velocity = Vector3.ZERO

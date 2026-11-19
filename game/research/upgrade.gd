@@ -12,8 +12,8 @@ extends Resource
 @export var icon: Texture2D
 ## Its cost in credits.
 @export var credits := 0
-## Its cost in research points, by race. A race left out costs none.
-@export var points: Dictionary[Race.Type, int] = {}
+## Its cost in research points.
+@export var points := 0
 ## The paths to it: upgrades from the same tree, any one of which researched opens it. Each
 ## one is an [Upgrade]: typed as one, the script names itself and leaks at exit.
 @export var requires: Array[Resource] = []
@@ -29,25 +29,6 @@ extends Resource
 @export var column := 0
 
 
-## The race whose points it costs most, the first in [enum Race.Type] on a tie: its tile
-## shows in that race's colours, since each race's points are for one part of the bus. Only
-## for an upgrade that costs points.
-func get_race() -> Race.Type:
-	var race := Race.Type.BLUE
-	var most := -1
-	for value: int in Race.Type.values():
-		var amount: int = points.get(value as Race.Type, 0)
-		if amount > most:
-			race = value as Race.Type
-			most = amount
-	return race
-
-
-## Whether [param credits_held] and [param points_held], research points by race, pay for it.
-func can_afford(credits_held: int, points_held: Dictionary[Race.Type, int]) -> bool:
-	if credits_held < credits:
-		return false
-	for race: Race.Type in points:
-		if points_held.get(race, 0) < points[race]:
-			return false
-	return true
+## Whether [param credits_held] and [param points_held], research points, pay for it.
+func can_afford(credits_held: int, points_held: int) -> bool:
+	return credits_held >= credits and points_held >= points

@@ -58,6 +58,11 @@ func _dump_value(file: String, at: String, value: Variant) -> void:
 			_dump_object(file, at + "/", resource)
 		else:
 			print("%s %s = %s" % [file, at, resource.resource_path])
+	elif value is Node:
+		# A node export, by name: printed whole, its own state, such as a random seed, would
+		# differ from one load to the next.
+		var node: Node = value
+		print("%s %s = <%s %s>" % [file, at, node.get_class(), node.name])
 	elif value is Array:
 		var array: Array = value
 		print("%s %s = Array[%d]" % [file, at, array.size()])

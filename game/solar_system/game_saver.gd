@@ -4,12 +4,13 @@ extends Node
 ## back. Only a run the main menu started is saved or continued; a scene started any other
 ## way runs a new run and saves nothing.
 ## The run is saved at checkpoints: once something it keeps has changed and the bus waits
-## at a planet with no stop under way. A new run saves at once, over any save. A continued
-## run starts docked at the planet it was saved at, so quitting in flight loses only the
-## flight. It keeps where each planet is on its orbit, the bus's planet and fuel, the
-## [Ledger], the researched upgrades and open research stages, the passengers on board and
-## in every line, the goals' progress and the quest under way. The course, the charge and
-## what passengers were doing start afresh.
+## at a planet with no stop under way. A new run saves at once, over any save, and starts
+## docked at [member new_run_planet]. A continued run starts docked at the planet it was
+## saved at, so quitting in flight loses only the flight. It keeps where each planet is on
+## its orbit, the bus's planet and fuel, the [Ledger], the researched upgrades and open
+## research stages, the passengers on board and in every line, the goals' progress, the
+## quest under way and how far through the star systems the player has got. The course,
+## the charge and what passengers were doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
@@ -26,6 +27,8 @@ const PLANET_TREES: Dictionary[String, String] = {
 
 ## The bus whose planet, fuel and stats are kept.
 @export var bus: FrameshiftBus
+## Where a new run's bus starts docked, with the tutorial or without it.
+@export var new_run_planet: Planet
 ## Who is on board.
 @export var cabin: Cabin
 @export var goals: GoalTracker
@@ -33,6 +36,8 @@ const PLANET_TREES: Dictionary[String, String] = {
 @export var quest_giver: QuestGiver
 ## Which upgrades are researched, which stages are open, and every research tree.
 @export var research_lab: ResearchLab
+## Which star systems are open and joined. The bus's planet says which one it works in.
+@export var star_map: StarMap
 
 ## Who waits at each planet. The parent sets it before [method start].
 var waiting: WaitingPassengers
@@ -53,7 +58,8 @@ func _process(_delta: float) -> void:
 		_write()
 
 
-## Takes the run the main menu started, if any. Continuing one, it puts [param planets]
+## Takes the run the main menu started, if any. A new one starts the bus at
+## [member new_run_planet]. Continuing one, it puts [param planets]
 ## back on their orbits, the bus at its planet and [param ledger] as it was: call it before
 ## the scene is ready, so everything starts there and the HUD shows the saved values.
 func place_world(planets: Array[Planet], ledger: Ledger) -> void:
@@ -63,6 +69,8 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	_saved = SaveGame.claim_run()
 	_continued = not _saved.is_empty()
 	if not _continued:
+		if _recording and new_run_planet:
+			bus.start_planet = new_run_planet
 		return
 	var by_name := _get_planets_by_name()
 	var orbits: Dictionary = _saved.get("planets", {})
@@ -73,6 +81,12 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	if bus_planet:
 		bus.start_planet = bus_planet
 	ledger.load_save(_saved.get("ledger", {}))
+
+
+## What the continued run kept of the [StarMap], for [method StarMap.restore]: empty for a
+## new run. Only before [method start].
+func get_saved_star_map() -> Dictionary:
+	return _saved.get("star_map", {})
 
 
 ## Whether this run starts with the tutorial: a new run, until the player has been through
@@ -87,9 +101,9 @@ func finish_tutorial() -> void:
 		SaveGame.mark_tutorial_done()
 
 
-## Whether this run continues a save.
-func is_continued() -> bool:
-	return _continued
+## Whether the main menu started this run, new or continued, so it is saved.
+func is_saved_run() -> bool:
+	return _recording
 
 
 ## Whether the main menu started this run afresh, rather than continuing a save or the
@@ -110,13 +124,15 @@ func start() -> void:
 	cabin.kicked.connect(_on_changed.unbind(1))
 	if quest_giver:
 		quest_giver.changed.connect(_on_changed)
+	if star_map:
+		star_map.changed.connect(_on_changed)
 	research_lab.get_research().researched.connect(_on_changed.unbind(1))
 	research_lab.get_research().stage_opened.connect(_on_changed.unbind(1))
 	_ledger.credits_earned.connect(_on_changed.unbind(1))
 	_ledger.credits_spent.connect(_on_changed.unbind(1))
 	_ledger.credits_set.connect(_on_changed)
-	_ledger.research_earned.connect(_on_changed.unbind(2))
-	_ledger.research_spent.connect(_on_changed.unbind(2))
+	_ledger.research_earned.connect(_on_changed.unbind(1))
+	_ledger.research_spent.connect(_on_changed.unbind(1))
 	# A new run takes over the save at once, so Continue never brings back an older one.
 	_dirty = not _continued
 
@@ -151,6 +167,7 @@ func _write() -> void:
 		"ledger": _ledger.to_save(),
 		"research": researched,
 		"research_stages": research.get_open_stages(),
+		"star_map": star_map.to_save() if star_map else {},
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,

@@ -115,7 +115,7 @@ func _on_remove_pressed(stop: RouteStop) -> void:
 static func is_ready(waiting_bus: FrameshiftBus) -> bool:
 	var waiting := waiting_bus.state in [FrameshiftBus.State.DOCKED, FrameshiftBus.State.HOLDING]
 	var cooling := waiting_bus.temperature.is_cooling()
-	return waiting and waiting_bus.get_last_stop() != null and not cooling
+	return waiting and waiting_bus.last_stop != null and not cooling
 
 
 # Keeps where the line starts as the bus reaches stops: a planet it docks at on the way,

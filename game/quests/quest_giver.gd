@@ -8,8 +8,7 @@ extends Node
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
 ## passenger. A completed quest pays its reward; a failed one costs the passenger
 ## [constant FAIL_SHOCK] if they still ride, so nothing more when a kick failed it.
-## Declining makes the quest's change all the same ([method Quest.decline]) and costs them
-## [constant DECLINE_SHOCK], and so does a call left unanswered until
+## Declining costs them [constant DECLINE_SHOCK], and so does a call left unanswered until
 ## the bus reaches a planet. A call ends unanswered, at no cost, when its caller leaves the
 ## bus.
 ## A finished quest stays among [method get_quests] for [constant SHOWN_SECONDS], so its
@@ -274,7 +273,6 @@ func _on_answered(accepted: bool) -> void:
 		_rest()
 		return
 	if not accepted:
-		quest.decline()
 		quest.passenger.shock(DECLINE_SHOCK)
 		_rest()
 		return
@@ -288,8 +286,8 @@ func _on_goal_completed(goal: Goal) -> void:
 		return
 	if _ledger:
 		_ledger.earn(_quest.reward_credits)
-		for race: Race.Type in _quest.reward_research:
-			_ledger.earn_research(race, _quest.reward_research[race])
+		if _quest.reward_research > 0:
+			_ledger.earn_research(_quest.reward_research)
 	notices.push("Quest done: %s" % goal.get_text(), Notice.Kind.INFO, false, NOTICE_SECONDS)
 	if quick_text:
 		quick_text.show_text(COMPLETED_TEXT, COMPLETED_ICON, BusQuickText.Kind.GAIN)

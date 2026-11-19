@@ -231,7 +231,7 @@ func _place() -> void:
 func _refresh() -> void:
 	if not research or not ledger:
 		return
-	var points := ledger.get_all_research()
+	var points := ledger.get_research()
 	for column: ResearchColumn in _columns:
 		column.show_state(research, ledger.credits, points)
 	_reveal_opened_stages()

@@ -37,7 +37,7 @@ var quest := ""
 var quest_planet: Planet
 ## What a quest pays when it is done. Nothing shows when both are empty.
 var reward_credits := 0
-var reward_research: Dictionary[Race.Type, int] = {}
+var reward_research := 0
 ## The primary button's label, and the quiet button's beside it. Without a decline label
 ## there is only the primary button.
 var accept_text := "Got it"
@@ -81,4 +81,4 @@ func is_quest() -> bool:
 
 ## Whether it shows a reward.
 func has_reward() -> bool:
-	return reward_credits > 0 or not reward_research.is_empty()
+	return reward_credits > 0 or reward_research > 0

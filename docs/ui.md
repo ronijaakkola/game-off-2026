@@ -36,7 +36,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - Hover lightens a control one step and pressing dips it below its default.
 - **A press is felt.** A held button shrinks to 96 % about the point it was pressed at, and springs back when let go, ending a touch over its size before it settles. Toggles, sliders, research tiles, the bus keys and the buttons held down to fill (refuel, serve, hold to confirm) don't. Under Reduce motion nothing changes size.
 - **Fonts.** Baloo 2 is the UI font, for names, labels, buttons, headings and numbers (tabular); Figtree is only for sentences, such as status lines, notices and what a passenger is doing.
-- **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them.
+- **Placement.** Panels hug a screen corner 12 px from the edges and leave the solar system clear: On board top left, the resource bar top centre, the goal panel top right with the station (dock panel) under it, and the route and bus bars on the bottom edge, centred, with notices above them, and the pause button bottom left.
 - Spacing is on a 4 px scale.
 - **Tooltips** name a counter or an icon-only key: a solid dark card (`#0B0920`) with the surface's border and 8 px corners, no shadow, so it reads over the map and over glass. A name and, when it helps, one sentence in fainter running text, at most 200 px wide.
   - It sits 8 px from its target's panel, centred on the target: below the resource bar, above the bus bar. A research tile's sits above the tile. Near a side edge of the screen it stays 8 px inside it, and still grows from the target's centre.
@@ -48,11 +48,13 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
   - A notch 14 px wide and 7 px long, part of the card's outline, sits on the edge facing the target and points at its middle, its tip 12 px from the target, room for the target's ring.
   - The owner picks the side that covers least: below a top panel, above the bus bars, beside the dock panel. The card follows its target, stays 12 px inside the screen, and its notch slides along its edge to stay on the target, no closer than 16 px to a corner.
   - A tutorial step can have step dots at the bottom, 4 px apart: the current one 8 px and white, those done 6 px and dim, those to come 6 px and faint. The tutorial shows none for now. Only a step that just tells the player something has the Got it button, at the bottom right.
-  - A feature hint has a "Game paused" tag with a pause icon at the right of the title, and a small primary Got it button at the bottom right. No step dots.
+  - A feature hint has a "Game paused" tag with a pause icon at the right of the title, and a small primary Got it button at the bottom right. No step dots. While one shows, the music is muffled as under a transmission, easing in over 0.4 s and clearing over 0.6 s once the last hint goes; the tutorial's steps leave the music alone.
+  - A feature hint rings its target, so the eye finds it, as a trip's ring does its destination: a white 2 px line with a 1 px dark outline, 3 px out from the target, with 9 px corners (a target too small for them gets a round ring). As the card opens it closes in from 14 px farther out while fading in, over 0.35 s easing out; then every 1.6 s a pulse spreads 18 px out from it and fades, under the card. It fades out as the card closes. Under Reduce motion it fades in in place and holds still. Tutorial steps have none for now.
   - It opens and closes as a tooltip does: opening, it slides 6 px out from the target into place while fading in and growing from 94 % out of its notch, in 0.15 s, easing out; closing, it only fades and shrinks back, in 0.1 s. Either turns round from where it is. It stays open while the game is paused. Under Reduce motion it only fades.
   - **The step dots move on** a beat after the card is in (0.1 s): the current dot's size and white glide to the next dot over 0.3 s, easing in and out, the one it leaves shrinking and dimming to done. A card that opens on a later step for the first time moves on from the step before. Under Reduce motion the dots change at once.
+  - **From one feature hint to the next,** as from one tutorial step to the next. The heat zone's shows above the temperature gauge, the business passenger's left of their row in the dock panel, 0.9 s after the row is in.
   - **From one tutorial step to the next,** the card closes where it is, and the next step's opens on its own target 0.25 s after it has gone, never moving between the two.
-  - The tutorial's steps show them: right of the bus; left of the waiting passenger's row, once the station card has come in; right of the On board panel, once it has come in and the passenger's card has slid into it, 0.5 s after that card starts; left of the Moon; above the Frameshift key; right of the passenger's serve button; right of their rating stars; under the resource bar once it has come in, while the credits and the blue research count breathe (growing to 115 % and back every 1.2 s, easing both ways; still under Reduce motion); left of the station's fuel button; right of Terra's lab badge, once it has popped in (0.5 s after the tank is full it fades in growing from 40 % with a slight overshoot over 0.35 s, then 0.2 s on the card; under Reduce motion it only fades); left of the station's Research button, 0.6 s after the bus docks at Terra; and in the research screen, once its sheet has grown in, right of its title, right of Fuel tank 1's tile, and left of its close button, which is off until then.
+  - The tutorial's steps show them: right of the bus; left of the waiting passenger's row, once the station card has come in; right of the On board panel, once it has come in and the passenger's card has slid into it, 0.5 s after that card starts; left of the Moon; above the Frameshift key; right of the passenger's serve button; right of their rating stars; under the resource bar once it has come in, while the credits and the research count breathe (growing to 115 % and back every 1.2 s, easing both ways; still under Reduce motion); left of the station's fuel button; right of Terra's lab badge, once it has popped in (0.5 s after the tank is full it fades in growing from 40 % with a slight overshoot over 0.35 s, then 0.2 s on the card; under Reduce motion it only fades); left of the station's Research button, 0.6 s after the bus docks at Terra; and in the research screen, once its sheet has grown in, right of its title, right of Fuel tank 1's tile, and left of its close button, which is off until then.
 - The Frameshift key is the one control that isn't flat: a physical key that sinks when pressed.
 
 ### Pointer
@@ -78,7 +80,8 @@ A race shows in two ways, so it reads without colour: its skin colour, and the b
 | Green | `#99e673` | `#296138` | Middle: a thin neck, eyes out on the ends of things | Stalks; the Hammer, eyes on the ends of a bar |
 
 - With red-green colour blindness, orange and green both turn yellowish. They stay apart because the orange is darker and the green lighter, and their builds are the most different pair.
-- A race's colour marks whatever belongs to that passenger or that race's points: their trip arc, their row's border, a tree's accent.
+- A race's colour marks whatever belongs to that passenger: their trip arc, their row's border. Each research tree is drawn in one race's colours too, only to tell the trees apart: Performance blue, Planets green, Comfort orange.
+- **Research points** are a light violet (`c3a6ff`), wherever they show: their flask, the chip tinted behind them, a gain of them. No race has it, since points are one kind.
 - The planets' hues aren't final: the Giant and Terra come close to the races' colours.
 
 ### Reduce motion
@@ -121,6 +124,20 @@ A stamp of a few words with an icon that lands over the bus when something about
 - Once the bus starts to park, the ship reels the cable in over a third of a second, veers off and frameshifts out.
 - **A frameshift jump** takes 0.3 s and 2.5 units: the ship stretches long and thin along its heading, and a thin white-cyan streak fades over half a second.
 
+### The jump to the next star system
+
+- It reads as a scene change: the two systems never show together.
+- The open planet or bus closes, the HUD leaves as at the tutorial's end, and nothing can be clicked until the bus is out of the jump. The camera closes in on the bus, centred on screen and far enough back for the shift out to stay in view.
+- The bus swings round to face the next system over 0.6 s, easing in and out and banking into the turn, its thrusters lighting. Then it winds up for 0.7 s: it draws back 0.2 units, easing in and out, as a smooth rumble builds to 0.02 units, a few waves that don't line up rather than the charge's random shake, which jitters up close.
+- It frameshifts out as the tow ship does: stretched long and thin along its heading, leaving the same streak. Meanwhile black closes in on a circle round where it was, over 0.9 s, easing in, until the screen is black.
+- The screen stays black for 0.4 s while the old system hides and the camera cuts to the new one.
+- A circle opens from where the bus will come out, over 0.9 s, easing out, a little way off the new system's home planet. 0.35 s in, the bus frameshifts in there.
+- It flies in, parks and docks with the bell, while the camera eases back out to the map over the new system and the HUD comes back. A notice says "Welcome to Lyra. Deliver passengers to get promotion." for 8 s.
+- Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the screen fades to black and back over 0.5 s each way.
+- **The join**, in the last system, is the first time two systems show at once: every system appears, and the camera pulls back over 5 s, easing in and out, from where it is to over the middle of them all at its farthest zoom, zooming by the same factor every step so it reads as a steady rise. Pan and zoom wait until it ends. Under Reduce motion it cuts there.
+- Under Reduce motion the camera and the bus cut straight there, and the bus flies in from where it comes out.
+- **Joining the systems,** the camera eases out toward the farthest zoom, and a notice says every star system is open for 8 s.
+
 ## The map
 
 - **Hover.** The pointer over a planet shows a white border round it, over its orange route border. Where the bus and a planet overlap, only the one a left click would open shows it. Over the HUD, the pointer picks nothing.
@@ -139,7 +156,7 @@ A stamp of a few words with an icon that lands over the bus when something about
 
 - **Zoomed in** for the tutorial, Terra fills the middle of the screen and the Moon sits still on a thin orbit line around it, with the camera looking at Terra and kept near it. The star's body, the other planets and every other orbit line are hidden; the starlight still falls from where the star is.
 - Orbit lines and names keep their size on screen, so only the bodies look zoomed. The bus keeps its size too.
-- **The zoom out** starts once the HUD has gone: every panel, the bus bars and the notices fade out one after another, 0.08 s apart over 0.35 s each, easing in, the top panels rising 12 px and the bus bars sinking 12 px; the lab badges go with them. It takes 7 s, easing in and out. The world shrinks by the same factor in every equal step, so it reads as a steady pull back, while the camera glides to frame the whole map: out to its outermost orbit it takes 94 % of the screen's height, centred top to bottom, so the star sits a little above the middle; the zoom eases with the rest. The camera is locked from the call until the HUD comes back: no pan, edge pan, drag or zoom. The star and the other planets keep their whole-map size as the world shrinks around them, so they glide in from past the screen's edges, and the other orbit lines fade in. The planets start orbiting with it, their speed rising from nothing as the square of how far it has got. Then it holds for 4 s before the HUD comes back as the tutorial's panels do, the bus bars rising 12 px as they fade in, and the camera is the player's. Under Reduce motion it cuts, still holds, and the HUD only fades.
+- **The zoom out** starts once the HUD has gone: every panel, the bus bars, the notices and the pause button fade out one after another, 0.08 s apart over 0.35 s each, easing in, the top panels rising 12 px and the bus bars sinking 12 px; the lab badges go with them. It takes 7 s, easing in and out. The world shrinks by the same factor in every equal step, so it reads as a steady pull back, while the camera glides to frame the whole map: out to its outermost orbit it takes 94 % of the screen's height, centred top to bottom, so the star sits a little above the middle; the zoom eases with the rest. The camera is locked from the call until the HUD comes back: no pan, edge pan, drag or zoom. The star and the other planets keep their whole-map size as the world shrinks around them, so they glide in from past the screen's edges, and the other orbit lines fade in. The planets start orbiting with it, their speed rising from nothing as the square of how far it has got. Then it holds for 4 s before the HUD comes back as the tutorial's panels do, the bus bars rising 12 px as they fade in, and the camera is the player's. Under Reduce motion it cuts, still holds, and the HUD only fades.
 - Under Reduce motion it cuts to the whole map.
 
 ## The HUD
@@ -153,7 +170,7 @@ A stamp of a few words with an icon that lands over the bus when something about
 | Above the bus bars | Notices |
 | Right side | The open planet's or bus's panel, over the dock panel |
 | Middle, over the paused game | Transmission |
-| Bottom left | Debug panel (F2) |
+| Bottom left | Pause button; the debug panel (F2) over it |
 
 - **While a planet's or the bus's panel is open,** the bus bars and the notices hide, the goal panel fades out over 0.2 s (and back in when the panel closes), and the resource bar moves to stay centred between the On board panel and the open panel.
 
@@ -162,7 +179,7 @@ A stamp of a few words with an icon that lands over the bus when something about
 A frosted-glass pill with a thin border and no shadow: what is behind it shows blurred under a translucent fill. It holds the credits, the three research counts and the recent rating, split by thin dividers.
 
 - **Credits:** beside a gold dollar sign, with a comma between thousands (12,480). The pointer over it shows a tooltip: "Credits", "Fares you have earned. Fuel and tows cost credits."
-- **Research:** for each race a flask in its skin colour and its count, on a chip tinted in the race's colour, in the research screen's order: blue, green, orange. The pointer over them shows a tooltip: "Research points", "One for each passenger you deliver, in their colour. Planets trade them for upgrades."
+- **Research:** a flask and the count, on a chip tinted in the research points' violet. The pointer over it shows a tooltip: "Research points", "One for each passenger you deliver. Planets trade them for upgrades."
 - **Rating:** the recent rating to one decimal beside a yellow star, or a dash before the first. The pointer over it shows a tooltip: "Recent rating", "Your last 10 rides. A higher rating brings more Business passengers."
 - **Gains and losses** show on chips hanging 4 px under the pill, centred under their number and taking no room in it: a solid dark chip (the tooltip's fill) 18 px tall with 8 px corners, a thin border in the change's colour and 12 px digits. Green "+15", red "-12", grouped as the totals are ("+1,000").
 - A chip slides 6 px down from the pill's edge while fading in, in 0.15 s, easing out, and leaves the same way back, easing in. When its number changes it dips 2 px and comes back in 0.12 s. It sits on whole pixels and nothing scales. Under Reduce motion it only fades.
@@ -170,8 +187,8 @@ A frosted-glass pill with a thin border and no shadow: what is behind it shows b
 - Spending shows at once and goes in the way a gain does: 0.6 s after the last of it, the loss leaves while the total counts down in red, together with the chips of any points spent with it. More spent meanwhile adds to it. While a gain waits, the loss sits left of it, so the gain stays put and neither reaches under the research counts.
 - The total never jumps. A count starts from what the total shows, so a change that comes during one carries on from there, and a stop ending while a loss waits takes both in at once, counting to what is left.
 - **The rating** does the same: each one shows how far the average moved ("+0.2", "-0.3", "±0.0" in grey), and the average moves in that colour. The very first just appears with a pop.
-- **Research.** A point shows as "+1" in its race's colour under its count until the stop's chips leave. Another change the same way meanwhile adds to it ("+2"). Points spent show the same way, in red, for 0.6 s.
-- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 264 px and first changes at 1,000 credits or 100 points.
+- **Research.** A point shows as "+1" in the points' violet under the count until the stop's chips leave. Another change the same way meanwhile adds to it ("+2"). Points spent show the same way, in red, for 0.6 s.
+- **The pill never wobbles.** Every digit is the same width. Each number has room for what it shows early on (credits three digits, research two, the rating "0.0"), so it starts at 176 px and first changes at 1,000 credits or 100 points.
 - When a number gains or loses a digit, the pill stays centred and glides to the new width in 0.3 s, easing out. A count makes room for its widest number before it starts, so the pill changes width once per count.
 - Under Reduce motion nothing pops or drifts, and the width changes at once.
 
@@ -209,7 +226,7 @@ In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.
 - **Deliver 50 passengers:** the count ("12/50"), and the bar fills with it.
 - **Maintain 3.5 rating:** the recent rating ("3.7", or a dash before the first rating) on a bar of five stars, with a white mark at the target.
-- **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Go straight to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and each race's research points by a flask in its colour.
+- **A quest's row** has two lines. On top, the circle, what it asks and its planet's icon and name ("Go straight to", Frost). Under it, indented, the passenger who asked as a 16 px flat portrait without badges and their name, dim, and at the right the reward: the credits by a gold dollar sign and the research points by a violet flask.
 - **A done quest:** the green tick.
 - **A failed quest:** a red cross (`#F24D66`), the top line at half strength, no reward, and why it failed in the name's place ("Stopped at Moon first", "Reizhis was kicked", "Reizhis left the bus").
 - A finished quest's row stays 8 s, then goes.
@@ -223,6 +240,7 @@ The planet's station: it hangs under the goal panel in the top right corner whil
 - Under the title, the services, each with its icon on a small tile:
   - The fuel button, where the planet sells fuel.
   - A Research button, where the planet has a lab and the tutorial is over, in the same shape as the fuel button: a quiet tinted button of the same height, corners and font, its label centred and a chevron at its right edge, inset like the button's padding. It opens the research screen. While the player can pay for an upgrade they couldn't pay for when they last closed the research screen, it has a nudge, quieter than the Frameshift key's: a 1 px outline in the bus's yellow on its own edge, fading between 15 % and 60 % once every two seconds in step with the key, and holding at 60 % under Reduce motion. With nothing affordable, or only the same upgrades as then or fewer of them, no outline; a run continued from a save has seen none yet.
+  - After a promotion, at every planet until the bus jumps, a Jump button in the primary style with an arrow on its tile: "Jump to Lyra". While anyone is on board it reads "Drop everyone off to jump" and is off; it is off during a stop too. A notice says where to jump until the bus does: "Promoted! The Lyra system is open. Drop off your passengers, then jump there from a station."
 - Then a faint line and "Waiting passengers", with a Board all button under it. While every seat is taken or promised it reads "Bus full 4/4" and is off, as are the Board buttons; a click on an off Board button brings the bus full notice.
 - Under that, who waits there, longest waiting first: portrait, name, destination and a Board button. Or "Nobody waiting."
 - A Business passenger's portrait has a briefcase badge, here, in the open planet's rows and on their card on board (Portraits). A Commuter's has none.
@@ -259,7 +277,6 @@ Cards stacked above the bus bars, centred, 438 px wide, the width of the bus bar
 - **The tutorial's call.** A new run fades in from black over 2.5 s, easing in and out, once the loading card has gone, with only the bus bars showing. 0.8 s later The Boss's call notice comes in. After the transmission, the HUD's other panels come in as the tutorial's steps bring them in, the station card with the pick-up step, the On board panel as the passenger boards, their card sliding in only once the panel is in, and the resource bar once their card has slid out of it: each fades in while dropping 12 px into place over 0.5 s, easing out, several 0.08 s apart. Under Reduce motion they only fade.
 - **Next level.** After The Boss's call at the end of the run, a closable info notice: "The next level is not available yet." It stays until closed.
 - **Map open.** Once the zoom out is over, an info notice for 8 s: "The whole solar system is open. Deliver passengers to get promotion."
-- **Course hint.** In a run without the tutorial, until the player first sets a course, a tutorial notice: "Right-click a planet or space to set a course, and hold Shift to add stops. Backspace takes the last stop off." In Firefox it names Q for Shift.
 - **Low fuel.** Once the fuel falls to a quarter of a tank, where the gauge turns red, a closable warning: "Fuel is running low." It clears by itself once the fuel is back above a quarter, or the tank runs dry. Refuelling up from empty shows none.
 - **Overheating.** Once the temperature climbs to 45°, where the gauge turns amber, a closable warning: "The bus is overheating. Steer away from the star." It clears by itself once it is back under 45°, or the bus overheats.
 - **Overheated.** An error notice for the length of the cooldown: "The bus overheated. Cooling down..."
@@ -311,6 +328,7 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 
 - Each passenger has one of their race's two heads and one of two eye styles (Googly, Bead). Eye style is variety only, not a sign of race.
 - **Badges.** A passenger's type can put badges on the photo: dark discs with a faint light rim and a white icon, in a row that starts on the top left corner, reaching a little past it, and runs right, tilted with the photo. A disc is 15 px on a 32 px photo, reaching 4 px past the corner, and both grow half as fast as the photo: 19 px on a card's 48 px one. A type can have several. Business has one, a briefcase. A Commuter has none. The pointer over a badge shows a tooltip with the type's name and a line about it: "Business", "These passengers are more demanding but pay more." While a quest is about a passenger, a flag badge joins the row after their type's, and its tooltip says "Quest" and what it asks ("Take Sufoi straight to Moon").
+- **Bow tie.** A Business passenger wears a near-black bow tie with a slightly lighter knot, under the chin: on the neck, or on the body of a shape that has none. It shows wherever their portrait does, the transmission screen included. A Commuter wears none.
 - **Alive:** the head sways and breathes, the eyes blink and glance around, stalks wobble.
 - **Mood shows on the face, never the skin.** Annoyed, the lids slant down toward the middle like a frown over smaller pupils. Furious, more so, a red cartoon anger mark grows in at the upper right and pulses, and the head trembles.
 - **Happy,** they beam now and then for a second or two: lower lids rise so the eyes smile into crescents, the pupils look up, the head bobs. A beam rather than a constant half-smile, which reads as a squint at a card's size.
@@ -338,7 +356,7 @@ A frosted-glass modal, 552 px wide, in the middle of the screen over a dark scri
 - It looks like an old tube at all times: fine dark scanlines, a dark rim, faint grey snow and a soft bright band rolling down.
 - **Turning on.** It opens dark; a white line opens across the middle and the picture opens out from it in 0.9 s under a burst of static that settles to the faint snow. Answering closes the picture to a line and the line to nothing in 0.4 s; only once the screen is dark, after a short beat, does the modal fade and shrink a little (to 98 %) in 0.2 s.
 - **Beside it:** a phone icon and "Incoming transmission", faint; the caller's name, large; a passenger's destination at the right (arrow, planet icon, name); what they say, in Figtree 13 px. The text starts 4 px down, level with the coloured frame rather than the bezel. Money in what they say (a `[money]` tag) is in the dollar sign's gold, its letters bobbing 1.5 px one after another, with a pale glint running along it every 2.4 s; under Reduce motion it is only gold. A shouted word (a `[shout]` tag) shakes, each letter jumping up to 1.2 px on its own 18 times a second; under Reduce motion it holds still.
-- **A quest** adds a faint row under the text: a flag, its line ("Stop the bus near") and a planet. Over the buttons sits the reward, right-aligned: "Reward", the credits in the gain's green by a gold dollar sign, and a chip per race's research points.
+- **A quest** adds a faint row under the text: a flag, its line ("Stop the bus near") and a planet. Over the buttons sits the reward, right-aligned: "Reward", the credits in the gain's green by a gold dollar sign, and the research points on a violet chip.
 - **Buttons:** a message has one primary button ("Got it"); a quest has a quiet "No" and a primary "Yes". A message can also offer two answers that mean the same, as the boss's calls in the tutorial do: two primary buttons sharing the row equally.
 - **Opening.** The scrim and modal fade in as the modal grows from 96 % in 0.4 s while the tube turns on. A beat after the picture is up, the caller says their text a letter at a time at a speaking pace, about 25 a second for most races (each race's voice can run faster or slower) and never quite even, with a beat between words, a pause at a comma and a longer one at a full stop. Their head bobs as if with each word, stilling in the pauses, and their eyes stay on the player. After a 0.4 s pause to finish reading, the quest, the reward and the buttons fade in and rise into place one after another, 0.18 s apart over 0.5 s each, the quest rising most (8 px) and the buttons least (4 px). The buttons take clicks only once they start to show. A click on the modal before that shows the text whole and brings the rest in at once, with a tight stagger and no pause.
 - **Voice.** As the text types, the caller's race's clips play, tied to the words: each word of three or more letters gets a blip as it starts, picked to fit the time before the next word, and a long word gets a second one halfway. The word before a question or exclamation mark gets that mark's clip instead, timed to end as the mark shows. A long clip sometimes opens the line or sits at a comma or full stop, and holds the blips off until it is over. A clip never plays twice running, and its pitch varies a little. Each race has several voices, evenly spaced in pitch, and each caller's name picks one, so callers of a race sound clearly different. A clip may start a little before the last one ends, so two stack for a moment; a blip that would stack more is skipped, and an ending or a long clip fades out what it would stack on. Every clip fades in and out over a few milliseconds. A happy or annoyed caller opens with a stinger.
@@ -373,20 +391,20 @@ A modal over the whole screen, the game paused and dimmed under it: one frosted 
 - **Header:** a flask and "Research", a "Game paused" tag with a pause icon, the resource bar in the middle, and a Close button with an ✕. Esc closes it too, unless the pause menu is open over it.
 - **Opening** fades it in over 0.2 s while the sheet grows from 97 % to full size in 0.25 s. **Closing** lets the game run at once and fades it out in 0.15 s. Under Reduce motion it only fades.
 - While it is open, the HUD's resource bar hides; the header has its own.
-- **The trees** stand side by side, each on a faint card with its name ("Performance", "Stops", "Comfort") and a chip in its race's colour counting what is researched ("3/11").
+- **The trees** stand side by side, each on a faint card with its icon and name (a rocket and "Performance", a globe and "Planets", a heart and "Comfort") and a chip in its colour counting what is researched ("3/11"). The icon is 14 px in the tree's colour, 6 px before the name, its middle level with the middle of the name's capitals.
 - Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral in its top left corner.
 - **Stages.** The rows of every tree line up, with more room between two stages and a faint line across all the trees there. While the stage under it is shut, a "Requires promotion" tag with a lock sits in the middle of the line.
 - **A stage opening** shows the next time the screen is open, once it has faded in: the tag fades off the line in 0.2 s and the line closes up, and the stage's tiles fade in from silhouettes over 0.3 s, each row 40 ms after the one above.
-- A line runs from each upgrade to each one it needs, centre to centre: lit in the race's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
-- **The colours** are those of the race whose points the upgrade costs most.
+- A line runs from each upgrade to each one it needs, centre to centre: lit in the tree's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
+- **The colours** are the tree's: one race's, Performance blue, Planets green, Comfort orange.
 
 Every tile is flat, with no gradient, glow or shadow, and each state has its own fill.
 
 | Tile | Look |
 |---|---|
-| Researched | A solid fill in the race's colour; the icon and numeral in its deep shade |
-| Available | Dark, tinted toward the race's colour, with a 2 px border in it; a white icon |
-| Can't afford | Dark with a faint border in the race's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
+| Researched | A solid fill in the tree's colour; the icon and numeral in its deep shade |
+| Available | Dark, tinted toward the tree's colour, with a 2 px border in it; a white icon |
+| Can't afford | Dark with a faint border in the tree's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
 | Locked | Dark and dim, with a thin grey outline |
 | Hidden, or its stage shut | Near-black with no border, and a faint silhouette of its icon |
 
@@ -411,13 +429,14 @@ Titled "Frameshift Bus".
 
 - **Main menu:** title, Play, Settings, Quit (hidden on web). With a save game, Continue comes first as the primary button and has focus, and a plain "New game" button takes Play's place, with no hint that it has to be held: held for 1.2 s, a faint fill growing across it, it starts over; let go early, the fill drains back twice as fast. On web a title card (the game's title, "Click to start") comes first. The debug panel's "Delete save" deletes the save, and the menu turns back to Play; its "Reset settings" puts every setting back to its default.
 - **Show FPS** (settings, off by default): one line in the top right corner, over every scene, the HUD included: the frame rate, the size the game renders at in real pixels, the MSAA, and any rendering switch turned off ("40 FPS · 2560×1440 · MSAA 4x · no glass"). Small off-white text with a navy outline on a dark backing (`#0B0920` at 85 %, 4 px corners), 4 px from the corner.
+- **Pause button:** a 48 px glass square in the HUD's bottom left corner, 12 px from the edges, holding a quiet 40 px button with Lucide's pause icon at 16 px. Its tooltip, to its right: "Pause", "Esc pauses too." It leaves and comes back with the bus bars around the zoom out, sinking and rising 12 px as they do. While the screen is covered, as on a tutorial call, it takes no clicks, as nothing on the map does.
 - **Pause menu:** Resume, Settings, Main menu. Through the tutorial, a Skip tutorial button sits above them, 12 px further apart than the rest; it closes the menu. It fades in over 0.2 s and closes at once, as the game picks up at once.
 - **Settings:** three volume sliders, a rule, then the Reduce motion, Edge pan and Show FPS toggles, and Back as the primary button. Every row is 38 px high with its label and control centred, so the six rows have one pitch; the rule sits 16 px from the rows above and below. Opened from the main menu with a save game, a rule and a plain "Hold to delete save data" button sit above Back, held like New game; once full it reads "Save data deleted", greyed out, focus moves to Back, and the menu under it turns back to Play. The pause menu's settings have no Delete save.
 - **Loading.** A scene change fades to a black card with "Loading…" over a bar that fills in real steps, then fades back in.
 
 ## Debug panel
 
-F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. The Rendering group is there in every scene: MSAA off, 2x or 4x, and toggles for the glass blur and the stencil, each for this session only, so a slow frame can be traced on the machine where it is slow, with Show FPS on. Open research opens the research screen from anywhere, and Promote opens the next research stage.
+F2 opens it. Its buttons are whatever the running scene adds (`_debug_*` handlers in its script), so the list is in the code, not here. The Rendering group is there in every scene: MSAA off, 2x or 4x, and toggles for the glass blur and the stencil, each for this session only, so a slow frame can be traced on the machine where it is slow, with Show FPS on. Open research opens the research screen from anywhere. The Star systems card has Promote, which promotes at once, and Complete system, which also jumps the bus to the next system at once, from wherever it is, kicking anyone on board, or joins every system in the last one.
 
 ## Mixer
 
@@ -433,3 +452,5 @@ Debug panel (F2) › Mixer, on the main menu: one scrolling card for setting how
 - **Passenger cards while a planet is open.** The On board panel stays in the top left corner and can cover part of the open planet. Hide it, shrink it, or leave it?
 - **Boarding with the docked planet open.** The planet panel covers the dock panel, and its rows have no Board button and it has no fuel button, so the player closes it to pick anyone up or refuel.
 - **The charge ring** is temporary.
+- **The goal panel once the systems are joined** still says "To get promoted", though there is nothing left to be promoted to.
+- **The jump** has no sound of its own yet.

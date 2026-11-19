@@ -9,23 +9,24 @@ extends RefCounted
 ## kicks. Fuel is free at home and the
 ## destination, a trip between them burns half the tank ([method set_trip_burn]), and the
 ## passenger pays [constant FARE] ([method hold_fare]), so the player has just what Fuel
-## tank 1 costs, which is one blue research point. Nothing can be researched until the
+## tank 1 costs, which is one research point. Nothing can be researched until the
 ## tutorial says what ([member ResearchLab.researchable]).
 
 ## What the passenger pays.
 const FARE := 120.0
 ## The share of the tank a trip between home and the destination burns.
 const TRIP_FUEL := 0.5
-## The upgrade the tutorial researches, and what it costs in blue research points then.
+## The upgrade the tutorial researches, and what it costs in research points then.
 const FUEL_TANK := "Fuel tank 1"
-const FUEL_TANK_POINTS: Dictionary[Race.Type, int] = {Race.Type.BLUE: 1}
+const FUEL_TANK_POINTS := 1
 
 var _tutorial: Tutorial
 # What it changed, as it was.
 var _burn := 0.0
 var _prices: Dictionary[Planet, float] = {}
 var _fuel_tank: Upgrade
-var _fuel_tank_points: Dictionary[Race.Type, int] = {}
+# What the upgrade costs in research points outside the tutorial, or -1 while unchanged.
+var _fuel_tank_points := -1
 
 
 func _init(tutorial: Tutorial) -> void:
@@ -56,11 +57,12 @@ func apply() -> void:
 		planet.fuel_price = 0.0
 	if _fuel_tank:
 		_fuel_tank_points = _fuel_tank.points
-		_fuel_tank.points = FUEL_TANK_POINTS.duplicate()
+		_fuel_tank.points = FUEL_TANK_POINTS
 
 
 ## Puts the game back as it was, wherever the tutorial got to: unpaused, with the route
-## free, the lines running and nothing beckoning or breathing.
+## free, the lines running and nothing beckoning or breathing. It fills the tank, so the
+## run proper starts full however much the tutorial's trips burnt.
 func lift() -> void:
 	var t := _tutorial
 	t.lab_badges.only = []
@@ -77,9 +79,10 @@ func lift() -> void:
 	t.pause_menu.offers_skip_tutorial = false
 	t.bus.route_locked = false
 	t.dock_panel.beckon_boarding = false
-	t.resource_bar.breathe(Tutorial.PASSENGER_RACE, false)
+	t.resource_bar.breathe(false)
 	pause(false)
 	t.bus.get_fuel_tank().burn_per_unit = _burn
+	t.bus.get_fuel_tank().fill()
 	for planet: Planet in _prices:
 		planet.fuel_price = _prices[planet]
 	put_back_upgrade()
@@ -88,7 +91,7 @@ func lift() -> void:
 ## Puts Fuel tank 1's cost back. The upgrade is shared, and outlives the scene, so this
 ## runs even when the scene goes mid-tutorial.
 func put_back_upgrade() -> void:
-	if _fuel_tank and not _fuel_tank_points.is_empty():
+	if _fuel_tank and _fuel_tank_points >= 0:
 		_fuel_tank.points = _fuel_tank_points
 
 

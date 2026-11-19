@@ -1,36 +1,30 @@
 extends GdUnitTestSuite
 ## A new run opens on the boss's call with only the bus bars showing; answering it with
 ## either of the two answers starts the steps on the guide card beside the bus. Skipping the
-## tutorial puts back every rule it changed, and the next new run starts without it.
+## tutorial puts back every rule it changed and fills the tank, and the next new run starts
+## without it.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
-# The suite saves to a file of its own, never the player's.
-const TEST_SAVE := "user://test_tutorial_save.json"
-const TEST_TUTORIAL := "user://test_tutorial_tutorial.cfg"
 
 var _window_size: Vector2i
 
 
 func before() -> void:
-	SaveGame.path = TEST_SAVE
-	SaveGame.tutorial_path = TEST_TUTORIAL
+	SaveGame.use_test_files("tutorial")
 	# Headless, the window is 64×64 and the canvas_items stretch would scale every click.
 	_window_size = get_tree().root.size
 	get_tree().root.size = Vector2i(1152, 648)
 
 
 func after() -> void:
-	SaveGame.delete()
-	SaveGame.forget_tutorial()
-	SaveGame.path = SaveGame.PATH
-	SaveGame.tutorial_path = SaveGame.TUTORIAL_PATH
+	SaveGame.use_player_files()
 	get_tree().root.size = _window_size
 
 
 func before_test() -> void:
 	# A test that ends the tutorial keeps it as done, and the next would start without it.
-	SaveGame.forget_tutorial()
+	SaveGame.delete()
 
 
 func after_test() -> void:
@@ -111,17 +105,31 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	var lab := runner.find_child("ResearchLab") as ResearchLab
 	var fuel_tank := _fuel_tank(lab)
 	assert_float(moon.fuel_price).is_zero()
-	assert_int(fuel_tank.points.get(Race.Type.BLUE, 0)).is_equal(1)
+	assert_int(fuel_tank.points).is_equal(1)
 
 	(runner.find_child("Tutorial") as Tutorial).skip()
 
 	assert_float(moon.fuel_price).is_greater(0.0)
-	assert_int(fuel_tank.points.get(Race.Type.BLUE, 0)).is_equal(2)
+	assert_int(fuel_tank.points).is_equal(2)
 	assert_bool(lab.restricted).is_false()
 	assert_bool((runner.find_child("PassengerPanel") as PassengerPanel).kicks_allowed).is_true()
 	var dock := runner.find_child("DockPanel") as DockPanel
 	assert_bool(dock.fuel_hidden or dock.fuel_locked or dock.board_all_hidden).is_false()
 	assert_bool((runner.find_child("Bus") as FrameshiftBus).route_locked).is_false()
+
+
+func test_the_run_starts_on_a_full_tank_after_the_tutorial() -> void:
+	SaveGame.start_new()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var tank := (runner.find_child("Bus") as FrameshiftBus).get_fuel_tank()
+	# As after the tutorial's trips and Fuel tank 1's empty new room.
+	tank.capacity *= 1.25
+	tank.fuel = tank.capacity * 0.5
+
+	(runner.find_child("Tutorial") as Tutorial).skip()
+
+	assert_float(tank.get_fraction()).is_equal(1.0)
 
 
 func test_a_new_run_after_the_tutorial_starts_without_it() -> void:

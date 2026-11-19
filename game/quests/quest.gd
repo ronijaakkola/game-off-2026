@@ -11,7 +11,7 @@ var passenger: Passenger
 var goal: Goal
 ## What it pays when it is done.
 var reward_credits := 0
-var reward_research: Dictionary[Race.Type, int] = {}
+var reward_research := 0
 
 
 ## Which kind of quest it is, for a save game.
@@ -46,20 +46,12 @@ func accept() -> void:
 	pass
 
 
-## The player said no: makes whatever change happens all the same.
-func decline() -> void:
-	pass
-
-
 ## The quest under way, for a save game. The passenger is kept by whoever saves it.
 func to_save() -> Dictionary:
-	var research := {}
-	for race: Race.Type in reward_research:
-		research[str(race)] = reward_research[race]
 	return {
 		"kind": get_kind(),
 		"credits": reward_credits,
-		"research": research,
+		"research": reward_research,
 		"goal": goal.to_save() if goal else {},
 	}
 
@@ -68,9 +60,6 @@ func to_save() -> Dictionary:
 ## calls this, which puts its progress back.
 func load_save(saved: Dictionary) -> void:
 	reward_credits = int(saved.get("credits", 0))
-	reward_research = {}
-	var research: Dictionary = saved.get("research", {})
-	for race: Variant in research:
-		reward_research[int(str(race)) as Race.Type] = int(research[race])
+	reward_research = Ledger.count_research(saved.get("research", 0))
 	if goal:
 		goal.load_save(saved.get("goal", {}))

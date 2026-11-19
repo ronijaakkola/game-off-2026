@@ -11,8 +11,8 @@ extends CanvasLayer
 ## showing, and the screen takes no clicks but on the notices and guide cards until
 ## [method uncover]. [method cover] blocks clicks the same way without the black, as for the
 ## tutorial's last call. [method reveal] brings in the parts the tutorial asks for when it
-## wants them. [method hide_all] takes every panel and the bus bars out at the tutorial's
-## end, and [method reveal_all] brings everything back.
+## wants them. [method hide_all] takes every panel, the bus bars and the pause button out at
+## the tutorial's end, and [method reveal_all] brings everything back.
 
 ## The screen has faded in from black after [method hide_for_call].
 signal faded_in
@@ -146,7 +146,7 @@ func hide_all() -> void:
 			tops.append(_control(part))
 	var leaving: Array[Control] = tops.duplicate()
 	if not _bars_out:
-		leaving.append_array([%BusStatusPanel, %Notices])
+		leaving.append_array([%BusStatusPanel, %Notices, %PauseButton])
 	_bars_out = true
 	if leaving.is_empty():
 		return
@@ -156,7 +156,10 @@ func hide_all() -> void:
 	for control: Control in leaving:
 		tween.tween_property(control, "modulate:a", 0.0, LEAVE_SECONDS).set_delay(delay)
 		# The notices' place is the layout's to keep, every frame.
-		if not Settings.reduce_motion and control != %Notices:
+		var moves := not Settings.reduce_motion and control != %Notices
+		if moves and control == %BusStatusPanel:
+			tween.tween_method(_drop_bars, 0.0, REVEAL_DROP, LEAVE_SECONDS).set_delay(delay)
+		elif moves:
 			rests[control] = control.position.y
 			var away := -REVEAL_DROP if control in tops else REVEAL_DROP
 			var to := control.position.y + away
@@ -165,8 +168,11 @@ func hide_all() -> void:
 	await tween.finished
 	for control: Control in rests:
 		control.position.y = rests[control]
+	_drop_bars(0.0)
 	for control: Control in tops:
 		control.hide()
+	# Gone, it takes no clicks, as the bars' keys don't while the map is locked.
+	(%PauseButton as Control).hide()
 
 
 ## Brings in everything hidden, the panels as [method reveal] does and the bus bars and the
@@ -177,14 +183,26 @@ func reveal_all() -> void:
 	if not _bars_out:
 		return
 	_bars_out = false
+	var pause := %PauseButton as Control
+	pause.show()
 	var tween := create_tween().set_parallel().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	for control: Control in [%BusStatusPanel, %Notices]:
+	for control: Control in [%BusStatusPanel, %Notices, pause]:
 		tween.tween_property(control, "modulate:a", 1.0, REVEAL_SECONDS)
 	if not Settings.reduce_motion:
-		var bars := %BusStatusPanel as Control
-		var rest := bars.position.y
-		bars.position.y = rest + REVEAL_DROP
-		tween.tween_property(bars, "position:y", rest, REVEAL_SECONDS)
+		_drop_bars(REVEAL_DROP)
+		tween.tween_method(_drop_bars, REVEAL_DROP, 0.0, REVEAL_SECONDS)
+		var rest := pause.position.y
+		pause.position.y = rest + REVEAL_DROP
+		tween.tween_property(pause, "position:y", rest, REVEAL_SECONDS)
+
+
+# Puts the bus bars [param drop] pixels below their place on the bottom edge, at the height
+# they have now: they grow and shrink as the route bar opens and closes, which a fixed
+# position would leave off the edge.
+func _drop_bars(drop: float) -> void:
+	var bars := %BusStatusPanel as Control
+	bars.offset_bottom = drop
+	bars.offset_top = drop - bars.size.y
 
 
 func _control(part: Part) -> Control:

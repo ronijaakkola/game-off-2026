@@ -1,7 +1,7 @@
 class_name Ledger
 extends RefCounted
-## What the player has earned and spent: their credits, their research points of each
-## [Race], and the ratings passengers gave. The solar system owns the one ledger
+## What the player has earned and spent: their credits, their research points, and the
+## ratings passengers gave. The solar system owns the one ledger
 ## ([method SolarSystem.get_ledger]); game code reads and changes these here, and the
 ## resource bar's counters only show them, animating each change as its signal comes.
 
@@ -12,10 +12,10 @@ signal credits_earned(amount: int)
 signal credits_spent(amount: int)
 ## [member credits] was set outright, as by a test. The resource bar shows it at once.
 signal credits_set
-## [param amount] research points of [param race] came in.
-signal research_earned(race: Race.Type, amount: int)
-## [param amount] research points of [param race] went out, as on researching an upgrade.
-signal research_spent(race: Race.Type, amount: int)
+## [param amount] research points came in.
+signal research_earned(amount: int)
+## [param amount] research points went out, as on researching an upgrade.
+signal research_spent(amount: int)
 ## A passenger rated the ride [param stars], already counted in [method get_average_rating]
 ## and [method get_recent_rating].
 signal rated(stars: float)
@@ -33,7 +33,7 @@ var credits: int:
 		credits_set.emit()
 
 var _credits := 0
-var _research: Dictionary[Race.Type, int] = {}
+var _research := 0
 var _rating_total := 0.0
 var _rating_count := 0
 var _recent: Array[float] = []
@@ -52,30 +52,22 @@ func spend(amount: int) -> void:
 	credits_spent.emit(amount)
 
 
-## Adds [param amount] research points of [param race].
-func earn_research(race: Race.Type, amount := 1) -> void:
-	_research[race] = get_research(race) + amount
-	research_earned.emit(race, amount)
+## Adds [param amount] research points.
+func earn_research(amount := 1) -> void:
+	_research += amount
+	research_earned.emit(amount)
 
 
-## Takes [param amount] research points of [param race] off. Like [method spend], it
-## doesn't stop at 0; the caller decides what the player can pay.
-func spend_research(race: Race.Type, amount: int) -> void:
-	_research[race] = get_research(race) - amount
-	research_spent.emit(race, amount)
+## Takes [param amount] research points off. Like [method spend], it doesn't stop at 0;
+## the caller decides what the player can pay.
+func spend_research(amount: int) -> void:
+	_research -= amount
+	research_spent.emit(amount)
 
 
-## How many research points of each race the player has.
-func get_all_research() -> Dictionary[Race.Type, int]:
-	var all: Dictionary[Race.Type, int] = {}
-	for value: int in Race.Type.values():
-		all[value as Race.Type] = get_research(value as Race.Type)
-	return all
-
-
-## How many research points of [param race] the player has.
-func get_research(race: Race.Type) -> int:
-	return _research.get(race, 0)
+## How many research points the player has.
+func get_research() -> int:
+	return _research
 
 
 ## Counts a passenger's rating of [param stars], from 0 to [constant Passenger.MAX_STARS];
@@ -112,12 +104,9 @@ func get_rating_count() -> int:
 
 ## Everything in it, for a save game.
 func to_save() -> Dictionary:
-	var research := {}
-	for race: Race.Type in _research:
-		research[str(race)] = _research[race]
 	return {
 		"credits": _credits,
-		"research": research,
+		"research": _research,
 		"rating_total": _rating_total,
 		"rating_count": _rating_count,
 		"recent": _recent.duplicate(),
@@ -127,12 +116,20 @@ func to_save() -> Dictionary:
 ## Puts back what [method to_save] gave, with no signals: load it before anything shows it.
 func load_save(saved: Dictionary) -> void:
 	_credits = int(saved.get("credits", 0))
-	_research.clear()
-	var research: Dictionary = saved.get("research", {})
-	for race: String in research:
-		_research[int(race) as Race.Type] = int(research[race])
+	_research = count_research(saved.get("research", 0))
 	_rating_total = float(saved.get("rating_total", 0.0))
 	_rating_count = int(saved.get("rating_count", 0))
 	_recent.clear()
 	for stars: Variant in saved.get("recent", []):
 		_recent.append(float(stars))
+
+
+## A saved count of research points: a number, or, from a save made while each race had
+## points of its own, every race's added up.
+static func count_research(saved: Variant) -> int:
+	if saved is Dictionary:
+		var total := 0
+		for amount: Variant in (saved as Dictionary).values():
+			total += int(amount)
+		return total
+	return int(saved)
