@@ -29,7 +29,8 @@ extends Control
 ## screen ([method ResearchLab.has_unseen_upgrade]), the Research button has a thin outline
 ## in the Frameshift key's yellow on its edge, fainter than the key's and pulsing in step
 ## with it, and holding still under Reduce motion.
-## While [member research_hidden], as through the tutorial, there is no Research button,
+## While [member research_hidden], as through the tutorial and until a research tree is
+## open ([MechanicCall]), there is no Research button,
 ## and while [member fuel_hidden] no fuel button, while [member fuel_locked] one that is
 ## off, and while [member board_all_hidden] no Board all.
 

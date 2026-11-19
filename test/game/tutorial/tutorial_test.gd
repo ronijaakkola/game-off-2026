@@ -102,16 +102,11 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var moon := runner.find_child("Moon") as Planet
-	var lab := runner.find_child("ResearchLab") as ResearchLab
-	var fuel_tank := _fuel_tank(lab)
 	assert_float(moon.fuel_price).is_zero()
-	assert_int(fuel_tank.points).is_equal(1)
 
 	(runner.find_child("Tutorial") as Tutorial).skip()
 
 	assert_float(moon.fuel_price).is_greater(0.0)
-	assert_int(fuel_tank.points).is_equal(2)
-	assert_bool(lab.restricted).is_false()
 	assert_bool((runner.find_child("PassengerPanel") as PassengerPanel).kicks_allowed).is_true()
 	var dock := runner.find_child("DockPanel") as DockPanel
 	assert_bool(dock.fuel_hidden or dock.fuel_locked or dock.board_all_hidden).is_false()
@@ -123,8 +118,7 @@ func test_the_run_starts_on_a_full_tank_after_the_tutorial() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var tank := (runner.find_child("Bus") as FrameshiftBus).get_fuel_tank()
-	# As after the tutorial's trips and Fuel tank 1's empty new room.
-	tank.capacity *= 1.25
+	# As after the tutorial's trip.
 	tank.fuel = tank.capacity * 0.5
 
 	(runner.find_child("Tutorial") as Tutorial).skip()
@@ -191,11 +185,3 @@ func _has_notice(notices: NoticeStack) -> bool:
 func _click(runner: GdUnitSceneRunner, control: Control) -> void:
 	runner.set_mouse_position(control.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-
-
-func _fuel_tank(lab: ResearchLab) -> Upgrade:
-	for tree: ResearchTree in lab.trees:
-		for upgrade: Upgrade in tree.upgrades:
-			if upgrade.title == TutorialRules.FUEL_TANK:
-				return upgrade
-	return null

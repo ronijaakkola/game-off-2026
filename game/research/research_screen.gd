@@ -3,17 +3,17 @@ extends Control
 ## The research screen: a modal over the whole screen, with the game paused under it while
 ## it is open. Its header holds its title, a "Game paused" tag, the player's credits,
 ## research points and rating in a resource bar of its own, and a Close button. Under it,
-## every research tree side by side, each in a [ResearchColumn], with their rows lined up
-## so a line with a "Requires promotion" tag runs across all of them between two stages;
-## the tag goes once the stage below opens. The pointer over an upgrade opens its tooltip at
-## once. An upgrade held long enough only asks; the parent researches it. The close button
-## and the pause action (Esc) close it, unless the pause menu is open over it: then Esc is
-## the menu's. While [member close_locked], as in the tutorial, neither closes it. It
-## holds the pause with the pause menu's [method PauseMenu.hold], so closing the menu over
-## it leaves the game paused.
+## the open research trees side by side, centred, each in a [ResearchColumn], with only
+## their open stages' rows ([Research]): the rows line up across them, with a faint line
+## across all of them between two stages, and the sheet is as tall as the rows that show.
+## The pointer over an upgrade opens its tooltip at once. An upgrade held long enough only
+## asks; the parent researches it. The close button and the pause action (Esc) close it,
+## unless the pause menu is open over it: then Esc is the menu's. It holds the pause with
+## the pause menu's [method PauseMenu.hold], so closing the menu over it leaves the game
+## paused.
 ## It fades in as its sheet grows to full size, and fades out faster; under Reduce motion
-## it only fades. A stage that opened since it last showed is revealed: its tag fades off
-## the line, and its tiles fade in from silhouettes row by row.
+## it only fades. What opened since it last showed fades in, once the sheet has: a tree's
+## card and its tiles, or a stage's tiles, row by row.
 
 ## [param upgrade]'s tile was held long enough to research it.
 signal upgrade_held(upgrade: Upgrade)
@@ -26,24 +26,22 @@ const ROW_PITCH := 64.0
 const STAGE_GAP := 36.0
 ## Pixels between two trees' cards.
 const COLUMN_GAP := 18.0
-const DIVIDER_HEIGHT := 20.0
 const LINE_COLOR := Color(1, 1, 1, 0.12)
-const TAG_COLOR := Color("2a2450")
-const TAG_TEXT := "Requires promotion"
-const LOCK := preload("res://game/research/icons/lock.svg")
+## Pixels between the last row's tiles and the card's bottom edge.
+const CARD_BOTTOM := 16.0
 ## Seconds to fade in, for the sheet to grow from [constant OPEN_SCALE], and to fade out.
 const FADE_IN_SECONDS := 0.2
 const OPEN_SECONDS := 0.25
 const OPEN_SCALE := 0.97
 const CLOSE_SECONDS := 0.15
 ## Seconds between one row's tiles starting to show and the next's, as a stage opens, and
-## for its tag to fade.
+## for a tree's card to fade in.
 const REVEAL_STAGGER := 0.04
-const TAG_FADE_SECONDS := 0.2
+const CARD_FADE_SECONDS := 0.2
 ## The close button's side margins, so it is a 32 px square round its 14 px icon.
 const CLOSE_MARGIN := 9.0
 
-## Which upgrades are researched and which stages are open. The parent sets it.
+## Which upgrades are researched and which trees and stages are open. The parent sets it.
 var research: Research
 ## The player's credits and research points, which the header shows and the tiles check.
 ## The parent sets it.
@@ -52,20 +50,13 @@ var ledger: Ledger:
 		ledger = value
 		(%ResourceBar as ResourceBar).ledger = value
 
-## Whether it can't be closed, its close button off.
-var close_locked := false:
-	set(value):
-		close_locked = value
-		if is_node_ready():
-			(%CloseButton as Button).disabled = value
-
 var _trees: Array[ResearchTree] = []
 var _columns: Array[ResearchColumn] = []
 # The line between each two stages, by the stage under it; null where no tree reaches it.
 var _dividers: Dictionary[int, Control] = {}
-var _tags: Dictionary[int, Control] = {}
 var _row_tops: Array[float] = []
-# How many stages showed open last time, so one that opened since is revealed.
+# How many trees and stages showed open last time, so what opened since is revealed.
+var _shown_trees := 0
 var _shown_stages := 1
 var _fade: Tween
 var _closing := false
@@ -132,7 +123,7 @@ func open(trees: Array[ResearchTree]) -> void:
 
 ## Lets the game run again at once, and fades out.
 func close() -> void:
-	if not is_open() or close_locked:
+	if not is_open():
 		return
 	_closing = true
 	PauseMenu.release(self)
@@ -181,7 +172,6 @@ func _build(trees: Array[ResearchTree]) -> void:
 		child.queue_free()
 	_columns.clear()
 	_dividers.clear()
-	_tags.clear()
 	var rows := 0
 	for tree: ResearchTree in trees:
 		for upgrade: Upgrade in tree.upgrades:
@@ -198,34 +188,52 @@ func _build(trees: Array[ResearchTree]) -> void:
 	for stage: int in range(1, Research.STAGES):
 		var first_row := stage * Research.ROWS_PER_STAGE
 		if first_row < rows:
-			_dividers[stage] = _make_divider(stage)
+			_dividers[stage] = _make_line()
 			area.add_child(_dividers[stage])
 	_place()
 
 
-# Centres the cards in the room there is, each as tall as it, and lays the lines between
-# the stages across them.
+# Centres the open trees' cards in the room there is, each as tall as the open rows, the
+# sheet as tall as them, and lays the lines between the open stages across them.
 func _place() -> void:
 	var area := %Trees as Control
-	if _columns.is_empty():
+	var shown: Array[ResearchColumn] = []
+	for column: ResearchColumn in _columns:
+		column.visible = not research or research.is_tree_open(column.tree)
+		if column.visible:
+			shown.append(column)
+	for stage: int in _dividers:
+		_dividers[stage].visible = not shown.is_empty() and _is_stage_shown(stage)
+	if shown.is_empty():
+		area.custom_minimum_size.y = 0.0
 		return
-	var count := _columns.size()
+	var last_row := _row_tops.size() - 1
+	if research and research.get_open_stages() < Research.STAGES:
+		last_row = mini(last_row, research.get_open_stages() * Research.ROWS_PER_STAGE - 1)
+	var height := ResearchColumn.TILES_TOP + _row_tops[last_row] + UpgradeButton.SIZE.y
+	height += CARD_BOTTOM
+	# The cards reach their margin above the area, so the tiles' tops line up with it.
+	area.custom_minimum_size.y = height - ResearchColumn.MARGIN.y
+	var count := shown.size()
 	var total := count * ResearchColumn.WIDTH + (count - 1) * COLUMN_GAP
 	var left := floorf((area.size.x - total) * 0.5)
 	for i: int in count:
-		var column := _columns[i]
-		# The cards reach their margin above the area, so the tiles' tops line up with it.
+		var column := shown[i]
 		var x := left + i * (ResearchColumn.WIDTH + COLUMN_GAP)
 		column.position = Vector2(x, -ResearchColumn.MARGIN.y)
-		column.size = Vector2(ResearchColumn.WIDTH, area.size.y + ResearchColumn.MARGIN.y)
+		column.size = Vector2(ResearchColumn.WIDTH, height)
 		column.queue_redraw()
 	for stage: int in _dividers:
 		var divider := _dividers[stage]
 		var first_top := _row_tops[stage * Research.ROWS_PER_STAGE]
 		var tiles_top := ResearchColumn.TILES_TOP - ResearchColumn.MARGIN.y
 		var middle := tiles_top + first_top - (STAGE_GAP + 12.0) * 0.5
-		divider.position = Vector2(left + ResearchColumn.MARGIN.x, middle - DIVIDER_HEIGHT * 0.5)
-		divider.size = Vector2(total - ResearchColumn.MARGIN.x * 2.0, DIVIDER_HEIGHT)
+		divider.position = Vector2(left + ResearchColumn.MARGIN.x, middle)
+		divider.size = Vector2(total - ResearchColumn.MARGIN.x * 2.0, 1.0)
+
+
+func _is_stage_shown(stage: int) -> bool:
+	return not research or research.is_stage_open(stage)
 
 
 func _refresh() -> void:
@@ -234,7 +242,7 @@ func _refresh() -> void:
 	var points := ledger.get_research()
 	for column: ResearchColumn in _columns:
 		column.show_state(research, ledger.credits, points)
-	_reveal_opened_stages()
+	_reveal_opened()
 
 
 func _finish_closing() -> void:
@@ -242,76 +250,38 @@ func _finish_closing() -> void:
 	hide()
 
 
-# Reveals each stage that opened since the screen last showed one, once the screen has
-# faded in.
-func _reveal_opened_stages() -> void:
-	var open := 0
-	while open < Research.STAGES and research.is_stage_open(open):
-		open += 1
-	if open <= _shown_stages:
+# Reveals what opened since the screen last showed, once the screen has faded in: a tree's
+# card and every tile it shows, and a stage's tiles in the trees that showed before.
+func _reveal_opened() -> void:
+	var trees := research.get_open_trees()
+	var stages := research.get_open_stages()
+	if trees == _shown_trees and stages == _shown_stages:
 		return
+	_place()
 	var since := (Time.get_ticks_msec() - _opened_at) / 1000.0
 	var delay := maxf(OPEN_SECONDS - since, 0.0)
-	for stage: int in range(_shown_stages, open):
-		for column: ResearchColumn in _columns:
-			column.reveal_stage(stage, delay, REVEAL_STAGGER)
-		if _tags.has(stage):
-			_fade_tag(stage, delay)
-	_shown_stages = open
+	for column: ResearchColumn in _columns:
+		var index := _trees.find(column.tree)
+		if index >= trees:
+			continue
+		if index >= _shown_trees:
+			_fade_in_card(column, delay)
+			column.reveal_rows(0, delay, REVEAL_STAGGER)
+		elif stages > _shown_stages:
+			column.reveal_rows(_shown_stages * Research.ROWS_PER_STAGE, delay, REVEAL_STAGGER)
+	_shown_trees = trees
+	_shown_stages = stages
 
 
-# Fades the stage's tag off its line after [param delay], and the line's halves meet.
-func _fade_tag(stage: int, delay: float) -> void:
-	var tag := _tags[stage]
-	var divider := _dividers[stage]
-	var fade := create_tween()
+# Fades [param column]'s card in after [param delay].
+func _fade_in_card(column: ResearchColumn, delay: float) -> void:
+	column.modulate.a = 0.0
+	var fade := column.create_tween()
 	fade.tween_interval(delay)
-	fade.tween_property(tag, ^"modulate:a", 0.0, TAG_FADE_SECONDS).set_ease(Tween.EASE_OUT)
-	fade.tween_callback(tag.hide)
-	fade.tween_callback(divider.add_theme_constant_override.bind(&"separation", 0))
+	fade.tween_property(column, ^"modulate:a", 1.0, CARD_FADE_SECONDS).set_ease(Tween.EASE_OUT)
 
 
-# A line across every tree with the "Requires promotion" tag in its middle.
-func _make_divider(stage: int) -> Control:
-	var divider := HBoxContainer.new()
-	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	divider.add_theme_constant_override(&"separation", 8)
-	divider.add_child(_make_line())
-	var tag := PanelContainer.new()
-	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	tag.custom_minimum_size.y = DIVIDER_HEIGHT
-	var style := StyleBoxFlat.new()
-	style.bg_color = TAG_COLOR
-	style.border_color = LINE_COLOR
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(10)
-	style.content_margin_left = 8
-	style.content_margin_right = 8
-	tag.add_theme_stylebox_override(&"panel", style)
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override(&"separation", 4)
-	var icon := TextureRect.new()
-	icon.texture = LOCK
-	icon.modulate = Color(UpgradeButton.TEXT_COLOR, 0.651)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(10, 10)
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(icon)
-	var label := Label.new()
-	label.theme_type_variation = &"DimLabel"
-	label.text = TAG_TEXT
-	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(label)
-	tag.add_child(row)
-	divider.add_child(tag)
-	divider.add_child(_make_line())
-	_tags[stage] = tag
-	return divider
-
-
+# A faint line across every tree, between two stages.
 func _make_line() -> Control:
 	var line := Hairline.new()
 	line.horizontal = true

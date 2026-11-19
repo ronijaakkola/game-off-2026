@@ -3,12 +3,13 @@ extends Control
 ## One research tree in the research screen, on a faint card of its own: its icon, title and a
 ## chip in its colour ([member ResearchTree.palette]) counting the upgrades researched of
 ## all it has, over the tree drawn top to bottom, each upgrade at its tier and column,
-## centred in the column. A line runs from each upgrade to each one it requires, centre to
-## centre under the tiles: lit in the tree's colour once that one is researched, a little
-## brighter while it can be researched, and faint otherwise. The parent places the rows, so
-## every column's stages line up, and tells it each upgrade's state, which each tile's
-## tooltip says ([UpgradeTooltip]). It passes on a tile held long enough; the parent
-## researches it.
+## centred in the column. Only the upgrades that are open show: one whose tree or stage
+## isn't open yet is left out, with its lines. A line runs from each upgrade to each one it
+## requires, centre to centre under the tiles: lit in the tree's colour once that one is
+## researched, a little brighter while it can be researched, and faint otherwise. The parent
+## places the rows, so every column's stages line up, sizes the card to the rows that show,
+## and tells it each upgrade's state, which each tile's tooltip says ([UpgradeTooltip]). It
+## passes on a tile held long enough; the parent researches it.
 
 ## [param upgrade]'s tile was held long enough to research it.
 signal upgrade_held(upgrade: Upgrade)
@@ -34,6 +35,9 @@ const FLASK := preload("res://shared/icons/flask_conical.svg")
 ## The full width of the card.
 const WIDTH := INNER_WIDTH + MARGIN.x * 2.0
 
+## The tree it shows.
+var tree: ResearchTree
+
 var _buttons: Array[UpgradeButton] = []
 var _research: Research
 # What the tooltips were last filled for, so they change only when that does.
@@ -51,20 +55,21 @@ func _init() -> void:
 	_card.set_corner_radius_all(CARD_RADIUS)
 
 
-## Builds [param tree], each tier's tiles at the height [param row_tops] gives it, from the
+## Builds [param shown], each tier's tiles at the height [param row_tops] gives it, from the
 ## top of the tiles.
-func build(tree: ResearchTree, row_tops: Array[float]) -> void:
+func build(shown: ResearchTree, row_tops: Array[float]) -> void:
+	tree = shown
 	custom_minimum_size.x = WIDTH
-	var accent: Color = Race.SKIN_COLORS[tree.palette]
-	add_child(_make_header(tree, accent))
+	var accent: Color = Race.SKIN_COLORS[shown.palette]
+	add_child(_make_header(accent))
 	var columns := 0
-	for upgrade: Upgrade in tree.upgrades:
+	for upgrade: Upgrade in shown.upgrades:
 		columns = maxi(columns, upgrade.column + 1)
 	var tree_width := (columns - 1) * COLUMN_PITCH + UpgradeButton.SIZE.x
 	var left := MARGIN.x + (INNER_WIDTH - tree_width) * 0.5
-	for upgrade: Upgrade in tree.upgrades:
+	for upgrade: Upgrade in shown.upgrades:
 		var button := UpgradeButton.new()
-		button.palette = tree.palette
+		button.palette = shown.palette
 		button.upgrade = upgrade
 		button.position = Vector2(
 			left + upgrade.column * COLUMN_PITCH, TILES_TOP + row_tops[upgrade.tier]
@@ -89,6 +94,7 @@ func show_state(research: Research, credits: int, points: int) -> void:
 		var state := research.get_state(upgrade, credits, points)
 		var before := button.get_state()
 		button.show_state(state, points < upgrade.points)
+		button.visible = state != Research.State.SHUT
 		if before != state or paid_with_changed:
 			UpgradeTooltip.show(button.get_info_tooltip(), upgrade, state, credits, points)
 		changed = changed or before != state
@@ -101,12 +107,11 @@ func show_state(research: Research, credits: int, points: int) -> void:
 		queue_redraw()
 
 
-## Fades in the tiles of [param stage] from silhouettes after [param delay] seconds, each
-## row [param stagger] seconds after the one above.
-func reveal_stage(stage: int, delay: float, stagger: float) -> void:
-	var first_row := stage * Research.ROWS_PER_STAGE
+## Fades in the tiles from [param first_row] down after [param delay] seconds, each row
+## [param stagger] seconds after the one above.
+func reveal_rows(first_row: int, delay: float, stagger: float) -> void:
 	for button: UpgradeButton in _buttons:
-		if Research.get_stage(button.upgrade) == stage:
+		if button.upgrade.tier >= first_row:
 			button.reveal(delay + (button.upgrade.tier - first_row) * stagger)
 
 
@@ -125,7 +130,8 @@ func _draw() -> void:
 		for button: UpgradeButton in _buttons:
 			for required: Upgrade in button.upgrade.requires:
 				var from := get_button(required)
-				if from and _is_lit(required) == lit:
+				var shown := from and from.visible and button.visible
+				if shown and _is_lit(required) == lit:
 					_draw_link(from, button)
 
 
@@ -145,7 +151,7 @@ func _is_lit(upgrade: Upgrade) -> bool:
 
 
 # The tree's icon and title at the left and the progress chip at the right.
-func _make_header(tree: ResearchTree, accent: Color) -> Control:
+func _make_header(accent: Color) -> Control:
 	var header := HBoxContainer.new()
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.position = Vector2(MARGIN.x, MARGIN.y + 2.0)
