@@ -1,7 +1,7 @@
 class_name TransmissionScreen
 extends PanelContainer
 ## The screen a transmission's caller talks from: their live portrait, framed in their
-## race's skin colour over a backdrop in its deep shade, behind an old tube's scanlines and
+## skin colour over a backdrop in their race's deep shade, behind an old tube's scanlines and
 ## static. It renders the portrait in its own viewport, which runs while the game is paused
 ## and only while a caller shows, big enough to stay sharp at the screen's size. The
 ## shared [PortraitStudio] pauses with the game, and its tiles are card-sized.
@@ -82,10 +82,10 @@ func show_caller(transmission: Transmission) -> void:
 		eye.visible = not dark
 	var backdrop := (%Backdrop as ColorRect).material as ShaderMaterial
 	backdrop.set_shader_parameter(
-		&"backdrop_color", SHADOW_BACKDROP if dark else Race.BACKDROP_COLORS[transmission.race]
+		&"backdrop_color", SHADOW_BACKDROP if dark else transmission.get_backdrop_color()
 	)
 	var border := (%Border as Panel).get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
-	border.border_color = SHADOW_FRAME if dark else Race.SKIN_COLORS[transmission.race]
+	border.border_color = SHADOW_FRAME if dark else transmission.look.skin_color
 	(%Border as Panel).add_theme_stylebox_override(&"panel", border)
 	_show_badges(transmission.type)
 	(%Viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ALWAYS
