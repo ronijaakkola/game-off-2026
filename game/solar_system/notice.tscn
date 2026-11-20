@@ -4,7 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="Texture2D" uid="uid://qrc7n3h4glnm" path="res://game/solar_system/icons/info.svg" id="4_info"]
-[ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://game/solar_system/icons/x.svg" id="5_x"]
+[ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://shared/icons/x.svg" id="5_x"]
 
 [sub_resource type="Gradient" id="Gradient_glow"]
 offsets = PackedFloat32Array(0, 0.25, 0.5, 0.75, 1)
