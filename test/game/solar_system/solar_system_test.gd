@@ -343,6 +343,22 @@ func test_right_click_sets_the_route_and_with_the_queue_key_adds_to_it() -> void
 	assert_array(bus.get_route_planets()).contains_exactly([giant])
 
 
+# Firefox's own menu on Shift + right click takes the release of Shift.
+func test_right_click_sets_the_route_when_the_release_of_shift_never_came() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var terra := runner.find_child("Terra") as Planet
+	var giant := runner.find_child("Giant") as Planet
+	_send_shift(true)
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, terra))
+
+	_send_click(MOUSE_BUTTON_RIGHT, _screen_point(runner, giant))
+
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_array(bus.get_route_planets()).contains_exactly([giant])
+	_send_shift(false)
+
+
 func test_right_click_on_the_docked_planet_with_a_route_makes_a_round_trip() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
@@ -403,6 +419,14 @@ func test_right_click_on_space_with_the_queue_key_adds_a_point_after_the_planet(
 
 
 # A right click at [param at] with the queue key held.
+func _send_shift(pressed: bool) -> void:
+	var shift := InputEventKey.new()
+	shift.physical_keycode = KEY_SHIFT
+	shift.pressed = pressed
+	Input.parse_input_event(shift)
+	Input.flush_buffered_events()
+
+
 func _queued_click(at: Vector2) -> void:
 	Input.action_press(&"queue_stop")
 	_send_click(MOUSE_BUTTON_RIGHT, at)
