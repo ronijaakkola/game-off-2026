@@ -253,18 +253,20 @@ func test_a_shock_changes_happiness_at_once_and_it_climbs_back_slowly() -> void:
 	assert_float(passenger.happiness).is_equal(0.0)
 
 
-func test_pay_follows_mood_at_the_end() -> void:
+func test_everyone_pays_the_fare_and_a_good_ride_pays_more() -> void:
 	var kind := _type()
 	kind.fare_multiplier = 2.0
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.happiness = 95.0
+	assert_int(passenger.get_payout()).is_equal(140)
 	passenger.happiness = 80.0
 	assert_int(passenger.get_payout()).is_equal(120)
 	passenger.happiness = 60.0
 	assert_int(passenger.get_payout()).is_equal(100)
 	passenger.happiness = 30.0
-	assert_int(passenger.get_payout()).is_equal(50)
+	assert_int(passenger.get_payout()).is_equal(100)
 	passenger.happiness = 10.0
-	assert_int(passenger.get_payout()).is_equal(0)
+	assert_int(passenger.get_payout()).is_equal(100)
 
 
 func test_rating_is_happiness_in_fifths_to_the_nearest_star() -> void:
@@ -422,10 +424,12 @@ func test_a_tip_is_paid_only_by_a_happy_passenger() -> void:
 	var kind := _type()
 	kind.fare_multiplier = 2.0
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.happiness = 95.0
+	assert_int(passenger.get_payout(0.1)).is_equal(150)
 	passenger.happiness = 80.0
-	assert_int(passenger.get_payout(1.5)).is_equal(180)
+	assert_int(passenger.get_payout(0.1)).is_equal(130)
 	passenger.happiness = 60.0
-	assert_int(passenger.get_payout(1.5)).is_equal(100)
+	assert_int(passenger.get_payout(0.1)).is_equal(100)
 
 
 func test_delayed_requests_come_that_many_times_later() -> void:

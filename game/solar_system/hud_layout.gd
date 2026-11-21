@@ -8,11 +8,14 @@ extends CanvasLayer
 ## they rise and fall with the route bar as it opens and closes.
 ## For the tutorial's call, [method hide_for_call] covers the screen in black and fades it
 ## in slowly once the scene change is over, with only the bus bars and the notices
-## showing, and the screen takes no clicks but on the notices and guide cards until
-## [method uncover]. [method cover] blocks clicks the same way without the black, as for the
-## tutorial's last call. [method reveal] brings in the parts the tutorial asks for when it
-## wants them. [method hide_all] takes every panel, the bus bars and the pause button out at
-## the tutorial's end, and [method reveal_all] brings everything back.
+## showing, and the screen takes no clicks but on the notices, the guide cards and the
+## pause button until [method uncover]: the curtain only draws, and a see-through block
+## under the pause button takes the clicks. [method cover] blocks clicks the same way
+## without the black, as for the tutorial's last call, and [method hide_panels] does too
+## with the panels hidden, as for The Boss's first-shift call. [method reveal] brings in the
+## parts the tutorial asks for when it wants them. [method hide_all] takes every panel, the
+## bus bars and the pause button out at the tutorial's end, [method reveal_bars] brings the
+## bars back, and [method reveal_all] everything.
 
 ## The screen has faded in from black after [method hide_for_call].
 signal faded_in
@@ -68,14 +71,14 @@ func _process(_delta: float) -> void:
 
 ## Hides all but the bus bars and the notices, under black that fades out once the scene
 ## change is over ([signal faded_in]). Until [method uncover], the screen takes no clicks
-## but on the notices.
+## but on the notices and the pause button.
 func hide_for_call() -> void:
 	for part: Part in Part.values():
 		_control(part).visible = false
 	var curtain := %Curtain as Control
 	curtain.modulate.a = 1.0
-	curtain.mouse_filter = Control.MOUSE_FILTER_STOP
 	curtain.show()
+	(%ClickBlock as Control).show()
 	while SceneFlow.is_busy():
 		await get_tree().process_frame
 	# Revealed meanwhile, as when the tutorial is skipped.
@@ -89,15 +92,15 @@ func hide_for_call() -> void:
 	faded_in.emit()
 
 
-## Makes the screen take no clicks but on the notices and guide cards, with nothing hidden,
-## until [method uncover].
+## Makes the screen take no clicks but on the notices, guide cards and the pause button,
+## with nothing hidden, until [method uncover].
 func cover() -> void:
 	if _fade:
 		_fade.kill()
 	var curtain := %Curtain as Control
 	curtain.modulate.a = 0.0
-	curtain.mouse_filter = Control.MOUSE_FILTER_STOP
 	curtain.show()
+	(%ClickBlock as Control).show()
 
 
 ## Lets the screen take clicks again after [method hide_for_call] or [method cover].
@@ -105,6 +108,7 @@ func uncover() -> void:
 	if _fade:
 		_fade.kill()
 	(%Curtain as Control).hide()
+	(%ClickBlock as Control).hide()
 
 
 ## Brings in those of [param parts] that are hidden, one after another, each fading in as
@@ -176,10 +180,26 @@ func hide_all() -> void:
 
 
 ## Brings in everything hidden, the panels as [method reveal] does and the bus bars and the
-## notices after [method hide_all], and lets the screen take clicks.
+## notices after [method hide_all], and lets the screen take clicks. It returns once the
+## panels are in.
 func reveal_all() -> void:
 	uncover()
-	reveal([Part.RESOURCE_BAR, Part.ON_BOARD, Part.STATION])
+	reveal_bars()
+	await reveal([Part.RESOURCE_BAR, Part.ON_BOARD, Part.STATION])
+
+
+## Hides the panels, leaving the bus bars and the notices, and until [method uncover] the
+## screen takes no clicks but on the notices, as for The Boss's first-shift call.
+func hide_panels() -> void:
+	for part: Part in Part.values():
+		_control(part).visible = false
+	cover()
+
+
+## Brings the bus bars, the notices and the pause button back after [method hide_all],
+## fading in as the bars rise into place; under Reduce motion they only fade. It returns
+## once they are in.
+func reveal_bars() -> void:
 	if not _bars_out:
 		return
 	_bars_out = false
@@ -194,6 +214,7 @@ func reveal_all() -> void:
 		var rest := pause.position.y
 		pause.position.y = rest + REVEAL_DROP
 		tween.tween_property(pause, "position:y", rest, REVEAL_SECONDS)
+	await tween.finished
 
 
 # Puts the bus bars [param drop] pixels below their place on the bottom edge, at the height

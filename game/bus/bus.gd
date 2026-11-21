@@ -16,7 +16,7 @@ extends Node3D
 ## Overheating lets go of the Frameshift key and keeps the route: the bus coasts to a stop,
 ## and once its [member temperature] has cooled down a charge takes it on along the same
 ## route. While [member route_locked], the player can't change
-## the route.
+## the route, and while [member grounded] it can't leave.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 ## The bus docked at [param planet] after flying there and parking: the end of its route,
@@ -132,6 +132,13 @@ var speed_cap := INF
 ## on to where it is headed: [method plot_course], [method remove_stop] and
 ## [method cancel_course] do nothing. Running dry still clears it.
 var route_locked := false
+## Whether the bus can't leave: no charge starts, and one under way stops. The player can
+## still change the route.
+var grounded := false:
+	set(value):
+		grounded = value
+		if grounded and state == State.CHARGING:
+			_stop_charge()
 
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
@@ -533,6 +540,8 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 # Starts a charge while the key is held with a course set, passengers boarding or not,
 # unless it cools down.
 func _start_charge() -> void:
+	if grounded:
+		return
 	if _drive.held and not _route.is_empty() and not temperature.is_cooling():
 		state = State.CHARGING
 		_drive.start()
