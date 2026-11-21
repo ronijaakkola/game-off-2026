@@ -429,9 +429,10 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Notices" parent="Hud" unique_id=307714029 instance=ExtResource("100_notices")]
+[node name="Notices" parent="Hud" unique_id=307714029 node_paths=PackedStringArray("portrait_studio") instance=ExtResource("100_notices")]
 unique_name_in_owner = true
 anchors_preset = 7
+portrait_studio = NodePath("../../PortraitStudio")
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
 unique_name_in_owner = true
