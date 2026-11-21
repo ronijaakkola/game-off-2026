@@ -13,7 +13,8 @@ func test_docking_at_their_destination_first_fails_an_errand_before_they_rate() 
 	var passenger := await _board_someone(runner)
 	var quest := _errand(passenger, _other_planet(runner, passenger, bus))
 	giver.take_on(quest)
-	var before := passenger.happiness
+	# Arriving pays out their timing as well, so the shock is what's left after it.
+	var before := passenger.happiness + passenger.ride.get_timing()
 
 	bus.docked.emit(passenger.destination)
 
