@@ -19,7 +19,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 2. **Set course.** The player adds planets and points in space to the route.
 3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Just after docking the drive is still warm for a while, and the charge starts from the warmth left and builds faster. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
-5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
+5. **Arrive.** At a planet, passengers going there get off, pay their fare, rate the ride and earn a research point.
 6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every open tree.
 
 ## The solar system
@@ -152,7 +152,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - **Fare** is 3 credits per unit times the type's multiplier.
 - Both are set when the passenger is decided (Who turns up), from where the planets are then.
 - A faster bus gets passengers there before they expect it. Speed upgrades make passengers happier rather than more demanding.
-- **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing. With the Tip jar, happy pays 1.2× that again.
+- **Payment** on getting off: everyone pays the fare, a 4-star ride (happy) 1.2× and a 5-star ride 1.4×. With the Tip jar those are 1.3× and 1.5×. A poor ride costs the rating and never the fare, so one bad ride isn't punished twice and a player who struggles can still pay for the upgrades that help: over 12 seeds one who takes everyone and answers requests in about 8 s earns 257 credits a minute against 219 when annoyed paid half and furious nothing, and the scripted player 266 against 259. Credits now barely tell players apart, so they reward good service only through the two tips.
 
 ### Happiness
 
@@ -185,7 +185,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 - **Stops.** Every planet the bus docks at on their ride before theirs is a stop on the way; the planet they boarded at counts only once the bus has left it. Each type tolerates a number of them calmly, and each stop past that costs 15. Delivering the demanding ones first is the routing puzzle.
 - **A late ride** costs 1 a second of their clock past the expected time, with their leeway: steady, never faster, so a late ride never runs away from the player.
-- **The floor.** Frustration never takes them under 50 (okay, three stars, the full fare). A request open still heads for 0.
+- **The floor.** Frustration never takes them under 50 (okay, three stars). A request open still heads for 0.
 - *(playtest)* Every stop counts for now. Counting only detours, a stop where going there and on is more than 1.25 times the straight way from where the bus last left, is one switch away (`RideProgress.ONLY_DETOURS`), for if serving several passengers on one route feels punished.
 - They say why: a stop past their tolerance shows one of their type's lines about it at once (“Another stop?!”), and so does the moment the ride runs late (“I’m late for a meeting”), unless a request, a sleep, a show or a meal holds their line. While frustrated, their idle lines are those, for whichever costs them more.
 
