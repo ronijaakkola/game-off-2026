@@ -17,13 +17,6 @@ signal rerouted
 
 enum Mood { HAPPY, OKAY, ANNOYED, FURIOUS }
 
-## What each mood pays, as a multiple of the fare.
-const PAY: Dictionary[Mood, float] = {
-	Mood.HAPPY: 1.2,
-	Mood.OKAY: 1.0,
-	Mood.ANNOYED: 0.5,
-	Mood.FURIOUS: 0.0,
-}
 const MAX_STARS := 5.0
 ## Happiness runs from 0 to this.
 const MAX_HAPPINESS := 100.0
@@ -216,11 +209,10 @@ func get_mood() -> Mood:
 	return mood_for(happiness)
 
 
-## The credits they pay on getting off now, by their mood. Happy, they pay [param tip] times
-## that again: the Tip jar's.
-func get_payout(tip := 1.0) -> int:
-	var mood := get_mood()
-	return roundi(fare * PAY[mood] * (tip if mood == Mood.HAPPY else 1.0))
+## The credits they pay on getting off now: their fare, and more for a good ride
+## ([Payment]). [param tip] is the Tip jar's.
+func get_payout(tip := 0.0) -> int:
+	return roundi(fare * Payment.multiple(get_rating(), tip))
 
 
 ## Puts off the first request for each of their needs: what is left of each wait to the

@@ -64,9 +64,9 @@ const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.
 @export var amenities: Array[Amenity] = []
 ## Seconds each passenger takes to get off or on at a stop.
 @export_range(0.0, 3.0, 0.05) var step_seconds := 0.6
-## What a happy passenger pays, as a multiple of what they would without it, once the bus
-## has the Tip jar.
-@export_range(1.0, 3.0, 0.05) var tip := 1.2
+## What a ride that pays more than the fare pays on top, as a multiple of the fare, once
+## the bus has the Tip jar ([method Payment.multiple]).
+@export_range(0.0, 1.0, 0.05) var tip := 0.1
 ## How many times as long someone picked up waits for their first requests, once the bus
 ## has Free station coffee.
 @export_range(1.0, 3.0, 0.05) var coffee_delay := 1.5
@@ -265,7 +265,7 @@ func stop_at(planet: Planet) -> void:
 			_forget(passenger)
 			_getting_off.append(passenger)
 			passenger.arrive()
-			_payouts.append(passenger.get_payout(tip if _has(BusTraits.Type.TIP_JAR) else 1.0))
+			_payouts.append(passenger.get_payout(tip if _has(BusTraits.Type.TIP_JAR) else 0.0))
 			leaving.append(passenger)
 		else:
 			passenger.pass_stop(planet)
