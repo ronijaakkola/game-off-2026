@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="4_bar"]
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="6_flask"]
 [ext_resource type="Texture2D" uid="uid://dup4e3a0nc0eg" path="res://shared/icons/pause.svg" id="7_pause"]
-[ext_resource type="Texture2D" uid="uid://cbnp8spnp837a" path="res://game/research/icons/x.svg" id="8_x"]
+[ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://shared/icons/x.svg" id="8_x"]
 [ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="9_tooltip"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tag"]
