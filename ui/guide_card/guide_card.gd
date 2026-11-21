@@ -125,6 +125,17 @@ func _process(_delta: float) -> void:
 	_place()
 
 
+## Points it at a ball of [param radius] at [param point] in the 3D view, such as a planet,
+## through [member target_rect], as the viewport's camera sees it now. Its owner calls it
+## again as the ball or the camera moves.
+func point_at_ball(point: Vector3, radius: float) -> void:
+	var camera := get_viewport().get_camera_3d()
+	var centre := camera.unproject_position(point)
+	var edge := camera.unproject_position(point + camera.global_basis.x * radius)
+	var reach := centre.distance_to(edge)
+	target_rect = Rect2(centre - Vector2.ONE * reach, Vector2.ONE * reach * 2.0)
+
+
 # The notch, over the card's border, its two sides in the border's colour.
 func _draw() -> void:
 	var box := get_theme_stylebox(&"panel") as StyleBoxFlat

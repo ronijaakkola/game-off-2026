@@ -118,6 +118,27 @@ func pass_stop(planet: Planet, origin: Planet, destination: Planet) -> bool:
 	return stops > tolerance
 
 
+## How the ride stands, for a save game ([method load_save]). Where the bus last left isn't
+## kept: the next stop counts from where they boarded.
+func to_save() -> Dictionary:
+	return {
+		"trip_seconds": trip_seconds,
+		"expected_seconds": expected_seconds,
+		"leeway": leeway,
+		"clock": clock,
+		"stops": stops,
+	}
+
+
+## Puts back how the ride stood, from what [method to_save] gave. The trip time is the one
+## it was made with.
+func load_save(saved: Dictionary) -> void:
+	expected_seconds = float(saved.get("expected_seconds", expected_seconds))
+	leeway = float(saved.get("leeway", 0.0))
+	clock = float(saved.get("clock", 0.0))
+	stops = int(saved.get("stops", 0))
+
+
 ## They change their mind and go somewhere else: a new trip of [param seconds] direct from
 ## here, which their timing counts from now with [param slack] and no leeway yet.
 func restart(seconds: float, slack: float) -> void:

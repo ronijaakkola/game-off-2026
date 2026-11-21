@@ -146,7 +146,7 @@ func _process(_delta: float) -> void:
 		_rules.hold_fare(_passenger)
 	match _step:
 		Step.BUS:
-			guide.target_rect = _screen_rect(bus.global_position, FrameshiftBus.RADIUS)
+			guide.point_at_ball(bus.global_position, FrameshiftBus.RADIUS)
 		Step.BOARD:
 			_guide_boarding()
 			if not cabin.get_passengers().is_empty():
@@ -154,7 +154,7 @@ func _process(_delta: float) -> void:
 				_passenger.delay_requests(NO_NEEDS)
 				_go_to(Step.ON_BOARD)
 		Step.ROUTE:
-			guide.target_rect = _screen_rect(
+			guide.point_at_ball(
 				destination.get_body_global_position(), destination.get_body_radius()
 			)
 			if on_route:
@@ -184,7 +184,6 @@ func _process(_delta: float) -> void:
 func start() -> void:
 	_running = true
 	_goal = destination
-	waiting.set_process(false)
 	waiting.set_planets([home, destination])
 	_add_passenger()
 	rig.locked = true
@@ -193,7 +192,6 @@ func start() -> void:
 	_rules.apply()
 	_rules.set_trip_burn(_goal)
 	guide.acknowledged.connect(_on_guide_acknowledged)
-	pause_menu.offers_skip_tutorial = true
 	pause_menu.skip_tutorial_pressed.connect(skip)
 	cabin.getting_off.connect(_on_getting_off)
 	intro.ended.connect(_on_call_ended)
@@ -230,7 +228,7 @@ func _go_to(step: Step) -> void:
 	_cards.close()
 	match step:
 		Step.BUS:
-			guide.target_rect = _screen_rect(bus.global_position, FrameshiftBus.RADIUS)
+			guide.point_at_ball(bus.global_position, FrameshiftBus.RADIUS)
 			_open_card(null)
 		Step.BOARD:
 			_bring_in_station()
@@ -239,7 +237,7 @@ func _go_to(step: Step) -> void:
 		Step.HAPPINESS:
 			_open_happiness()
 		Step.ROUTE:
-			guide.target_rect = _screen_rect(
+			guide.point_at_ball(
 				destination.get_body_global_position(), destination.get_body_radius()
 			)
 			_open_card(null)
@@ -259,8 +257,8 @@ func _go_to(step: Step) -> void:
 			_call_again()
 
 
-# Opens this step's guide card on [param target], or on [member GuideCard.target_rect]
-# when it is null. It returns once the card opens.
+# Opens this step's guide card on [param target], or on what [method GuideCard.point_at_ball]
+# last pointed it at when it is null. It returns once the card opens.
 func _open_card(target: Control) -> void:
 	var names := {
 		"home": home.display_name,
@@ -380,15 +378,6 @@ func _distance_left() -> float:
 	return bus.global_position.distance_to(_goal.get_body_global_position())
 
 
-# The square on screen around a ball of [param radius] at [param point].
-func _screen_rect(point: Vector3, radius: float) -> Rect2:
-	var camera := get_viewport().get_camera_3d()
-	var centre := camera.unproject_position(point)
-	var edge := camera.unproject_position(point + camera.global_basis.x * radius)
-	var size := centre.distance_to(edge)
-	return Rect2(centre - Vector2.ONE * size, Vector2.ONE * size * 2.0)
-
-
 # The tutorial's passenger waits at home, always blue, so every tutorial looks the same.
 func _add_passenger() -> void:
 	waiting.deal_next(PASSENGER_RACE)
@@ -449,18 +438,12 @@ func _finish() -> void:
 	# The camera stays locked: the zoom out holds it until the run starts.
 	map_zoom.zoomed_out.connect(_on_zoomed_out, CONNECT_ONE_SHOT)
 	_rules.lift()
-	pause_menu.offers_skip_tutorial = false
-	resource_bar.breathe(false)
-	_rules.pause(false)
 	if _step in TRIP_STEPS:
 		trip_arc.hide_trip()
 	_step = Step.DONE
-	bus.route_locked = false
-	dock_panel.beckon_boarding = false
 	set_process(false)
 	intro.cancel()
 	_cards.close()
-	waiting.set_process(true)
 	finished.emit()
 
 
