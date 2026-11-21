@@ -71,7 +71,7 @@ func _pick_research(state: Dictionary) -> Array[String]:
 	# The tank is filled before anything is researched, so its price is never research's.
 	var kept := maxi(int(policy.get("keep_credits", 15)), int(state["fuel"]["fill_costs"]))
 	var credits := int(state["credits"]) - kept
-	var points: Dictionary = (state["points"] as Dictionary).duplicate()
+	var points := int(state["points"])
 	var done: Array[String] = []
 	var open: Array = (state["upgrades"] as Array).filter(
 		func(upgrade: Dictionary) -> bool: return upgrade["here"]
@@ -94,15 +94,12 @@ func _pick_research(state: Dictionary) -> Array[String]:
 			for needs: String in upgrade["requires"]:
 				if needs in done or _is_researched(state, needs):
 					ready = true
-			var cost: Dictionary = upgrade["points"]
-			for race: String in cost:
-				if int(points.get(race, 0)) < int(cost[race]):
-					ready = false
+			if points < int(upgrade["points"]):
+				ready = false
 			if not ready or credits < int(upgrade["credits"]):
 				continue
 			credits -= int(upgrade["credits"])
-			for race: String in cost:
-				points[race] = int(points[race]) - int(cost[race])
+			points -= int(upgrade["points"])
 			picked.append(upgrade["id"])
 			done.append(upgrade["id"])
 			found = true

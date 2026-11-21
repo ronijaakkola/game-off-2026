@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dhfaboh7sticu"]
+
+[ext_resource type="Script" uid="uid://bpbhygk87rknj" path="res://ui/pause_menu/pause_button.gd" id="1_button"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="Texture2D" uid="uid://dng6xa7rmqyj3" path="res://ui/pause_menu/icons/menu.svg" id="4_menu"]
+[ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="5_tooltip"]
+
+[node name="PauseButton" type="MarginContainer" unique_id=1333464805]
+process_mode = 3
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_bottom = 12
+script = ExtResource("1_button")
+
+[node name="Card" type="PanelContainer" parent="." unique_id=607089782]
+material = ExtResource("3_glass")
+layout_mode = 2
+theme_type_variation = &"IconCardPanel"
+
+[node name="Button" type="Button" parent="Card" unique_id=444848729]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+focus_mode = 0
+theme_override_constants/icon_max_width = 16
+icon = ExtResource("4_menu")
+icon_alignment = 1
+
+[node name="Tooltip" parent="Card/Button" unique_id=1730842659 node_paths=PackedStringArray("target") instance=ExtResource("5_tooltip")]
+process_mode = 1
+layout_mode = 0
+target = NodePath("..")
+title = "Menu"
+sentence = "Esc opens it too."
+side = 2

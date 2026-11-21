@@ -27,6 +27,7 @@ const OUTFIT_MATERIAL := "AlienOutfit"
 const HEAD_SUFFIX := "Head"
 const EYE_PART := "Eye"
 const STALK_PART := "Stalk"
+const TIE_SUFFIX := "Tie"
 ## How fast the eyes shut as they fall asleep, and open as they wake, per second.
 const SLEEP_SPEED := 0.8
 const WAKE_SPEED := 4.0
@@ -87,6 +88,8 @@ const CENTRED_EYE_REACH := 1.6
 		if value:
 			for material: ShaderMaterial in _eye_materials:
 				value.apply(material)
+## Whether the model's bow tie shows. Set it before the portrait enters the tree.
+@export var wears_bow_tie := false
 ## How far the eyes open at rest: 1 wide awake, lower for a drowsy or sullen look.
 @export_range(0.0, 1.0) var eye_openness := 1.0
 ## Whether they are asleep: the eyes drift shut and stop blinking and wandering, and the
@@ -163,7 +166,9 @@ func _ready() -> void:
 		var part := node as Node3D
 		if part is MeshInstance3D:
 			_recolour(part as MeshInstance3D)
-		if part.name.contains(EYE_PART):
+		if part.name.ends_with(TIE_SUFFIX):
+			part.visible = wears_bow_tie
+		elif part.name.contains(EYE_PART):
 			_add_eye(part)
 		elif part.name.ends_with(HEAD_SUFFIX):
 			_head = part
@@ -285,16 +290,12 @@ func get_head_bounds() -> AABB:
 		parts.append(_head)
 	else:
 		parts = find_children("*", "MeshInstance3D", true, false)
-	var bounds := AABB()
-	var first := true
+	var meshes: Array[MeshInstance3D] = []
 	for node: Node in parts:
 		var mesh := node as MeshInstance3D
-		if not mesh or mesh == anger_mark or (_sweat and _sweat.is_ancestor_of(mesh)):
-			continue
-		var local := global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
-		bounds = local if first else bounds.merge(local)
-		first = false
-	return bounds
+		if mesh and mesh != anger_mark and not (_sweat and _sweat.is_ancestor_of(mesh)):
+			meshes.append(mesh)
+	return MeshBounds.around(meshes, global_transform.affine_inverse())
 
 
 ## Points the eyes toward [param direction], from -1 to 1 on each axis (+y up), and holds
@@ -352,6 +353,15 @@ func _watch(delta: float, motion: float) -> void:
 	for material: ShaderMaterial in _materials.values():
 		material.set_shader_parameter(&"screen_light", _screen.light)
 		material.set_shader_parameter(&"screen_side", _screen.side)
+
+
+## Paints every part of the model [param color], whatever they hold too, for an outline in
+## the dark. Call it once the portrait is in the tree.
+func paint_over(color: Color) -> void:
+	skin_color = color
+	outfit_color = color
+	for material: ShaderMaterial in _materials.values():
+		material.set_shader_parameter(&"color", color)
 
 
 # The skin colour on the body and the eyelids.
@@ -451,14 +461,7 @@ func _add_meal() -> void:
 
 # The bounds of the head's own shape in its space ([method _head_shape_meshes]).
 func _head_shape_bounds() -> AABB:
-	var to_head := _head.global_transform.affine_inverse()
-	var bounds := AABB()
-	var first := true
-	for mesh: MeshInstance3D in _head_shape_meshes():
-		var local := to_head * mesh.global_transform * mesh.get_aabb()
-		bounds = local if first else bounds.merge(local)
-		first = false
-	return bounds
+	return MeshBounds.around(_head_shape_meshes(), _head.global_transform.affine_inverse())
 
 
 # The meshes of the head's own shape, without the eyes or the anger mark: the head part

@@ -2,7 +2,8 @@ extends Node
 ## The solar system with a transmission open: the boss's message by default, from the dark
 ## or with `revealed` in the light; with `quest` a passenger's quest with a reward and Yes
 ## and No; or with `goals_met` The Boss's call once every goal is met (`unanswered` for the
-## call left ringing). `skip` shows it all at once, as a click on the modal does.
+## call left ringing); or with `mechanic` the mechanic's first call. `skip` shows it all
+## at once, as a click on the modal does.
 
 
 func _ready() -> void:
@@ -18,7 +19,7 @@ func _ready() -> void:
 		transmission.quest = "Stop the bus near"
 		transmission.quest_planet = $SolarSystem.find_child("Frost") as Planet
 		transmission.reward_credits = 40
-		transmission.reward_research = {Race.Type.BLUE: 2}
+		transmission.reward_research = 2
 		transmission.accept_text = "Yes"
 		transmission.decline_text = "No"
 	elif "goals_met" in args:
@@ -28,6 +29,12 @@ func _ready() -> void:
 		transmission.text = GoalsMetCall.UNANSWERED_TEXT if unanswered else GoalsMetCall.TEXT
 		transmission.decline_text = GoalsMetCall.ANSWERS[0]
 		transmission.accept_text = GoalsMetCall.ANSWERS[1]
+		transmission.answers_alike = true
+	elif "mechanic" in args:
+		transmission = Transmission.from_mechanic()
+		transmission.text = MechanicCall.RESEARCH_TEXT
+		transmission.decline_text = MechanicCall.RESEARCH_ANSWERS[0]
+		transmission.accept_text = MechanicCall.RESEARCH_ANSWERS[1]
 		transmission.answers_alike = true
 	else:
 		transmission = Transmission.from_boss("revealed" in args)

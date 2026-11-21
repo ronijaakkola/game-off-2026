@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://dsx7t06sbogl0"]
+
+[ext_resource type="Script" uid="uid://bjawofvlv1bqp" path="res://game/bus/frameshift_shift.gd" id="1_shift"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_streak"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.88, 1, 1, 0.85)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_streak"]
+size = Vector2(0.09, 1)
+
+[node name="FrameshiftShift" type="Node3D" unique_id=774116842]
+script = ExtResource("1_shift")
+
+[node name="Streak" type="MeshInstance3D" parent="." unique_id=919496429]
+unique_name_in_owner = true
+top_level = true
+material_override = SubResource("StandardMaterial3D_streak")
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_streak")

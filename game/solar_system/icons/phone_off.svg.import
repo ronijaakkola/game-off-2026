@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cbnp8spnp837a"
-path="res://.godot/imported/x.svg-26f9869a240462b85ced3c25a628b1f1.ctex"
+uid="uid://dd4pkat6jlfxf"
+path="res://.godot/imported/phone_off.svg-5a8a6addbdbfb21dd167c9a2afcd2d71.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/x.svg"
-dest_files=["res://.godot/imported/x.svg-26f9869a240462b85ced3c25a628b1f1.ctex"]
+source_file="res://game/solar_system/icons/phone_off.svg"
+dest_files=["res://.godot/imported/phone_off.svg-5a8a6addbdbfb21dd167c9a2afcd2d71.ctex"]
 
 [params]
 

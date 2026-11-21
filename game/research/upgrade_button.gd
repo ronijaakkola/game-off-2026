@@ -2,19 +2,19 @@ class_name UpgradeButton
 extends Control
 ## One upgrade in the research screen: a rounded square tile with its icon, and, where its
 ## title ends in a step ("Speed 2", "Bigger portions II"), that step as a numeral in the
-## top left corner. It shows its [enum Research.State] in the shades of the race whose
-## points it costs most ([method Upgrade.get_race]):
+## top left corner. It shows its [enum Research.State] in the shades of its tree's race
+## ([member palette]):
 ## researched is a solid fill in the race's colour with the icon in its deep shade;
 ## available is dark, tinted toward the race's colour, with a border in it; can't afford is
 ## dark with a faint border in it, a dim icon and a red badge for what the player lacks;
-## locked is dark and dim with a thin grey outline; and hidden or needing a promotion is a
-## near-black tile with a faint silhouette of its icon. Every tile is flat. Holding it down
+## locked is dark and dim with a thin grey outline; and hidden is a near-black tile with a
+## faint silhouette of its icon. Every tile is flat. Holding it down
 ## while available sweeps a fill up from the bottom; held for
 ## [constant HOLD_SECONDS] it tells its parent, which researches it, and once researched the
 ## fill fades off the lit tile as it pops. Letting go or leaving it first drains the fill.
 ## A press on one that can't be researched flashes its border, and pulses the badge of one
 ## the player can't afford. A click sounds as a hold completes, and another for a press it
-## can't act on. [method reveal] fades it in from a silhouette, as a stage
+## can't act on. [method reveal] fades it in, as its tree or its stage
 ## opens. Under Reduce motion nothing pops or pulses; the fades and flashes stay. The pointer
 ## over it opens its [Tooltip] at once, above it, so it never covers the rows under it;
 ## the parent fills it ([UpgradeTooltip]).
@@ -40,7 +40,7 @@ const FLASH_SECONDS := 0.3
 const PULSE_SCALE := 1.15
 const PULSE_UP_SECONDS := 0.07
 const PULSE_DOWN_SECONDS := 0.13
-## Seconds to fade in from a silhouette as its stage opens.
+## Seconds to fade in as its tree or its stage opens.
 const REVEAL_SECONDS := 0.3
 ## The hold fill: the fuel's cyan, faint, as the other hold buttons' fills.
 const HOLD_COLOR := Color(0.6, 0.949, 1.0, 0.35)
@@ -68,7 +68,7 @@ const SHADES: Dictionary[Race.Type, Dictionary] = {
 ## An available tile's fill: dark, tinted this far toward the race's colour.
 const AVAILABLE_COLOR := Color("281f47")
 const AVAILABLE_TINT := 0.24
-## The fills of can't afford, locked, and a silhouette (hidden or needing a promotion).
+## The fills of can't afford, locked, and a silhouette (hidden).
 const UNAFFORDABLE_COLOR := Color("2f2757")
 const LOCKED_COLOR := Color("2a2450")
 const SILHOUETTE_COLOR := Color("15102e")
@@ -86,6 +86,8 @@ const HELD_SOUND := preload("res://ui/audio/ui_click.ogg")
 const REFUSED_SOUND := preload("res://ui/audio/key_click.ogg")
 const ROMAN := ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]
 
+## The race whose shades it shows in, its tree's ([member ResearchTree.palette]).
+var palette := Race.Type.BLUE
 var upgrade: Upgrade:
 	set(value):
 		upgrade = value
@@ -106,8 +108,6 @@ var _pop: Tween
 var _flash := 0.0
 var _badge_scale := 1.0
 var _nudge: Tween
-# How much the silhouette still covers it while it is revealed, from 1 to 0.
-var _veil := 0.0
 var _reveal: Tween
 var _ink := TEXT_COLOR
 var _icon := TextureRect.new()
@@ -172,15 +172,18 @@ func show_state(state: Research.State, lacks_points := false) -> void:
 	_show_state()
 
 
-## Fades it in from a silhouette after [param delay] seconds, as its stage opens.
+## Fades it in after [param delay] seconds, as its tree or its stage opens.
 func reveal(delay: float) -> void:
 	if _reveal:
 		_reveal.kill()
-	_set_veil(1.0)
+	modulate.a = 0.0
 	_reveal = create_tween()
 	_reveal.tween_interval(delay)
-	_reveal.tween_method(_set_veil, 1.0, 0.0, REVEAL_SECONDS).set_trans(Tween.TRANS_QUAD).set_ease(
-		Tween.EASE_OUT
+	(
+		_reveal
+		. tween_property(self, ^"modulate:a", 1.0, REVEAL_SECONDS)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_OUT)
 	)
 
 
@@ -206,7 +209,7 @@ func get_line_color() -> Color:
 
 ## Its race's skin colour, for its fill and border.
 func get_accent() -> Color:
-	return Race.SKIN_COLORS[upgrade.get_race()] if upgrade else Color.WHITE
+	return Race.SKIN_COLORS[palette] if upgrade else Color.WHITE
 
 
 ## The step at the end of [param title] as a Roman numeral, "II" for "Speed 2" or for
@@ -339,26 +342,17 @@ func _set_badge_scale(value: float) -> void:
 	queue_redraw()
 
 
-func _set_veil(value: float) -> void:
-	_veil = value
-	_apply_ink()
-	queue_redraw()
-
-
-# The icon, the numeral and the badge's icon in their state's colours, under the veil.
+# The icon in its state's colour.
 func _apply_ink() -> void:
-	var base := SILHOUETTE_INK if _silhouette() else _ink
-	_icon.modulate = base.lerp(SILHOUETTE_INK, _veil)
-	_step.modulate.a = 1.0 - _veil
-	_badge_icon.modulate.a = 1.0 - _veil
+	_icon.modulate = SILHOUETTE_INK if _silhouette() else _ink
 
 
 func _shades() -> Dictionary:
-	return SHADES[upgrade.get_race() if upgrade else Race.Type.BLUE]
+	return SHADES[palette]
 
 
 func _silhouette() -> bool:
-	return _state == Research.State.HIDDEN or _state == Research.State.NEEDS_PROMOTION
+	return _state == Research.State.HIDDEN or _state == Research.State.SHUT
 
 
 func _show_state() -> void:
@@ -389,7 +383,6 @@ func _show_state() -> void:
 func _draw() -> void:
 	var rect := Rect2(Vector2.ZERO, SIZE)
 	var accent := get_accent()
-	var lift := 1.0 - _veil
 	match _state:
 		Research.State.RESEARCHED:
 			var fill := accent.lightened(0.15) if _hover else accent
@@ -408,8 +401,6 @@ func _draw() -> void:
 			TilePaint.border(self, rect, Color(1, 1, 1, edge), 1.0)
 		_:
 			_draw_silhouette(rect, 1.0)
-	if _veil > 0.0 and not _silhouette():
-		_draw_silhouette(rect, _veil)
 	if _progress > 0.0:
 		var filled := Rect2(0, SIZE.y * (1.0 - _progress), SIZE.x, SIZE.y * _progress)
 		for part: PackedVector2Array in Geometry2D.intersect_polygons(
@@ -419,8 +410,8 @@ func _draw() -> void:
 	if _state == Research.State.UNAFFORDABLE:
 		var radius := BADGE_RADIUS * _badge_scale
 		var ring := LACKING_COLOR.lerp(Color.WHITE, 0.5 * _flash)
-		draw_circle(_badge_center(), radius, Color(BADGE_COLOR, lift), true, -1.0, true)
-		draw_circle(_badge_center(), radius - 0.5, Color(ring, lift), false, 1.0, true)
+		draw_circle(_badge_center(), radius, BADGE_COLOR, true, -1.0, true)
+		draw_circle(_badge_center(), radius - 0.5, ring, false, 1.0, true)
 
 
 # The silhouette's flat tile, with a faint border under the pointer, at [param strength]

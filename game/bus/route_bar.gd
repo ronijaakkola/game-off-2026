@@ -110,12 +110,12 @@ func _on_remove_pressed(stop: RouteStop) -> void:
 
 
 ## Whether [param waiting_bus] waits, docked or holding in space, with a course for the
-## drive to charge for and not cooling down. A course always has fuel, and a tow is in
-## flight.
+## drive to charge for, not cooling down and not [member FrameshiftBus.grounded]. A course
+## always has fuel, and a tow is in flight.
 static func is_ready(waiting_bus: FrameshiftBus) -> bool:
 	var waiting := waiting_bus.state in [FrameshiftBus.State.DOCKED, FrameshiftBus.State.HOLDING]
 	var cooling := waiting_bus.temperature.is_cooling()
-	return waiting and waiting_bus.get_last_stop() != null and not cooling
+	return waiting and waiting_bus.last_stop != null and not cooling and not waiting_bus.grounded
 
 
 # Keeps where the line starts as the bus reaches stops: a planet it docks at on the way,

@@ -9,12 +9,22 @@ extends RefCounted
 const BOSS_HEAD := preload("res://game/transmissions/models/head_boss.glb")
 const BOSS_EYES := preload("res://game/passengers/eye_styles/googly.tres")
 const BOSS_RACE := Race.Type.ORANGE
+## Who the mechanic is: a brown alien with the Bean's shape, holding a wrench, over a steel
+## blue-green backdrop. No race is brown; they talk in the blue one's voice.
+const MECHANIC_NAME := "Rusty, the Mechanic"
+const MECHANIC_HEAD := preload("res://game/transmissions/models/head_mechanic.glb")
+const MECHANIC_SKIN := Color(0.52, 0.33, 0.2)
+const MECHANIC_BACKDROP := Color(0.3, 0.5, 0.56)
+const MECHANIC_RACE := Race.Type.BLUE
 
 ## Who calls, and how their portrait looks.
 var caller_name := ""
 var look: AlienLook
-## The caller's race: the screen's backdrop and frame are in its colours.
+## The caller's race: they talk in its voice, and the screen's backdrop is its deep shade.
 var race := Race.Type.GREEN
+## The screen's backdrop for a caller who isn't in front of their race's, or see-through
+## for the race's deep shade.
+var backdrop_color := Color.TRANSPARENT
 ## The caller's passenger type, whose badges sit on the screen's corner with their tooltip,
 ## as on a passenger's portrait, or null for a caller who isn't a passenger.
 var type: PassengerType
@@ -37,7 +47,7 @@ var quest := ""
 var quest_planet: Planet
 ## What a quest pays when it is done. Nothing shows when both are empty.
 var reward_credits := 0
-var reward_research: Dictionary[Race.Type, int] = {}
+var reward_research := 0
 ## The primary button's label, and the quiet button's beside it. Without a decline label
 ## there is only the primary button.
 var accept_text := "Got it"
@@ -74,6 +84,26 @@ static func from_boss(revealed := false) -> Transmission:
 	return transmission
 
 
+## A transmission from the company's mechanic: a brown alien with a bean of a head and bead
+## eyes, holding a wrench, in a good mood.
+static func from_mechanic() -> Transmission:
+	var transmission := Transmission.new()
+	transmission.caller_name = MECHANIC_NAME
+	transmission.look = AlienLook.new()
+	transmission.look.head = MECHANIC_HEAD
+	transmission.look.eye_style = AlienLook.EYE_STYLES[1]
+	transmission.look.skin_color = MECHANIC_SKIN
+	transmission.race = MECHANIC_RACE
+	transmission.backdrop_color = MECHANIC_BACKDROP
+	transmission.mood = Passenger.Mood.HAPPY
+	return transmission
+
+
+## The screen's backdrop: [member backdrop_color], or the race's deep shade without one.
+func get_backdrop_color() -> Color:
+	return Race.BACKDROP_COLORS[race] if backdrop_color.a == 0.0 else backdrop_color
+
+
 ## Whether it asks the player to take on a quest.
 func is_quest() -> bool:
 	return quest != ""
@@ -81,4 +111,4 @@ func is_quest() -> bool:
 
 ## Whether it shows a reward.
 func has_reward() -> bool:
-	return reward_credits > 0 or not reward_research.is_empty()
+	return reward_credits > 0 or reward_research > 0

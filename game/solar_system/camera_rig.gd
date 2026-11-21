@@ -39,6 +39,12 @@ const FOCUSED_PRIORITY := 2
 @export_range(0.0, 5.0, 0.01) var pan_speed := 0.6
 ## How close to a window edge, in pixels, the pointer pans the camera. 0 turns edge pan off.
 @export_range(0.0, 100.0, 1.0) var edge_pan_margin := 12.0
+## Seconds the pointer has to stay at a window edge before the camera pans, when it got
+## there from a panel, so a pointer that overshoots a panel's button doesn't pan.
+@export_range(0.0, 2.0, 0.05) var edge_pan_delay := 0.4
+## How recently, in seconds, the pointer must have been over a Control for it to count as
+## coming from a panel.
+@export_range(0.0, 2.0, 0.05) var edge_pan_from_panel := 0.3
 ## How much one wheel notch changes the zoom distance, as a share of it.
 @export_range(0.0, 0.5, 0.01) var zoom_step := 0.12
 ## How fast pan and zoom catch up with their target. Higher is snappier.
@@ -74,6 +80,13 @@ var _pan_velocity := Vector3.ZERO
 # unknown, and after it leaves, the last position may sit on the edge it left through.
 var _pointer_inside := false
 var _pointer_position := Vector2.ZERO
+# Seconds since the pointer was last over a Control.
+var _since_over_panel := INF
+# Seconds the pointer has been at an edge this time, and whether it got there from a panel.
+var _at_edge_seconds := 0.0
+var _edge_from_panel := false
+# The direction edge pan pans in this frame, once any delay is over.
+var _edge_pan := Vector2.ZERO
 # While the drag button is held, the point on the orbit plane that was under the pointer
 # when it went down, which the drag keeps under the pointer.
 var _dragging := false
@@ -137,7 +150,8 @@ func _process(delta: float) -> void:
 	var keys := Input.get_vector(
 		&"camera_pan_left", &"camera_pan_right", &"camera_pan_forward", &"camera_pan_back"
 	)
-	var input := (keys + _edge_pan_input()).limit_length(1.0)
+	_edge_pan = _delayed_edge_pan(delta)
+	var input := (keys + _edge_pan).limit_length(1.0)
 	if locked:
 		input = Vector2.ZERO
 	if is_focused():
@@ -189,7 +203,7 @@ func is_dragging() -> bool:
 
 ## The screen direction the pointer at a window edge pans in now, -1, 0 or 1 on each axis.
 func get_edge_pan() -> Vector2:
-	return Vector2.ZERO if locked or is_focused() else _edge_pan_input()
+	return Vector2.ZERO if locked or is_focused() else _edge_pan
 
 
 ## Sets the zoom at once to [param value], within [member min_distance] and
@@ -198,6 +212,12 @@ func set_distance(value: float) -> void:
 	_target_distance = clampf(value, min_distance, max_distance)
 	distance = _target_distance
 	_place_shot()
+
+
+## Eases the zoom to [param to], within [member min_distance] and [member max_distance], as
+## the wheel does.
+func zoom_to(to: float) -> void:
+	_target_distance = clampf(to, min_distance, max_distance)
 
 
 ## Puts the look-at point at [param point] at once, within the bounds, and stops any pan.
@@ -252,6 +272,23 @@ func _place_focus_shot() -> void:
 	shot.follow_offset = (
 		global_basis.z * depth + global_basis.x * shift_x + global_basis.y * shift_y
 	)
+
+
+# The edge pan direction, held at zero for edge_pan_delay when the pointer reached the edge
+# from a panel. Moving off the edge starts the wait again.
+func _delayed_edge_pan(delta: float) -> Vector2:
+	var over_panel := get_viewport().gui_get_hovered_control() != null
+	_since_over_panel = 0.0 if over_panel else _since_over_panel + delta
+	var direction := _edge_pan_input()
+	if direction == Vector2.ZERO:
+		_at_edge_seconds = 0.0
+		return direction
+	if _at_edge_seconds == 0.0:
+		_edge_from_panel = _since_over_panel <= edge_pan_from_panel
+	_at_edge_seconds += delta
+	if _edge_from_panel and _at_edge_seconds < edge_pan_delay:
+		return Vector2.ZERO
+	return direction
 
 
 # Screen directions to pan in, -1, 0 or 1 on each axis, from the pointer at the edges.

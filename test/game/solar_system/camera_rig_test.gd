@@ -143,6 +143,32 @@ func test_pointer_at_an_edge_pans_until_it_leaves_the_window() -> void:
 	assert_vector(rig.position).is_equal_approx(left_at, Vector3.ONE * 0.001)
 
 
+func test_pointer_from_a_panel_waits_at_the_edge_before_panning() -> void:
+	var runner := scene_runner(SCENE)
+	var rig := runner.scene() as CameraRig
+	rig.smoothing = 1000.0
+	var rect := rig.get_viewport().get_visible_rect()
+	# A panel 12 px in from the right edge, as the HUD's sit.
+	var panel := Panel.new()
+	panel.position = Vector2(rect.end.x - 212.0, 100.0)
+	panel.size = Vector2(200.0, 200.0)
+	rig.add_child(panel)
+	var start := rig.position
+
+	_send_motion(Vector2(rect.end.x - 20.0, 200.0))
+	await runner.simulate_frames(2, FRAME_MS)
+	# Overshooting the panel into the edge, briefly, doesn't pan.
+	_send_motion(Vector2(rect.end.x - 2.0, 200.0))
+	await runner.simulate_frames(int(rig.edge_pan_delay * 1000.0 / FRAME_MS) - 2, FRAME_MS)
+	assert_vector(rig.position).is_equal_approx(start, Vector3.ONE * 0.001)
+
+	# Staying there does.
+	await runner.simulate_frames(5, FRAME_MS)
+	var screen_right := Vector2(rig.basis.x.x, rig.basis.x.z).normalized()
+	var moved := Vector2(rig.position.x, rig.position.z) - Vector2(start.x, start.z)
+	assert_float(moved.dot(screen_right)).is_greater(0.1)
+
+
 func test_pointer_at_an_edge_does_nothing_with_edge_pan_off() -> void:
 	Settings.edge_pan = false
 	var runner := scene_runner(SCENE)
@@ -165,14 +191,15 @@ func test_focus_frames_the_target_beside_the_panel_and_release_goes_back() -> vo
 	var target := Node3D.new()
 	target.position = Vector3(4.0, 0.0, 3.0)
 	runner.scene().add_child(target)
+	# The space left of a side panel, as the solar system sets it while one is open.
+	var screen := rig.get_viewport().get_visible_rect().size
+	rig.focus_rect = Rect2(0.0, 0.0, screen.x - 360.0, screen.y)
 
 	rig.focus(target, 0.5, 0.5)
 	# Past the blend.
 	await runner.simulate_frames(30, FRAME_MS)
 
-	# The solar system sets focus_rect every frame: the space left of its planet panel.
 	var space := rig.focus_rect
-	assert_float(space.size.x).is_between(600.0, 1000.0)
 	var center := camera.unproject_position(target.global_position)
 	assert_vector(center).is_equal_approx(space.get_center(), Vector2.ONE)
 	# The body fills its share of the rect's height.
@@ -192,6 +219,8 @@ func test_focus_keeps_wide_rings_inside_the_rect() -> void:
 	await runner.simulate_frames(2, FRAME_MS)
 	var target := Node3D.new()
 	runner.scene().add_child(target)
+	var screen := rig.get_viewport().get_visible_rect().size
+	rig.focus_rect = Rect2(0.0, 0.0, screen.x - 360.0, screen.y)
 
 	rig.focus(target, 0.5, 3.0)
 	await runner.simulate_frames(30, FRAME_MS)

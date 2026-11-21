@@ -1,13 +1,16 @@
 class_name ResearchColumn
 extends Control
-## One research tree in the research screen, on a faint card of its own: its title and a
-## chip in its race's colour counting the upgrades researched of all it has, over the tree
-## drawn top to bottom, each upgrade at its tier and column, centred in the column. A line
-## runs from each upgrade to each one it requires, centre to centre under the tiles: lit
-## in the race's colour once that one is researched, a little brighter while it
-## can be researched, and faint otherwise. The parent places the rows, so every column's
-## stages line up, and tells it each upgrade's state, which each tile's tooltip says
-## ([UpgradeTooltip]). It passes on a tile held long enough; the parent researches it.
+## One research tree in the research screen, on a faint card of its own: its icon, title and a chip
+## in its colour ([member ResearchTree.palette]) counting the upgrades researched of all it has,
+## over the tree drawn top to bottom, each upgrade at its tier and column, centred in the column.
+## Only the upgrades that are open show: one whose stage isn't open yet is left out, and the lines
+## to it from the upgrades that show run on faintly as far as [member cut_y], the card's bottom
+## edge, past the parent's line that says what the stage takes. A line runs from each upgrade to
+## each one it requires, centre to centre under the tiles: lit in the tree's colour once that one
+## is researched, a little brighter while it can be researched, and faint otherwise. The parent
+## places the rows, so every column's stages line up, sizes the card to the rows that show, and
+## tells it each upgrade's state, which each tile's tooltip says ([UpgradeTooltip]). It passes on a
+## tile held long enough; the parent researches it.
 
 ## [param upgrade]'s tile was held long enough to research it.
 signal upgrade_held(upgrade: Upgrade)
@@ -33,12 +36,17 @@ const FLASK := preload("res://shared/icons/flask_conical.svg")
 ## The full width of the card.
 const WIDTH := INNER_WIDTH + MARGIN.x * 2.0
 
-var _tree: ResearchTree
+## The tree it shows.
+var tree: ResearchTree
+## How far down, in its own pixels, the lines to upgrades that don't show yet run. The
+## parent sets it; INF draws none.
+var cut_y := INF
+
 var _buttons: Array[UpgradeButton] = []
 var _research: Research
 # What the tooltips were last filled for, so they change only when that does.
 var _credits := -1
-var _points: Dictionary[Race.Type, int] = {}
+var _points := -1
 var _count: Label
 var _card := StyleBoxFlat.new()
 
@@ -51,21 +59,21 @@ func _init() -> void:
 	_card.set_corner_radius_all(CARD_RADIUS)
 
 
-## Builds [param tree], each tier's tiles at the height [param row_tops] gives it, from the
+## Builds [param shown], each tier's tiles at the height [param row_tops] gives it, from the
 ## top of the tiles.
-func build(tree: ResearchTree, row_tops: Array[float]) -> void:
-	_tree = tree
+func build(shown: ResearchTree, row_tops: Array[float]) -> void:
+	tree = shown
 	custom_minimum_size.x = WIDTH
-	var race := _race()
-	var accent: Color = Race.SKIN_COLORS[race]
-	add_child(_make_header(tree.title, accent))
+	var accent: Color = Race.SKIN_COLORS[shown.palette]
+	add_child(_make_header(accent))
 	var columns := 0
-	for upgrade: Upgrade in tree.upgrades:
+	for upgrade: Upgrade in shown.upgrades:
 		columns = maxi(columns, upgrade.column + 1)
 	var tree_width := (columns - 1) * COLUMN_PITCH + UpgradeButton.SIZE.x
 	var left := MARGIN.x + (INNER_WIDTH - tree_width) * 0.5
-	for upgrade: Upgrade in tree.upgrades:
+	for upgrade: Upgrade in shown.upgrades:
 		var button := UpgradeButton.new()
+		button.palette = shown.palette
 		button.upgrade = upgrade
 		button.position = Vector2(
 			left + upgrade.column * COLUMN_PITCH, TILES_TOP + row_tops[upgrade.tier]
@@ -78,18 +86,19 @@ func build(tree: ResearchTree, row_tops: Array[float]) -> void:
 ## Shows each upgrade's state from [param research], with [param credits] and
 ## [param points] the player has. Only what changed is redrawn, so the parent can call it
 ## every frame.
-func show_state(research: Research, credits: int, points: Dictionary[Race.Type, int]) -> void:
+func show_state(research: Research, credits: int, points: int) -> void:
 	_research = research
 	var paid_with_changed := credits != _credits or points != _points
 	_credits = credits
-	_points = points.duplicate()
+	_points = points
 	var changed := false
 	var done := 0
 	for button: UpgradeButton in _buttons:
 		var upgrade := button.upgrade
 		var state := research.get_state(upgrade, credits, points)
 		var before := button.get_state()
-		button.show_state(state, _lacks_points(upgrade, points))
+		button.show_state(state, points < upgrade.points)
+		button.visible = state != Research.State.SHUT
 		if before != state or paid_with_changed:
 			UpgradeTooltip.show(button.get_info_tooltip(), upgrade, state, credits, points)
 		changed = changed or before != state
@@ -102,12 +111,11 @@ func show_state(research: Research, credits: int, points: Dictionary[Race.Type, 
 		queue_redraw()
 
 
-## Fades in the tiles of [param stage] from silhouettes after [param delay] seconds, each
-## row [param stagger] seconds after the one above.
-func reveal_stage(stage: int, delay: float, stagger: float) -> void:
-	var first_row := stage * Research.ROWS_PER_STAGE
+## Fades in the tiles from [param first_row] down after [param delay] seconds, each row
+## [param stagger] seconds after the one above.
+func reveal_rows(first_row: int, delay: float, stagger: float) -> void:
 	for button: UpgradeButton in _buttons:
-		if Research.get_stage(button.upgrade) == stage:
+		if button.upgrade.tier >= first_row:
 			button.reveal(delay + (button.upgrade.tier - first_row) * stagger)
 
 
@@ -126,8 +134,23 @@ func _draw() -> void:
 		for button: UpgradeButton in _buttons:
 			for required: Upgrade in button.upgrade.requires:
 				var from := get_button(required)
-				if from and _is_lit(required) == lit:
-					_draw_link(from, button)
+				if not from or not from.visible:
+					continue
+				if button.visible:
+					if _is_lit(required) == lit:
+						_draw_link(from, button)
+				elif not lit and cut_y != INF:
+					_draw_stub(from, button)
+
+
+# The line from [param from] toward [param to], which doesn't show yet, as far as cut_y.
+func _draw_stub(from: UpgradeButton, to: UpgradeButton) -> void:
+	var start := from.position + UpgradeButton.SIZE * 0.5
+	var end := to.position + UpgradeButton.SIZE * 0.5
+	if end.y <= start.y or cut_y <= start.y:
+		return
+	var cut := start.lerp(end, minf((cut_y - start.y) / (end.y - start.y), 1.0))
+	draw_line(start, cut, FAINT_LINE, LINE_WIDTH, true)
 
 
 func _draw_link(from: UpgradeButton, to: UpgradeButton) -> void:
@@ -145,38 +168,37 @@ func _is_lit(upgrade: Upgrade) -> bool:
 	return _research != null and _research.is_researched(upgrade)
 
 
-func _lacks_points(upgrade: Upgrade, points: Dictionary[Race.Type, int]) -> bool:
-	for race: Race.Type in upgrade.points:
-		if points.get(race, 0) < upgrade.points[race]:
-			return true
-	return false
-
-
-# The race whose points most of the tree costs, for its chip.
-func _race() -> Race.Type:
-	var counts: Dictionary[Race.Type, int] = {}
-	for upgrade: Upgrade in _tree.upgrades:
-		var race := upgrade.get_race()
-		counts[race] = counts.get(race, 0) + 1
-	var best := Race.Type.BLUE
-	for race: Race.Type in counts:
-		if counts[race] > counts.get(best, 0):
-			best = race
-	return best
-
-
-# The title at the left and the progress chip at the right.
-func _make_header(title: String, accent: Color) -> Control:
+# The tree's icon and title at the left and the progress chip at the right.
+func _make_header(accent: Color) -> Control:
 	var header := HBoxContainer.new()
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.position = Vector2(MARGIN.x, MARGIN.y + 2.0)
 	header.size = Vector2(INNER_WIDTH, 20)
+	header.add_theme_constant_override(&"separation", 6)
+	var tree_icon := TextureRect.new()
+	tree_icon.texture = tree.icon
+	tree_icon.modulate = accent
+	tree_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tree_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tree_icon.custom_minimum_size = Vector2(14, 14)
+	# 2 px under the middle of the header, where it is level with the title's capitals.
+	var nudge := MarginContainer.new()
+	nudge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	nudge.add_theme_constant_override(&"margin_top", 4)
+	nudge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	nudge.add_child(tree_icon)
+	header.add_child(nudge)
 	var label := Label.new()
 	label.theme_type_variation = &"StrongLabel"
-	label.text = title
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	header.add_child(label)
+	label.text = tree.title
+	# 1 px under the middle too, which puts its capitals level with the icon.
+	var label_nudge := MarginContainer.new()
+	label_nudge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label_nudge.add_theme_constant_override(&"margin_top", 2)
+	label_nudge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label_nudge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	label_nudge.add_child(label)
+	header.add_child(label_nudge)
 	var chip := PanelContainer.new()
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()

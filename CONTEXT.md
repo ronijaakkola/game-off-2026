@@ -125,19 +125,23 @@ A card above the bus bars telling the player something: a tutorial, info, a warn
 _Avoid_: toast, notification, popup, alert, hint (one kind of notice is a tutorial)
 
 **Guide card**:
-A card that points with a notch at one thing on screen, a control, a panel or a planet, and says what to do with it. Two kinds: a **tutorial step**, with step dots, which goes once the player does what it says (or, rarely, has a Got it button), and a **feature hint**, shown over the paused game when the player meets a feature, which the player closes with Got it. `GuideCard` in code. Not a **notice**, which sits above the bus bars and points at nothing.
+A card that points with a notch at one thing on screen, a control, a panel or a planet, and says what to do with it. Two kinds: a **tutorial step**, with step dots, which goes once the player does what it says (or, rarely, has a Got it button), as in the tutorial and most of the **research guide**, and a **feature hint**, shown over the paused game when the player meets a feature, which the player closes with Got it. `GuideCard` in code. Not a **notice**, which sits above the bus bars and points at nothing.
 _Avoid_: tooltip (that names a counter under the pointer), callout, coach mark
 
 **Tutorial**:
-The guided first ride at the start of a new run, on the zoomed map: a call from The Boss, then one passenger from Terra to the Moon, with a guide card for each step, then the zoom out. `Tutorial` in code.
+The guided first ride at the start of a new run, on the zoomed map: a call from The Boss, then one passenger from Terra to the Moon, with a guide card for each step, then the zoom out. Research isn't in it; the **research guide** is. `Tutorial` in code.
 _Avoid_: onboarding, intro, level
 
+**Research guide**:
+The guide cards that show the player how to research, once, after the **mechanic's** first call, with the bus docked at a **lab**: on the research points, the lab's Research button and the research screen. `ResearchGuide` in code.
+_Avoid_: research tutorial
+
 **Zoomed map**:
-The map zoomed in on Terra and the Moon for the tutorial: the star and the planets scaled up together, so the Moon is as far out as a trip across the whole map, while the bus keeps its size and speed. The **zoom out** shrinks it back to the whole solar system. `MapZoom` in code; the node it scales is `World`.
+The map zoomed in on Terra and the Moon for the tutorial: the star and the planets scaled up together, so the Moon is as far out as a trip across the whole map, while the bus keeps its size and speed. The **zoom out** shrinks it back to the whole solar system. `MapZoom` in code; the node it scales is Sol's `StarSystem`.
 _Avoid_: mini map, small map
 
 **Passenger**:
-Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
+Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it. They pay the fare, and more for a ride they rate 4 or 5 stars. `Passenger` in code.
 _Never_: customer, rider, NPC
 
 **Happiness**:
@@ -176,11 +180,11 @@ What one passenger asks of the player mid-ride, in a transmission, for a reward:
 _Avoid_: task, errand, mission
 
 **Transmission**:
-A call that pauses the game: someone, a passenger or the player's boss, talks from a screen in a modal, and the player answers with a button. A **message** only says something; a quest transmission asks the player to take on a quest, shows its reward, and is accepted or declined. `Transmission`, shown by the `TransmissionPanel`, in code.
+A call that pauses the game: someone, a passenger, the player's boss or the **mechanic**, talks from a screen in a modal, and the player answers with a button. A **message** only says something; a quest transmission asks the player to take on a quest, shows its reward, and is accepted or declined. `Transmission`, shown by the `TransmissionPanel`, in code.
 _Avoid_: dialog, popup, call screen
 
 **Research point**:
-What delivering a passenger earns, one of their race's kind per delivery whatever the rating, kept apart by race and spent on upgrades in the research tree. `Ledger.earn_research()` in code.
+What delivering a passenger earns, one per delivery whatever their race or rating, spent on upgrades in any research tree. One kind: points aren't kept apart by race. `Ledger.earn_research()` in code.
 _Avoid_: science, XP, tech points
 
 **Resource bar**:
@@ -189,17 +193,28 @@ _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
 
 **Research tree**:
-The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. The player researches from every tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched and which stages are open.
+The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. Every tree opens at once, with the **mechanic's** first call. The player researches from every tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched, and whether research and which stages are open.
 _Never_: tech tree, skill tree
 
 **Stage**:
-A band of rows across every research tree, opened one at a time: the first from the start, each next one by a **promotion**. `Research.get_stage()` in code.
+A band of rows across every research tree, opened one at a time: the first with research, each next one by the **mechanic's** call in the next star system. `Research.get_stage()` in code.
+
+**Mechanic**:
+The company's mechanic, who calls in a **transmission** to open research: every research tree at once in Sol, then the next **stage** of every tree in each star system after it. `MechanicCall` in code.
 
 **Lab**:
 What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
 
 **Promotion**:
-What opens the next stage of research. Only a debug button gives one so far.
+What the player earns by meeting every goal a star system gives at once: it opens the next star system, or joins every system after the last one. `Progression.promote()` in code.
+
+**Star system**:
+A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
+_Avoid_: level, galaxy, sector, stage (a band of research rows)
+
+**Jump**:
+The bus's frameshift from one star system to the next, once a promotion opens it: it leaves with nobody on board and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
+_Avoid_: warp, hyperspace, travel (a trip between planets)
 
 **Upgrade**:
 One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.

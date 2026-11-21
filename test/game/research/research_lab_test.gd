@@ -22,6 +22,9 @@ func before_test() -> void:
 	(_runner.find_child("WaitingPassengers") as Node).set_process(false)
 	_lab = _runner.find_child("ResearchLab") as ResearchLab
 	_ledger = _system.get_ledger()
+	# As the mechanic's first call does: research opens, and the Research button shows.
+	_lab.get_research().open()
+	(_runner.find_child("DockPanel") as DockPanel).research_hidden = false
 
 
 func after_test() -> void:
@@ -36,24 +39,10 @@ func test_researching_an_upgrade_pays_its_cost() -> void:
 
 	assert_bool(_lab.get_research().is_researched(upgrade)).is_true()
 	assert_int(_ledger.credits).is_equal(7)
-	for race: Race.Type in upgrade.points:
-		assert_int(_ledger.get_research(race)).is_equal(1)
+	assert_int(_ledger.get_research()).is_equal(1)
 	# Researched already, a second try costs nothing.
 	_lab.research(upgrade)
 	assert_int(_ledger.credits).is_equal(7)
-
-
-func test_while_restricted_only_the_researchable_upgrades_can_be_researched() -> void:
-	var upgrade := _first_upgrade()
-	_pay_for(upgrade, 0)
-	_lab.restricted = true
-
-	_lab.research(upgrade)
-	assert_bool(_lab.get_research().is_researched(upgrade)).is_false()
-
-	_lab.researchable = [upgrade]
-	_lab.research(upgrade)
-	assert_bool(_lab.get_research().is_researched(upgrade)).is_true()
 
 
 func test_nothing_is_researched_without_the_cost_or_the_promotion() -> void:
@@ -121,10 +110,10 @@ func test_the_research_button_is_not_outlined_for_upgrades_already_seen() -> voi
 	await _runner.simulate_frames(1)
 	assert_bool(dock.is_research_nudging()).is_false()
 
-	# Enough for more of them.
+	# More of them: what the first upgrade opens, and enough to pay for it.
+	_lab.get_research().research(_first_upgrade())
 	_ledger.credits = 100000
-	for race: Race.Type in Race.Type.values():
-		_ledger.earn_research(race, 100)
+	_ledger.earn_research(300)
 	await _runner.simulate_frames(1)
 	assert_bool(dock.is_research_nudging()).is_true()
 
@@ -267,8 +256,7 @@ func _all_required(upgrade: Upgrade) -> Array[Upgrade]:
 # Gives the player what [param upgrade] costs, with [param spare] credits over.
 func _pay_for(upgrade: Upgrade, spare: int) -> void:
 	_ledger.credits = upgrade.credits + spare
-	for race: Race.Type in upgrade.points:
-		_ledger.earn_research(race, upgrade.points[race] + (1 if spare > 0 else 0))
+	_ledger.earn_research(upgrade.points + (1 if spare > 0 else 0))
 
 
 # Esc, the pause action, through Input as a key press would come.

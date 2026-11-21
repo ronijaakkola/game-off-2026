@@ -4,8 +4,6 @@ extends GdUnitTestSuite
 ## shows the next time.
 
 const GUIDE_CARD := preload("res://ui/guide_card/guide_card.tscn")
-# The hints seen go to a file of the suite's own, never the player's.
-const TEST_HINTS := "user://test_feature_hints.cfg"
 
 var _window_size: Vector2i
 var _hints: FeatureHints
@@ -14,15 +12,14 @@ var _target: Control
 
 
 func before() -> void:
-	SaveGame.hints_path = TEST_HINTS
+	SaveGame.use_test_files("feature_hints")
 	# Headless, the window is 64×64 and the canvas_items stretch would scale every click.
 	_window_size = get_tree().root.size
 	get_tree().root.size = Vector2i(1152, 648)
 
 
 func after() -> void:
-	SaveGame.forget_hints()
-	SaveGame.hints_path = SaveGame.HINTS_PATH
+	SaveGame.use_player_files()
 	get_tree().root.size = _window_size
 
 

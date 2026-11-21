@@ -1,6 +1,6 @@
 extends Node3D
 ## Each race's head shapes in its colour with each eye style, a row per race and style,
-## for a visual check of the alien portraits. The eyes follow the pointer
+## plain and in a bow tie, for a visual check of the portraits. The eyes follow the pointer
 ## while it moves and wander when it stops, and a click startles them all. S puts them all
 ## to sleep or wakes them, and the arrow keys push them as a bus would: up brakes, down
 ## speeds up, left and right turn.
@@ -27,14 +27,16 @@ func _ready() -> void:
 		label.text = style.resource_path.get_file().get_basename().capitalize()
 		label.font_size = 40
 		label.modulate = Color(0.85, 0.8, 1.0)
-		label.position = Vector3(-(heads.size() + 1) / 2.0 * SPACING.x, y + 0.3, 0.0)
+		var columns := heads.size() * 2
+		label.position = Vector3(-(columns + 1) / 2.0 * SPACING.x, y + 0.3, 0.0)
 		add_child(label)
-		for column: int in heads.size():
+		for column: int in columns:
 			var portrait := PORTRAIT.instantiate() as AlienPortrait
-			portrait.head_model = heads[column]
+			portrait.head_model = heads[column % heads.size()]
+			portrait.wears_bow_tie = column >= heads.size()
 			portrait.eye_style = style
 			portrait.skin_color = Race.SKIN_COLORS[race]
-			var x := (column - (heads.size() - 1) / 2.0) * SPACING.x
+			var x := (column - (columns - 1) / 2.0) * SPACING.x
 			portrait.position = Vector3(x, y, 0.0)
 			%Portraits.add_child(portrait)
 

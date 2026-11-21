@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://br1ibe5k3med4"
-path="res://.godot/imported/circle_x.svg-4810e07d6d7b6f87f5a38d74dedb2f86.ctex"
+uid="uid://d0wkrmsprhvk0"
+path="res://.godot/imported/rocket.svg-ea0e9e3285f76114042f57ddc8a0b095.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/quests/icons/circle_x.svg"
-dest_files=["res://.godot/imported/circle_x.svg-4810e07d6d7b6f87f5a38d74dedb2f86.ctex"]
+source_file="res://game/research/icons/rocket.svg"
+dest_files=["res://.godot/imported/rocket.svg-ea0e9e3285f76114042f57ddc8a0b095.ctex"]
 
 [params]
 
@@ -38,6 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
+svg/scale=2.0
 editor/scale_with_editor_scale=false
 editor/convert_colors_with_editor_theme=false

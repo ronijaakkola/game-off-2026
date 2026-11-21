@@ -11,9 +11,14 @@ extends VBoxContainer
 ## once however often its cause comes up.
 
 const NOTICE := preload("res://game/solar_system/notice.tscn")
+## What a call's notice says under its caller's name.
+const CALL_TEXT := "Incoming transmission..."
 const BUS_FULL := "The bus is already full!"
 ## Seconds the bus full notice shows after the last try to board.
 const BUS_FULL_SECONDS := 2.5
+
+## Renders the callers' photos on the call notices.
+@export var portrait_studio: PortraitStudio
 
 # The bus full notice while it shows, so another try prolongs it rather than adding one.
 var _bus_full: Notice
@@ -35,6 +40,12 @@ func push(
 ) -> Notice:
 	var notice := NOTICE.instantiate() as Notice
 	notice.setup(kind, text, closable, seconds, action)
+	return _add(notice)
+
+
+# Puts [param notice] on top of those showing and brings it in, or holds it out of sight
+# while the stack is hidden.
+func _add(notice: Notice) -> Notice:
 	add_child(notice)
 	move_child(notice, _top_of_showing())
 	if is_visible_in_tree():
@@ -64,10 +75,15 @@ func offer_tow(fee: int) -> Notice:
 	return push("You ran out of fuel", Notice.Kind.ERROR, false, 0.0, "Tow (%d credits)" % fee)
 
 
-## Someone calls the bus: "Incoming transmission..." and an Answer button. It stays until
-## answered.
-func announce_transmission() -> Notice:
-	return push("Incoming transmission...", Notice.Kind.CALL, false, 0.0, "Answer")
+## [param caller] calls the bus: their photo and name over "Incoming transmission...", or
+## their outline and "Unknown caller" when the player doesn't [param known] them yet, and an
+## Answer button, with a decline button beside it when [param declinable]. It stays until
+## answered or declined.
+func announce_transmission(caller: Transmission, known := true, declinable := false) -> Notice:
+	var notice := NOTICE.instantiate() as Notice
+	notice.setup(Notice.Kind.CALL, CALL_TEXT, false, 0.0, "Answer")
+	notice.show_caller(caller, known, declinable, portrait_studio)
+	return _add(notice)
 
 
 ## The player tried to pick someone up with every seat taken: an info notice that closes by

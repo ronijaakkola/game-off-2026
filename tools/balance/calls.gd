@@ -2,7 +2,8 @@ extends RefCounted
 ## How the scripted player answers a passenger's call with a quest. It sees the call
 ## notice, answers after a moment's thought, and takes the quest on or declines it by the
 ## policy: "quests" is "accept" (the default), "decline", "ignore" (left ringing, which the
-## caller takes as a no at the next planet) or "off" (nobody calls, as before quests).
+## caller takes as a no at the next planet) or "off" (nobody calls, as before quests). A
+## call that offers no quest, as the mechanic's, is read and closed.
 ## "quest_max_detour" declines a quest whose planet adds more than that many units to the
 ## way to the nearest planet someone else on board is going to. "call_think" is the
 ## seconds from the call ringing to the answer. An accepted express quest sets the course
@@ -101,7 +102,12 @@ func _answer() -> void:
 	call.action_pressed.emit()
 	call.dismiss()
 	var offer := _giver.get_offer()
-	if not offer or not _panel.is_open():
+	if not _panel.is_open():
+		return
+	# A call that only says something, as the mechanic's: read, and closed.
+	if not offer:
+		_panel.skip()
+		_panel.accept()
 		return
 	answered += 1
 	_panel.skip()
@@ -144,8 +150,7 @@ func _on_goal_ended(goal: Goal, completed: bool) -> void:
 	if completed:
 		done += 1
 		credits += _quest.reward_credits
-		for race: Race.Type in _quest.reward_research:
-			points += _quest.reward_research[race]
+		points += _quest.reward_research
 	else:
 		failed += 1
 	news.append("Quest %s: %s" % ["done" if completed else "failed", goal.get_text()])

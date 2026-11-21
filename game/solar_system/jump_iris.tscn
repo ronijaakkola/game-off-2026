@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://bnxlvcq32hy0b"]
+
+[ext_resource type="Script" uid="uid://bjk8r2lm83afp" path="res://game/solar_system/jump_iris.gd" id="1_iris"]
+[ext_resource type="Shader" uid="uid://b5nqgs2kswixm" path="res://game/solar_system/jump_iris.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_iris"]
+shader = ExtResource("2_shader")
+
+[node name="JumpIris" type="CanvasLayer" unique_id=1600469032]
+layer = 8
+visible = false
+script = ExtResource("1_iris")
+
+[node name="Cover" type="ColorRect" parent="." unique_id=1889442863]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_iris")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

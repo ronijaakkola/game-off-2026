@@ -16,7 +16,7 @@ extends Node3D
 ## Overheating lets go of the Frameshift key and keeps the route: the bus coasts to a stop,
 ## and once its [member temperature] has cooled down a charge takes it on along the same
 ## route. While [member route_locked], the player can't change
-## the route.
+## the route, and while [member grounded] it can't leave.
 ## It moves on the orbit plane, in global space, and faces its +Z.
 
 ## The bus docked at [param planet] after flying there and parking: the end of its route,
@@ -105,6 +105,10 @@ var boarding := false
 ## Whether passengers are getting off. Meanwhile a warm drive doesn't cool. The scene that
 ## runs the passengers sets it.
 var unloading := false
+## The last stop on the route, or null when there is no route.
+var last_stop: RouteStop:
+	get:
+		return _route.back() if not _route.is_empty() else null
 ## Whether the player holds the Frameshift key. Docked or holding in space with a course,
 ## the drive charges while it is held and drains once let go. Leaving lets go, as does
 ## clearing the course.
@@ -128,9 +132,15 @@ var speed_cap := INF
 ## on to where it is headed: [method plot_course], [method remove_stop] and
 ## [method cancel_course] do nothing. Running dry still clears it.
 var route_locked := false
+## Whether the bus can't leave: no charge starts, and one under way stops. The player can
+## still change the route.
+var grounded := false:
+	set(value):
+		grounded = value
+		if grounded and state == State.CHARGING:
+			_stop_charge()
 
-## The push someone on board feels ([method get_felt_acceleration]). A knock on the bus
-## goes in through [method FeltPush.jolt].
+## The push someone on board feels. A knock on the bus goes in by [method FeltPush.jolt].
 var felt_push := FeltPush.new()
 
 var _route: Array[RouteStop] = []
@@ -239,6 +249,17 @@ func tow_to(planet: Planet) -> void:
 		state = State.FLYING
 
 
+## Sends the bus from where it is straight to [param planet] at [param speed], with no
+## charge, to park and dock there: how it comes out of a jump to another star system.
+func fly_in(planet: Planet, speed: float) -> void:
+	_drive.clear()
+	_drive.held = false
+	_glide.planet = null
+	_route = [RouteStop.at_planet(planet)]
+	_speed = speed
+	state = State.FLYING
+
+
 func is_towing() -> bool:
 	return _towing
 
@@ -256,11 +277,6 @@ func get_model() -> BusModel:
 ## The bus's fuel tank.
 func get_fuel_tank() -> FuelTank:
 	return %FuelTank as FuelTank
-
-
-## The last stop on the route, or null when there is no route.
-func get_last_stop() -> RouteStop:
-	return _route.back() if not _route.is_empty() else null
 
 
 ## Every stop on the route still ahead, in order.
@@ -526,6 +542,8 @@ func _dock(planet: Planet, direction: Vector3) -> void:
 # Starts a charge while the key is held with a course set, passengers boarding or not,
 # unless it cools down.
 func _start_charge() -> void:
+	if grounded:
+		return
 	if _drive.held and not _route.is_empty() and not temperature.is_cooling():
 		state = State.CHARGING
 		_drive.start()

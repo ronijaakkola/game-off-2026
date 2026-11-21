@@ -7,6 +7,8 @@ extends Resource
 ## The icons of the badges on their portrait wherever the player meets them, so a kind that
 ## asks more of the bus can be told apart. None for the ordinary kind.
 @export var badges: Array[Texture2D] = []
+## Whether their portrait wears a bow tie.
+@export var wears_bow_tie := false
 ## What the player reads about this kind under its name, with the pointer over a badge.
 ## Empty for no tooltip.
 @export var description := ""

@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://dkvmrjt67ew4c" path="res://game/research/icons/zap.svg" id="7_zap"]
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="8_flask_conical"]
 [ext_resource type="Texture2D" uid="uid://cw6f520btgcas" path="res://game/research/icons/sun.svg" id="9_sun"]
+[ext_resource type="Texture2D" uid="uid://d0wkrmsprhvk0" path="res://game/research/icons/rocket.svg" id="20_rocket"]
 
 [sub_resource type="Resource" id="Resource_speed_1_mod"]
 script = ExtResource("3_modifier")
@@ -21,9 +22,7 @@ title = "Speed 1"
 description = "The bus flies 10% faster."
 icon = ExtResource("4_gauge")
 credits = 120
-points = Dictionary[int, int]({
-0: 2
-})
+points = 2
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_1_mod")])
 
 [sub_resource type="Resource" id="Resource_fuel_tank_1_mod"]
@@ -38,9 +37,7 @@ title = "Fuel tank 1"
 description = "The fuel tank holds 25% more."
 icon = ExtResource("5_fuel")
 credits = 120
-points = Dictionary[int, int]({
-0: 2
-})
+points = 2
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_fuel_tank_1_mod")])
 column = 3
 
@@ -50,9 +47,7 @@ title = "Fuel forecast"
 description = "Shows how much of the tank the course burns, over its last stop."
 icon = ExtResource("6_route")
 credits = 240
-points = Dictionary[int, int]({
-0: 4
-})
+points = 4
 requires = Array[Resource]([SubResource("Resource_fuel_tank_1")])
 traits = Array[int]([0])
 tier = 1
@@ -70,9 +65,7 @@ title = "Faster pumps"
 description = "Makes the refueling at a station twice as fast."
 icon = ExtResource("8_flask_conical")
 credits = 240
-points = Dictionary[int, int]({
-0: 4
-})
+points = 4
 requires = Array[Resource]([SubResource("Resource_fuel_tank_1")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_faster_pumps_mod")])
 tier = 1
@@ -90,9 +83,7 @@ title = "Fuel tank 2"
 description = "The fuel tank holds another 25% more."
 icon = ExtResource("5_fuel")
 credits = 300
-points = Dictionary[int, int]({
-0: 4
-})
+points = 4
 requires = Array[Resource]([SubResource("Resource_fuel_tank_1")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_fuel_tank_2_mod")])
 tier = 2
@@ -109,9 +100,7 @@ title = "Speed 2"
 description = "The bus flies another 10% faster."
 icon = ExtResource("4_gauge")
 credits = 300
-points = Dictionary[int, int]({
-0: 4
-})
+points = 4
 requires = Array[Resource]([SubResource("Resource_speed_1")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_2_mod")])
 tier = 2
@@ -128,9 +117,7 @@ title = "Warmer drive"
 description = "Frameshift drive stays warm longer when docking to a planet."
 icon = ExtResource("7_zap")
 credits = 240
-points = Dictionary[int, int]({
-0: 4
-})
+points = 4
 requires = Array[Resource]([SubResource("Resource_speed_1")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_warm_drive_mod")])
 tier = 1
@@ -143,9 +130,7 @@ description = "Fills the tank automatically at a station.
 NOT IMPLEMENTED"
 icon = ExtResource("8_flask_conical")
 credits = 550
-points = Dictionary[int, int]({
-0: 7
-})
+points = 7
 requires = Array[Resource]([SubResource("Resource_faster_pumps")])
 tier = 2
 column = 4
@@ -157,9 +142,7 @@ description = "Reroutes give happiness for passengers: they think you’re avoid
 NOT IMPLEMENTED"
 icon = ExtResource("6_route")
 credits = 800
-points = Dictionary[int, int]({
-0: 10
-})
+points = 10
 requires = Array[Resource]([SubResource("Resource_warm_drive"), SubResource("Resource_speed_2")])
 tier = 3
 column = 1
@@ -171,9 +154,7 @@ description = "Fuel consumption gets smaller the longer your route is.
 NOT IMPLEMENTED"
 icon = ExtResource("8_flask_conical")
 credits = 800
-points = Dictionary[int, int]({
-0: 10
-})
+points = 10
 requires = Array[Resource]([SubResource("Resource_fuel_forecast"), SubResource("Resource_fuel_tank_2")])
 tier = 3
 column = 2
@@ -185,9 +166,7 @@ description = "Towing costs 25% less, and every second time is free.
 NOT IMPLEMENTED"
 icon = ExtResource("8_flask_conical")
 credits = 550
-points = Dictionary[int, int]({
-0: 7
-})
+points = 7
 requires = Array[Resource]([SubResource("Resource_pit_crew"), SubResource("Resource_fuel_tank_2")])
 tier = 3
 column = 4
@@ -203,9 +182,7 @@ title = "Speed 3"
 description = "The bus flies another 10% faster."
 icon = ExtResource("4_gauge")
 credits = 800
-points = Dictionary[int, int]({
-0: 10
-})
+points = 10
 requires = Array[Resource]([SubResource("Resource_speed_2")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_3_mod")])
 tier = 4
@@ -217,9 +194,7 @@ description = "Driving near a star automatically fuels the bus.
 NOT IMPLEMENTED"
 icon = ExtResource("9_sun")
 credits = 1100
-points = Dictionary[int, int]({
-0: 14
-})
+points = 14
 requires = Array[Resource]([SubResource("Resource_fuel_tank_2"), SubResource("Resource_efficient_burn")])
 tier = 4
 column = 3
@@ -231,9 +206,7 @@ description = "Driving past planet's gravitational field give the bus a speed bo
 NOT IMPLEMENTED"
 icon = ExtResource("9_sun")
 credits = 1100
-points = Dictionary[int, int]({
-0: 14
-})
+points = 14
 requires = Array[Resource]([SubResource("Resource_warm_drive")])
 tier = 4
 column = 1
@@ -245,9 +218,7 @@ description = "Allows placing two gates at fixed points in space, and flying int
 NOT IMPLEMENTED"
 icon = ExtResource("6_route")
 credits = 1100
-points = Dictionary[int, int]({
-0: 14
-})
+points = 14
 requires = Array[Resource]([SubResource("Resource_efficient_burn"), SubResource("Resource_fuel_tank_3"), SubResource("Resource_slingshot")])
 tier = 5
 column = 2
@@ -255,4 +226,5 @@ column = 2
 [resource]
 script = ExtResource("1_tree")
 title = "Performance"
+icon = ExtResource("20_rocket")
 upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_speed_1"), SubResource("Resource_fuel_tank_1"), SubResource("Resource_fuel_forecast"), SubResource("Resource_faster_pumps"), SubResource("Resource_fuel_tank_2"), SubResource("Resource_speed_2"), SubResource("Resource_warm_drive"), SubResource("Resource_pit_crew"), SubResource("Resource_how_is_my_driving"), SubResource("Resource_efficient_burn"), SubResource("Resource_tow_loyalty_card"), SubResource("Resource_speed_3"), SubResource("Resource_fuel_tank_3"), SubResource("Resource_slingshot"), SubResource("Resource_warp_gate")])

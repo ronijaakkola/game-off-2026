@@ -1,22 +1,19 @@
 extends GdUnitTestSuite
 
 const SCENE := "res://ui/settings/settings_menu.tscn"
-# Delete save deletes the save, so the suite saves to a file of its own, never the player's.
-const TEST_SAVE := "user://test_settings_menu_save.json"
 
 # The panel binds to the live Settings, which saves the developer's own settings file.
 var _saved: Dictionary[String, Variant] = {}
 
 
 func before() -> void:
-	SaveGame.path = TEST_SAVE
+	SaveGame.use_test_files("settings_menu")
 	for key: String in Settings.get_names():
 		_saved[key] = Settings.get(key)
 
 
 func after() -> void:
-	SaveGame.delete()
-	SaveGame.path = SaveGame.PATH
+	SaveGame.use_player_files()
 	for key: String in Settings.get_names():
 		Settings.set(key, _saved[key])
 
@@ -41,6 +38,8 @@ func test_delete_save_is_offered_only_where_asked_and_with_a_save() -> void:
 
 func test_holding_delete_save_deletes_it_and_a_click_does_not() -> void:
 	SaveGame.write({"credits": 1})
+	SaveGame.mark_tutorial_done()
+	SaveGame.mark_hint_seen(&"heat_zone")
 	var runner := scene_runner(SCENE)
 	(runner.scene() as SettingsMenu).offers_save_deletion = true
 	runner.invoke("open", _covered(runner))
@@ -56,6 +55,8 @@ func test_holding_delete_save_deletes_it_and_a_click_does_not() -> void:
 	button.button_down.emit()
 	await runner.simulate_frames(20, 100)
 	assert_bool(SaveGame.has_save()).is_false()
+	assert_bool(SaveGame.is_tutorial_done()).override_failure_message("Tutorial kept").is_false()
+	assert_bool(SaveGame.has_seen_hint(&"heat_zone")).is_false()
 	assert_bool(deleted[0]).is_true()
 	assert_bool(button.disabled).is_true()
 	assert_object(button.get_viewport().gui_get_focus_owner()).is_same(

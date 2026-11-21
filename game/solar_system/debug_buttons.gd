@@ -95,9 +95,11 @@ func _debug_scare_passengers() -> void:
 	cabin.shock(Cabin.KICK_SHOCK)
 
 
-# Incoming transmission: the call notice, whose Answer opens the test quest.
+# Incoming transmission: the test quest's caller calls, and Answer opens the quest.
 func _debug_incoming_transmission() -> void:
-	notices.announce_transmission().action_pressed.connect(_open_test_quest)
+	var transmission := _test_quest()
+	var call := notices.announce_transmission(transmission, true, true)
+	call.action_pressed.connect(transmission_panel.open.bind(transmission))
 
 
 # Offer quest: a passenger on board calls with a quest as soon as one can, in flight.
@@ -116,7 +118,7 @@ func _debug_test_notices() -> void:
 
 # The test quest: the first passenger on board calls with a quest, or a made-up one when
 # nobody rides. Answering it does nothing yet.
-func _open_test_quest() -> void:
+func _test_quest() -> Transmission:
 	var passengers := cabin.get_passengers()
 	var transmission: Transmission
 	if passengers:
@@ -132,10 +134,10 @@ func _open_test_quest() -> void:
 	transmission.quest = "Stop the bus near"
 	transmission.quest_planet = test_flyby_planet
 	transmission.reward_credits = 40
-	transmission.reward_research = {transmission.race: 2}
+	transmission.reward_research = 2
 	transmission.accept_text = "Yes"
 	transmission.decline_text = "No"
-	transmission_panel.open(transmission)
+	return transmission
 
 
 # The stat buttons, each a modifier like an upgrade's, another with every click. Once the

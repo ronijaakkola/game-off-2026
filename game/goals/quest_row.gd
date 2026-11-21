@@ -2,8 +2,8 @@ class_name QuestRow
 extends VBoxContainer
 ## One quest in the goal panel. On top, an icon, what it asks and the planet it is about.
 ## Under it, the passenger who asked, as a small portrait and their name, and
-## the reward at the right: the credits by a gold dollar sign, and each race's research
-## points by a flask in its colour.
+## the reward at the right: the credits by a gold dollar sign, and the research points by
+## a flask in their colour.
 ## The icon is an empty circle while the quest is under way, a green tick once it is done,
 ## and a red cross when it failed. A failed quest's top line dims, the reward goes, and
 ## why it failed takes the name's place.
@@ -16,7 +16,7 @@ const CREDITS_COLOR := Color(1.0, 0.831, 0.361)
 const FAILED_OPACITY := 0.5
 const CIRCLE := preload("res://game/goals/icons/circle.svg")
 const CIRCLE_CHECK := preload("res://shared/icons/circle_check.svg")
-const CIRCLE_X := preload("res://game/goals/icons/circle_x.svg")
+const CIRCLE_X := preload("res://shared/icons/circle_x.svg")
 const DOLLAR := preload("res://shared/icons/dollar_sign.svg")
 const FLASK := preload("res://shared/icons/flask_conical.svg")
 ## A reward icon's size, in pixels.
@@ -84,9 +84,9 @@ func _fill() -> void:
 		part.queue_free()
 	if quest.reward_credits > 0:
 		reward.add_child(_reward_part(DOLLAR, CREDITS_COLOR, quest.reward_credits))
-	for race: Race.Type in quest.reward_research:
-		var points := quest.reward_research[race]
-		reward.add_child(_reward_part(FLASK, Race.SKIN_COLORS[race], points))
+	if quest.reward_research > 0:
+		var points := quest.reward_research
+		reward.add_child(_reward_part(FLASK, ResearchCounter.COLOR, points))
 	refresh()
 
 

@@ -9,8 +9,9 @@ extends PanelContainer
 ## it's open, the menu's own controls under it take no keyboard focus, so Tab stays in the
 ## panel, and when it hides, focus goes back to the control that opened it.
 ## Where [member offers_save_deletion] is on and there is a save game, a Delete save button
-## sits above Back; it deletes the save, and which feature hints the player has seen, once
-## held, as New game starts over.
+## sits above Back; once held, as New game starts over, it deletes the save and forgets the
+## tutorial and which feature hints the player has seen, so the game starts as on a first
+## visit.
 
 ## The save game was deleted from the panel.
 signal save_deleted
@@ -87,7 +88,6 @@ func _show_delete_save() -> void:
 # Stays in place, disabled, so the panel doesn't jump and the player sees it was done.
 func _on_delete_save_button_confirmed() -> void:
 	SaveGame.delete()
-	SaveGame.forget_hints()
 	%DeleteSaveButton.disabled = true
 	%DeleteSaveButton.text = "Save data deleted"
 	%BackButton.grab_focus()

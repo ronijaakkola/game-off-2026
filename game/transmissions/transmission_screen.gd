@@ -1,14 +1,13 @@
 class_name TransmissionScreen
 extends PanelContainer
 ## The screen a transmission's caller talks from: their live portrait, framed in their
-## race's skin colour over a backdrop in its deep shade, behind an old tube's scanlines and
+## skin colour over a backdrop in their race's deep shade, behind an old tube's scanlines and
 ## static. It renders the portrait in its own viewport, which runs while the game is paused
 ## and only while a caller shows, big enough to stay sharp at the screen's size. The
 ## shared [PortraitStudio] pauses with the game, and its tiles are card-sized.
 ## [method turn_on] starts the tube with a burst of static; while [member talking], the
 ## caller's head bobs as if with each word and their eyes stay on the player.
 
-const PORTRAIT := preload("res://game/passengers/alien_portrait.tscn")
 const BADGE := preload("res://game/passengers/photo_badge.tscn")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 ## Seconds the tube takes to turn on, and to turn off.
@@ -66,32 +65,45 @@ func _process(delta: float) -> void:
 ## Puts [param transmission]'s caller on the screen, with the tube off.
 func show_caller(transmission: Transmission) -> void:
 	clear()
-	_portrait = PORTRAIT.instantiate() as AlienPortrait
-	_portrait.head_model = transmission.look.head
-	_portrait.eye_style = transmission.look.eye_style
+	_portrait = PortraitStudio.new_portrait(transmission.look, transmission.type)
 	var dark := transmission.shadowed
-	_portrait.skin_color = SHADOW_SKIN if dark else transmission.look.skin_color
-	if dark:
-		_portrait.outfit_color = SHADOW_SKIN
-	elif transmission.stern:
-		_portrait.anger = 1.0
-		_portrait.shows_fury = false
-	else:
-		_portrait.anger = PassengerPhoto.MOOD_ANGER.get(transmission.mood, 0.0)
-		_portrait.content = transmission.mood == Passenger.Mood.HAPPY
 	%Talk.add_child(_portrait)
 	PortraitStudio.frame(_portrait)
-	for eye: MeshInstance3D in _portrait.eyes:
-		eye.visible = not dark
+	dress(_portrait, transmission, dark)
 	var backdrop := (%Backdrop as ColorRect).material as ShaderMaterial
-	backdrop.set_shader_parameter(
-		&"backdrop_color", SHADOW_BACKDROP if dark else Race.BACKDROP_COLORS[transmission.race]
-	)
+	backdrop.set_shader_parameter(&"backdrop_color", get_backdrop_color(transmission, dark))
 	var border := (%Border as Panel).get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
-	border.border_color = SHADOW_FRAME if dark else Race.SKIN_COLORS[transmission.race]
+	border.border_color = get_frame_color(transmission, dark)
 	(%Border as Panel).add_theme_stylebox_override(&"panel", border)
 	_show_badges(transmission.type)
 	(%Viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ALWAYS
+
+
+## Dresses [param portrait], already in the tree, as [param transmission]'s caller: their
+## mood on their face, or with [param dark], only their outline, with no eyes or colour.
+## The small [CallerPhoto] dresses its portrait here too, so the two never differ.
+static func dress(portrait: AlienPortrait, transmission: Transmission, dark: bool) -> void:
+	if dark:
+		portrait.paint_over(SHADOW_SKIN)
+	elif transmission.stern:
+		portrait.anger = 1.0
+		portrait.shows_fury = false
+	else:
+		portrait.anger = PassengerPhoto.MOOD_ANGER.get(transmission.mood, 0.0)
+		portrait.content = transmission.mood == Passenger.Mood.HAPPY
+	for eye: MeshInstance3D in portrait.eyes:
+		eye.visible = not dark
+
+
+## The backdrop behind [param transmission]'s caller: the dark room's with [param dark].
+static func get_backdrop_color(transmission: Transmission, dark: bool) -> Color:
+	return SHADOW_BACKDROP if dark else transmission.get_backdrop_color()
+
+
+## The frame round [param transmission]'s caller: their skin colour, or the dark room's
+## with [param dark].
+static func get_frame_color(transmission: Transmission, dark: bool) -> Color:
+	return SHADOW_FRAME if dark else transmission.look.skin_color
 
 
 ## Takes the caller off the screen and stops rendering.

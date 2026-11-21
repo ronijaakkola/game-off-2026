@@ -7,9 +7,7 @@ extends Node
 ## ([method get_waiting]). Then each is decided, one after another: a destination, which
 ## leans toward where those already in the line are going only once the bus has
 ## Timetables, a race dealt from a bag, and a type by the band of the player's recent
-## rating ([RatingBand]). The first Business passenger joins the line where the bus is
-## docked as the player delivers their [constant RatingBand.BUSINESS_FROM_DELIVERIES]th
-## passenger, so the player meets them then. Their
+## rating ([RatingBand]), with no Business passenger in the first star system. Their
 ## trip time and fare come from the distance to their destination then.
 ## Once seen, the one who has waited longest leaves after [member leave_seconds] without
 ## being picked up, so a line the player passes over doesn't stay the same for good.
@@ -30,6 +28,9 @@ const MAX_SAME_DESTINATION := 2
 ## The harder, better-paying kind, which turns up more often the higher the player's recent
 ## rating. Without one, everyone is ordinary.
 @export var business: PassengerType
+## Which star system the bus works in: no Business passenger turns up in the first. Without
+## one, they turn up anywhere.
+@export var star_map: StarMap
 ## The bus, whose speed and charge time set how long a trip should take.
 @export var bus: FrameshiftBus
 @export_range(0, 10) var max_per_planet := 3
@@ -62,7 +63,7 @@ const MAX_SAME_DESTINATION := 2
 ## lowest band counts.
 var ledger: Ledger
 ## Whether the first Business passenger has turned up. Until then, the next passenger
-## decided once enough are delivered is Business for certain.
+## decided past the first star system is Business for certain.
 var first_business_dealt := false
 
 var _rng := RandomNumberGenerator.new()
@@ -105,8 +106,11 @@ func seed_dice(value: int) -> void:
 	_rng.seed = value
 
 
-## The planets passengers wait at and travel between. Starts every planet empty.
+## The planets passengers wait at and travel between. Starts every planet empty, those
+## left out too, and says so ([signal changed]) for each, so nothing still shows a line
+## that is gone, as when the bus jumps to another star system.
 func set_planets(planets: Array[Planet]) -> void:
+	var emptied: Array[Planet] = _waiting.keys()
 	_planets = planets.duplicate()
 	_waiting.clear()
 	_undecided.clear()
@@ -115,10 +119,30 @@ func set_planets(planets: Array[Planet]) -> void:
 	_until_leave.clear()
 	_waited.clear()
 	for planet: Planet in _planets:
-		_waiting[planet] = []
-		_waited[planet] = []
-		_undecided[planet] = 0
-		_until_next[planet] = _interval()
+		_open_line(planet)
+		if planet not in emptied:
+			emptied.append(planet)
+	for planet: Planet in emptied:
+		changed.emit(planet)
+
+
+## Adds [param planets] that have no line yet, each with [member starting_per_planet]
+## waiting, and keeps every line there is: as star systems join.
+func add_planets(planets: Array[Planet]) -> void:
+	for planet: Planet in planets:
+		if _waiting.has(planet):
+			continue
+		_planets.append(planet)
+		_open_line(planet)
+		for i: int in starting_per_planet:
+			add(planet)
+
+
+func _open_line(planet: Planet) -> void:
+	_waiting[planet] = []
+	_waited[planet] = []
+	_undecided[planet] = 0
+	_until_next[planet] = _interval()
 
 
 ## Starts the game's lines: [method set_planets] with [param planets], the passengers who
@@ -126,7 +150,6 @@ func set_planets(planets: Array[Planet]) -> void:
 ## [member ledger].
 func start(planets: Array[Planet], bus_planet: Planet, ratings: Ledger) -> void:
 	ledger = ratings
-	ledger.rated.connect(_on_rated)
 	set_planets(planets)
 	add_starting_passengers(bus_planet)
 
@@ -266,13 +289,11 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 
 
 # Business by the share of the band the recent rating is in, while [param line] has room
-# for one more of them and still a place for someone ordinary, and none until the player
-# has delivered RatingBand.BUSINESS_FROM_DELIVERIES passengers. The first one decided after
-# that is Business for certain.
+# for one more of them and still a place for someone ordinary, and none in the first star
+# system. The first one decided past it is Business for certain.
 func _pick_type(line: Array) -> PassengerType:
 	var ordinary := types[_rng.randi_range(0, types.size() - 1)]
-	var delivered := ledger.get_rating_count() if ledger else 0
-	if not business or delivered < RatingBand.BUSINESS_FROM_DELIVERIES:
+	if not business or _in_first_system():
 		return ordinary
 	if not first_business_dealt:
 		first_business_dealt = true
@@ -285,21 +306,10 @@ func _pick_type(line: Array) -> PassengerType:
 	return ordinary
 
 
-# As the player delivers their RatingBand.BUSINESS_FROM_DELIVERIES th passenger, someone
-# joins the line where the bus is docked, whatever max_total says, and is decided at once:
-# the first Business passenger, where the player is looking.
-func _on_rated(_stars: float) -> void:
-	if first_business_dealt or not business or not bus or not bus.is_at_planet():
-		return
-	var planet := bus.get_docked_planet()
-	if ledger.get_rating_count() != RatingBand.BUSINESS_FROM_DELIVERIES:
-		return
-	if not _waiting.has(planet) or count_at(planet) >= max_per_planet:
-		return
-	_undecided[planet] += 1
-	_waited[planet].append(0.0)
-	get_waiting(planet)
-	changed.emit(planet)
+# Whether the bus works in the first star system. Once the systems are joined, it works
+# in the last.
+func _in_first_system() -> bool:
+	return star_map != null and star_map.get_current() == star_map.get_systems()[0]
 
 
 ## Makes the next passenger created [param race], in place of a race from the bag, as the
