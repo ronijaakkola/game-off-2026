@@ -5,6 +5,8 @@
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="Texture2D" uid="uid://qrc7n3h4glnm" path="res://game/solar_system/icons/info.svg" id="4_info"]
 [ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://game/solar_system/icons/x.svg" id="5_x"]
+[ext_resource type="PackedScene" uid="uid://446dmqhi77gu" path="res://game/transmissions/caller_photo.tscn" id="6_photo"]
+[ext_resource type="Texture2D" uid="uid://dd4pkat6jlfxf" path="res://game/solar_system/icons/phone_off.svg" id="7_decline"]
 
 [sub_resource type="Gradient" id="Gradient_glow"]
 offsets = PackedFloat32Array(0, 0.25, 0.5, 0.75, 1)
@@ -35,7 +37,31 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Icon" type="TextureRect" parent="Card/Row" unique_id=349512228]
+[node name="CallerPhoto" parent="Card/Row" unique_id=1684849618 instance=ExtResource("6_photo")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="Lines" type="VBoxContainer" parent="Card/Row" unique_id=1557121075]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="CallerName" type="Label" parent="Card/Row/Lines" unique_id=331249126]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"GuideTitleLabel"
+
+[node name="Line" type="HBoxContainer" parent="Card/Row/Lines" unique_id=1468584666]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Card/Row/Lines/Line" unique_id=349512228]
 unique_name_in_owner = true
 self_modulate = Color(0.957, 0.945, 1, 0.651)
 custom_minimum_size = Vector2(13, 13)
@@ -46,10 +72,10 @@ texture = ExtResource("4_info")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Glow" type="TextureRect" parent="Card/Row/Icon" unique_id=1850311276]
+[node name="Glow" type="TextureRect" parent="Card/Row/Lines/Line/Icon" unique_id=1850311276]
 unique_name_in_owner = true
-show_behind_parent = true
 visible = false
+show_behind_parent = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -64,11 +90,22 @@ mouse_filter = 2
 texture = SubResource("GradientTexture2D_glow")
 expand_mode = 1
 
-[node name="Label" type="Label" parent="Card/Row" unique_id=1269088313]
+[node name="Label" type="Label" parent="Card/Row/Lines/Line" unique_id=1269088313]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"BodyTextLabel"
+
+[node name="DeclineButton" type="Button" parent="Card/Row" unique_id=1870293119]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Decline"
+theme_type_variation = &"DeclineButton"
+icon = ExtResource("7_decline")
+icon_alignment = 1
 
 [node name="ActionButton" type="Button" parent="Card/Row" unique_id=140534814]
 unique_name_in_owner = true
