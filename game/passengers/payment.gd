@@ -5,8 +5,8 @@ extends RefCounted
 ## everyone pays the fare, and only a good ride pays more.
 
 ## What a ride of 4 stars pays, and one of 5.
-const FOUR_STARS := 1.2
-const FIVE_STARS := 1.4
+const FOUR_STARS := 1.1
+const FIVE_STARS := 1.2
 ## The fewest stars that pay more than the fare: a happy passenger's.
 const TIP_FROM_STARS := 4.0
 
