@@ -258,9 +258,9 @@ func test_everyone_pays_the_fare_and_a_good_ride_pays_more() -> void:
 	kind.fare_multiplier = 2.0
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
 	passenger.happiness = 95.0
-	assert_int(passenger.get_payout()).is_equal(140)
-	passenger.happiness = 80.0
 	assert_int(passenger.get_payout()).is_equal(120)
+	passenger.happiness = 80.0
+	assert_int(passenger.get_payout()).is_equal(110)
 	passenger.happiness = 60.0
 	assert_int(passenger.get_payout()).is_equal(100)
 	passenger.happiness = 30.0
@@ -425,9 +425,9 @@ func test_a_tip_is_paid_only_by_a_happy_passenger() -> void:
 	kind.fare_multiplier = 2.0
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
 	passenger.happiness = 95.0
-	assert_int(passenger.get_payout(0.1)).is_equal(150)
-	passenger.happiness = 80.0
 	assert_int(passenger.get_payout(0.1)).is_equal(130)
+	passenger.happiness = 80.0
+	assert_int(passenger.get_payout(0.1)).is_equal(120)
 	passenger.happiness = 60.0
 	assert_int(passenger.get_payout(0.1)).is_equal(100)
 
