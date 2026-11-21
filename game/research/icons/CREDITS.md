@@ -1,6 +1,6 @@
 # Icon credits
 
-The upgrade icons, the trees' (rocket, globe, heart), and the research screen's own (lock, x), are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0), as the resource bar's are (`game/solar_system/icons/`), with the stroke set to white so a `modulate` tints them.
+The upgrade icons, the trees' (rocket, globe, heart), and the research screen's lock are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0), as the resource bar's are (`game/solar_system/icons/`), with the stroke set to white so a `modulate` tints them.
 
 | File | Lucide icon | License |
 |---|---|---|
@@ -21,5 +21,4 @@ The upgrade icons, the trees' (rocket, globe, heart), and the research screen's 
 | `sofa.svg` | `sofa` | ISC (`LICENSE.txt`) |
 | `sun.svg` | `sun` | ISC (`LICENSE.txt`) |
 | `tv.svg` | `tv` | ISC (`LICENSE.txt`) |
-| `x.svg` | `x` | ISC (`LICENSE.txt`) |
 | `zap.svg` | `zap` | ISC (`LICENSE.txt`) |

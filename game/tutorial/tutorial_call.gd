@@ -52,8 +52,14 @@ func play(home: Planet, destination: Planet) -> void:
 func ring(caller: String, text: String, answers: Array[String]) -> void:
 	if _cancelled:
 		return
-	_notice = notices.announce_transmission()
-	_notice.action_pressed.connect(_on_answered.bind(caller, text, answers))
+	var call := Transmission.from_boss()
+	call.caller_name = caller
+	call.text = text
+	call.decline_text = answers[0]
+	call.accept_text = answers[1]
+	call.answers_alike = true
+	_notice = notices.announce_transmission(call)
+	_notice.action_pressed.connect(_on_answered.bind(call))
 
 
 ## Takes the call notice away, or closes the call, and no call comes or ends after.
@@ -65,15 +71,9 @@ func cancel() -> void:
 	transmission_panel.close()
 
 
-# Answer: The Boss's transmission opens.
-func _on_answered(caller: String, text: String, answers: Array[String]) -> void:
+# Answer: The Boss's transmission, [param call], opens.
+func _on_answered(call: Transmission) -> void:
 	_notice = null
-	var call := Transmission.from_boss()
-	call.caller_name = caller
-	call.text = text
-	call.decline_text = answers[0]
-	call.accept_text = answers[1]
-	call.answers_alike = true
 	transmission_panel.open(call)
 	await transmission_panel.answered
 	if not _cancelled:

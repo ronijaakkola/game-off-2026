@@ -8,8 +8,9 @@ extends Node
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
 ## passenger. A completed quest pays its reward; a failed one costs the passenger
 ## [constant FAIL_SHOCK] if they still ride, so nothing more when a kick failed it.
-## Declining costs them [constant DECLINE_SHOCK], and so does a call left unanswered until
-## the bus reaches a planet. A call ends unanswered, at no cost, when its caller leaves the
+## Declining costs them [constant DECLINE_SHOCK], in the transmission or with the call
+## notice's decline button, and so does a call left unanswered until the bus reaches a
+## planet. A call ends unanswered, at no cost, when its caller leaves the
 ## bus.
 ## A finished quest stays among [method get_quests] for [constant SHOWN_SECONDS], so its
 ## row shows how it ended.
@@ -46,7 +47,7 @@ const NOTICE_SECONDS := 4.0
 const COMPLETED_TEXT := "Quest completed!"
 const COMPLETED_ICON := preload("res://shared/icons/circle_check.svg")
 const FAILED_TEXT := "Quest failed!"
-const FAILED_ICON := preload("res://game/quests/icons/circle_x.svg")
+const FAILED_ICON := preload("res://shared/icons/circle_x.svg")
 
 ## Whether anyone calls. A quest under way carries on either way.
 @export var enabled := true
@@ -115,8 +116,9 @@ func _process(delta: float) -> void:
 	if not _caller:
 		_until_call = RETRY_SECONDS
 		return
-	_call = notices.announce_transmission()
+	_call = notices.announce_transmission(Transmission.from_passenger(_caller), true, true)
 	_call.action_pressed.connect(_on_call_answered)
+	_call.declined.connect(_on_call_declined)
 
 
 ## Tells it the run's [param planets], which quests send passengers to, the
@@ -253,6 +255,16 @@ func _on_call_answered() -> void:
 		return
 	transmission_panel.answered.connect(_on_answered, CONNECT_ONE_SHOT)
 	transmission_panel.open(_offer.get_transmission())
+
+
+# Declined from the notice, before hearing the quest: a no all the same.
+func _on_call_declined() -> void:
+	if not _call:
+		return
+	_call = null
+	if _caller in cabin.get_passengers():
+		_caller.shock(DECLINE_SHOCK)
+	_rest()
 
 
 # The offer stands while its transmission shows. Should that close unanswered, as when

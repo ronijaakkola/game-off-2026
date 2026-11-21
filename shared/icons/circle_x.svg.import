@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://3jp7s1n8j7ge"
-path="res://.godot/imported/x.svg-f76f4c7d8e07b281a5089a642ad0065c.ctex"
+uid="uid://cye6kclawmr4n"
+path="res://.godot/imported/circle_x.svg-30c71baa9fd6026dfccb0a78d6e400d3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/solar_system/icons/x.svg"
-dest_files=["res://.godot/imported/x.svg-f76f4c7d8e07b281a5089a642ad0065c.ctex"]
+source_file="res://shared/icons/circle_x.svg"
+dest_files=["res://.godot/imported/circle_x.svg-30c71baa9fd6026dfccb0a78d6e400d3.ctex"]
 
 [params]
 

@@ -38,7 +38,7 @@ column = 3
 [sub_resource type="Resource" id="Resource_tip_jar"]
 script = ExtResource("2_upgrade")
 title = "Tip jar"
-description = "Happy passengers pay 1.2x more."
+description = "Happy passengers tip more: 1.2x the fare, and 1.3x for a 5-star ride."
 icon = ExtResource("6_star")
 credits = 240
 points = 4

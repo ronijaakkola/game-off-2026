@@ -12,7 +12,7 @@ const FAILED_COLOR := Color(0.949, 0.302, 0.4)
 const UNMET_ICON_COLOR := Color(0.957, 0.945, 1.0, 0.651)
 const CIRCLE := preload("res://game/goals/icons/circle.svg")
 const CIRCLE_CHECK := preload("res://shared/icons/circle_check.svg")
-const CIRCLE_X := preload("res://game/goals/icons/circle_x.svg")
+const CIRCLE_X := preload("res://shared/icons/circle_x.svg")
 const NO_RATING := "–"
 # The target mark on a rating goal's bar, in pixels wide.
 const MARKER_WIDTH := 2.0

@@ -5,10 +5,11 @@ extends RefCounted
 ## from one target to the next. [constant CARDS] has each card, by the name of the step it
 ## is on ([enum Tutorial.Step]): its title, what it says, the side of its target it sits
 ## on, whether it has a Got it button, which only a card that just tells the player
-## something has, and whether its target is rung ([member GuideCard.ring]). The
-## [ResearchGuide] opens its own cards through it the same way. {home} and {destination}
-## stand for the planets' names, {stars} for the rating the passenger gave, and a
-## control's name in braces for its icon ([ControlIcons]).
+## something has, and whether its target is rung ([member GuideCard.ring]); one with a kind
+## is that kind of card, not a tutorial step. The [ResearchGuide] opens its own cards
+## through it the same way. {home} and {destination} stand for the planets' names, {stars}
+## for the rating the passenger gave, and a control's name in braces for its icon
+## ([ControlIcons]).
 ## The titles are placeholders.
 
 ## Seconds from a card starting to close to the next one opening: once it has gone, and a
@@ -117,8 +118,8 @@ const CARDS := {
 		title = "Rewards",
 		text =
 		(
-			"The passenger paid for the trip with some credits. They also awarded you with a research "
-			+ "point. Every passenger you deliver gives you one."
+			"The passenger paid for the trip with some credits. The happier they are when they "
+			+ "get off, the more they pay."
 		),
 		side = GuideCard.Side.BELOW,
 		got_it = true,
@@ -187,6 +188,7 @@ func open(step: String, target: Control, names: Dictionary) -> void:
 	_guide.text = (card.text as String).format(names)
 	_guide.side = card.side
 	_guide.got_it = card.got_it
+	_guide.kind = card.get("kind", GuideCard.Kind.TUTORIAL_STEP)
 	if card.has("ring"):
 		_guide.ring = card.ring
 	_guide.open()

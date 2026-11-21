@@ -1,12 +1,11 @@
 class_name Research
 extends RefCounted
-## Which [Upgrade]s the player has researched, from every research tree, which trees and
-## which of the three stages are open, and the state each upgrade shows in its tree. Each
-## tree splits into stages by row ([method get_stage]). An upgrade is open once its tree
-## and its stage both are: the trees open one at a time, in order, on the first stage
-## ([method open_next_tree]), and each next stage opens in every tree at once, opening
-## every tree with it ([method open_next_stage]). The mechanic's calls open both
-## ([MechanicCall]). An upgrade in no tree it was given counts as in an open tree.
+## Which [Upgrade]s the player has researched, whether research is open, which of the
+## three stages are open, and the state each upgrade shows in its tree. Each tree splits
+## into stages by row ([method get_stage]). Research opens every tree at once, on the first
+## stage ([method open]), and each next stage opens in every tree at once, opening research
+## with it ([method open_next_stage]). An upgrade is open once research and its stage both
+## are. The mechanic's calls open both ([MechanicCall]).
 ## [method research] applies an upgrade's modifiers and traits to the bus's [BusStats];
 ## whoever calls it takes the cost off first.
 
@@ -14,8 +13,8 @@ extends RefCounted
 signal researched(upgrade: Upgrade)
 ## [param stage] opened, counting from 0.
 signal stage_opened(stage: int)
-## [param tree] opened.
-signal tree_opened(tree: ResearchTree)
+## Research opened, every tree on the open stages.
+signal opened
 
 ## How an upgrade shows in its tree.
 enum State {
@@ -29,7 +28,7 @@ enum State {
 	UNAFFORDABLE,
 	## Researched: its effects are on the bus.
 	RESEARCHED,
-	## Its tree or its stage isn't open yet: the research screen leaves it out.
+	## Research or its stage isn't open yet: the research screen leaves it out.
 	SHUT,
 }
 
@@ -39,21 +38,14 @@ const STAGES := 3
 const ROWS_PER_STAGE := 2
 
 var _stats: BusStats
-var _trees: Array[ResearchTree] = []
-# Each upgrade's tree, by its place in [member _trees].
-var _tree_of: Dictionary[Upgrade, int] = {}
 var _researched: Dictionary[Upgrade, bool] = {}
 var _open_stages := 1
-var _open_trees := 0
+var _opened := false
 
 
-## The bus's [param stats], and every tree, in the order they open.
-func _init(stats: BusStats, trees: Array[ResearchTree] = []) -> void:
+## The bus's [param stats].
+func _init(stats: BusStats) -> void:
 	_stats = stats
-	_trees = trees.duplicate()
-	for i: int in _trees.size():
-		for upgrade: Upgrade in _trees[i].upgrades:
-			_tree_of[upgrade] = i
 
 
 ## The stage [param upgrade] is in, counting from 0, by its row in its tree.
@@ -64,6 +56,11 @@ static func get_stage(upgrade: Upgrade) -> int:
 ## The stage the row [param tier] of a tree is in, counting both from 0.
 static func get_stage_of_row(tier: int) -> int:
 	return mini(tier / ROWS_PER_STAGE, STAGES - 1)
+
+
+## Whether any upgrade is researched.
+func has_researched_any() -> bool:
+	return not _researched.is_empty()
 
 
 ## Whether [param upgrade] is researched.
@@ -92,44 +89,30 @@ func get_open_stages() -> int:
 	return _open_stages
 
 
-## Whether [param tree] is open.
-func is_tree_open(tree: ResearchTree) -> bool:
-	var index := _trees.find(tree)
-	return index < 0 or index < _open_trees
+## Whether research is open: every tree, on the open stages.
+func is_opened() -> bool:
+	return _opened
 
 
-## How many trees are open, from the first.
-func get_open_trees() -> int:
-	return _open_trees
-
-
-## The tree that opens next, or null with every tree open.
-func get_next_tree() -> ResearchTree:
-	return _trees[_open_trees] if _open_trees < _trees.size() else null
-
-
-## Whether [param upgrade]'s tree and its stage are both open.
+## Whether research and [param upgrade]'s stage are both open.
 func is_open(upgrade: Upgrade) -> bool:
-	if _tree_of.get(upgrade, -1) >= _open_trees:
-		return false
-	return is_stage_open(get_stage(upgrade))
+	return _opened and is_stage_open(get_stage(upgrade))
 
 
-## Opens the next tree on the open stages. With every tree open, it does nothing.
-func open_next_tree() -> void:
-	if _open_trees >= _trees.size():
+## Opens research: every tree, on the open stages. Open already, it does nothing.
+func open() -> void:
+	if _opened:
 		return
-	_open_trees += 1
-	tree_opened.emit(_trees[_open_trees - 1])
+	_opened = true
+	opened.emit()
 
 
-## Opens the next stage in every tree, and every tree not open yet. With every stage open,
-## it does nothing.
+## Opens the next stage in every tree, and research if it isn't open yet. With every stage
+## open, it does nothing.
 func open_next_stage() -> void:
 	if _open_stages >= STAGES:
 		return
-	while _open_trees < _trees.size():
-		open_next_tree()
+	open()
 	_open_stages += 1
 	stage_opened.emit(_open_stages - 1)
 

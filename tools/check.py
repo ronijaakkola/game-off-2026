@@ -537,12 +537,9 @@ def duplicate_asset_problems(path: str) -> list[str]:
     """A copy of another feature's file, made to dodge feature-asset, is two files to keep
     in step. It is checked as an asset is linted (the commit hook and CI), not by the edit
     hook."""
-    data = Path(path).read_bytes()
     problems = []
-    for other in media_by_size().get(len(data), []):
+    for other in media_by_content().get(media_content(path), []):
         if other == path or feature_of(other) == feature_of(path) or not feature_of(path):
-            continue
-        if Path(other).read_bytes() != data:
             continue
         target = shared_path(other)
         message = (
@@ -554,14 +551,35 @@ def duplicate_asset_problems(path: str) -> list[str]:
     return problems
 
 
+# What an SVG shows leaves out its comments, such as the license line whose version
+# changes when an icon is downloaded again, and the whitespace between its tags.
+SVG_COMMENT = re.compile(rb"<!--.*?-->", re.DOTALL)
+SVG_SPACE = re.compile(rb">\s+<")
+
+
+def media_content(path: str) -> tuple[bytes, bytes]:
+    """What the game gets from a media file: its bytes, an SVG's without comments and
+    layout, and the import settings beside it. Two files the same by this are one asset
+    copied, whatever their license line says; the same picture imported at another size
+    is a second asset, since one file imports one way."""
+    data = Path(path).read_bytes()
+    if path.endswith(".svg"):
+        data = SVG_SPACE.sub(b"><", SVG_COMMENT.sub(b"", data)).strip()
+    imported = Path(f"{path}.import")
+    params = b""
+    if imported.is_file():
+        params = imported.read_bytes().partition(b"[params]")[2].strip()
+    return data, params
+
+
 @cache
-def media_by_size() -> dict[int, list[str]]:
-    """Every media file of ours outside addons/, by its size in bytes."""
-    found: dict[int, list[str]] = {}
+def media_by_content() -> dict[tuple[bytes, bytes], list[str]]:
+    """Every media file of ours outside addons/, by what the game gets from it."""
+    found: dict[tuple[bytes, bytes], list[str]] = {}
     for path in project_files():
         path = path.removeprefix("./")
         if path.endswith(MEDIA) and ours(path):
-            found.setdefault(Path(path).stat().st_size, []).append(path)
+            found.setdefault(media_content(path), []).append(path)
     return found
 
 

@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
 ## A new run opens on the boss's call with only the bus bars showing; answering it with
 ## either of the two answers starts the steps on the guide card beside the bus, and the
-## camera's card after it waits for the player to both pan and zoom the camera. Skipping the
-## tutorial puts back every rule it changed and fills the tank, and the next new run starts
-## without it.
+## camera's card after it waits for the player to both pan and zoom the camera. Through the
+## call, the menu button still opens the pause menu. Skipping the tutorial puts back every
+## rule it changed and fills the tank, and the next new run starts without it.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -59,6 +59,26 @@ func test_a_new_run_opens_on_the_call_and_answering_it_starts_the_steps() -> voi
 	var guide := runner.find_child("GuideCard") as GuideCard
 	await assert_func(guide, "is_visible_in_tree").wait_until(2000).is_true()
 	assert_str(guide.text).starts_with("You are driving this bus.")
+
+
+func test_the_menu_button_opens_the_pause_menu_while_the_call_covers_the_screen() -> void:
+	SaveGame.start_new()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var notices := runner.find_child("Notices") as NoticeStack
+	await assert_func(self, "_has_notice", [notices]).wait_until(5000).is_true()
+	await runner.simulate_frames(30)
+
+	# The rest of the screen still takes no clicks.
+	var bars := runner.find_child("BusStatusPanel") as Control
+	runner.set_mouse_position(bars.get_global_rect().get_center())
+	await runner.simulate_frames(2)
+	var hovered := bars.get_viewport().gui_get_hovered_control()
+	assert_str(hovered.name if hovered else "").is_equal("ClickBlock")
+	var pause_button := runner.find_child("PauseButton").find_child("Button") as Control
+	_click(runner, pause_button)
+	await runner.simulate_frames(5)
+	assert_bool((runner.find_child("PauseMenu") as CanvasLayer).visible).is_true()
 
 
 func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course() -> void:

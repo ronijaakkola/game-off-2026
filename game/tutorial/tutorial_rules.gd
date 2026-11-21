@@ -97,8 +97,6 @@ func pause(on: bool, serving := false) -> void:
 		PauseMenu.release(t)
 
 
-## Keeps what [param passenger] pays at FARE whatever their mood, as long as they pay at all.
+## Keeps what [param passenger] pays at FARE however they rate the ride.
 func hold_fare(passenger: Passenger) -> void:
-	var pay: float = Passenger.PAY[passenger.get_mood()]
-	if pay > 0.0:
-		passenger.fare = FARE / pay
+	passenger.fare = FARE / Payment.multiple(passenger.get_rating())
