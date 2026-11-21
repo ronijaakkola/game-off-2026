@@ -418,7 +418,7 @@ func test_right_click_on_space_with_the_queue_key_adds_a_point_after_the_planet(
 	assert_vector(camera.unproject_position(stops[1].point)).is_equal_approx(on_screen, Vector2.ONE)
 
 
-# A right click at [param at] with the queue key held.
+# Shift going down or coming up, as the keyboard sends it.
 func _send_shift(pressed: bool) -> void:
 	var shift := InputEventKey.new()
 	shift.physical_keycode = KEY_SHIFT
@@ -427,6 +427,7 @@ func _send_shift(pressed: bool) -> void:
 	Input.flush_buffered_events()
 
 
+# A right click at [param at] with the queue key held.
 func _queued_click(at: Vector2) -> void:
 	Input.action_press(&"queue_stop")
 	_send_click(MOUSE_BUTTON_RIGHT, at)
