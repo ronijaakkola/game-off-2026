@@ -75,13 +75,15 @@ def play_game(config: dict, project: Path = ROOT) -> None:
     timer = threading.Timer(1800, process.kill)
     timer.start()
     stop = threading.Timer(2, process.kill)
+    stopping = False
     lines = []
     try:
         for line in process.stdout:
             lines.append(line.rstrip())
             # A script that fails to load never ends the run: Godot would idle on forever.
             # A moment more, so the errors that follow the first are reported with it.
-            if is_error(line) and not stop.is_alive():
+            if is_error(line) and not stopping:
+                stopping = True
                 stop.start()
         code = process.wait()
         errors = [line for line in lines if is_error(line)]
