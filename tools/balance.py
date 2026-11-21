@@ -28,6 +28,7 @@ import statistics
 import subprocess
 import sys
 import tempfile
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -40,24 +41,59 @@ def godot() -> str:
     return os.environ.get("GODOT", "godot")
 
 
+def is_error(line: str) -> bool:
+    return "SCRIPT ERROR" in line or "Compile Error" in line
+
+
+def newest(paths) -> float:
+    return max((path.stat().st_mtime for path in paths), default=0.0)
+
+
+def import_project(project: Path) -> None:
+    """Imports a checkout whose scripts are newer than Godot's cache of them. A game
+    run doesn't refresh the global class cache, so after a pull that adds a class_name,
+    every script that names it fails to parse."""
+    cache = project / ".godot"
+    scripts = (path for path in project.rglob("*.gd") if cache not in path.parents)
+    if newest(cache.glob("global_script_class_cache.cfg")) >= newest(scripts):
+        return
+    # The import's exit code can't be trusted (tools/check.py, godot()).
+    subprocess.run([godot(), "--headless", "--path", str(project), "--import"],
+                   capture_output=True, timeout=1800)
+    # A cache with nothing to change is left as it was, so the next run would import again.
+    (cache / "global_script_class_cache.cfg").touch()
+
+
 def play_game(config: dict, project: Path = ROOT) -> None:
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as file:
         json.dump(config, file)
+    process = subprocess.Popen(
+        [godot(), "--headless", "--path", str(project), "--fixed-fps", FPS,
+         "--scene", SCENE, "--", file.name],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+    )
+    timer = threading.Timer(1800, process.kill)
+    timer.start()
+    stop = threading.Timer(2, process.kill)
+    lines = []
     try:
-        result = subprocess.run(
-            [godot(), "--headless", "--path", str(project), "--fixed-fps", FPS,
-             "--scene", SCENE, "--", file.name],
-            capture_output=True, text=True, timeout=1800,
-        )
-        lines = result.stdout.splitlines() + result.stderr.splitlines()
-        errors = [line for line in lines if "SCRIPT ERROR" in line or "Compile Error" in line]
+        for line in process.stdout:
+            lines.append(line.rstrip())
+            # A script that fails to load never ends the run: Godot would idle on forever.
+            # A moment more, so the errors that follow the first are reported with it.
+            if is_error(line) and not stop.is_alive():
+                stop.start()
+        code = process.wait()
+        errors = [line for line in lines if is_error(line)]
         if errors:
             raise SystemExit("the run logged errors:\n" + "\n".join(errors[:10]))
-        if result.returncode != 0:
+        if code != 0:
             raise SystemExit(
-                f"the run stopped with exit code {result.returncode}:\n" + "\n".join(lines[-10:])
+                f"the run stopped with exit code {code}:\n" + "\n".join(lines[-10:])
             )
     finally:
+        timer.cancel()
+        stop.cancel()
         os.unlink(file.name)
 
 
@@ -223,6 +259,8 @@ def command_run(args: argparse.Namespace) -> None:
                 "overrides": variant.get("overrides", {}),
             }
             jobs.append((variant, path, config))
+    for project in {str(variant.get("project", ROOT)) for variant in variants}:
+        import_project(Path(project))
     with ThreadPoolExecutor(max_workers=args.jobs) as pool:
         list(pool.map(
             lambda job: play_game(job[2], Path(job[0].get("project", ROOT))), jobs
@@ -300,6 +338,7 @@ def command_play(args: argparse.Namespace) -> None:
         game["decisions"].append(decision)
     config = dict(game, out=str((folder / "report.json").resolve()),
                   state_out=str((folder / "state.json").resolve()))
+    import_project(Path(game.get("project") or ROOT))
     play_game(config, Path(game.get("project") or ROOT))
     game_path.write_text(json.dumps(game, indent=1))
     show_state(json.loads((folder / "state.json").read_text()))
