@@ -3,23 +3,25 @@
 [ext_resource type="Script" uid="uid://lkloudqqw7eo" path="res://game/research/research_tree.gd" id="1_tree"]
 [ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
-[ext_resource type="Texture2D" uid="uid://b0bgevms180dy" path="res://game/research/icons/bell_ring.svg" id="4_bell_ring"]
-[ext_resource type="Texture2D" uid="uid://bloqie2x21ut0" path="res://game/research/icons/sofa.svg" id="5_sofa"]
 [ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="6_star"]
-[ext_resource type="Texture2D" uid="uid://2uvj2c14gptt" path="res://shared/icons/sandwich.svg" id="7_sandwich"]
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="8_flask_conical"]
-[ext_resource type="Texture2D" uid="uid://dqebesaunqcwx" path="res://game/research/icons/cctv.svg" id="9_cctv"]
 [ext_resource type="Texture2D" uid="uid://cqsul35bsw7i0" path="res://game/research/icons/bed_double.svg" id="10_bed_double"]
 [ext_resource type="Texture2D" uid="uid://h7iwjy8dapm2" path="res://game/research/icons/route.svg" id="11_route"]
 [ext_resource type="Texture2D" uid="uid://dkvmrjt67ew4c" path="res://game/research/icons/zap.svg" id="12_zap"]
 [ext_resource type="Texture2D" uid="uid://cskdmuwvt8g6f" path="res://game/research/icons/gauge.svg" id="13_gauge"]
 [ext_resource type="Texture2D" uid="uid://cuy347k31em51" path="res://game/research/icons/globe.svg" id="20_globe"]
+[ext_resource type="Texture2D" uid="uid://dpn2s273nxiq5" path="res://game/research/icons/rendered/door_chime_36.png" id="30_door_chime"]
+[ext_resource type="Texture2D" uid="uid://co26sodmq11dq" path="res://game/research/icons/rendered/free_station_coffee_36.png" id="30_free_station_coffee"]
+[ext_resource type="Texture2D" uid="uid://cp1r7s70puyrh" path="res://game/research/icons/rendered/station_cameras_36.png" id="30_station_cameras"]
+[ext_resource type="Texture2D" uid="uid://b08chvh403uvi" path="res://game/research/icons/rendered/station_waiting_lounge_36.png" id="30_station_waiting_lounge"]
+[ext_resource type="Texture2D" uid="uid://dxxctcn471r17" path="res://game/research/icons/rendered/timetables_36.png" id="30_timetables"]
+[ext_resource type="Texture2D" uid="uid://bkmunjifgu3bx" path="res://game/research/icons/rendered/tip_jar_36.png" id="30_tip_jar"]
 
 [sub_resource type="Resource" id="Resource_door_chime"]
 script = ExtResource("2_upgrade")
 title = "Door chime"
 description = "Shows how many passengers wait at each planet, under its name."
-icon = ExtResource("4_bell_ring")
+icon = ExtResource("30_door_chime")
 credits = 120
 points = 2
 traits = Array[int]([1])
@@ -29,7 +31,7 @@ column = 1
 script = ExtResource("2_upgrade")
 title = "Station waiting lounge"
 description = "Waiting passengers grow happier the longer they wait, and ride happier for it."
-icon = ExtResource("5_sofa")
+icon = ExtResource("30_station_waiting_lounge")
 credits = 120
 points = 2
 traits = Array[int]([9])
@@ -39,7 +41,7 @@ column = 3
 script = ExtResource("2_upgrade")
 title = "Tip jar"
 description = "Happy passengers tip more: 1.2x the fare, and 1.3x for a 5-star ride."
-icon = ExtResource("6_star")
+icon = ExtResource("30_tip_jar")
 credits = 240
 points = 4
 requires = Array[Resource]([SubResource("Resource_door_chime")])
@@ -50,7 +52,7 @@ tier = 1
 script = ExtResource("2_upgrade")
 title = "Free station coffee"
 description = "A passenger's first request comes 50% later."
-icon = ExtResource("7_sandwich")
+icon = ExtResource("30_free_station_coffee")
 credits = 240
 points = 4
 requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
@@ -62,7 +64,7 @@ column = 2
 script = ExtResource("2_upgrade")
 title = "Timetables"
 description = "Increased chance that multiple waiting passengers have the same destination."
-icon = ExtResource("11_route")
+icon = ExtResource("30_timetables")
 credits = 240
 points = 4
 requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
@@ -85,7 +87,7 @@ tier = 2
 script = ExtResource("2_upgrade")
 title = "Station cameras"
 description = "Hovering a planet on the map shows waiting passengers and their destinations."
-icon = ExtResource("9_cctv")
+icon = ExtResource("30_station_cameras")
 credits = 300
 points = 4
 requires = Array[Resource]([SubResource("Resource_door_chime")])

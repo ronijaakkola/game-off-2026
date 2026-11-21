@@ -18,7 +18,7 @@ Folders are by feature:
 | `game/<feature>/` | The game, one folder per feature: `game/bus/`, `game/feature_hints/`, `game/goals/`, `game/passengers/`, `game/quests/`, `game/research/`, `game/solar_system/`, `game/space_sky/`, `game/transmissions/`, `game/tutorial/`. |
 | `shared/` | Assets used by more than one feature, such as `shared/two_tone.gdshader`. |
 | `test/` | gdUnit4 tests, and preview scenes in `test/previews/` (Visual checks and previews). |
-| `tools/` | `check.py`, `blender.py` and their helper scripts. Not exported. |
+| `tools/` | `check.py`, `blender.py` and their helper scripts, and `research_icons/`, which renders the research upgrades' icons. Not exported. |
 | `art/` | The **model library**, `art/models.blend`. Ignored by git and Godot. |
 | `docs/` | Docs for people and agents, and their figures in `docs/figures/`. Ignored by Godot. |
 

@@ -10,7 +10,7 @@ Keeping it that way:
 
 ## Look
 
-Flat and cartoony, like a picture book of the solar system: solid colours with crisp edges, no textures, no realistic light. Everything is generated from shaders and meshes, so there are no image assets to make.
+Flat and cartoony, like a picture book of the solar system: solid colours with crisp edges, no textures, no realistic light. Everything is generated from shaders and meshes, so there are no image assets to make. The one exception is the research upgrades' rendered icons: small models rendered in Blender in the same two-tone light and saved as pictures (Research screen).
 
 Anything new follows the same rules: flat colour, hard edges, a two-tone shade at most, no textures. No post-processing so far: each effect adds a full-screen pass on the web.
 
@@ -395,7 +395,8 @@ A modal over the whole screen, the game paused and dimmed under it: one frosted 
 - **Opening** fades it in over 0.2 s while the sheet grows from 97 % to full size in 0.25 s. **Closing** lets the game run at once and fades it out in 0.15 s. Under Reduce motion it only fades.
 - While it is open, the HUD's resource bar hides; the header has its own.
 - **The trees** stand side by side, centred, each on a faint card with its icon and name (a rocket and "Performance", a globe and "Planets", a heart and "Comfort") and a chip in its colour counting what is researched of all it has ("3/15"). The icon is 14 px in the tree's colour, 6 px before the name, its middle level with the middle of the name's capitals. Before research opens no tree is there, and the rows of a stage that isn't open never are: the cards end 16 px under the last open row.
-- Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral in its top left corner.
+- Each upgrade is a 52 px tile with 12 px corners showing its icon, in rows 64 px apart. Where its name ends in a step ("Speed 2", "Bigger portions II"), the step shows as a Roman numeral on a chip centred on the tile's bottom edge, half over it: 14 px tall, fully rounded, its border in the tree's colour, the numeral's capitals centred in it. On one stacked above the next step it sits where their line leaves the tile.
+- **The icons.** Most upgrades have a rendered icon: a small model in the game's two-tone light, every one under the same camera and light from the upper left, with a white sticker edge round it, 36 px and centred on the tile. Steps of one upgrade share theirs. It keeps its own colours and avoids its tree's, so it reads on a filled tile. It is saved at several sizes, and a tile shows the one nearest its size on screen, so it stays crisp in any window. The rest still have a 24 px line icon, tinted for the state.
 - **Stages.** The rows of every tree line up, with more room between two open stages and a faint line across all the trees there. While a stage is still to open, the same line runs under the last open stage, 34 px above the cards' bottom edge, broken in the middle by a tag 8 px from the line either side: 20 px tall and fully rounded, in a solid dark violet (#2A2450) with the line's faint border, holding a 10 px lock and "Requires promotion" in small strong text, both dim. The cards end 26 px under the line, and each tree's lines to that stage's upgrades run on faintly from their tiles, across the line, to the cards' bottom edges.
 - **What opened** shows the next time the screen is open, once it has faded in: as research opens, every tree's card fades in over 0.2 s, and its tiles, or a stage's tiles, fade in over 0.3 s, each row 40 ms after the one above.
 - A line runs from each upgrade to each one it needs, centre to centre: lit in the tree's colour once that one is researched, a little brighter while it can be researched, faint otherwise.
@@ -405,11 +406,11 @@ Every tile is flat, with no gradient, glow or shadow, and each state has its own
 
 | Tile | Look |
 |---|---|
-| Researched | A solid fill in the tree's colour; the icon and numeral in its deep shade |
-| Available | Dark, tinted toward the tree's colour, with a 2 px border in it; a white icon |
+| Researched | A solid fill in the tree's colour; a line icon in its deep shade, a rendered icon in its own colours; the step chip in the deep shade |
+| Available | Dark, tinted toward the tree's colour, with a 2 px border in it; a white line icon or a rendered icon in its own colours |
 | Can't afford | Dark with a faint border in the tree's colour, a dim icon, and a red badge on its corner with a flask (points lacking) or a dollar sign (only credits) |
-| Locked | Dark and dim, with a thin grey outline |
-| Hidden | Near-black with no border, and a faint silhouette of its icon |
+| Locked | Dark and dim, with a thin grey outline; a dimmer icon |
+| Hidden | Near-black with no border, and a faint silhouette of its icon; no step chip |
 
 - **The tooltip.** The pointer over an upgrade opens its tooltip above it, so it covers neither the rows under it, which the upgrade opens, nor the tiles beside it: name, a line on what it does, then, 4 px further apart than the lines above it, its cost with the resource bar's icons, what the player lacks in red. Under the cost, one the player can't afford reads "Insufficient funds" in red.
 - A hidden one shows "???" and no cost. A researched one shows no cost. One that isn't implemented reads "NOT IMPLEMENTED".
