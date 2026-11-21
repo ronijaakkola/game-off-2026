@@ -77,6 +77,9 @@ var extra: Control:
 		if _open:
 			_fit()
 
+## Whether it stays shut whatever the pointer does, as while it has nothing to say.
+var muted := false
+
 var _open := false
 # How far toward the target it still is: 1 before it opens, 0 in place.
 var _slide := 1.0
@@ -114,9 +117,9 @@ func _notification(what: int) -> void:
 
 
 ## Opens the card at its target, with no motion when [param at_once]. Nothing happens
-## while it is open.
+## while it is open or [member muted].
 func open(at_once := false) -> void:
-	if _open:
+	if _open or muted:
 		return
 	_open = true
 	_fit()

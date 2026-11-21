@@ -9,6 +9,7 @@ var _research: Research
 func before_test() -> void:
 	_stats = BusStats.new()
 	_research = Research.new(_stats)
+	_research.open()
 
 
 func test_an_upgrade_is_available_once_one_path_to_it_is_researched() -> void:
@@ -81,25 +82,21 @@ func test_an_upgrade_past_the_open_stages_is_shut() -> void:
 	assert_int(_state(last)).is_equal(Research.State.AVAILABLE)
 
 
-func test_trees_open_one_at_a_time_and_a_stage_opens_every_tree() -> void:
-	var first := _tree()
-	var second := _tree()
+func test_nothing_is_open_until_research_opens_and_a_stage_opens_research() -> void:
+	var top := _upgrade()
 	var later := _upgrade()
 	later.tier = Research.ROWS_PER_STAGE
-	first.upgrades.append(later)
-	_research = Research.new(_stats, [first, second])
+	_research = Research.new(_stats)
 
-	assert_int(_state(first.upgrades[0])).is_equal(Research.State.SHUT)
-	_research.open_next_tree()
-	assert_int(_state(first.upgrades[0])).is_equal(Research.State.AVAILABLE)
+	assert_int(_state(top)).is_equal(Research.State.SHUT)
+	_research.open()
+	assert_int(_state(top)).is_equal(Research.State.AVAILABLE)
 	assert_int(_state(later)).is_equal(Research.State.SHUT)
-	assert_int(_state(second.upgrades[0])).is_equal(Research.State.SHUT)
-	assert_object(_research.get_next_tree()).is_same(second)
 
+	_research = Research.new(_stats)
 	_research.open_next_stage()
-	assert_int(_research.get_open_trees()).is_equal(2)
-	assert_object(_research.get_next_tree()).is_null()
-	assert_int(_state(second.upgrades[0])).is_equal(Research.State.AVAILABLE)
+	assert_bool(_research.is_opened()).is_true()
+	assert_int(_state(top)).is_equal(Research.State.AVAILABLE)
 	assert_int(_state(later)).is_equal(Research.State.AVAILABLE)
 
 
@@ -114,10 +111,3 @@ func _upgrade(requires: Array[Upgrade] = [], credits := 0, points := 0) -> Upgra
 	upgrade.credits = credits
 	upgrade.points = points
 	return upgrade
-
-
-# A tree with one upgrade at its top.
-func _tree() -> ResearchTree:
-	var tree := ResearchTree.new()
-	tree.upgrades.append(_upgrade())
-	return tree

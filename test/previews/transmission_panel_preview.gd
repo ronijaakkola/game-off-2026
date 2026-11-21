@@ -32,9 +32,9 @@ func _ready() -> void:
 		transmission.answers_alike = true
 	elif "mechanic" in args:
 		transmission = Transmission.from_mechanic()
-		transmission.text = MechanicCall.TREE_TEXTS[0]
-		transmission.decline_text = MechanicCall.ANSWERS[0]
-		transmission.accept_text = MechanicCall.ANSWERS[1]
+		transmission.text = MechanicCall.RESEARCH_TEXT
+		transmission.decline_text = MechanicCall.RESEARCH_ANSWERS[0]
+		transmission.accept_text = MechanicCall.RESEARCH_ANSWERS[1]
 		transmission.answers_alike = true
 	else:
 		transmission = Transmission.from_boss("revealed" in args)

@@ -22,8 +22,8 @@ func before_test() -> void:
 	(_runner.find_child("WaitingPassengers") as Node).set_process(false)
 	_lab = _runner.find_child("ResearchLab") as ResearchLab
 	_ledger = _system.get_ledger()
-	# As the mechanic's first call does: the first tree opens, and the Research button shows.
-	_lab.get_research().open_next_tree()
+	# As the mechanic's first call does: research opens, and the Research button shows.
+	_lab.get_research().open()
 	(_runner.find_child("DockPanel") as DockPanel).research_hidden = false
 
 

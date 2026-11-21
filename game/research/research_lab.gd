@@ -1,14 +1,15 @@
 class_name ResearchLab
 extends Node
-## Where the player researches upgrades: it keeps the [Research] for the bus and every
-## research tree, opens the research screen ([ResearchScreen]) on all of them, and
-## researches an upgrade the player holds there when the player can pay for it, taking its
-## credits and research points off first. Which planets open the screen is the dock
-## panel's to say: those with a lab ([member Planet.has_lab]). It adds the debug panel's
-## Resources buttons, which give credits and research points for testing, and its Open
-## research button, which opens the screen from anywhere. It remembers which upgrades the
-## player could pay for when they last closed the screen, so the dock panel nudges only when
-## that has changed ([method has_unseen_upgrade]).
+## Where the player researches upgrades: it keeps the [Research] for the bus and every research
+## tree, opens the research screen ([ResearchScreen]) on all of them, and researches an upgrade the
+## player holds there when the player can pay for it, taking its credits and research points off
+## first. Which planets open the screen is the dock panel's to say: those with a lab ([member
+## Planet.has_lab]). It adds the debug panel's Resources buttons, which give credits and research
+## points for testing, and its Open research button, which opens the screen from anywhere. So the
+## first visit always has something to research, the screen opening with nothing researched and
+## nothing the player can pay for quietly raises their credits to the cheapest upgrade's. It
+## remembers which upgrades the player could pay for when they last closed the screen, so the dock
+## panel nudges only when that has changed ([method has_unseen_upgrade]).
 
 ## The credits the debug panel's Add credits button gives.
 const DEBUG_CREDITS := 1000
@@ -41,7 +42,7 @@ var _seen: Array[Upgrade] = []
 
 
 func _ready() -> void:
-	_research = Research.new(bus.get_stats(), trees)
+	_research = Research.new(bus.get_stats())
 	research_screen.research = _research
 	research_screen.upgrade_held.connect(research)
 	research_screen.closed.connect(resource_bar.show)
@@ -53,7 +54,7 @@ func _ready() -> void:
 	DebugPanel.add_button(research_text, _debug_add_research, self, DEBUG_RESOURCES_GROUP)
 
 
-## Which upgrades are researched, and which trees and stages are open.
+## Which upgrades are researched, and whether research and which stages are open.
 func get_research() -> Research:
 	return _research
 
@@ -97,9 +98,27 @@ func _remember_seen() -> void:
 
 ## Opens the research screen on every tree, pausing the game.
 func open_screen() -> void:
+	_afford_first()
 	research_screen.open(trees)
 	# The screen's header has the bar of its own; the HUD's would peek out above the sheet.
 	resource_bar.hide()
+
+
+# With nothing researched yet and nothing the player can pay for, their credits become the
+# cheapest upgrade's among those they have the research points for, with no gain shown.
+func _afford_first() -> void:
+	if not ledger or _research.has_researched_any() or not _get_available().is_empty():
+		return
+	var cheapest: Upgrade = null
+	for tree: ResearchTree in trees:
+		for upgrade: Upgrade in tree.upgrades:
+			var state := _research.get_state(upgrade, upgrade.credits, get_points())
+			if state != Research.State.AVAILABLE:
+				continue
+			if not cheapest or upgrade.credits < cheapest.credits:
+				cheapest = upgrade
+	if cheapest:
+		ledger.credits = cheapest.credits
 
 
 ## Shows the credits and ratings earned since the last commit in both resource bars, the
