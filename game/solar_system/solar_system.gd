@@ -9,9 +9,8 @@ extends Node3D
 ## Planets on the route show an orange border.
 ## A new run from the main menu starts with the [Tutorial], on the map zoomed in on Terra
 ## and the Moon ([MapZoom]); once it is over, the map zooms out to the whole solar system,
-## and only then do the other planets' lines start, the goals come and the run saves. A run
-## without it shows a tutorial notice on how to set a course until the player first sets
-## one.
+## and only then do the other planets' lines start, the goals come and the run saves. Either
+## way The Boss's first-shift call ([FirstShiftCall]) starts the run proper.
 ## A left click on a planet opens it: the camera follows it on the left side of the screen
 ## and its panel opens on the right. A left click on the open planet or on empty space, or
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
@@ -56,13 +55,14 @@ const PACE := 0.9
 ## What the quick text over the bus says when it leaves a planet with the drive warm.
 const QUICK_STOP := "Quick stop!"
 const QUICK_STOP_ICON := preload("res://game/solar_system/icons/clock.svg")
-const MAP_OPENED := "The whole solar system is open. Deliver passengers to get promotion."
-## Seconds the notice that the map is open shows.
-const MAP_OPENED_SECONDS := 8.0
 ## The user argument that starts the scene with the tutorial, as a new run from the main
 ## menu does: [code]capture <scene> -- --tutorial[/code].
 const TUTORIAL_ARG := "--tutorial"
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
+
+## Whether a left click on a planet opens it. Off for now: the planet acts as empty space,
+## and the panel opens only from code ([method open_planet]).
+static var left_click_opens_planets := false
 
 var _planets: Array[Planet] = []
 # The player's credits, research points and ratings. The resource bar shows them.
@@ -136,6 +136,8 @@ func _ready() -> void:
 		zoom.zoomed_out.connect(_on_map_zoomed_out)
 		(%Tutorial as Tutorial).waiting = %WaitingPassengers as WaitingPassengers
 		(%Tutorial as Tutorial).start()
+	else:
+		(%FirstShiftCall as FirstShiftCall).play()
 
 
 func _exit_tree() -> void:
@@ -146,8 +148,6 @@ func _process(delta: float) -> void:
 	(%OrbitClock as OrbitClock).run(delta)
 	var bus := %Bus as FrameshiftBus
 	(%Cabin as Cabin).docked = bus.is_at_planet()
-	# Charging only starts cold, and warmth holds until everyone getting off is off.
-	(%Cabin as Cabin).cold = bus.is_at_planet() and bus.get_warmth() <= 0.0 and not bus.unloading
 	(%Cabin as Cabin).parking = (%Bus as FrameshiftBus).state == FrameshiftBus.State.PARKING
 	var felt := (%Bus as FrameshiftBus).get_felt_acceleration()
 	(%PortraitStudio as PortraitStudio).felt_acceleration = felt
@@ -187,6 +187,10 @@ func _process(delta: float) -> void:
 			planet.outline_width = _pixels_to_world(
 				OUTLINE_PIXELS, planet.get_body_global_position()
 			)
+
+
+func _input(event: InputEvent) -> void:
+	QueueKey.read(event)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -271,14 +275,19 @@ func is_bus_open() -> bool:
 	return (%BusPanel as BusPanel).is_open()
 
 
-# A left click: on the bus or a planet opens it, but no planet in the tutorial; on what is
-# open or on empty space closes it.
+# A left click: on the bus or a planet opens it, but no planet in the tutorial or while
+# [member left_click_opens_planets] is off; on what is open or on empty space closes it.
 func _select_at(screen_point: Vector2) -> void:
 	var picked := _pick_at(screen_point)
 	var planet := picked as Planet
 	if picked is FrameshiftBus and not is_bus_open():
 		open_bus()
-	elif planet and planet != get_open_planet() and not (%Tutorial as Tutorial).is_running():
+	elif (
+		planet
+		and left_click_opens_planets
+		and planet != get_open_planet()
+		and not (%Tutorial as Tutorial).is_running()
+	):
 		open_planet(planet)
 	elif get_open_planet():
 		close_planet()
@@ -355,7 +364,8 @@ func _on_tutorial_finished() -> void:
 	(%MapZoom as MapZoom).zoom_out()
 
 
-# The run proper starts on the whole map: every planet's line, the goals, and saving.
+# The run proper starts on the whole map: every planet's line, the goals, saving, and The
+# Boss's call.
 func _on_map_zoomed_out() -> void:
 	var waiting := %WaitingPassengers as WaitingPassengers
 	waiting.set_planets((%StarMap as StarMap).get_active_planets())
@@ -363,7 +373,7 @@ func _on_map_zoomed_out() -> void:
 	(%Progression as Progression).start()
 	(%MechanicCall as MechanicCall).start()
 	(%GameSaver as GameSaver).holding = false
-	(%Notices as NoticeStack).push(MAP_OPENED, Notice.Kind.INFO, false, MAP_OPENED_SECONDS)
+	(%FirstShiftCall as FirstShiftCall).play()
 
 
 func _on_bus_left_warm() -> void:

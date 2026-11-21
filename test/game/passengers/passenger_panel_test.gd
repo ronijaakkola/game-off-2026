@@ -170,6 +170,7 @@ func test_a_card_s_photo_background_takes_their_race_s_backdrop_colour() -> void
 
 func test_a_card_s_kick_button_fades_in_outside_the_board() -> void:
 	var runner := scene_runner(SCENE)
+	(runner.scene() as PassengerPanel).kicks_allowed = true
 	var cabin := _cabin(runner)
 	cabin.board(_passenger(auto_free(Planet.new()), 1000.0))
 	await runner.simulate_frames(30, 30)

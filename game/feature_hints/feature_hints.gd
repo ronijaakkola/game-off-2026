@@ -1,8 +1,8 @@
 class_name FeatureHints
 extends Node
 ## Feature hints: the first time the player meets a feature during play, the game pauses,
-## the music muffles, and a guide card rings it, points at it and says what it is, until
-## the player presses Got it.
+## the music muffles, the screen dims but for the feature ([HintDim]), and a guide card
+## rings it, points at it and says what it is, until the player presses Got it.
 ## Game code [method offer]s a hint when the player meets its feature; it shows only if
 ## the player has never closed it ([method SaveGame.has_seen_hint]), so each shows once
 ## across every run until the player deletes their save data.
@@ -41,6 +41,12 @@ const HINTS := {
 		),
 		side = GuideCard.Side.LEFT,
 	},
+	&"goals":
+	{
+		title = "Goals",
+		text = "Here you can see your goals to reach the promotion.",
+		side = GuideCard.Side.LEFT,
+	},
 }
 
 ## The card the hints show on: its own, never the tutorial's.
@@ -60,6 +66,8 @@ var _held := false
 var _between := false
 # The hints the player has closed, as read once from the save game.
 var _seen: Dictionary[StringName, bool] = {}
+# The dim over the rest of the screen, beside the card, made when the first hint shows.
+var _dim: HintDim
 
 
 func _ready() -> void:
@@ -115,10 +123,15 @@ func _show(hint: StringName, target: Control) -> void:
 	guide.title = card.title
 	guide.text = card.text
 	guide.side = card.side
+	if not is_instance_valid(_dim):
+		_dim = HintDim.new()
+		guide.add_sibling(_dim)
+	_dim.target = target
 	if not _held:
 		_held = true
 		PauseMenu.hold(self)
 		Audio.muffle_music(true)
+		_dim.fade_in()
 	guide.open()
 
 
@@ -146,13 +159,15 @@ func _show_next() -> void:
 	_show(next.hint, next.target)
 
 
-# The game runs again, unless something else holds it, and the music clears.
+# The game runs again, unless something else holds it, the music clears and the dim goes.
 func _let_go() -> void:
 	if not _held:
 		return
 	_held = false
 	PauseMenu.release(self)
 	Audio.muffle_music(false)
+	if is_instance_valid(_dim):
+		_dim.fade_out()
 
 
 # The debug panel's Forget hints: every hint shows again the next time it is offered.

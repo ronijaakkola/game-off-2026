@@ -16,6 +16,8 @@ var _reduce_motion: bool
 
 func before_test() -> void:
 	_reduce_motion = Settings.reduce_motion
+	# Off in the game for now; these tests cover the clicks for when it comes back.
+	SolarSystem.left_click_opens_planets = true
 	var space := auto_free(Node3D.new()) as Node3D
 	add_child(space)
 	_home = Planet.new()
@@ -36,6 +38,21 @@ func before_test() -> void:
 
 func after_test() -> void:
 	Settings.reduce_motion = _reduce_motion
+	SolarSystem.left_click_opens_planets = false
+
+
+func test_left_click_on_a_planet_opens_nothing_while_it_is_turned_off() -> void:
+	SolarSystem.left_click_opens_planets = false
+	var runner := scene_runner(SOLAR_SYSTEM)
+	await runner.simulate_frames(2)
+	var system := runner.scene() as SolarSystem
+	var terra := runner.find_child("Terra") as Planet
+
+	_send_click(MOUSE_BUTTON_LEFT, _screen_point(runner, terra))
+	await runner.simulate_frames(1)
+
+	assert_object(system.get_open_planet()).is_null()
+	assert_bool((runner.find_child("CameraRig") as CameraRig).is_focused()).is_false()
 
 
 func test_opens_hidden_and_shows_the_planet_and_who_waits_there() -> void:

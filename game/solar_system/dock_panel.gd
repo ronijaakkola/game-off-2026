@@ -29,7 +29,7 @@ extends Control
 ## screen ([method ResearchLab.has_unseen_upgrade]), the Research button has a thin outline
 ## in the Frameshift key's yellow on its edge, fainter than the key's and pulsing in step
 ## with it, and holding still under Reduce motion.
-## While [member research_hidden], as through the tutorial and until a research tree is
+## While [member research_hidden], as through the tutorial and until research is
 ## open ([MechanicCall]), there is no Research button,
 ## and while [member fuel_hidden] no fuel button, while [member fuel_locked] one that is
 ## off, and while [member board_all_hidden] no Board all.
@@ -48,6 +48,8 @@ signal jump_pressed
 const ROW := preload("res://game/solar_system/boarding_row.tscn")
 ## Seconds to slide in from past the right edge, or back out.
 const SLIDE_SECONDS := 0.35
+## Seconds the Research row takes to grow in as research opens.
+const RESEARCH_IN_SECONDS := 0.3
 # How far past the slot's right edge the card goes, so it is out of sight.
 const OFF_RIGHT := 32.0
 ## The seconds a beckoning pulse takes to brighten, and to fade before the next.
@@ -111,9 +113,12 @@ var beckon_boarding := false:
 ## Whether the Research button is hidden even at a planet with a lab.
 var research_hidden := false:
 	set(value):
+		var revealed := research_hidden and not value
 		research_hidden = value
 		if is_node_ready():
 			_show_services()
+			if revealed and _shows_lab():
+				_grow_in_research()
 ## Whether the fuel button is hidden even at a planet that sells fuel.
 var fuel_hidden := false:
 	set(value):
@@ -144,6 +149,9 @@ var _beckon: Tween
 # Whether "Nobody waiting." shows, or is on its way in, and its fade.
 var _empty := true
 var _empty_fade: Tween
+# How much of its height the Research row has, from 0 to 1, and the tween growing it in.
+var _research_open := 1.0
+var _research_in: Tween
 
 
 func _ready() -> void:
@@ -250,8 +258,49 @@ func _show_services() -> void:
 		return
 	var fuel := _shown.sells_fuel and not fuel_hidden
 	(%FuelRow as Control).visible = fuel
-	(%ResearchRow as Control).visible = _shows_lab()
+	(%ResearchSlot as Control).visible = _shows_lab()
+	(%Services as Control).visible = fuel or _shows_lab()
 	(%FuelRule as Control).visible = fuel or _shows_lab()
+	_fit_research()
+
+
+# The Research row in its slot, under the fuel row's gap when that shows, with the slot as
+# tall as the row has grown in.
+func _fit_research() -> void:
+	var row := %ResearchRow as Control
+	var gap := 0.0
+	if (%FuelRow as Control).visible:
+		gap = (%Content as Control).get_theme_constant(&"separation")
+	var needed := row.get_combined_minimum_size()
+	row.offset_top = gap
+	row.offset_bottom = gap + needed.y
+	var slot := Vector2(needed.x, _research_open * (gap + needed.y))
+	(%ResearchSlot as Control).custom_minimum_size = slot
+
+
+# Research opened with the panel showing a lab: the Research row grows in under the fuel
+# row while fading in, the card growing with it. Under Reduce motion it only fades.
+func _grow_in_research() -> void:
+	var row := %ResearchRow as Control
+	if _research_in:
+		_research_in.kill()
+	row.modulate.a = 0.0
+	_research_in = create_tween().set_parallel()
+	_research_in.tween_property(row, ^"modulate:a", 1.0, RESEARCH_IN_SECONDS)
+	if Settings.reduce_motion:
+		return
+	_set_research_open(0.0)
+	(
+		_research_in
+		. tween_method(_set_research_open, 0.0, 1.0, RESEARCH_IN_SECONDS)
+		. set_trans(Tween.TRANS_CUBIC)
+		. set_ease(Tween.EASE_OUT)
+	)
+
+
+func _set_research_open(open: float) -> void:
+	_research_open = open
+	_fit_research()
 
 
 # Whether the shown planet's lab has its Research button.
@@ -382,9 +431,9 @@ func get_fuel_button() -> Control:
 	return %FuelButton
 
 
-## The Research button, for a guide card to point at.
-func get_research_button() -> Control:
-	return %ResearchButton
+## The Research button's row, its icon included, for a guide card to point at.
+func get_research_row() -> Control:
+	return %ResearchRow
 
 
 ## The row of [param passenger] in the shown line, or null.

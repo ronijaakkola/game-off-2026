@@ -156,6 +156,20 @@ func test_a_line_holds_no_more_business_than_its_band_allows_and_room_for_someon
 			assert_int(business.size()).is_less_equal(limit)
 
 
+func test_no_business_passenger_turns_up_in_the_first_star_system() -> void:
+	_waiting.business = PassengerType.new()
+	_waiting.ledger = Ledger.new()
+	for i: int in Ledger.RECENT_RATINGS:
+		_waiting.ledger.rate(Passenger.MAX_STARS)
+	var map := auto_free(StarMap.new()) as StarMap
+	map.world = auto_free(Node3D.new()) as Node3D
+	for i: int in 2:
+		map.world.add_child(StarSystem.new())
+	_waiting.star_map = map
+
+	assert_int(_count_business(300)).is_equal(0)
+
+
 func test_the_longest_waiting_leaves_once_the_line_is_seen_and_left_alone() -> void:
 	_quiet()
 	_waiting.add(_home)

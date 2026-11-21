@@ -19,8 +19,8 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 2. **Set course.** The player adds planets and points in space to the route.
 3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Just after docking the drive is still warm for a while, and the charge starts from the warmth left and builds faster. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
-5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
-6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every open tree.
+5. **Arrive.** At a planet, passengers going there get off, pay their fare, rate the ride and earn a research point.
+6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every tree once the mechanic has opened research.
 
 ## The solar system
 
@@ -38,7 +38,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **The jump plays as a scene change,** so the player never sees two systems at once and finding out at the end that they share one space is a surprise. The bus turns toward the next system and winds up for 1.3 s, then frameshifts out as the tow ship does; the screen goes black, and the bus frameshifts in 2 units off the new system's home planet (Verdance, Hollow) and flies in to dock there. Its course is gone and it keeps its fuel. Lines start at the new system's planets, empty but for the starting passengers, and the new system's goals are given.
 - **The promotion in the last system joins them all.** Every system shows, the camera may roam over all of them and zoom out to 110, lines start at every planet that had none, and a passenger may want any planet in any system.
 - Each system's planets are lit by its own star, and the bus by the star nearest it.
-- **Time slows unless the bus frameshifts.** The planets orbit at full speed only while the bus flies a course, towed or not. They slow to half of it once it starts parking at a planet, comes to rest in space, or starts coasting to a stop after the course is cleared or the tank runs dry, and stay that slow while it waits or charges. A trip takes far longer than it looks, and the time spent stopped is wound back. Half speed keeps the system moving while docked, so a long stop still costs some of a route's shape. They take about 0.6 s to slow and 0.6 s to get going again, so nothing jumps. Their spin and the passengers' clocks keep running.
+- **Time slows unless the bus frameshifts.** The planets orbit at full speed only while the bus flies a course, towed or not. They slow to half of it once it starts parking at a planet, comes to rest in space, or starts coasting to a stop after the course is cleared or the tank runs dry, and stay that slow while it waits or charges. A trip takes far longer than it looks, and the time spent stopped is wound back. Half speed keeps the system moving while docked, so a long stop still costs some of a route's shape. They take about 0.6 s to slow and 0.6 s to get going again, so nothing jumps. Their spin keeps running, and so do the passengers' clocks, except while docked (Happiness).
 
 ## Route and flight
 
@@ -47,11 +47,11 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Setting a course** works as in a real-time strategy game: a right click sets the route to the one stop under the pointer, and with the queue key held adds it to the end, so the stops come in the order clicked. The planet the route already ends at isn't added again straight after itself.
 - **Steering by hand.** A point in space set with the right button follows the pointer for as long as the button stays down, every frame, so the bus chases it. Where the bus reaches it, as when the pointer rests, it stops; moving the pointer 0.3 units on sets a new point, which leaves at once while the drive is still warm from stopping (1 s) and otherwise waits for a charge.
 - **Round trips.** A planet earlier on the route can be added again, and so can the planet the bus is docked at once the route has a stop.
-- **The queue key** is Shift or Q, both in every browser. Firefox opens its own context menu on Shift + right-click and a page can't stop it, so in Firefox the hints name Q. Not Ctrl: a page can't block Ctrl+W, and W pans the camera.
+- **The queue key** is Shift or Q, both in every browser. Firefox opens its own context menu on Shift + right-click and a page can't stop it, so in Firefox the hints name Q. That menu also swallows the release of Shift, so a click or a move of the pointer that says Shift is up counts over a Shift still read as held. Not Ctrl: a page can't block Ctrl+W, and W pans the camera.
 - **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
 - **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. With the drive cold, the player charges it by holding the Frameshift key for 3 s. The bus turns toward its next stop meanwhile.
 - **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 4 s (6 s with Warmer drive), which picking someone up and refuelling spend; research pauses the game and the cooling with it, but researching an upgrade makes the drive cold at once, so a stop spent on research is no quick stop. Opening the research screen and closing it costs nothing. Holding the Frameshift key while warm starts the charge from the warmth left, building 1.5 times as fast, so a quick stop takes a short hold. Letting go of it drains the charge four times as fast as it builds (0.75 s from full), and the drive is cold from then on: held again, it charges at the normal speed. The bus never leaves by itself. Towed in, the drive is cold.
-- The reward is for leaving quickly; a queued route only makes that easier. A cold drive costs the passengers riding on (Happiness).
+- The reward is for leaving quickly; a queued route only makes that easier. A stop that drags on costs the passengers nothing (Happiness): the cold drive only loses the quick stop.
 - **Letting go** drains the charge twice as fast as it built and keeps the course; holding again charges from what is left. Cancelling keeps the bus docked.
 - **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
 - **Short stops in space.** A course set from a stop in space within 1 s of coming to rest leaves at once, so a short stop costs nothing. After that the drive is cold and the bus waits for a charge, as at a planet; cancelling leaves it holding in space.
@@ -111,6 +111,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - Happiness holds while they wait.
 - **Station waiting lounge.** Someone picked up gets +1 on their target for every 10 s they waited, up to +5 at 50 s, for their whole ride. A wait counts while the planet's clock runs, so waiting docked there builds none. +5 at most keeps In-Flight Movies alone short of 5 stars (84 + 5 = 89).
 - **The start.** A new run starts with the tutorial (Tutorial) while the player hasn't been through it, and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A New game after the tutorial starts docked at Terra, where the tutorial does, and the run after the tutorial at the Moon, where it ends; a scene run on its own starts docked at Ember.
+- **The first shift.** A new run opens on a call from The Boss, once the tutorial's zoom out is over or, without the tutorial, once the scene is in, with only the bus bars showing: a welcome to the first shift, and that good employees are rewarded with a promotion. Until the player closes the transmission, the call notice's Answer is the one thing they can do: no clicks on the map or the bus bars, no route changes, no pan or zoom; Esc and the pause button still pause. Left unanswered for 5 s of play, it opens by itself, and The Boss opens annoyed, telling the player to answer. Both answers mean the same. Then the other panels come in, and a feature hint points at the goal panel (Feature hints). A continued run has none.
 
 ### Who turns up
 
@@ -129,7 +130,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 | 3.5 to 4.25 | 92 % | 8 % |
 | 4.25 and up | 55 % | 45 % |
 
-- **No Business passenger turns up until the player has delivered 10 passengers.** As the tenth gets off, the first one joins the line at that planet, whatever the limit on everyone waiting, so the player meets them there; were that line full, the next passenger decided anywhere is the one. After that they are rare through the first stage: one more in about half of all runs before 30 are delivered.
+- **No Business passenger turns up in Sol,** the first star system, so the player learns the ride on Commuters alone. Past it, the first passenger decided is Business, so the player meets one on arriving in Lyra, and after that they turn up by the band. Balance runs play in Sol, so they see none: over 8 seeds the scripted player earns 241 credits a minute against 265 with them, and rates 4.05 against 4.02.
 - **A full line has a Commuter:** at most one Business passenger in a line in the lowest band, two above it.
 - *(not built)* A type whose needs take an amenity doesn't turn up until the bus has it. No need takes one yet.
 - **Leaving.** Once a line has been seen, its longest-waiting passenger leaves after 60 s without being picked up, then the next after 60 s more, so a line the player passes over doesn't stay the same for good. Nobody leaves while the bus is docked there.
@@ -151,32 +152,32 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - **Fare** is 3 credits per unit times the type's multiplier.
 - Both are set when the passenger is decided (Who turns up), from where the planets are then.
 - A faster bus gets passengers there before they expect it. Speed upgrades make passengers happier rather than more demanding.
-- **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing. With the Tip jar, happy pays 1.2× that again.
+- **Payment** on getting off: everyone pays the fare, a 4-star ride (happy) 1.1× and a 5-star ride 1.2×. With the Tip jar those are 1.2× and 1.3×. The steps are an even 0.1 so they are easy to balance. A poor ride costs the rating and never the fare, so one bad ride isn't punished twice and a player who struggles can still pay for the upgrades that help: over 12 seeds one who takes everyone and answers requests in about 8 s earns 229 credits a minute against 219 when annoyed paid half and furious nothing. The tips are small, so credits no longer reward good service: the scripted player earns 227 (259 when happy paid 1.2×, 1.44× with the Tip jar), and one who takes everyone and answers in about 12 s earns 251, since a full bus now pays more than a careful one.
 
 ### Happiness
 
 Happiness replaced patience, so a long ride isn't the only thing that matters: what a passenger needs, and how well the bus gives it, does too.
 
 - Each passenger on board has a happiness from 0 to 100.
-- **It starts at the target,** the most the bus can give them: set as they take their seat, and again as the bus leaves, so comfort researched at that stop counts. A quick ride keeps them there. Starting lower and climbing made a short ride end before they got there, so delivering quickly scored worse than taking long.
+- **It starts at the target,** the most the bus can give them: set as they take their seat, and again as the bus leaves, so comfort researched at that stop counts. A clean ride keeps them there. Starting lower and climbing made a short ride end before they got there, so delivering quickly scored worse than taking long.
 - A shock before the bus leaves stays: they start that much under the target.
 - Every frame it slides toward the **target**, falling at 3 a second and climbing at 1. It never jumps, and bad moments take a while to wear off.
 - **Mood:** happy from 70, okay from 50, annoyed from 25, furious below.
 - **Rating** on getting off: happiness ÷ 20, to the nearest whole star.
-- **It holds** until the bus leaves the planet they boarded at, and while the bus parks.
-- **Docked,** it falls at a tenth of its speed while the drive is warm, so a quick stop (boarding, refuelling) barely costs anyone. Once the drive goes cold it falls at half its speed, and their clock runs at half speed, until the bus leaves: a stop that drags on costs those riding on. Those who boarded there hold anyway.
-- **A quick stop is admired.** When the bus leaves a planet on a charge started warm and never let go, everyone on board gains 3 happiness at once, and as much more of what they can reach for the rest of their ride, up to 6 in all. It rewards the player who makes them: over 8 seeds a player who always does rates 3.84 against 3.69 without it, one who misses 40 % of them 3.62 against 3.53, and one who never does gains nothing. For the first it also brings the first 5-star rides of the first stage, about one in twenty.
+- **Docked is safe.** It holds, falling or climbing, while the bus is docked or parks, and their clock holds with it: the ride wears them out only while it flies, so a stop to refuel, research or think costs nobody anything. A shock still lands there. The falling version (a tenth of the speed while the drive was warm, half once cold) made players hurry through every stop and never research, and nothing on screen could teach it.
+- **A quick stop is admired.** When the bus leaves a planet on a charge started warm and never let go, everyone on board gains 3 happiness at once, and as much more of what they can reach for the rest of their ride, up to 6 in all. It rewards the player who makes them, and it is all a slow stop loses, since docked is safe: over 12 seeds a bare bus that makes nearly all of them (95 %) rates 3.77 against 3.66 for one that makes none, and a bus that researches, making 73 %, 3.99 against 3.76.
 
 **The target** is worked out fresh every frame:
 
-- 64 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), less the heat's discomfort (Temperature), plus timing, less frustration.
+- 64 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), less the heat's discomfort (Temperature), less frustration. Timing isn't in it.
 - While a request is open, the target is 0, from 1.5 s of flying after it opened: serving it at once costs nothing. Ignoring a request must always cost more than serving it.
 - While anything is serving the request, happiness holds rather than falling, since they can see it coming.
 
-**Timing** is one line along the ride:
+**Timing** is paid on arrival:
 
-- +12 if they arrive in the direct trip time, falling to 0 at the expected time, and no lower: past it, frustration takes over.
-- It runs on the passenger's own **clock**: real time in flight, a tenth of it while docked (half once the drive is cold), and slower while they sleep or watch a show.
+- As they get off, +12 at once if they arrive in the direct trip time, falling to 0 at the expected time, and no lower: past it, frustration takes over. It comes after any disappointment at a request left unserved, and before they rate.
+- It isn't in the target, so the bar holds on a clean ride and only falls for a reason the card can show. In the target, it drained the bar on most rides with a stop on the way while nothing was wrong, and players couldn't tell why. The bar no longer predicts the rating exactly: an early arrival can add a star, which shows only in the stars they give.
+- It runs on the passenger's own **clock**: real time in flight, stopped while docked, and slower while they sleep or watch a show.
 - **Leeway.** While happiness is 80 or more, every second of their clock adds half a second to the time they expect, up to half a trip time.
 - Getting there sooner (routing, speed, never needing a tow) is the main way to beat timing. Comfort only buys a little.
 
@@ -184,9 +185,10 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 - **Stops.** Every planet the bus docks at on their ride before theirs is a stop on the way; the planet they boarded at counts only once the bus has left it. Each type tolerates a number of them calmly, and each stop past that costs 15. Delivering the demanding ones first is the routing puzzle.
 - **A late ride** costs 1 a second of their clock past the expected time, with their leeway: steady, never faster, so a late ride never runs away from the player.
-- **The floor.** Frustration never takes them under 50 (okay, three stars, the full fare). A request open still heads for 0.
+- **The floor.** Frustration never takes them under 50 (okay, three stars). A request open still heads for 0.
 - *(playtest)* Every stop counts for now. Counting only detours, a stop where going there and on is more than 1.25 times the straight way from where the bus last left, is one switch away (`RideProgress.ONLY_DETOURS`), for if serving several passengers on one route feels punished.
 - They say why: a stop past their tolerance shows one of their type's lines about it at once (“Another stop?!”), and so does the moment the ride runs late (“I’m late for a meeting”), unless a request, a sleep, a show or a meal holds their line. While frustrated, their idle lines are those, for whichever costs them more.
+- **The card says what moves it:** on the happiness bar, what lifts them (what they were just served, getting over something, each comfort upgrade, the station lounge, a quick stop) and what costs them (a request nobody serves, stops past their tolerance, a late ride, the heat, and for 15 s a quest declined or failed). The other shocks aren't listed yet.
 
 **Shocks** change happiness at once and leave the target alone, so it climbs back at 1 a second:
 
@@ -195,12 +197,12 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 | Someone is kicked | −25 to everyone else | Otherwise kicking the angriest passenger would raise the average for free |
 | The bus runs out of fuel | −15 to everyone | Less than a kick, since the wait and the tow cost time on top |
 | The bus overheats | −5 to everyone | Small, since the cooldown and the charge cost time on top, and there is no tow to pay |
-| Arriving unserved | −10 to them, before they rate | A request open for 5 s or more, not counting parking, and counting time docked at a stop on the way. One asked just before arriving, or during parking, is forgiven |
+| Arriving unserved | −10 to them, before they rate | A request open for 5 s or more of flying. One asked just before arriving, or during parking, is forgiven, and a stop on the way serves it (Needs and serving) |
 | Woken by a shock | a further −10 | Every shock wakes anyone asleep, so a kick or a tow is worse on a bus that sleeps |
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
 
-**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once ends where it started, at 64 + 12 = 76, and 4 stars takes 70, so it takes about two seconds of an open request near the end, or arriving a fair bit late, to cost the star. At 60 a single second did, and the rating turned on slips too small to see. Over many rides a bare bus averages about 3.7: 3.8 with quick hands, 3.3 with slow ones and a full bus. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once rides at 64 and gets off at 64 + 12 = 76, and 4 stars takes 70, so it takes about two seconds of an open request near the end, or arriving a fair bit late, to cost the star. At 60 a single second did, and the rating turned on slips too small to see. Over many rides a bare bus averages about 3.8 (3.77 over 12 seeds): 3.8 with quick hands, 3.3 with slow ones and a full bus. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
 
 ### Needs and serving
 
@@ -210,7 +212,8 @@ There are no good shocks: one would fall away at 3 a second, gone in seconds.
 - **Not everyone asks at once.** The bus holds two fewer open requests than it has seats, and at least one: 2 with 4 seats, 3 with 5. A need that comes up past that waits until one is served.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
 - **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s (0.8 s with Quick hands), and letting go keeps what was served so far.
-- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers run as slowly as the clock while docked. A request already open when the bus stops stays open, and the player or an amenity can serve it there; one going with a passenger who gets off goes with them.
+- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers stop with the clock while docked.
+- **The station serves.** A request open when the bus docks is served by the station, by itself, over 1.2 s, whatever it asks for, since players missed requests while they looked at the station. The player's hold adds to it. One going with a passenger who gets off goes with them, unserved.
 - Fun and sleep aren't needs that ask: upgrades give them.
 - *(not built)* **Food and drink become one need,** so the player isn't asked to tell them apart: one request, served as a snack or a drink at random.
 
@@ -242,6 +245,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 
 ### Kicking
 
+- *(off for now)* No card offers the kick until it has a place on screen that isn't the happiness breakdown's. The rule stands for when it does.
 - The player can kick a passenger off the bus at once, wherever it is.
 - Their seat frees up, they pay nothing, rate nothing and earn no research point, and everyone left on board takes the kick's shock.
 - A passenger who is getting off can't be kicked.
@@ -278,14 +282,15 @@ Upgrades for the bus, bought with credits and research points.
 
 - **Research trees aren't tied to planets.** Each is the upgrades for one part of the bus, linked by what each needs first.
 - **Researching happens only while the bus is docked or charging at a planet with a lab,** as refuelling does, and there the player researches from every tree.
-- **Research opens a part at a time,** so the first research screen isn't a wall of upgrades. Each tree splits into three stages by row: rows 1 and 2, rows 3 and 4, and the rest. An upgrade is open once its tree and its stage both are, and the research screen shows nothing that isn't.
+- **Research opens a part at a time,** so the first research screen isn't a wall of upgrades. Each tree splits into three stages by row: rows 1 and 2, rows 3 and 4, and the rest. An upgrade is open once research and its stage both are, and the research screen shows nothing that isn't.
 - **The mechanic opens it, with a call** as a passenger calls: a transmission that only says something, with two answers that mean the same; left ringing for 10 s of play, it opens by itself. What it brings opens once the player closes it.
-  - **In Sol the trees open one at a time,** on their first stage: Performance once the player can pay for one of its top upgrades (120 credits and 2 points, about one delivery after the tutorial), Planets at 7 deliveries in the run and Comfort at 14. Until Performance opens there is nothing to research: no lab badges and no Research button. Over 8 seeds the scripted player earns 258 credits a minute and rates 3.98 against 265 and 4.02 with every tree open from the start, and has as many upgrades by minute 10; at 4 and 9 deliveries it is no better.
+  - **In Sol the first call opens research,** every tree on its first stage, once the player has delivered 10 passengers, the tutorial's one counted, and the bus is docked at a planet with a lab, so the player learns to research where they can do it. From the call ringing until it closes, the bus can't leave. Until then there is nothing to research: no lab badges, no Research button and no research points in the resource bar, though deliveries still earn them, so the player comes to the first lab with points to spend. It is no worse than research open from the start: over 24 seeds the scripted player, whose count leaves out the tutorial's ride, researches its first upgrade 2.7 minutes in rather than 0.6, and earns 242 credits a minute against 240, rates 4.00 against 3.98 and has 12 upgrades by minute 10 either way.
   - **Each system after Sol opens the next stage in every tree,** with a call once the bus works there, so the second opens on arriving in Lyra and the third in Draco. A promotion opens no research, and nor does joining the systems.
   - **Nobody else calls over it.** It rings only when no other transmission is open or ringing, and not during a stop or a jump; passengers' calls wait while it rings.
-- **The research guide.** After the mechanic's first call, guide cards show the player how to research, the game running: beside the badge of the nearest planet with a lab until the bus docks at one; on the station's Research button until the research screen opens (back to the badge if the bus leaves first); in the screen, beside its title with a Got it button, beside Fuel tank 1, or the first upgrade the player can research, until one is researched, and on the close button until it closes. Closing the screen early ends it. It shows once, as a feature hint does (Feature hints), and only in a run the main menu started.
-- **Every other call that opens research leaves a reminder,** so the player goes to the lab: a guide card saying what is new (a tree's upgrades, or new ones in every tree) beside the nearest lab's badge, and on the station's Research button once the bus docks at a lab, with a Got it button. It goes as the research screen opens or on Got it, and shows in every run, every time; a call while one shows replaces it. While the research guide shows, a call leaves none.
+- **The research guide.** After the mechanic's first call, guide cards show the player how to research: on the resource bar's research points, saying each delivery earns one and some passengers more, until they press Got it; on the station's Research button until the research screen opens, the game paused from the first card on, so only that button takes a click; and in the screen beside its "Game paused" tag, saying the game is paused while the lab is open and that research points are only for research, until one is researched. That ends it, and the player goes on researching by themselves. The bus can't leave until the research screen opens, though the player can still set a route. It shows once, as a feature hint does (Feature hints), and only in a run the main menu started.
+- **Every other call that opens research leaves a reminder,** so the player goes to the lab: a guide card saying every tree has new upgrades beside the nearest lab's badge, or on the station's Research button while the bus is docked at a lab, with a Got it button. It goes as the research screen opens or on Got it, and shows in every run, every time; a call while one shows replaces it. While the research guide shows, a call leaves none.
 - **The game is paused** while the player researches.
+- **The first visit ends with an upgrade.** Until the player has researched their first upgrade, the research screen doesn't close while they can pay for one. So they always can, a screen opened with nothing researched and nothing they can pay for quietly raises their credits to the cheapest upgrade's among those they have the research points for, with no gain shown.
 - **An upgrade** has a cost in credits and research points.
 - It needs *one* of the upgrades it lists, from the same tree, and its stage open: each is a path to it. One that lists none needs only its stage.
 - Each is researched once. A bigger step of the same thing is its own upgrade after it (Tank I, then Tank II).
@@ -295,7 +300,7 @@ An upgrade is in one of six states:
 
 | State | When |
 |---|---|
-| Shut | Its tree or its stage isn't open. The research screen leaves it out |
+| Shut | Research or its stage isn't open. The research screen leaves it out |
 | Hidden | Marked hidden, and nothing it needs is researched. Its name, description and cost don't show |
 | Locked | Nothing it needs is researched |
 | Available | Something it needs is researched and the player can pay |
@@ -359,7 +364,7 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 - **Anyone on board can call,** whatever their type.
 - **One at a time.** Nobody calls while a call rings or a quest is under way, and the wait until the next call starts only once that one has ended. Nobody calls in the first 2 s of a flight, while asleep, or within 6 s of getting off.
 - **Answering** opens their transmission, with what they ask and the reward. The quest is worked out then, from where everything is.
-- **Declining costs the caller 5 happiness,** as a shock, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
+- **Declining costs the caller 5 happiness,** as a shock, whether in the transmission or from the call notice before hearing the quest, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
 - **A done quest pays** 30 credits and 2 research points, on top of the delivery.
 - **A failed quest costs the caller 15 happiness,** as a shock, if they still ride: more than declining, or accepting and ignoring it would beat saying no. When a kick fails it, the kick's shock is the cost.
 - **Express.** The caller changes their mind and wants another planet to be the bus's next stop: one that isn't where they were going, where they boarded, or on the route, so it is always a detour for everyone else. Accepting changes their destination. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
@@ -369,7 +374,7 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 - Two older quest goals are built but nothing gives them: deliver one passenger, and fly one past a planet (the bus comes within 3 units of its surface in flight, having been out of reach since they boarded).
 - **Balance runs answer calls** by the scripted player's policy: they take every quest unless told to decline, ignore or switch off calls, or to decline a detour past a set length, and fly straight to an express quest's planet.
 - **All met** means every milestone done and every standing goal holding.
-- **A promotion** comes once every goal it takes is met and still is 1.5 s later, so the player sees them ticked. The goals go, and the next star system opens (Star systems); its research comes with the mechanic once the bus is there (Research). The debug panel's Promote gives one at once, and its Complete system also jumps to the next system at once. Balance runs are never promoted, so they play on the first stage throughout, with every tree open unless told to have the mechanic open them.
+- **A promotion** comes once every goal it takes is met and still is 1.5 s later, so the player sees them ticked. The goals go, and the next star system opens (Star systems); its research comes with the mechanic once the bus is there (Research). The debug panel's Promote gives one at once, and its Complete system also jumps to the next system at once. Balance runs are never promoted, so they play on the first stage in Sol throughout, with no Business passengers and research open from the start unless told to have the mechanic open it.
 - **Each star system gives its own two goals** when the bus arrives: deliver 20 and keep 3.5 in Sol, 40 and 3.8 in Lyra, 50 and 4.0 in Draco, and 60 and 4.0 once the systems are joined. Lyra's and Draco's numbers are guesses, not measured yet.
 - **A run starts with Sol's two goals:** deliver 20 passengers, and keep a 3.5 rating. 3.5 is under what a bare bus averages (3.7), so it is met about when the deliveries are: the scripted player has both after about 5 minutes, and one who takes everyone and serves slowly after about 7. A higher target shuts that player out: they end a run near 3.6.
 - **The run ends** once all the goals have been met for 5 s of play, still met then: The Boss calls with the next job, in another star system. Left unanswered for 10 s of play while the call notice shows, the call opens by itself, and The Boss opens annoyed, telling the player to pick up. Both answers mean the same, and either shows that the next level isn't there yet; the run goes on. While a passenger's call rings The Boss waits for it, and nobody calls while The Boss's call rings. Once a session: a continued run calls again.
@@ -379,14 +384,14 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 
 | Input | Action |
 |---|---|
-| Left click a planet or the bus | Open it. One thing is open at a time. Where the bus and a planet overlap, whichever centre is nearer the pointer opens |
+| Left click the bus | Open it. One thing is open at a time. A left click on a planet opens nothing for now: it acts as empty space. Where the bus and a planet overlap, whichever centre is nearer the pointer is picked |
 | Left click the open thing, or empty space | Close it |
 | Right click a planet or empty space | Set the route to it: the planet, or a point in space (Route and flight) |
 | Shift or Q + right click | Add it to the end of the route |
 | Hold the right button on empty space | The point in space follows the pointer until let go, to steer by hand |
 | Backspace or Delete | Take the last stop off the route |
 | The X on a stop in the route bar | Take that stop off the route |
-| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
+| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A pointer that reaches the edge within 0.3 s of being over a panel waits 0.4 s there before it pans, so overshooting a panel's button doesn't. A setting turns edge pan off |
 | Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
 | Mouse wheel | Zoom toward the point under the pointer |
 | Esc, or the pause button | Pause |
@@ -413,6 +418,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
 - **The pause button** opens the pause menu as Esc does, wherever Esc would, so a player in browser fullscreen, where Esc never reaches the game, can still pause.
 - **A transmission** pauses the game until the player answers it. Closing the pause menu over one leaves the game paused.
+- **The call shows who calls, once the player knows them:** The Boss always, a passenger on board always, and the mechanic from their second call in a run on, so a new run's first call from them, where they introduce themselves, comes from an unknown caller. Of the passengers, only those on board call.
 - **A caller's voice:** each race has its own set of short recorded clips (`game/transmissions/voice/`), strung together while the text types out. A race with no clips yet is silent. Every caller of a race has a pitch of their own, fixed by their name. The voice lab, from the debug panel on the main menu, is where the delivery is tuned.
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
@@ -439,21 +445,21 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
   - **The fare.** Once their card has left the On board panel, the resource bar comes in, then a card under it. Got it moves on.
   - **Refuelling**, beside the Moon's fuel button. It goes once the tank is full.
 - **It ends on another call from their boss,** a second after the tank is full: the player passed their trial period, and the boss unlocks the frameshift planet lock for the whole star system. The call notice's Answer is again the one thing the player can do. Both calls offer two answers that mean the same, for flavour, and either one goes on. Answering the last ends the tutorial.
-- **Only what a step brings in shows.** After the call, only the bus bars; the station panel comes in with the pick-up, the On board panel once the passenger boards, and the resource bar with the fare. The station's fuel button shows from the flight to the Moon on, off until the refuelling card opens; the lab badges and the station's Research and Board all buttons stay hidden.
+- **Only what a step brings in shows.** After the call, only the bus bars; the station panel comes in with the pick-up, the On board panel once the passenger boards, and the resource bar with the fare. The station's fuel button shows from the flight to the Moon on, off until the refuelling card opens; the lab badges, the station's Research and Board all buttons and the resource bar's research points stay hidden.
 - **The course holds in flight.** From the flight's start until the bus docks, the player can't change the route: no Stop, no stop taken off the route bar, no new course.
 - **No planet opens** on a click through it.
 - **Courses only when asked for.** Right clicks set a course only in the steps about setting one, and only to the planet the step names: no points in space, no other planet, and nothing more once it is set. A stop short of where the bus is headed asks for the course again.
 - **No other needs.** The snack is the only thing the passenger asks for.
 - **No route changes in flight.** From leaving until the bus docks, each way, clicks on the map, Backspace and the Frameshift key do nothing, and the key never turns into Stop.
-- **No kicks.** The passenger can't be kicked off until it is over.
-- **The zoom out.** Done or skipped, the HUD goes, then the map zooms out to the whole solar system, the planets starting to orbit as it goes, and holds there for 4 s before the HUD comes back. The screen takes no clicks, and the route controls, pan and zoom do nothing, until then.
-- Then the lines start at every planet (The start), the run's goals are given, and a notice says the whole solar system is open.
+- **The zoom out.** Done or skipped, the HUD goes, then the map zooms out to the whole solar system, the planets starting to orbit as it goes, and holds there for 4 s before the bus bars come back for The Boss's first-shift call (The start), and the rest of the HUD after it. The screen takes no clicks, and the route controls, pan and zoom do nothing, until that call closes.
+- Then the lines start at every planet (The start), the run's goals are given, and The Boss's first-shift call comes (The start).
 
 ## Feature hints
 
 - **The first time the player meets a feature in play,** the game pauses with a feature hint pointing at it, until the player presses Got it; the pause menu can open over it, and closing that leaves the game paused. Each hint shows once across every run, kept beside the save; deleting the save data, from the main menu's settings or the debug panel's Delete save, forgets them, so they show again.
 - **Never during the tutorial,** which has its own cards, and never on a hidden target: a hint passed over that way isn't kept as seen, so the next meeting offers it again. Two at once show one after the other.
 - **The heat zone:** the first time the passengers become uncomfortable (past 32°, where the gauge leaves green), a hint above the gauge says the star heats the bus, that passengers are getting uncomfortable and it will soon overheat, and to move away from the star to cool it (the words are in `feature_hints.gd`).
+- **The goals:** after The Boss's first-shift call (The start), a hint beside the goal panel says it shows the goals that reach the promotion.
 - **Business passengers:** the first time a Business passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they ask more but pay better.
 
 ## Save game
@@ -461,7 +467,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save once the tutorial is over, so it is held to confirm, like refuelling, and a stray click can't lose a run. The main menu's settings can delete the save, held the same way; the pause menu's can't, since the run in play would save it again at the next planet.
 - **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next New game starts the tutorial again. Once it has ended, done or skipped, it is kept as done, even if the player quits in the zoom out.
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
-- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades and which trees and stages are open, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, the quest under way, and how many star systems are open and whether they are joined. The system the bus works in is the one its planet is in, so a run continued after a promotion still offers the jump.
+- **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, whether research and which stages are open, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, the quest under way, and how many star systems are open and whether they are joined. The system the bus works in is the one its planet is in, so a run continued after a promotion still offers the jump.
 - **Nothing saves through a jump.** Quitting mid-jump keeps the save from before it.
 - **What starts afresh:** the course, the charge, the wait until the next call, what each passenger was doing (an open request opens again at once), and the lines' clocks.
 - **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.
@@ -487,10 +493,10 @@ Features we will very probably build, but that need more design work first.
 - **Lyra, Draco and the joined systems are untuned.** Their goals, fuel prices and layouts are first guesses, and the balance tool plays only Sol. Trips between joined systems run from 13 to about 75 units, nearly two tanks at the far end, so where to refuel starts to matter there, and fuel tanks may stop doing nothing.
 - **What the joined systems are for.** Their goals promote to nothing; whether meeting them wins the game, or there is no end.
 - **Who wants another system.** Once joined, a passenger's destination is any other planet, so most trips cross to another system. Whether to weigh their own system's planets higher.
-- **The top band is in reach in the first stage.** In-Flight Movies and a full lounge bonus reach 89, and a quick stop takes that past 90, so about one ride in six gets 5 stars once Movies is researched. The scripted player ends a run at a recent rating of 4.1 to 4.3, and one who researches Movies first crosses 4.25 and gets about 14 % Business passengers. Whether that band should wait for a promotion. With every stage open, half of all rides get 5 stars and the recent rating ends near 4.9.
+- **The top band is in reach in the first stage.** In-Flight Movies and a full lounge bonus reach 89, and a quick stop takes that past 90, so about one ride in six gets 5 stars once Movies is researched. The scripted player ends a run at a recent rating of 4.1 to 4.3, and one who researches Movies first crosses 4.25, where 45 % of passengers past Sol are Business. Whether that band should wait for a promotion. With every stage open, half of all rides get 5 stars and the recent rating ends near 4.9.
 - **Serving speed barely shows once research starts.** Over a run a hand that reacts in 4 s rates within 0.05 stars of one that reacts in 0.7 s and earns the same; on a bare bus it is 0.1 stars. In-Flight Movies does most of it: its +8 is almost three seconds of an open request for free.
 - **In-Flight Movies is the best upgrade by far,** at the second-lowest price: alone on a bare bus it adds 0.2 stars and 15 credits a minute, where no other first-stage upgrade adds more than 0.1 stars. Researching it first rather than last is worth 0.15 stars over a run. At +12 that was 0.26, and with the base at 64 it put a clean ride on the 5-star line, so half of all rides got 5 stars.
-- **Business passengers are no trade-off.** They pay 1.6× and rate 0.1 stars lower than Commuters, 0.3 lower on a bare bus; leaving them behind loses 30 % of the credits and gains no rating.
+- **Business passengers are no trade-off,** as measured when they still turned up in Sol. They pay 1.6× and rate 0.1 stars lower than Commuters, 0.3 lower on a bare bus; leaving them behind loses 30 % of the credits and gains no rating.
 - **Fuel tanks do nothing.** With fuel on sale everywhere a tank never runs low, so Fuel tank 1 and 2 change no number in a run. They matter only if some planets stop selling fuel (Not designed yet, Depots).
 - **Food quality.** Bigger portions took the tiles a quality line (a happiness bonus per tier, +8 to +12) would have had. Whether one still comes, or portions are enough.
 - **Fun is mostly a flat bonus.** The +8 of each applies whether or not anyone watches; only the clock depends on watching. A bonus only while watching barely shows, since happiness falls three times as fast as it climbs. Whether watching should matter more.

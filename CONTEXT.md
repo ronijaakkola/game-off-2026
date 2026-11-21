@@ -125,7 +125,7 @@ A card above the bus bars telling the player something: a tutorial, info, a warn
 _Avoid_: toast, notification, popup, alert, hint (one kind of notice is a tutorial)
 
 **Guide card**:
-A card that points with a notch at one thing on screen, a control, a panel or a planet, and says what to do with it. Two kinds: a **tutorial step**, with step dots, which goes once the player does what it says (or, rarely, has a Got it button), as in the tutorial and the **research guide**, and a **feature hint**, shown over the paused game when the player meets a feature, which the player closes with Got it. `GuideCard` in code. Not a **notice**, which sits above the bus bars and points at nothing.
+A card that points with a notch at one thing on screen, a control, a panel or a planet, and says what to do with it. Two kinds: a **tutorial step**, with step dots, which goes once the player does what it says (or, rarely, has a Got it button), as in the tutorial and most of the **research guide**, and a **feature hint**, shown over the paused game when the player meets a feature, which the player closes with Got it. `GuideCard` in code. Not a **notice**, which sits above the bus bars and points at nothing.
 _Avoid_: tooltip (that names a counter under the pointer), callout, coach mark
 
 **Tutorial**:
@@ -133,7 +133,7 @@ The guided first ride at the start of a new run, on the zoomed map: a call from 
 _Avoid_: onboarding, intro, level
 
 **Research guide**:
-The guide cards that show the player how to research, once, after the **mechanic's** first call: to a **lab**, its Research button, the research screen, an upgrade and closing it. `ResearchGuide` in code.
+The guide cards that show the player how to research, once, after the **mechanic's** first call, with the bus docked at a **lab**: on the research points, the lab's Research button and the research screen. `ResearchGuide` in code.
 _Avoid_: research tutorial
 
 **Zoomed map**:
@@ -141,11 +141,11 @@ The map zoomed in on Terra and the Moon for the tutorial: the star and the plane
 _Avoid_: mini map, small map
 
 **Passenger**:
-Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
+Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it. They pay the fare, and more for a ride they rate 4 or 5 stars. `Passenger` in code.
 _Never_: customer, rider, NPC
 
 **Happiness**:
-How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort, their open request and their **timing** (how their ride compares with the trip time). A **shock** changes it at once, such as a kick scaring the rest. It sets the mood and the rating. `Passenger.happiness` in code.
+How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort and their open request, and holding while the bus is docked. A **shock** changes it at once, such as a kick scaring the rest, and so does their **timing** as they get off (how their ride compares with the trip time: arriving early adds to it). It sets the mood and the rating. `Passenger.happiness` in code.
 _Avoid_: satisfaction
 _Never_: morale, patience (what it replaced)
 
@@ -193,17 +193,17 @@ _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
 
 **Research tree**:
-The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. The trees open one at a time, by the **mechanic's** calls. The player researches from every open tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched and which trees and stages are open.
+The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. Every tree opens at once, with the **mechanic's** first call. The player researches from every tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched, and whether research and which stages are open.
 _Never_: tech tree, skill tree
 
 **Stage**:
-A band of rows across every research tree, opened one at a time: the first with each tree, each next one by the **mechanic's** call in the next star system. `Research.get_stage()` in code.
+A band of rows across every research tree, opened one at a time: the first with research, each next one by the **mechanic's** call in the next star system. `Research.get_stage()` in code.
 
 **Mechanic**:
-The company's mechanic, who calls in a **transmission** to open research: each research tree in turn in Sol, then the next **stage** of every tree in each star system after it. `MechanicCall` in code.
+The company's mechanic, who calls in a **transmission** to open research: every research tree at once in Sol, then the next **stage** of every tree in each star system after it. `MechanicCall` in code.
 
 **Lab**:
-What lets a planet research: docked or charging there, the player opens the research screen on every open tree. `Planet.has_lab` in code.
+What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
 
 **Promotion**:
 What the player earns by meeting every goal a star system gives at once: it opens the next star system, or joins every system after the last one. `Progression.promote()` in code.
