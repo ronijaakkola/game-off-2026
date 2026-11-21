@@ -148,8 +148,6 @@ func _process(delta: float) -> void:
 	(%OrbitClock as OrbitClock).run(delta)
 	var bus := %Bus as FrameshiftBus
 	(%Cabin as Cabin).docked = bus.is_at_planet()
-	# Charging only starts cold, and warmth holds until everyone getting off is off.
-	(%Cabin as Cabin).cold = bus.is_at_planet() and bus.get_warmth() <= 0.0 and not bus.unloading
 	(%Cabin as Cabin).parking = (%Bus as FrameshiftBus).state == FrameshiftBus.State.PARKING
 	var felt := (%Bus as FrameshiftBus).get_felt_acceleration()
 	(%PortraitStudio as PortraitStudio).felt_acceleration = felt

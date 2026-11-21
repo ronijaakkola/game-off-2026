@@ -38,7 +38,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **The jump plays as a scene change,** so the player never sees two systems at once and finding out at the end that they share one space is a surprise. The bus turns toward the next system and winds up for 1.3 s, then frameshifts out as the tow ship does; the screen goes black, and the bus frameshifts in 2 units off the new system's home planet (Verdance, Hollow) and flies in to dock there. Its course is gone and it keeps its fuel. Lines start at the new system's planets, empty but for the starting passengers, and the new system's goals are given.
 - **The promotion in the last system joins them all.** Every system shows, the camera may roam over all of them and zoom out to 110, lines start at every planet that had none, and a passenger may want any planet in any system.
 - Each system's planets are lit by its own star, and the bus by the star nearest it.
-- **Time slows unless the bus frameshifts.** The planets orbit at full speed only while the bus flies a course, towed or not. They slow to half of it once it starts parking at a planet, comes to rest in space, or starts coasting to a stop after the course is cleared or the tank runs dry, and stay that slow while it waits or charges. A trip takes far longer than it looks, and the time spent stopped is wound back. Half speed keeps the system moving while docked, so a long stop still costs some of a route's shape. They take about 0.6 s to slow and 0.6 s to get going again, so nothing jumps. Their spin and the passengers' clocks keep running.
+- **Time slows unless the bus frameshifts.** The planets orbit at full speed only while the bus flies a course, towed or not. They slow to half of it once it starts parking at a planet, comes to rest in space, or starts coasting to a stop after the course is cleared or the tank runs dry, and stay that slow while it waits or charges. A trip takes far longer than it looks, and the time spent stopped is wound back. Half speed keeps the system moving while docked, so a long stop still costs some of a route's shape. They take about 0.6 s to slow and 0.6 s to get going again, so nothing jumps. Their spin keeps running, and so do the passengers' clocks, except while docked (Happiness).
 
 ## Route and flight
 
@@ -51,7 +51,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 - **Speed.** The bus flies at a top speed of 1.2 units a second, speeding up as it leaves and slowing as it nears a planet.
 - **Charge.** Setting a course never leaves a planet by itself, so planning a route and leaving are separate decisions. With the drive cold, the player charges it by holding the Frameshift key for 3 s. The bus turns toward its next stop meanwhile.
 - **Warm at a planet.** Docking at a planet, the drive is warm, with a route still ahead or not, so the player can reroute and still leave warm. It holds while the passengers getting off get off, then cools over 4 s (6 s with Warmer drive), which picking someone up and refuelling spend; research pauses the game and the cooling with it, but researching an upgrade makes the drive cold at once, so a stop spent on research is no quick stop. Opening the research screen and closing it costs nothing. Holding the Frameshift key while warm starts the charge from the warmth left, building 1.5 times as fast, so a quick stop takes a short hold. Letting go of it drains the charge four times as fast as it builds (0.75 s from full), and the drive is cold from then on: held again, it charges at the normal speed. The bus never leaves by itself. Towed in, the drive is cold.
-- The reward is for leaving quickly; a queued route only makes that easier. A cold drive costs the passengers riding on (Happiness).
+- The reward is for leaving quickly; a queued route only makes that easier. A stop that drags on costs the passengers nothing (Happiness): the cold drive only loses the quick stop.
 - **Letting go** drains the charge twice as fast as it built and keeps the course; holding again charges from what is left. Cancelling keeps the bus docked.
 - **Rerouting in flight is free:** no charge and no extra fuel beyond the distance it adds.
 - **Short stops in space.** A course set from a stop in space within 1 s of coming to rest leaves at once, so a short stop costs nothing. After that the drive is cold and the bus waits for a charge, as at a planet; cancelling leaves it holding in space.
@@ -159,25 +159,25 @@ The star is something to steer around: flying near it heats the bus, and too nea
 Happiness replaced patience, so a long ride isn't the only thing that matters: what a passenger needs, and how well the bus gives it, does too.
 
 - Each passenger on board has a happiness from 0 to 100.
-- **It starts at the target,** the most the bus can give them: set as they take their seat, and again as the bus leaves, so comfort researched at that stop counts. A quick ride keeps them there. Starting lower and climbing made a short ride end before they got there, so delivering quickly scored worse than taking long.
+- **It starts at the target,** the most the bus can give them: set as they take their seat, and again as the bus leaves, so comfort researched at that stop counts. A clean ride keeps them there. Starting lower and climbing made a short ride end before they got there, so delivering quickly scored worse than taking long.
 - A shock before the bus leaves stays: they start that much under the target.
 - Every frame it slides toward the **target**, falling at 3 a second and climbing at 1. It never jumps, and bad moments take a while to wear off.
 - **Mood:** happy from 70, okay from 50, annoyed from 25, furious below.
 - **Rating** on getting off: happiness ÷ 20, to the nearest whole star.
-- **It holds** until the bus leaves the planet they boarded at, and while the bus parks.
-- **Docked,** it falls at a tenth of its speed while the drive is warm, so a quick stop (boarding, refuelling) barely costs anyone. Once the drive goes cold it falls at half its speed, and their clock runs at half speed, until the bus leaves: a stop that drags on costs those riding on. Those who boarded there hold anyway.
-- **A quick stop is admired.** When the bus leaves a planet on a charge started warm and never let go, everyone on board gains 3 happiness at once, and as much more of what they can reach for the rest of their ride, up to 6 in all. It rewards the player who makes them: over 8 seeds a player who always does rates 3.84 against 3.69 without it, one who misses 40 % of them 3.62 against 3.53, and one who never does gains nothing. For the first it also brings the first 5-star rides of the first stage, about one in twenty.
+- **Docked is safe.** It holds, falling or climbing, while the bus is docked or parks, and their clock holds with it: the ride wears them out only while it flies, so a stop to refuel, research or think costs nobody anything. A shock still lands there. The falling version (a tenth of the speed while the drive was warm, half once cold) made players hurry through every stop and never research, and nothing on screen could teach it.
+- **A quick stop is admired.** When the bus leaves a planet on a charge started warm and never let go, everyone on board gains 3 happiness at once, and as much more of what they can reach for the rest of their ride, up to 6 in all. It rewards the player who makes them, and it is all a slow stop loses, since docked is safe: over 12 seeds a bare bus that makes nearly all of them (95 %) rates 3.77 against 3.66 for one that makes none, and a bus that researches, making 73 %, 3.99 against 3.76.
 
 **The target** is worked out fresh every frame:
 
-- 64 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), less the heat's discomfort (Temperature), plus timing, less frustration.
+- 64 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), less the heat's discomfort (Temperature), less frustration. Timing isn't in it.
 - While a request is open, the target is 0, from 1.5 s of flying after it opened: serving it at once costs nothing. Ignoring a request must always cost more than serving it.
 - While anything is serving the request, happiness holds rather than falling, since they can see it coming.
 
-**Timing** is one line along the ride:
+**Timing** is paid on arrival:
 
-- +12 if they arrive in the direct trip time, falling to 0 at the expected time, and no lower: past it, frustration takes over.
-- It runs on the passenger's own **clock**: real time in flight, a tenth of it while docked (half once the drive is cold), and slower while they sleep or watch a show.
+- As they get off, +12 at once if they arrive in the direct trip time, falling to 0 at the expected time, and no lower: past it, frustration takes over. It comes after any disappointment at a request left unserved, and before they rate.
+- It isn't in the target, so the bar holds on a clean ride and only falls for a reason the card can show. In the target, it drained the bar on most rides with a stop on the way while nothing was wrong, and players couldn't tell why. The bar no longer predicts the rating exactly: an early arrival can add a star, which shows only in the stars they give.
+- It runs on the passenger's own **clock**: real time in flight, stopped while docked, and slower while they sleep or watch a show.
 - **Leeway.** While happiness is 80 or more, every second of their clock adds half a second to the time they expect, up to half a trip time.
 - Getting there sooner (routing, speed, never needing a tow) is the main way to beat timing. Comfort only buys a little.
 
@@ -188,6 +188,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 - **The floor.** Frustration never takes them under 50 (okay, three stars). A request open still heads for 0.
 - *(playtest)* Every stop counts for now. Counting only detours, a stop where going there and on is more than 1.25 times the straight way from where the bus last left, is one switch away (`RideProgress.ONLY_DETOURS`), for if serving several passengers on one route feels punished.
 - They say why: a stop past their tolerance shows one of their type's lines about it at once (“Another stop?!”), and so does the moment the ride runs late (“I’m late for a meeting”), unless a request, a sleep, a show or a meal holds their line. While frustrated, their idle lines are those, for whichever costs them more.
+- **The card says what moves it:** on the happiness bar, what lifts them (what they were just served, getting over something, each comfort upgrade, the station lounge, a quick stop) and what costs them (a request nobody serves, stops past their tolerance, a late ride, the heat, and for 15 s a quest declined or failed). The other shocks aren't listed yet.
 
 **Shocks** change happiness at once and leave the target alone, so it climbs back at 1 a second:
 
@@ -196,12 +197,12 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 | Someone is kicked | −25 to everyone else | Otherwise kicking the angriest passenger would raise the average for free |
 | The bus runs out of fuel | −15 to everyone | Less than a kick, since the wait and the tow cost time on top |
 | The bus overheats | −5 to everyone | Small, since the cooldown and the charge cost time on top, and there is no tow to pay |
-| Arriving unserved | −10 to them, before they rate | A request open for 5 s or more, not counting parking, and counting time docked at a stop on the way. One asked just before arriving, or during parking, is forgiven |
+| Arriving unserved | −10 to them, before they rate | A request open for 5 s or more of flying. One asked just before arriving, or during parking, is forgiven, and a stop on the way serves it (Needs and serving) |
 | Woken by a shock | a further −10 | Every shock wakes anyone asleep, so a kick or a tow is worse on a bus that sleeps |
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
 
-**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once ends where it started, at 64 + 12 = 76, and 4 stars takes 70, so it takes about two seconds of an open request near the end, or arriving a fair bit late, to cost the star. At 60 a single second did, and the rating turned on slips too small to see. Over many rides a bare bus averages about 3.7: 3.8 with quick hands, 3.3 with slow ones and a full bus. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once rides at 64 and gets off at 64 + 12 = 76, and 4 stars takes 70, so it takes about two seconds of an open request near the end, or arriving a fair bit late, to cost the star. At 60 a single second did, and the rating turned on slips too small to see. Over many rides a bare bus averages about 3.8 (3.77 over 12 seeds): 3.8 with quick hands, 3.3 with slow ones and a full bus. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
 
 ### Needs and serving
 
@@ -211,7 +212,8 @@ There are no good shocks: one would fall away at 3 a second, gone in seconds.
 - **Not everyone asks at once.** The bus holds two fewer open requests than it has seats, and at least one: 2 with 4 seats, 3 with 5. A need that comes up past that waits until one is served.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
 - **Serving is a hold,** like refuelling: holding the button serves the request over 1.2 s (0.8 s with Quick hands), and letting go keeps what was served so far.
-- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers run as slowly as the clock while docked. A request already open when the bus stops stays open, and the player or an amenity can serve it there; one going with a passenger who gets off goes with them.
+- **Stops are quiet.** No request opens while the bus is docked or parking, and the needs' timers stop with the clock while docked.
+- **The station serves.** A request open when the bus docks is served by the station, by itself, over 1.2 s, whatever it asks for, since players missed requests while they looked at the station. The player's hold adds to it. One going with a passenger who gets off goes with them, unserved.
 - Fun and sleep aren't needs that ask: upgrades give them.
 - *(not built)* **Food and drink become one need,** so the player isn't asked to tell them apart: one request, served as a snack or a drink at random.
 
@@ -243,6 +245,7 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 
 ### Kicking
 
+- *(off for now)* No card offers the kick until it has a place on screen that isn't the happiness breakdown's. The rule stands for when it does.
 - The player can kick a passenger off the bus at once, wherever it is.
 - Their seat frees up, they pay nothing, rate nothing and earn no research point, and everyone left on board takes the kick's shock.
 - A passenger who is getting off can't be kicked.
@@ -448,7 +451,6 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **Courses only when asked for.** Right clicks set a course only in the steps about setting one, and only to the planet the step names: no points in space, no other planet, and nothing more once it is set. A stop short of where the bus is headed asks for the course again.
 - **No other needs.** The snack is the only thing the passenger asks for.
 - **No route changes in flight.** From leaving until the bus docks, each way, clicks on the map, Backspace and the Frameshift key do nothing, and the key never turns into Stop.
-- **No kicks.** The passenger can't be kicked off until it is over.
 - **The zoom out.** Done or skipped, the HUD goes, then the map zooms out to the whole solar system, the planets starting to orbit as it goes, and holds there for 4 s before the bus bars come back for The Boss's first-shift call (The start), and the rest of the HUD after it. The screen takes no clicks, and the route controls, pan and zoom do nothing, until that call closes.
 - Then the lines start at every planet (The start), the run's goals are given, and The Boss's first-shift call comes (The start).
 

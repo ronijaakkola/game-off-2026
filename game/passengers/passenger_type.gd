@@ -40,6 +40,10 @@ extends Resource
 @export var late_lines: Array[String] = []
 ## What the card says, one of them at random, while the bus cools down after overheating.
 @export var overheat_lines: Array[String] = []
+## What they say, one of them at random, when the player declines their quest, and when
+## their quest fails.
+@export var quest_declined_lines: Array[String] = []
+@export var quest_failed_lines: Array[String] = []
 ## The names a passenger of this type picks from.
 @export var names: Array[String] = ["Passenger"]
 
@@ -53,3 +57,14 @@ func get_idle_lines(reason: RideProgress.Reason) -> Array[String]:
 	elif reason == RideProgress.Reason.LATE and not late_lines.is_empty():
 		lines = late_lines
 	return lines.duplicate()
+
+
+## The lines a passenger of this type says about [param event], or none for a cause that
+## has no lines of its own.
+func get_event_lines(event: HappinessCause.Type) -> Array[String]:
+	match event:
+		HappinessCause.Type.QUEST_DECLINED:
+			return quest_declined_lines
+		HappinessCause.Type.QUEST_FAILED:
+			return quest_failed_lines
+	return []
