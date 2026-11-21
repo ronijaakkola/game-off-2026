@@ -5,9 +5,11 @@ extends Node
 ## holding its card's serve button for [constant HAND_SECONDS] ([method hold_serve]), and
 ## a food amenity starts on a request for food the moment it opens, while it has room for
 ## one more, so the others asking wait their turn. The player's hold adds to the amenity's
-## speed. At a planet it runs a stop: the passengers going there get off one at
-## a time and pay by their mood. Those the player picks up get on one at a time, after
-## everyone getting off. Each takes [member step_seconds], so a busy stop takes longer.
+## speed. While the bus is [member docked] the station serves every open request by itself,
+## over [constant STATION_SECONDS]. At a planet it runs a stop: the passengers going there
+## get off one at a time and pay by their mood. Those the player picks up get on one at a
+## time, after everyone getting off. Each takes [member step_seconds], so a busy stop takes
+## longer.
 ## Whoever takes a seat starts at the happiness the bus can give them
 ## ([method Passenger.settle]).
 ## The bus's comfort upgrades, as traits, set the [Comfort] every passenger rides with and
@@ -34,8 +36,6 @@ signal stop_finished
 
 ## The scare everyone left on board takes when the player kicks someone off.
 const KICK_SHOCK := -25.0
-## How fast a stop runs for those riding on once the bus's drive goes cold ([member cold]).
-const COLD_RATE := 0.5
 ## How many fewer requests can be open at once than the bus has seats.
 const QUIET_SEATS := 2
 ## The happiness everyone on board gains when the bus leaves a planet on a quick stop.
@@ -49,6 +49,10 @@ const DISCOMFORT_RECOVERY := 1.0
 ## Seconds the player holds a serve button to serve a request alone, before the bus's
 ## SERVING_SPEED stat.
 const HAND_SECONDS := 1.2
+## Seconds the station takes to serve a request while the bus is docked, and the card's
+## line meanwhile, with [code]%s[/code] for the need's [member Need.item].
+const STATION_SECONDS := 1.2
+const STATION_LINE := "Station serves %s"
 const FOOD_DISPENSER := preload("res://game/passengers/amenities/food_dispenser.tres")
 const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.tres")
 
@@ -71,20 +75,16 @@ const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.
 ## has Free station coffee.
 @export_range(1.0, 3.0, 0.05) var coffee_delay := 1.5
 
-## Whether the bus waits at a planet, docked or charging, so ride clocks run at half
-## speed. The scene that holds the bus sets it. When it turns false the bus has left, and
-## everyone on board has departed, so the ride of those who just boarded starts.
+## Whether the bus waits at a planet, docked or charging, so everyone's happiness and ride
+## clock hold and the station serves their requests. The scene that holds the bus sets it.
+## When it turns false the bus has left, and everyone on board has departed, so the ride of
+## those who just boarded starts.
 var docked := true:
 	set(value):
 		if docked and not value:
 			for passenger: Passenger in _passengers:
 				passenger.depart(comfort)
 		docked = value
-
-## Whether the bus waits at a planet with its drive cold. Then the ride clocks of those
-## riding on run, and their happiness falls, at [constant COLD_RATE] of their speed rather
-## than [constant Passenger.DOCKED_RATE]. The scene that holds the bus sets it.
-var cold := false
 
 ## Whether the bus is parking at a planet, so everyone's happiness holds: the bus has
 ## arrived. The scene that holds the bus sets it.
@@ -128,9 +128,8 @@ func _process(delta: float) -> void:
 	comfort.discomfort = move_toward(comfort.discomfort, toward, speed * delta)
 	var open := _passengers.filter(func(p: Passenger) -> bool: return p.request != null).size()
 	for passenger: Passenger in _passengers:
-		var rate := COLD_RATE if cold else Passenger.DOCKED_RATE
 		var asking := passenger.request != null
-		passenger.tick(delta, docked, parking, comfort, rate, open < get_request_limit())
+		passenger.tick(delta, docked, parking, comfort, open < get_request_limit())
 		if passenger.request and not asking:
 			open += 1
 		_serve_request(passenger, delta)
@@ -316,10 +315,11 @@ func _step() -> void:
 	stop_finished.emit()
 
 
-# Feeds [param passenger]'s open request for [param delta] seconds: from the amenity serving
-# it, or the first with room once one has, and from the player's hand while held. Someone
-# waiting for an amenity to have room shows it. A hold ends with the request it served, so
-# the next one never starts filling by itself.
+# Feeds [param passenger]'s open request for [param delta] seconds: from the station while
+# the bus is docked, else from the amenity serving it, or the first with room once one has,
+# and from the player's hand while held. Someone waiting for an amenity to have room shows
+# it. A hold ends with the request it served, so the next one never starts filling by
+# itself.
 func _serve_request(passenger: Passenger, delta: float) -> void:
 	var request := passenger.request
 	var amenity: Amenity = _served_by.get(passenger)
@@ -330,7 +330,11 @@ func _serve_request(passenger: Passenger, delta: float) -> void:
 		_hands.erase(passenger)
 		return
 	var waiting_for: Amenity = null
-	if not amenity and request.food:
+	var at_station := docked and not parking
+	if at_station:
+		_served_by.erase(passenger)
+		amenity = null
+	elif not amenity and request.food:
 		for fitted: Amenity in amenities:
 			if _users(fitted) < fitted.capacity:
 				amenity = fitted
@@ -339,7 +343,10 @@ func _serve_request(passenger: Passenger, delta: float) -> void:
 			if not waiting_for:
 				waiting_for = fitted
 	var rate := 0.0
-	if amenity:
+	if at_station:
+		rate += 1.0 / STATION_SECONDS
+		passenger.show_request(STATION_LINE % request.item)
+	elif amenity:
 		rate += 1.0 / amenity.seconds
 		passenger.show_request(amenity.get_line(request))
 	elif waiting_for:
