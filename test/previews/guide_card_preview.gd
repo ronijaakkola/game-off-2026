@@ -7,7 +7,8 @@ extends Node
 ## the game first, as a feature hint does, so the cards must fade in and place while paused.
 ## `-- heat` makes the bottom card the heat zone's hint instead, ringing the temperature
 ## gauge, and `-- business` points the feature hint at the first waiting passenger's row,
-## as the business passenger's does, once the rows are in (about 1.2 s in).
+## as the business passenger's does, once the rows are in (about 1.2 s in). `-- dim` dims
+## the screen round the feature hint's target, as a feature hint in play does.
 ## `-- next` closes the bottom card 1 s in and opens it again on the next step, with new
 ## text, so its dots move on (about 1.4 to 2 s in, `--frames 130`).
 
@@ -57,6 +58,11 @@ func _ready() -> void:
 		feature.text = FeatureHints.HINTS[&"business"].text
 		feature.target = dock.get_row(dock.get_row_passengers()[0])
 	feature.open()
+	if "dim" in OS.get_cmdline_user_args():
+		var dim := HintDim.new()
+		hud.add_child(dim)
+		dim.target = feature.target
+		dim.fade_in()
 	if "next" in OS.get_cmdline_user_args():
 		await get_tree().create_timer(1.0).timeout
 		bottom.close()
