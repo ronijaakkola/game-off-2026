@@ -6,7 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://bqs31mawd7fca" path="res://game/solar_system/resource_bar.tscn" id="4_bar"]
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="6_flask"]
 [ext_resource type="Texture2D" uid="uid://dup4e3a0nc0eg" path="res://shared/icons/pause.svg" id="7_pause"]
-[ext_resource type="Texture2D" uid="uid://cbnp8spnp837a" path="res://game/research/icons/x.svg" id="8_x"]
+[ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://shared/icons/x.svg" id="8_x"]
+[ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="9_tooltip"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tag"]
 content_margin_left = 8.0
@@ -56,6 +57,7 @@ theme_override_constants/margin_bottom = 24
 [node name="Sheet" type="PanelContainer" parent="Margin" unique_id=1837199431]
 material = ExtResource("3_glass")
 layout_mode = 2
+size_flags_vertical = 4
 theme_type_variation = &"SheetPanel"
 
 [node name="Pad" type="MarginContainer" parent="Margin/Sheet" unique_id=1631119581]
@@ -98,6 +100,7 @@ theme_type_variation = &"HeadingLabel"
 text = "Research"
 
 [node name="PausedTag" type="PanelContainer" parent="Margin/Sheet/Pad/Rows/Header/TitleGroup" unique_id=347100802]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 size_flags_vertical = 4
@@ -150,6 +153,12 @@ focus_mode = 0
 theme_override_constants/icon_max_width = 14
 icon = ExtResource("8_x")
 icon_alignment = 1
+
+[node name="CloseTooltip" parent="Margin/Sheet/Pad/Rows/Header/CloseGroup/CloseButton" unique_id=1694651792 node_paths=PackedStringArray("target") instance=ExtResource("9_tooltip")]
+unique_name_in_owner = true
+layout_mode = 0
+target = NodePath("..")
+sentence = "Rusty wants you to research something before you move on."
 
 [node name="Trees" type="Control" parent="Margin/Sheet/Pad/Rows" unique_id=1770695969]
 unique_name_in_owner = true

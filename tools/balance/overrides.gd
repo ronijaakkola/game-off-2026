@@ -9,12 +9,13 @@ extends RefCounted
 ## one upgrade's own {title: [credits, points]}. "start_with" set to "all" starts on a bus
 ## with every built upgrade researched, and to a list of titles, with those.
 ## "fuel_price_scale" multiplies every planet's fuel price. "open_stages" is how many
-## research stages are open (1 to 3).
+## research stages are open (1 to 3). "mechanic" set true has the mechanic's call open
+## research as in play (calls.gd answers it), with "mechanic_deliveries" the deliveries at
+## which it does; otherwise research is open from the start.
 ## "after_tutorial" (true unless set false) starts where a new run starts once the
-## tutorial is over: docked at its home planet (Terra) facing its destination, with
-## Fuel tank 1 researched and the tank as the flight home left it. Its one ride and
-## upgrade pay for each other, so the credits and points start at none either way. False
-## starts as the scene does on its own: docked at Ember, nothing researched, a full tank.
+## tutorial is over: docked at its destination (the Moon) facing home, on a full tank, with
+## nothing researched and the credits and research point its one ride paid. False starts
+## as the scene does on its own: docked at Ember, with nothing.
 
 const COMMUTER := "res://game/passengers/types/commuter.tres"
 const BUSINESS := "res://game/passengers/types/business.tres"
@@ -47,8 +48,8 @@ func apply_before_ready(system: SolarSystem) -> void:
 		return
 	var tutorial := system.get_node(^"%Tutorial") as Tutorial
 	var bus := system.get_node(^"%Bus") as FrameshiftBus
-	bus.start_planet = tutorial.home
-	var toward := tutorial.destination.get_orbit_point()
+	bus.start_planet = tutorial.destination
+	var toward := -tutorial.destination.get_orbit_point()
 	bus.start_direction = Vector3(toward.x, 0.0, toward.z).normalized()
 
 
@@ -69,22 +70,28 @@ func apply_to_scene(system: SolarSystem, planets: Array[Planet]) -> void:
 	)
 	for planet: Planet in planets:
 		planet.fuel_price *= float(_overrides.get("fuel_price_scale", 1.0))
+	var research := lab.get_research()
+	var mechanic := system.get_node(^"%MechanicCall") as MechanicCall
+	mechanic.enabled = bool(_overrides.get("mechanic", false))
+	var deliveries: int = _overrides.get("mechanic_deliveries", mechanic.research_deliveries)
+	mechanic.research_deliveries = deliveries
+	if not mechanic.enabled:
+		research.open()
 	for i: int in int(_overrides.get("open_stages", 1)) - 1:
-		lab.get_research().open_next_stage()
-	# The flight home burned this much of the tank before Fuel tank 1 added its empty room.
-	var fuel_left := tank.capacity * (1.0 - TutorialRules.TRIP_FUEL)
+		research.open_next_stage()
 	var start_with: Variant = _overrides.get("start_with", [])
 	for tree: ResearchTree in lab.trees:
 		for upgrade: Upgrade in tree.upgrades:
 			var built := not upgrade.description.contains("NOT IMPLEMENTED")
 			var named: bool = start_with is Array and upgrade.title in start_with
 			var all: bool = start_with is String and start_with == "all" and built
-			var tutorial := _after_tutorial() and upgrade.title == TutorialRules.FUEL_TANK
-			if named or all or tutorial:
-				lab.get_research().research(upgrade)
+			if named or all:
+				research.research(upgrade)
 			_set_cost(upgrade)
+	tank.fill()
 	if _after_tutorial():
-		tank.fuel = minf(fuel_left, tank.capacity)
+		system.get_ledger().earn(roundi(TutorialRules.FARE))
+		system.get_ledger().earn_research()
 
 
 func _after_tutorial() -> bool:

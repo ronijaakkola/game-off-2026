@@ -28,6 +28,9 @@ const POD_CLOCK := 0.4
 
 ## Added to the happiness every passenger settles at.
 var bonus := 0.0
+## What gives the bonus, a word or two each, for the panel that says what lifts a
+## passenger's happiness ([HappinessCause]).
+var perks: Array[String] = []
 ## Taken off the most every passenger can reach, after comfort's bonus, while the bus is
 ## past its comfortable temperature. It wears off once it is back in the band.
 var discomfort := 0.0
@@ -50,11 +53,13 @@ static func from_traits(traits: BusTraits) -> Comfort:
 	var comfort := Comfort.new()
 	if traits.has(BusTraits.Type.ENTERTAINMENT_SYSTEM):
 		comfort.bonus += ENTERTAINMENT_BONUS
+		comfort.perks.append("Movies")
 		comfort.watch_clock = WATCH_CLOCK
 		comfort.watch_min = SHOW_MIN
 		comfort.watch_max = SHOW_MAX
 	if traits.has(BusTraits.Type.GAMING_SYSTEM):
 		comfort.bonus += GAMING_BONUS
+		comfort.perks.append("Games")
 		if comfort.can_watch():
 			comfort.watch_min = BINGE_MIN
 			comfort.watch_max = BINGE_MAX

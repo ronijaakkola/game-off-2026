@@ -81,15 +81,14 @@ func ring() -> void:
 	if quest_giver:
 		quest_giver.enabled = false
 	_ringing_seconds = 0.0
-	_notice = notices.announce_transmission()
+	_notice = notices.announce_transmission(_boss())
 	_notice.action_pressed.connect(_open.bind(TEXT))
 
 
 # The Boss's transmission opens, saying [param text], answered or by itself.
 func _open(text: String) -> void:
 	_notice = null
-	var call := Transmission.from_boss()
-	call.caller_name = CALLER
+	var call := _boss()
 	call.text = text
 	# Left ringing, The Boss opens annoyed: the voice's annoyed stinger.
 	if text == UNANSWERED_TEXT:
@@ -103,6 +102,13 @@ func _open(text: String) -> void:
 		quest_giver.enabled = _quests_were_enabled
 	notices.push(NEXT_LEVEL_MISSING, Notice.Kind.INFO, true)
 	ended.emit()
+
+
+# The Boss, as they call.
+func _boss() -> Transmission:
+	var call := Transmission.from_boss()
+	call.caller_name = CALLER
+	return call
 
 
 func _debug_ring() -> void:

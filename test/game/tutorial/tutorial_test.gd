@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 ## A new run opens on the boss's call with only the bus bars showing; answering it with
-## either of the two answers starts the steps on the guide card beside the bus. Skipping the
-## tutorial puts back every rule it changed and fills the tank, and the next new run starts
-## without it.
+## either of the two answers starts the steps on the guide card beside the bus. Through the
+## call, the menu button still opens the pause menu. Skipping the tutorial puts back every
+## rule it changed and fills the tank, and the next new run starts without it.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -60,6 +60,26 @@ func test_a_new_run_opens_on_the_call_and_answering_it_starts_the_steps() -> voi
 	assert_str(guide.text).starts_with("You are driving this bus.")
 
 
+func test_the_menu_button_opens_the_pause_menu_while_the_call_covers_the_screen() -> void:
+	SaveGame.start_new()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var notices := runner.find_child("Notices") as NoticeStack
+	await assert_func(self, "_has_notice", [notices]).wait_until(5000).is_true()
+	await runner.simulate_frames(30)
+
+	# The rest of the screen still takes no clicks.
+	var bars := runner.find_child("BusStatusPanel") as Control
+	runner.set_mouse_position(bars.get_global_rect().get_center())
+	await runner.simulate_frames(2)
+	var hovered := bars.get_viewport().gui_get_hovered_control()
+	assert_str(hovered.name if hovered else "").is_equal("ClickBlock")
+	var pause_button := runner.find_child("PauseButton").find_child("Button") as Control
+	_click(runner, pause_button)
+	await runner.simulate_frames(5)
+	assert_bool((runner.find_child("PauseMenu") as CanvasLayer).visible).is_true()
+
+
 func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course() -> void:
 	SaveGame.start_new()
 	var runner := scene_runner(SCENE)
@@ -102,17 +122,11 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var moon := runner.find_child("Moon") as Planet
-	var lab := runner.find_child("ResearchLab") as ResearchLab
-	var fuel_tank := _fuel_tank(lab)
 	assert_float(moon.fuel_price).is_zero()
-	assert_int(fuel_tank.points).is_equal(1)
 
 	(runner.find_child("Tutorial") as Tutorial).skip()
 
 	assert_float(moon.fuel_price).is_greater(0.0)
-	assert_int(fuel_tank.points).is_equal(2)
-	assert_bool(lab.restricted).is_false()
-	assert_bool((runner.find_child("PassengerPanel") as PassengerPanel).kicks_allowed).is_true()
 	var dock := runner.find_child("DockPanel") as DockPanel
 	assert_bool(dock.fuel_hidden or dock.fuel_locked or dock.board_all_hidden).is_false()
 	assert_bool((runner.find_child("Bus") as FrameshiftBus).route_locked).is_false()
@@ -123,8 +137,7 @@ func test_the_run_starts_on_a_full_tank_after_the_tutorial() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var tank := (runner.find_child("Bus") as FrameshiftBus).get_fuel_tank()
-	# As after the tutorial's trips and Fuel tank 1's empty new room.
-	tank.capacity *= 1.25
+	# As after the tutorial's trip.
 	tank.fuel = tank.capacity * 0.5
 
 	(runner.find_child("Tutorial") as Tutorial).skip()
@@ -191,11 +204,3 @@ func _has_notice(notices: NoticeStack) -> bool:
 func _click(runner: GdUnitSceneRunner, control: Control) -> void:
 	runner.set_mouse_position(control.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-
-
-func _fuel_tank(lab: ResearchLab) -> Upgrade:
-	for tree: ResearchTree in lab.trees:
-		for upgrade: Upgrade in tree.upgrades:
-			if upgrade.title == TutorialRules.FUEL_TANK:
-				return upgrade
-	return null

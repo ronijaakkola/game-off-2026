@@ -9,6 +9,7 @@ var _research: Research
 func before_test() -> void:
 	_stats = BusStats.new()
 	_research = Research.new(_stats)
+	_research.open()
 
 
 func test_an_upgrade_is_available_once_one_path_to_it_is_researched() -> void:
@@ -61,7 +62,7 @@ func test_researching_puts_its_modifiers_and_traits_on_the_bus_once() -> void:
 	assert_bool(_stats.get_traits().has(BusTraits.Type.PILLOWS)).is_false()
 
 
-func test_an_upgrade_past_the_open_stages_needs_a_promotion() -> void:
+func test_an_upgrade_past_the_open_stages_is_shut() -> void:
 	var first := _upgrade()
 	var second := _upgrade([first])
 	second.tier = Research.ROWS_PER_STAGE
@@ -70,15 +71,33 @@ func test_an_upgrade_past_the_open_stages_needs_a_promotion() -> void:
 	_research.research(first)
 
 	assert_int(Research.get_stage(last)).is_equal(Research.STAGES - 1)
-	assert_int(_state(second)).is_equal(Research.State.NEEDS_PROMOTION)
+	assert_int(_state(second)).is_equal(Research.State.SHUT)
 	_research.open_next_stage()
 	assert_int(_state(second)).is_equal(Research.State.AVAILABLE)
-	assert_int(_state(last)).is_equal(Research.State.NEEDS_PROMOTION)
+	assert_int(_state(last)).is_equal(Research.State.SHUT)
 	_research.open_next_stage()
 	_research.open_next_stage()
 	assert_bool(_research.is_stage_open(Research.STAGES - 1)).is_true()
 	assert_bool(_research.is_stage_open(Research.STAGES)).is_false()
 	assert_int(_state(last)).is_equal(Research.State.AVAILABLE)
+
+
+func test_nothing_is_open_until_research_opens_and_a_stage_opens_research() -> void:
+	var top := _upgrade()
+	var later := _upgrade()
+	later.tier = Research.ROWS_PER_STAGE
+	_research = Research.new(_stats)
+
+	assert_int(_state(top)).is_equal(Research.State.SHUT)
+	_research.open()
+	assert_int(_state(top)).is_equal(Research.State.AVAILABLE)
+	assert_int(_state(later)).is_equal(Research.State.SHUT)
+
+	_research = Research.new(_stats)
+	_research.open_next_stage()
+	assert_bool(_research.is_opened()).is_true()
+	assert_int(_state(top)).is_equal(Research.State.AVAILABLE)
+	assert_int(_state(later)).is_equal(Research.State.AVAILABLE)
 
 
 # The state of [param upgrade] for a player with plenty to pay with.
