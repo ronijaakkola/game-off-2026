@@ -22,9 +22,9 @@ _Avoid_: `Bus` as a class name (it shadows `Audio.Bus`), ship, vehicle
 The ordered stops the bus flies through, each a planet or a point in space. A **course** is the route the player sets with a click.
 _Avoid_: path, waypoints list
 
-**Checkpoint**:
+**Waypoint**:
 A point in space on the route before a planet, which the bus flies through on its way there.
-_Never_: waypoint
+_Avoid_: checkpoint (where the run is saved)
 
 **Docked**:
 The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, which starts from the warmth left while the drive is still **warm**, just after docking, and builds faster, until it goes **cold**. Leaving on a warm charge never let go is a **quick stop**.

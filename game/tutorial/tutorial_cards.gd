@@ -4,10 +4,13 @@ extends RefCounted
 ## step's card on its target, once the card before has gone and a beat, so it never moves
 ## from one target to the next. [constant CARDS] has each card, by the name of the step it
 ## is on ([enum Tutorial.Step]): its title, what it says, the side of its target it sits
-## on, and whether it has a Got it button, which only a card that just tells the player
-## something has; one with a kind is that kind of card, not a tutorial step. The
-## [ResearchGuide] opens its own cards through it the same way. {home} and
-## {destination} stand for the planets' names, {stars} for the rating the passenger gave.
+## on, whether it has a Got it button, which only a card that just tells the player
+## something has, and whether its target is rung ([member GuideCard.ring]); one with a kind
+## is that kind of card, not a tutorial step. The [ResearchGuide] opens its own cards
+## through it the same way. {home} and {destination} stand for the planets' names, {stars}
+## for the rating the passenger gave, {queue_key} for the key that adds a stop
+## ([method QueueKey.get_icons]), and a control's name in braces for its icon
+## ([ControlIcons]).
 ## The titles are placeholders.
 
 ## Seconds from a card starting to close to the next one opening: once it has gone, and a
@@ -20,6 +23,19 @@ const CARDS := {
 		text = "You are driving this bus. It is currently docked at planet called {home}.",
 		side = GuideCard.Side.RIGHT,
 		got_it = true,
+		ring = true,
+	},
+	"LOOK":
+	{
+		title = "Look around",
+		text =
+		(
+			"Drag {mouse_left} or use {wasd} to move around.\nUse the mouse wheel "
+			+ "{mouse_wheel} to zoom. Try both."
+		),
+		side = GuideCard.Side.RIGHT,
+		got_it = false,
+		ring = false,
 	},
 	"BOARD":
 	{
@@ -31,50 +47,40 @@ const CARDS := {
 		),
 		side = GuideCard.Side.LEFT,
 		got_it = false,
+		ring = true,
 	},
 	"ON_BOARD":
 	{
 		title = "On board",
 		text =
 		(
-			"Here you can see passengers currently inside your bus. There is one now looking for "
-			+ "their seat!"
+			"Your passenger is on board. The bar shows how happy they are: keep them happy, and "
+			+ "they pay more and rate your company better."
 		),
 		side = GuideCard.Side.RIGHT,
 		got_it = true,
-	},
-	"HAPPINESS":
-	{
-		title = "Happiness",
-		text =
-		(
-			"This bar shows how happy they are. Keep them as happy as possible, and they will "
-			+ "pay more and rate your company better."
-		),
-		side = GuideCard.Side.RIGHT,
-		got_it = true,
+		ring = true,
 	},
 	"ROUTE":
 	{
 		title = "Set a course",
 		text =
-		(
-			"The passenger you just picked up wants to go to {destination}. Right click the "
-			+ "planet to set it as your destination."
-		),
+		"Your passenger wants to go to {destination}. Right click {mouse_right} it to set a course.",
 		side = GuideCard.Side.LEFT,
 		got_it = false,
+		ring = true,
 	},
 	"CHARGE":
 	{
 		title = "Leave",
 		text =
 		(
-			"Now that your route is set, press and hold this button to charge your buses "
-			+ "frameshift drive to start the trip to {destination}!"
+			"Your route is set. Press and hold this button or {space} to charge the frameshift "
+			+ "drive and leave for {destination}."
 		),
 		side = GuideCard.Side.ABOVE,
 		got_it = false,
+		ring = true,
 	},
 	"SERVE":
 	{
@@ -86,6 +92,7 @@ const CARDS := {
 		),
 		side = GuideCard.Side.RIGHT,
 		got_it = false,
+		ring = true,
 	},
 	"RATING":
 	{
@@ -97,6 +104,7 @@ const CARDS := {
 		),
 		side = GuideCard.Side.RIGHT,
 		got_it = true,
+		ring = true,
 	},
 	"MONEY":
 	{
@@ -108,6 +116,7 @@ const CARDS := {
 		),
 		side = GuideCard.Side.BELOW,
 		got_it = true,
+		ring = true,
 	},
 	"REFUEL":
 	{
@@ -119,6 +128,40 @@ const CARDS := {
 		),
 		side = GuideCard.Side.LEFT,
 		got_it = false,
+		ring = true,
+	},
+	"SPOT":
+	{
+		title = "Fly anywhere",
+		text =
+		(
+			"There are no passengers waiting here. You can also fly to any point in space, "
+			+ "for example to steer clear of hazards. Right click {mouse_right} the marked spot "
+			+ "to fly there."
+		),
+		side = GuideCard.Side.ABOVE,
+		got_it = false,
+		ring = true,
+	},
+	"HOME":
+	{
+		title = "Home",
+		text = "Now right click {mouse_right} {home} to fly home.",
+		side = GuideCard.Side.LEFT,
+		got_it = false,
+		ring = true,
+	},
+	"CHAIN":
+	{
+		title = "Chain stops",
+		text =
+		(
+			"Welcome home! You can also chain stops together: hold {queue_key} as you right "
+			+ "click {mouse_right} to add each one to the end of your route."
+		),
+		side = GuideCard.Side.ABOVE,
+		got_it = true,
+		ring = true,
 	},
 }
 
@@ -151,6 +194,8 @@ func open(step: String, target: Control, names: Dictionary) -> void:
 	_guide.side = card.side
 	_guide.got_it = card.got_it
 	_guide.kind = card.get("kind", GuideCard.Kind.TUTORIAL_STEP)
+	if card.has("ring"):
+		_guide.ring = card.ring
 	_guide.open()
 
 
