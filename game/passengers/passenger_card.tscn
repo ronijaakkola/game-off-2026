@@ -180,3 +180,4 @@ script = ExtResource("5_stars")
 
 [connection signal="pressed" from="Options/OptionButtons/KickButton" to="." method="_on_kick_button_pressed"]
 [connection signal="hold_changed" from="Clip/Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_hold_changed"]
+[connection signal="fed" from="Clip/Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_fed"]

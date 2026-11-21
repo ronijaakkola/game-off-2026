@@ -122,6 +122,7 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	card.passenger = passenger
 	card.kickable = kicks_allowed
 	card.serve_held.connect(func(held: bool) -> void: cabin.hold_serve(passenger, held))
+	card.serve_fed.connect(func(amount: float) -> void: cabin.feed_by_hand(passenger, amount))
 	card.kick_pressed.connect(func() -> void: cabin.kick(passenger))
 	var on_rerouted := _on_rerouted.bind(passenger)
 	if not passenger.rerouted.is_connected(on_rerouted):

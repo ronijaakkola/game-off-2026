@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://pnbgqhqasik0"]
+
+[ext_resource type="Script" uid="uid://so4u7hvvgqy2" path="res://game/passengers/serve_minigame_lab_prototype.gd" id="1_lab"]
+[ext_resource type="Script" uid="uid://ddec1r5comhsp" path="res://game/passengers/cabin.gd" id="2_cabin"]
+[ext_resource type="PackedScene" uid="uid://lhx0mmtinvdx" path="res://game/passengers/passenger_panel.tscn" id="3_panel"]
+[ext_resource type="PackedScene" uid="uid://bjqd3ty5unfcn" path="res://game/passengers/portrait_studio.tscn" id="4_studio"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="5_theme"]
+
+[node name="ServeMinigameLabPrototype" type="Node" unique_id=524850589]
+script = ExtResource("1_lab")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1886074805]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.11, 0.1, 0.24, 1)
+
+[node name="Cabin" type="Node" parent="." unique_id=775391093]
+unique_name_in_owner = true
+script = ExtResource("2_cabin")
+
+[node name="PassengerPanel" parent="." unique_id=946580121 instance=ExtResource("3_panel")]
+unique_name_in_owner = true
+
+[node name="PortraitStudio" parent="." unique_id=11491520 instance=ExtResource("4_studio")]
+unique_name_in_owner = true
+
+[node name="Controls" type="VBoxContainer" parent="." unique_id=1545124855]
+unique_name_in_owner = true
+offset_left = 300.0
+offset_top = 16.0
+offset_right = 760.0
+offset_bottom = 400.0
+theme = ExtResource("5_theme")
+theme_override_constants/separation = 10

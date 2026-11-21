@@ -9,6 +9,8 @@ extends MarginContainer
 ## the scene for setting how loud each sound and voice is.
 
 const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
+## PROTOTYPE: the lab for trying the serve minigames, opened from the debug panel.
+const SERVE_LAB_SCENE := "res://game/passengers/serve_minigame_lab_prototype.tscn"
 const VOICE_LAB_SCENE := "res://game/transmissions/voice_lab.tscn"
 const MIXER_SCENE := "res://ui/mixer/mixer.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
@@ -24,6 +26,7 @@ func _ready() -> void:
 	_show_save_buttons()
 	DebugPanel.add_button("Delete save", _debug_delete_save, self)
 	DebugPanel.add_button("Reset settings", Settings.reset, self)
+	DebugPanel.add_button("Serve games lab", SceneFlow.go_to.bind(SERVE_LAB_SCENE), self)
 	DebugPanel.add_button("Voice lab", _debug_voice_lab, self)
 	DebugPanel.add_button("Mixer", _debug_mixer, self)
 	if FileAccess.file_exists(BUILD_COMMIT):
