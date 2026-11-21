@@ -379,7 +379,7 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 
 | Input | Action |
 |---|---|
-| Left click a planet or the bus | Open it. One thing is open at a time. Where the bus and a planet overlap, whichever centre is nearer the pointer opens |
+| Left click the bus | Open it. One thing is open at a time. A left click on a planet opens nothing for now: it acts as empty space. Where the bus and a planet overlap, whichever centre is nearer the pointer is picked |
 | Left click the open thing, or empty space | Close it |
 | Right click a planet or empty space | Set the route to it: the planet, or a point in space (Route and flight) |
 | Shift or Q + right click | Add it to the end of the route |

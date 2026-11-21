@@ -64,6 +64,10 @@ const MAP_OPENED_SECONDS := 8.0
 const TUTORIAL_ARG := "--tutorial"
 const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 
+## Whether a left click on a planet opens it. Off for now: the planet acts as empty space,
+## and the panel opens only from code ([method open_planet]).
+static var left_click_opens_planets := false
+
 var _planets: Array[Planet] = []
 # The player's credits, research points and ratings. The resource bar shows them.
 var _ledger := Ledger.new()
@@ -271,14 +275,19 @@ func is_bus_open() -> bool:
 	return (%BusPanel as BusPanel).is_open()
 
 
-# A left click: on the bus or a planet opens it, but no planet in the tutorial; on what is
-# open or on empty space closes it.
+# A left click: on the bus or a planet opens it, but no planet in the tutorial or while
+# [member left_click_opens_planets] is off; on what is open or on empty space closes it.
 func _select_at(screen_point: Vector2) -> void:
 	var picked := _pick_at(screen_point)
 	var planet := picked as Planet
 	if picked is FrameshiftBus and not is_bus_open():
 		open_bus()
-	elif planet and planet != get_open_planet() and not (%Tutorial as Tutorial).is_running():
+	elif (
+		planet
+		and left_click_opens_planets
+		and planet != get_open_planet()
+		and not (%Tutorial as Tutorial).is_running()
+	):
 		open_planet(planet)
 	elif get_open_planet():
 		close_planet()
