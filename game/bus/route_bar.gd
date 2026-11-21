@@ -62,6 +62,9 @@ var _started := false
 var _resize_from := 0.0
 var _resize_time := 0.0
 var _resize_seconds := 0.0
+# PROTOTYPE: the ghost stop past the end of the line, and how far in it is, 0 to 1.
+var _ghost: GhostStopPrototype
+var _ghost_amount := 0.0
 
 
 func _ready() -> void:
@@ -75,6 +78,8 @@ func _ready() -> void:
 	var strip := %RouteStrip as RouteStrip
 	strip.can_remove = _can_remove
 	strip.remove_pressed.connect(_on_remove_pressed)
+	_ghost = GhostStopPrototype.new()
+	(%LineRoom as Control).add_child(_ghost)
 
 
 func _process(delta: float) -> void:
@@ -89,6 +94,7 @@ func _process(delta: float) -> void:
 		_leg_end = stops[1]
 		_progress = 0.0
 	_show_status(open)
+	_place_ghost(open, delta)
 	if open:
 		var legs := _legs(route)
 		(%RouteStrip as RouteStrip).show_route(stops, legs, _bus_progress(legs), not _open)
@@ -96,6 +102,23 @@ func _process(delta: float) -> void:
 	_set_open(open)
 	_resize_step(delta)
 	_was_towing = bus.is_towing()
+
+
+# PROTOTYPE: makes room for the ghost stop at the line's right end and fades it in, while
+# the route can take another stop.
+func _place_ghost(open: bool, delta: float) -> void:
+	var wanted := open and ControlsPrototype.shows_ghost() and ControlsPrototype.can_route
+	var target := 1.0 if wanted and not bus.is_towing() and not bus.route_locked else 0.0
+	_ghost_amount = move_toward(_ghost_amount, target, delta / OPEN_SECONDS)
+	if Settings.reduce_motion or not _open:
+		_ghost_amount = target
+	var eased := 1.0 - pow(1.0 - _ghost_amount, 3.0)
+	var strip := %RouteStrip as Control
+	var room := %LineRoom as Control
+	strip.offset_right = -_ghost.get_width() * eased
+	_ghost.position = Vector2(room.size.x + strip.offset_right, strip.offset_top)
+	_ghost.modulate.a = eased
+	_ghost.visible = eased > 0.0
 
 
 func _can_remove(stop: RouteStop) -> bool:

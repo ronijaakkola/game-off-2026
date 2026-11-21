@@ -65,6 +65,7 @@
 [ext_resource type="PackedScene" uid="uid://gthierx1a5bx" path="res://game/quests/flyby_zone.tscn" id="147_flyby_zone"]
 [ext_resource type="Script" uid="uid://b3mxwkjdb6b51" path="res://game/feature_hints/quest_hint.gd" id="148_quest_hint"]
 [ext_resource type="Script" uid="uid://dxfpi1r32140i" path="res://game/feature_hints/multi_stop_hint.gd" id="149_multi_stop_hint"]
+[ext_resource type="Script" uid="uid://dj6dl5timmqvq" path="res://game/solar_system/control_legend_prototype.gd" id="150_legend_prototype"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -480,6 +481,14 @@ color = Color(0, 0, 0, 1)
 unique_name_in_owner = true
 anchors_preset = 7
 portrait_studio = NodePath("../../PortraitStudio")
+
+[node name="ControlLegendPrototype" type="PanelContainer" parent="Hud" unique_id=1995261079 node_paths=PackedStringArray("bus", "bars", "tutorial", "click_block", "star_map")]
+script = ExtResource("150_legend_prototype")
+bus = NodePath("../../Bus")
+bars = NodePath("../BusStatusPanel")
+tutorial = NodePath("../../Tutorial")
+click_block = NodePath("../ClickBlock")
+star_map = NodePath("../../StarMap")
 
 [node name="PlanetPanel" parent="Hud" unique_id=95776917 instance=ExtResource("21_planet_panel")]
 unique_name_in_owner = true
