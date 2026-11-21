@@ -111,6 +111,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - Happiness holds while they wait.
 - **Station waiting lounge.** Someone picked up gets +1 on their target for every 10 s they waited, up to +5 at 50 s, for their whole ride. A wait counts while the planet's clock runs, so waiting docked there builds none. +5 at most keeps In-Flight Movies alone short of 5 stars (84 + 5 = 89).
 - **The start.** A new run starts with the tutorial (Tutorial) while the player hasn't been through it, and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A New game after the tutorial starts docked at Terra, where the tutorial does, and the run after the tutorial at the Moon, where it ends; a scene run on its own starts docked at Ember.
+- **The first shift.** A new run opens on a call from The Boss, once the tutorial's zoom out is over or, without the tutorial, once the scene is in, with only the bus bars showing: a welcome to the first shift, and that good employees are rewarded with a promotion. Until the player closes the transmission, the call notice's Answer is the one thing they can do: no clicks on the map or the bus bars, no route changes, no pan or zoom; Esc and the pause button still pause. Left unanswered for 5 s of play, it opens by itself, and The Boss opens annoyed, telling the player to answer. Both answers mean the same. Then the other panels come in, and a feature hint points at the goal panel (Feature hints). A continued run has none.
 
 ### Who turns up
 
@@ -447,14 +448,15 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **No other needs.** The snack is the only thing the passenger asks for.
 - **No route changes in flight.** From leaving until the bus docks, each way, clicks on the map, Backspace and the Frameshift key do nothing, and the key never turns into Stop.
 - **No kicks.** The passenger can't be kicked off until it is over.
-- **The zoom out.** Done or skipped, the HUD goes, then the map zooms out to the whole solar system, the planets starting to orbit as it goes, and holds there for 4 s before the HUD comes back. The screen takes no clicks, and the route controls, pan and zoom do nothing, until then.
-- Then the lines start at every planet (The start), the run's goals are given, and a notice says the whole solar system is open.
+- **The zoom out.** Done or skipped, the HUD goes, then the map zooms out to the whole solar system, the planets starting to orbit as it goes, and holds there for 4 s before the bus bars come back for The Boss's first-shift call (The start), and the rest of the HUD after it. The screen takes no clicks, and the route controls, pan and zoom do nothing, until that call closes.
+- Then the lines start at every planet (The start), the run's goals are given, and The Boss's first-shift call comes (The start).
 
 ## Feature hints
 
 - **The first time the player meets a feature in play,** the game pauses with a feature hint pointing at it, until the player presses Got it; the pause menu can open over it, and closing that leaves the game paused. Each hint shows once across every run, kept beside the save; deleting the save data, from the main menu's settings or the debug panel's Delete save, forgets them, so they show again.
 - **Never during the tutorial,** which has its own cards, and never on a hidden target: a hint passed over that way isn't kept as seen, so the next meeting offers it again. Two at once show one after the other.
 - **The heat zone:** the first time the passengers become uncomfortable (past 32°, where the gauge leaves green), a hint above the gauge says the star heats the bus, that passengers are getting uncomfortable and it will soon overheat, and to move away from the star to cool it (the words are in `feature_hints.gd`).
+- **The goals:** after The Boss's first-shift call (The start), a hint beside the goal panel says it shows the goals that reach the promotion.
 - **Business passengers:** the first time a Business passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they ask more but pay better.
 
 ## Save game
