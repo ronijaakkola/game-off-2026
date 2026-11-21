@@ -1,15 +1,16 @@
 class_name ResearchColumn
 extends Control
-## One research tree in the research screen, on a faint card of its own: its icon, title and a
-## chip in its colour ([member ResearchTree.palette]) counting the upgrades researched of
-## all it has, over the tree drawn top to bottom, each upgrade at its tier and column,
-## centred in the column. Only the upgrades that are open show: one whose tree or stage
-## isn't open yet is left out, with its lines. A line runs from each upgrade to each one it
-## requires, centre to centre under the tiles: lit in the tree's colour once that one is
-## researched, a little brighter while it can be researched, and faint otherwise. The parent
-## places the rows, so every column's stages line up, sizes the card to the rows that show,
-## and tells it each upgrade's state, which each tile's tooltip says ([UpgradeTooltip]). It
-## passes on a tile held long enough; the parent researches it.
+## One research tree in the research screen, on a faint card of its own: its icon, title and a chip
+## in its colour ([member ResearchTree.palette]) counting the upgrades researched of all it has,
+## over the tree drawn top to bottom, each upgrade at its tier and column, centred in the column.
+## Only the upgrades that are open show: one whose stage isn't open yet is left out, and the lines
+## to it from the upgrades that show run on faintly as far as [member cut_y], the card's bottom
+## edge, past the parent's line that says what the stage takes. A line runs from each upgrade to
+## each one it requires, centre to centre under the tiles: lit in the tree's colour once that one
+## is researched, a little brighter while it can be researched, and faint otherwise. The parent
+## places the rows, so every column's stages line up, sizes the card to the rows that show, and
+## tells it each upgrade's state, which each tile's tooltip says ([UpgradeTooltip]). It passes on a
+## tile held long enough; the parent researches it.
 
 ## [param upgrade]'s tile was held long enough to research it.
 signal upgrade_held(upgrade: Upgrade)
@@ -37,6 +38,9 @@ const WIDTH := INNER_WIDTH + MARGIN.x * 2.0
 
 ## The tree it shows.
 var tree: ResearchTree
+## How far down, in its own pixels, the lines to upgrades that don't show yet run. The
+## parent sets it; INF draws none.
+var cut_y := INF
 
 var _buttons: Array[UpgradeButton] = []
 var _research: Research
@@ -130,9 +134,23 @@ func _draw() -> void:
 		for button: UpgradeButton in _buttons:
 			for required: Upgrade in button.upgrade.requires:
 				var from := get_button(required)
-				var shown := from and from.visible and button.visible
-				if shown and _is_lit(required) == lit:
-					_draw_link(from, button)
+				if not from or not from.visible:
+					continue
+				if button.visible:
+					if _is_lit(required) == lit:
+						_draw_link(from, button)
+				elif not lit and cut_y != INF:
+					_draw_stub(from, button)
+
+
+# The line from [param from] toward [param to], which doesn't show yet, as far as cut_y.
+func _draw_stub(from: UpgradeButton, to: UpgradeButton) -> void:
+	var start := from.position + UpgradeButton.SIZE * 0.5
+	var end := to.position + UpgradeButton.SIZE * 0.5
+	if end.y <= start.y or cut_y <= start.y:
+		return
+	var cut := start.lerp(end, minf((cut_y - start.y) / (end.y - start.y), 1.0))
+	draw_line(start, cut, FAINT_LINE, LINE_WIDTH, true)
 
 
 func _draw_link(from: UpgradeButton, to: UpgradeButton) -> void:

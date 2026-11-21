@@ -46,7 +46,9 @@ func _ready() -> void:
 	feature.ring = true
 	feature.title = "Fuel"
 	feature.text = "This planet sells fuel. Hold the button to fill the tank."
-	feature.target = hud.get_node(^"TopRight/Stack/DockPanel/Card/Clip/Content/FuelRow") as Control
+	feature.target = (
+		hud.get_node(^"TopRight/Stack/DockPanel/Card/Clip/Content/Services/FuelRow") as Control
+	)
 	if "business" in OS.get_cmdline_user_args():
 		var dock := hud.get_node(^"TopRight/Stack/DockPanel") as DockPanel
 		while dock.get_row_passengers().is_empty():

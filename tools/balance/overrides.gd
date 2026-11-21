@@ -9,10 +9,9 @@ extends RefCounted
 ## one upgrade's own {title: [credits, points]}. "start_with" set to "all" starts on a bus
 ## with every built upgrade researched, and to a list of titles, with those.
 ## "fuel_price_scale" multiplies every planet's fuel price. "open_stages" is how many
-## research stages are open (1 to 3). "mechanic" set true has the mechanic's calls open the
-## research trees as in play (calls.gd answers them), with "mechanic_deliveries" the
-## deliveries at which the trees after the first open; otherwise "open_trees" is how many
-## are open from the start (every one unless set).
+## research stages are open (1 to 3). "mechanic" set true has the mechanic's call open
+## research as in play (calls.gd answers it), with "mechanic_deliveries" the deliveries at
+## which it does; otherwise research is open from the start.
 ## "after_tutorial" (true unless set false) starts where a new run starts once the
 ## tutorial is over: docked at its destination (the Moon) facing home, on a full tank, with
 ## nothing researched and the credits and research point its one ride paid. False starts
@@ -74,11 +73,10 @@ func apply_to_scene(system: SolarSystem, planets: Array[Planet]) -> void:
 	var research := lab.get_research()
 	var mechanic := system.get_node(^"%MechanicCall") as MechanicCall
 	mechanic.enabled = bool(_overrides.get("mechanic", false))
-	var deliveries: Array = _overrides.get("mechanic_deliveries", mechanic.tree_deliveries)
-	mechanic.tree_deliveries.assign(deliveries.map(func(n: Variant) -> int: return int(n)))
-	var trees := 0 if mechanic.enabled else int(_overrides.get("open_trees", lab.trees.size()))
-	for i: int in trees:
-		research.open_next_tree()
+	var deliveries: int = _overrides.get("mechanic_deliveries", mechanic.research_deliveries)
+	mechanic.research_deliveries = deliveries
+	if not mechanic.enabled:
+		research.open()
 	for i: int in int(_overrides.get("open_stages", 1)) - 1:
 		research.open_next_stage()
 	var start_with: Variant = _overrides.get("start_with", [])

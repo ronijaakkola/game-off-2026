@@ -11,7 +11,7 @@ const BOSS_EYES := preload("res://game/passengers/eye_styles/googly.tres")
 const BOSS_RACE := Race.Type.ORANGE
 ## Who the mechanic is: a brown alien with the Bean's shape, holding a wrench, over a steel
 ## blue-green backdrop. No race is brown; they talk in the blue one's voice.
-const MECHANIC_NAME := "Your mechanic"
+const MECHANIC_NAME := "Rusty, the Mechanic"
 const MECHANIC_HEAD := preload("res://game/transmissions/models/head_mechanic.glb")
 const MECHANIC_SKIN := Color(0.52, 0.33, 0.2)
 const MECHANIC_BACKDROP := Color(0.3, 0.5, 0.56)

@@ -15,13 +15,20 @@ extends Node
 ## row in the dock panel, so their trip arc shows. `-- Research` opens the research screen
 ## on every tree, with a few upgrades of each researched, credits and points to spend on
 ## some of the rest, and the pointer over one the player can research so its card shows.
-## `one` or `two` opens only the first tree or the first two, as the mechanic's first calls
-## do. `-- Research promoted` opens the second stage too, `plain` leaves out the tooltip,
+## `-- Research promoted` opens the second stage too, `plain` leaves out the tooltip,
 ## `lacking` hovers one the player can't afford instead, `hold`
 ## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
 ## it part way), and
 ## `dock` gives Ember, where the bus is docked, a lab and opens nothing, so the dock panel
-## shows its Research button; `rich` gives credits and points too, so its outline shows.
+## shows its Research button; `rich` gives credits and points too, so its outline shows,
+## and `guide` starts the research guide, on the research points (about frame 80);
+## `guide button` goes on to the Research button (about frame 200) and `guide upgrade` to
+## the research screen (about frame 550), where `poor` starts with too few
+## credits for any upgrade, so the lab tops them up, and `close` puts the pointer on the
+## close button a second later, so its tooltip shows.
+## `-- Call` gives Ember a lab and has the mechanic's first call ring as Unlock research
+## does, answers it 1 s on and closes the transmission 3 s after that, so the research
+## guide starts by itself (about frame 500); `--verbose` prints whether the bus is held.
 ## `-- Tow` opens the bus, so the camera follows it, and sends it off with fuel for eight units, so
 ## it runs dry and the tow is offered (about 10 s in, `--frames 660`), then requests it 2 s later;
 ## the whole tow takes about 32 s (`--frames 1900`).
@@ -98,8 +105,10 @@ func _ready() -> void:
 		await get_tree().create_timer(1.0).timeout
 		cabin.kick(cabin.get_passengers()[1])
 		return
-	if planet_name in ["Research", "Quick", "Full"]:
-		if planet_name == "Research":
+	if planet_name in ["Research", "Quick", "Full", "Call"]:
+		if planet_name == "Call":
+			await _take_mechanics_call(system)
+		elif planet_name == "Research":
 			await _open_research(system, name_given)
 		elif planet_name == "Quick":
 			await _show_quick_text(system, name_given)
@@ -132,15 +141,16 @@ func _ready() -> void:
 func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 	var lab := system.find_child("ResearchLab") as ResearchLab
 	var research := lab.get_research()
-	var trees := 1 if "one" in args else 2 if "two" in args else lab.trees.size()
-	for i: int in trees:
-		research.open_next_tree()
+	research.open()
 	(system.find_child("DockPanel") as DockPanel).research_hidden = false
+	(system.find_child("ResourceBar") as ResourceBar).research_hidden = false
 	if "dock" in args:
 		(system.find_child("Ember") as Planet).has_lab = true
 		if "rich" in args:
 			system.get_ledger().credits = 500
 			system.get_ledger().earn_research(60)
+		if "guide" in args:
+			await _show_research_guide(system, args)
 		return
 	for tree: ResearchTree in lab.trees:
 		for upgrade: Upgrade in tree.upgrades:
@@ -169,6 +179,58 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 				_press(button)
 			button.mouse_entered.emit()
 			return
+
+
+func _show_research_guide(system: SolarSystem, args: PackedStringArray) -> void:
+	system.get_ledger().credits = 20 if "poor" in args else 300
+	system.get_ledger().earn_research(10)
+	(system.find_child("ResourceBar") as ResourceBar).commit()
+	(system.find_child("ResearchGuide") as ResearchGuide).start()
+	if "button" not in args and "upgrade" not in args:
+		return
+	# The timers run while the game is paused under the card.
+	await get_tree().create_timer(2.5).timeout
+	(system.find_child("GuideCard") as GuideCard).acknowledged.emit()
+	if "upgrade" in args:
+		await get_tree().create_timer(1.5).timeout
+		# A real click, so it shows the button takes one over the paused game.
+		var dock := system.find_child("DockPanel") as DockPanel
+		var at := dock.get_research_row().get_global_rect().get_center()
+		for pressed: bool in [true, false]:
+			var click := InputEventMouseButton.new()
+			click.button_index = MOUSE_BUTTON_LEFT
+			click.pressed = pressed
+			click.position = at
+			click.global_position = at
+			Input.parse_input_event(click)
+			await get_tree().process_frame
+		if "close" in args:
+			await get_tree().create_timer(1.0).timeout
+			var screen := system.find_child("ResearchScreen") as ResearchScreen
+			(screen.find_child("CloseButton") as Control).mouse_entered.emit()
+
+
+func _take_mechanics_call(system: SolarSystem) -> void:
+	var bus := system.find_child("Bus") as FrameshiftBus
+	(system.find_child("Ember") as Planet).has_lab = true
+	(system.find_child("ResearchGuide") as ResearchGuide).saver = null
+	system.get_ledger().credits = 300
+	system.get_ledger().earn_research(10)
+	(system.find_child("ResourceBar") as ResourceBar).commit()
+	system.find_child("MechanicCall").call(&"_debug_unlock")
+	await get_tree().create_timer(1.0).timeout
+	print("ringing, held: ", bus.grounded)
+	var notice := (system.find_child("Notices") as NoticeStack).get_notices()[0]
+	notice.action_pressed.emit()
+	notice.dismiss()
+	await get_tree().create_timer(3.0).timeout
+	var panel := system.find_child("TransmissionPanel") as TransmissionPanel
+	panel.skip()
+	panel.accept()
+	await panel.answered
+	print("call closed, held: ", bus.grounded)
+	await get_tree().create_timer(1.5).timeout
+	print("points card, held: ", bus.grounded, ", paused: ", get_tree().paused)
 
 
 func _show_quick_text(system: SolarSystem, args: PackedStringArray) -> void:
