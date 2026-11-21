@@ -130,8 +130,8 @@ func _test_quest() -> Transmission:
 		transmission.race = Race.Type.BLUE
 		transmission.type = TEST_TYPE
 		transmission.destination = test_destination
-	transmission.text = "Please stop the bus to let me admire that beautiful planet."
-	transmission.quest = "Stop the bus near"
+	transmission.text = "Please fly past that beautiful planet so I can admire it."
+	transmission.quest = "Fly past"
 	transmission.quest_planet = test_flyby_planet
 	transmission.reward_credits = 40
 	transmission.reward_research = 2

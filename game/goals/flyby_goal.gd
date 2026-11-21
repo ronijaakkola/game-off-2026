@@ -4,8 +4,9 @@ extends Goal
 ## within [member reach] of the planet's surface in flight, having been out of reach since
 ## they boarded, so leaving the planet they boarded at isn't a flyby, and coming back to it
 ## is. Flying in to dock there counts; sitting docked or charging there doesn't. It fails
-## when they leave the bus before the flyby, however they leave: kicked off, getting off,
-## or gone from the cabin any other way.
+## when the bus docks at their destination before the flyby, or when they leave the bus
+## before it, however they leave: kicked off, getting off, or gone from the cabin any other
+## way.
 
 ## How near the planet's surface the bus comes, in units, for a flyby.
 const REACH := 3.0
@@ -37,6 +38,11 @@ func _on_delivered(who: Passenger) -> void:
 func _on_kicked(who: Passenger) -> void:
 	if who == passenger:
 		_fail("%s was kicked" % passenger.name)
+
+
+func _on_bus_docked(at: Planet) -> void:
+	if at == passenger.destination:
+		_fail("Stopped at %s first" % at.display_name)
 
 
 func _on_bus_moved(position: Vector3, on_board: Array[Passenger], in_flight: bool) -> void:

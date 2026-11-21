@@ -58,6 +58,12 @@ const HINTS := {
 		text = "Here you can see your goals to reach the promotion.",
 		side = GuideCard.Side.LEFT,
 	},
+	&"quests":
+	{
+		title = "Quests",
+		text = "Your active quests show up here.",
+		side = GuideCard.Side.LEFT,
+	},
 }
 
 ## The card the hints show on: its own, never the tutorial's.

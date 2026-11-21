@@ -219,7 +219,7 @@ func _restore() -> void:
 	for i: int in mini(saved_goals.size(), tracked.size()):
 		tracked[i].load_save(saved_goals[i] as Dictionary)
 	if quest_giver:
-		quest_giver.load_save(_saved.get("quest", {}), cabin.get_passengers())
+		quest_giver.load_save(_saved.get("quest", {}), cabin.get_passengers(), by_name)
 
 
 func _get_planets_by_name() -> Dictionary[String, Planet]:

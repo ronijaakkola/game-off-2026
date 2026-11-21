@@ -2,7 +2,10 @@ class_name QuestGiver
 extends Node
 ## Gives the player quests. Every so often while the bus flies, once the player has
 ## delivered [constant FIRST_CALL_DELIVERIES] passengers, a passenger on board calls:
-## an incoming transmission notice, whose Answer opens their [Quest]'s transmission. One
+## an incoming transmission notice, whose Answer opens their [Quest]'s transmission. They
+## ask to fly past a planet ([FlybyQuest]) or to stop at one ([ErrandQuest]), as likely one
+## as the other; a Business passenger asks for an [ExpressQuest] instead, where
+## [method start] allows it. One
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
@@ -28,7 +31,13 @@ const FIRST_CALL_SECONDS := 30.0
 const CALL_MIN_SECONDS := 75.0
 const CALL_MAX_SECONDS := 120.0
 ## How many passengers the player has delivered before anyone calls.
-const FIRST_CALL_DELIVERIES := 15
+const FIRST_CALL_DELIVERIES := 13
+## Until the player has delivered this many passengers, the wait from one call or quest
+## ending to the next call is short, a random value between these two, so a new player
+## meets a second quest soon after the first.
+const EARLY_DELIVERIES := 20
+const EARLY_CALL_MIN_SECONDS := 35.0
+const EARLY_CALL_MAX_SECONDS := 50.0
 ## Seconds before trying again when nobody on board could call.
 const RETRY_SECONDS := 3.0
 ## Seconds the bus has flown before anyone calls, so a call never lands on leaving.
@@ -60,10 +69,16 @@ const FAILED_ICON := preload("res://shared/icons/circle_x.svg")
 ## Stamps how a quest ended over the bus.
 @export var quick_text: BusQuickText
 
+## The quest the pointer is on in the goal panel, or null. The panel sets it.
+var pointed: Quest
+
 var _planets: Array[Planet] = []
 var _ledger: Ledger
 # Prices and times the trips quests ask for.
 var _waiting: WaitingPassengers
+# Which star system the bus works in, counted from 0 in the order they open. Quests pay by
+# it, and past the first, Business passengers ask for an express quest.
+var _level := 0
 # Made once it is in the tree: a scene stores every member of a node another node exports,
 # and dice made here would differ in every save of it.
 var _rng: RandomNumberGenerator
@@ -123,11 +138,14 @@ func _process(delta: float) -> void:
 
 ## Tells it the run's [param planets], which quests send passengers to, the
 ## [param ledger] their rewards go into, and [param waiting], which prices and times the
-## trips they ask for.
-func start(planets: Array[Planet], ledger: Ledger, waiting: WaitingPassengers) -> void:
+## trips they ask for. [param level] is the star system the bus works in, counted from 0 in
+## the order they open: quests pay by it, and past the first, Business passengers ask for
+## an express quest.
+func start(planets: Array[Planet], ledger: Ledger, waiting: WaitingPassengers, level := 0) -> void:
 	_planets = planets
 	_ledger = ledger
 	_waiting = waiting
+	_level = level
 
 
 ## Makes the dice repeatable.
@@ -178,16 +196,23 @@ func to_save(on_board: Array[Passenger]) -> Dictionary:
 
 
 ## Puts back the quest [method to_save] gave, about the passenger at its place among
-## [param on_board].
-func load_save(saved: Dictionary, on_board: Array[Passenger]) -> void:
+## [param on_board], with its planet found by name in [param planets].
+func load_save(
+	saved: Dictionary, on_board: Array[Passenger], planets: Dictionary[String, Planet]
+) -> void:
 	var index := int(saved.get("passenger", -1))
 	if index < 0 or index >= on_board.size():
 		return
-	if saved.get("kind", "") != ExpressQuest.KIND:
-		return
-	var quest := ExpressQuest.new()
-	quest.restore(saved, on_board[index])
-	take_on(quest)
+	var quest: Quest
+	match saved.get("kind", ""):
+		ExpressQuest.KIND:
+			quest = ExpressQuest.new()
+		FlybyQuest.KIND:
+			quest = FlybyQuest.new()
+		ErrandQuest.KIND:
+			quest = ErrandQuest.new()
+	if quest and quest.restore(saved, on_board[index], planets):
+		take_on(quest)
 
 
 ## Makes [param quest], whose goal is built, the quest under way: tracks its goal and
@@ -219,10 +244,20 @@ func _pick_caller() -> Passenger:
 	return able[_rng.randi_range(0, able.size() - 1)] if not able.is_empty() else null
 
 
-# The quest [param passenger] would offer as things stand, or null when none suits.
+# The quest [param passenger] would offer as things stand, or null when none suits: a
+# Business passenger an express quest where those are asked, anyone else a fly past or an
+# errand, whichever the dice pick first that suits.
 func _plan(passenger: Passenger) -> Quest:
-	var quest := ExpressQuest.new()
-	return quest if quest.plan(passenger, bus, _planets, _waiting, _rng) else null
+	var kinds: Array[Quest] = [FlybyQuest.new(), ErrandQuest.new()]
+	if _rng.randf() < 0.5:
+		kinds.reverse()
+	if _level > 0 and passenger.type == _waiting.business:
+		kinds = [ExpressQuest.new()]
+	for quest: Quest in kinds:
+		quest.level = _level
+		if quest.plan(passenger, bus, _planets, _waiting, _rng):
+			return quest
+	return null
 
 
 func _is_arriving(passenger: Passenger) -> bool:
@@ -329,4 +364,7 @@ func _finish() -> void:
 func _rest() -> void:
 	_caller = null
 	_call_asked = false
-	_until_call = _rng.randf_range(CALL_MIN_SECONDS, CALL_MAX_SECONDS)
+	if _ledger and _ledger.get_rating_count() < EARLY_DELIVERIES:
+		_until_call = _rng.randf_range(EARLY_CALL_MIN_SECONDS, EARLY_CALL_MAX_SECONDS)
+	else:
+		_until_call = _rng.randf_range(CALL_MIN_SECONDS, CALL_MAX_SECONDS)
