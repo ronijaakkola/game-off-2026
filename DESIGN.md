@@ -359,7 +359,7 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 - **Anyone on board can call,** whatever their type.
 - **One at a time.** Nobody calls while a call rings or a quest is under way, and the wait until the next call starts only once that one has ended. Nobody calls in the first 2 s of a flight, while asleep, or within 6 s of getting off.
 - **Answering** opens their transmission, with what they ask and the reward. The quest is worked out then, from where everything is.
-- **Declining costs the caller 5 happiness,** as a shock, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
+- **Declining costs the caller 5 happiness,** as a shock, whether in the transmission or from the call notice before hearing the quest, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
 - **A done quest pays** 30 credits and 2 research points, on top of the delivery.
 - **A failed quest costs the caller 15 happiness,** as a shock, if they still ride: more than declining, or accepting and ignoring it would beat saying no. When a kick fails it, the kick's shock is the cost.
 - **Express.** The caller changes their mind and wants another planet to be the bus's next stop: one that isn't where they were going, where they boarded, or on the route, so it is always a detour for everyone else. Accepting changes their destination. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
@@ -413,6 +413,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
 - **The pause button** opens the pause menu as Esc does, wherever Esc would, so a player in browser fullscreen, where Esc never reaches the game, can still pause.
 - **A transmission** pauses the game until the player answers it. Closing the pause menu over one leaves the game paused.
+- **The call shows who calls, once the player knows them:** The Boss always, a passenger on board always, and the mechanic from their second call in a run on, so a new run's first call from them, where they introduce themselves, comes from an unknown caller. Of the passengers, only those on board call.
 - **A caller's voice:** each race has its own set of short recorded clips (`game/transmissions/voice/`), strung together while the text types out. A race with no clips yet is silent. Every caller of a race has a pitch of their own, fixed by their name. The voice lab, from the debug panel on the main menu, is where the delivery is tuned.
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).

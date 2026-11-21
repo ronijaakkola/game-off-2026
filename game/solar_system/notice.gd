@@ -9,9 +9,13 @@ extends Control
 ## A call's phone rattles every [constant RING_PAUSE] seconds while it shows, except under
 ## Reduce motion, and its ringtone plays on a loop until it starts to leave, started on the
 ## music's next beat, and again on one when the notices come back or the game resumes.
+## A call can show its caller ([method show_caller]): a taller card with their photo, their
+## name over the line, and a decline button for a call the player may turn down.
 
 ## The action button was pressed. The notice dismisses itself after.
 signal action_pressed
+## The decline button was pressed. The notice dismisses itself after.
+signal declined
 ## The notice started to leave, by its close button, its action, its time running out or
 ## [method dismiss].
 signal dismissed
@@ -56,6 +60,11 @@ const ICON_COLORS: Dictionary[Kind, Color] = {
 }
 ## How much of the call card's colour covers the screen behind it, in place of the glass's own.
 const CALL_FILL_OPACITY := 0.85
+## A call showing its caller: the name for one the player doesn't know yet, the phone's
+## size and the gap after it on the line under the name.
+const UNKNOWN_CALLER := "Unknown caller"
+const CALLER_ICON_SIZE := 11.0
+const CALLER_LINE_GAP := 5
 const PANELS: Dictionary[Kind, StringName] = {
 	Kind.TUTORIAL: &"NoticePanel",
 	Kind.INFO: &"NoticePanel",
@@ -99,6 +108,7 @@ func _ready() -> void:
 	card.resized.connect(_fit)
 	resized.connect(_fit)
 	(%ActionButton as Button).pressed.connect(_on_action_pressed)
+	(%DeclineButton as Button).pressed.connect(_on_decline_pressed)
 	(%CloseButton as Button).pressed.connect(dismiss)
 	_fit()
 
@@ -127,6 +137,27 @@ func setup(kind: Kind, text: String, closable: bool, seconds: float, action: Str
 	(%End as Control).visible = action.is_empty() and not closable
 	_kind = kind
 	_seconds = seconds
+
+
+## Shows who calls, on a call [method setup] made: [param caller]'s photo, rendered in
+## [param studio], and name over the line, or their outline and "Unknown caller" when the
+## player doesn't [param known] them yet, and with [param declinable] a decline button
+## left of the action. Call it before it enters the tree.
+func show_caller(
+	caller: Transmission, known: bool, declinable: bool, studio: PortraitStudio
+) -> void:
+	(%Card as PanelContainer).theme_type_variation = &"CallerNoticePanel"
+	var photo := %CallerPhoto as CallerPhoto
+	photo.studio = studio
+	photo.show_caller(caller, known)
+	photo.show()
+	var caller_name := %CallerName as Label
+	caller_name.text = caller.caller_name if known else UNKNOWN_CALLER
+	caller_name.show()
+	(%Line as HBoxContainer).add_theme_constant_override(&"separation", CALLER_LINE_GAP)
+	(%Icon as Control).custom_minimum_size = Vector2.ONE * CALLER_ICON_SIZE
+	(%Label as Label).theme_type_variation = &"DimLabel"
+	(%DeclineButton as Button).visible = declinable
 
 
 ## Dismisses it the first time [param trigger] fires, such as a tutorial once the player
@@ -318,4 +349,9 @@ func _fit() -> void:
 
 func _on_action_pressed() -> void:
 	action_pressed.emit()
+	dismiss()
+
+
+func _on_decline_pressed() -> void:
+	declined.emit()
 	dismiss()
