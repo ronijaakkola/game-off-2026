@@ -5,7 +5,8 @@ extends RefCounted
 ## from one target to the next. [constant CARDS] has each card, by the name of the step it
 ## is on ([enum Tutorial.Step]): its title, what it says, the side of its target it sits
 ## on, and whether it has a Got it button, which only a card that just tells the player
-## something has. The [ResearchGuide] opens its own cards through it the same way. {home} and
+## something has; one with a kind is that kind of card, not a tutorial step. The
+## [ResearchGuide] opens its own cards through it the same way. {home} and
 ## {destination} stand for the planets' names, {stars} for the rating the passenger gave.
 ## The titles are placeholders.
 
@@ -102,8 +103,8 @@ const CARDS := {
 		title = "Rewards",
 		text =
 		(
-			"The passenger paid for the trip with some credits. They also awarded you with a research "
-			+ "point. Every passenger you deliver gives you one."
+			"The passenger paid for the trip with some credits. The happier they are when they "
+			+ "get off, the more they pay."
 		),
 		side = GuideCard.Side.BELOW,
 		got_it = true,
@@ -149,6 +150,7 @@ func open(step: String, target: Control, names: Dictionary) -> void:
 	_guide.text = (card.text as String).format(names)
 	_guide.side = card.side
 	_guide.got_it = card.got_it
+	_guide.kind = card.get("kind", GuideCard.Kind.TUTORIAL_STEP)
 	_guide.open()
 
 

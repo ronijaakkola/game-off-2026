@@ -7,8 +7,8 @@ extends Node
 ## A step shows a guide card that points at what it is about and goes once the player has done what
 ## it says: the bus, the passenger waiting at home, the On board panel they come into and the
 ## happiness bar on their card, setting a course to the destination, charging the drive, serving the
-## snack the passenger asks for halfway, the stars they rate the ride, the fare and research point
-## they pay, and refuelling. Then The Boss calls again, and once the player answers, the HUD goes
+## snack the passenger asks for halfway, the stars they rate the ride, the fare they pay, and
+## refuelling. Then The Boss calls again, and once the player answers, the HUD goes
 ## and it is over; once the map has zoomed out, The Boss's first-shift call brings the HUD
 ## back ([FirstShiftCall]). Research comes later, with the mechanic's first call
 ## ([MechanicCall], [ResearchGuide]).
@@ -86,7 +86,7 @@ const RIDE_STEPS: Array[Step] = [
 @export var portrait_studio: PortraitStudio
 ## Holds the Frameshift key.
 @export var bus_bars: BusStatusPanel
-## Where the fare and the research point show.
+## Where the fare shows.
 @export var resource_bar: ResourceBar
 ## Shows the passenger's trip once they are on board.
 @export var trip_arc: TripArc
@@ -330,7 +330,7 @@ func _open_rating() -> void:
 
 
 # Once the passenger's card has left the On board panel, the resource bar comes in with
-# the fare and the research point, then a card under it while they breathe.
+# the fare, then a card under it while the credits breathe.
 func _bring_in_money() -> void:
 	if is_instance_valid(_card) and _card.is_inside_tree():
 		await _card.left

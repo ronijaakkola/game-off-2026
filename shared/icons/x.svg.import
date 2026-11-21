@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://br1ibe5k3med4"
-path="res://.godot/imported/circle_x.svg-4810e07d6d7b6f87f5a38d74dedb2f86.ctex"
+uid="uid://3jp7s1n8j7ge"
+path="res://.godot/imported/x.svg-9bcee5a2ea3ea2f81a79302631792f63.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/quests/icons/circle_x.svg"
-dest_files=["res://.godot/imported/circle_x.svg-4810e07d6d7b6f87f5a38d74dedb2f86.ctex"]
+source_file="res://shared/icons/x.svg"
+dest_files=["res://.godot/imported/x.svg-9bcee5a2ea3ea2f81a79302631792f63.ctex"]
 
 [params]
 

@@ -191,6 +191,10 @@ func _process(delta: float) -> void:
 			)
 
 
+func _input(event: InputEvent) -> void:
+	QueueKey.read(event)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if (
 		(%MapZoom as MapZoom).is_zooming_out()

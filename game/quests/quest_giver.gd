@@ -56,7 +56,7 @@ const NOTICE_SECONDS := 4.0
 const COMPLETED_TEXT := "Quest completed!"
 const COMPLETED_ICON := preload("res://shared/icons/circle_check.svg")
 const FAILED_TEXT := "Quest failed!"
-const FAILED_ICON := preload("res://game/quests/icons/circle_x.svg")
+const FAILED_ICON := preload("res://shared/icons/circle_x.svg")
 
 ## Whether anyone calls. A quest under way carries on either way.
 @export var enabled := true

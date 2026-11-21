@@ -4,7 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="Texture2D" uid="uid://qrc7n3h4glnm" path="res://game/solar_system/icons/info.svg" id="4_info"]
-[ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://game/solar_system/icons/x.svg" id="5_x"]
+[ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://shared/icons/x.svg" id="5_x"]
 [ext_resource type="PackedScene" uid="uid://446dmqhi77gu" path="res://game/transmissions/caller_photo.tscn" id="6_photo"]
 [ext_resource type="Texture2D" uid="uid://dd4pkat6jlfxf" path="res://game/solar_system/icons/phone_off.svg" id="7_decline"]
 

@@ -16,7 +16,7 @@ const CREDITS_COLOR := Color(1.0, 0.831, 0.361)
 const FAILED_OPACITY := 0.5
 const CIRCLE := preload("res://game/goals/icons/circle.svg")
 const CIRCLE_CHECK := preload("res://shared/icons/circle_check.svg")
-const CIRCLE_X := preload("res://game/goals/icons/circle_x.svg")
+const CIRCLE_X := preload("res://shared/icons/circle_x.svg")
 const DOLLAR := preload("res://shared/icons/dollar_sign.svg")
 const FLASK := preload("res://shared/icons/flask_conical.svg")
 ## A reward icon's size, in pixels.
