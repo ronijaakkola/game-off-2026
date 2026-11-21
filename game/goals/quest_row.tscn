@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="4_photo"]
 
 [node name="QuestRow" type="VBoxContainer" unique_id=2026095503]
-mouse_filter = 2
+mouse_filter = 1
 theme_override_constants/separation = 4
 script = ExtResource("1_row")
 

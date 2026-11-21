@@ -83,7 +83,7 @@ func start() -> void:
 	_started = true
 	if star_map.is_joined():
 		waiting.max_total = star_map.joined_max_waiting
-	quest_giver.start(star_map.get_active_planets(), ledger, waiting)
+	_start_quests(star_map.get_active_planets())
 	if star_map.get_jump_target():
 		_announce_jump()
 	else:
@@ -105,10 +105,20 @@ func promote() -> void:
 		_announce_jump()
 
 
+# Passengers call with quests about [param planets], which pay by the system the bus works
+# in: the last one once they are joined.
+func _start_quests(planets: Array[Planet]) -> void:
+	var systems := star_map.get_systems()
+	var level := systems.find(star_map.get_current())
+	if star_map.is_joined():
+		level = systems.size() - 1
+	quest_giver.start(planets, ledger, waiting, level)
+
+
 func _join() -> void:
 	waiting.max_total = star_map.joined_max_waiting
 	waiting.add_planets(star_map.get_active_planets())
-	quest_giver.start(star_map.get_active_planets(), ledger, waiting)
+	_start_quests(star_map.get_active_planets())
 	notices.push(JOINED, Notice.Kind.INFO, false, NOTICE_SECONDS)
 	_add_goals()
 
@@ -171,7 +181,7 @@ func _jump() -> void:
 func _on_crossed(system: StarSystem) -> void:
 	star_map.enter(system)
 	waiting.set_planets(system.get_planets())
-	quest_giver.start(system.get_planets(), ledger, waiting)
+	_start_quests(system.get_planets())
 
 
 func _on_jumped(system: StarSystem) -> void:

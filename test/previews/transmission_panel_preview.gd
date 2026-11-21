@@ -15,8 +15,8 @@ func _ready() -> void:
 		transmission.race = Race.Type.BLUE
 		transmission.type = preload("res://game/passengers/types/business.tres")
 		transmission.destination = $SolarSystem.find_child("Giant") as Planet
-		transmission.text = "Please stop the bus to let me admire that beautiful planet."
-		transmission.quest = "Stop the bus near"
+		transmission.text = "Please fly past that beautiful planet so I can admire it."
+		transmission.quest = "Fly past"
 		transmission.quest_planet = $SolarSystem.find_child("Frost") as Planet
 		transmission.reward_credits = 40
 		transmission.reward_research = 2

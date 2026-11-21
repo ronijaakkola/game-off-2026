@@ -5,11 +5,9 @@ extends Quest
 ## ([method Passenger.reroute]), so it is always a detour for everyone else on board.
 
 const KIND := "express"
-## Seconds the bus takes to park, on top of the flight.
-const PARK_SECONDS := 2.0
-## What it pays: credits and research points.
-const REWARD_CREDITS := 30
-const REWARD_RESEARCH := 2
+## What it pays in each star system, in the order they open: credits and research points.
+const REWARD_CREDITS: Array[int] = [140, 320, 640]
+const REWARD_RESEARCH: Array[int] = [2, 4, 7]
 const LINES: Array[String] = [
 	"Change of plans! I need to be on %s instead. Can we go there next?",
 	"I just got a call. Can you take me straight to %s?",
@@ -25,11 +23,9 @@ var _line := ""
 
 
 ## Makes it [param who]'s quest as things stand. False when no planet suits: it goes to
-## one of [param planets] that isn't where they are going, where they boarded or on
-## [param bus]'s route. [param waiting] prices and times the trip from where the bus is, to
-## where the planet will be when the bus could reach it.
-## Not a static constructor: one that builds its own class, in a script that extends
-## another, keeps both scripts in use when Godot 4.7.2 quits, which fails the checks.
+## one of [param planets] that is a detour ([method Quest.get_detours]). [param waiting]
+## prices and times the trip from where the bus is, to where the planet will be when the
+## bus could reach it.
 func plan(
 	who: Passenger,
 	bus: FrameshiftBus,
@@ -37,33 +33,29 @@ func plan(
 	waiting: WaitingPassengers,
 	rng: RandomNumberGenerator
 ) -> bool:
-	var on_route := bus.get_route_planets()
-	var others: Array[Planet] = []
-	for other: Planet in planets:
-		var known := other in [who.destination, who.origin, bus.get_docked_planet()]
-		if not known and other not in on_route:
-			others.append(other)
+	var others := get_detours(who, bus, planets)
 	if others.is_empty():
 		return false
 	passenger = who
 	planet = others[rng.randi_range(0, others.size() - 1)]
 	var flying := bus.state == FrameshiftBus.State.FLYING
-	var distance := _chase_distance(bus, planet)
+	var distance := get_chase_distance(bus, planet)
 	trip_seconds = waiting.get_trip_seconds(distance, flying) + PARK_SECONDS
 	base_fare = distance * waiting.fare_per_unit
-	reward_credits = REWARD_CREDITS
-	reward_research = REWARD_RESEARCH
+	reward_credits = get_reward(REWARD_CREDITS)
+	reward_research = get_reward(REWARD_RESEARCH)
 	_line = LINES[rng.randi_range(0, LINES.size() - 1)]
 	return true
 
 
 ## Makes it the quest [method to_save] gave, about [param who], who already goes where it
 ## sent them.
-func restore(saved: Dictionary, who: Passenger) -> void:
+func restore(saved: Dictionary, who: Passenger, _planets: Dictionary[String, Planet]) -> bool:
 	passenger = who
 	planet = who.destination
 	goal = ExpressGoal.new(who)
 	load_save(saved)
+	return true
 
 
 func get_kind() -> String:
@@ -93,15 +85,3 @@ func accept() -> void:
 
 func _planet_name() -> String:
 	return planet.display_name if planet.display_name else String(planet.name)
-
-
-# How far the bus flies to catch [param planet], which moves meanwhile: the straight
-# distance to where it will be by then, taking its speed now as steady.
-static func _chase_distance(bus: FrameshiftBus, planet: Planet) -> float:
-	var from := bus.global_position
-	var at := planet.get_body_global_position()
-	var velocity := planet.get_body_velocity()
-	var distance := from.distance_to(at)
-	for i: int in 3:
-		distance = from.distance_to(at + velocity * (distance / bus.max_speed))
-	return distance
