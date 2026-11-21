@@ -23,10 +23,10 @@ var target: Control:
 		target = value
 		_from = _hole
 		_glide = 1.0
+		if _gliding:
+			_gliding.kill()
 		if visible and not Settings.reduce_motion:
 			_glide = 0.0
-			if _gliding:
-				_gliding.kill()
 			_gliding = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 			_gliding.tween_property(self, ^"_glide", 1.0, GLIDE_SECONDS)
 

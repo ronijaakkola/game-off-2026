@@ -117,7 +117,7 @@ func _show(hint: StringName, target: Control) -> void:
 	guide.title = card.title
 	guide.text = card.text
 	guide.side = card.side
-	if not _dim:
+	if not is_instance_valid(_dim):
 		_dim = HintDim.new()
 		guide.add_sibling(_dim)
 	_dim.target = target
@@ -160,7 +160,8 @@ func _let_go() -> void:
 	_held = false
 	PauseMenu.release(self)
 	Audio.muffle_music(false)
-	_dim.fade_out()
+	if is_instance_valid(_dim):
+		_dim.fade_out()
 
 
 # The debug panel's Forget hints: every hint shows again the next time it is offered.
