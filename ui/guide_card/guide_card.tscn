@@ -70,12 +70,15 @@ layout_mode = 2
 theme_type_variation = &"DimLabel"
 text = "Game paused"
 
-[node name="BodyLabel" type="Label" parent="Pad/Rows" unique_id=1583530604]
+[node name="BodyLabel" type="RichTextLabel" parent="Pad/Rows" unique_id=1583530604]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(232, 0)
 layout_mode = 2
-theme_type_variation = &"TooltipSentenceLabel"
+mouse_filter = 2
+theme_type_variation = &"TooltipSentenceRichTextLabel"
 text = "What to do with the thing the notch points at."
+fit_content = true
+scroll_active = false
 autowrap_mode = 3
 
 [node name="Footer" type="MarginContainer" parent="Pad/Rows" unique_id=1090556071]

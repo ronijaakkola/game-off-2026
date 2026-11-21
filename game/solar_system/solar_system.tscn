@@ -62,6 +62,9 @@
 [ext_resource type="Script" uid="uid://bh8bscq7fi6lc" path="res://game/research/mechanic_call.gd" id="144_mechanic_call"]
 [ext_resource type="Script" uid="uid://cpcbx8tu81xmd" path="res://game/research/research_guide.gd" id="145_research_guide"]
 [ext_resource type="Script" uid="uid://dgsmbbo1mghgj" path="res://game/goals/first_shift_call.gd" id="146_first_shift"]
+[ext_resource type="PackedScene" uid="uid://gthierx1a5bx" path="res://game/quests/flyby_zone.tscn" id="147_flyby_zone"]
+[ext_resource type="Script" uid="uid://b3mxwkjdb6b51" path="res://game/feature_hints/quest_hint.gd" id="148_quest_hint"]
+[ext_resource type="Script" uid="uid://dxfpi1r32140i" path="res://game/feature_hints/multi_stop_hint.gd" id="149_multi_stop_hint"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -116,6 +119,9 @@ unique_name_in_owner = true
 material_override = SubResource("ShaderMaterial_heat_zone")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_heat_zone")
+
+[node name="FlybyZone" parent="World" unique_id=2079222 node_paths=PackedStringArray("quest_giver") instance=ExtResource("147_flyby_zone")]
+quest_giver = NodePath("../../QuestGiver")
 
 [node name="Sol" parent="World" unique_id=1865132520 instance=ExtResource("114_sol")]
 
@@ -291,6 +297,19 @@ saver = NodePath("../GameSaver")
 script = ExtResource("142_business_hint")
 hints = NodePath("../FeatureHints")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+
+[node name="MultiStopHint" type="Node" parent="." unique_id=879651403 node_paths=PackedStringArray("hints", "bus", "cabin", "bus_bars")]
+script = ExtResource("149_multi_stop_hint")
+hints = NodePath("../FeatureHints")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+bus_bars = NodePath("../Hud/BusStatusPanel")
+
+[node name="QuestHint" type="Node" parent="." unique_id=1644402808 node_paths=PackedStringArray("hints", "quest_giver", "goal_panel")]
+script = ExtResource("148_quest_hint")
+hints = NodePath("../FeatureHints")
+quest_giver = NodePath("../QuestGiver")
+goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")

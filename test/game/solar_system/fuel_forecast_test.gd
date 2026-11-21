@@ -15,7 +15,7 @@ func test_the_estimate_is_the_distance_to_each_stop_short_of_parking_times_the_b
 	planet.orbit_period = 0.0
 	planet.show_orbit = false
 	add_child(planet)
-	# Where the bus starts to park at it, 3 past the checkpoint.
+	# Where the bus starts to park at it, 3 past the waypoint.
 	var park := planet.get_body_radius() + bus.dock_gap + FrameshiftBus.DOCK_DISTANCE
 	planet.position = start + Vector3(4.0, 0.0, 3.0 + park)
 	bus.plot_course(RouteStop.at_point(start + Vector3(4.0, 0.0, 0.0)))

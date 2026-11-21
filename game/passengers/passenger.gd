@@ -106,6 +106,10 @@ var look: AlienLook
 ## What the quest about them asks, such as "Rush Zib to Frost", or empty while there is
 ## none. Their portrait wears a flag while it is set. Whoever gives the quest sets it.
 var quest_line := ""
+## The planet the bus stops at for them, as an errand quest asks, or null. The next stop
+## there is no stop on the way to them, and ends the errand ([method pass_stop]). Whoever
+## gives the quest sets it.
+var errand: Planet
 
 var _rng: RandomNumberGenerator
 # Seconds left of the current activity line.
@@ -286,8 +290,12 @@ func reroute(to: Planet, seconds: float, base_fare: float) -> void:
 
 ## The bus docked at [param planet] on their ride, which isn't where they are going. A stop
 ## past their type's tolerance frustrates them, and they say so unless busy. The planet
-## they boarded at doesn't count before the bus has left it.
+## they boarded at doesn't count before the bus has left it, and nor does their
+## [member errand], once: a later stop there counts as any other.
 func pass_stop(planet: Planet) -> void:
+	if planet == errand:
+		errand = null
+		return
 	if _departed and ride.pass_stop(planet, origin, destination):
 		_complain(type.stop_lines, COMPLAINT_SECONDS)
 

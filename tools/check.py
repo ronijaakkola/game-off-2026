@@ -640,12 +640,26 @@ def script_growth_problems(path: str) -> list[str]:
 
 def lines_before_change(path: str) -> int | None:
     """How many lines path had at growth_base(), or None when it wasn't there or there
-    is no base to compare with."""
+    is no base to compare with. While a merge is under way, as when main is merged into
+    the branch, the side merged in counts too: what main grew isn't this change's."""
     base = growth_base()
     if not base:
         return None
+    counts = [lines_at(base, path)]
+    if not os.environ.get("SCRIPT_SIZE_BASE"):
+        merging = subprocess.run(
+            ["git", "rev-parse", "-q", "--verify", "MERGE_HEAD"], capture_output=True, text=True
+        )
+        if merging.returncode == 0:
+            counts.append(lines_at(merging.stdout.strip(), path))
+    found = [count for count in counts if count is not None]
+    return max(found) if found else None
+
+
+def lines_at(commit: str, path: str) -> int | None:
+    """How many lines path has at commit, or None when it isn't there."""
     shown = subprocess.run(
-        ["git", "show", f"{base}:{path}"], capture_output=True, text=True, encoding="utf-8"
+        ["git", "show", f"{commit}:{path}"], capture_output=True, text=True, encoding="utf-8"
     )
     return len(shown.stdout.splitlines()) if shown.returncode == 0 else None
 
