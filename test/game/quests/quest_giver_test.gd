@@ -14,11 +14,14 @@ func test_docking_at_their_destination_first_fails_an_errand_before_they_rate() 
 	var quest := _errand(passenger, _other_planet(runner, passenger, bus))
 	giver.take_on(quest)
 	var before := passenger.happiness
+	# Arriving pays out the ride's timing too, on top of the shock.
+	var timing := passenger.ride.get_timing()
 
 	bus.docked.emit(passenger.destination)
 
 	assert_int(quest.goal.state).is_equal(Goal.State.FAILED)
-	assert_float(passenger.happiness).is_equal_approx(before + QuestGiver.FAIL_SHOCK, 0.01)
+	var expected := before + QuestGiver.FAIL_SHOCK + timing
+	assert_float(passenger.happiness).is_equal_approx(expected, 0.001)
 
 
 func test_docking_at_the_errand_completes_it_and_they_ride_on_with_no_stop_counted() -> void:
