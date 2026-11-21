@@ -386,7 +386,7 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 | Hold the right button on empty space | The point in space follows the pointer until let go, to steer by hand |
 | Backspace or Delete | Take the last stop off the route |
 | The X on a stop in the route bar | Take that stop off the route |
-| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
+| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A pointer that reaches the edge within 0.3 s of being over a panel waits 0.4 s there before it pans, so overshooting a panel's button doesn't. A setting turns edge pan off |
 | Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
 | Mouse wheel | Zoom toward the point under the pointer |
 | Esc, or the pause button | Pause |
