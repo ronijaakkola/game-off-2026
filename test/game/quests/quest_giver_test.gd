@@ -39,6 +39,9 @@ func test_docking_at_the_errand_completes_it_and_they_ride_on_with_no_stop_count
 	assert_int(quest.goal.state).is_equal(Goal.State.COMPLETED)
 	assert_array(cabin.get_passengers()).contains([passenger])
 	assert_int(passenger.ride.stops).is_equal(0)
+	# Only that stop is free: coming back there counts as any other stop.
+	passenger.pass_stop(quest.planet)
+	assert_int(passenger.ride.stops).is_equal(1)
 	assert_int(ledger.credits).is_equal(credits + ErrandQuest.REWARD_CREDITS[0])
 
 
