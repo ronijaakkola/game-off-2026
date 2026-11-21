@@ -126,6 +126,13 @@ func restart(seconds: float, slack: float) -> void:
 	leeway = 0.0
 
 
+## They asked for a detour: the direct trip grows by [param seconds], and the time they
+## expect by that with [param slack].
+func extend(seconds: float, slack: float) -> void:
+	trip_seconds += seconds
+	expected_seconds += seconds * slack
+
+
 # Whether stopping at [param via] on the way from [param from] to [param to] is off the
 # way. Without a planet to measure from, it is.
 func _is_detour(from: Planet, via: Planet, to: Planet) -> bool:

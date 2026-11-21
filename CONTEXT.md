@@ -176,8 +176,8 @@ Something the player is asked to do and the game tracks, several at a time: a **
 _Avoid_: objective, mission, achievement (a one-off reward, not something asked)
 
 **Quest**:
-What one passenger asks of the player mid-ride, in a transmission, for a reward: an **express** quest has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each such as `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
-_Avoid_: task, errand, mission
+What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); an **errand** has it stop at a planet before their own stop; an **express** quest has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `ErrandQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
+_Avoid_: task, mission, errand (for any quest: it is the one kind)
 
 **Transmission**:
 A call that pauses the game: someone, a passenger, the player's boss or the **mechanic**, talks from a screen in a modal, and the player answers with a button. A **message** only says something; a quest transmission asks the player to take on a quest, shows its reward, and is accepted or declined. `Transmission`, shown by the `TransmissionPanel`, in code.

@@ -28,6 +28,10 @@ extends Node
 ## `-- Quick` opens nothing and shows a quick text over the bus, a remark; `gain` or `loss`
 ## shows that kind instead, and `quest` or `quest failed` has the quest giver take on a
 ## quest and end it so. It holds from about frame 20 to 80.
+## `-- Flyby` opens nothing and has the quest giver take on a fly past quest about Terra, or
+## the planet named after it, so its zone shows round the planet and its row in the panel.
+## `pointed` has the pointer on that row, so the zone pulses, and `hint` lets the quests
+## feature hint show on it, about 0.9 s in (`--frames 110`), if this machine never closed it.
 ## `-- Full` opens nothing, fills every seat and puts one in line at Ember, then clicks
 ## their Board button once the dock panel has slid in, so the bus full notice shows.
 
@@ -98,9 +102,11 @@ func _ready() -> void:
 		await get_tree().create_timer(1.0).timeout
 		cabin.kick(cabin.get_passengers()[1])
 		return
-	if planet_name in ["Research", "Quick", "Full"]:
+	if planet_name in ["Research", "Quick", "Full", "Flyby"]:
 		if planet_name == "Research":
 			await _open_research(system, name_given)
+		elif planet_name == "Flyby":
+			_take_on_a_flyby(system, name_given[1] if name_given.size() > 1 else "Terra")
 		elif planet_name == "Quick":
 			await _show_quick_text(system, name_given)
 		else:
@@ -197,6 +203,28 @@ func _end_a_quest(system: SolarSystem, failed: bool) -> void:
 		quest.goal._fail()
 	else:
 		quest.goal._complete()
+
+
+# The quest giver takes on a fly past quest about the planet named [param past], asked by a
+# passenger on board.
+func _take_on_a_flyby(system: SolarSystem, past: String) -> void:
+	var bus := system.find_child("Bus") as FrameshiftBus
+	var passenger := Passenger.new(COMMUTER, system.find_child("Frost") as Planet, 60.0, 40.0)
+	(system.find_child("Cabin") as Cabin).board(passenger)
+	var quest := FlybyQuest.new()
+	quest.passenger = passenger
+	quest.planet = system.find_child(past) as Planet
+	quest.reward_credits = FlybyQuest.REWARD_CREDITS[0]
+	quest.reward_research = FlybyQuest.REWARD_RESEARCH[0]
+	quest.accept()
+	var giver := system.find_child("QuestGiver") as QuestGiver
+	giver.enabled = false
+	if "hint" in OS.get_cmdline_user_args():
+		(system.find_child("FeatureHints") as FeatureHints).saver = null
+	giver.take_on(quest)
+	if "pointed" in OS.get_cmdline_user_args():
+		giver.pointed = quest
+	assert(bus.get_docked_planet() != quest.planet, "the bus is docked at %s" % past)
 
 
 func _board_on_a_full_bus(system: SolarSystem) -> void:

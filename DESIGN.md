@@ -356,19 +356,37 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 - **A standing goal** is met or not as things stand, and is never done: keep a 4.0 rating. It isn't met until a set number of rides are rated (at least 1), so one lucky first ride doesn't meet it. Dropping below makes it unmet, not failed.
 - **A rating goal reads the recent rating,** not the all-time average. On the average the first rides on a bare bus weigh on it for the whole run: a player who takes everyone and serves slowly then met a 3.5 goal in 3 runs of 8 within 15 minutes, with every first-stage upgrade researched. On the recent rating every kind of player meets it.
 - **A quest** is something one passenger asks for mid-ride, for a reward. It is tracked apart from the goals a promotion takes, so a quest under way or failed never stands in the way of all met.
-- **The call.** While the bus flies, a passenger on board calls: the first once the player has delivered 15 passengers and no sooner than 30 s into a run, the next 75 to 120 s after the last call or quest ended. Quests are an event, not a constant: the pausing transmission wears thin if it comes all the time. The scripted player gets one call before both starting goals are met, and a second only when the rating goal takes long.
+- **The call.** While the bus flies, a passenger on board calls: the first once the player has delivered 13 passengers and no sooner than 30 s into a run. The next comes 35 to 50 s after the last call or quest ended until 20 are delivered, and 75 to 120 s after that. Quests are an event, not a constant: the pausing transmission wears thin if it comes all the time, so only a new player gets them close together, to meet two before Sol's 20 deliveries. Over 24 seeds the scripted player gets 2.0 calls before its 20th delivery (1 to 3; 20 to 35 s gave 2.6, 40 to 60 s 1.8).
 - **Anyone on board can call,** whatever their type.
+- **What they ask goes by who calls and where.** A fly past or an errand, as likely one as the other, and the one that suits when only one does. From Lyra on, a Business passenger asks for an express quest instead. The first two are the easy ones, for a player still learning to route: an express quest takes away the choice of where to stop next.
 - **One at a time.** Nobody calls while a call rings or a quest is under way, and the wait until the next call starts only once that one has ended. Nobody calls in the first 2 s of a flight, while asleep, or within 6 s of getting off.
 - **Answering** opens their transmission, with what they ask and the reward. The quest is worked out then, from where everything is.
 - **Declining costs the caller 5 happiness,** as a shock, whether in the transmission or from the call notice before hearing the quest, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
-- **A done quest pays** 30 credits and 2 research points, on top of the delivery.
+- **A done quest pays** on top of the delivery, by the star system the bus works in, and as in Draco once they are joined:
+
+  | | Sol | Lyra | Draco |
+  |---|---|---|---|
+  | Fly past | 100 credits, 2 points | 230, 3 | 460, 7 |
+  | Errand, express | 140, 2 | 320, 4 | 640, 7 |
+
+  - **Two quests pay for one upgrade at the higher cost level of the stage that system opens** (240 and 4, 550 and 7, 1,100 and 14): a fly past and an errand together, the fly past less because it costs no stop. In Sol those are the two a new player meets before 20 deliveries.
+  - Over 24 seeds in Sol the scripted player, who docks at a fly past's planet too, takes 3.9 quests in 10 minutes and finishes 3.7 for 442 credits and 7.4 points: 245 credits a minute against 224 declining them all, with the same rating and 12.75 upgrades against 12. Lyra's and Draco's amounts follow the rule and aren't measured, as balance runs never leave Sol, and nor is express.
 - **A failed quest costs the caller 15 happiness,** as a shock, if they still ride: more than declining, or accepting and ignoring it would beat saying no. When a kick fails it, the kick's shock is the cost.
-- **Express.** The caller changes their mind and wants another planet to be the bus's next stop: one that isn't where they were going, where they boarded, or on the route, so it is always a detour for everyone else. Accepting changes their destination. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
+- **The planet a quest names is a detour:** never where the caller is going, where they boarded, where the bus is docked, or on the route.
+- **The caller's own detour costs them nothing.** Accepting a fly past or an errand adds the detour to their trip time (by the planet and on to their destination, against straight there from where the bus is), with the type's slack, and an errand's stop doesn't count against the stops they tolerate. Everyone else on board takes it as any detour.
+- **Fly past.** The caller wants to see a planet from the window. It is done when the bus comes within 3 units of the planet's surface in flight with them on board; flying in to dock there counts.
+  - It fails when the bus docks at their destination first, or when they are kicked.
+  - Never a planet the bus is within reach of already, nor one that orbits inside the heat zone (Ember), so it never sends a beginner into the heat.
+  - The zone shows on the map while the quest is under way (`docs/ui.md`), and is the same 3 units the rule counts.
+- **Errand.** The caller has something to do at another planet. It is done when the bus docks there with them on board, in any order with its other stops, by a tow as much as by a course. They stay on and ride on to their destination.
+  - It fails when the bus docks at their destination first, or when they are kicked.
+- **Express.** The caller changes their mind and wants another planet to be the bus's next stop, so it is always a detour for everyone else. Accepting changes their destination. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
   - It is done when they get off there, and fails when the bus docks at any other planet first, by a tow as much as by a course, or when they are kicked. Points in space are no stop.
   - There is no clock: a time limit didn't feel good in play, and the passenger's own timing already rewards getting there soon.
+- **Failing by reaching their destination costs the caller the 15** before they rate, so accepting a quest and flying straight on is never better than declining.
 - *(not built)* **Photo stop:** hold still in space near a planet. **Pick up my friend:** fetch a named passenger at another planet and deliver both.
-- Two older quest goals are built but nothing gives them: deliver one passenger, and fly one past a planet (the bus comes within 3 units of its surface in flight, having been out of reach since they boarded).
-- **Balance runs answer calls** by the scripted player's policy: they take every quest unless told to decline, ignore or switch off calls, or to decline a detour past a set length, and fly straight to an express quest's planet.
+- One older quest goal is built but nothing gives it: deliver one passenger.
+- **Balance runs answer calls** by the scripted player's policy: they take every quest unless told to decline, ignore or switch off calls, or to decline a detour past a set length, and fly straight to the quest's planet, docking there for a fly past too. They are never promoted, so they meet no express quest.
 - **All met** means every milestone done and every standing goal holding.
 - **A promotion** comes once every goal it takes is met and still is 1.5 s later, so the player sees them ticked. The goals go, and the next star system opens (Star systems); its research comes with the mechanic once the bus is there (Research). The debug panel's Promote gives one at once, and its Complete system also jumps to the next system at once. Balance runs are never promoted, so they play on the first stage throughout, with every tree open unless told to have the mechanic open them.
 - **Each star system gives its own two goals** when the bus arrives: deliver 20 and keep 3.5 in Sol, 40 and 3.8 in Lyra, 50 and 4.0 in Draco, and 60 and 4.0 once the systems are joined. Lyra's and Draco's numbers are guesses, not measured yet.
@@ -457,6 +475,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **Never during the tutorial,** which has its own cards, and never on a hidden target: a hint passed over that way isn't kept as seen, so the next meeting offers it again. Two at once show one after the other.
 - **The heat zone:** the first time the passengers become uncomfortable (past 32°, where the gauge leaves green), a hint above the gauge says the star heats the bus, that passengers are getting uncomfortable and it will soon overheat, and to move away from the star to cool it (the words are in `feature_hints.gd`).
 - **The goals:** after The Boss's first-shift call (The start), a hint beside the goal panel says it shows the goals that reach the promotion.
+- **Quests:** the first time the player takes on a quest, once its row has slid into the goal panel, a hint beside the panel's quests says the active quests show up there.
 - **Business passengers:** the first time a Business passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they ask more but pay better.
 
 ## Save game
