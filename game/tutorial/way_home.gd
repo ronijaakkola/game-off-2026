@@ -6,7 +6,8 @@ extends RefCounted
 ## flies on. Each course has a card
 ## ([method get_card]) with a ring: the spot, then home. Only those can be the course, a
 ## click near the spot sets it in the spot's middle, and once set the course locks, so the
-## one thing left is to frameshift. Leaving the first time, the whole way is set to burn
+## one thing left is to frameshift. Held at the spot, the drive stays warm, so the course
+## home leaves at once, with no charge. Leaving the first time, the whole way is set to burn
 ## [constant FUEL] of the tank.
 
 enum Part { SPOT, LEAVE, FLY_SPOT, HOME, FLY_HOME }
@@ -77,6 +78,8 @@ func update() -> void:
 				_part = Part.FLY_HOME
 	# Set, a course is kept: the one thing left is to frameshift.
 	bus.route_locked = not bus.get_route_stops().is_empty()
+	# Waiting at the spot, the drive stays warm, so setting the course home leaves at once.
+	_rules.hold_warm(_part == Part.HOME)
 	var camera := t.get_viewport().get_camera_3d()
 	var at_home := _part in [Part.HOME, Part.FLY_HOME]
 	var home := t.home

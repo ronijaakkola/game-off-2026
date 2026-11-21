@@ -8,7 +8,8 @@ extends RefCounted
 ## something has, and whether its target is rung ([member GuideCard.ring]); one with a kind
 ## is that kind of card, not a tutorial step. The [ResearchGuide] opens its own cards
 ## through it the same way. {home} and {destination} stand for the planets' names, {stars}
-## for the rating the passenger gave, and a control's name in braces for its icon
+## for the rating the passenger gave, {queue_key} for the key that adds a stop
+## ([method QueueKey.get_icons]), and a control's name in braces for its icon
 ## ([ControlIcons]).
 ## The titles are placeholders.
 
@@ -27,7 +28,8 @@ const CARDS := {
 	"LOOK":
 	{
 		title = "Look around",
-		text = "Move around with {wasd} or {arrows}\nMouse wheel {mouse_wheel} to zoom. Try both.",
+		text =
+		"Drag {mouse_left} or use {wasd} to move around\nMouse wheel {mouse_wheel} to zoom. Try both.",
 		side = GuideCard.Side.RIGHT,
 		got_it = false,
 		ring = false,
@@ -49,20 +51,8 @@ const CARDS := {
 		title = "On board",
 		text =
 		(
-			"Here you can see passengers currently inside your bus. There is one now looking for "
-			+ "their seat!"
-		),
-		side = GuideCard.Side.RIGHT,
-		got_it = true,
-		ring = true,
-	},
-	"HAPPINESS":
-	{
-		title = "Happiness",
-		text =
-		(
-			"This bar shows how happy they are. Keep them as happy as possible, and they will "
-			+ "pay more and rate your company better."
+			"Your passenger is on board. The bar shows how happy they are: keep them happy, and "
+			+ "they pay more and rate your company better."
 		),
 		side = GuideCard.Side.RIGHT,
 		got_it = true,
@@ -156,6 +146,18 @@ const CARDS := {
 		text = "Now right click {mouse_right} {home} to fly home.",
 		side = GuideCard.Side.LEFT,
 		got_it = false,
+		ring = true,
+	},
+	"CHAIN":
+	{
+		title = "Chain stops",
+		text =
+		(
+			"Welcome home! You can also chain stops together: hold {queue_key} as you right "
+			+ "click {mouse_right} to add each one to the end of your route."
+		),
+		side = GuideCard.Side.ABOVE,
+		got_it = true,
 		ring = true,
 	},
 }

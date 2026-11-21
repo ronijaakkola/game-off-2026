@@ -39,7 +39,6 @@ enum Step {
 	LOOK,
 	BOARD,
 	ON_BOARD,
-	HAPPINESS,
 	ROUTE,
 	CHARGE,
 	FLY,
@@ -48,6 +47,7 @@ enum Step {
 	MONEY,
 	REFUEL,
 	HOME,
+	CHAIN,
 	LAST_CALL,
 	DONE,
 }
@@ -66,11 +66,9 @@ const PASSENGER_RACE := Race.Type.BLUE
 ## the card on the panel opens.
 const ON_BOARD_DELAY := PassengerCard.ENTER_SECONDS + 0.15
 ## The steps through which the passenger's trip shows, on the way to the destination.
-const TRIP_STEPS: Array[Step] = [Step.ON_BOARD, Step.HAPPINESS, Step.ROUTE, Step.CHARGE]
+const TRIP_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE]
 ## The steps in which the passenger rides to the destination, paying what they should.
-const RIDE_STEPS: Array[Step] = [
-	Step.ON_BOARD, Step.HAPPINESS, Step.ROUTE, Step.CHARGE, Step.FLY, Step.SERVE
-]
+const RIDE_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE, Step.FLY, Step.SERVE]
 
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
@@ -179,7 +177,7 @@ func _process(_delta: float) -> void:
 			_way_home.update()
 			var card := _way_home.get_card()
 			if _way_home.is_home():
-				_go_to(Step.LAST_CALL)
+				_go_to(Step.CHAIN)
 			elif not _cards.is_open_for(card):
 				if card.is_empty():
 					_cards.close()
@@ -248,8 +246,6 @@ func _go_to(step: Step) -> void:
 			_bring_in_station()
 		Step.ON_BOARD:
 			_bring_in_on_board()
-		Step.HAPPINESS:
-			_open_happiness()
 		Step.ROUTE:
 			guide.target_rect = _screen_rect(
 				destination.get_body_global_position(), destination.get_body_radius()
@@ -269,6 +265,8 @@ func _go_to(step: Step) -> void:
 			_open_refuel()
 		Step.HOME:
 			_way_home = WayHome.new(self, _rules)
+		Step.CHAIN:
+			_open_card(bus_bars.get_route_bar())
 		Step.LAST_CALL:
 			_call_again()
 
@@ -280,6 +278,7 @@ func _open_card(target: Control, card := "") -> void:
 		"home": home.display_name,
 		"destination": _goal.display_name,
 		"stars": _ride.describe_rating(),
+		"queue_key": QueueKey.get_icons(),
 	}
 	await _cards.open(card if card else Step.keys()[_step], target, names)
 
@@ -290,8 +289,6 @@ func _on_guide_acknowledged() -> void:
 		Step.BUS:
 			_go_to(Step.LOOK)
 		Step.ON_BOARD:
-			_go_to(Step.HAPPINESS)
-		Step.HAPPINESS:
 			_go_to(Step.ROUTE)
 		Step.RATING:
 			_rules.pause(false)
@@ -299,6 +296,8 @@ func _on_guide_acknowledged() -> void:
 		Step.MONEY:
 			resource_bar.breathe(false)
 			_go_to(Step.REFUEL)
+		Step.CHAIN:
+			_go_to(Step.LAST_CALL)
 
 
 # In flight: halfway to the destination the passenger asks for their snack; stopped short,
@@ -395,12 +394,6 @@ func _bring_in_on_board() -> void:
 	if _step == Step.ON_BOARD:
 		var card := passenger_panel.get_card(_ride.passenger)
 		_open_card(card if card else passenger_panel)
-
-
-# The card beside the passenger's happiness bar on their card in the On board panel.
-func _open_happiness() -> void:
-	var card := passenger_panel.get_card(_ride.passenger)
-	_open_card(card.get_happiness_bar() if card else passenger_panel)
 
 
 # How far the bus is from where it is headed.

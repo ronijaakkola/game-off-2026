@@ -81,7 +81,7 @@ func test_the_menu_button_opens_the_pause_menu_while_the_call_covers_the_screen(
 	assert_bool((runner.find_child("PauseMenu") as CanvasLayer).visible).is_true()
 
 
-func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course() -> void:
+func test_after_boarding_a_card_on_the_passenger_goes_on_to_the_course() -> void:
 	SaveGame.start_new()
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
@@ -99,15 +99,15 @@ func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course()
 	_click(runner, guide.find_child("GotItButton") as Control)
 
 	# The camera card waits until the player has moved the camera.
-	await _wait_for_card(guide, "Move around with {wasd}")
+	await _wait_for_card(guide, "Drag {mouse_left} or use {wasd}")
 	await runner.simulate_frames(30)
-	assert_bool(guide.text.begins_with("Move around with")).is_true()
+	assert_bool(guide.text.begins_with("Drag {mouse_left}")).is_true()
 	runner.simulate_action_press(&"camera_pan_right")
 	await runner.simulate_frames(30, 16)
 	runner.simulate_action_release(&"camera_pan_right")
 	# Panning alone isn't enough: the card waits for a zoom too.
 	await runner.simulate_frames(60, 16)
-	assert_bool(guide.text.begins_with("Move around with")).is_true()
+	assert_bool(guide.text.begins_with("Drag {mouse_left}")).is_true()
 	(runner.find_child("CameraRig") as CameraRig).zoom_to(30.0)
 	await runner.simulate_frames(30, 16)
 
@@ -119,14 +119,12 @@ func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course()
 	# Once the station panel is in, the card on the row opens.
 	await _wait_for_card(guide, "Here you can see a list of waiting passengers.")
 	_click(runner, row.find_child("BoardButton") as Control)
-	await _wait_for_card(guide, "Here you can see passengers currently inside your bus.")
-	_click(runner, guide.find_child("GotItButton") as Control)
-
-	await _wait_for_card(guide, "This bar shows how happy they are.")
+	# One card on the passenger's card says they are on board and what their bar shows.
+	await _wait_for_card(guide, "Your passenger is on board.")
 	var cabin := runner.find_child("Cabin") as Cabin
 	var passengers := runner.find_child("PassengerPanel") as PassengerPanel
 	var card := passengers.get_card(cabin.get_passengers()[0])
-	assert_object(guide.target).is_same(card.get_happiness_bar())
+	assert_object(guide.target).is_same(card)
 	assert_bool(guide.got_it).is_true()
 
 	_click(runner, guide.find_child("GotItButton") as Control)

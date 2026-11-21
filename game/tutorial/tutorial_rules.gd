@@ -21,6 +21,7 @@ const TRIP_FUEL := 0.5
 var _tutorial: Tutorial
 # What it changed, as it was.
 var _burn := 0.0
+var _warm_time := 0.0
 var _prices: Dictionary[Planet, float] = {}
 
 
@@ -45,6 +46,7 @@ func apply() -> void:
 	t.passenger_panel.arrivals_held = true
 	t.passenger_panel.kicks_allowed = false
 	_burn = t.bus.get_fuel_tank().burn_per_unit
+	_warm_time = t.bus.warm_time
 	for planet: Planet in [t.home, t.destination]:
 		_prices[planet] = planet.fuel_price
 		planet.fuel_price = 0.0
@@ -61,6 +63,7 @@ func lift() -> void:
 	t.passenger_panel.arrivals_held = false
 	t.passenger_panel.kicks_allowed = true
 	t.bus.get_fuel_tank().burn_per_unit = _burn
+	t.bus.warm_time = _warm_time
 	t.bus.get_fuel_tank().fill()
 	for planet: Planet in _prices:
 		planet.fuel_price = _prices[planet]
@@ -73,6 +76,12 @@ func set_trip_burn(goal: Planet) -> void:
 	var tank := bus.get_fuel_tank()
 	var stop := RouteStop.at_planet(goal).get_target(bus.global_position, bus.dock_gap)
 	tank.burn_per_unit = TRIP_FUEL * tank.capacity / bus.global_position.distance_to(stop)
+
+
+## Keeps the drive warm for as long as the bus holds in space, while [param on], so a
+## course set there leaves at once; off, it stays warm as long as it does in the game.
+func hold_warm(on: bool) -> void:
+	_tutorial.bus.warm_time = INF if on else _warm_time
 
 
 ## Burns fuel so that [param distance] takes [param share] of the tank.
