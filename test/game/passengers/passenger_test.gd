@@ -127,6 +127,18 @@ func test_each_stop_past_the_tolerance_takes_off_what_they_can_reach() -> void:
 	assert_float(passenger.get_target(comfort)).is_equal(START + 20.0 - RideProgress.STOP_COST)
 
 
+func test_a_stop_too_many_shows_as_frustration_while_the_bus_is_still_docked() -> void:
+	var kind := _type()
+	kind.stop_tolerance = 0
+	var comfort := Comfort.new()
+	comfort.bonus = 20.0
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.depart(comfort)
+	passenger.pass_stop(auto_free(Planet.new()))
+	passenger.tick(0.1, true, false, comfort)
+	assert_float(passenger.frustration).is_equal(RideProgress.STOP_COST)
+
+
 func test_the_planet_they_boarded_at_is_no_stop_before_the_bus_leaves() -> void:
 	var kind := _type()
 	kind.stop_tolerance = 0

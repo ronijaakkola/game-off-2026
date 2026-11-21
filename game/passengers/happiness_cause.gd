@@ -56,12 +56,13 @@ static func get_ups(passenger: Passenger, comfort: Comfort) -> Array[String]:
 
 ## What costs [param passenger] happiness on a bus giving [param comfort], a few words
 ## each, the largest first: a request nobody serves, the event under way, stops past
-## their tolerance, a late ride, the heat. While the bus is [param docked] a request costs
-## nothing: the station serves it.
+## their tolerance, a late ride, the heat. A request costs nothing while it is being served,
+## as the station does while the bus is [param docked].
 static func get_downs(passenger: Passenger, comfort: Comfort, docked: bool) -> Array[String]:
 	var downs: Array[String] = []
-	# An open request costs them once it sends them toward 0.
-	if passenger.request and not docked and passenger.get_target(comfort) <= 0.0:
+	# An open request costs them once it sends them toward 0, unless something serves it.
+	var served := docked or passenger.being_fed
+	if passenger.request and not served and passenger.get_target(comfort) <= 0.0:
 		downs.append("Waiting for %s" % passenger.request.item)
 	if passenger.cause.event != Type.NONE:
 		downs.append(EVENT_LABELS[passenger.cause.event])

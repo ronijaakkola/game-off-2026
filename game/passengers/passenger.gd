@@ -83,6 +83,9 @@ var quick_bonus := 0.0
 var cause := HappinessCause.new()
 ## The need they were just served, while its served activity lasts, or null.
 var served: Need
+## Whether something fed the open request since the last [method tick]: while it is being
+## served, their happiness holds rather than heading for 0.
+var being_fed := false
 ## How much of the open request is served so far, from 0 to 1 ([method feed]).
 var serving := 0.0
 ## Whether they are asleep: their activity is one of the type's sleep lines. Only a bus
@@ -119,9 +122,6 @@ var _shaken := false
 var _held_request: Need
 # Seconds of flying the open or held request has gone unserved.
 var _request_age := 0.0
-# Whether something fed the open request since the last tick: while it is being served,
-# their happiness holds rather than heading for 0.
-var _fed := false
 
 
 ## A passenger of [param kind] going to [param to]. [param trip_seconds] is the direct
@@ -330,8 +330,8 @@ func tick(
 		watching = false
 		action = Need.Action.NONE
 		activity = request.request_line
-	var fed := _fed and request != null
-	_fed = false
+	var fed := being_fed and request != null
+	being_fed = false
 	trend = 0.0
 	if _departed and not stopped:
 		var rate := 1.0
@@ -343,7 +343,6 @@ func tick(
 		ride.run(delta * rate, happiness)
 		if not was_late and ride.get_late_seconds() > 0.0:
 			_complain(type.late_lines, COMPLAINT_SECONDS)
-		frustration = ride.get_lost(_get_best(giving))
 		# A request on its way holds them where they are: they can see it coming.
 		var target := happiness if fed else get_target(giving)
 		var speed := CLIMB_RATE if target >= happiness else FALL_RATE
@@ -351,6 +350,9 @@ func tick(
 		happiness = move_toward(happiness, target, speed * delta)
 		if delta > 0.0:
 			trend = (happiness - before) / delta * TREND_SECONDS
+	# Also while stopped, so a stop too many shows on their bar as the bus docks.
+	if _departed:
+		frustration = ride.get_lost(_get_best(giving))
 	cause.run(delta)
 	if request:
 		# Stops count for nothing, so one asked as the bus pulls in is forgiven.
@@ -420,7 +422,7 @@ func serve(portion := 1.0) -> void:
 func feed(amount: float, portion := 1.0) -> void:
 	if not request:
 		return
-	_fed = true
+	being_fed = true
 	serving = minf(serving + amount, 1.0)
 	if serving >= 1.0:
 		var seconds := request.served_seconds * (portion if request.food else 1.0)
