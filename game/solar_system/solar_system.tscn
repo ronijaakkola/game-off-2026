@@ -427,6 +427,16 @@ unique_name_in_owner = true
 anchors_preset = 7
 bus = NodePath("../../Bus")
 
+[node name="ClickBlock" type="Control" parent="Hud" unique_id=176192418]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [node name="PauseButton" parent="Hud" unique_id=1942403847 instance=ExtResource("143_pause_button")]
 unique_name_in_owner = true
 anchors_preset = 2
