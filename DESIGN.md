@@ -19,7 +19,7 @@ You drive a bus around a small solar system. Pick up passengers, plot a route th
 2. **Set course.** The player adds planets and points in space to the route.
 3. **Charge.** The player holds the Frameshift key to charge the drive, and the bus leaves once it is charged. Just after docking the drive is still warm for a while, and the charge starts from the warmth left and builds faster. Until then the route can still change.
 4. **Fly.** The bus flies the route stop by stop. The player can reroute at any time.
-5. **Arrive.** At a planet, passengers going there get off, pay by their mood, rate the ride and earn a research point.
+5. **Arrive.** At a planet, passengers going there get off, pay their fare, rate the ride and earn a research point.
 6. **Refuel and research.** Docked, the player buys fuel, and at a planet with a lab researches upgrades from every tree once the mechanic has opened research.
 
 ## The solar system
@@ -111,6 +111,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - Happiness holds while they wait.
 - **Station waiting lounge.** Someone picked up gets +1 on their target for every 10 s they waited, up to +5 at 50 s, for their whole ride. A wait counts while the planet's clock runs, so waiting docked there builds none. +5 at most keeps In-Flight Movies alone short of 5 stars (84 + 5 = 89).
 - **The start.** A new run starts with the tutorial (Tutorial) while the player hasn't been through it, and its lines start after it. Once they start, the bus is empty, with 2 passengers waiting at the planet it is docked at and 1 at every other planet, so the first stop has someone to pick up and the first route somewhere to go. A New game after the tutorial starts docked at Terra, where the tutorial does, and the run after the tutorial at the Moon, where it ends; a scene run on its own starts docked at Ember.
+- **The first shift.** A new run opens on a call from The Boss, once the tutorial's zoom out is over or, without the tutorial, once the scene is in, with only the bus bars showing: a welcome to the first shift, and that good employees are rewarded with a promotion. Until the player closes the transmission, the call notice's Answer is the one thing they can do: no clicks on the map or the bus bars, no route changes, no pan or zoom; Esc and the pause button still pause. Left unanswered for 5 s of play, it opens by itself, and The Boss opens annoyed, telling the player to answer. Both answers mean the same. Then the other panels come in, and a feature hint points at the goal panel (Feature hints). A continued run has none.
 
 ### Who turns up
 
@@ -151,7 +152,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - **Fare** is 3 credits per unit times the type's multiplier.
 - Both are set when the passenger is decided (Who turns up), from where the planets are then.
 - A faster bus gets passengers there before they expect it. Speed upgrades make passengers happier rather than more demanding.
-- **Payment** on getting off goes by mood: happy pays 1.2× the fare, okay 1×, annoyed 0.5×, furious nothing. With the Tip jar, happy pays 1.2× that again.
+- **Payment** on getting off: everyone pays the fare, a 4-star ride (happy) 1.2× and a 5-star ride 1.4×. With the Tip jar those are 1.3× and 1.5×. A poor ride costs the rating and never the fare, so one bad ride isn't punished twice and a player who struggles can still pay for the upgrades that help: over 12 seeds one who takes everyone and answers requests in about 8 s earns 257 credits a minute against 219 when annoyed paid half and furious nothing, and the scripted player 266 against 259. Credits now barely tell players apart, so they reward good service only through the two tips.
 
 ### Happiness
 
@@ -184,7 +185,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 - **Stops.** Every planet the bus docks at on their ride before theirs is a stop on the way; the planet they boarded at counts only once the bus has left it. Each type tolerates a number of them calmly, and each stop past that costs 15. Delivering the demanding ones first is the routing puzzle.
 - **A late ride** costs 1 a second of their clock past the expected time, with their leeway: steady, never faster, so a late ride never runs away from the player.
-- **The floor.** Frustration never takes them under 50 (okay, three stars, the full fare). A request open still heads for 0.
+- **The floor.** Frustration never takes them under 50 (okay, three stars). A request open still heads for 0.
 - *(playtest)* Every stop counts for now. Counting only detours, a stop where going there and on is more than 1.25 times the straight way from where the bus last left, is one switch away (`RideProgress.ONLY_DETOURS`), for if serving several passengers on one route feels punished.
 - They say why: a stop past their tolerance shows one of their type's lines about it at once (“Another stop?!”), and so does the moment the ride runs late (“I’m late for a meeting”), unless a request, a sleep, a show or a meal holds their line. While frustrated, their idle lines are those, for whichever costs them more.
 
@@ -360,7 +361,7 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 - **Anyone on board can call,** whatever their type.
 - **One at a time.** Nobody calls while a call rings or a quest is under way, and the wait until the next call starts only once that one has ended. Nobody calls in the first 2 s of a flight, while asleep, or within 6 s of getting off.
 - **Answering** opens their transmission, with what they ask and the reward. The quest is worked out then, from where everything is.
-- **Declining costs the caller 5 happiness,** as a shock, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
+- **Declining costs the caller 5 happiness,** as a shock, whether in the transmission or from the call notice before hearing the quest, and so does leaving the call unanswered until the bus reaches a planet or is towed, so ignoring a call is never better than saying no. A call whose caller leaves the bus first just ends.
 - **A done quest pays** 30 credits and 2 research points, on top of the delivery.
 - **A failed quest costs the caller 15 happiness,** as a shock, if they still ride: more than declining, or accepting and ignoring it would beat saying no. When a kick fails it, the kick's shock is the cost.
 - **Express.** The caller changes their mind and wants another planet to be the bus's next stop: one that isn't where they were going, where they boarded, or on the route, so it is always a detour for everyone else. Accepting changes their destination. Their timing starts again from there, with the direct trip from where the bus is and the type's slack, and their fare is the new trip's when that is more.
@@ -380,14 +381,14 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 
 | Input | Action |
 |---|---|
-| Left click a planet or the bus | Open it. One thing is open at a time. Where the bus and a planet overlap, whichever centre is nearer the pointer opens |
+| Left click the bus | Open it. One thing is open at a time. A left click on a planet opens nothing for now: it acts as empty space. Where the bus and a planet overlap, whichever centre is nearer the pointer is picked |
 | Left click the open thing, or empty space | Close it |
 | Right click a planet or empty space | Set the route to it: the planet, or a point in space (Route and flight) |
 | Shift or Q + right click | Add it to the end of the route |
 | Hold the right button on empty space | The point in space follows the pointer until let go, to steer by hand |
 | Backspace or Delete | Take the last stop off the route |
 | The X on a stop in the route bar | Take that stop off the route |
-| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A setting turns edge pan off |
+| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A pointer that reaches the edge within 0.3 s of being over a panel waits 0.4 s there before it pans, so overshooting a panel's button doesn't. A setting turns edge pan off |
 | Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
 | Mouse wheel | Zoom toward the point under the pointer |
 | Esc, or the pause button | Pause |
@@ -414,6 +415,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
 - **The pause button** opens the pause menu as Esc does, wherever Esc would, so a player in browser fullscreen, where Esc never reaches the game, can still pause.
 - **A transmission** pauses the game until the player answers it. Closing the pause menu over one leaves the game paused.
+- **The call shows who calls, once the player knows them:** The Boss always, a passenger on board always, and the mechanic from their second call in a run on, so a new run's first call from them, where they introduce themselves, comes from an unknown caller. Of the passengers, only those on board call.
 - **A caller's voice:** each race has its own set of short recorded clips (`game/transmissions/voice/`), strung together while the text types out. A race with no clips yet is silent. Every caller of a race has a pitch of their own, fixed by their name. The voice lab, from the debug panel on the main menu, is where the delivery is tuned.
 - **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
@@ -447,14 +449,15 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **No other needs.** The snack is the only thing the passenger asks for.
 - **No route changes in flight.** From leaving until the bus docks, each way, clicks on the map, Backspace and the Frameshift key do nothing, and the key never turns into Stop.
 - **No kicks.** The passenger can't be kicked off until it is over.
-- **The zoom out.** Done or skipped, the HUD goes, then the map zooms out to the whole solar system, the planets starting to orbit as it goes, and holds there for 4 s before the HUD comes back. The screen takes no clicks, and the route controls, pan and zoom do nothing, until then.
-- Then the lines start at every planet (The start), the run's goals are given, and a notice says the whole solar system is open.
+- **The zoom out.** Done or skipped, the HUD goes, then the map zooms out to the whole solar system, the planets starting to orbit as it goes, and holds there for 4 s before the bus bars come back for The Boss's first-shift call (The start), and the rest of the HUD after it. The screen takes no clicks, and the route controls, pan and zoom do nothing, until that call closes.
+- Then the lines start at every planet (The start), the run's goals are given, and The Boss's first-shift call comes (The start).
 
 ## Feature hints
 
 - **The first time the player meets a feature in play,** the game pauses with a feature hint pointing at it, until the player presses Got it; the pause menu can open over it, and closing that leaves the game paused. Each hint shows once across every run, kept beside the save; deleting the save data, from the main menu's settings or the debug panel's Delete save, forgets them, so they show again.
 - **Never during the tutorial,** which has its own cards, and never on a hidden target: a hint passed over that way isn't kept as seen, so the next meeting offers it again. Two at once show one after the other.
 - **The heat zone:** the first time the passengers become uncomfortable (past 32°, where the gauge leaves green), a hint above the gauge says the star heats the bus, that passengers are getting uncomfortable and it will soon overheat, and to move away from the star to cool it (the words are in `feature_hints.gd`).
+- **The goals:** after The Boss's first-shift call (The start), a hint beside the goal panel says it shows the goals that reach the promotion.
 - **Business passengers:** the first time a Business passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they ask more but pay better.
 
 ## Save game

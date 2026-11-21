@@ -7,7 +7,9 @@ extends Node
 ## the player closes it, so the [ResearchGuide] starts at a lab. In each system after it, the
 ## mechanic calls as the bus works there, and the next stage opens in every tree. Once the
 ## systems are joined, nobody calls: every stage is open.
-## The call notice's Answer opens the mechanic's transmission; left unanswered for
+## The call notice shows the mechanic as an unknown caller until the run has had a call
+## from them, so on their first; its Answer opens the mechanic's transmission; left
+## unanswered for
 ## [constant ANSWER_SECONDS] seconds of play while it shows, it opens by itself. Once the
 ## player closes it, what it brings opens. It calls only after [method start], never while
 ## another transmission is open or a passenger's call rings, during a stop or a jump, and
@@ -131,7 +133,8 @@ func ring() -> void:
 	quest_giver.enabled = false
 	_ringing_seconds = 0.0
 	bus.grounded = not _opens_stage() and _is_at_lab()
-	_notice = notices.announce_transmission()
+	var known := _research().is_opened()
+	_notice = notices.announce_transmission(Transmission.from_mechanic(), known)
 	_notice.action_pressed.connect(_open)
 
 

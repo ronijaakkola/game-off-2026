@@ -9,8 +9,9 @@ extends Node
 ## happiness bar on their card, setting a course to the destination, charging the drive, serving the
 ## snack the passenger asks for halfway, the stars they rate the ride, the fare they pay, and
 ## refuelling. Then The Boss calls again, and once the player answers, the HUD goes
-## and it is over; the HUD comes back once the map has zoomed out. Research comes later, with
-## the mechanic's first call ([MechanicCall], [ResearchGuide]).
+## and it is over; once the map has zoomed out, The Boss's first-shift call brings the HUD
+## back ([FirstShiftCall]). Research comes later, with the mechanic's first call
+## ([MechanicCall], [ResearchGuide]).
 ## Most steps wait for the player to do something in the game; one that only tells them
 ## something has a Got it button. The snack and the stars pause the game, and the
 ## portraits keep moving. The cards are [TutorialCards].
@@ -97,8 +98,6 @@ const RIDE_STEPS: Array[Step] = [
 @export var hud: HudLayout
 ## The camera, which holds still through the call.
 @export var rig: CameraRig
-## Zooms the map out once it is over, and says when the run proper starts.
-@export var map_zoom: MapZoom
 ## Hidden throughout.
 @export var lab_badges: LabBadges
 ## Offers to skip it while it runs.
@@ -447,7 +446,6 @@ func _finish() -> void:
 	_empty_home_line()
 	lab_badges.hide()
 	# The camera stays locked: the zoom out holds it until the run starts.
-	map_zoom.zoomed_out.connect(_on_zoomed_out, CONNECT_ONE_SHOT)
 	_rules.lift()
 	pause_menu.offers_skip_tutorial = false
 	resource_bar.breathe(false)
@@ -470,11 +468,6 @@ func _empty_home_line() -> void:
 	await hud.hide_all()
 	for passenger: Passenger in waiting.get_waiting(home):
 		waiting.take(home, passenger)
-
-
-# The map has zoomed out and settled: the HUD comes back, and the player can play.
-func _on_zoomed_out() -> void:
-	hud.reveal_all()
 
 
 # Skip tutorial: finishes it, and the map zooms out.

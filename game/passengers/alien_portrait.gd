@@ -290,16 +290,12 @@ func get_head_bounds() -> AABB:
 		parts.append(_head)
 	else:
 		parts = find_children("*", "MeshInstance3D", true, false)
-	var bounds := AABB()
-	var first := true
+	var meshes: Array[MeshInstance3D] = []
 	for node: Node in parts:
 		var mesh := node as MeshInstance3D
-		if not mesh or mesh == anger_mark or (_sweat and _sweat.is_ancestor_of(mesh)):
-			continue
-		var local := global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
-		bounds = local if first else bounds.merge(local)
-		first = false
-	return bounds
+		if mesh and mesh != anger_mark and not (_sweat and _sweat.is_ancestor_of(mesh)):
+			meshes.append(mesh)
+	return MeshBounds.around(meshes, global_transform.affine_inverse())
 
 
 ## Points the eyes toward [param direction], from -1 to 1 on each axis (+y up), and holds
@@ -357,6 +353,15 @@ func _watch(delta: float, motion: float) -> void:
 	for material: ShaderMaterial in _materials.values():
 		material.set_shader_parameter(&"screen_light", _screen.light)
 		material.set_shader_parameter(&"screen_side", _screen.side)
+
+
+## Paints every part of the model [param color], whatever they hold too, for an outline in
+## the dark. Call it once the portrait is in the tree.
+func paint_over(color: Color) -> void:
+	skin_color = color
+	outfit_color = color
+	for material: ShaderMaterial in _materials.values():
+		material.set_shader_parameter(&"color", color)
 
 
 # The skin colour on the body and the eyelids.
@@ -456,14 +461,7 @@ func _add_meal() -> void:
 
 # The bounds of the head's own shape in its space ([method _head_shape_meshes]).
 func _head_shape_bounds() -> AABB:
-	var to_head := _head.global_transform.affine_inverse()
-	var bounds := AABB()
-	var first := true
-	for mesh: MeshInstance3D in _head_shape_meshes():
-		var local := to_head * mesh.global_transform * mesh.get_aabb()
-		bounds = local if first else bounds.merge(local)
-		first = false
-	return bounds
+	return MeshBounds.around(_head_shape_meshes(), _head.global_transform.affine_inverse())
 
 
 # The meshes of the head's own shape, without the eyes or the anger mark: the head part

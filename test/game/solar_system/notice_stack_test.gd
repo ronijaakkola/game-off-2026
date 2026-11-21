@@ -27,7 +27,7 @@ func test_a_notice_answered_into_a_pause_still_leaves() -> void:
 	var stack := (load(STACK) as PackedScene).instantiate() as NoticeStack
 	add_child(stack)
 	auto_free(stack)
-	var notice := stack.announce_transmission()
+	var notice := stack.announce_transmission(Transmission.from_boss())
 	# The answer opens a transmission, which pauses the game in the same click.
 	notice.action_pressed.connect(func() -> void: get_tree().paused = true)
 	(notice.find_child("ActionButton") as Button).pressed.emit()

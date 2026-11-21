@@ -141,7 +141,7 @@ The map zoomed in on Terra and the Moon for the tutorial: the star and the plane
 _Avoid_: mini map, small map
 
 **Passenger**:
-Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it and sets what they pay. `Passenger` in code.
+Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it. They pay the fare, and more for a ride they rate 4 or 5 stars. `Passenger` in code.
 _Never_: customer, rider, NPC
 
 **Happiness**:
