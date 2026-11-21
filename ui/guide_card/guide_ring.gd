@@ -7,6 +7,8 @@ extends Node2D
 ## [method hide_ring]. Under Reduce motion it fades in in place and holds still.
 ## It draws in the viewport's pixels whatever the card's own position and scale, and
 ## behind the card, so a pulse passes under it. The card fades it with its own fade.
+## As a [member circle], it goes round a planet or the bus as the trip arc's ring goes
+## round a destination.
 
 ## Pixels from the target's edge to the ring's inner edge.
 const GAP := 3.0
@@ -29,6 +31,8 @@ const PULSE_SECONDS := 1.6
 ## What the ring goes round, in the viewport's pixels. Its owner updates it as the target
 ## moves.
 var target_rect := Rect2()
+## Whether it is a circle round [member target_rect] rather than following its corners.
+var circle := false
 
 var _showing := false
 # 0 hidden, 1 in: the fade, which the close in follows.
@@ -92,7 +96,8 @@ func _draw_ring(out: float, alpha: float) -> void:
 		return
 	var reach := GAP + LINE + OUTLINE * 2.0 + out
 	var outer := target_rect.grow(reach)
-	var radius := minf(CORNER + reach, minf(outer.size.x, outer.size.y) * 0.5)
+	var half := minf(outer.size.x, outer.size.y) * 0.5
+	var radius := half if circle else minf(CORNER + reach, half)
 	_set_radius(_edge, radius)
 	_set_radius(_line, radius - OUTLINE)
 	# A StyleBox's colours go into the drawing as it is drawn, so each ring can have its own.
@@ -104,7 +109,7 @@ func _draw_ring(out: float, alpha: float) -> void:
 
 static func _set_radius(box: StyleBoxFlat, radius: float) -> void:
 	box.set_corner_radius_all(int(roundf(radius)))
-	box.corner_detail = 12
+	box.corner_detail = 24
 
 
 static func _ease_out(t: float) -> float:

@@ -5,12 +5,14 @@ extends Node
 ## opens on The Boss's call ([TutorialCall]), and once the player closes The Boss's
 ## transmission, the steps start.
 ## A step shows a guide card that points at what it is about and goes once the player has done what
-## it says: the bus, the passenger waiting at home, the On board panel they come into and the
-## happiness bar on their card, setting a course to the destination, charging the drive, serving the
-## snack the passenger asks for halfway, the stars they rate the ride, the fare and research point
-## they pay, and refuelling. Then The Boss calls again, and once the player answers, the HUD goes
-## and it is over; the HUD comes back once the map has zoomed out. Research comes later, with
-## the mechanic's first call ([MechanicCall], [ResearchGuide]).
+## it says: the bus, trying the camera, the passenger waiting at home, the On board panel they
+## come into and the happiness bar on their card, setting a course to the destination, charging
+## the drive, serving the snack the passenger asks for halfway, the stars they rate the ride, the
+## fare and research point they pay, refuelling, and the way home by way of a point in
+## space ([WayHome]). Docked at home, The Boss calls again,
+## and once the player answers, the HUD goes and it is over; the HUD comes back once the map
+## has zoomed out.
+## Research comes later, with the mechanic's first call ([MechanicCall], [ResearchGuide]).
 ## Most steps wait for the player to do something in the game; one that only tells them
 ## something has a Got it button. The snack and the stars pause the game, and the
 ## portraits keep moving. The cards are [TutorialCards].
@@ -19,9 +21,9 @@ extends Node
 ## it, and the resource bar once their card has left it. The station's fuel button shows
 ## from the flight on. The station's Board all and Research buttons stay hidden throughout,
 ## and so do the lab badges. Until the pick-up, the screen takes no clicks but on the guide
-## card.
+## card; trying the camera, it takes clicks and the camera is the player's from then on.
 ## A course can be set only to the destination, while a step asks for it
-## ([method allows_course]), and the route can't change in flight
+## ([method fit_course]), and the route can't change in flight
 ## ([member FrameshiftBus.route_locked]). What else it changes about the game is
 ## [TutorialRules]'.
 ## Through it, only home and the destination have lines, with the one passenger at home,
@@ -34,6 +36,7 @@ signal finished
 enum Step {
 	CALL,
 	BUS,
+	LOOK,
 	BOARD,
 	ON_BOARD,
 	HAPPINESS,
@@ -44,21 +47,17 @@ enum Step {
 	RATING,
 	MONEY,
 	REFUEL,
+	HOME,
 	LAST_CALL,
 	DONE,
 }
 
-## What the passenger asks for, halfway to the destination.
-const SNACK := preload("res://game/passengers/needs/snack.tres")
-## How many times longer the passenger's needs wait once on board, and again once the snack
-## is served: long past the end of it, so nothing else comes up.
-const NO_NEEDS := 1000.0
-## Seconds after the stars have filled on the passenger's card before the game pauses on
-## them.
-const STARS_BEAT := 0.2
 ## Seconds after the passenger's card has left the On board panel, for its group to fold
 ## away, before the resource bar comes in.
 const LEFT_BEAT := 0.3
+## Seconds after the player has tried the camera before its card goes: a beat to see it
+## move.
+const LOOK_BEAT := 0.8
 ## Seconds after the tank is full before The Boss calls again.
 const LAST_CALL_DELAY := 1.0
 ## The race of the tutorial's passenger.
@@ -111,8 +110,8 @@ var waiting: WaitingPassengers
 
 var _step := Step.DONE
 var _running := false
-# The passenger the tutorial is about, once picked up, and their card.
-var _passenger: Passenger
+# The passenger the tutorial is about, on their ride, and their card once they get off.
+var _ride: TutorialRide
 var _card: PassengerCard
 # Where the bus is headed: the destination.
 var _goal: Planet
@@ -120,15 +119,15 @@ var _goal: Planet
 var _station_in := false
 # Opens the steps' guide cards.
 var _cards: TutorialCards
-# How far the bus had to go as it left, and whether the passenger has asked for their
-# snack.
-var _leg := 0.0
-var _asked := false
-# The stars the passenger rated the ride, and where they show on their card.
-var _rating := 0
+# Where the stars the passenger rated the ride show on their card.
 var _stars: Control
+# The route home through a waypoint, once the step asks for it.
+var _way_home: WayHome
 # What it changes about the game while it runs.
 var _rules: TutorialRules
+# Whether the player has panned and zoomed the camera since its card opened, once it has
+# opened.
+var _camera: CameraWatch
 
 
 func _ready() -> void:
@@ -141,17 +140,19 @@ func _process(_delta: float) -> void:
 	# The trip shows from boarding until the bus leaves. Again every frame, since the
 	# station panel hides it as its rows change.
 	if _step in TRIP_STEPS and _goal == destination:
-		trip_arc.show_passenger(_passenger)
+		trip_arc.show_passenger(_ride.passenger)
 	if _step in RIDE_STEPS and _goal == destination:
-		_rules.hold_fare(_passenger)
+		_rules.hold_fare(_ride.passenger)
 	match _step:
-		Step.BUS:
+		Step.BUS, Step.LOOK:
 			guide.target_rect = _screen_rect(bus.global_position, FrameshiftBus.RADIUS)
+			if _camera and _camera.is_tried():
+				_camera = null
+				_leave_look()
 		Step.BOARD:
 			_guide_boarding()
 			if not cabin.get_passengers().is_empty():
-				_passenger = cabin.get_passengers()[0]
-				_passenger.delay_requests(NO_NEEDS)
+				_ride.board(cabin.get_passengers()[0])
 				_go_to(Step.ON_BOARD)
 		Step.ROUTE:
 			guide.target_rect = _screen_rect(
@@ -161,7 +162,7 @@ func _process(_delta: float) -> void:
 				_go_to(Step.CHARGE)
 		Step.CHARGE:
 			if bus.state == FrameshiftBus.State.FLYING:
-				_leg = _distance_left()
+				_ride.leave(_distance_left())
 				_rules.set_trip_burn(_goal)
 				_go_to(Step.FLY)
 			elif not on_route:
@@ -169,14 +170,23 @@ func _process(_delta: float) -> void:
 		Step.FLY:
 			_fly()
 		Step.SERVE:
-			if not _passenger.request:
-				_passenger.delay_requests(NO_NEEDS)
+			if _ride.is_served():
 				_rules.pause(false)
 				_go_to(Step.FLY)
 		Step.REFUEL:
 			var full := bus.get_fuel_tank().get_fraction() >= 1.0
 			if full and bus.is_at_planet() and not cabin.is_stopping():
+				_go_to(Step.HOME)
+		Step.HOME:
+			_way_home.update()
+			var card := _way_home.get_card()
+			if _way_home.is_home():
 				_go_to(Step.LAST_CALL)
+			elif not _cards.is_open_for(card):
+				if card.is_empty():
+					_cards.close()
+				else:
+					_open_card(null, card)
 
 
 ## Starts it with the call: only home and the destination have lines, with the one
@@ -184,11 +194,9 @@ func _process(_delta: float) -> void:
 func start() -> void:
 	_running = true
 	_goal = destination
-	waiting.set_process(false)
-	waiting.set_planets([home, destination])
-	_add_passenger()
 	rig.locked = true
 	_cards = TutorialCards.new(guide)
+	_ride = TutorialRide.new()
 	_rules = TutorialRules.new(self)
 	_rules.apply()
 	_rules.set_trip_burn(_goal)
@@ -205,12 +213,16 @@ func is_running() -> bool:
 	return _running
 
 
-## Whether the player may add [param stop] to the course: only where the step heads, while
-## it asks for the course.
-func allows_course(stop: RouteStop) -> bool:
+## The stop to add for the player's click on [param stop], or null when they may not: only
+## where the step heads, while it asks for the course, and on the way home only the route
+## it asks for, a waypoint snapped to its marked spot. Its courses go exactly where it asks,
+## so a held right button doesn't steer them.
+func fit_course(stop: RouteStop) -> RouteStop:
 	if not _running:
-		return true
-	return _step == Step.ROUTE and stop.planet == _goal
+		return stop
+	if _step == Step.HOME:
+		return _way_home.fit(stop)
+	return stop if _step == Step.ROUTE and stop.planet == _goal else null
 
 
 ## Finishes it now, wherever it got to. Does nothing unless it is running.
@@ -232,6 +244,8 @@ func _go_to(step: Step) -> void:
 		Step.BUS:
 			guide.target_rect = _screen_rect(bus.global_position, FrameshiftBus.RADIUS)
 			_open_card(null)
+		Step.LOOK:
+			_open_look()
 		Step.BOARD:
 			_bring_in_station()
 		Step.ON_BOARD:
@@ -255,26 +269,28 @@ func _go_to(step: Step) -> void:
 			_bring_in_money()
 		Step.REFUEL:
 			_open_refuel()
+		Step.HOME:
+			_way_home = WayHome.new(self, _rules)
 		Step.LAST_CALL:
 			_call_again()
 
 
-# Opens this step's guide card on [param target], or on [member GuideCard.target_rect]
-# when it is null. It returns once the card opens.
-func _open_card(target: Control) -> void:
+# Opens this step's guide card, or [param card] when given, on [param target], or on
+# [member GuideCard.target_rect] when it is null. It returns once the card opens.
+func _open_card(target: Control, card := "") -> void:
 	var names := {
 		"home": home.display_name,
 		"destination": _goal.display_name,
-		"stars": "%d star%s" % [_rating, "" if _rating == 1 else "s"],
+		"stars": _ride.describe_rating(),
 	}
-	await _cards.open(Step.keys()[_step], target, names)
+	await _cards.open(card if card else Step.keys()[_step], target, names)
 
 
 # Got it: the card is read.
 func _on_guide_acknowledged() -> void:
 	match _step:
 		Step.BUS:
-			_go_to(Step.BOARD)
+			_go_to(Step.LOOK)
 		Step.ON_BOARD:
 			_go_to(Step.HAPPINESS)
 		Step.HAPPINESS:
@@ -290,9 +306,7 @@ func _on_guide_acknowledged() -> void:
 # In flight: halfway to the destination the passenger asks for their snack; stopped short,
 # the course is set again.
 func _fly() -> void:
-	if not _asked and _distance_left() <= _leg * 0.5:
-		_asked = true
-		_passenger.ask_for(SNACK)
+	if _ride.asks_for_snack(_distance_left()):
 		_go_to(Step.SERVE)
 	elif _goal not in bus.get_route_planets() and _is_stranded():
 		_go_to(Step.ROUTE)
@@ -303,7 +317,7 @@ func _open_serving() -> void:
 	_rules.pause(true, true)
 	# The card shows its serve button once it has seen the request.
 	await get_tree().process_frame
-	var card := passenger_panel.get_card(_passenger)
+	var card := passenger_panel.get_card(_ride.passenger)
 	if _step == Step.SERVE and card:
 		_open_card(card.get_serve_button())
 
@@ -311,9 +325,9 @@ func _open_serving() -> void:
 # The passenger gets off at the destination: their card shows the stars they rate the
 # ride.
 func _on_getting_off(passenger: Passenger) -> void:
-	if not _running or passenger != _passenger:
+	if not _running or passenger != _ride.passenger:
 		return
-	_rating = roundi(passenger.get_rating())
+	_ride.get_off()
 	_card = passenger_panel.get_card(passenger)
 	_stars = _card.get_rating_stars() if _card else null
 	_go_to(Step.RATING)
@@ -321,9 +335,7 @@ func _on_getting_off(passenger: Passenger) -> void:
 
 # Once the stars have filled, the game pauses on them with a card beside them.
 func _open_rating() -> void:
-	var fill := _rating * PassengerCard.STAR_FILL_SECONDS
-	var wait := PassengerCard.SWAP_STAGGER + PassengerCard.SWAP_SECONDS + fill + STARS_BEAT
-	await get_tree().create_timer(wait).timeout
+	await get_tree().create_timer(_ride.get_stars_seconds()).timeout
 	if _step != Step.RATING or not _stars:
 		return
 	_rules.pause(true)
@@ -346,9 +358,26 @@ func _bring_in_money() -> void:
 
 # The card on the fuel button opens, and only then can the player fuel.
 func _open_refuel() -> void:
-	await _open_card(dock_panel.get_fuel_button())
+	await _open_card(dock_panel.get_fuel_row())
 	if _step == Step.REFUEL:
 		dock_panel.fuel_locked = false
+
+
+# The screen takes clicks and the camera is the player's, and the card on the camera
+# opens beside the bus; the camera counts as tried only from then on.
+func _open_look() -> void:
+	hud.uncover()
+	rig.locked = false
+	await _open_card(null)
+	if _step == Step.LOOK:
+		_camera = CameraWatch.new(rig)
+
+
+# A beat after the player tried the camera, so they see it move, its card goes.
+func _leave_look() -> void:
+	await get_tree().create_timer(LOOK_BEAT).timeout
+	if _step == Step.LOOK:
+		_go_to(Step.BOARD)
 
 
 # The screen takes clicks and the camera is the player's, and the station panel comes in.
@@ -366,12 +395,13 @@ func _bring_in_on_board() -> void:
 	passenger_panel.arrivals_held = false
 	await get_tree().create_timer(ON_BOARD_DELAY).timeout
 	if _step == Step.ON_BOARD:
-		_open_card(passenger_panel)
+		var card := passenger_panel.get_card(_ride.passenger)
+		_open_card(card if card else passenger_panel)
 
 
 # The card beside the passenger's happiness bar on their card in the On board panel.
 func _open_happiness() -> void:
-	var card := passenger_panel.get_card(_passenger)
+	var card := passenger_panel.get_card(_ride.passenger)
 	_open_card(card.get_happiness_bar() if card else passenger_panel)
 
 
@@ -380,21 +410,8 @@ func _distance_left() -> float:
 	return bus.global_position.distance_to(_goal.get_body_global_position())
 
 
-# The square on screen around a ball of [param radius] at [param point].
 func _screen_rect(point: Vector3, radius: float) -> Rect2:
-	var camera := get_viewport().get_camera_3d()
-	var centre := camera.unproject_position(point)
-	var edge := camera.unproject_position(point + camera.global_basis.x * radius)
-	var size := centre.distance_to(edge)
-	return Rect2(centre - Vector2.ONE * size, Vector2.ONE * size * 2.0)
-
-
-# The tutorial's passenger waits at home, always blue, so every tutorial looks the same.
-func _add_passenger() -> void:
-	waiting.deal_next(PASSENGER_RACE)
-	waiting.add(home)
-	# Decided now, so their row shows the fare they will pay.
-	waiting.get_waiting(home)[0].fare = TutorialRules.FARE
+	return ScreenPick.square_around(get_viewport().get_camera_3d(), point, radius)
 
 
 # The guide card points at the row of the passenger waiting at home, once the station
@@ -460,7 +477,6 @@ func _finish() -> void:
 	set_process(false)
 	intro.cancel()
 	_cards.close()
-	waiting.set_process(true)
 	finished.emit()
 
 

@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## A new run opens on the boss's call with only the bus bars showing; answering it with
-## either of the two answers starts the steps on the guide card beside the bus. Skipping the
+## either of the two answers starts the steps on the guide card beside the bus, and the
+## camera's card after it waits for the player to both pan and zoom the camera. Skipping the
 ## tutorial puts back every rule it changed and fills the tank, and the next new run starts
 ## without it.
 
@@ -77,11 +78,26 @@ func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course()
 	await _wait_for_card(guide, "You are driving this bus.")
 	_click(runner, guide.find_child("GotItButton") as Control)
 
+	# The camera card waits until the player has moved the camera.
+	await _wait_for_card(guide, "Move around with {wasd}")
+	await runner.simulate_frames(30)
+	assert_bool(guide.text.begins_with("Move around with")).is_true()
+	runner.simulate_action_press(&"camera_pan_right")
+	await runner.simulate_frames(30, 16)
+	runner.simulate_action_release(&"camera_pan_right")
+	# Panning alone isn't enough: the card waits for a zoom too.
+	await runner.simulate_frames(60, 16)
+	assert_bool(guide.text.begins_with("Move around with")).is_true()
+	(runner.find_child("CameraRig") as CameraRig).zoom_to(30.0)
+	await runner.simulate_frames(30, 16)
+
 	var dock := runner.find_child("DockPanel") as DockPanel
 	var waiting := (runner.find_child("Tutorial") as Tutorial).waiting
 	var home := runner.find_child("Terra") as Planet
 	await assert_func(self, "_has_row", [dock, waiting, home]).wait_until(5000).is_true()
 	var row := dock.get_row(waiting.get_waiting(home)[0])
+	# Once the station panel is in, the card on the row opens.
+	await _wait_for_card(guide, "Here you can see a list of waiting passengers.")
 	_click(runner, row.find_child("BoardButton") as Control)
 	await _wait_for_card(guide, "Here you can see passengers currently inside your bus.")
 	_click(runner, guide.find_child("GotItButton") as Control)
@@ -94,7 +110,7 @@ func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course()
 	assert_bool(guide.got_it).is_true()
 
 	_click(runner, guide.find_child("GotItButton") as Control)
-	await _wait_for_card(guide, "The passenger you just picked up wants to go to")
+	await _wait_for_card(guide, "Your passenger wants to go to")
 
 
 func test_skipping_puts_back_what_it_changed() -> void:

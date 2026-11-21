@@ -57,6 +57,11 @@ func get_frameshift_key() -> Control:
 	return %FrameshiftKey
 
 
+## The route bar, for a guide card to point at.
+func get_route_bar() -> Control:
+	return %RouteBar
+
+
 ## The temperature gauge, its name and degrees with its bar, for a guide card to point at.
 func get_temperature_gauge() -> Control:
 	return %TemperatureColumn

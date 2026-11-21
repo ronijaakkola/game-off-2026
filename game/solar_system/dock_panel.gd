@@ -382,6 +382,11 @@ func get_fuel_button() -> Control:
 	return %FuelButton
 
 
+## The fuel row, its icon and button, for a guide card to point at.
+func get_fuel_row() -> Control:
+	return %FuelRow
+
+
 ## The Research button, for a guide card to point at.
 func get_research_button() -> Control:
 	return %ResearchButton

@@ -100,7 +100,7 @@ The star is something to steer around: flying near it heats the bus, and too nea
 - **Too hot is uncomfortable.** Above 32°, the top of the gauge's green band, everyone on board slowly loses happiness: what the bus can lift them to drops 0.25 a second, down to 3 below at most, and once the temperature is back in the band it comes back 1 a second. It is a nudge the player can undo, not a cost that stays with the ride: a clean ride on a bare bus (76) keeps its four stars at the worst of it. It counts through a cooldown, since the bus is hot then (about 6 s above 32°): with the −5 scare, an overheat takes a clean bare ride under four stars for about 2 s, and all of it is gone about 9 s after. Not while the temperature is exempt. Frustration's floor of 50 still holds.
 - **Overheating scares everyone on board, −5,** and costs no credits. The time is most of the cost: the cooldown and the charge are about 11 s on a ride of about 20 s, which takes a passenger's on-time bonus and more.
 - **Exempt.** The temperature holds, and can't overheat, during the tutorial until the zoom out is over (the zoomed map scales distances to the star), and during a tow, whose route the player has no say in.
-- **Balance runs steer round it.** The scripted player decides only at docks, so whenever the straight way to the planet ahead passes within 0.5 of the hot zone, now or as the planet moves, it puts a checkpoint beyond the heat zone's edge. Going round just outside the hot zone overheats: half a circle at 5.0 units adds about 25°. After an overheat it sets the same course again once it has cooled.
+- **Balance runs steer round it.** The scripted player decides only at docks, so whenever the straight way to the planet ahead passes within 0.5 of the hot zone, now or as the planet moves, it puts a waypoint beyond the heat zone's edge. Going round just outside the hot zone overheats: half a circle at 5.0 units adds about 25°. After an overheat it sets the same course again once it has cooled.
 
 ## Passengers
 
@@ -424,25 +424,27 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **Nothing orbits.** Terra and the Moon hold still on their orbits, still spinning, so the bus always finds them where they were and stays in view.
 - **A clear way out.** The bus starts docked on the side of Terra facing the Moon, so the straight flight there never crosses Terra.
 - **One ride.** One passenger waits at Terra, going to the Moon, always a blue one, so every tutorial looks the same. Nobody else turns up, and nobody leaves a line. Research isn't in it: the mechanic brings it once the run has started (Research).
-- **The trip burns half the tank,** more than the bus burns outside the tutorial, so refuelling has a reason. Fuel is free at Terra and the Moon. Done or skipped, the run starts on a full tank.
+- **The trip burns half the tank,** more than the bus burns outside the tutorial, so refuelling has a reason. The way home, through the spot, burns three quarters of it, so the gauge drops as a trip's would and the tank never runs dry. Fuel is free at Terra and the Moon. Done or skipped, the run starts on a full tank.
 - **The passenger pays 120 credits** whatever their mood, so the first upgrade is one delivery away once it is over.
 - **It opens on a call from their boss,** who tells them they are on a trial period. Until the player answers it and closes the transmission, the call notice's Answer is the one thing they can do: no clicks on the map or the bus bars, no pan or zoom.
 - **Each step is a guide card** (placeholder titles; what each says is in `tutorial_cards.gd`, the calls' words in `tutorial_call.gd`), most waiting for the player to do something in the game; a card that only tells them something has a Got it button, offered on purpose and rarely.
   - **The bus**, beside it. Got it moves on. Until then, still no clicks but on the card, and no pan or zoom.
+  - **The camera**, beside the bus: how to pan and zoom. From here the screen takes clicks and the camera is the player's. It goes 0.8 s after the player has both panned it 8 units in all (about a quarter of a second of panning) and zoomed it by a tenth (one wheel notch), so they try each and a pointer passing the window's edge doesn't count.
   - **The pick-up**, on the waiting passenger's row once the station panel is in. It goes once they board.
-  - **On board**, beside the On board panel, once it has come in and the passenger's card has slid into it. Got it moves on.
+  - **On board**, beside the passenger's card in the On board panel, once the panel has come in and the card has slid into it. Got it moves on.
   - **Happiness**, beside the happiness bar on the passenger's card. Got it moves on.
   - **The course**, beside the Moon. It goes once the Moon is on the route.
   - **The charge**, above the Frameshift key. It goes once the bus leaves.
   - **The snack.** Halfway to the Moon the passenger asks for a snack, and the game pauses, all but serving and the portraits, with a card beside their serve button. The game runs again once it is served.
   - **The rating.** Getting off at the Moon, once their card has filled its stars, the game pauses, all but the portraits, with a card beside them. Got it moves on.
   - **The fare.** Once their card has left the On board panel, the resource bar comes in, then a card under it. Got it moves on.
-  - **Refuelling**, beside the Moon's fuel button. It goes once the tank is full.
-- **It ends on another call from their boss,** a second after the tank is full: the player passed their trial period, and the boss unlocks the frameshift planet lock for the whole star system. The call notice's Answer is again the one thing the player can do. Both calls offer two answers that mean the same, for flavour, and either one goes on. Answering the last ends the tutorial.
+  - **Refuelling**, beside the Moon's fuel row. It goes once the tank is full.
+  - **The way home**, by way of a point in space: nobody waits at the Moon, so a card beside a marked spot above Terra on the side of the Moon (6 units toward the Moon and 5 up the screen) says the bus can fly anywhere in space, for example to steer clear of hazards, and to right click the spot. It goes once the waypoint is set; the player leaves on their own, and the bus holds at the spot. Then a card beside Terra says to right click it, and goes once the bus leaves for it.
+- **It ends on another call from their boss,** a second after the bus docks at Terra: the player passed their trial period, and the boss unlocks the frameshift planet lock for the whole star system. The call notice's Answer is again the one thing the player can do. Both calls offer two answers that mean the same, for flavour, and either one goes on. Answering the last ends the tutorial.
 - **Only what a step brings in shows.** After the call, only the bus bars; the station panel comes in with the pick-up, the On board panel once the passenger boards, and the resource bar with the fare. The station's fuel button shows from the flight to the Moon on, off until the refuelling card opens; the lab badges and the station's Research and Board all buttons stay hidden.
 - **The course holds in flight.** From the flight's start until the bus docks, the player can't change the route: no Stop, no stop taken off the route bar, no new course.
 - **No planet opens** on a click through it.
-- **Courses only when asked for.** Right clicks set a course only in the steps about setting one, and only to the planet the step names: no points in space, no other planet, and nothing more once it is set. A stop short of where the bus is headed asks for the course again.
+- **Courses only when asked for.** Right clicks set a course only in the steps about setting one, and only to the planet the step names: no points in space, no other planet, and nothing more once it is set. On the way home, first only a waypoint, from a click within 1.5 units of the marked spot, set in its very middle; then, held there, only Terra. Once either is set it can't change, by click, Backspace or the route bar's X, so the one thing left is the Frameshift key. Through the tutorial a held right button never steers a waypoint. A stop short of where the bus is headed asks for the course again.
 - **No other needs.** The snack is the only thing the passenger asks for.
 - **No route changes in flight.** From leaving until the bus docks, each way, clicks on the map, Backspace and the Frameshift key do nothing, and the key never turns into Stop.
 - **No kicks.** The passenger can't be kicked off until it is over.
@@ -455,6 +457,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **Never during the tutorial,** which has its own cards, and never on a hidden target: a hint passed over that way isn't kept as seen, so the next meeting offers it again. Two at once show one after the other.
 - **The heat zone:** the first time the passengers become uncomfortable (past 32°, where the gauge leaves green), a hint above the gauge says the star heats the bus, that passengers are getting uncomfortable and it will soon overheat, and to move away from the star to cool it (the words are in `feature_hints.gd`).
 - **Business passengers:** the first time a Business passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they ask more but pay better.
+- **More than one stop:** the first time the bus waits at a planet with passengers on board going to two different planets, once those getting off there are off and their cards have slid in, a hint above the route bar says to hold the queue key and right click each planet to add it to the route. It isn't offered once the player has set a route through two planets themselves, until the game is next loaded.
 
 ## Save game
 

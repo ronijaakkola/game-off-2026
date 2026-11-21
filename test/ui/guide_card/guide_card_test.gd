@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## A tutorial step's guide card has a Got it button only when the step asks for one, and
-## pressing it says the card was read.
+## pressing it says the card was read. A card given shorter text shrinks to fit it, as the
+## one card the tutorial reuses for every step does.
 
 const SCENE := "res://ui/guide_card/guide_card.tscn"
 
@@ -35,3 +36,24 @@ func test_got_it_shows_only_when_asked_and_acknowledges() -> void:
 	runner.set_mouse_position(got_it.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	await assert_signal(card).is_emitted("acknowledged")
+
+
+func test_a_card_given_shorter_text_shrinks_to_fit_it() -> void:
+	var runner := scene_runner(SCENE)
+	var card := runner.scene() as GuideCard
+	card.target_rect = Rect2(400, 300, 40, 40)
+	card.open()
+	card.text = "Fresh."
+	await runner.simulate_frames(5)
+	var short_height := card.size.y
+
+	card.text = (
+		"Your route is set. Press and hold this button or {space} to charge the frameshift "
+		+ "drive and leave for the Moon."
+	)
+	await runner.simulate_frames(5)
+	assert_float(card.size.y).is_greater(short_height)
+
+	card.text = "Fresh."
+	await runner.simulate_frames(5)
+	assert_float(card.size.y).is_equal_approx(short_height, 0.5)

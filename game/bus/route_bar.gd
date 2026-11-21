@@ -179,7 +179,7 @@ func _drawn_stops(route: Array[RouteStop]) -> Array[RouteStop]:
 
 
 # The length of each leg the line draws, as straight lines through every stop, the
-# checkpoints included. The first runs from where the line starts, through the bus.
+# waypoints included. The first runs from where the line starts, through the bus.
 func _legs(route: Array[RouteStop]) -> PackedFloat32Array:
 	var legs := PackedFloat32Array()
 	var at := bus.global_position

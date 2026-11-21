@@ -209,11 +209,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
+	var tutorial := %Tutorial as Tutorial
 	var stop := _stop_at(click.position)
-	if not stop or not (%Tutorial as Tutorial).allows_course(stop):
+	stop = tutorial.fit_course(stop) if stop else null
+	if not stop:
 		return
 	(%Bus as FrameshiftBus).plot_course(stop, QueueKey.is_held())
-	_course_drag.start(stop)
+	if not tutorial.is_running():
+		_course_drag.start(stop)
 	get_viewport().set_input_as_handled()
 
 

@@ -52,3 +52,12 @@ static func bus_or_planet_at(
 		camera.unproject_position(planet.get_body_global_position())
 	)
 	return bus if to_bus < to_planet else planet
+
+
+## The square on screen around a sphere of [param radius] at [param center], seen through
+## [param camera].
+static func square_around(camera: Camera3D, center: Vector3, radius: float) -> Rect2:
+	var on_screen := camera.unproject_position(center)
+	var edge := camera.unproject_position(center + camera.global_basis.x * radius)
+	var size := on_screen.distance_to(edge)
+	return Rect2(on_screen - Vector2.ONE * size, Vector2.ONE * size * 2.0)

@@ -61,6 +61,7 @@
 [ext_resource type="PackedScene" uid="uid://dhfaboh7sticu" path="res://ui/pause_menu/pause_button.tscn" id="143_pause_button"]
 [ext_resource type="Script" uid="uid://bh8bscq7fi6lc" path="res://game/research/mechanic_call.gd" id="144_mechanic_call"]
 [ext_resource type="Script" uid="uid://cpcbx8tu81xmd" path="res://game/research/research_guide.gd" id="145_research_guide"]
+[ext_resource type="Script" uid="uid://dxfpi1r32140i" path="res://game/feature_hints/multi_stop_hint.gd" id="146_multi_stop_hint"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -276,6 +277,13 @@ saver = NodePath("../GameSaver")
 script = ExtResource("142_business_hint")
 hints = NodePath("../FeatureHints")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+
+[node name="MultiStopHint" type="Node" parent="." unique_id=8746891 node_paths=PackedStringArray("hints", "bus", "cabin", "bus_bars")]
+script = ExtResource("146_multi_stop_hint")
+hints = NodePath("../FeatureHints")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+bus_bars = NodePath("../Hud/BusStatusPanel")
 
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")
