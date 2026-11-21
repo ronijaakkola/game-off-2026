@@ -17,9 +17,11 @@ func test_docking_lets_them_off_and_pays_and_nobody_boards_by_themselves() -> vo
 	cabin.board(passenger)
 	waiting.add(passenger.destination)
 	var count := waiting.count_at(passenger.destination)
-	var payout := passenger.get_payout()
 
 	bus.docked.emit(passenger.destination)
+
+	# They pay by where arriving leaves them: early, on top of the ride.
+	var payout := passenger.get_payout()
 
 	assert_array(cabin.get_passengers()).not_contains([passenger])
 	assert_bool(bus.boarding).is_true()

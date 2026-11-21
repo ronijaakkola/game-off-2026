@@ -241,7 +241,7 @@ func _watch_call() -> void:
 	_call.dismiss()
 	_call = null
 	if riding:
-		_caller.shock(DECLINE_SHOCK)
+		_caller.shock(DECLINE_SHOCK, HappinessCause.Type.QUEST_DECLINED)
 	_rest()
 
 
@@ -263,7 +263,7 @@ func _on_call_declined() -> void:
 		return
 	_call = null
 	if _caller in cabin.get_passengers():
-		_caller.shock(DECLINE_SHOCK)
+		_caller.shock(DECLINE_SHOCK, HappinessCause.Type.QUEST_DECLINED)
 	_rest()
 
 
@@ -285,7 +285,7 @@ func _on_answered(accepted: bool) -> void:
 		_rest()
 		return
 	if not accepted:
-		quest.passenger.shock(DECLINE_SHOCK)
+		quest.passenger.shock(DECLINE_SHOCK, HappinessCause.Type.QUEST_DECLINED)
 		_rest()
 		return
 	quest.accept()
@@ -310,7 +310,7 @@ func _on_goal_failed(goal: Goal) -> void:
 	if not _quest or goal != _quest.goal:
 		return
 	if _quest.passenger in cabin.get_passengers():
-		_quest.passenger.shock(FAIL_SHOCK)
+		_quest.passenger.shock(FAIL_SHOCK, HappinessCause.Type.QUEST_FAILED)
 	notices.push("Quest failed: %s" % goal.get_text(), Notice.Kind.WARNING, false, NOTICE_SECONDS)
 	if quick_text:
 		quick_text.show_text(FAILED_TEXT, FAILED_ICON, BusQuickText.Kind.LOSS)

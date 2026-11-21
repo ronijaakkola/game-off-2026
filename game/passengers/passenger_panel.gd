@@ -16,8 +16,8 @@ extends MarginContainer
 ## out of the old group, then slides back in at the bottom of the new one, its place there
 ## opening as the old one folds. While
 ## [member arrivals_held], as in the tutorial while the panel itself comes in, a passenger
-## who boards slides in only once it is let go. Without [member kicks_allowed], as through
-## the tutorial, no card offers a kick.
+## who boards slides in only once it is let go. Without [member kicks_allowed], which is
+## how the game runs for now, no card offers a kick.
 
 const CARD := preload("res://game/passengers/passenger_card.tscn")
 const GROUP := preload("res://game/passengers/destination_group.tscn")
@@ -56,8 +56,9 @@ var arrivals_held := false:
 		for passenger: Passenger in held:
 			_on_boarded(passenger)
 
-## Whether the cards offer to kick their passenger off.
-var kicks_allowed := true:
+## Whether the cards offer to kick their passenger off. Off until the option has a place
+## that isn't the happiness breakdown's.
+var kicks_allowed := false:
 	set(value):
 		kicks_allowed = value
 		for card: PassengerCard in _cards.values():
@@ -83,6 +84,9 @@ func _process(_delta: float) -> void:
 	if shown != _seats_shown:
 		_seats_shown = shown
 		(%SeatLabel as Label).text = "%d/%d" % [shown.x, shown.y]
+	for card: PassengerCard in _cards.values():
+		card.docked = cabin.docked and not cabin.parking
+		card.comfort = cabin.comfort
 
 
 func _show_all() -> void:

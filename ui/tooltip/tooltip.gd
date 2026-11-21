@@ -14,7 +14,9 @@ extends PanelContainer
 ## closes, another target the pointer reaches shows its card at once, and the one still
 ## closing goes at once too, so reading along a row never waits.
 ## It is top-level, so a Container holding it gives it no room, and it stays on screen:
-## near an edge it moves along its target only as far as it must.
+## near an edge it moves along its target only as far as it must. With [member notch] on,
+## a small triangle on the edge facing the target points at its middle, part of the
+## card's outline, so the card reads as belonging to something thin, such as a bar.
 
 ## Which edge of the target it sits at.
 enum Side { BELOW = 0, ABOVE = 1, RIGHT = 2 }
@@ -32,6 +34,11 @@ const WARM_SECONDS := 0.3
 const SCREEN_MARGIN := 8.0
 ## The most room the sentence takes before it wraps, in pixels.
 const MAX_SENTENCE_WIDTH := 184.0
+## The notch: how wide its base is and how far its tip sticks out, in pixels, and the
+## least room between its middle and a corner of the card.
+const NOTCH_WIDTH := 12.0
+const NOTCH_LENGTH := 6.0
+const NOTCH_CORNER_MARGIN := 14.0
 
 # When the last card to close did, in milliseconds since the game started, and which it
 # was. Shared by every tooltip.
@@ -58,6 +65,8 @@ static var _leaving: Tooltip
 ## Seconds the pointer rests on the target before the card opens. 0 opens it as the pointer
 ## arrives, for a grid of targets read one after another, such as the research trees.
 @export var rest_seconds := 0.3
+## Whether a notch on the edge facing the target points at it.
+@export var notch := false
 ## Whether it sits on whole pixels once in place, so its text stays sharp. Off for a
 ## target that moves, such as a badge on a planet, which it then follows smoothly.
 @export var snap_to_pixels := true
@@ -100,6 +109,49 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_place()
+	if notch:
+		queue_redraw()
+
+
+# The notch, over the card's border, its two sides in the border's colour.
+func _draw() -> void:
+	var box := get_theme_stylebox(&"panel") as StyleBoxFlat
+	if not notch or not target or not box:
+		return
+	var centre := target.get_global_rect().get_center() - global_position
+	var along := centre.y if side == Side.RIGHT else centre.x
+	var length := size.y if side == Side.RIGHT else size.x
+	var least := minf(NOTCH_CORNER_MARGIN, length * 0.5)
+	along = clampf(along, least, length - least)
+	var half := NOTCH_WIDTH * 0.5
+	var base_in := box.border_width_top + 0.5
+	var fill := PackedVector2Array(
+		[
+			_edge_point(along - half, -base_in),
+			_edge_point(along, NOTCH_LENGTH),
+			_edge_point(along + half, -base_in),
+		]
+	)
+	draw_colored_polygon(fill, box.bg_color)
+	var outline := PackedVector2Array(
+		[
+			_edge_point(along - half, -0.5),
+			_edge_point(along, NOTCH_LENGTH - 0.5),
+			_edge_point(along + half, -0.5),
+		]
+	)
+	draw_polyline(outline, box.border_color, 1.0, true)
+
+
+# The point [param along] the edge facing the target, from its start, and [param out]
+# pixels out of the card from it, in the card's own pixels.
+func _edge_point(along: float, out: float) -> Vector2:
+	match side:
+		Side.RIGHT:
+			return Vector2(-out, along)
+		Side.ABOVE:
+			return Vector2(along, size.y + out)
+	return Vector2(along, -out)
 
 
 # Paused, its motion would stop half-way and leave it showing, so it goes at once.
