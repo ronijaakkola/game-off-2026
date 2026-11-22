@@ -42,8 +42,6 @@ signal board_pressed(passenger: Passenger)
 signal trip_previewed(passenger: Passenger)
 ## The player pressed the Research button, to research at [param at]'s lab.
 signal research_pressed(at: Planet)
-## The player pressed the Jump button, to jump to the next star system.
-signal jump_pressed
 
 const ROW := preload("res://game/solar_system/boarding_row.tscn")
 ## Seconds to slide in from past the right edge, or back out.
@@ -94,10 +92,6 @@ var planet: Planet:
 		if is_node_ready():
 			_show_planet()
 
-## The star system the Jump button jumps to, by name, or empty to hide the button.
-var jump_target := ""
-## Whether the Jump button is on: the parent turns it off while anyone is on board.
-var can_jump := false
 ## Whether the card and its rows call for a pick-up, as in the tutorial's first step.
 var beckon_boarding := false:
 	set(value):
@@ -422,13 +416,17 @@ func _show_buttons() -> void:
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()
-	_show_jump()
 	_nudge_research(_shows_lab() and research_lab != null and research_lab.has_unseen_upgrade())
 
 
 ## The fuel button, for a guide card to point at.
 func get_fuel_button() -> Control:
 	return %FuelButton
+
+
+## The fuel row, its icon and button, for a guide card to point at.
+func get_fuel_row() -> Control:
+	return %FuelRow
 
 
 ## The Research button's row, its icon included, for a guide card to point at.
@@ -500,26 +498,6 @@ func _on_waiting_changed(changed_planet: Planet) -> void:
 # A click on a row pins its trip, and a second click unpins it.
 func _on_row_clicked(passenger: Passenger) -> void:
 	pin(null if passenger == _pinned else passenger)
-
-
-# The Jump button, while a promotion has opened a system to jump to. It says why it is off
-# while anyone is on board.
-func _show_jump() -> void:
-	var row := %JumpRow as Control
-	row.visible = not jump_target.is_empty()
-	(%FuelRule as Control).visible = (
-		row.visible or (_shown != null and (_shown.sells_fuel or _shown.has_lab))
-	)
-	if not row.visible:
-		return
-	var button := %JumpButton as Button
-	var on_board := cabin != null and not cabin.get_passengers().is_empty()
-	button.text = "Drop everyone off to jump" if on_board else "Jump to %s" % jump_target
-	button.disabled = not can_jump
-
-
-func _on_jump_button_pressed() -> void:
-	jump_pressed.emit()
 
 
 func _on_research_button_pressed() -> void:

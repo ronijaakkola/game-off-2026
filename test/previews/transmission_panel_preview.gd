@@ -15,8 +15,8 @@ func _ready() -> void:
 		transmission.race = Race.Type.BLUE
 		transmission.type = preload("res://game/passengers/types/business.tres")
 		transmission.destination = $SolarSystem.find_child("Giant") as Planet
-		transmission.text = "Please stop the bus to let me admire that beautiful planet."
-		transmission.quest = "Stop the bus near"
+		transmission.text = "Please fly past that beautiful planet so I can admire it."
+		transmission.quest = "Fly past"
 		transmission.quest_planet = $SolarSystem.find_child("Frost") as Planet
 		transmission.reward_credits = 40
 		transmission.reward_research = 2
@@ -26,10 +26,9 @@ func _ready() -> void:
 		transmission = Transmission.from_boss()
 		transmission.caller_name = GoalsMetCall.CALLER
 		var unanswered := "unanswered" in args
-		transmission.text = GoalsMetCall.UNANSWERED_TEXT if unanswered else GoalsMetCall.TEXT
-		transmission.decline_text = GoalsMetCall.ANSWERS[0]
-		transmission.accept_text = GoalsMetCall.ANSWERS[1]
-		transmission.answers_alike = true
+		var opening := GoalsMetCall.UNANSWERED_TEXT if unanswered else GoalsMetCall.TEXT
+		transmission.text = opening + GoalsMetCall.OFFER
+		transmission.accept_text = GoalsMetCall.JUMP_ANSWER
 	elif "mechanic" in args:
 		transmission = Transmission.from_mechanic()
 		transmission.text = MechanicCall.RESEARCH_TEXT

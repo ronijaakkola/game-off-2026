@@ -29,6 +29,16 @@ extends Resource
 ## Idle lines they show while watching a show, on a bus with an entertainment system. Each
 ## comes up as often as any one idle line.
 @export var watch_lines: Array[String] = []
+## Idle lines they show while the bus is docked, in place of the others but for sleep and
+## watch lines, so the card says they are content to wait there: docked costs them nothing.
+@export var docked_lines: Array[String] = [
+	"Enjoying station services",
+	"Calmly waiting at the station",
+	"Watching the dock crew",
+	"Browsing the station shops",
+	"Happy to wait a moment",
+	"Relaxing until departure",
+]
 ## How many stops the bus can make on their ride before theirs, before they grow frustrated
 ## ([RideProgress]).
 @export_range(0, 10) var stop_tolerance := 4
@@ -40,16 +50,35 @@ extends Resource
 @export var late_lines: Array[String] = []
 ## What the card says, one of them at random, while the bus cools down after overheating.
 @export var overheat_lines: Array[String] = []
+## What they say, one of them at random, when the player declines their quest, when
+## their quest fails, and when it is done.
+@export var quest_declined_lines: Array[String] = []
+@export var quest_failed_lines: Array[String] = []
+@export var quest_done_lines: Array[String] = []
 ## The names a passenger of this type picks from.
 @export var names: Array[String] = ["Passenger"]
 
 
-## The idle lines a passenger of this type picks from, a copy: while frustrated for
-## [param reason], its own lines, when there are some.
-func get_idle_lines(reason: RideProgress.Reason) -> Array[String]:
+## The idle lines a passenger of this type picks from, a copy: while [param docked], the
+## docked lines, and otherwise while frustrated for [param reason], its own lines, when
+## there are some.
+func get_idle_lines(reason: RideProgress.Reason, docked := false) -> Array[String]:
 	var lines := idle_lines
-	if reason == RideProgress.Reason.STOPS and not stop_lines.is_empty():
+	if docked and not docked_lines.is_empty():
+		lines = docked_lines
+	elif reason == RideProgress.Reason.STOPS and not stop_lines.is_empty():
 		lines = stop_lines
 	elif reason == RideProgress.Reason.LATE and not late_lines.is_empty():
 		lines = late_lines
 	return lines.duplicate()
+
+
+## The lines a passenger of this type says about [param event], or none for a cause that
+## has no lines of its own.
+func get_event_lines(event: HappinessCause.Type) -> Array[String]:
+	match event:
+		HappinessCause.Type.QUEST_DECLINED:
+			return quest_declined_lines
+		HappinessCause.Type.QUEST_FAILED:
+			return quest_failed_lines
+	return []

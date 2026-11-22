@@ -14,7 +14,10 @@ extends Control
 ## the mood's colour. They fade in and out.
 ## What frustration has taken off the most they can reach shows as a striped end of the
 ## bar's track ([HappinessCap]), the part they can no longer fill, and the fill stops there.
-## Their portrait sits on the left, as a [PassengerPhoto].
+## While the bus is [member docked] their happiness holds, and a pause mark sits where the
+## chevrons would ([DockedMark]); a request open then reads as the station serving it.
+## The pointer on the bar opens a panel that says what is moving their happiness
+## ([HappinessBreakdown]). Their portrait sits on the left, as a [PassengerPhoto].
 ## When the passenger boards, the card's place in the list opens while the card slides in
 ## from past the left edge of the screen.
 ## When the bus stops at their destination, [method show_rating] swaps the bottom row,
@@ -90,6 +93,10 @@ const MOOD_COLORS: Dictionary[Passenger.Mood, Color] = {
 var options_gap := 6.0
 ## Whether the passenger can be kicked off. Without it the card has no options.
 var kickable := true
+## Whether the bus is docked, so their happiness holds, and what its comfort upgrades
+## give. The panel the card is in sets them.
+var docked := false
+var comfort := Comfort.new()
 
 var passenger: Passenger:
 	set(value):
@@ -160,6 +167,10 @@ func _process(delta: float) -> void:
 		_follow_trail(delta)
 		var trend := passenger.trend if passenger else 0.0
 		(%HappinessTrend as TrendChevrons).follow(trend, delta, %HappinessBar, _fill.bg_color)
+		(%DockedMark as DockedMark).follow(docked, delta, %HappinessBar)
+		if passenger:
+			var breakdown := %HappinessBreakdown as HappinessBreakdown
+			breakdown.follow(passenger, comfort, docked, %HappinessBar, MOOD_COLORS)
 	_fade_options(_wants_options())
 	_fit_slot()
 
@@ -204,6 +215,8 @@ func show_rating(stars: float) -> void:
 	button.release()
 	button.disabled = true
 	button.visible = false
+	# The bar fades out, and so does asking about it.
+	(%HappinessBreakdown as Control).visible = false
 	(%ActivityLabel as Control).visible = true
 	var still := Settings.reduce_motion
 	var drop := 0.0 if still else SWAP_PIXELS
@@ -424,7 +437,9 @@ func _show() -> void:
 	(%ActivityLabel as Control).visible = not button.visible
 	button.progress = passenger.serving
 	if passenger.request:
-		button.show_request(passenger.request.serve_label, passenger.request.icon)
+		# Docked, the station serves it, and the cabin's line says so.
+		var label := passenger.activity if docked else passenger.request.serve_label
+		button.show_request(label, passenger.request.icon)
 
 
 # The trail behind the bar: a drop of TRAIL_JUMP or more holds it where it was for

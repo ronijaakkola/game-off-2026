@@ -6,8 +6,9 @@ extends RefCounted
 ## call that offers no quest, as the mechanic's, is read and closed.
 ## "quest_max_detour" declines a quest whose planet adds more than that many units to the
 ## way to the nearest planet someone else on board is going to. "call_think" is the
-## seconds from the call ringing to the answer. An accepted express quest sets the course
-## to its planet at once.
+## seconds from the call ringing to the answer. An accepted quest sets the course to its
+## planet at once: docking there is an express quest's stop and an errand's, and flying in
+## is a flyby.
 
 const Detour := preload("res://tools/balance/detour.gd")
 ## What the call notice says, as [method NoticeStack.announce_transmission] puts it.
@@ -115,7 +116,9 @@ func _answer() -> void:
 		_panel.accept()
 		return
 	declined += 1
-	news.append("%s called to go to %s instead; declined" % [offer.passenger.name, _name(offer)])
+	news.append(
+		"%s called: %s %s; declined" % [offer.passenger.name, offer.get_ask(), _name(offer)]
+	)
 	_panel.close()
 
 
@@ -139,7 +142,9 @@ func _is_worth(offer: Quest) -> bool:
 func _on_quest_added(quest: Quest) -> void:
 	_quest = quest
 	accepted += 1
-	news.append("%s called to go to %s instead; accepted" % [quest.passenger.name, _name(quest)])
+	news.append(
+		"%s called: %s %s; accepted" % [quest.passenger.name, quest.get_ask(), _name(quest)]
+	)
 	if quest.get_planet():
 		_detour.plot(quest.get_planet())
 

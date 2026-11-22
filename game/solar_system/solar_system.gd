@@ -148,8 +148,6 @@ func _process(delta: float) -> void:
 	(%OrbitClock as OrbitClock).run(delta)
 	var bus := %Bus as FrameshiftBus
 	(%Cabin as Cabin).docked = bus.is_at_planet()
-	# Charging only starts cold, and warmth holds until everyone getting off is off.
-	(%Cabin as Cabin).cold = bus.is_at_planet() and bus.get_warmth() <= 0.0 and not bus.unloading
 	(%Cabin as Cabin).parking = (%Bus as FrameshiftBus).state == FrameshiftBus.State.PARKING
 	var felt := (%Bus as FrameshiftBus).get_felt_acceleration()
 	(%PortraitStudio as PortraitStudio).felt_acceleration = felt
@@ -191,6 +189,10 @@ func _process(delta: float) -> void:
 			)
 
 
+func _input(event: InputEvent) -> void:
+	QueueKey.read(event)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if (
 		(%MapZoom as MapZoom).is_zooming_out()
@@ -211,11 +213,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if click.button_index != MOUSE_BUTTON_RIGHT:
 		return
+	var tutorial := %Tutorial as Tutorial
 	var stop := _stop_at(click.position)
-	if not stop or not (%Tutorial as Tutorial).allows_course(stop):
+	stop = tutorial.fit_course(stop) if stop else null
+	if not stop:
 		return
 	(%Bus as FrameshiftBus).plot_course(stop, QueueKey.is_held())
-	_course_drag.start(stop)
+	if not tutorial.is_running():
+		_course_drag.start(stop)
 	get_viewport().set_input_as_handled()
 
 

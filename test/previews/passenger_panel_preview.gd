@@ -14,6 +14,13 @@ extends Node
 ## the first striped end's tooltip opens, as the pointer on it does.
 ## `-- RerouteAlone` sends the only passenger going to Giant to Dust, where nobody goes yet,
 ## so Giant's group folds as Dust's opens.
+## The bus is in flight unless `-- Docked`, which holds every bar still under its pause
+## mark, has the station serve the open requests and the others idle on a docked line.
+## `-- PointBar`, `-- PointMark` and `-- PointCap` rest the pointer on the third seat's
+## bar: near its start, on the docked mark (with `Docked`) and on the striped end (with
+## `Frustrated`), so whichever tooltip belongs there opens.
+## `-- Breakdown` opens the panel the pointer on a happiness bar opens, for the third
+## seat, on a bus with Movies, after a stop too many and a quest failed.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
@@ -45,6 +52,9 @@ func _ready() -> void:
 	var cabin := %Cabin as Cabin
 	cabin.seats = HAPPINESS.size()
 	cabin.set_process(false)
+	var args := OS.get_cmdline_user_args()
+	# Before anyone boards, so leaving the planet doesn't reset their happiness.
+	cabin.docked = "Docked" in args
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var planets: Array[Planet] = []
@@ -63,19 +73,27 @@ func _ready() -> void:
 		var destination := planets[seat % planets.size()]
 		var type := BUSINESS if seat in BUSINESS_SEATS else COMMUTER
 		var passenger := Passenger.new(type, destination, 60.0, 40.0, rng)
-		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]
-		passenger.trend = TRENDS[seat]
+		passenger.trend = 0.0 if cabin.docked else TRENDS[seat]
 		if seat in ASKING:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line
+			if cabin.docked:
+				passenger.activity = Cabin.STATION_LINE % passenger.request.item
+				passenger.serving = 0.6
+		elif cabin.docked:
+			# Past finding their seat, so the idle ones show a docked line.
+			passenger.tick(Passenger.BOARDING_SECONDS, true)
 		if "Frustrated" in OS.get_cmdline_user_args():
 			passenger.frustration = FRUSTRATION[seat]
 			if not passenger.request and not type.stop_lines.is_empty():
 				passenger.activity = type.stop_lines[seat % type.stop_lines.size()]
 		cabin.board(passenger)
+		# After they take their seat, which puts them at what the bus can give.
+		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]
 	var panel := %PassengerPanel as PassengerPanel
 	panel.portrait_studio = %PortraitStudio as PortraitStudio
 	panel.cabin = cabin
+	panel.kicks_allowed = "Kick" in args
 	if "Scare" in OS.get_cmdline_user_args():
 		await get_tree().process_frame
 		await get_tree().process_frame
@@ -94,7 +112,35 @@ func _ready() -> void:
 	if "Tooltip" in OS.get_cmdline_user_args():
 		# The striped ends take a moment to slide in.
 		await get_tree().create_timer(0.6).timeout
-		(panel.find_children("*", "Tooltip", true, false)[0] as Tooltip).open()
+		for tooltip: Tooltip in panel.find_children("*", "Tooltip", true, false):
+			if tooltip.sentence == HappinessCap.TOOLTIP_TEXT:
+				tooltip.open()
+				break
+	if "Breakdown" in args:
+		cabin.comfort.perks = ["Movies"]
+		var asked := cabin.get_passengers()[2]
+		asked.ride.stops = asked.ride.tolerance + 1
+		asked.cause.mark(HappinessCause.Type.QUEST_FAILED)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		for tooltip: Tooltip in panel.get_card(asked).find_children("*", "Tooltip", true, false):
+			if tooltip.target is HappinessBreakdown:
+				tooltip.open()
+	for spot: String in ["PointBar", "PointMark", "PointCap"]:
+		if spot in args:
+			# The cards lay out a frame in, and the striped ends take a moment to slide in.
+			await get_tree().create_timer(0.6).timeout
+			var third := panel.get_card(cabin.get_passengers()[2])
+			var bar := third.get_happiness_bar() as ProgressBar
+			var at := bar.get_global_rect().position + Vector2(4.0, bar.size.y * 0.5)
+			if spot == "PointMark":
+				at.x += bar.size.x * bar.value - 4.0
+			elif spot == "PointCap":
+				at.x += bar.size.x - 8.0
+			var move := InputEventMouseMotion.new()
+			move.position = at
+			move.global_position = at
+			get_viewport().push_input(move)
 	if "Kick" in OS.get_cmdline_user_args():
 		# The cards lay out a frame in.
 		await get_tree().process_frame

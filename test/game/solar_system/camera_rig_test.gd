@@ -268,6 +268,45 @@ func test_dragging_with_the_middle_button_keeps_the_grabbed_point_under_the_poin
 	assert_vector(rig.position).is_equal_approx(position_after, Vector3.ONE * 0.001)
 
 
+func test_dragging_with_the_left_button_on_the_map_pans_but_a_click_does_not() -> void:
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	var camera := runner.find_child("Camera") as Camera3D
+	await runner.simulate_frames(2, FRAME_MS)
+	var start := rig.position
+
+	# A click, or a press that barely moves, leaves the camera where it is.
+	_send_button(MOUSE_BUTTON_LEFT, true, Vector2(300, 350))
+	_send_motion(Vector2(302, 350))
+	await runner.simulate_frames(3, FRAME_MS)
+	assert_bool(rig.is_dragging()).is_false()
+	assert_vector(rig.position).is_equal_approx(start, Vector3.ONE * 0.001)
+
+	var grabbed := _plane_point(camera, Vector2(300, 350))
+	_send_motion(Vector2(250, 350))
+	await runner.simulate_frames(3, FRAME_MS)
+	assert_bool(rig.is_dragging()).is_true()
+	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(250, 350))).is_less(1.0)
+	_send_button(MOUSE_BUTTON_LEFT, false, Vector2(250, 350))
+	assert_bool(rig.is_dragging()).is_false()
+
+
+func test_a_left_drag_that_starts_on_a_panel_does_not_pan() -> void:
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	await runner.simulate_frames(2, FRAME_MS)
+	var bus_bar := (runner.find_child("BusStatusPanel") as Control).get_global_rect()
+	var on_panel := bus_bar.get_center()
+	var start := rig.position
+
+	_send_button(MOUSE_BUTTON_LEFT, true, on_panel)
+	_send_motion(on_panel + Vector2(-200, -200))
+	await runner.simulate_frames(3, FRAME_MS)
+	_send_button(MOUSE_BUTTON_LEFT, false, on_panel + Vector2(-200, -200))
+	assert_bool(rig.is_dragging()).is_false()
+	assert_vector(rig.position).is_equal_approx(start, Vector3.ONE * 0.001)
+
+
 func test_pan_and_zoom_do_nothing_while_focused() -> void:
 	var runner := scene_runner(SOLAR_SYSTEM)
 	var rig := runner.find_child("CameraRig") as CameraRig

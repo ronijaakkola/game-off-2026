@@ -2,11 +2,13 @@ class_name CameraRig
 extends Node3D
 ## An RTS camera. WASD, the arrow keys or the pointer at a window edge (unless
 ## [code]Settings.edge_pan[/code] is off) pan it across the orbit plane, holding the
-## middle mouse button drags it (the point under the pointer stays under it), and the mouse
-## wheel zooms it toward the point under the pointer. This node sits at the point the
-## camera looks at, and its rotation is the viewing angle; its shot,
-## %Shot, sits [member distance] back along that angle, and the scene's PhantomCameraHost
-## moves the camera to it.
+## middle mouse button drags it (the point under the pointer stays under it), as does the
+## left button once the pointer has moved [constant DRAG_START_PIXELS], so a left click
+## still clicks, and the mouse wheel zooms it toward the point under the pointer. A drag
+## starts only on the map: one that starts on a panel, which takes the press, doesn't.
+## This node sits at the point the camera looks at, and its rotation is the viewing angle;
+## its shot, %Shot, sits [member distance] back along that angle, and the scene's
+## PhantomCameraHost moves the camera to it.
 ## The look-at point stays within [member bounds_radius] of [member bounds_center], and the
 ## zoom between [member min_distance] and [member max_distance]. A zoom eases the look-at
 ## point and the distance to their target; a pan eases its speed and moves the look-at point
@@ -25,6 +27,9 @@ signal focus_blend_finished
 
 ## %FocusShot's priority while focused, over %Shot's.
 const FOCUSED_PRIORITY := 2
+## How far the pointer moves with the left button down before it drags the camera, in
+## pixels: less is a click.
+const DRAG_START_PIXELS := 4.0
 
 ## How far from [member bounds_center] the look-at point may go, on the orbit plane.
 @export_range(0.0, 200.0, 0.1, "or_greater") var bounds_radius := 20.0
@@ -91,6 +96,10 @@ var _edge_pan := Vector2.ZERO
 # when it went down, which the drag keeps under the pointer.
 var _dragging := false
 var _grab_point := Vector3.ZERO
+# Where a left-button drag went down, and whether the pointer has moved far enough from
+# there to drag; a middle-button drag drags at once.
+var _drag_from := Vector2.ZERO
+var _drag_moved := false
 var _focus_target: Node3D
 var _focus_radius := 0.0
 var _focus_reach := 0.0
@@ -122,10 +131,12 @@ func _input(event: InputEvent) -> void:
 	if motion:
 		_pointer_inside = true
 		_pointer_position = motion.position
-		if _dragging:
+		_drag_moved = _drag_moved or motion.position.distance_to(_drag_from) >= DRAG_START_PIXELS
+		if _dragging and _drag_moved:
 			_drag_to(motion.position)
 	var button := event as InputEventMouseButton
-	if button and not button.pressed and button.is_action(&"camera_drag"):
+	var drag_button := button and (button.is_action(&"camera_drag") or _is_left(button))
+	if drag_button and not button.pressed:
 		_dragging = false
 
 
@@ -135,8 +146,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	# A touchpad sends fractions of a notch in factor; a wheel sends 1 or 0.
 	var notches := wheel.factor if wheel.factor > 0.0 else 1.0
+	if _is_left(wheel):
+		# Not handled: the click still goes on to pick what is under it.
+		_start_drag(wheel.position, false)
+		return
 	if event.is_action(&"camera_drag"):
-		_start_drag(wheel.position)
+		_start_drag(wheel.position, true)
 	elif event.is_action(&"camera_zoom_in"):
 		_zoom(1.0 - zoom_step * notches, wheel.position)
 	elif event.is_action(&"camera_zoom_out"):
@@ -198,7 +213,7 @@ func is_focused() -> bool:
 
 ## Whether the player is dragging the camera now.
 func is_dragging() -> bool:
-	return _dragging
+	return _dragging and _drag_moved
 
 
 ## The screen direction the pointer at a window edge pans in now, -1, 0 or 1 on each axis.
@@ -308,15 +323,22 @@ func _edge_pan_input() -> Vector2:
 	return direction
 
 
-# Grabs the plane point under screen_point. While the button is held the window keeps
-# getting the pointer's motion past its edge, so a drag doesn't stop there.
-func _start_drag(screen_point: Vector2) -> void:
+# Grabs the plane point under screen_point, dragging at once when [param moved], or once
+# the pointer has moved far enough. While the button is held the window keeps getting the
+# pointer's motion past its edge, so a drag doesn't stop there.
+func _start_drag(screen_point: Vector2, moved: bool) -> void:
 	var offset: Variant = _plane_offset(screen_point)
 	if offset == null:
 		return
 	var per_distance: Vector3 = offset
 	_grab_point = position + per_distance * distance
+	_drag_from = screen_point
+	_drag_moved = moved
 	_dragging = true
+
+
+static func _is_left(button: InputEventMouseButton) -> bool:
+	return button.button_index == MOUSE_BUTTON_LEFT
 
 
 # Moves the look-at point, and its target with it, so the grabbed point is under

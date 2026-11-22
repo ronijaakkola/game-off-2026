@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 ## Boarding, picking up, amenities and getting off, through Cabin's public calls.
 
 # Where a passenger starts the ride on a bare bus.
-const START := Passenger.BASE_HAPPINESS + RideProgress.ON_TIME_BONUS
+const START := Passenger.BASE_HAPPINESS
 
 var _cabin: Cabin
 var _home: Planet
@@ -131,13 +131,14 @@ func test_only_passengers_going_there_get_off_and_pay() -> void:
 	var staying := _passenger(_home)
 	_cabin.board(going)
 	_cabin.board(staying)
-	var payout := going.get_payout()
 	monitor_signals(_cabin)
 
 	_cabin.stop_at(_away)
 
+	# They pay by where arriving early leaves them.
+	assert_float(going.happiness).is_equal(START + RideProgress.ON_TIME_BONUS)
 	assert_array(_cabin.get_passengers()).contains_exactly([staying])
-	await assert_signal(_cabin).is_emitted("delivered", [going, payout])
+	await assert_signal(_cabin).is_emitted("delivered", [going, going.get_payout()])
 
 
 func test_everyone_going_there_is_announced_before_the_first_gets_off() -> void:

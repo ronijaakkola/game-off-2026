@@ -11,16 +11,19 @@ const BUSINESS := preload("res://game/passengers/types/business.tres")
 func test_a_photo_that_finds_the_studio_full_takes_the_next_free_slot() -> void:
 	var studio: PortraitStudio = auto_free(STUDIO.instantiate())
 	add_child(studio)
-	var taken: Array[AtlasTexture] = []
+	var holders: Array[Node] = []
 	for i: int in PortraitStudio.SLOTS:
-		taken.append(studio.add(_passenger().look, COMMUTER))
+		var holder: Node = auto_free(Node.new())
+		add_child(holder)
+		studio.lend(holder, _passenger().look, COMMUTER, func(_photo: AtlasTexture) -> void: pass)
+		holders.append(holder)
 	var photo: PassengerPhoto = auto_free(SCENE.instantiate())
 	photo.studio = studio
 	photo.passenger = _passenger()
 	add_child(photo)
 	assert_object(photo.get_photo()).is_null()
 
-	studio.remove(taken[0])
+	remove_child(holders[0])
 
 	assert_object(photo.get_photo()).is_not_null()
 	assert_int(studio.get_portrait_count()).is_equal(PortraitStudio.SLOTS)
@@ -50,7 +53,7 @@ func test_a_business_passenger_s_portrait_wears_a_bow_tie_and_a_commuter_s_doesn
 		photo.studio = studio
 		photo.passenger = _passenger(type)
 		add_child(photo)
-		worn.append(_wears_bow_tie(studio.get_portrait(photo.get_photo() as AtlasTexture)))
+		worn.append(_wears_bow_tie(photo.get_portrait()))
 	assert_array(worn).is_equal([true, false])
 
 

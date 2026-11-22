@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://dcy77e65i1dbl" path="res://ui/hold_button.gd" id="4_hold"]
 
 [node name="MainMenu" type="MarginContainer" unique_id=1815156436]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2

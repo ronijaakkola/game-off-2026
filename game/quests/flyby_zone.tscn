@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://gthierx1a5bx"]
+
+[ext_resource type="Script" uid="uid://benyvmvbg1pn1" path="res://game/quests/flyby_zone.gd" id="1_zone"]
+[ext_resource type="Shader" uid="uid://cvomg3kodfh37" path="res://game/quests/flyby_zone.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_zone"]
+render_priority = -1
+shader = ExtResource("2_shader")
+shader_parameter/fill_color = null
+shader_parameter/ring_color = null
+shader_parameter/ring_width = null
+shader_parameter/dashes = null
+shader_parameter/dash_share = null
+shader_parameter/turn = null
+shader_parameter/opacity = null
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_zone"]
+
+[node name="FlybyZone" type="MeshInstance3D" unique_id=794781706]
+material_override = SubResource("ShaderMaterial_zone")
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_zone")
+script = ExtResource("1_zone")

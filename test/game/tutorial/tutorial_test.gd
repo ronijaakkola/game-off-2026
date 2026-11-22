@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## A new run opens on the boss's call with only the bus bars showing; answering it with
-## either of the two answers starts the steps on the guide card beside the bus. Through the
+## either of the two answers starts the steps on the guide card beside the bus, and the
+## camera's card after it waits for the player to both pan and zoom the camera. Through the
 ## call, the menu button still opens the pause menu. Skipping the tutorial puts back every
 ## rule it changed and fills the tank, and the next new run starts without it.
 
@@ -80,7 +81,7 @@ func test_the_menu_button_opens_the_pause_menu_while_the_call_covers_the_screen(
 	assert_bool((runner.find_child("PauseMenu") as CanvasLayer).visible).is_true()
 
 
-func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course() -> void:
+func test_after_boarding_a_card_on_the_passenger_goes_on_to_the_course() -> void:
 	SaveGame.start_new()
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
@@ -97,24 +98,37 @@ func test_after_on_board_a_card_beside_the_happiness_bar_goes_on_to_the_course()
 	await _wait_for_card(guide, "You are driving this bus.")
 	_click(runner, guide.find_child("GotItButton") as Control)
 
+	# The camera card waits until the player has moved the camera.
+	await _wait_for_card(guide, "Drag {mouse_left} or use {wasd}")
+	await runner.simulate_frames(30)
+	assert_bool(guide.text.begins_with("Drag {mouse_left}")).is_true()
+	runner.simulate_action_press(&"camera_pan_right")
+	await runner.simulate_frames(30, 16)
+	runner.simulate_action_release(&"camera_pan_right")
+	# Panning alone isn't enough: the card waits for a zoom too.
+	await runner.simulate_frames(60, 16)
+	assert_bool(guide.text.begins_with("Drag {mouse_left}")).is_true()
+	(runner.find_child("CameraRig") as CameraRig).zoom_to(30.0)
+	await runner.simulate_frames(30, 16)
+
 	var dock := runner.find_child("DockPanel") as DockPanel
 	var waiting := (runner.find_child("Tutorial") as Tutorial).waiting
 	var home := runner.find_child("Terra") as Planet
 	await assert_func(self, "_has_row", [dock, waiting, home]).wait_until(5000).is_true()
 	var row := dock.get_row(waiting.get_waiting(home)[0])
+	# Once the station panel is in, the card on the row opens.
+	await _wait_for_card(guide, "Here you can see a list of waiting passengers.")
 	_click(runner, row.find_child("BoardButton") as Control)
-	await _wait_for_card(guide, "Here you can see passengers currently inside your bus.")
-	_click(runner, guide.find_child("GotItButton") as Control)
-
-	await _wait_for_card(guide, "This bar shows how happy they are.")
+	# One card on the passenger's card says they are on board and what their bar shows.
+	await _wait_for_card(guide, "Your passenger is on board.")
 	var cabin := runner.find_child("Cabin") as Cabin
 	var passengers := runner.find_child("PassengerPanel") as PassengerPanel
 	var card := passengers.get_card(cabin.get_passengers()[0])
-	assert_object(guide.target).is_same(card.get_happiness_bar())
+	assert_object(guide.target).is_same(card)
 	assert_bool(guide.got_it).is_true()
 
 	_click(runner, guide.find_child("GotItButton") as Control)
-	await _wait_for_card(guide, "The passenger you just picked up wants to go to")
+	await _wait_for_card(guide, "Your passenger wants to go to")
 
 
 func test_skipping_puts_back_what_it_changed() -> void:
@@ -127,7 +141,6 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	(runner.find_child("Tutorial") as Tutorial).skip()
 
 	assert_float(moon.fuel_price).is_greater(0.0)
-	assert_bool((runner.find_child("PassengerPanel") as PassengerPanel).kicks_allowed).is_true()
 	var dock := runner.find_child("DockPanel") as DockPanel
 	assert_bool(dock.fuel_hidden or dock.fuel_locked or dock.board_all_hidden).is_false()
 	assert_bool((runner.find_child("Bus") as FrameshiftBus).route_locked).is_false()

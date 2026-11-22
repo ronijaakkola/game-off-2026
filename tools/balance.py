@@ -228,6 +228,11 @@ def summarize(reports: list[dict]) -> dict:
         ),
         "direct ride stars": mean([ride["stars"] for ride in rides if ride["stops"] == 0]),
         "1-2 stop ride stars": mean([ride["stars"] for ride in rides if ride["stops"] in (1, 2)]),
+        "quest done rides": len([ride for ride in rides if ride.get("quest_done")]) / max(len(reports), 1),
+        "quest done ride stars": mean([ride["stars"] for ride in rides if ride.get("quest_done")]),
+        "quest done 5* %": share(
+            [ride for ride in rides if ride.get("quest_done")], lambda ride: ride["stars"] == 5
+        ),
         "pay % of fare": 100.0 * sum(ride["payout"] for ride in rides)
         / max(sum(ride["fare"] for ride in rides), 1),
     }

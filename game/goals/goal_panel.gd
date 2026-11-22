@@ -9,6 +9,8 @@ extends PanelContainer
 ## while the part rises in and fades, and a quest that goes fades out before the panel
 ## closes over it. The first quest brings the whole part in, heading and all, and the last
 ## takes it out. What is already there when the panel is first shown doesn't move.
+## It tells the [member quest_giver] which quest's row the pointer is on, so the map can
+## show where that quest sends the bus.
 
 const ROW := preload("res://game/goals/goal_row.tscn")
 const QUEST_ROW := preload("res://game/goals/quest_row.tscn")
@@ -55,6 +57,11 @@ var _left_slots: Array[SlideSlot] = []
 func _ready() -> void:
 	(%QuestSlot as SlideSlot).closed.connect(_on_quest_part_closed)
 	_sync_rows()
+
+
+## The quests' part without the line over it: its heading and its rows.
+func get_quests_part() -> Control:
+	return (%QuestRows as Control).get_parent_control()
 
 
 func _sync_rows() -> void:
@@ -107,6 +114,8 @@ func _add_quest(quest: Quest, animated: bool) -> void:
 	var row := QUEST_ROW.instantiate() as QuestRow
 	row.studio = portrait_studio
 	row.quest = quest
+	row.mouse_entered.connect(_on_quest_pointed.bind(quest, true))
+	row.mouse_exited.connect(_on_quest_pointed.bind(quest, false))
 	var slot := SlideSlot.new()
 	slot.add_child(row)
 	(%QuestRows as Container).add_child(slot)
@@ -123,6 +132,7 @@ func _on_quest_removed(quest: Quest) -> void:
 	if not slot:
 		return
 	_quest_slots.erase(quest)
+	_on_quest_pointed(quest, false)
 	var part := %QuestSlot as SlideSlot
 	if _quest_slots.is_empty():
 		_left_slots.append(slot)
@@ -130,6 +140,14 @@ func _on_quest_removed(quest: Quest) -> void:
 	else:
 		slot.closed.connect(slot.queue_free, CONNECT_ONE_SHOT)
 		slot.close()
+
+
+# The pointer came onto [param quest]'s row, or left it.
+func _on_quest_pointed(quest: Quest, on: bool) -> void:
+	if on:
+		quest_giver.pointed = quest
+	elif quest_giver.pointed == quest:
+		quest_giver.pointed = null
 
 
 func _on_quest_part_closed() -> void:
