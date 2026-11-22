@@ -156,6 +156,9 @@ What a ride running past the time a passenger expects, or a stop past their type
 What the bus's comfort upgrades give everyone on board: a bonus on the happiness they settle at, and how long and how slowly their ride's clock runs while they sleep or watch a show. `Comfort` in code, read off the bus's traits.
 _Avoid_: luxury, amenities (the things that serve needs)
 
+**Bus quality**:
+What every upgrade the bus has adds to the happiness everyone on board can reach, up to a most, whatever the upgrade does: a better bus is a nicer ride. Part of **comfort**'s bonus. `Cabin.quality_per_upgrade` and the bus's `UPGRADES` stat in code.
+
 **Rating**:
 The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **recent rating** is the mean of the last 10, shown in the **resource bar**; its **band** sets how many of the passengers who turn up are Business (`RatingBand`). The **average rating** is the mean of every rating so far. `Passenger.get_rating()`, and `Ledger.rate()`, `Ledger.get_recent_rating()` in code.
 _Avoid_: review, score
@@ -215,6 +218,10 @@ _Avoid_: level, galaxy, sector, stage (a band of research rows)
 **Jump**:
 The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
 _Avoid_: warp, hyperspace, travel (a trip between planets)
+
+**Warp gate**:
+A hexagonal ring floating beside a planet that the bus, docked there, spends half a tank of fuel to go through and come out of its twin's gate beside another planet: Hither's and Yon's in Lyra. Called a **warp drive** in the game's text, and the dock panel's button reads "Warp to <planet>". `WarpGate` in code, sold by the `GateService`.
+_Avoid_: portal, wormhole
 
 **Upgrade**:
 One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.

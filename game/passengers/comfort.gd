@@ -4,8 +4,9 @@ extends RefCounted
 ## settle at, whether and how long they sleep, with how fast their ride's clock runs then,
 ## and whether and how long they watch shows, with how fast the clock runs while they do. A
 ## bare bus gives nothing: nobody sleeps or watches. [method from_traits] reads it off the
-## bus's traits, which the upgrades give. It also carries what the bus's temperature takes
-## off, [member discomfort], which the [Cabin] sets.
+## bus's traits, which the upgrades give, and adds the bus's quality, which every upgrade
+## raises. It also carries what the bus's temperature takes off, [member discomfort], which
+## the [Cabin] sets.
 
 ## The entertainment system: fun, and shows to watch now and then, in seconds, with the
 ## clock speed while watching.
@@ -48,9 +49,13 @@ var watch_max := 0.0
 var watch_clock := 1.0
 
 
-## The comfort the bus's [param traits] give.
-static func from_traits(traits: BusTraits) -> Comfort:
+## The comfort the bus's [param traits] give, with [param quality] more on the bonus for a
+## bus that is better to ride.
+static func from_traits(traits: BusTraits, quality := 0.0) -> Comfort:
 	var comfort := Comfort.new()
+	if quality > 0.0:
+		comfort.bonus += quality
+		comfort.perks.append("Bus quality")
 	if traits.has(BusTraits.Type.ENTERTAINMENT_SYSTEM):
 		comfort.bonus += ENTERTAINMENT_BONUS
 		comfort.perks.append("Movies")

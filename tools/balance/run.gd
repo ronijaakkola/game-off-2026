@@ -5,7 +5,10 @@ extends Node
 ## requests one at a time, each after a reaction time, in flight and at stops, the player
 ## steers round the star's hot zone (detour.gd), and answers calls with quests (calls.gd).
 ## By default the run starts where a new run does once the tutorial is over
-## (overrides.gd).
+## (overrides.gd), and is never promoted. With "promote_to" naming a star system, it is
+## promoted as in play until the bus works there: The Boss's calls are answered as any
+## call is, the mechanic opens each stage after the first, and the player flies from where
+## the jump leaves the bus to the system's home planet.
 ## Run by `tools/balance.py` as the scene `run.tscn`, with the path of a config file after `--`:
 ## "seed", "minutes", "out", "policy" (player.gd and calls.gd), "overrides" (overrides.gd,
 ## and "rating_goal" and "deliveries_goal", the goals the run is measured against), and for
@@ -51,6 +54,12 @@ var _hand: Passenger
 var _hand_free_at := 0.0
 var _noticed_at: Dictionary[Passenger, float] = {}
 var _ids: Dictionary[String, Passenger] = {}
+var _star_map: StarMap
+var _progression: Progression
+var _mechanic: MechanicCall
+var _jump: SystemJump
+# Whether the bus has come out of a jump and not yet set off from where it rests.
+var _arrived := false
 
 
 func _ready() -> void:
@@ -72,11 +81,17 @@ func _ready() -> void:
 	_cabin = _system.get_node(^"%Cabin") as Cabin
 	_waiting = _system.get_node(^"%WaitingPassengers") as WaitingPassengers
 	_lab = _system.get_node(^"%ResearchLab") as ResearchLab
-	# Nobody is promoted, so the run stays on the first research stage after the goals.
-	(_system.get_node(^"%Progression") as Progression).promotes = false
-	var first := (_system.get_node(^"%StarMap") as StarMap).get_current()
+	_star_map = _system.get_node(^"%StarMap") as StarMap
+	_progression = _system.get_node(^"%Progression") as Progression
+	_mechanic = _system.get_node(^"%MechanicCall") as MechanicCall
+	_jump = _system.get_node(^"SystemJump") as SystemJump
+	# Unless told where to, nobody is promoted, so the run stays on the first research
+	# stage after the goals.
+	_progression.promotes = _config.has("promote_to")
+	_jump.finished.connect(_on_jumped)
+	var first := _star_map.get_current()
 	_ledger = _system.get_ledger()
-	_planets = (_system.get_node(^"%StarMap") as StarMap).get_active_planets()
+	_planets = _star_map.get_active_planets()
 	_recorder.rating_goal = float(overrides.get("rating_goal", first.rating))
 	_recorder.deliveries_goal = int(overrides.get("deliveries_goal", first.deliveries))
 	_overrides.apply_to_scene(_system, _planets)
@@ -90,7 +105,7 @@ func _ready() -> void:
 	_bus.docked.connect(_on_docked)
 	_bus.ran_out_of_fuel.connect(_on_ran_out_of_fuel)
 	_bus.temperature.overheated.connect(_on_overheated)
-	_detour = Detour.new(_bus, _system.get_node(^"World/Sol/Star") as Node3D)
+	_detour = Detour.new(_bus, _star_map)
 	_stop_dice.seed = seed_value + 32452843
 	var call_dice := RandomNumberGenerator.new()
 	call_dice.seed = seed_value + 15485863
@@ -117,11 +132,16 @@ func _process(delta: float) -> void:
 			_tow_notice.action_pressed.emit()
 			_tow_notice.dismiss()
 	_calls.tick(delta)
+	_recorder.check_goals(_progression.goals)
 	if _bus.is_at_planet():
 		_at_dock(delta)
+	elif _jump.is_jumping():
+		_decided = false
+		_serve(delta)
 	else:
 		_decided = false
 		_serve(delta)
+		_leave_space()
 		_detour.steer()
 
 
@@ -413,8 +433,28 @@ func _on_delivered(passenger: Passenger, payout: int) -> void:
 	_recorder.deliver(passenger, payout, _ledger)
 
 
+# The bus came out of a jump at rest in space: once The Boss's call lets it, it flies to
+# the system's home planet, where the starting passengers wait.
+func _leave_space() -> void:
+	if not _arrived or _bus.route_locked or _bus.state != FrameshiftBus.State.HOLDING:
+		return
+	_arrived = false
+	_detour.plot(_star_map.get_current().home)
+	_bus.frameshift_held = true
+
+
+func _on_jumped(system: StarSystem) -> void:
+	_planets = _star_map.get_active_planets()
+	_arrived = not _bus.is_at_planet()
+	_recorder.arrive(system.display_name)
+	# The mechanic opens the next stage a few deliveries in, as in play.
+	_mechanic.enabled = true
+	if system.display_name == str(_config.get("promote_to")):
+		_progression.promotes = false
+
+
 func _on_ran_out_of_fuel() -> void:
-	_recorder.tows += 1
+	_recorder.tow()
 	_recorder.news.append("Ran out of fuel and had to be towed for %d" % TowDispatch.TOW_FEE)
 	_tow_in = TOW_THINK
 	# The system offered the tow just before this. Other notices, such as the heat warning,
@@ -427,5 +467,5 @@ func _on_ran_out_of_fuel() -> void:
 
 
 func _on_overheated() -> void:
-	_recorder.overheats += 1
+	_recorder.overheat()
 	_recorder.news.append("Overheated near the star and stopped to cool down")

@@ -45,6 +45,9 @@ func test_the_value_never_goes_below_its_minimum() -> void:
 func test_every_bus_stat_has_a_floor_above_zero() -> void:
 	var stats := BusStats.new()
 	for value: int in BusStats.Type.values():
+		# A count of upgrades starts at none.
+		if value == BusStats.Type.UPGRADES:
+			continue
 		var stat := stats.get_stat(value as BusStats.Type)
 		stat.add_modifier(_percent(-200.0))
 		assert_float(stat.get_value()).is_greater(0.0)

@@ -109,6 +109,15 @@ func show_trip(from: Planet, to: Planet, color := Color.WHITE) -> void:
 	_showing = true
 
 
+## Shows the way through a warp gate from [param from] to [param to] in white, or hides the
+## arc when either is null.
+func show_gate(from: Planet, to: Planet) -> void:
+	if from and to:
+		show_trip(from, to, Color.WHITE)
+	else:
+		hide_trip()
+
+
 ## Fades the arc out.
 func hide_trip() -> void:
 	_showing = false

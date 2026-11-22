@@ -8,7 +8,8 @@ extends RefCounted
 ## The same policy says how it answers calls with quests in flight (calls.gd).
 
 ## Flying this many times the straight distance must fit in the tank, or the bot refuels:
-## planets move, and the bus chases them.
+## planets move, and the bus chases them. It also refuels below the policy's
+## "refuel_below" share of a full tank (half by default).
 const FUEL_MARGIN := 1.5
 
 var policy: Dictionary
@@ -44,7 +45,8 @@ func decide(state: Dictionary) -> Dictionary:
 			going.append(passenger["to"])
 	var next := _pick_next(state, going)
 	var needed := _distance_to(state, next) * FUEL_MARGIN * float(state["fuel"]["burn_per_unit"])
-	var low := float(state["fuel"]["fuel"]) < float(state["fuel"]["capacity"]) * 0.5
+	var below := float(policy.get("refuel_below", 0.5))
+	var low := float(state["fuel"]["fuel"]) < float(state["fuel"]["capacity"]) * below
 	return {
 		"board": board,
 		"research": research,

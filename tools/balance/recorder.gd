@@ -20,6 +20,9 @@ var capacity_seconds := 0.0
 var fuel_credits := 0
 var tows := 0
 var overheats := 0
+## When each tow and overheat came, in seconds.
+var tow_times: Array[float] = []
+var overheat_times: Array[float] = []
 ## Times the bus left a planet on a quick stop.
 var quick_stops := 0
 var kicks := 0
@@ -41,6 +44,9 @@ var rating_goal := 0.0
 var deliveries_goal_at := -1.0
 var rating_goal_at := -1.0
 var both_goals_at := -1.0
+## Every star system the bus jumped to: its name, when it arrived, and when all its goals
+## first held at once, in seconds, or -1.
+var systems: Array[Dictionary] = []
 
 var _rides: Dictionary[Passenger, Dictionary] = {}
 var _open_since: Dictionary[Passenger, float] = {}
@@ -83,6 +89,7 @@ func deliver(passenger: Passenger, payout: int, ledger: Ledger) -> void:
 		"aboard": ride["aboard"],
 		"requests": ride.get("requests", 0),
 		"quest_done": passenger.quest_bonus > 0.0,
+		"towed": ride.get("towed", false),
 	}
 	deliveries.append(row)
 	news.append(
@@ -98,6 +105,33 @@ func deliver(passenger: Passenger, payout: int, ledger: Ledger) -> void:
 		rating_goal_at = _time
 	if both_goals_at < 0.0 and rated and deliveries.size() >= deliveries_goal:
 		both_goals_at = _time
+
+
+## The bus has jumped to the star system [param system_name].
+func arrive(system_name: String) -> void:
+	systems.append({"name": system_name, "arrived": snappedf(_time, 0.1), "goals_at": -1.0})
+
+
+## Every frame: notes when all the goals of the system jumped to last first hold.
+func check_goals(goals: GoalTracker) -> void:
+	if systems.is_empty() or systems[-1]["goals_at"] >= 0.0 or goals.frozen:
+		return
+	if goals.are_all_met():
+		systems[-1]["goals_at"] = snappedf(_time, 0.1)
+
+
+## The bus ran out of fuel and is towed: everyone on board has a tow in their ride.
+func tow() -> void:
+	tows += 1
+	tow_times.append(snappedf(_time, 0.1))
+	for ride: Dictionary in _rides.values():
+		ride["towed"] = true
+
+
+## The bus overheated.
+func overheat() -> void:
+	overheats += 1
+	overheat_times.append(snappedf(_time, 0.1))
 
 
 func research(upgrade: Upgrade) -> void:
@@ -170,6 +204,8 @@ func report(ledger: Ledger) -> Dictionary:
 		"worst_request": snappedf(worst_request, 0.1),
 		"tows": tows,
 		"overheats": overheats,
+		"tow_times": tow_times,
+		"overheat_times": overheat_times,
 		"quick_stops": quick_stops,
 		"departures": lines,
 		"kicks": kicks,
@@ -181,6 +217,7 @@ func report(ledger: Ledger) -> Dictionary:
 		"deliveries_goal_at": snappedf(deliveries_goal_at, 0.1),
 		"rating_goal_at": snappedf(rating_goal_at, 0.1),
 		"both_goals_at": snappedf(both_goals_at, 0.1),
+		"systems": systems,
 		"rating_goal": rating_goal,
 		"deliveries": deliveries,
 		"upgrades": upgrades,

@@ -7,11 +7,17 @@ extends Node
 ## rumble builds, and frameshifts out as the tow ship does ([FrameshiftShift]) while the
 ## [JumpIris] closes on where it was. In the black
 ## the old system hides and the camera cuts to the new one, a little way off its home
-## planet, or off the point in space where that system has the bus come to rest. The iris
-## opens there, the bus frameshifts in, and as it flies in to dock or to rest the camera
-## eases back out to the map and the HUD comes back. The bus does nothing of its own
-## through it. Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the
+## planet, or at the point in space where that system has the bus come to rest. The iris
+## opens there, the bus frameshifts in, and as it flies in to dock, or stops there at rest
+## on a full tank, the camera eases back out to the map; bringing the HUD back is the
+## [Progression]'s, with The Boss's call ([FirstShiftCall]). The bus does nothing of its
+## own through it. Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the
 ## screen only fades to black and back.
+## [method warp] plays only the bus's part of it through a [WarpGate] within the system:
+## the bus turns to face the gate beside it, winds up and shifts out toward it, and after
+## [constant WARP_GAP_SECONDS] shifts in out of the far gate, heading for its planet, and
+## flies in to dock there. The camera stays where the player has it, with no iris, and the
+## HUD stays up but takes no clicks until the bus is out. Neither signal is sent.
 
 ## The screen is black: the bus is about to come out at [param system].
 signal crossed(system: StarSystem)
@@ -33,10 +39,12 @@ const RUMBLE_RATES: Array[float] = [17.0, 23.0, 29.0]
 const DARK_SECONDS := 0.4
 ## Seconds after the iris starts to open that the bus shifts in.
 const SHIFT_IN_DELAY := 0.35
-## How far off its home planet's surface, or short of where it comes to rest, the bus
-## comes out of the jump, and how fast it flies in from there, as a share of its top speed.
+## How far off its home planet's surface the bus comes out of the jump, and how fast it
+## flies in from there, as a share of its top speed.
 const ARRIVE_GAP := 2.0
 const ARRIVE_SPEED := 0.6
+## Seconds between the bus shifting out of one gate and into the other on a warp.
+const WARP_GAP_SECONDS := 0.3
 ## How far the camera's look-at point may go during the jump: anywhere.
 const CROSS_BOUNDS := 10000.0
 
@@ -46,6 +54,8 @@ const CROSS_BOUNDS := 10000.0
 
 var _phase := Phase.NONE
 var _target: StarSystem
+# The gate the bus comes out of on a warp, or null on a jump to another system.
+var _exit: WarpGate
 var _direction := Vector3.BACK
 var _time := 0.0
 # The bus's heading as the turn starts.
@@ -84,9 +94,26 @@ func start(target: StarSystem) -> void:
 	if is_jumping() or not target.home:
 		return
 	_target = target
-	_direction = _flat(_destination().get_target(bus.global_position, 0.0) - bus.global_position)
-	_direction = _direction.normalized() if _direction.length_squared() > 1e-6 else Vector3.BACK
-	bus.process_mode = Node.PROCESS_MODE_DISABLED
+	_exit = null
+	_begin(_destination().get_target(bus.global_position, 0.0))
+
+
+## Warps the bus through [param from], the gate beside the planet it is docked at, and out
+## of [param to], to dock at that gate's planet.
+func warp(from: WarpGate, to: WarpGate) -> void:
+	if is_jumping():
+		return
+	_target = null
+	_exit = to
+	_face(from.global_position)
+	hud.cover()
+	_time = 0.0
+	_phase = Phase.CLOSING_IN
+
+
+# Starts closing in on the bus, which will leave toward [param toward].
+func _begin(toward: Vector3) -> void:
+	_face(toward)
 	hud.cover()
 	hud.hide_all()
 	rig.locked = true
@@ -98,6 +125,13 @@ func start(target: StarSystem) -> void:
 	rig.focus(anchor, FrameshiftBus.RADIUS, FrameshiftShift.DISTANCE)
 	_time = 0.0
 	_phase = Phase.CLOSING_IN
+
+
+# Holds the bus still, to leave toward [param toward].
+func _face(toward: Vector3) -> void:
+	_direction = _flat(toward - bus.global_position)
+	_direction = _direction.normalized() if _direction.length_squared() > 1e-6 else Vector3.BACK
+	bus.process_mode = Node.PROCESS_MODE_DISABLED
 
 
 # Swings the bus round to face the next system, banking into the turn.
@@ -141,6 +175,9 @@ func _leave() -> void:
 		var from := bus.global_position
 		var to := from + _direction * FrameshiftShift.DISTANCE
 		(%Shift as FrameshiftShift).shift_out(bus, bus.get_model(), from, to)
+	if _exit:
+		_warp_out()
+		return
 	await (%Iris as JumpIris).close(_on_screen(anchor.global_position))
 	# Halfway to where the bus comes to rest in space, so it shows with the star.
 	rig.move_to(_target.position + _target.jump_arrival * 0.5)
@@ -151,6 +188,22 @@ func _leave() -> void:
 	anchor.global_position = arrival
 	await get_tree().create_timer(DARK_SECONDS, false).timeout
 	_arrive_in(arrival)
+
+
+# Out of the far gate, heading for its planet, with the camera left where it is.
+func _warp_out() -> void:
+	await get_tree().create_timer(FrameshiftShift.SECONDS + WARP_GAP_SECONDS, false).timeout
+	var toward := _flat(_exit.planet.get_body_global_position() - _exit.get_exit_point())
+	_direction = toward.normalized() if toward.length_squared() > 1e-6 else _direction
+	bus.rotation.y = atan2(_direction.x, _direction.z)
+	var arrival := _arrival_point()
+	bus.global_position = arrival
+	_phase = Phase.ARRIVING
+	if Settings.reduce_motion:
+		_arrive()
+		return
+	var from := arrival - _direction * FrameshiftShift.DISTANCE
+	(%Shift as FrameshiftShift).shift_in(bus, bus.get_model(), from, arrival)
 
 
 # Into the new system: the iris opens on where the bus comes out, and it shifts in.
@@ -177,28 +230,35 @@ func _arrive() -> void:
 	_phase = Phase.NONE
 	bus.get_model().show()
 	bus.process_mode = Node.PROCESS_MODE_INHERIT
+	# Coming out where it rests, it is there at once, with nothing to fly.
 	bus.fly_in(_destination(), bus.max_speed * ARRIVE_SPEED)
+	if _exit:
+		hud.uncover()
+		return
 	rig.release_focus()
 	rig.locked = false
-	hud.reveal_all()
 	finished.emit(_target)
 
 
 # Seconds the camera takes to close in on the bus: none under Reduce motion, where it cuts.
 func _close_in_seconds() -> float:
-	return 0.0 if Settings.reduce_motion else rig.get_focus_seconds()
+	return 0.0 if Settings.reduce_motion or _exit else rig.get_focus_seconds()
 
 
-# Where the bus comes out of the jump: off the home planet's side it came from, or short of
-# where it comes to rest.
+# Where the bus comes out of the jump: off the home planet's side it came from, or where it
+# comes to rest, or at the far gate on a warp.
 func _arrival_point() -> Vector3:
+	if _exit:
+		return _exit.get_exit_point()
 	if _target.jump_arrival == Vector3.ZERO:
 		return RouteStop.approach_point(_target.home, -_direction, ARRIVE_GAP)
-	return _flat(_target.global_position + _target.jump_arrival) - _direction * ARRIVE_GAP
+	return _flat(_target.global_position + _target.jump_arrival)
 
 
 # Where the bus flies in to after the jump: its home planet, or a point in space.
 func _destination() -> RouteStop:
+	if _exit:
+		return RouteStop.at_planet(_exit.planet)
 	if _target.jump_arrival == Vector3.ZERO:
 		return RouteStop.at_planet(_target.home)
 	return RouteStop.at_point(_flat(_target.global_position + _target.jump_arrival))

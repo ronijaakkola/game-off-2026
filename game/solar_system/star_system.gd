@@ -18,11 +18,23 @@ extends Node3D
 @export_range(1.0, 200.0, 0.1, "or_greater") var bounds_radius := 18.0
 ## How far out the camera may zoom while the bus works here, so the whole system fits.
 @export_range(1.0, 400.0, 0.1, "or_greater") var max_distance := 55.0
+## What The Boss says as the bus arrives here after a jump, with only the bus bars showing.
+@export_multiline var arrival_call := ""
+## What The Boss says with the promotion out of here, answered, in place of their usual
+## words. Empty for the usual ones.
+@export_multiline var promotion_call := ""
+## The share of the passengers who turn up here that are Business, whatever the rating.
+## Below 0, the band the recent rating is in sets it.
+@export_range(-1.0, 1.0, 0.05) var business_share := -1.0
+## How many times the fare per unit flown every fare here is, so the systems further on,
+## whose upgrades cost more, pay for them.
+@export_range(0.1, 10.0, 0.05) var fare_multiplier := 1.0
 
 @export_group("Goals")
-## The goals a promotion takes here: deliver this many passengers, and keep this recent
-## rating.
+## The goals a promotion takes here: deliver this many passengers, this many of them
+## Business (0 for no such goal), and keep this recent rating.
 @export_range(1, 1000, 1) var deliveries := 30
+@export_range(0, 1000, 1) var business_deliveries := 0
 @export_range(0.0, 5.0, 0.05) var rating := 3.5
 
 @export_group("Heat zone")

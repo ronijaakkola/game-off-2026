@@ -14,6 +14,8 @@ extends Resource
 @export var description := ""
 ## Multiplies the trip's base fare.
 @export_range(0.0, 5.0, 0.05) var fare_multiplier := 1.0
+## The research points they earn when delivered.
+@export_range(0, 10, 1) var research_points := 1
 ## How long they expect the ride to take, as a multiple of the direct trip time. Their
 ## timing only starts to cost happiness past it.
 @export_range(1.0, 5.0, 0.05) var slack := 1.5
