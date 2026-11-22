@@ -170,7 +170,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 **The target** is worked out fresh every frame:
 
 - 64 for a bus that does its job, plus the comfort bonuses and the lounge's (no higher than 100 together), less the heat's discomfort (Temperature), less frustration. Timing isn't in it.
-- While a request is open, the target is 0, from 1.5 s of flying after it opened: serving it at once costs nothing. Ignoring a request must always cost more than serving it.
+- While a request is open, the target is 0, from 1.5 s of flying after it opened, and happiness falls toward it at 4.5 a second, faster than for anything else: serving it at once costs nothing, and leaving it costs a star in under 2 s. Requests are rarer than they were at 3 a second (Needs and serving), so each one weighs more and a ride's rating comes out the same: over 12 seeds the scripted player rates 3.99 and one who takes everyone and answers in about 8 s 3.31, as before both changes (4.00 and 3.27). Ignoring a request must always cost more than serving it.
 - While anything is serving the request, happiness holds rather than falling, since they can see it coming.
 
 **Timing** is paid on arrival:
@@ -202,12 +202,13 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 
 There are no good shocks: one would fall away at 3 a second, gone in seconds.
 
-**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once rides at 64 and gets off at 64 + 12 = 76, and 4 stars takes 70, so it takes about two seconds of an open request near the end, or arriving a fair bit late, to cost the star. At 60 a single second did, and the rating turned on slips too small to see. Over many rides a bare bus averages about 3.8 (3.77 over 12 seeds): 3.8 with quick hands, 3.3 with slow ones and a full bus. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
+**What a bus can reach.** A bare bus gives 4 stars for a clean ride and 3 otherwise: a direct trip with every request served at once rides at 64 and gets off at 64 + 12 = 76, and 4 stars takes 70, so it takes a little over a second of an open request past its leeway near the end, or arriving a fair bit late, to cost the star. At 60 a single second did, and the rating turned on slips too small to see. Over many rides a bare bus averages about 3.7 (3.71 over 12 seeds), 3.3 with slow hands and a full bus. Five stars takes about 90, which only the comfort upgrades reach. A fully upgraded bus sits at about 100 before timing.
 
 ### Needs and serving
 
 - Each passenger type has a few needs. The Commuter's are a snack and a drink, both food.
-- A need asks again a random while after the last one's served activity ends: 8 to 20 s for a snack, 10 to 25 s for a drink. An open one is a **request**. The times are short because rides are (about 20 s): half of all rides should hold a request, or serving decides nothing and the food upgrades answer nothing.
+- A need asks again a random while after the last one's served activity ends: 20 to 40 s for a snack, 26 to 50 s for a drink. An open one is a **request**. Rides are short (about 20 s), so about a third of them hold a request, 0.55 a ride: few enough that each is noticed, and enough that the food upgrades answer something. At 8 to 20 s and 10 to 25 s it was 0.82 a ride, and serving was a chore that ran all flight.
+- **Everyone comes on board with a hunger of their own:** the first wait of each need is a random part of one of its waits, from a quarter of it to all of it. With a whole wait for everyone, those picked up together asked together: of three, two asked within 3 s of each other on 68 % of flights, against 40 % now.
 - **One request at a time.** The other needs' timers wait while one is open, so serving one doesn't set off the rest.
 - **Not everyone asks at once.** The bus holds two fewer open requests than it has seats, and at least one: 2 with 4 seats, 3 with 5. A need that comes up past that waits until one is served.
 - **A request never expires.** One that did would make ignoring a passenger cheaper than serving them.
@@ -339,7 +340,7 @@ An upgrade is in one of six states:
 There are three trees, all paid for with the same research points. Frost, Terra and Giant have a lab; the rest have none.
 
 - They branch and join like talent trees: an early upgrade opens more than one, and the last rows hold upgrades that either of two branches reaches. An upgrade can need nothing even below the top row, open once its stage is. Only a tree or a stage that isn't open hides an upgrade; none is marked hidden.
-- **Costs come in levels,** the same in every tree. The first stage has two: 120 credits and 2 points on its first row, 240 and 4 on its second. After it come 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Express service on row 5 costs 800 and 10, Station cameras on row 3 costs 300 and 4. Credits come in at about 200 a minute and research points at about 3.9, so in the first stage credits are what the player waits for. At 150 and 300 the scripted player had 8 of the stage's upgrades by minute 10, against 10 now. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
+- **Costs come in levels,** the same in every tree. The first stage has two: 120 credits and 2 points on its first row, 240 and 4 on its second. After it come 300 and 4, 550 and 7, 800 and 10, and 1,100 and 14. Each upgrade has its own level, which usually rises down the tree but needn't match its row: Express service on row 5 costs 800 and 10, Station cameras on row 3 costs 300 and 4. Credits come in at about 240 a minute and research points at about 5, so in the first stage credits are what the player waits for. The scripted player has 7 of the stage's upgrades by minute 5, about when Sol's goals are met, and 12 by minute 10. Dearer shuts out the player who struggles: at 140 and 280 the scripted player has 10 by minute 10 and 5-star rides fall from 15 % to 5 %, and one who takes everyone and answers requests in about 8 s misses Sol's rating goal in 2 runs of 12 (3 of 12 at 150 and 300, none now), since the comfort upgrades are what lift them over it. Much cheaper in credits, and fares, moods and Business passengers stop mattering.
 - An upgrade that isn't implemented says so on its card and changes nothing when researched.
 
 "A ← B" means A needs B; "A ← B or C" means either one opens it.
@@ -483,7 +484,6 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **The goals:** after The Boss's first-shift call (The start), a hint beside the goal panel says it shows the goals that reach the promotion.
 - **Quests:** the first time the player takes on a quest, once its row has slid into the goal panel, a hint beside the panel's quests says the active quests show up there.
 - **Business passengers:** the first time a Business passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they ask more but pay better.
-- **More than one stop:** the first time the bus waits at a planet with passengers on board going to two different planets, once those getting off there are off and their cards have slid in, a hint above the route bar says to hold the queue key and right click each planet to add it to the route. It isn't offered once the player has set a route through two planets themselves, until the game is next loaded.
 
 ## Save game
 

@@ -156,8 +156,8 @@ const CARDS := {
 		title = "Chain stops",
 		text =
 		(
-			"Welcome home! You can also chain stops together: hold {queue_key} as you right "
-			+ "click {mouse_right} to add each one to the end of your route."
+			"Welcome home! Tip: you can also chain stops together: hold {queue_key} as you "
+			+ "right click {mouse_right} to add each one to the end of your route."
 		),
 		side = GuideCard.Side.ABOVE,
 		got_it = true,

@@ -152,10 +152,6 @@ cast_shadow = 0
 mesh = SubResource("QuadMesh_halo")
 surface_material_override/0 = SubResource("ShaderMaterial_halo")
 
-[node name="Light" type="OmniLight3D" parent="Star" unique_id=671491372]
-omni_range = 40.0
-omni_attenuation = 0.0
-
 [node name="Ember" type="Node3D" parent="." unique_id=1041072857]
 script = ExtResource("2_planet")
 display_name = "Ember"

@@ -116,8 +116,8 @@ var _rng: RandomNumberGenerator
 var _activity_left := 0.0
 # Whether the current activity is a served need, which no new request interrupts.
 var _busy := false
-# Seconds until each need in type.needs asks again.
-var _need_timers := PackedFloat32Array()
+# When each of their type's needs next asks.
+var _appetite: Appetite
 # Whether the bus has left the planet they boarded at. Happiness holds until it has.
 var _departed := false
 # Whether a shock reached them before the bus left, so they no longer start at the target.
@@ -145,8 +145,7 @@ func _init(
 	name = _pick(type.names)
 	fare = base_fare * type.fare_multiplier
 	ride = RideProgress.new(trip_seconds, trip_seconds * type.slack, type.stop_tolerance)
-	for need: Need in type.needs:
-		_need_timers.append(_interval(need))
+	_appetite = Appetite.new(type.needs, type.need_interval_scale, _rng)
 	activity = BOARDING_LINE
 	_activity_left = BOARDING_SECONDS
 	race = Race.random(_rng)
@@ -182,9 +181,7 @@ static func from_save(
 	passenger._activity_left = 0.0
 	passenger._departed = bool(saved.get("departed", false))
 	passenger._shaken = bool(saved.get("shaken", false))
-	var timers: Array = saved.get("need_timers", [])
-	for i: int in mini(timers.size(), passenger._need_timers.size()):
-		passenger._need_timers[i] = float(timers[i])
+	passenger._appetite.load_save(saved.get("need_timers", []))
 	var held := int(saved.get("held_need", -1))
 	if held >= 0 and held < kind.needs.size():
 		passenger._held_request = kind.needs[held]
@@ -223,8 +220,7 @@ func get_payout(tip := 0.0) -> int:
 ## next one is [param scale] times as long. For someone just on board, as Free station
 ## coffee does.
 func delay_requests(scale: float) -> void:
-	for i: int in _need_timers.size():
-		_need_timers[i] *= scale
+	_appetite.delay(scale)
 
 
 ## The stars they rate the ride on getting off now, from 0 to [constant MAX_STARS]: their
@@ -354,6 +350,8 @@ func tick(
 		# A request on its way holds them where they are: they can see it coming.
 		var target := happiness if fed else get_target(giving)
 		var speed := CLIMB_RATE if target >= happiness else FALL_RATE
+		if request and target < happiness and _request_age >= REQUEST_LEEWAY:
+			speed = request.fall_rate
 		var before := happiness
 		happiness = move_toward(happiness, target, speed * delta)
 		if delta > 0.0:
@@ -369,8 +367,7 @@ func tick(
 		return
 	_activity_left -= delta
 	if not asleep and not _held_request and not docked:
-		for i: int in _need_timers.size():
-			_need_timers[i] -= delta
+		_appetite.run(delta)
 	if (_busy or asleep) and _activity_left > 0.0:
 		return
 	_busy = false
@@ -379,11 +376,10 @@ func tick(
 	if not watching or _activity_left <= 0.0:
 		watching = false
 		action = Need.Action.NONE
-	if not stopped and not _held_request and can_ask:
-		for i: int in _need_timers.size():
-			if _need_timers[i] <= 0.0:
-				_open(type.needs[i])
-				return
+	var due := _appetite.get_due()
+	if due and not stopped and not _held_request and can_ask:
+		_open(due)
+		return
 	if _activity_left <= 0.0:
 		_idle(giving)
 
@@ -408,7 +404,7 @@ func to_save() -> Dictionary:
 		"departed": _departed,
 		"shaken": _shaken,
 		"clock": ride.clock,
-		"need_timers": Array(_need_timers),
+		"need_timers": _appetite.to_save(),
 		"held_need": type.needs.find(held) if held else -1,
 		"request_age": _request_age,
 		"lounge_bonus": lounge_bonus,
@@ -483,11 +479,8 @@ func _open(need: Need) -> void:
 
 
 func _close(line: String, seconds: float) -> void:
-	# The next request waits its interval from when this activity ends. A request that
-	# isn't one of the type's needs has no timer to reset.
-	var index := type.needs.find(request)
-	if index >= 0:
-		_need_timers[index] = seconds + _interval(request)
+	# The next request waits its interval from when this activity ends.
+	_appetite.rest(request, seconds)
 	action = request.served_action
 	served = request
 	request = null
@@ -520,11 +513,6 @@ func _idle(comfort: Comfort) -> void:
 		_activity_left = _rng.randf_range(comfort.watch_min, comfort.watch_max)
 	else:
 		_activity_left = _rng.randf_range(IDLE_MIN, IDLE_MAX)
-
-
-func _interval(need: Need) -> float:
-	var seconds := _rng.randf_range(need.min_interval, maxf(need.min_interval, need.max_interval))
-	return seconds * type.need_interval_scale
 
 
 func _pick(lines: Array[String]) -> String:

@@ -13,6 +13,9 @@ extends Node3D
 enum Border { NONE, HOVER, ROUTE }
 
 const SEGMENTS := 128
+## How far the world's scale may drift, as a share of it, before a moving zoom rebuilds the
+## orbit line: its width is off by that share meanwhile, well under a pixel.
+const LINE_SCALE_STEP := 0.03
 ## The name's colour: an off-white with the sky's lilac, a little see-through.
 const LABEL_COLOR := Color(0.93, 0.92, 1.0, 0.85)
 ## A thin outline in the sky's navy, so the name still reads over orbit lines and rings.
@@ -194,8 +197,10 @@ var _surface := MeshInstance3D.new()
 var _rings := MeshInstance3D.new()
 var _outline := MeshInstance3D.new()
 var _label := Label3D.new()
-# The world scale the orbit line was last built for, so it keeps its width.
+# The world scale the orbit line was last built for, so it keeps its width, and the scale
+# a frame ago.
 var _line_scale := 1.0
+var _last_scale := 1.0
 # This planet's own copy of the orbit material while the line is faded, so the fade
 # changes it alone. Null until it first fades.
 var _faded_orbit_material: StandardMaterial3D
@@ -232,8 +237,7 @@ func _process(delta: float) -> void:
 		return
 	_time += delta
 	orbit_time += delta * orbit_speed
-	if not is_equal_approx(get_world_scale(), _line_scale):
-		_build_orbit_line()
+	_follow_world_scale()
 	_place_body()
 	if spin_period != 0.0:
 		_surface.rotation.y = TAU * _time / spin_period
@@ -365,6 +369,19 @@ func _place_body() -> void:
 		var moon := child as Planet
 		if moon:
 			moon.set_orbit_center(get_body_position(), get_body_velocity())
+
+
+# Rebuilds the orbit line once the world's scale has left the one it was built for: at
+# every LINE_SCALE_STEP while the scale moves, since building a mesh every frame of a zoom
+# costs frames, and exactly once it holds still. A line that doesn't show waits.
+func _follow_world_scale() -> void:
+	var world_scale := get_world_scale()
+	var settled := is_equal_approx(world_scale, _last_scale)
+	_last_scale = world_scale
+	if is_equal_approx(world_scale, _line_scale) or not _orbit_line.is_visible_in_tree():
+		return
+	if settled or absf(world_scale / _line_scale - 1.0) > LINE_SCALE_STEP:
+		_build_orbit_line()
 
 
 # The orbit line's mesh, as wide in global space as orbit_width at the world's scale now.
