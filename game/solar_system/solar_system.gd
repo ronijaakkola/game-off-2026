@@ -334,7 +334,7 @@ func _start_passengers() -> void:
 	var planets := (%StarMap as StarMap).get_active_planets()
 	waiting.start(planets, bus.get_docked_planet(), _ledger)
 	bus.docked.connect(_on_bus_docked)
-	bus.left_warm.connect(_on_bus_left_warm)
+	bus.left_quickly.connect(_on_bus_left_quickly)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
 	cabin.kicked.connect(_on_kicked)
@@ -348,7 +348,7 @@ func _start_passengers() -> void:
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
 	# Researching takes the time a quick stop doesn't have.
-	lab.get_research().researched.connect(func(_upgrade: Upgrade) -> void: bus.drive.go_cold())
+	lab.get_research().researched.connect(func(_upgrade: Upgrade) -> void: bus.drive.end_stop())
 	cabin.unloaded.connect(lab.commit)
 	cabin.unloaded.connect(func() -> void: bus.unloading = false)
 	cabin.stop_finished.connect(_on_stop_finished)
@@ -385,7 +385,7 @@ func _on_map_zoomed_out() -> void:
 	(%FirstShiftCall as FirstShiftCall).play()
 
 
-func _on_bus_left_warm() -> void:
+func _on_bus_left_quickly() -> void:
 	(%Cabin as Cabin).cheer_quick_stop()
 	(%BusQuickText as BusQuickText).show_text(QUICK_STOP, QUICK_STOP_ICON)
 

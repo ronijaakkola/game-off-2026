@@ -4,10 +4,10 @@ extends Node3D
 ## doesn't move it from a planet: the player charges the [FrameshiftDrive] by holding the
 ## Frameshift key for [member charge_time], the bus turning toward its next stop meanwhile,
 ## then it flies there. It passes through points in space and docks at every planet on its
-## route, and holds still at a point in space that ends the route. Docking, unless towed,
-## the drive is warm: once the passengers getting off are off it cools over
-## [member cool_time]. A charge started warm starts from the warmth left and builds
-## [member warm_boost] times as fast; let go, the drive goes cold. A new course in flight starts
+## route, and holds still at a point in space that ends the route. Leaving a planet within
+## [member quick_time] of the passengers getting off being off, unless towed in, is a quick
+## stop. With the Warm drive the drive is warm meanwhile, cooling over that time, and a
+## charge started warm takes [member warm_charge_time]. A new course in flight starts
 ## at once, with no charge, as does one in space up to [member warm_time] after stopping.
 ## Flying to a planet, it slows down as it nears it, then parks: it glides the last stretch
 ## and swings side-on, with its door toward the planet. It has docked once it is parked.
@@ -27,8 +27,8 @@ signal ran_out_of_fuel
 ## A tow from [method tow_to] docked at [param planet] and the tank is full again. Emitted
 ## before [signal docked].
 signal towed(planet: Planet)
-## The bus left a planet on a charge started warm and never let go: a quick stop.
-signal left_warm
+## The bus left a planet within [member quick_time] of its stop: a quick stop.
+signal left_quickly
 
 enum State { DOCKED, CHARGING, FLYING, HOLDING, PARKING }
 
@@ -64,16 +64,16 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 		_drive.charge_time = value
 ## Seconds the drive stays warm after the bus stops in space: a course set later waits for a charge.
 @export_range(0.0, 30.0, 0.1) var warm_time := 1.0
-## Seconds the drive stays warm at a planet once those getting off are off: WARM_TIME's base.
-@export_range(0.0, 30.0, 0.1) var cool_time := 4.0:
+## Seconds after those getting off are off within which leaving a planet is a quick stop.
+@export_range(0.0, 30.0, 0.1) var quick_time := 7.0:
 	set(value):
-		cool_time = value
-		_stats.get_stat(BusStats.Type.WARM_TIME).base = value
-## How many times as fast a charge started warm builds.
-@export_range(1.0, 5.0, 0.05) var warm_boost := 1.5:
+		quick_time = value
+		_drive.quick_time = value
+## Seconds of holding a charge started warm would take from empty, with the Warm drive.
+@export_range(0.0, 3.0, 0.05) var warm_charge_time := 0.5:
 	set(value):
-		warm_boost = value
-		_drive.warm_boost = value
+		warm_charge_time = value
+		_drive.warm_charge_time = value
 ## Top speed before upgrades: the base of the MAX_SPEED stat ([method get_stats]). Planets
 ## orbit at under 0.5, so the bus can catch one.
 @export_range(0.1, 20.0, 0.05) var max_speed := 1.2:
@@ -102,7 +102,7 @@ var start_direction := Vector3.BACK
 ## charged bus waits until they are done before it leaves. The scene that runs the
 ## passengers sets it.
 var boarding := false
-## Whether passengers are getting off. Meanwhile a warm drive doesn't cool. The scene that
+## Whether passengers are getting off. Meanwhile the stop's clock holds. The scene that
 ## runs the passengers sets it.
 var unloading := false
 ## The last stop on the route, or null when there is no route.
@@ -121,7 +121,7 @@ var frameshift_held: bool:
 var temperature: BusTemperature:
 	get:
 		return %Temperature as BusTemperature
-## The frameshift drive, for the scene to make cold when a stop is spent on research.
+## The frameshift drive, for the scene to end a quick stop spent on research.
 var drive: FrameshiftDrive:
 	get:
 		return _drive
@@ -144,7 +144,7 @@ var grounded := false:
 var felt_push := FeltPush.new()
 
 var _route: Array[RouteStop] = []
-var _drive := FrameshiftDrive.new()
+var _drive := FrameshiftDrive.new(charge_time, quick_time, warm_charge_time)
 var _stats := BusStats.new()
 var _towing := false
 var _glide := DockGlide.new()
@@ -157,9 +157,6 @@ var _holding_time := 0.0
 # through the export's setter.
 func _init() -> void:
 	_stats.get_stat(BusStats.Type.MAX_SPEED).base = max_speed
-	_drive.charge_time = charge_time
-	_drive.follow(_stats.get_stat(BusStats.Type.WARM_TIME), cool_time)
-	_drive.warm_boost = warm_boost
 
 
 func _ready() -> void:
@@ -371,12 +368,12 @@ func estimate_time_to_next_planet() -> float:
 
 
 func _process(delta: float) -> void:
+	if is_at_planet() and not unloading:
+		_drive.wait(delta)
 	match state:
 		State.DOCKED:
 			_follow_dock(delta)
 			_face_dock_side(delta)
-			if not unloading:
-				_drive.cool(delta)
 			_start_charge()
 			if state == State.DOCKED:
 				%ChargeRing.show_progress(global_position, get_warmth())
@@ -385,10 +382,10 @@ func _process(delta: float) -> void:
 			_face_next_stop(delta)
 			_drive.advance(delta)
 			if _drive.is_charged() and not boarding:
-				var quick := _drive.is_warm_charge()
+				var quick := _drive.is_quick_stop()
 				_undock()
 				if quick:
-					left_warm.emit()
+					left_quickly.emit()
 			elif _drive.is_drained():
 				_stop_charge()
 			else:
@@ -406,8 +403,11 @@ func _process(delta: float) -> void:
 			_holding_time += delta
 			_start_charge()
 	_feel(delta)
-	# The thrusters light up as the drive charges, burn in flight (not towed) and fade after.
-	var thrust := 1.0 if state == State.FLYING and not _towing else get_charge_progress()
+	# The thrusters light up as the drive charges and burn in flight (not towed). With the
+	# Warm drive they keep burning as the bus parks, then fade with the warmth.
+	var warm := state == State.PARKING and _stats.get_traits().has(BusTraits.Type.WARM_DRIVE)
+	var burning := (state == State.FLYING or warm) and not _towing
+	var thrust := 1.0 if burning else maxf(get_charge_progress(), get_warmth())
 	var still := state != State.FLYING
 	(%Model as BusModel).animate(delta, still, get_charge_progress(), _turn_rate, thrust)
 	var burn := (%Model as BusModel).thrust if state == State.FLYING else 0.0
@@ -524,7 +524,7 @@ func _arrive(stop: RouteStop) -> void:
 # Parked side-on: the bus has docked. It waits there, course or not, for the drive.
 func _finish_docking() -> void:
 	state = State.DOCKED
-	_drive.warm_up(not _towing)
+	_drive.begin_stop(not _towing, _stats.get_traits().has(BusTraits.Type.WARM_DRIVE))
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
 	if _towing:
@@ -560,7 +560,7 @@ func _undock() -> void:
 	%ChargeRing.show_progress(global_position, 0.0)
 	_drive.clear()
 	_drive.held = false
-	_drive.warm_up(false)
+	_drive.end_stop()
 	_glide.planet = null
 	state = State.FLYING if not _route.is_empty() else State.HOLDING
 

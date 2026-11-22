@@ -21,7 +21,6 @@ const STAT_NAMES := {
 	BusStats.Type.FUEL_CAPACITY: "Fuel tank",
 	BusStats.Type.SEATS: "Seats",
 	BusStats.Type.PORTION_SIZE: "Portion size",
-	BusStats.Type.WARM_TIME: "Warm time",
 	BusStats.Type.PUMP_SPEED: "Pump speed",
 	BusStats.Type.SERVING_SPEED: "Serving speed",
 }
@@ -29,7 +28,6 @@ const STAT_NAMES := {
 const VALUE_FORMATS := {
 	BusStats.Type.FUEL_CAPACITY: "%.0f",
 	BusStats.Type.PORTION_SIZE: "%.1fx",
-	BusStats.Type.WARM_TIME: "%.1f s",
 	BusStats.Type.PUMP_SPEED: "%.1fx",
 	BusStats.Type.SERVING_SPEED: "%.1fx",
 }
@@ -49,6 +47,7 @@ const TRAIT_NAMES := {
 	BusTraits.Type.TIP_JAR: "Tip jar",
 	BusTraits.Type.FREE_COFFEE: "Free station coffee",
 	BusTraits.Type.TIMETABLES: "Timetables",
+	BusTraits.Type.WARM_DRIVE: "Warm drive",
 }
 
 ## The width of each row's delta slot, wide enough for "+100%".
@@ -111,7 +110,7 @@ func _make_row(type: BusStats.Type) -> HBoxContainer:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override(&"separation", 12)
 	var name_label := _make_label("NameLabel")
-	name_label.text = STAT_NAMES.get(type, String(BusStats.Type.keys()[type]).capitalize())
+	name_label.text = STAT_NAMES.get(type, String(BusStats.Type.find_key(type)).capitalize())
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_label)
 	var value_label := _make_label("ValueLabel")
