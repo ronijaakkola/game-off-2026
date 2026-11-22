@@ -679,6 +679,130 @@ opentype_features = {
 spacing_top = -2
 spacing_bottom = -4
 
+[sub_resource type="FontVariation" id="FontVariation_700_italic"]
+base_font = ExtResource("1_baloo")
+variation_opentype = {
+2003265652: 700
+}
+variation_transform = Transform2D(1, 0.25, 0, 1, 0, 0)
+opentype_features = {
+1953396077: 1
+}
+spacing_top = -2
+spacing_bottom = -4
+
+[sub_resource type="FontVariation" id="FontVariation_title_italic"]
+base_font = ExtResource("1_baloo")
+variation_opentype = {
+2003265652: 700
+}
+variation_transform = Transform2D(1, 0.25, 0, 1, 0, 0)
+spacing_top = -10
+spacing_bottom = -10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slant"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(1, 1, 1, 0.1412)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+skew = Vector2(0.176, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slant_hover"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(1, 1, 1, 0.2196)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+skew = Vector2(0.176, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slant_pressed"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(1, 1, 1, 0.0784)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+skew = Vector2(0.176, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slant_focus"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.957, 0.945, 1, 0.651)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+expand_margin_left = 6.0
+expand_margin_top = 6.0
+expand_margin_right = 6.0
+expand_margin_bottom = 6.0
+skew = Vector2(0.176, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slant_primary"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(0.957, 0.945, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+skew = Vector2(0.176, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slant_primary_hover"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+skew = Vector2(0.176, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slant_primary_pressed"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(0.8353, 0.8157, 0.9176, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+skew = Vector2(0.176, 0)
+
 [resource]
 default_font = SubResource("FontVariation_600")
 default_font_size = 13
@@ -824,6 +948,37 @@ SettingLabel/font_sizes/font_size = 14
 SettingLabel/fonts/font = SubResource("FontVariation_500")
 SheetPanel/base_type = &"PanelContainer"
 SheetPanel/styles/panel = SubResource("StyleBoxFlat_sheet")
+SlantButton/base_type = &"Button"
+SlantButton/constants/h_separation = 12
+SlantButton/constants/icon_max_width = 18
+SlantButton/font_sizes/font_size = 17
+SlantButton/fonts/font = SubResource("FontVariation_700_italic")
+SlantButton/styles/focus = SubResource("StyleBoxFlat_slant_focus")
+SlantButton/styles/hover = SubResource("StyleBoxFlat_slant_hover")
+SlantButton/styles/hover_pressed = SubResource("StyleBoxFlat_slant_pressed")
+SlantButton/styles/normal = SubResource("StyleBoxFlat_slant")
+SlantButton/styles/pressed = SubResource("StyleBoxFlat_slant_pressed")
+SlantPrimaryButton/base_type = &"SlantButton"
+SlantPrimaryButton/colors/font_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/font_focus_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/font_hover_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/font_hover_pressed_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/font_pressed_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/icon_focus_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/icon_hover_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/icon_hover_pressed_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/icon_normal_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/colors/icon_pressed_color = Color(0.1059, 0.0902, 0.251, 1)
+SlantPrimaryButton/constants/h_separation = 14
+SlantPrimaryButton/constants/icon_max_width = 22
+SlantPrimaryButton/font_sizes/font_size = 22
+SlantPrimaryButton/styles/hover = SubResource("StyleBoxFlat_slant_primary_hover")
+SlantPrimaryButton/styles/hover_pressed = SubResource("StyleBoxFlat_slant_primary_pressed")
+SlantPrimaryButton/styles/normal = SubResource("StyleBoxFlat_slant_primary")
+SlantPrimaryButton/styles/pressed = SubResource("StyleBoxFlat_slant_primary_pressed")
+SlantTitleLabel/base_type = &"Label"
+SlantTitleLabel/font_sizes/font_size = 64
+SlantTitleLabel/fonts/font = SubResource("FontVariation_title_italic")
 SmallButton/base_type = &"Button"
 SmallButton/font_sizes/font_size = 11
 SmallButton/fonts/font = SubResource("FontVariation_700_small")

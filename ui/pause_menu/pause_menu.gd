@@ -6,9 +6,11 @@ extends CanvasLayer
 ## takes input while the game is paused, and its layer draws it over the game's own UI.
 ## Whatever else pauses the game, such as the research screen, holds the pause the same
 ## way ([method hold], [method release]), so the game runs again only once nothing holds it.
+## It shows over the game as it stood, blurred and dimmed, its HUD too: its layer draws
+## over theirs, so the backdrop's glass reads them from the screen.
 ## It fades in; it closes at once, as the game picks up again at once.
 ## While [member offers_skip_tutorial], as through the tutorial, a Skip tutorial button
-## sits at the top, a little apart from the rest: it closes the menu and
+## sits at the bottom, a little apart from the rest: it closes the menu and
 ## [signal skip_tutorial_pressed].
 
 ## The player pressed Skip tutorial.
