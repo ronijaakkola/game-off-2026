@@ -266,6 +266,11 @@ EXPORT_LINE = re.compile(r"^[ \t]*@export\w*\b[^\n]*", re.MULTILINE)
 DOTTED_NAME = re.compile(r"(?<![\w.])([A-Z]\w*)(?:\.([A-Z]\w*))?")
 # A member set or read by a name written as a literal, which a typo or a rename turns into
 # a no-op: Object.set() ignores a name the object doesn't have, and get() returns null.
+# Another object's _private member: a dot after a name, a call or an index, not after self
+# or super. A leading _ is private by the style guide, and GDScript lets anyone use it.
+PRIVATE_MEMBER = re.compile(r"(?:(?<![\w.])(?!self\b|super\b)\w+|[)\]])\s*\.\s*(_\w+)")
+# A member this script declares, so `other._name` is another instance of this same class.
+OWN_MEMBER = re.compile(r"^[ \t]*(?:static[ \t]+)?(?:var|const|func|signal)[ \t]+(_\w+)", re.MULTILINE)
 DYNAMIC_MEMBER = re.compile(r"\.\s*(set|set_deferred|get)\s*\(")
 # A func or signal declaration up to the bracket that opens its parameters, the
 # parameters in one, and a [param name] in a ## comment.
@@ -684,6 +689,7 @@ def script_problems(path: str, hook: bool) -> list[str]:
     outside = path.split("/")[0] in ("test", "tools")
     if not outside:
         problems += surroundings_problems(path, code, strings)
+        problems += private_member_problems(path, code)
     if path == EVENTS_SCRIPT:
         problems += bus_event_problems(path, code, source)
     elif path.startswith("core/"):
@@ -773,6 +779,26 @@ def dynamic_member_problems(path: str, code: str, source: str) -> list[str]:
         problems.append(
             problem(path, line_at(code, m.start()), "typed-member", message, STATIC_TYPING)
         )
+    return problems
+
+
+def private_member_problems(path: str, code: str) -> list[str]:
+    """A leading _ marks a member private, but GDScript lets any script read, set or call
+    it, so a caller can skip the public method that keeps an object's state whole, as a
+    photo calling PortraitStudio._add() would take a slot that nothing gives back. A name
+    this script declares itself is taken as another instance of the same class, as when a
+    static factory fills in a new object."""
+    own = set(OWN_MEMBER.findall(code))
+    problems = []
+    for m in PRIVATE_MEMBER.finditer(code):
+        name = m.group(1)
+        if name in own:
+            continue
+        message = (
+            f"{name} is private to another script. Call its public method instead, or add "
+            "one there that does the whole job, as PortraitStudio.lend() does for its slots."
+        )
+        problems.append(problem(path, line_at(code, m.start(1)), "private-member", message, NAMING))
     return problems
 
 

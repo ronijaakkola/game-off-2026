@@ -29,6 +29,7 @@ A file lives in the folder of the only feature that uses it. Move it to `shared/
 Follow the [Godot GDScript style guide](https://docs.godotengine.org/en/4.7/tutorials/scripting/gdscript/gdscript_styleguide.html) verbatim:
 
 - snake_case folders and files, PascalCase node names and `class_name`, snake_case functions and variables, CONSTANT_CASE constants, a leading `_` for private members.
+- A `_` member is the script's own. GDScript lets any script use one, so a caller can skip the public method that keeps the object whole, as a photo taking a slot with `PortraitStudio._add()` would leave it taken once the photo is gone. Give the owner a public method that does the whole job (`PortraitStudio.lend()` takes the portrait back itself as the photo leaves the tree). `check.py lint` fails on `other._member` in a game script, unless this script declares a `_member` of that name, as another instance of the same class (`private-member`); tests and `tools/` may reach anywhere.
 - Signals are past tense: `docked`, `ran_out_of_fuel`.
 - A scene and its script share a base name and sit side by side: `main_menu.tscn` + `main_menu.gd`.
 - Add `class_name` only when another script refers to the type by name: a custom Resource, a component, an `is` check, a typed variable.
