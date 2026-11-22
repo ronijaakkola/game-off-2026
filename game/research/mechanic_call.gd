@@ -44,13 +44,13 @@ const RESEARCH_ANSWERS: Array[String] = ["Thanks Rusty!", "Let's do it!"]
 ## What the mechanic says as each stage after the first opens, from the second.
 const STAGE_TEXTS: Array[String] = [
 	(
-		"Good news, kid! A new shipment of parts just came in. Every tree in the research "
-		+ "lab has new upgrades for you."
+		"Good news, kid! A new shipment of parts just came in. Find a research lab, and it "
+		+ "will have a lot of new toys for you!"
 	),
 	"Last shipment, and the best I've got. The lab has the final upgrades in every tree.",
 ]
 ## The two answers to a call that opens a stage, which mean the same.
-const ANSWERS: Array[String] = ["Thanks", "On my way"]
+const ANSWERS: Array[String] = ["Thanks, Rusty!", "Will do!"]
 const DEBUG_TEXT := "Mechanic calls"
 const DEBUG_UNLOCK_TEXT := "Unlock research"
 

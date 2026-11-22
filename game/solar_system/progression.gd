@@ -201,7 +201,8 @@ func _ring() -> void:
 	if not _started or star_map.is_joined() or system_jump.is_jumping():
 		return
 	_met_seconds = 0.0
-	boss_call.ring(star_map.get_jump_target() == null and _is_last())
+	var joins := star_map.get_jump_target() == null and _is_last()
+	boss_call.ring(joins, star_map.get_current().promotion_call)
 
 
 # Whether the bus works in the last system, whose promotion joins them all.

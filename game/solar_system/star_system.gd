@@ -20,6 +20,9 @@ extends Node3D
 @export_range(1.0, 400.0, 0.1, "or_greater") var max_distance := 55.0
 ## What The Boss says as the bus arrives here after a jump, with only the bus bars showing.
 @export_multiline var arrival_call := ""
+## What The Boss says with the promotion out of here, answered, in place of their usual
+## words. Empty for the usual ones.
+@export_multiline var promotion_call := ""
 ## The share of the passengers who turn up here that are Business, whatever the rating.
 ## Below 0, the band the recent rating is in sets it.
 @export_range(-1.0, 1.0, 0.05) var business_share := -1.0
