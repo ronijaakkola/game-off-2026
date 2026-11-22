@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cw6f520btgcas"
-path="res://.godot/imported/sun.svg-55eac313b624b4269ad2ebbcdfed88a3.ctex"
+uid="uid://cnpasf7xybaxl"
+path="res://.godot/imported/placeholder_144.png-1402356fb1691b4e6243e434c8d773b8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/sun.svg"
-dest_files=["res://.godot/imported/sun.svg-55eac313b624b4269ad2ebbcdfed88a3.ctex"]
+source_file="res://game/research/icons/rendered/placeholder_144.png"
+dest_files=["res://.godot/imported/placeholder_144.png-1402356fb1691b4e6243e434c8d773b8.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=2.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

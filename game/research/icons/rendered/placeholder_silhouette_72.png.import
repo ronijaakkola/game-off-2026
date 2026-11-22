@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cqsul35bsw7i0"
-path="res://.godot/imported/bed_double.svg-a0b9db8d0526df52321c30cebe8b6904.ctex"
+uid="uid://dr7radr6jwti5"
+path="res://.godot/imported/placeholder_silhouette_72.png-d6b1904ac4b0edd7d9eaa8f1abfa7c88.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/bed_double.svg"
-dest_files=["res://.godot/imported/bed_double.svg-a0b9db8d0526df52321c30cebe8b6904.ctex"]
+source_file="res://game/research/icons/rendered/placeholder_silhouette_72.png"
+dest_files=["res://.godot/imported/placeholder_silhouette_72.png-d6b1904ac4b0edd7d9eaa8f1abfa7c88.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=2.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

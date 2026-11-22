@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ucxtgyvtytk"
-path="res://.godot/imported/gamepad_2.svg-b256aa6cd809e79be7c4bc5f4b20cf2b.ctex"
+uid="uid://3dv26fpj7gj"
+path="res://.godot/imported/placeholder_silhouette_36.png-7b34599b434f4743196a5a2a7100c4b3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/gamepad_2.svg"
-dest_files=["res://.godot/imported/gamepad_2.svg-b256aa6cd809e79be7c4bc5f4b20cf2b.ctex"]
+source_file="res://game/research/icons/rendered/placeholder_silhouette_36.png"
+dest_files=["res://.godot/imported/placeholder_silhouette_36.png-7b34599b434f4743196a5a2a7100c4b3.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=2.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

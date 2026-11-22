@@ -282,6 +282,17 @@ def timetables_model(root):
         box(root, (0.3, 0.04, 0.14), CYAN, (0.5, -0.08, z), bevel=0.02, unlit=True)
 
 
+def placeholder_model(root):
+    """A wrapped box with a bow: the picture for an upgrade with no icon of its own yet."""
+    box(root, (1.2, 1.2, 0.95), LILAC, (0, 0, 0.48), bevel=0.05)
+    box(root, (1.32, 1.32, 0.26), PALE_LILAC, (0, 0, 1.05), bevel=0.05)
+    # The ribbon round it, both ways, over the lid.
+    box(root, (0.22, 1.36, 1.3), WHITE, (0, 0, 0.66), bevel=0.02)
+    box(root, (1.36, 0.22, 1.3), WHITE, (0, 0, 0.66), bevel=0.02)
+    torus(root, 0.28, 0.1, WHITE, (-0.24, 0, 1.36), rot=(90, 0, -25))
+    torus(root, 0.28, 0.1, WHITE, (0.24, 0, 1.36), rot=(90, 0, 25))
+
+
 # How much longer and fatter the exhaust is than in flight.
 FLAME_LENGTH = 2.4
 FLAME_WIDTH = 2.0
@@ -407,6 +418,7 @@ ICONS = {
     "free_station_coffee": coffee_model,
     "timetables": timetables_model,
     "station_cameras": camera_model,
+    "placeholder": placeholder_model,
 }
 for icon in ONLY or list(ICONS):
     root = reset()

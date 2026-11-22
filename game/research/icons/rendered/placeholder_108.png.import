@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://h7iwjy8dapm2"
-path="res://.godot/imported/route.svg-148acb3d789b599900043eaae4933f13.ctex"
+uid="uid://c6nbhwr03y0h6"
+path="res://.godot/imported/placeholder_108.png-de28591e973ab77b41851e3f390b8797.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/route.svg"
-dest_files=["res://.godot/imported/route.svg-148acb3d789b599900043eaae4933f13.ctex"]
+source_file="res://game/research/icons/rendered/placeholder_108.png"
+dest_files=["res://.godot/imported/placeholder_108.png-de28591e973ab77b41851e3f390b8797.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=2.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

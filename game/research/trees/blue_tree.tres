@@ -3,15 +3,13 @@
 [ext_resource type="Script" uid="uid://lkloudqqw7eo" path="res://game/research/research_tree.gd" id="1_tree"]
 [ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
-[ext_resource type="Texture2D" uid="uid://h7iwjy8dapm2" path="res://game/research/icons/route.svg" id="6_route"]
-[ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="8_flask_conical"]
-[ext_resource type="Texture2D" uid="uid://cw6f520btgcas" path="res://game/research/icons/sun.svg" id="9_sun"]
 [ext_resource type="Texture2D" uid="uid://d0wkrmsprhvk0" path="res://game/research/icons/rocket.svg" id="20_rocket"]
 [ext_resource type="Texture2D" uid="uid://m438oejdnap5" path="res://game/research/icons/rendered/faster_pumps_36.png" id="30_faster_pumps"]
 [ext_resource type="Texture2D" uid="uid://dv83pabsrordj" path="res://game/research/icons/rendered/fuel_forecast_36.png" id="30_fuel_forecast"]
 [ext_resource type="Texture2D" uid="uid://byyowxcoinwok" path="res://game/research/icons/rendered/fuel_tank_36.png" id="30_fuel_tank"]
 [ext_resource type="Texture2D" uid="uid://biwwigvpyxyfw" path="res://game/research/icons/rendered/speed_36.png" id="30_speed"]
 [ext_resource type="Texture2D" uid="uid://cpcgqfpmhy2v8" path="res://game/research/icons/rendered/warmer_drive_36.png" id="30_warmer_drive"]
+[ext_resource type="Texture2D" uid="uid://cspxodsva0min" path="res://game/research/icons/rendered/placeholder_36.png" id="31_placeholder"]
 
 [sub_resource type="Resource" id="Resource_speed_1_mod"]
 script = ExtResource("3_modifier")
@@ -130,7 +128,7 @@ script = ExtResource("2_upgrade")
 title = "Pit crew"
 description = "Fills the tank automatically at a station.
 NOT IMPLEMENTED"
-icon = ExtResource("8_flask_conical")
+icon = ExtResource("31_placeholder")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_faster_pumps")])
@@ -142,7 +140,7 @@ script = ExtResource("2_upgrade")
 title = "How is my driving?"
 description = "Reroutes give happiness for passengers: they think you’re avoiding traffic.
 NOT IMPLEMENTED"
-icon = ExtResource("6_route")
+icon = ExtResource("31_placeholder")
 credits = 800
 points = 10
 requires = Array[Resource]([SubResource("Resource_warm_drive"), SubResource("Resource_speed_2")])
@@ -154,7 +152,7 @@ script = ExtResource("2_upgrade")
 title = "Efficient burn"
 description = "Fuel consumption gets smaller the longer your route is.
 NOT IMPLEMENTED"
-icon = ExtResource("8_flask_conical")
+icon = ExtResource("31_placeholder")
 credits = 800
 points = 10
 requires = Array[Resource]([SubResource("Resource_fuel_forecast"), SubResource("Resource_fuel_tank_2")])
@@ -166,7 +164,7 @@ script = ExtResource("2_upgrade")
 title = "Tow loyalty card"
 description = "Towing costs 25% less, and every second time is free.
 NOT IMPLEMENTED"
-icon = ExtResource("8_flask_conical")
+icon = ExtResource("31_placeholder")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_pit_crew"), SubResource("Resource_fuel_tank_2")])
@@ -194,7 +192,7 @@ script = ExtResource("2_upgrade")
 title = "Solar fuel"
 description = "Driving near a star automatically fuels the bus.
 NOT IMPLEMENTED"
-icon = ExtResource("9_sun")
+icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14
 requires = Array[Resource]([SubResource("Resource_fuel_tank_2"), SubResource("Resource_efficient_burn")])
@@ -206,7 +204,7 @@ script = ExtResource("2_upgrade")
 title = "Slingshot"
 description = "Driving past planet's gravitational field give the bus a speed boost.
 NOT IMPLEMENTED"
-icon = ExtResource("9_sun")
+icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14
 requires = Array[Resource]([SubResource("Resource_warm_drive")])
@@ -218,7 +216,7 @@ script = ExtResource("2_upgrade")
 title = "Warp gate"
 description = "Allows placing two gates at fixed points in space, and flying into one comes out of the other.
 NOT IMPLEMENTED"
-icon = ExtResource("6_route")
+icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14
 requires = Array[Resource]([SubResource("Resource_efficient_burn"), SubResource("Resource_fuel_tank_3"), SubResource("Resource_slingshot")])

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dkvmrjt67ew4c"
-path="res://.godot/imported/zap.svg-ba175bd2205fd1410046c982a8cc9f10.ctex"
+uid="uid://core7j07qqg3"
+path="res://.godot/imported/placeholder_silhouette_80.png-3539e52339ce03c50bc4c4a2d6f11ccb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/zap.svg"
-dest_files=["res://.godot/imported/zap.svg-ba175bd2205fd1410046c982a8cc9f10.ctex"]
+source_file="res://game/research/icons/rendered/placeholder_silhouette_80.png"
+dest_files=["res://.godot/imported/placeholder_silhouette_80.png-3539e52339ce03c50bc4c4a2d6f11ccb.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=2.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false
