@@ -2,6 +2,8 @@
 
 For the session that builds the level loading screen, the level pictures and the new pause menu. It says what to build, where the designs and pictures are, what is decided and what still needs Roni.
 
+**Status:** built, together with the campaign, the main menu, settings and controls screens the spec left for later. `docs/ui.md` and `DESIGN.md` now hold how each works; this file stays for where the designs and pictures came from. "What exists today" below describes main before that work.
+
 Read `CODING_STANDARDS.md`, `docs/ui.md` and `docs/web-constraints.md` first, as `CLAUDE.md` says.
 
 ## Where the design is

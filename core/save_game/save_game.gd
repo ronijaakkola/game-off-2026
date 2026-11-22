@@ -6,7 +6,7 @@ extends Node
 ## starts ([method claim_run]). Only a claimed run is saved, so a game scene started any
 ## other way, by a test, a smoke run or F6, never reads or writes the file.
 ## It also keeps, in [constant TUTORIAL_PATH], whether the player has been through the
-## tutorial: it outlives the run, so a New game after it starts without the tutorial.
+## tutorial: it outlives the run, so a new run after it starts without the tutorial.
 ## And it keeps, in [constant HINTS_PATH], which feature hints the player has closed, so
 ## each shows once ([FeatureHints]) until the player deletes their save data.
 ## And it keeps the campaign's record in [constant CAMPAIGN_PATH], which outlives the run:

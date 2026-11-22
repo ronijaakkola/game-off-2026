@@ -105,6 +105,10 @@ theme_override_constants/separation = 10
 alignment = 2
 
 [node name="CancelButton" type="Button" parent="Center/Panel/Rows/Actions" unique_id=482551516]
+focus_neighbor_left = NodePath("../ConfirmButton")
+focus_neighbor_right = NodePath("../ConfirmButton")
+focus_next = NodePath("../ConfirmButton")
+focus_previous = NodePath("../ConfirmButton")
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
@@ -112,6 +116,10 @@ theme_type_variation = &"QuietLargeButton"
 text = "Cancel"
 
 [node name="ConfirmButton" type="Button" parent="Center/Panel/Rows/Actions" unique_id=1054105549]
+focus_neighbor_left = NodePath("../CancelButton")
+focus_neighbor_right = NodePath("../CancelButton")
+focus_next = NodePath("../CancelButton")
+focus_previous = NodePath("../CancelButton")
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2

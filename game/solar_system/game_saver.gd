@@ -188,7 +188,10 @@ func _write() -> void:
 	SaveGame.write(run)
 	if star_map:
 		var system := String(star_map.get_current().name)
-		Campaign.record(run, system, star_map.count_done(), system != _saved_system)
+		# A save from before saves kept their system says nothing of where the run was, so
+		# its first save is no entry.
+		var entered := not _saved_system.is_empty() and system != _saved_system
+		Campaign.record(run, system, star_map.count_done(), entered)
 		_saved_system = system
 
 

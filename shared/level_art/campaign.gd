@@ -55,6 +55,15 @@ static func has_progress() -> bool:
 	return SaveGame.has_save() or not SaveGame.read_campaign().is_empty()
 
 
+## Whether playing [param level] would replace the run in progress, rather than continue
+## it: Level 1 or a level with a kept start, while the run is in another level.
+static func replaces_run(level: Level) -> bool:
+	var in_progress := get_in_progress()
+	if in_progress == null or in_progress == level:
+		return false
+	return number(level) == 1 or not _kept_start(level).is_empty()
+
+
 ## Forgets the run and how far the player has got, so only Level 1 is open.
 static func reset() -> void:
 	SaveGame.delete()
@@ -91,17 +100,25 @@ static func record(run: Dictionary, system: String, done: int, entered: bool) ->
 	SaveGame.write_campaign(campaign)
 
 
+# A kept start takes over the save at once, as a new run does, so quitting straight after
+# never brings back the run it replaced.
 static func _start(level: Level, tutorial: bool) -> void:
-	var starts: Dictionary = SaveGame.read_campaign().get("starts", {})
-	var start: Dictionary = starts.get(str(number(level)), {})
+	var start := _kept_start(level)
 	if number(level) == 1:
 		SaveGame.start_new_with_tutorial(tutorial)
 	elif not start.is_empty():
+		SaveGame.write(start)
 		SaveGame.start_run(start)
 	elif SaveGame.has_save():
 		SaveGame.continue_saved()
 	else:
 		SaveGame.start_new()
+
+
+# The run as it entered [param level], or empty when none is kept.
+static func _kept_start(level: Level) -> Dictionary:
+	var starts: Dictionary = SaveGame.read_campaign().get("starts", {})
+	return starts.get(str(number(level)), {})
 
 
 ## The level played in [param system], by its node name, or null.

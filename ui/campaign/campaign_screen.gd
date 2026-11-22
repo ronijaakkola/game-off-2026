@@ -2,10 +2,10 @@ extends MenuScreen
 ## The campaign screen: a card for each level, and under the picked one what it can do.
 ## It opens with the level in progress picked, or else the next one not done. A level in
 ## progress continues, with a restart beside it; one done plays again from where it began;
-## any other open one plays. Starting a level over while a run is in play asks first
-## ([RestartDialog]). A locked card can't be picked. Level 1's card has a Play tutorial box,
-## ticked until the player has been through the tutorial. A menu opens it over itself
-## ([MenuScreen]).
+## any other open one plays. Starting a level over, or any level that would replace the
+## run in play, asks first ([RestartDialog]). A locked card can't be picked. Level 1's
+## card has a Play tutorial box, ticked until the player has been through the tutorial. A
+## menu opens it over itself ([MenuScreen]).
 
 ## Seconds the actions take to slide under a newly picked card.
 const SLIDE_SECONDS := 0.2
@@ -87,9 +87,8 @@ func _pick(card: LevelCard, at_once := false) -> void:
 
 func _on_play_button_pressed() -> void:
 	var level := _picked.level
-	var in_progress := Campaign.get_in_progress()
-	if _picked.state == LevelCard.State.DONE and in_progress != null:
-		(%RestartDialog as RestartDialog).ask(level, in_progress)
+	if Campaign.replaces_run(level):
+		(%RestartDialog as RestartDialog).ask(level, Campaign.get_in_progress())
 	else:
 		Campaign.play(level, _cards[0].wants_tutorial())
 

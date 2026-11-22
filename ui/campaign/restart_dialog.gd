@@ -25,7 +25,11 @@ func ask(level: Level, in_progress: Level) -> void:
 		(%Lost as Label).text = "Your progress in this run of Level %d is lost." % number
 		(%ConfirmButton as Button).text = "Restart level"
 	(%KeptRow as Control).visible = number > 1
-	var earlier := "Level 1" if number == 2 else "Levels 1 to %d" % (number - 1)
+	var earlier := "Level 1"
+	if number == 3:
+		earlier = "Levels 1 and 2"
+	elif number > 3:
+		earlier = "Levels 1 to %d" % (number - 1)
 	(%Kept as Label).text = "Everything you earned in %s carries over." % earlier
 	_opener = get_viewport().gui_get_focus_owner()
 	show()

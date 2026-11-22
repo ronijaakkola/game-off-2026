@@ -53,12 +53,26 @@ func test_a_levels_start_is_kept_as_the_run_enters_it_and_only_then() -> void:
 	assert_int(int((starts["2"] as Dictionary)["credits"])).is_equal(20)
 
 
-func test_restarting_level_2_starts_the_run_as_level_2_began() -> void:
+func test_restarting_level_2_starts_the_run_as_level_2_began_and_saves_it() -> void:
 	SaveGame.write({"credits": 999, "star_map": {"system": "Lyra"}})
 	Campaign.record({"credits": 50}, "Lyra", 1, true)
 	Campaign._start(LEVEL_2, false)
 	assert_bool(SaveGame.has_started_run()).is_true()
 	assert_int(int(SaveGame.claim_run()["credits"])).is_equal(50)
+	# Quitting straight after never brings the replaced run back.
+	assert_int(int(SaveGame.get_saved_run()["credits"])).is_equal(50)
+
+
+func test_only_a_level_that_would_replace_the_run_in_progress_asks_first() -> void:
+	assert_bool(Campaign.replaces_run(LEVEL_1)).override_failure_message("No run").is_false()
+	SaveGame.write({"star_map": {"opened": 1, "joined": false, "system": "Sol"}})
+	assert_bool(Campaign.replaces_run(LEVEL_1)).override_failure_message("Continues").is_false()
+	# Level 2 reached once, then Level 1 replayed: Level 2 starts from its kept start.
+	Campaign.record({"star_map": {"system": "Lyra"}}, "Lyra", 1, true)
+	assert_bool(Campaign.replaces_run(LEVEL_2)).is_true()
+	SaveGame.write({"star_map": {"opened": 2, "joined": false, "system": "Lyra"}})
+	assert_bool(Campaign.replaces_run(LEVEL_1)).is_true()
+	assert_bool(Campaign.replaces_run(LEVEL_2)).is_false()
 
 
 func test_starting_level_1_begins_a_new_run_with_the_tutorial_as_asked() -> void:
