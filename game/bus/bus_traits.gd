@@ -40,6 +40,9 @@ enum Type {
 	## Those in a line lean harder toward a destination someone in it already has
 	## ([WaitingPassengers]).
 	TIMETABLES = 12,
+	## Docked, the drive is warm for as long as a quick stop lasts, and a charge started warm
+	## takes a moment ([FrameshiftDrive]).
+	WARM_DRIVE = 13,
 }
 
 # How many times each trait the bus has was added and not yet taken out.

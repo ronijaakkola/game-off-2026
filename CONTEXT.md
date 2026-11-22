@@ -27,7 +27,7 @@ A point in space on the route before a planet, which the bus flies through on it
 _Avoid_: checkpoint (where the run is saved)
 
 **Docked**:
-The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, which starts from the warmth left while the drive is still **warm**, just after docking, and builds faster, until it goes **cold**. Leaving on a warm charge never let go is a **quick stop**.
+The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key. Leaving soon after docking is a **quick stop**. With the **Warm drive** upgrade the drive is **warm** meanwhile, and a charge from warm starts from the warmth left and takes a moment, until it goes **cold**.
 _Avoid_: landed, parked
 
 **Signal bus**:

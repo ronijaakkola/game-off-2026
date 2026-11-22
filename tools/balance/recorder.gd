@@ -20,7 +20,7 @@ var capacity_seconds := 0.0
 var fuel_credits := 0
 var tows := 0
 var overheats := 0
-## Times the bus left a planet on a charge started warm: a quick stop.
+## Times the bus left a planet on a quick stop.
 var quick_stops := 0
 var kicks := 0
 var docks := 0

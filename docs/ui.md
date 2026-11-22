@@ -109,7 +109,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 A stamp of a few words with an icon that lands over the bus when something about the driving is worth a nod, then goes.
 
-- **Quick stop.** Leaving a planet on a charge started warm and never let go: "Quick stop!" with a clock, as a remark.
+- **Quick stop.** Leaving a planet on a quick stop: "Quick stop!" with a clock, as a remark.
 - **Quest completed.** A quest done: "Quest completed!" with a circled check, as a gain.
 - **Quest failed.** A quest failed: "Quest failed!" with a circled cross, as a loss.
 
@@ -216,7 +216,8 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
 - Space works the Frameshift key as the pointer does, without clicking it first, while the bus bar shows. The bus keys never take keyboard focus.
 - With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, and a hard 2 px outline in the bus's yellow round the cap fades between 35 % and full strength in step. Under Reduce motion both hold still, the outline at full strength. Held, the drive charges: the pulse and outline go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
-- Docked with the drive warm, the key is up and ready and the bus's yellow fills it by the warmth left, emptying as the drive cools. The ring round the bus on the map shows the same. Held, the key goes down and fills from there, faster than a cold charge; let go, the fill drains back fast and the drive is cold.
+- Docked with the drive warm, the key is up and ready and the bus's yellow fills it by the warmth left, emptying as the drive cools. The ring round the bus on the map shows the same. Held, the key goes down and fills from there, in half a second at most; let go, the fill drains back fast and the drive is cold.
+- **Quick stop clock.** At a planet with the drive cold, while a quick stop is still to be had, an 18 px dark disc sits on the key's top right corner, its centre 5 px in from the corner, with a thin ring and a pie in the bus's yellow that empties clockwise from the top as the time runs out, then goes. The warm fill shows the same time, so the clock never shows beside it.
 - While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space. Not while it brakes in to dock: then it is dim.
 - Otherwise it is dim. Out of fuel, or while the bus cools down after overheating, it is off.
 - Pressing the Frameshift key as Stop clears the whole route; Backspace takes off only the last stop. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.
@@ -433,7 +434,7 @@ Titled "Frameshift Bus".
 
 - One row per stat: its name, its value, and once upgrades change it, how much they add in green ("Top speed 1.44 +20%") or take away in red ("Fuel tank 80 -20%").
 - Each row's value right-aligns on one vertical line, and the delta has a fixed 44 px slot to its right (right-aligned, tabular figures, kept when empty), so the deltas form their own column.
-- Seats show whole ("Seats 5 +1"). Portion size, pump speed and serving speed show as "1.5x", warm time in seconds ("6.0 s").
+- Seats show whole ("Seats 5 +1"). Portion size, pump speed and serving speed show as "1.5x".
 - Sections: 8 px between a section's title and its first row and between rows, 16 px between the end of one section and the next section's title.
 - A Traits section names each trait the bus has, or reads "None yet.".
 

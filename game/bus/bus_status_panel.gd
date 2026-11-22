@@ -5,7 +5,8 @@ extends VBoxContainer
 ## its fuel, its temperature and the Frameshift key ([FrameshiftKey]), which Space works
 ## too. With a course set and the bus waiting, holding the key charges the drive and the key
 ## fills as it does; let go, the charge drains. Docked with the drive warm, the fill shows
-## the warmth left, and holding fills it from there. The key pops up by itself as the bus
+## the warmth left, and holding fills it from there; with it cold, a clock badge on the key
+## shows the quick stop's time left. The key pops up by itself as the bus
 ## leaves. While the bus flies under its own power the key is Stop, except while it brakes
 ## in to dock, and it is off otherwise. It reads [member bus] every frame. It stays anchored
 ## to the bottom edge as the route bar opens and closes. While the bus's route is locked
@@ -90,6 +91,9 @@ func _show() -> void:
 	# A charge that hasn't moved yet still latches the key.
 	key.charge = maxf(bus.get_charge_progress(), 0.02) if charging else 0.0
 	key.warmth = bus.get_warmth()
+	# The warm fill shows the quick stop's time itself, and a warm charge is one.
+	var warm := bus.drive.is_warm() or bus.drive.is_warm_charge()
+	key.quick_stop = 0.0 if warm or not bus.is_at_planet() else bus.drive.get_quick_stop_left()
 	_show_fuel()
 	_show_temperature()
 
