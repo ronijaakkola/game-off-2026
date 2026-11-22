@@ -9,18 +9,17 @@ extends PanelContainer
 ## For captures, `route` after `--` sets a route through two planets and `held` holds the
 ## queue key down.
 
-const GLASS := preload("res://ui/glass.tres")
 const THEME := preload("res://ui/theme.tres")
 const MARGIN := 12.0
-const ROW_HEIGHT := 20.0
-## Wide enough for the longest text, so the panel never changes width.
-const WIDTH := 190.0
-## The width of the icons' column: the queue key, a plus and the mouse.
-const ICON_ROOM := 54.0
+const ROW_HEIGHT := 16.0
+## How tall a control icon is, smaller than in a guide card's text.
+const ICON_HEIGHT := 13.0
 const OPEN_SECONDS := 0.25
 const FADE_SECONDS := 0.2
-const DIM := 0.45
-const QUIET := 0.7
+## How strong a row is: at rest, the one the held queue key picks, and the other one then.
+const REST := 0.5
+const LIT := 1.0
+const DIM := 0.25
 const TEXT_COLOR := Color(0.957, 0.945, 1.0, 1.0)
 
 @export var bus: FrameshiftBus
@@ -40,27 +39,20 @@ var _shown := 0.0
 
 func _ready() -> void:
 	ControlsPrototype.read_args()
-	material = GLASS
 	theme = THEME
-	var style := THEME.get_stylebox(&"panel", &"RouteBarPanel").duplicate() as StyleBoxFlat
-	style.set_corner_radius_all(12)
-	style.set_border_width_all(1)
-	style.content_margin_left = 10.0
-	style.content_margin_right = 12.0
-	add_theme_stylebox_override(&"panel", style)
+	add_theme_stylebox_override(&"panel", StyleBoxEmpty.new())
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	grow_vertical = Control.GROW_DIRECTION_BEGIN
 	offset_right = -MARGIN
 	offset_bottom = -MARGIN
-	custom_minimum_size.x = WIDTH
 	var rows := VBoxContainer.new()
 	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_theme_constant_override(&"separation", 0)
 	add_child(rows)
 	_set_row = _make_row("{mouse_right}", "Set a route")
-	_set_label = _set_row.get_child(0).get_child(1) as MorphLabel
+	_set_label = _set_row.get_child(0).get_child(0) as MorphLabel
 	rows.add_child(_set_row)
 	_add_row = _make_row(QueueKey.get_icons() + "+{mouse_right}", "Add a stop")
 	rows.add_child(_add_row)
@@ -88,8 +80,8 @@ func _process(delta: float) -> void:
 	_add_row.custom_minimum_size.y = ROW_HEIGHT * eased
 	var held := QueueKey.is_held() and has_route
 	var weight := 1.0 - exp(-14.0 * delta)
-	_set_row.modulate.a = lerpf(_set_row.modulate.a, DIM if held else 1.0, weight)
-	var add_alpha := (1.0 if held else QUIET) * eased
+	_set_row.modulate.a = lerpf(_set_row.modulate.a, DIM if held else REST, weight)
+	var add_alpha := (LIT if held else REST) * eased
 	_add_row.modulate.a = lerpf(_add_row.modulate.a, add_alpha, weight)
 
 
@@ -101,48 +93,47 @@ func _can_route() -> bool:
 	return not (bus.route_locked or bus.is_towing() or bus.get_fuel_tank().is_empty())
 
 
-# A row: its icons, right-aligned in their column so the mice line up, then its text. It
-# clips, so it can open from no height.
+# A row, hugging the right edge: its text, then its icons, so the mice line up. It clips,
+# so it can open from no height.
 func _make_row(icons: String, text: String) -> Control:
 	var room := Control.new()
 	room.clip_contents = true
 	room.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	room.custom_minimum_size.y = ROW_HEIGHT
+	room.custom_minimum_size = Vector2(150.0, ROW_HEIGHT)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override(&"separation", 8)
+	row.add_theme_constant_override(&"separation", 3)
+	row.alignment = BoxContainer.ALIGNMENT_END
 	row.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	row.custom_minimum_size.y = ROW_HEIGHT
 	room.add_child(row)
-	var keys := HBoxContainer.new()
-	keys.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	keys.custom_minimum_size.x = ICON_ROOM
-	keys.alignment = BoxContainer.ALIGNMENT_END
-	keys.add_theme_constant_override(&"separation", 3)
-	row.add_child(keys)
+	var label := MorphLabel.new()
+	label.theme_type_variation = &"TinyLabel"
+	label.add_theme_color_override(&"font_color", TEXT_COLOR)
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	var gap := Control.new()
+	gap.custom_minimum_size.x = 2.0
+	row.add_child(gap)
 	for part: String in icons.split("+"):
-		if keys.get_child_count() > 0:
+		if row.get_child_count() > 2:
 			var plus := Label.new()
-			plus.theme_type_variation = &"SmallStrongLabel"
+			plus.theme_type_variation = &"TinyLabel"
 			plus.text = "+"
-			plus.modulate.a = 0.6
-			keys.add_child(plus)
+			plus.modulate.a = 0.7
+			row.add_child(plus)
 		var icon := TextureRect.new()
 		icon.texture = ControlIcons.ICONS[part.trim_prefix("{").trim_suffix("}")]
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		var shape := icon.texture.get_size()
-		icon.custom_minimum_size = Vector2(shape.x / shape.y, 1.0) * ControlIcons.HEIGHT
+		icon.custom_minimum_size = (Vector2(shape.x / shape.y, 1.0) * ICON_HEIGHT).round()
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		keys.add_child(icon)
-	var label := MorphLabel.new()
-	label.theme_type_variation = &"StrongLabel"
-	label.add_theme_color_override(&"font_color", TEXT_COLOR)
-	label.text = text
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(label)
+		row.add_child(icon)
 	return room
 
 
