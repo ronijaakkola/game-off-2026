@@ -25,6 +25,10 @@ const SHRINK := 0.25
 ## Under Reduce motion, how far through its slide a drop sits still.
 const STILL_AT := 0.3
 
+# What setup() worked out for each head model, by the model's path.
+static var _layouts: Dictionary[String, Layout] = {}
+static var _material: ShaderMaterial
+
 var _drops: Array[MeshInstance3D] = []
 var _rest: Array[Vector3] = []
 var _slide := 0.0
@@ -32,37 +36,61 @@ var _time := 0.0
 
 
 ## Makes the drops on the head this node sits on, whose own shape is [param meshes]. A head
-## with no shape to go by gets none.
-func setup(meshes: Array[MeshInstance3D]) -> void:
+## with no shape to go by gets none. [param model] is the path of the head's model: where
+## its drops go is worked out from every triangle of its shape, which is the same for every
+## portrait of that model, so it is worked out once for each. A head with no path, as one
+## built in a test, is worked out each time.
+func setup(meshes: Array[MeshInstance3D], model := "") -> void:
+	var layout: Layout = _layouts.get(model)
+	if not layout:
+		layout = _lay_out(meshes)
+		if not model.is_empty():
+			_layouts[model] = layout
+	_slide = layout.slide
+	_rest = layout.rest
+	for spot: int in _rest.size():
+		var drop := MeshInstance3D.new()
+		drop.mesh = layout.quad
+		drop.material_override = _get_material()
+		drop.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		drop.visible = false
+		add_child(drop)
+		_drops.append(drop)
+
+
+# Where the drops rest on a head whose own shape is [param meshes], how far they slide and
+# the quad they are drawn on. No drops for a head with no shape.
+func _lay_out(meshes: Array[MeshInstance3D]) -> Layout:
+	var layout := Layout.new()
 	var points := _points(meshes)
 	if points.is_empty():
-		return
+		return layout
 	var bounds := AABB(points[0], Vector3.ZERO)
 	for point: Vector3 in points:
 		bounds = bounds.expand(point)
 	var size := (bounds.size.x + bounds.size.y) * 0.5
-	var quad := QuadMesh.new()
-	quad.size = Vector2(1.0, HEIGHT_SHARE) * size * SIZE
-	var material := ShaderMaterial.new()
-	material.shader = SHADER
-	material.render_priority = 1
-	material.set_shader_parameter(&"height_share", HEIGHT_SHARE)
-	_slide = bounds.size.y * SLIDE
+	layout.quad = QuadMesh.new()
+	layout.quad.size = Vector2(1.0, HEIGHT_SHARE) * size * SIZE
+	layout.slide = bounds.size.y * SLIDE
 	var middle := bounds.get_center()
 	for spot: Vector2 in SPOTS:
-		var drop := MeshInstance3D.new()
-		drop.mesh = quad
-		drop.material_override = material
-		drop.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		drop.visible = false
 		var x := middle.x + bounds.size.x * spot.x
 		var y := middle.y + bounds.size.y * spot.y
 		var span := _span_at(points, x, bounds.size.x * 0.08, middle.z, bounds.size.y * 0.1)
 		if span != Vector2.ZERO:
-			y = clampf(y, minf(span.x + quad.size.y * 0.5, span.y), span.y)
-		_rest.append(Vector3(x, y, bounds.end.z))
-		add_child(drop)
-		_drops.append(drop)
+			y = clampf(y, minf(span.x + layout.quad.size.y * 0.5, span.y), span.y)
+		layout.rest.append(Vector3(x, y, bounds.end.z))
+	return layout
+
+
+# Every drop of every portrait draws with the one material: nothing about it differs.
+static func _get_material() -> ShaderMaterial:
+	if not _material:
+		_material = ShaderMaterial.new()
+		_material.shader = SHADER
+		_material.render_priority = 1
+		_material.set_shader_parameter(&"height_share", HEIGHT_SHARE)
+	return _material
 
 
 ## Runs [param delta] seconds with them sweating [param sweat], from 0 not at all to 1 as
@@ -115,3 +143,11 @@ func _span_at(
 			break
 		bottom = height
 	return Vector2(bottom, heights[0])
+
+
+## Where a head's drops go: where each rests, in the head's space, how far they slide down,
+## and the quad each is drawn on.
+class Layout:
+	var rest: Array[Vector3] = []
+	var slide := 0.0
+	var quad: QuadMesh

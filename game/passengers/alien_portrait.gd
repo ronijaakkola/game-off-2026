@@ -196,7 +196,7 @@ func _ready() -> void:
 		_add_meal()
 		_sweat = PortraitSweat.new()
 		_head.add_child(_sweat)
-		_sweat.setup(_head_shape_meshes())
+		_sweat.setup(_head_shape_meshes(), head_model.resource_path)
 	_blink_in = randf_range(1.0, 4.0)
 
 
@@ -361,8 +361,8 @@ func _watch(delta: float, motion: float) -> void:
 	_screen.may_laugh = anger < 0.5 and not asleep
 	_screen.advance(delta, motion)
 	for material: ShaderMaterial in _materials.values():
-		material.set_shader_parameter(&"screen_light", _screen.light)
-		material.set_shader_parameter(&"screen_side", _screen.side)
+		ShaderValues.show(material, &"screen_light", _screen.light)
+		ShaderValues.show(material, &"screen_side", _screen.side)
 
 
 ## Paints every part of the model [param color], whatever they hold too, for an outline in
@@ -398,7 +398,7 @@ func _get_head_body_bounds() -> AABB:
 
 func _set_eyes(parameter: StringName, value: Variant) -> void:
 	for material: ShaderMaterial in _eye_materials:
-		material.set_shader_parameter(parameter, value)
+		ShaderValues.show(material, parameter, value)
 
 
 # The lean follows the push on a spring: the push holds it at a lean, and when the push

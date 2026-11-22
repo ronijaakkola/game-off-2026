@@ -73,13 +73,13 @@ var outline_width := 0.02:
 	set(value):
 		outline_width = value
 		for outline: ShaderMaterial in _outlines:
-			outline.set_shader_parameter(&"width", value)
+			ShaderValues.show(outline, &"width", value)
 ## Where the star that lights it is, in global space.
 var light_source := Vector3.ZERO:
 	set(value):
 		light_source = value
 		for flat: ShaderMaterial in _flats:
-			flat.set_shader_parameter(&"light_source", value)
+			ShaderValues.show(flat, &"light_source", value)
 
 var _time := 0.0
 # How much of the float shows: 1 while still, 0 in flight.
