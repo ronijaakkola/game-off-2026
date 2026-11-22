@@ -67,8 +67,9 @@ func test_settling_does_nothing_after_a_shock_or_once_the_bus_has_left() -> void
 	assert_float(riding.happiness).is_equal(40.0)
 
 
-func test_an_open_request_sends_them_toward_0_at_the_falling_rate_after_its_leeway() -> void:
+func test_an_open_request_sends_them_toward_0_at_the_need_s_rate_after_its_leeway() -> void:
 	var snack := _need(1.0)
+	snack.fall_rate = 5.0
 	var passenger := Passenger.new(_type([snack]), _planet, TRIP, FARE)
 	passenger.depart()
 	passenger.tick(1.0, false)
@@ -77,7 +78,7 @@ func test_an_open_request_sends_them_toward_0_at_the_falling_rate_after_its_leew
 	passenger.tick(Passenger.REQUEST_LEEWAY, false)
 	assert_float(passenger.happiness).is_equal(before)
 	passenger.tick(4.0, false)
-	assert_float(before - passenger.happiness).is_equal_approx(4.0 * Passenger.FALL_RATE, 0.001)
+	assert_float(before - passenger.happiness).is_equal_approx(4.0 * 5.0, 0.001)
 	assert_float(passenger.get_target()).is_equal(0.0)
 
 

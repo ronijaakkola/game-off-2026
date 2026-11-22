@@ -162,7 +162,8 @@ func test_loads_the_scene_script_after_its_sub_scenes() -> void:
 
 func test_warms_up_one_new_shader_or_material_a_step() -> void:
 	# Each first draw of a shader compiles it, so each step brings one new one. Objects on
-	# shaders already drawn come along for free, and hidden ones aren't drawn at all.
+	# shaders already drawn come along for free. A hidden one is drawn only for a material
+	# nothing else has, so that doesn't compile when it first shows.
 	var scene: Node3D = auto_free(Node3D.new())
 	var shader := Shader.new()
 	shader.code = "shader_type spatial;"
@@ -171,14 +172,17 @@ func test_warms_up_one_new_shader_or_material_a_step() -> void:
 	var star := _mesh_with(StandardMaterial3D.new())
 	var hidden := _mesh_with(StandardMaterial3D.new())
 	hidden.visible = false
-	for mesh: MeshInstance3D in [planet, moon, star, hidden]:
+	var hidden_moon := _mesh_with(_shader_material(shader))
+	hidden_moon.visible = false
+	for mesh: MeshInstance3D in [planet, moon, star, hidden, hidden_moon]:
 		scene.add_child(mesh)
 
 	var steps := _flow._warm_up_steps(scene)
 
-	assert_int(steps.size()).is_equal(2)
+	assert_int(steps.size()).is_equal(3)
 	assert_array(steps[0]).contains_exactly([planet, moon])
 	assert_array(steps[1]).contains_exactly([star])
+	assert_array(steps[2]).contains_exactly([hidden])
 
 
 func _record_shown_alpha() -> void:

@@ -206,7 +206,7 @@ func test_the_expression_preview_shows_each_head_in_each_expression_eating_and_d
 		var photo := node as PassengerPhoto
 		if not photo:
 			continue
-		var portrait := photo.studio.get_portrait(photo.get_photo() as AtlasTexture)
+		var portrait := photo.get_portrait()
 		angers.append(portrait.anger)
 		joys.append(portrait.joy)
 		contents.append(portrait.content)

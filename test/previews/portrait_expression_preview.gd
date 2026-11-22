@@ -66,7 +66,7 @@ func _process(_delta: float) -> void:
 	for studio: PortraitStudio in _studios:
 		studio.sweat = sweat
 	for photo: PassengerPhoto in _joyful:
-		var portrait := photo.studio.get_portrait(photo.get_photo() as AtlasTexture)
+		var portrait := photo.get_portrait()
 		if portrait:
 			portrait.joy = 1.0
 			portrait.sweat = sweat
