@@ -213,9 +213,8 @@ transmission_panel = NodePath("../TransmissionPanel")
 quests = NodePath("../Quests")
 quick_text = NodePath("../Hud/BusQuickText")
 
-[node name="GoalsMetCall" type="Node" parent="." unique_id=1075418356 node_paths=PackedStringArray("goals", "notices", "transmission_panel", "quest_giver")]
+[node name="GoalsMetCall" type="Node" parent="." unique_id=1075418356 node_paths=PackedStringArray("notices", "transmission_panel", "quest_giver")]
 script = ExtResource("141_goals_met_call")
-goals = NodePath("../Goals")
 notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
 quest_giver = NodePath("../QuestGiver")
@@ -342,7 +341,7 @@ business = ExtResource("15_business")
 star_map = NodePath("../StarMap")
 bus = NodePath("../Bus")
 
-[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "notices", "bus", "cabin", "dock_panel", "system_jump", "saver")]
+[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "notices", "cabin", "boss_call", "system_jump", "saver")]
 unique_name_in_owner = true
 script = ExtResource("118_progression")
 star_map = NodePath("../StarMap")
@@ -350,9 +349,8 @@ goals = NodePath("../Goals")
 waiting = NodePath("../WaitingPassengers")
 quest_giver = NodePath("../QuestGiver")
 notices = NodePath("../Hud/Notices")
-bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
-dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+boss_call = NodePath("../GoalsMetCall")
 system_jump = NodePath("../SystemJump")
 saver = NodePath("../GameSaver")
 
