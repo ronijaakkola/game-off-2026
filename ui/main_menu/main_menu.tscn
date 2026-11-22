@@ -4,9 +4,9 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="PackedScene" uid="uid://du1swv634nyif" path="res://ui/settings/settings_menu.tscn" id="3_settings"]
 [ext_resource type="Script" uid="uid://dcy77e65i1dbl" path="res://ui/hold_button.gd" id="4_hold"]
+[ext_resource type="Script" uid="uid://ccakhq4ektqka" path="res://ui/build_label.gd" id="99_build"]
 
 [node name="MainMenu" type="MarginContainer" unique_id=1815156436]
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -109,12 +109,12 @@ theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
 [node name="BuildLabel" type="Label" parent="BuildMargin" unique_id=1974554180]
-unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
 theme_type_variation = &"FaintLabel"
+script = ExtResource("99_build")
 
 [connection signal="pressed" from="Center/Column/Items/ContinueButton" to="." method="_on_continue_button_pressed"]
 [connection signal="pressed" from="Center/Column/Items/PlayButton" to="." method="_on_play_button_pressed"]

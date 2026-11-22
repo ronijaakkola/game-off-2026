@@ -18,8 +18,6 @@ const LEVELS: Array[Level] = [
 	preload("res://shared/level_art/level_1.tres"),
 	preload("res://shared/level_art/level_2.tres"),
 ]
-# Written into exports by `check.py export`, so the editor has none.
-const BUILD_COMMIT := "res://ui/main_menu/build_commit.txt"
 
 # Survives scene changes, so coming back to the menu doesn't ask for the click again.
 static var _music_started := false
@@ -32,9 +30,6 @@ func _ready() -> void:
 	DebugPanel.add_button("Reset settings", Settings.reset, self)
 	DebugPanel.add_button("Voice lab", _debug_voice_lab, self)
 	DebugPanel.add_button("Mixer", _debug_mixer, self)
-	if FileAccess.file_exists(BUILD_COMMIT):
-		%BuildLabel.text = "Commit %s" % FileAccess.get_file_as_string(BUILD_COMMIT).strip_edges()
-		%BuildLabel.show()
 	if OS.has_feature("web") and not _music_started:
 		%StartOverlay.show()
 	else:

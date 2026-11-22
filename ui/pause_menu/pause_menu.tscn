@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://ljuffubsa6sw" path="res://ui/pause_menu/icons/settings.svg" id="7_settings"]
 [ext_resource type="Texture2D" uid="uid://tru0d2si2ovv" path="res://ui/pause_menu/icons/house.svg" id="8_house"]
 [ext_resource type="Texture2D" uid="uid://du3rn0k0pwowc" path="res://ui/pause_menu/icons/skip_forward.svg" id="9_skip"]
+[ext_resource type="Script" uid="uid://ccakhq4ektqka" path="res://ui/build_label.gd" id="10_build"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
 shader = ExtResource("4_glass")
@@ -120,6 +121,25 @@ theme_type_variation = &"SlantButton"
 text = "Skip tutorial"
 icon = ExtResource("9_skip")
 alignment = 0
+
+[node name="BuildMargin" type="MarginContainer" parent="Root" unique_id=209575476]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="BuildLabel" type="Label" parent="Root/BuildMargin" unique_id=514957930]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_type_variation = &"FaintLabel"
+script = ExtResource("10_build")
 
 [node name="SettingsMenu" parent="Root" unique_id=1862376984 instance=ExtResource("3_settings")]
 unique_name_in_owner = true
