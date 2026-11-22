@@ -29,6 +29,16 @@ extends Resource
 ## Idle lines they show while watching a show, on a bus with an entertainment system. Each
 ## comes up as often as any one idle line.
 @export var watch_lines: Array[String] = []
+## Idle lines they show while the bus is docked, in place of the others but for sleep and
+## watch lines, so the card says they are content to wait there: docked costs them nothing.
+@export var docked_lines: Array[String] = [
+	"Enjoying station services",
+	"Calmly waiting at the station",
+	"Watching the dock crew",
+	"Browsing the station shops",
+	"Happy to wait a moment",
+	"Relaxing until departure",
+]
 ## How many stops the bus can make on their ride before theirs, before they grow frustrated
 ## ([RideProgress]).
 @export_range(0, 10) var stop_tolerance := 4
@@ -48,11 +58,14 @@ extends Resource
 @export var names: Array[String] = ["Passenger"]
 
 
-## The idle lines a passenger of this type picks from, a copy: while frustrated for
-## [param reason], its own lines, when there are some.
-func get_idle_lines(reason: RideProgress.Reason) -> Array[String]:
+## The idle lines a passenger of this type picks from, a copy: while [param docked], the
+## docked lines, and otherwise while frustrated for [param reason], its own lines, when
+## there are some.
+func get_idle_lines(reason: RideProgress.Reason, docked := false) -> Array[String]:
 	var lines := idle_lines
-	if reason == RideProgress.Reason.STOPS and not stop_lines.is_empty():
+	if docked and not docked_lines.is_empty():
+		lines = docked_lines
+	elif reason == RideProgress.Reason.STOPS and not stop_lines.is_empty():
 		lines = stop_lines
 	elif reason == RideProgress.Reason.LATE and not late_lines.is_empty():
 		lines = late_lines
