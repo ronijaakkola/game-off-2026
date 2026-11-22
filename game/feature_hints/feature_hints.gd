@@ -15,8 +15,7 @@ extends Node
 ## panel's Forget hints shows them all again. Which the player has seen is read from the
 ## save game once per hint and kept for the scene: deleting the save data is the main menu's.
 ## [constant HINTS] has each hint's title, what it says, and the side of its target it
-## sits on. What a hint says can show controls as icons ([ControlIcons]), and {queue_key}
-## stands for the key that adds a stop ([method QueueKey.get_icons]).
+## sits on.
 
 ## Seconds from one hint starting to close to the next one opening: once it has gone, and
 ## a beat, as the tutorial's cards.
@@ -41,16 +40,6 @@ const HINTS := {
 			+ "pay better if you treat them well."
 		),
 		side = GuideCard.Side.LEFT,
-	},
-	&"multi_stop":
-	{
-		title = "More than one stop",
-		text =
-		(
-			"Your passengers want different planets. Hold {queue_key} and right click "
-			+ "{mouse_right} each one to add it to your route."
-		),
-		side = GuideCard.Side.ABOVE,
 	},
 	&"goals":
 	{
@@ -138,7 +127,7 @@ func _show(hint: StringName, target: Control) -> void:
 	_showing = hint
 	guide.target = target
 	guide.title = card.title
-	guide.text = (card.text as String).format({queue_key = QueueKey.get_icons()})
+	guide.text = card.text
 	guide.side = card.side
 	if not is_instance_valid(_dim):
 		_dim = HintDim.new()

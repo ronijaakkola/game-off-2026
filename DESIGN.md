@@ -484,7 +484,6 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 - **The goals:** after The Boss's first-shift call (The start), a hint beside the goal panel says it shows the goals that reach the promotion.
 - **Quests:** the first time the player takes on a quest, once its row has slid into the goal panel, a hint beside the panel's quests says the active quests show up there.
 - **Business passengers:** the first time a Business passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they ask more but pay better.
-- **More than one stop:** the first time the bus waits at a planet with passengers on board going to two different planets, once those getting off there are off and their cards have slid in, a hint above the route bar says to hold the queue key and right click each planet to add it to the route. It isn't offered once the player has set a route through two planets themselves, until the game is next loaded.
 
 ## Save game
 
