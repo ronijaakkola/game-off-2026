@@ -266,9 +266,10 @@ EXPORT_LINE = re.compile(r"^[ \t]*@export\w*\b[^\n]*", re.MULTILINE)
 DOTTED_NAME = re.compile(r"(?<![\w.])([A-Z]\w*)(?:\.([A-Z]\w*))?")
 # A member set or read by a name written as a literal, which a typo or a rename turns into
 # a no-op: Object.set() ignores a name the object doesn't have, and get() returns null.
-# Another object's _private member: a dot after a name, a call or an index, not after self
-# or super. A leading _ is private by the style guide, and GDScript lets anyone use it.
-PRIVATE_MEMBER = re.compile(r"(?:(?<![\w.])(?!self\b|super\b)\w+|[)\]])\s*\.\s*(_\w+)")
+# Another object's _private member: a dot after a name, a member chain, a call or an
+# index, not right after self or super. A leading _ is private by the style guide, and
+# GDScript lets anyone use it.
+PRIVATE_MEMBER = re.compile(r"(?:(?<!\w)(?!(?:self|super)\b)\w+|[)\]])\s*\.\s*(_\w+)")
 # A member this script declares, so `other._name` is another instance of this same class.
 OWN_MEMBER = re.compile(r"^[ \t]*(?:static[ \t]+)?(?:var|const|func|signal)[ \t]+(_\w+)", re.MULTILINE)
 DYNAMIC_MEMBER = re.compile(r"\.\s*(set|set_deferred|get)\s*\(")
