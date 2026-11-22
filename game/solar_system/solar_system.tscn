@@ -505,6 +505,7 @@ anchors_preset = 11
 
 [node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 
-[node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]
+[node name="PauseMenu" parent="." unique_id=557675524 node_paths=PackedStringArray("star_map") instance=ExtResource("9_pause")]
+star_map = NodePath("../StarMap")
 
 [connection signal="pressed" from="Hud/PauseButton" to="PauseMenu" method="open"]

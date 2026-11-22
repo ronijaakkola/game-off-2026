@@ -13,6 +13,8 @@ var _runner_scene: Node
 
 
 func before() -> void:
+	# Restart level reads the saved run, so the player's own save stays out of it.
+	SaveGame.use_test_files("pause_menu")
 	# In the editor, gdUnit's runner is the current scene, and changing scenes would free
 	# it mid-run. Headless, there is no current scene.
 	_runner_scene = get_tree().current_scene
@@ -22,6 +24,7 @@ func before() -> void:
 
 
 func after() -> void:
+	SaveGame.use_player_files()
 	get_tree().root.size = _window_size
 	get_tree().current_scene = _runner_scene
 
@@ -108,8 +111,8 @@ func test_keyboard_focus_follows_the_open_panel() -> void:
 	settings_button.grab_focus()
 	settings_button.pressed.emit()
 	assert_object(_focused()).is_same(runner.find_child("MasterVolume"))
-	# Tab from the panel's last control wraps inside the panel, not to the buttons under it.
-	var back := runner.find_child("BackButton") as Button
+	# Tab from the screen's last control wraps inside the screen, not to the buttons under it.
+	var back := runner.find_child("SettingsMenu").find_child("BackButton") as Button
 	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterVolume"))
 
 	back.pressed.emit()
@@ -186,3 +189,31 @@ func _press_pause() -> void:
 		event.pressed = pressed
 		Input.parse_input_event(event)
 	Input.flush_buffered_events()
+
+
+func test_controls_opens_its_screen_and_esc_goes_back() -> void:
+	var runner := scene_runner(SCENE)
+	runner.invoke("open")
+	(runner.find_child("ControlsButton") as Button).pressed.emit()
+	var controls := runner.find_child("ControlsScreen") as Control
+	assert_bool(controls.visible).is_true()
+	assert_bool((runner.find_child("Content") as Control).visible).is_false()
+
+	_press_pause()
+	assert_bool(controls.visible).is_false()
+	assert_bool(runner.scene().visible).is_true()
+	assert_bool(get_tree().paused).is_true()
+
+
+func test_restart_level_asks_first_and_cancel_keeps_playing_paused() -> void:
+	var runner := scene_runner(SCENE)
+	runner.invoke("open")
+	(runner.find_child("RestartButton") as Button).pressed.emit()
+	var dialog := runner.find_child("RestartDialog") as Control
+	assert_bool(dialog.visible).is_true()
+	assert_str((dialog.find_child("Title") as Label).text).is_equal("Restart Level 1?")
+
+	(dialog.find_child("CancelButton") as Button).pressed.emit()
+	assert_bool(dialog.visible).is_false()
+	assert_bool(runner.scene().visible).is_true()
+	assert_bool(get_tree().paused).is_true()

@@ -84,6 +84,12 @@ func is_joined() -> bool:
 	return _joined
 
 
+## How many systems the player has been promoted out of: each opened the next, and the
+## last joined them.
+func count_done() -> int:
+	return get_systems().size() if _joined else _opened - 1
+
+
 ## The system the bus can jump to, now that a promotion has opened it, or null.
 func get_jump_target() -> StarSystem:
 	if _joined or _opened <= _current + 1:

@@ -42,7 +42,7 @@ const PROMOTION_FILL := Color("2a2450")
 const PROMOTION_INK := Color(0.957, 0.945, 1, 0.651)
 const PROMOTION_GAP := 8
 const PROMOTION_ROOM := 26.0
-const LOCK := preload("res://game/research/icons/lock.svg")
+const LOCK := preload("res://shared/icons/lock.svg")
 ## Seconds to fade in, for the sheet to grow from [constant OPEN_SCALE], and to fade out.
 const FADE_IN_SECONDS := 0.2
 const OPEN_SECONDS := 0.25

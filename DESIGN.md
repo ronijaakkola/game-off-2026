@@ -437,12 +437,18 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 ## Scenes and flow
 
 ```
-main menu ──Play / Continue / New game──▶ level's loading screen ──▶ solar system ──Esc / pause button──▶ pause menu ──Main menu──▶ main menu
-    │                                                                    │
-    └──Settings──▶ settings panel ◀──────────────────────────────────Settings
+main menu ──Play / Levels──▶ campaign ──Play / Continue / Play again / Restart──▶ level's loading screen ──▶ solar system
+    │  └──Continue──────────────────────────────────────────────────────────────▲                       │
+    │                                                                                              Esc / pause button
+    └──Settings / Controls──▶ settings, controls ◀──Settings / Controls── pause menu ◀──────────────────┘
+                                                                           └──Main menu──▶ main menu
 ```
 
-- **Loading:** entering a level from the main menu shows that level's loading screen: its picture, its name and a tip. Until the campaign screen picks levels, the level is the one of the star system the run starts or continues in, level 1 for Sol and level 2 for Lyra. Every other scene change, a level with no picture, and a save from before saves kept their star system load on the black card.
+- **Levels are stages of the one run,** each in its own star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in Draco (placeholder names: "Your first shift", "Double trouble", "Return to home"). A level is done once a promotion there opens the next system, and the next level is open once the one before is done; how far the player has got outlives the run. The run as it entered each level after the first is kept, so restarting a level puts the run back to how it began, with everything earned before it.
+- **The main menu** offers Play with no run in progress, which opens the campaign screen; with one, Continue plays it at once and Levels opens the campaign screen.
+- **The campaign screen** opens with the level in progress picked, or else the next one not done. The level in progress offers Continue and Restart level; a done one offers Play again, which starts the run over from where that level began; another open one offers Play. A locked one can't be picked. Restarting, and playing a done level again while a run is in progress, ask first: the run in play is lost, and what was earned in the levels before carries over. Level 1's card has a Play tutorial box, ticked until the player has been through the tutorial: starting Level 1, the run opens on the tutorial if it is ticked.
+- **The pause menu** can restart the level it is in, with the same question, through the tutorial again if it is under way.
+- **Loading:** entering a level shows that level's loading screen: its picture, its name and a tip. Every other scene change, and a level with no picture (Level 3 for now), load on the black card.
 - **Tips:** one picked at random each time, never the one shown last. A tip may belong to one level; the rest show on any.
 
 - The game is one scene, the solar system, which holds every star system. A new run opens on the tutorial's zoomed map (Tutorial) until the player has been through it.
@@ -498,7 +504,7 @@ main menu ──Play / Continue / New game──▶ level's loading screen ─�
 
 ## Save game
 
-- **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save once the tutorial is over, so it is held to confirm, like refuelling, and a stray click can't lose a run. The main menu's settings can delete the save, held the same way; the pause menu's can't, since the run in play would save it again at the next planet.
+- **One run is saved,** with the campaign's record beside it (Scenes and flow): how many levels are done and the run as it entered each level. Starting a level over replaces the run, after asking. The main menu's settings can reset the campaign, held to confirm like refuelling, which deletes both, the tutorial and the feature hints seen; with nothing to reset it is off. The pause menu's settings can't, since the run in play would save it again at the next planet.
 - **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next New game starts the tutorial again. Once it has ended, done or skipped, it is kept as done, even if the player quits in the zoom out.
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
 - **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, whether research and which stages are open, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, the quest under way, and how many star systems are open and whether they are joined. The system the bus works in is the one its planet is in, so a run continued after a promotion still offers the jump.

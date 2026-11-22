@@ -1,0 +1,125 @@
+[gd_scene format=3 uid="uid://pri7ypbh8mxk"]
+
+[ext_resource type="Script" uid="uid://gj8a5p8c1hj6" path="res://ui/campaign/restart_dialog.gd" id="1_dialog"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" uid="uid://cye6kclawmr4n" path="res://shared/icons/circle_x.svg" id="3_lost"]
+[ext_resource type="Texture2D" uid="uid://bgxv87og87rfb" path="res://shared/icons/circle_check.svg" id="4_kept"]
+[ext_resource type="Texture2D" uid="uid://dxo3qfdhj8t17" path="res://ui/icons/rotate_ccw.svg" id="5_restart"]
+
+[node name="RestartDialog" type="Control" unique_id=797027746]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_dialog")
+
+[node name="Scrim" type="ColorRect" parent="." unique_id=872801153]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.043, 0.035, 0.125, 0.702)
+
+[node name="Center" type="CenterContainer" parent="." unique_id=154891104]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Center" unique_id=1256032323]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+theme_type_variation = &"DialogPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Center/Panel" unique_id=54474683]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Center/Panel/Rows" unique_id=668341557]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Restart Level 2?"
+
+[node name="Lines" type="VBoxContainer" parent="Center/Panel/Rows" unique_id=841791949]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LostRow" type="HBoxContainer" parent="Center/Panel/Rows/Lines" unique_id=207910158]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="Center/Panel/Rows/Lines/LostRow" unique_id=256638497]
+self_modulate = Color(0.949, 0.302, 0.4, 1)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("3_lost")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Lost" type="Label" parent="Center/Panel/Rows/Lines/LostRow" unique_id=1777046382]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"BodyTextLabel"
+theme_override_font_sizes/font_size = 14
+text = "Your progress in this run of Level 2 is lost."
+autowrap_mode = 2
+
+[node name="KeptRow" type="HBoxContainer" parent="Center/Panel/Rows/Lines" unique_id=2116573229]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="Center/Panel/Rows/Lines/KeptRow" unique_id=1085170383]
+self_modulate = Color(0.549, 0.851, 0.4, 1)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4_kept")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Kept" type="Label" parent="Center/Panel/Rows/Lines/KeptRow" unique_id=1654326800]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"BodyTextLabel"
+theme_override_font_sizes/font_size = 14
+text = "Everything you earned in Level 1 carries over."
+autowrap_mode = 2
+
+[node name="Actions" type="HBoxContainer" parent="Center/Panel/Rows" unique_id=1484358337]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="Center/Panel/Rows/Actions" unique_id=482551516]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_type_variation = &"QuietLargeButton"
+text = "Cancel"
+
+[node name="ConfirmButton" type="Button" parent="Center/Panel/Rows/Actions" unique_id=1054105549]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_type_variation = &"LargePrimaryButton"
+theme_override_constants/h_separation = 8
+theme_override_constants/icon_max_width = 16
+text = "Restart level"
+icon = ExtResource("5_restart")
+
+[connection signal="pressed" from="Center/Panel/Rows/Actions/CancelButton" to="." method="_on_cancel_button_pressed"]
+[connection signal="pressed" from="Center/Panel/Rows/Actions/ConfirmButton" to="." method="_on_confirm_button_pressed"]

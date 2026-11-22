@@ -23,6 +23,10 @@ const FADE_IN_SECONDS := 0.2
 
 const MAIN_MENU_SCENE := "res://ui/main_menu/main_menu.tscn"
 
+## Where the game is, to know which level Restart level starts over. Without it, as in the
+## menu's own scene, it is the saved run's level.
+@export var star_map: StarMap
+
 ## Whether the window shrinking opens the menu. In browser fullscreen, Esc only leaves
 ## fullscreen and the game never receives it, so leaving fullscreen opens the menu, as that Esc
 ## would have. On only on the web; a test turns it on to reach it.
@@ -104,9 +108,11 @@ func open() -> void:
 	hold(self)
 
 
-## Hides the menu, and the settings panel if it's open, and unpauses the game.
+## Hides the menu, and any screen open over it, and unpauses the game.
 func close() -> void:
 	%SettingsMenu.hide()
+	%ControlsScreen.hide()
+	%RestartDialog.hide()
 	hide()
 	release(self)
 
@@ -121,7 +127,29 @@ func _on_resume_button_pressed() -> void:
 
 
 func _on_settings_button_pressed() -> void:
-	%SettingsMenu.open(%Items)
+	%SettingsMenu.open(%Content)
+
+
+func _on_controls_button_pressed() -> void:
+	%ControlsScreen.open(%Content)
+
+
+func _on_restart_button_pressed() -> void:
+	var level := _level()
+	(%RestartDialog as RestartDialog).ask(level, level)
+
+
+# Starts the level over, through the tutorial again if it is under way.
+func _on_restart_dialog_confirmed() -> void:
+	Campaign.restart(_level(), offers_skip_tutorial)
+
+
+# The level the game is in.
+func _level() -> Level:
+	var level := Campaign.find(String(star_map.get_current().name)) if star_map else null
+	if level == null:
+		level = Campaign.get_in_progress()
+	return level if level else Campaign.LEVELS[0]
 
 
 func _on_main_menu_button_pressed() -> void:

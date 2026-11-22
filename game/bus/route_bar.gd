@@ -34,7 +34,7 @@ const STATE_TEXTS := {
 	FrameshiftBus.State.DOCKED: "No route",
 	FrameshiftBus.State.CHARGING: "Charging frameshift",
 }
-const ROUTE_ICON := preload("res://game/bus/icons/route.svg")
+const ROUTE_ICON := preload("res://shared/icons/route.svg")
 const FUEL_ICON := preload("res://shared/icons/fuel.svg")
 const DONE_ICON := preload("res://shared/icons/circle_check.svg")
 

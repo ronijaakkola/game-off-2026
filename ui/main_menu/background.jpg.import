@@ -2,22 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://tru0d2si2ovv"
-path="res://.godot/imported/house.svg-e8906e555e72a1bcef974c1e49311591.ctex"
+uid="uid://cq0t7yfx0jn3d"
+path="res://.godot/imported/background.jpg-c0d40a9a385499667ac02359df013100.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/pause_menu/icons/house.svg"
-dest_files=["res://.godot/imported/house.svg-e8906e555e72a1bcef974c1e49311591.ctex"]
+source_file="res://ui/main_menu/background.jpg"
+dest_files=["res://.godot/imported/background.jpg-c0d40a9a385499667ac02359df013100.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false
