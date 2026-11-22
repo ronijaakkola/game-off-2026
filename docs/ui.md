@@ -105,7 +105,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 - **Docking** rings a bell.
 - **Heating up.** From 40°, thin pale lilac-grey wisps puff up off the bus's roof, thicker and more opaque as it nears 60°: small faceted puffs that rise, grow to about three times their size and fade in under 2 s, left behind as the bus moves.
 - **Overheated.** A burst of smoke goes out all at once, wider and faster than the wisps. For the length of the cooldown the whole bus pulses red, 2.5 times a second, the red fading as it cools, and the smoke stays thick; it stops a little before the cooldown ends. Under Reduce motion the red holds steady rather than pulsing.
-- **Hover.** A white border as wide on screen as a planet's, only past its silhouette. Not while the bus is open.
+- **Hover.** None for now, while a left click doesn't open the bus. When it comes back: a white border as wide on screen as a planet's, only past its silhouette, not while the bus is open.
 
 ### Quick text
 

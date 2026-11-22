@@ -8,6 +8,15 @@ const BUS := "res://game/bus/bus.tscn"
 const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
 
 
+func before_test() -> void:
+	# Off in the game for now; these tests cover the clicks for when it comes back.
+	SolarSystem.left_click_opens_bus = true
+
+
+func after_test() -> void:
+	SolarSystem.left_click_opens_bus = false
+
+
 func test_shows_each_stat_and_what_upgrades_add_and_take_away_as_they_change() -> void:
 	var bus := auto_free((load(BUS) as PackedScene).instantiate()) as FrameshiftBus
 	add_child(bus)
@@ -82,6 +91,24 @@ func test_shows_the_traits_the_bus_has_as_they_come_and_go() -> void:
 
 	assert_bool(none.visible).is_true()
 	assert_bool(forecast.visible).is_false()
+
+
+func test_the_bus_opens_nothing_and_shows_no_border_while_it_is_turned_off() -> void:
+	SolarSystem.left_click_opens_bus = false
+	var runner := scene_runner(SOLAR_SYSTEM)
+	await runner.simulate_frames(2)
+	var system := runner.scene() as SolarSystem
+	var model := (runner.find_child("Bus") as FrameshiftBus).get_model()
+
+	_send_motion(_bus_screen_point(runner))
+	await runner.simulate_frames(1)
+	assert_bool(model.border).is_false()
+
+	_send_click(MOUSE_BUTTON_LEFT, _bus_screen_point(runner))
+	await runner.simulate_frames(1)
+
+	assert_bool(system.is_bus_open()).is_false()
+	assert_bool((runner.find_child("CameraRig") as CameraRig).is_focused()).is_false()
 
 
 func test_left_click_on_the_bus_opens_it_and_again_closes_it() -> void:
