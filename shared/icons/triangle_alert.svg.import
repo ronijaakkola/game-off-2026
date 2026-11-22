@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ccmjknmmwvtlt"
-path="res://.godot/imported/triangle_alert.svg-c63edfb3e5ebf8a52675db41b221d318.ctex"
+path="res://.godot/imported/triangle_alert.svg-f5f7481dc5cf18ff820284da7728ec66.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/solar_system/icons/triangle_alert.svg"
-dest_files=["res://.godot/imported/triangle_alert.svg-c63edfb3e5ebf8a52675db41b221d318.ctex"]
+source_file="res://shared/icons/triangle_alert.svg"
+dest_files=["res://.godot/imported/triangle_alert.svg-f5f7481dc5cf18ff820284da7728ec66.ctex"]
 
 [params]
 

@@ -123,6 +123,7 @@ func start() -> void:
 	bus.docked.connect(_on_changed.unbind(1))
 	cabin.stop_finished.connect(_on_changed)
 	cabin.kicked.connect(_on_changed.unbind(1))
+	cabin.left_behind.connect(_on_changed.unbind(1))
 	if quest_giver:
 		quest_giver.changed.connect(_on_changed)
 	if star_map:

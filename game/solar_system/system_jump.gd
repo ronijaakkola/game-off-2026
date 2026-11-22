@@ -7,14 +7,15 @@ extends Node
 ## rumble builds, and frameshifts out as the tow ship does ([FrameshiftShift]) while the
 ## [JumpIris] closes on where it was. In the black
 ## the old system hides and the camera cuts to the new one, a little way off its home
-## planet. The iris opens there, the bus frameshifts in, and as it flies in to dock the
-## camera eases back out to the map and the HUD comes back. The bus does nothing of its own
+## planet, or off the point in space where that system has the bus come to rest. The iris
+## opens there, the bus frameshifts in, and as it flies in to dock or to rest the camera
+## eases back out to the map and the HUD comes back. The bus does nothing of its own
 ## through it. Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the
 ## screen only fades to black and back.
 
 ## The screen is black: the bus is about to come out at [param system].
 signal crossed(system: StarSystem)
-## The bus has come out of the jump at [param system] and is flying in to its home planet.
+## The bus has come out of the jump at [param system] and is flying in to where it stops.
 signal finished(system: StarSystem)
 
 enum Phase { NONE, CLOSING_IN, TURNING, WINDING_UP, LEAVING, ARRIVING }
@@ -32,8 +33,8 @@ const RUMBLE_RATES: Array[float] = [17.0, 23.0, 29.0]
 const DARK_SECONDS := 0.4
 ## Seconds after the iris starts to open that the bus shifts in.
 const SHIFT_IN_DELAY := 0.35
-## How far off its home planet's surface the bus comes out of the jump, and how fast it
-## flies in from there, as a share of its top speed.
+## How far off its home planet's surface, or short of where it comes to rest, the bus
+## comes out of the jump, and how fast it flies in from there, as a share of its top speed.
 const ARRIVE_GAP := 2.0
 const ARRIVE_SPEED := 0.6
 ## How far the camera's look-at point may go during the jump: anywhere.
@@ -77,12 +78,13 @@ func is_jumping() -> bool:
 	return _phase != Phase.NONE
 
 
-## Jumps the bus to [param target], to dock at its home planet.
+## Jumps the bus to [param target], to dock at its home planet or come to rest where that
+## system says.
 func start(target: StarSystem) -> void:
 	if is_jumping() or not target.home:
 		return
 	_target = target
-	_direction = _flat(target.home.get_body_global_position() - bus.global_position)
+	_direction = _flat(_destination().get_target(bus.global_position, 0.0) - bus.global_position)
 	_direction = _direction.normalized() if _direction.length_squared() > 1e-6 else Vector3.BACK
 	bus.process_mode = Node.PROCESS_MODE_DISABLED
 	hud.cover()
@@ -140,7 +142,8 @@ func _leave() -> void:
 		var to := from + _direction * FrameshiftShift.DISTANCE
 		(%Shift as FrameshiftShift).shift_out(bus, bus.get_model(), from, to)
 	await (%Iris as JumpIris).close(_on_screen(anchor.global_position))
-	rig.move_to(_target.position)
+	# Halfway to where the bus comes to rest in space, so it shows with the star.
+	rig.move_to(_target.position + _target.jump_arrival * 0.5)
 	crossed.emit(_target)
 	bus.rotation.y = atan2(_direction.x, _direction.z)
 	var arrival := _arrival_point()
@@ -174,7 +177,7 @@ func _arrive() -> void:
 	_phase = Phase.NONE
 	bus.get_model().show()
 	bus.process_mode = Node.PROCESS_MODE_INHERIT
-	bus.fly_in(_target.home, bus.max_speed * ARRIVE_SPEED)
+	bus.fly_in(_destination(), bus.max_speed * ARRIVE_SPEED)
 	rig.release_focus()
 	rig.locked = false
 	hud.reveal_all()
@@ -186,9 +189,19 @@ func _close_in_seconds() -> float:
 	return 0.0 if Settings.reduce_motion else rig.get_focus_seconds()
 
 
-# Where the bus comes out of the jump: off the home planet's side it came from.
+# Where the bus comes out of the jump: off the home planet's side it came from, or short of
+# where it comes to rest.
 func _arrival_point() -> Vector3:
-	return RouteStop.approach_point(_target.home, -_direction, ARRIVE_GAP)
+	if _target.jump_arrival == Vector3.ZERO:
+		return RouteStop.approach_point(_target.home, -_direction, ARRIVE_GAP)
+	return _flat(_target.global_position + _target.jump_arrival) - _direction * ARRIVE_GAP
+
+
+# Where the bus flies in to after the jump: its home planet, or a point in space.
+func _destination() -> RouteStop:
+	if _target.jump_arrival == Vector3.ZERO:
+		return RouteStop.at_planet(_target.home)
+	return RouteStop.at_point(_flat(_target.global_position + _target.jump_arrival))
 
 
 func _on_screen(point: Vector3) -> Vector2:

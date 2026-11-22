@@ -2,8 +2,9 @@ extends Node
 ## The solar system's buttons on the debug panel: emptying or lowering the fuel, heating
 ## the bus to where it warns or until it overheats, scaring the passengers, showing
 ## notices, an incoming transmission whose Answer opens a test quest, a passenger calling
-## with a real quest as soon as one can, a card of warm drive boosts to try, and a card each
-## of buttons that change the bus's stats and turn its traits on or off, as upgrades would.
+## with a real quest as soon as one can, completing the quest under way, a card of warm
+## drive boosts to try, and a card each of buttons that change the bus's stats and turn its
+## traits on or off, as upgrades would.
 
 ## The percent of top speed, the fuel tank and portion size the stat buttons add or take
 ## away, and the seats, on every click.
@@ -37,6 +38,7 @@ func _ready() -> void:
 	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self)
 	DebugPanel.add_button("Incoming transmission", _debug_incoming_transmission, self)
 	DebugPanel.add_button("Offer quest", _debug_offer_quest, self)
+	DebugPanel.add_button("Complete quest", _debug_complete_quest, self)
 	DebugPanel.add_button("Test notices", _debug_test_notices, self)
 	var percent := StatModifier.Kind.PERCENT
 	_add_stat_buttons(BusStats.Type.MAX_SPEED, percent, STAT_PERCENT, "% top speed")
@@ -105,6 +107,19 @@ func _debug_incoming_transmission() -> void:
 # Offer quest: a passenger on board calls with a quest as soon as one can, in flight.
 func _debug_offer_quest() -> void:
 	quest_giver.call_soon()
+
+
+# Complete quest: the quest under way is done, as if the bus had flown past or docked at
+# its planet, so its reward, the caller's lift and their dance show. With none under way,
+# the first passenger on board gets the lift and the dance alone.
+func _debug_complete_quest() -> void:
+	var quest := quest_giver.get_quest()
+	if quest and quest.get_planet():
+		var planet := quest.get_planet()
+		quest.goal.bus_moved(planet.global_position, cabin.get_passengers(), true)
+		quest.goal.bus_docked(planet)
+	elif cabin.get_passengers():
+		cabin.get_passengers()[0].admire(quest_giver.done_happiness, true)
 
 
 # Test notices: one of each other kind, the info closing by itself and the warning with a

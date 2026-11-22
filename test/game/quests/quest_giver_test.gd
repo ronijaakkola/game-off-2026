@@ -34,6 +34,8 @@ func test_docking_at_the_errand_completes_it_and_they_ride_on_with_no_stop_count
 	giver.take_on(quest)
 	var ledger := (runner.scene() as SolarSystem).get_ledger()
 	var credits := ledger.credits
+	var happiness := passenger.happiness
+	var target := passenger.get_target()
 
 	bus.docked.emit(quest.planet)
 
@@ -44,6 +46,30 @@ func test_docking_at_the_errand_completes_it_and_they_ride_on_with_no_stop_count
 	passenger.pass_stop(quest.planet)
 	assert_int(passenger.ride.stops).is_equal(1)
 	assert_int(ledger.credits).is_equal(credits + ErrandQuest.REWARD_CREDITS[0])
+	# A done quest lifts them at once, and what they can reach for the rest of the ride.
+	assert_float(passenger.happiness).is_equal_approx(happiness + giver.done_happiness, 0.01)
+	assert_float(passenger.get_target()).is_equal_approx(target + giver.done_happiness, 0.01)
+
+
+func test_docking_where_an_express_quest_sent_them_completes_it_before_they_rate() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var giver := runner.find_child("QuestGiver") as QuestGiver
+	var passenger := await _board_someone(runner)
+	passenger.depart()
+	var quest := ExpressQuest.new()
+	quest.passenger = passenger
+	quest.planet = _other_planet(runner, passenger, bus)
+	quest.trip_seconds = passenger.ride.trip_seconds
+	quest.accept()
+	giver.take_on(quest)
+	var before := passenger.happiness + passenger.ride.get_timing()
+
+	bus.docked.emit(quest.planet)
+
+	assert_int(quest.goal.state).is_equal(Goal.State.COMPLETED)
+	assert_float(passenger.happiness).is_equal_approx(before + giver.done_happiness, 0.01)
 
 
 func test_a_fly_past_and_an_errand_come_back_from_a_save() -> void:

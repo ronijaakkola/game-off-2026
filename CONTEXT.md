@@ -206,14 +206,14 @@ The company's mechanic, who calls in a **transmission** to open research: every 
 What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
 
 **Promotion**:
-What the player earns by meeting every goal a star system gives at once: it opens the next star system, or joins every system after the last one. `Progression.promote()` in code.
+What the player earns by meeting every goal a star system gives at once, with The Boss's call: it opens the next star system and jumps there, or joins every system after the last one. `Progression.advance()` in code, which calls `promote()`.
 
 **Star system**:
 A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
 _Avoid_: level, galaxy, sector, stage (a band of research rows)
 
 **Jump**:
-The bus's frameshift from one star system to the next, once a promotion opens it: it leaves with nobody on board and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
+The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
 _Avoid_: warp, hyperspace, travel (a trip between planets)
 
 **Upgrade**:

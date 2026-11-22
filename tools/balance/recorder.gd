@@ -82,6 +82,7 @@ func deliver(passenger: Passenger, payout: int, ledger: Ledger) -> void:
 		"stops": ride["stops"],
 		"aboard": ride["aboard"],
 		"requests": ride.get("requests", 0),
+		"quest_done": passenger.quest_bonus > 0.0,
 	}
 	deliveries.append(row)
 	news.append(

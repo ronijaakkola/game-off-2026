@@ -15,6 +15,8 @@ signal changed
 ## Holds the [StarSystem]s, in the order they open.
 @export var world: Node3D
 @export var rig: CameraRig
+## Takes the colours of the system the bus works in.
+@export var sky: SpaceSky
 ## How far the camera may zoom out once the systems are joined, and where it zooms out to
 ## as they join.
 @export_range(1.0, 400.0, 0.1, "or_greater") var joined_max_distance := 110.0
@@ -156,15 +158,32 @@ func _pull_back_step(progress: float, from: Vector3, from_distance: float, to: V
 	rig.set_distance(from_distance * pow(joined_max_distance / from_distance, progress))
 
 
-## Shows the systems the bus works in and hides the rest, and keeps the camera over them.
+## Shows the systems the bus works in and hides the rest, keeps the camera over them and lets
+## it zoom out as far as the one it works in allows, and gives the sky that one's colours.
 func show_systems() -> void:
 	var systems := get_systems()
 	for i: int in systems.size():
 		systems[i].visible = _joined or i == _current
 	if _joined:
 		rig.max_distance = maxf(rig.max_distance, joined_max_distance)
+	else:
+		rig.max_distance = get_current().max_distance
+		# Further out than the new system allows, it eases back in.
+		rig.zoom_to(rig.distance)
 	rig.bounds_center = get_bounds_center()
 	rig.bounds_radius = get_bounds_radius()
+	_colour_sky(get_current())
+
+
+# The sky takes [param system]'s colours. Joined, it keeps those of the last system the
+# bus worked in.
+func _colour_sky(system: StarSystem) -> void:
+	if not sky:
+		return
+	sky.background_color = system.background_color
+	sky.fog_color = system.fog_color
+	sky.fog_accent_color = system.fog_accent_color
+	sky.star_color = system.sky_star_color
 
 
 ## The centre of the area the camera's look-at point stays in: the current system's star,
