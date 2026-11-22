@@ -97,9 +97,10 @@ func _process(_delta: float) -> void:
 	if not portrait:
 		return
 	portrait.asleep = passenger.asleep
-	portrait.anger = MOOD_ANGER.get(passenger.get_mood(), 0.0)
+	portrait.anger = maxf(MOOD_ANGER.get(passenger.get_mood(), 0.0), passenger.cause.get_glare())
 	portrait.content = passenger.get_mood() == Passenger.Mood.HAPPY
 	portrait.action = passenger.action
+	portrait.dancing = passenger.dancing > 0.0
 	portrait.felt_acceleration = studio.felt_acceleration if riding else Vector2.ZERO
 	portrait.sweat = studio.sweat if riding else 0.0
 

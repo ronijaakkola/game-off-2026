@@ -4,7 +4,8 @@ extends RefCounted
 ## bar opens ([HappinessBreakdown]): what lifts it ([method get_ups]) and what costs them
 ## ([method get_downs]). Most of it is read off the passenger as they are; a one-off that
 ## leaves no trace on them, such as a quest declined, is an event ([method mark]), which
-## [Passenger] runs and which stays listed for [constant EVENT_SECONDS].
+## [Passenger] runs and which stays listed for [constant EVENT_SECONDS]. For its first
+## [constant GLARE_SECONDS] their face shows it too ([method get_glare]).
 
 enum Type { NONE, QUEST_DECLINED, QUEST_FAILED }
 
@@ -13,6 +14,14 @@ const EVENT_SECONDS := 15.0
 const EVENT_LABELS: Dictionary[Type, String] = {
 	Type.QUEST_DECLINED: "Quest declined",
 	Type.QUEST_FAILED: "Quest failed",
+}
+
+## Seconds the face glares at an event, and how angry it looks for each, from 0 to 1:
+## annoyed at a quest declined, furious at one failed, as it costs three times as much.
+const GLARE_SECONDS := 1.5
+const GLARE: Dictionary[Type, float] = {
+	Type.QUEST_DECLINED: 0.5,
+	Type.QUEST_FAILED: 1.0,
 }
 
 ## The event under way, or none.
@@ -29,6 +38,14 @@ func mark(type: Type) -> void:
 	_event_left = EVENT_SECONDS
 
 
+## How angry their face looks at the event under way, from 0 to 1: its glare for the
+## first [constant GLARE_SECONDS], then 0.
+func get_glare() -> float:
+	if event == Type.NONE or _event_left < EVENT_SECONDS - GLARE_SECONDS:
+		return 0.0
+	return GLARE.get(event, 0.0)
+
+
 ## Runs [param delta] seconds of the event under way.
 func run(delta: float) -> void:
 	_event_left = maxf(_event_left - delta, 0.0)
@@ -39,7 +56,7 @@ func run(delta: float) -> void:
 ## What lifts [param passenger]'s happiness on a bus giving [param comfort], a few words
 ## each: what they were just served, or that they are getting over something while it
 ## climbs for no other reason, then the comfort's perks, the station lounge they waited
-## in, a quick stop.
+## in, a quick stop, a quest done.
 static func get_ups(passenger: Passenger, comfort: Comfort) -> Array[String]:
 	var ups: Array[String] = []
 	if passenger.served:
@@ -51,6 +68,8 @@ static func get_ups(passenger: Passenger, comfort: Comfort) -> Array[String]:
 		ups.append("Station lounge")
 	if passenger.quick_bonus > 0.0:
 		ups.append("Quick stop")
+	if passenger.quest_bonus > 0.0:
+		ups.append("Quest done")
 	return ups
 
 

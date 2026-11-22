@@ -50,10 +50,11 @@ extends Resource
 @export var late_lines: Array[String] = []
 ## What the card says, one of them at random, while the bus cools down after overheating.
 @export var overheat_lines: Array[String] = []
-## What they say, one of them at random, when the player declines their quest, and when
-## their quest fails.
+## What they say, one of them at random, when the player declines their quest, when
+## their quest fails, and when it is done.
 @export var quest_declined_lines: Array[String] = []
 @export var quest_failed_lines: Array[String] = []
+@export var quest_done_lines: Array[String] = []
 ## The names a passenger of this type picks from.
 @export var names: Array[String] = ["Passenger"]
 
