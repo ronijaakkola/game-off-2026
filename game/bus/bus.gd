@@ -140,6 +140,9 @@ var grounded := false:
 		if grounded and state == State.CHARGING:
 			_stop_charge()
 
+## The push someone on board feels. A knock on the bus goes in by [method FeltPush.jolt].
+var felt_push := FeltPush.new()
+
 var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new()
 var _stats := BusStats.new()
@@ -148,7 +151,6 @@ var _glide := DockGlide.new()
 var _speed := 0.0
 var _turn_rate := 0.0
 var _holding_time := 0.0
-var _felt := FeltPush.new()
 
 
 # Sets the stats' bases from the exports' defaults. A value the scene sets comes later,
@@ -247,13 +249,13 @@ func tow_to(planet: Planet) -> void:
 		state = State.FLYING
 
 
-## Sends the bus from where it is straight to [param planet] at [param speed], with no
-## charge, to park and dock there: how it comes out of a jump to another star system.
-func fly_in(planet: Planet, speed: float) -> void:
+## Sends the bus from where it is straight to [param stop] at [param speed], with no
+## charge, to dock there or come to rest: how it comes out of a jump to another system.
+func fly_in(stop: RouteStop, speed: float) -> void:
 	_drive.clear()
 	_drive.held = false
 	_glide.planet = null
-	_route = [RouteStop.at_planet(planet)]
+	_route = [stop]
 	_speed = speed
 	state = State.FLYING
 
@@ -344,7 +346,7 @@ func is_stopping() -> bool:
 ## left pushes right, and parking eases off a forward push as the bus glides to a stop.
 ## Following a planet while docked pushes nothing.
 func get_felt_acceleration() -> Vector2:
-	return _felt.get_value()
+	return felt_push.get_value()
 
 
 ## Seconds until the bus docks at [method get_next_planet], from where everything is now:
@@ -586,7 +588,7 @@ func _stop_position(stop: RouteStop, from: Vector3) -> Vector3:
 # Parking, the bus moves by its glide, measured from the planet.
 func _feel(delta: float) -> void:
 	var velocity := _glide.velocity if state == State.PARKING else _forward() * _speed
-	_felt.feel(velocity, _forward(), delta)
+	felt_push.feel(velocity, _forward(), delta)
 
 
 # The line through the route still ahead.

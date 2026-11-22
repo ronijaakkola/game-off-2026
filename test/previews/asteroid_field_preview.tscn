@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://bpd8qur7hdt2p"]
+
+[ext_resource type="Script" uid="uid://by8caputebsrc" path="res://test/previews/asteroid_field_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="2_system"]
+[ext_resource type="PackedScene" uid="uid://qv3tpe8vkcn4" path="res://game/asteroid_field/asteroid_field.tscn" id="3_field"]
+
+[node name="AsteroidFieldPreview" type="Node" unique_id=1987980227]
+script = ExtResource("1_preview")
+
+[node name="SolarSystem" parent="." unique_id=1758294502 instance=ExtResource("2_system")]
+unique_name_in_owner = true
+
+[node name="AsteroidField" parent="." unique_id=1689771005 instance=ExtResource("3_field")]
+unique_name_in_owner = true

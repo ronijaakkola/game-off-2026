@@ -8,7 +8,6 @@ The icons are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0), with 
 | `chevron_right.svg` | `chevron-right` | ISC (`LICENSE.txt`) |
 | `info.svg` | `info` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `circle_help.svg` | `circle-help` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
-| `triangle_alert.svg` | `triangle-alert` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `circle_alert.svg` | `circle-alert` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `clock.svg` | `clock` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `phone_off.svg` | `phone-off` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |

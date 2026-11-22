@@ -19,6 +19,12 @@ func get_value() -> Vector2:
 	return _felt
 
 
+## A knock adds [param push] at once, such as a rock hitting the bus's side. It fades as
+## the push goes back to following the bus.
+func jolt(push: Vector2) -> void:
+	_felt = (_felt + push).limit_length(MAX)
+
+
 ## Feels the bus moving at [param velocity] on the orbit plane, facing [param forward],
 ## [param delta] seconds after last time.
 func feel(velocity: Vector3, forward: Vector3, delta: float) -> void:

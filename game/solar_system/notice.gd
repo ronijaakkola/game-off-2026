@@ -47,7 +47,7 @@ const DIM := Color(0.957, 0.945, 1, 0.651)
 const ICONS: Dictionary[Kind, Texture2D] = {
 	Kind.TUTORIAL: preload("res://game/solar_system/icons/circle_help.svg"),
 	Kind.INFO: preload("res://game/solar_system/icons/info.svg"),
-	Kind.WARNING: preload("res://game/solar_system/icons/triangle_alert.svg"),
+	Kind.WARNING: preload("res://shared/icons/triangle_alert.svg"),
 	Kind.ERROR: preload("res://game/solar_system/icons/circle_alert.svg"),
 	Kind.CALL: preload("res://shared/icons/phone_call.svg"),
 }

@@ -5,7 +5,8 @@ extends Node3D
 ## It can show a white border round it, as a planet under the pointer does, and glow red
 ## ([member heat_glow]).
 ## The bus moves it with [method animate]: a float while still, a shake while charging, a
-## lean into turns and the thrusters' glow, so the bus itself stays on its route.
+## lean into turns and the thrusters' glow, so the bus itself stays on its route. A
+## [method jolt] rocks and rattles it for a moment.
 
 const SHADER := preload("res://shared/two_tone.gdshader")
 const OUTLINE_SHADER := preload("res://game/bus/bus_outline.gdshader")
@@ -21,6 +22,8 @@ const OFF_LENGTH := 0.1
 const BANK := 0.12
 # How fast the thrusters' glow follows what they burn, per second.
 const THRUST_FADE := 2.0
+# How long a jolt takes to die down, in seconds.
+const JOLT_SECONDS := 0.4
 
 ## The thrusters' colour at full thrust.
 @export var thruster_color := Color(0.6, 0.95, 1.0)
@@ -36,6 +39,11 @@ const THRUST_FADE := 2.0
 @export_range(0.1, 20.0, 0.1) var sway_period := 4.3
 ## How far the model shakes when the drive is fully charged. Reduce motion turns it off.
 @export_range(0.0, 0.5, 0.005) var charge_shake := 0.012
+@export_group("Jolt")
+## How far the model rattles at the start of a jolt. Reduce motion turns it off.
+@export_range(0.0, 0.5, 0.005) var jolt_shake := 0.03
+## How far a full jolt rolls the model, in radians.
+@export_range(0.0, 1.0, 0.01) var jolt_roll := 0.35
 
 ## How brightly the thrusters glow, from 0 (off) to 1.
 var thrust := 0.0:
@@ -76,6 +84,9 @@ var light_source := Vector3.ZERO:
 var _time := 0.0
 # How much of the float shows: 1 while still, 0 in flight.
 var _float := 1.0
+# How much of the last jolt is left, from 1 to 0, and which way it rolls the model.
+var _jolt := 0.0
+var _jolt_side := 0.0
 var _glow := StandardMaterial3D.new()
 var _exhaust: MeshInstance3D
 # Each part's border, drawn after it. Always there, see-through while off, so the first
@@ -112,6 +123,14 @@ func _ready() -> void:
 	light_source = light_source
 
 
+## Rocks the model as a knock on its side does: it rolls away from it and rattles, then
+## settles. [param side] is how hard and which way, from -1 to 1, positive toward the
+## bus's right.
+func jolt(side: float) -> void:
+	_jolt = 1.0
+	_jolt_side = clampf(side, -1.0, 1.0)
+
+
 ## Moves the model [param delta] seconds on: it floats while [param still], shakes by how
 ## far [param charge] has got (0 to 1), leans into a turn of [param turn_rate] radians a
 ## second, and its thrusters' glow eases toward [param burn].
@@ -126,7 +145,14 @@ func animate(delta: float, still: bool, charge: float, turn_rate: float, burn: f
 		var shake := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0)
 		position += shake * charge_shake * charge
 	var lean := clampf(-turn_rate * BANK, -0.5, 0.5)
-	rotation.z = lerp_angle(rotation.z, lean, 1.0 - exp(-8.0 * delta))
+	_jolt = move_toward(_jolt, 0.0, delta / JOLT_SECONDS)
+	if not Settings.reduce_motion:
+		var rattle := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0)
+		position += rattle * jolt_shake * _jolt * _jolt * absf(_jolt_side)
+		lean += _jolt_side * jolt_roll * _jolt
+	# A jolt rolls it faster than a turn does.
+	var follow := lerpf(8.0, 30.0, _jolt)
+	rotation.z = lerp_angle(rotation.z, lean, 1.0 - exp(-follow * delta))
 	thrust = move_toward(thrust, burn, delta * THRUST_FADE)
 
 
