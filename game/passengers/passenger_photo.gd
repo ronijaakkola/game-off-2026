@@ -100,6 +100,7 @@ func _process(_delta: float) -> void:
 	portrait.anger = MOOD_ANGER.get(passenger.get_mood(), 0.0)
 	portrait.content = passenger.get_mood() == Passenger.Mood.HAPPY
 	portrait.action = passenger.action
+	portrait.dancing = passenger.dancing > 0.0
 	portrait.felt_acceleration = studio.felt_acceleration if riding else Vector2.ZERO
 	portrait.sweat = studio.sweat if riding else 0.0
 
