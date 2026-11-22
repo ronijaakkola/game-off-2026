@@ -221,7 +221,7 @@ One step in a research tree: its cost in credits and research points, the upgrad
 _Avoid_: tech, node, perk, unlock
 
 **Need**:
-Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves.
+Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves. When each next asks is their **appetite** (`Appetite` in code): a random wait between requests, and only part of one for someone just on board.
 _Avoid_: want, demand, task
 
 **Amenity**:
