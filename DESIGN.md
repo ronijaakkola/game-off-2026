@@ -188,6 +188,7 @@ Happiness replaced patience, so a long ride isn't the only thing that matters: w
 - **The floor.** Frustration never takes them under 50 (okay, three stars). A request open still heads for 0.
 - *(playtest)* Every stop counts for now. Counting only detours, a stop where going there and on is more than 1.25 times the straight way from where the bus last left, is one switch away (`RideProgress.ONLY_DETOURS`), for if serving several passengers on one route feels punished.
 - They say why: a stop past their tolerance shows one of their type's lines about it at once (“Another stop?!”), and so does the moment the ride runs late (“I’m late for a meeting”), unless a request, a sleep, a show or a meal holds their line. While frustrated, their idle lines are those, for whichever costs them more.
+- **Docked, they say they are calm:** their idle lines are their type's docked lines instead (“Calmly waiting at the station”), frustrated or not, since docked is safe. An idle line changes as the bus docks and leaves; a complaint, sleep, show or meal runs out first.
 - **The card says what moves it:** on the happiness bar, what lifts them (what they were just served, getting over something, each comfort upgrade, the station lounge, a quick stop) and what costs them (a request nobody serves, stops past their tolerance, a late ride, the heat, and for 15 s a quest declined or failed). The other shocks aren't listed yet.
 
 **Shocks** change happiness at once and leave the target alone, so it climbs back at 1 a second:
