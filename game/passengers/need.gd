@@ -29,3 +29,10 @@ enum Action { NONE = 0, EAT = 1, DRINK = 2, WATCH = 3 }
 ## request: a random value between these two.
 @export_range(1.0, 600.0, 1.0) var min_interval := 20.0
 @export_range(1.0, 600.0, 1.0) var max_interval := 40.0
+## The least of an interval someone just on board waits before first asking, as a fraction
+## of it: their first wait is a random part of an interval, from this much to all of it.
+## At 1 everyone waits a whole interval, and those picked up together ask together.
+@export_range(0.0, 1.0, 0.05) var first_wait := 1.0
+## How much happiness the passenger loses a second while the request is open and nobody
+## serves it.
+@export_range(0.5, 20.0, 0.5) var fall_rate := 3.0
