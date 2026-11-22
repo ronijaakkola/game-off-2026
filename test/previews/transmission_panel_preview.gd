@@ -26,10 +26,9 @@ func _ready() -> void:
 		transmission = Transmission.from_boss()
 		transmission.caller_name = GoalsMetCall.CALLER
 		var unanswered := "unanswered" in args
-		transmission.text = GoalsMetCall.UNANSWERED_TEXT if unanswered else GoalsMetCall.TEXT
-		transmission.decline_text = GoalsMetCall.ANSWERS[0]
-		transmission.accept_text = GoalsMetCall.ANSWERS[1]
-		transmission.answers_alike = true
+		var opening := GoalsMetCall.UNANSWERED_TEXT if unanswered else GoalsMetCall.TEXT
+		transmission.text = opening + GoalsMetCall.OFFER
+		transmission.accept_text = GoalsMetCall.JUMP_ANSWER
 	elif "mechanic" in args:
 		transmission = Transmission.from_mechanic()
 		transmission.text = MechanicCall.RESEARCH_TEXT

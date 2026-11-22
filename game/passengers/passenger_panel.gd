@@ -32,13 +32,15 @@ const OPTIONS_GAP := 6.0
 			cabin.boarded.disconnect(_on_boarded)
 			cabin.getting_off.disconnect(_on_getting_off)
 			cabin.delivered.disconnect(_on_delivered)
-			cabin.kicked.disconnect(_on_kicked)
+			cabin.kicked.disconnect(_on_gone)
+			cabin.left_behind.disconnect(_on_gone)
 		cabin = value
 		if cabin:
 			cabin.boarded.connect(_on_boarded)
 			cabin.getting_off.connect(_on_getting_off)
 			cabin.delivered.connect(_on_delivered)
-			cabin.kicked.connect(_on_kicked)
+			cabin.kicked.connect(_on_gone)
+			cabin.left_behind.connect(_on_gone)
 		if is_node_ready():
 			_show_all()
 
@@ -187,7 +189,7 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 		_show_counts()
 
 
-func _on_kicked(passenger: Passenger) -> void:
+func _on_gone(passenger: Passenger) -> void:
 	_held.erase(passenger)
 	var card: PassengerCard = _cards.get(passenger)
 	if card:

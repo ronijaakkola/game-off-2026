@@ -26,10 +26,12 @@ signal goal_failed(goal: Goal)
 		if cabin:
 			cabin.delivered.disconnect(_on_delivered)
 			cabin.kicked.disconnect(_on_kicked)
+			cabin.left_behind.disconnect(_on_kicked)
 		cabin = value
 		if cabin:
 			cabin.delivered.connect(_on_delivered)
 			cabin.kicked.connect(_on_kicked)
+			cabin.left_behind.connect(_on_kicked)
 
 ## The ledger whose recent rating the goals follow. The scene that owns it sets it.
 var ledger: Ledger:
@@ -114,6 +116,7 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 		goal.passenger_delivered(passenger)
 
 
+# Left behind at a jump counts as kicked: the quest about them can no longer be done.
 func _on_kicked(passenger: Passenger) -> void:
 	if frozen:
 		return
