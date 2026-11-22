@@ -16,8 +16,9 @@ extends Node3D
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
 ## planet is open, the planets' names fade out, and the open planet's white hover border
 ## fades out and stays off; both fade back in when it closes.
-## A left click on the bus opens it the same way, with its stats in its panel. One of the
-## two is open at a time: opening either closes the other.
+## A left click on the bus would open it the same way, with its stats in its panel, but that
+## is off for now ([member left_click_opens_bus]). One of the two is open at a time:
+## opening either closes the other.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one, pay and rate the ride,
 ## which goes into the average rating beside the credits, and earn a research point,
@@ -63,6 +64,11 @@ const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 ## Whether a left click on a planet opens it. Off for now: the planet acts as empty space,
 ## and the panel opens only from code ([method open_planet]).
 static var left_click_opens_planets := false
+
+## Whether a left click on the bus opens it, and the pointer over it shows its white border.
+## Off for now: the bus acts as empty space, and its panel opens only from code
+## ([method open_bus]).
+static var left_click_opens_bus := false
 
 var _planets: Array[Planet] = []
 # The player's credits, research points and ratings. The resource bar shows them.
@@ -449,10 +455,12 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 
 # What a left click at screen_point opens: the bus, a planet, or null. Where the bus and a
 # planet overlap, as when it is docked, whichever centre is nearer wins, so the docked
-# planet stays easy to open.
+# planet stays easy to open. With [member left_click_opens_bus] off the bus is never picked.
 func _pick_at(screen_point: Vector2) -> Node3D:
-	var bus := %Bus as FrameshiftBus
 	var planet := _planet_at(screen_point)
+	if not left_click_opens_bus:
+		return planet
+	var bus := %Bus as FrameshiftBus
 	return ScreenPick.bus_or_planet_at(%Camera as Camera3D, bus, planet, screen_point)
 
 
