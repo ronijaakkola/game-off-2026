@@ -79,6 +79,9 @@ var lounge_bonus := 0.0
 ## What the quick stops on their ride add to the most they can reach, up to
 ## [constant QUICK_BONUS_MAX] ([method admire]).
 var quick_bonus := 0.0
+## What the quests they had done add to the most they can reach, for the rest of their ride
+## ([method admire]).
+var quest_bonus := 0.0
 ## The one-off that last cost them, for the panel that says what moves their happiness.
 var cause := HappinessCause.new()
 ## The need they were just served, while its served activity lasts, or null.
@@ -181,6 +184,7 @@ static func from_save(
 	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
 	passenger.lounge_bonus = float(saved.get("lounge_bonus", 0.0))
 	passenger.quick_bonus = float(saved.get("quick_bonus", 0.0))
+	passenger.quest_bonus = float(saved.get("quest_bonus", 0.0))
 	passenger.activity = ""
 	passenger._activity_left = 0.0
 	passenger._departed = bool(saved.get("departed", false))
@@ -261,11 +265,15 @@ func shock(amount: float, why := HappinessCause.Type.NONE) -> void:
 		_shaken = true
 
 
-## They admire a quick stop: [param amount] more happiness at once, and as much more of
-## what they can reach for the rest of the ride, up to [constant QUICK_BONUS_MAX] in all.
-func admire(amount: float) -> void:
-	var gained := minf(amount, QUICK_BONUS_MAX - quick_bonus)
-	quick_bonus += gained
+## They admire a quick stop, or a [param quest] done for them: [param amount] more
+## happiness at once, and as much more of what they can reach for the rest of the ride. The
+## quick stops' part goes up to [constant QUICK_BONUS_MAX] in all; a quest's has no limit.
+func admire(amount: float, quest := false) -> void:
+	var gained := amount if quest else minf(amount, QUICK_BONUS_MAX - quick_bonus)
+	if quest:
+		quest_bonus += gained
+	else:
+		quick_bonus += gained
 	happiness = minf(happiness + gained, MAX_HAPPINESS)
 
 
@@ -417,6 +425,7 @@ func to_save() -> Dictionary:
 		"request_age": _request_age,
 		"lounge_bonus": lounge_bonus,
 		"quick_bonus": quick_bonus,
+		"quest_bonus": quest_bonus,
 	}
 
 
@@ -473,7 +482,7 @@ func _complain(lines: Array[String], seconds: float) -> void:
 
 # The most the bus giving [param comfort] can give them now, before frustration, less discomfort.
 func _get_best(comfort: Comfort) -> float:
-	var bonus := comfort.bonus + lounge_bonus + quick_bonus
+	var bonus := comfort.bonus + lounge_bonus + quick_bonus + quest_bonus
 	return maxf(minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS) - comfort.discomfort, 0.0)
 
 

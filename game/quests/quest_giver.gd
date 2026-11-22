@@ -9,7 +9,8 @@ extends Node
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
-## passenger. A completed quest pays its reward; a failed one costs the passenger
+## passenger. A completed quest pays its reward and lifts the passenger by
+## [member done_happiness] for the rest of their ride; a failed one costs the passenger
 ## [constant FAIL_SHOCK] if they still ride, so nothing more when a kick failed it.
 ## Declining costs them [constant DECLINE_SHOCK], in the transmission or with the call
 ## notice's decline button, and so does a call left unanswered until the bus reaches a
@@ -60,6 +61,10 @@ const FAILED_ICON := preload("res://shared/icons/circle_x.svg")
 
 ## Whether anyone calls. A quest under way carries on either way.
 @export var enabled := true
+## What a done quest adds to the caller's happiness at once, and to the most they can reach
+## for the rest of their ride ([method Passenger.admire]): enough to lift a clean ride on a
+## bare bus to five stars.
+@export_range(0.0, 40.0, 0.5) var done_happiness := 20.0
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
 @export var notices: NoticeStack
@@ -335,6 +340,8 @@ func _on_goal_completed(goal: Goal) -> void:
 		_ledger.earn(_quest.reward_credits)
 		if _quest.reward_research > 0:
 			_ledger.earn_research(_quest.reward_research)
+	if _quest.passenger in cabin.get_passengers():
+		_quest.passenger.admire(done_happiness, true)
 	notices.push("Quest done: %s" % goal.get_text(), Notice.Kind.INFO, false, NOTICE_SECONDS)
 	if quick_text:
 		quick_text.show_text(COMPLETED_TEXT, COMPLETED_ICON, BusQuickText.Kind.GAIN)
