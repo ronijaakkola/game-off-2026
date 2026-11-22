@@ -2,8 +2,7 @@ extends Node
 ## The solar system with the bus status panel mid-trip, for capturing it: 8 seats, 3 of
 ## them taken, and the bus already flying from Ember to Terra, since the drive charges
 ## at once and the key is held. With "ready" after `--`, the key isn't held, so the bus
-## waits at Ember with its course set; with "quick" too, a third of a quick stop's time
-## gone, so the key shows its clock, and with "unloading" too, held full.
+## waits at Ember with its course set.
 
 const SEATS := 8
 const ON_BOARD := 3
@@ -21,9 +20,3 @@ func _ready() -> void:
 	bus.charge_time = 0.0
 	bus.plot_course(RouteStop.at_planet(system.get_node(^"World/Sol/Terra") as Planet))
 	bus.frameshift_held = "ready" not in OS.get_cmdline_user_args()
-	if "quick" in OS.get_cmdline_user_args():
-		bus.drive.begin_stop(true, false)
-		bus.drive.wait(bus.quick_time / 3.0)
-		bus.unloading = "unloading" in OS.get_cmdline_user_args()
-		if bus.unloading:
-			bus.drive.begin_stop(true, false)

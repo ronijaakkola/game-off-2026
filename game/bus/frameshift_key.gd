@@ -3,11 +3,10 @@ extends BusKey
 ## The Frameshift key in the bus bar, a [BusKey] with a label. The bus status sets what it
 ## shows: [member charge], how far the drive has charged, fills the cap in the bus's yellow
 ## and latches the key down; [member warmth], how warm the drive is, fills it the same way
-## with the key up and ready; [member quick_stop], the share of a quick stop's time left,
-## shows as a clock badge on its top right corner; [member stop] turns it into the red Stop
-## key; disabled, the cap is dim. Enabled and neither charging nor Stop, it is ready: the
-## cap pulses slightly lighter, with a hard outline in the bus's yellow round it.
-## [method release] pops it up while the pointer still holds it down.
+## with the key up and ready; [member stop] turns it into the red Stop key; disabled, the
+## cap is dim. Enabled and neither charging nor Stop, it is ready: the cap pulses slightly
+## lighter, with a hard outline in the bus's yellow round it. [method release] pops it up
+## while the pointer still holds it down.
 
 const SIZE := Vector2(104.0, 44.0)
 const STOP_SIDE_COLOR := Color(0.639, 0.169, 0.251)
@@ -23,14 +22,6 @@ const PULSE_LIGHTEN := 0.1
 const OUTLINE_DIM := 0.35
 const OUTLINE_BRIGHT := 1.0
 const PULSE_SECONDS := 2.0
-# The quick stop badge: a dark disc, its centre BADGE_INSET in from the key's top right
-# corner, holding a yellow pie of the time left that empties clockwise.
-const BADGE_INSET := 5.0
-const BADGE_RADIUS := 9.0
-const BADGE_PIE_RADIUS := 6.0
-const BADGE_SEGMENTS := 32
-# Under this share of the time left the pie is too thin to draw, and the disc shows empty.
-const BADGE_PIE_MIN := 0.02
 
 ## How far the drive has charged, from 0 to 1. Above 0 the key latches down and fills.
 var charge := 0.0:
@@ -43,12 +34,6 @@ var warmth := 0.0:
 	set(value):
 		if not is_equal_approx(value, warmth):
 			warmth = value
-			queue_redraw()
-## The share of a quick stop's time left, from 1 to 0. Above 0 the clock badge shows.
-var quick_stop := 0.0:
-	set(value):
-		if not is_equal_approx(value, quick_stop):
-			quick_stop = value
 			queue_redraw()
 ## Whether the key is the red Stop key.
 var stop := false:
@@ -94,27 +79,6 @@ func _draw() -> void:
 		face.get_center().y + (font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5
 	)
 	draw_string(font, Vector2(left, baseline), label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, ink)
-	if quick_stop > 0.0:
-		_draw_quick_stop()
-
-
-# The clock badge, its pie the time left, emptying clockwise from the top.
-func _draw_quick_stop() -> void:
-	var center := Vector2(size.x - BADGE_INSET, BADGE_INSET)
-	draw_circle(center, BADGE_RADIUS, WELL_COLOR)
-	draw_circle(center, BADGE_RADIUS - 1.0, OUTLINE_COLOR, false, 1.5, true)
-	# A whole pie's arc would close on its first point, which the polygon can't take.
-	if quick_stop >= 1.0:
-		draw_circle(center, BADGE_PIE_RADIUS, OUTLINE_COLOR)
-		return
-	if quick_stop < BADGE_PIE_MIN:
-		return
-	var steps := maxi(ceili(BADGE_SEGMENTS * quick_stop), 1)
-	var points := PackedVector2Array([center])
-	for i: int in steps + 1:
-		var angle := TAU * (1.0 - quick_stop * i / steps)
-		points.append(center + Vector2(sin(angle), -cos(angle)) * BADGE_PIE_RADIUS)
-	draw_colored_polygon(points, OUTLINE_COLOR)
 
 
 ## Pops the key up as if let go, while the pointer still holds it, so its release does

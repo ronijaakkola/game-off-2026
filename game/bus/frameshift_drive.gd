@@ -126,12 +126,6 @@ func is_quick_stop() -> bool:
 	return _stop_time <= quick_time or _warm_charge
 
 
-## The share of the quick stop's time left, from 1 as those getting off are off to 0 once
-## it has run out. 0 with no stop that can be a quick one.
-func get_quick_stop_left() -> float:
-	return clampf(1.0 - _stop_time / quick_time, 0.0, 1.0) if quick_time > 0.0 else 0.0
-
-
 func is_warm() -> bool:
 	return _warmth > 0.0
 

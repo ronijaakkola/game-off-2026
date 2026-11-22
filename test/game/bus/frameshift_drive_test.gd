@@ -66,13 +66,11 @@ func test_letting_go_of_a_warm_charge_drains_it_fast_and_leaves_it_cold() -> voi
 
 func test_the_quick_stop_runs_out_after_its_time() -> void:
 	_drive.begin_stop(true, false)
-	assert_float(_drive.get_quick_stop_left()).is_equal(1.0)
-	_drive.wait(QUICK * 0.5)
-	assert_float(_drive.get_quick_stop_left()).is_equal_approx(0.5, 0.001)
 	assert_bool(_drive.is_quick_stop()).is_true()
-	_drive.wait(QUICK * 0.5 + STEP)
+	_drive.wait(QUICK - STEP)
+	assert_bool(_drive.is_quick_stop()).is_true()
+	_drive.wait(STEP * 2.0)
 	assert_bool(_drive.is_quick_stop()).is_false()
-	assert_float(_drive.get_quick_stop_left()).is_equal(0.0)
 
 
 func test_towed_in_or_ended_early_there_is_no_quick_stop() -> void:
@@ -85,7 +83,6 @@ func test_towed_in_or_ended_early_there_is_no_quick_stop() -> void:
 
 	assert_bool(_drive.is_warm()).is_false()
 	assert_bool(_drive.is_quick_stop()).is_false()
-	assert_float(_drive.get_quick_stop_left()).is_equal(0.0)
 
 
 func _advance(seconds: float) -> void:

@@ -164,7 +164,7 @@ func test_leaving_within_the_quick_stop_time_is_a_quick_stop_without_the_warm_dr
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
 	assert_float(_bus.get_warmth()).is_equal(0.0)
-	assert_float(_bus.drive.get_quick_stop_left()).is_greater(0.9)
+	assert_bool(_bus.drive.is_quick_stop()).is_true()
 	# Leaving let go of the key, so it waits for the player.
 	_step_for(1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
@@ -184,7 +184,6 @@ func test_leaving_within_the_quick_stop_time_is_a_quick_stop_without_the_warm_dr
 	_bus.frameshift_held = true
 	assert_bool(_step_until(FrameshiftBus.State.FLYING)).is_true()
 	assert_int(quick[0]).is_equal(1)
-	assert_float(_bus.drive.get_quick_stop_left()).is_equal(0.0)
 
 
 func test_with_the_warm_drive_a_charge_from_warm_takes_a_moment_and_is_a_quick_stop() -> void:
@@ -232,7 +231,7 @@ func test_the_quick_stop_holds_while_unloading_then_runs_out() -> void:
 	assert_bool(_step_until_docked()).is_true()
 	_step_for(_bus.quick_time + 1.0)
 	assert_float(_bus.get_warmth()).is_equal(1.0)
-	assert_float(_bus.drive.get_quick_stop_left()).is_equal(1.0)
+	assert_bool(_bus.drive.is_quick_stop()).is_true()
 
 	_bus.unloading = false
 	_step_for(_bus.quick_time + STEP)
@@ -240,7 +239,7 @@ func test_the_quick_stop_holds_while_unloading_then_runs_out() -> void:
 	_step_for(STEP)
 
 	assert_float(_bus.get_warmth()).is_equal(0.0)
-	assert_float(_bus.drive.get_quick_stop_left()).is_equal(0.0)
+	assert_bool(_bus.drive.is_quick_stop()).is_false()
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 

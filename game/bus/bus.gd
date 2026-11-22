@@ -121,8 +121,7 @@ var frameshift_held: bool:
 var temperature: BusTemperature:
 	get:
 		return %Temperature as BusTemperature
-## The frameshift drive, for the scene to end a quick stop spent on research, and for the
-## bus bar to show how much of a quick stop's time is left.
+## The frameshift drive, for the scene to end a quick stop spent on research.
 var drive: FrameshiftDrive:
 	get:
 		return _drive
