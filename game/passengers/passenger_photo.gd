@@ -93,24 +93,26 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if passenger and passenger.quest_line != _quest_line:
 		_show_badges()
-	var portrait := studio.get_portrait(_photo) if studio and _photo else null
+	var portrait := get_portrait()
 	if not portrait:
 		return
 	portrait.asleep = passenger.asleep
-	portrait.anger = MOOD_ANGER.get(passenger.get_mood(), 0.0)
+	portrait.anger = maxf(MOOD_ANGER.get(passenger.get_mood(), 0.0), passenger.cause.get_glare())
 	portrait.content = passenger.get_mood() == Passenger.Mood.HAPPY
 	portrait.action = passenger.action
+	portrait.dancing = passenger.dancing > 0.0
 	portrait.felt_acceleration = studio.felt_acceleration if riding else Vector2.ZERO
 	portrait.sweat = studio.sweat if riding else 0.0
-
-
-func _exit_tree() -> void:
-	_give_back()
 
 
 ## The photo's tile of the studio's render, or null while it has none.
 func get_photo() -> Texture2D:
 	return _photo
+
+
+## The portrait the photo shows, or null while it has none.
+func get_portrait() -> AlienPortrait:
+	return studio.get_lent_portrait(self) if studio else null
 
 
 func _show() -> void:
@@ -119,10 +121,13 @@ func _show() -> void:
 		return
 	_backdrop().set_shader_parameter(&"backdrop_color", Race.BACKDROP_COLORS[passenger.race])
 	if studio and not _photo and is_inside_tree():
-		_photo = studio.add(passenger.look, passenger.type)
-		if not _photo and not studio.slot_freed.is_connected(_show):
-			studio.slot_freed.connect(_show, CONNECT_ONE_SHOT)
-	(%Photo as TextureRect).texture = _photo
+		studio.lend(self, passenger.look, passenger.type, _on_lent)
+
+
+# The studio lent the photo its tile, or took it back with null.
+func _on_lent(photo: AtlasTexture) -> void:
+	_photo = photo
+	(%Photo as TextureRect).texture = photo
 
 
 # One badge for each of the passenger's type's, then a flag while a quest is about them,
@@ -173,13 +178,8 @@ func _badge_growth() -> float:
 
 
 func _give_back() -> void:
-	if studio and studio.slot_freed.is_connected(_show):
-		studio.slot_freed.disconnect(_show)
-	if _photo and studio:
-		studio.remove(_photo)
-	_photo = null
-	if is_node_ready():
-		(%Photo as TextureRect).texture = null
+	if studio:
+		studio.take_back(self)
 
 
 # The frame becomes a rounded mask as big as the photo, and the backdrop and portrait fill

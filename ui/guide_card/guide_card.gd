@@ -2,7 +2,8 @@ class_name GuideCard
 extends PanelContainer
 ## A solid dark card that points at something on screen and says what to do with it, for
 ## the tutorial and for a feature met during play. A [member title], one to three lines of
-## [member text], and a notch on the edge facing the target, pointing at its middle.
+## [member text], and a notch on the edge facing the target, pointing at its middle. The
+## text can show mouse buttons and keys as icons ([ControlIcons]).
 ## A [constant Kind.TUTORIAL_STEP] shows step dots for how far along the tutorial is, when
 ## [member step_count] is more than one, and
 ## goes once its owner sees the player did what it says. A [constant Kind.FEATURE_HINT]
@@ -18,7 +19,9 @@ extends PanelContainer
 ## closing, it only fades and shrinks back. Either turns round from where it is. Just
 ## after it opens, its step dots move on from the step it showed last to [member step].
 ## Under Reduce motion it only fades, and the dots change at once.
-## With [member ring], a [GuideRing] goes round the target while the card is open.
+## With [member ring], a [GuideRing] goes round the target while the card is open. A ring
+## round a control follows its corners; one round [member target_rect], a planet or the
+## bus, is a circle.
 
 ## The player pressed Got it.
 signal acknowledged
@@ -116,6 +119,7 @@ func _ready() -> void:
 	set_process(false)
 	_ring = GuideRing.new()
 	add_child(_ring)
+
 	(%StepDots as Control).draw.connect(_draw_step_dots)
 	(%GotItButton as Button).pressed.connect(_on_got_it_pressed)
 	_show_content()
@@ -234,7 +238,7 @@ func _set_dots_at(value: float) -> void:
 func _show_content() -> void:
 	var feature := kind == Kind.FEATURE_HINT
 	(%TitleLabel as Label).text = title
-	(%BodyLabel as Label).text = text
+	ControlIcons.write(%BodyLabel as RichTextLabel, text)
 	(%PausedTag as Control).visible = feature
 	(%GotItButton as Control).visible = feature or got_it
 	var dots := %StepDots as Control
@@ -266,6 +270,7 @@ func _draw_step_dots() -> void:
 func _place() -> void:
 	var rect := target.get_global_rect() if target else target_rect
 	_ring.target_rect = rect
+	_ring.circle = target == null
 	var screen := get_viewport_rect().size
 	var centre := rect.get_center()
 	var away := TIP_GAP + NOTCH_LENGTH

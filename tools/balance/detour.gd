@@ -1,12 +1,12 @@
 extends RefCounted
 ## How the scripted player flies round the star. When the straight way to the next planet
-## crosses the hot zone, now or as the planet moves, a checkpoint goes beyond the heat
+## crosses the hot zone, now or as the planet moves, a waypoint goes beyond the heat
 ## zone's edge: hugging the hot zone's edge for long overheats in the outer zone. After an
 ## overheat, the same course again once the cooldown is over, charged at once.
 
 ## How far outside the hot zone's edge a leg must pass.
 const HOT_ZONE_MARGIN := 0.5
-## How far outside the heat zone's edge a checkpoint round it goes.
+## How far outside the heat zone's edge a waypoint round it goes.
 const HEAT_ZONE_MARGIN := 0.3
 
 var _bus: FrameshiftBus
@@ -30,7 +30,7 @@ func plot(planet: Planet) -> void:
 	steer()
 
 
-## Every frame away from a planet: a course again after an overheat, and a checkpoint when
+## Every frame away from a planet: a course again after an overheat, and a waypoint when
 ## the leg to the planet ahead has come to cross the hot zone.
 func steer() -> void:
 	if _overheated and not _bus.temperature.is_cooling():
@@ -49,12 +49,12 @@ func steer() -> void:
 	var from := RouteStop.flat(_bus.global_position - star)
 	var via: Variant = around(from, RouteStop.flat(to - star), clear, out)
 	if via != null:
-		# Adding a stop puts it on the end, so the checkpoint goes first and the planet after.
+		# Adding a stop puts it on the end, so the waypoint goes first and the planet after.
 		_bus.plot_course(RouteStop.at_point(star + (via as Vector3)))
 		_bus.plot_course(stops[0], true)
 
 
-## The checkpoint that keeps a leg from [param from] to [param to] at least [param clear]
+## The waypoint that keeps a leg from [param from] to [param to] at least [param clear]
 ## from the star, both relative to the star on the orbit plane, or null when the straight
 ## leg already does. It goes at least [param out] from the star, beyond where the leg comes
 ## nearest it, and further until neither leg crosses.

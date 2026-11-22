@@ -11,7 +11,7 @@ const MAX_STEPS := 4000
 
 var _bus: FrameshiftBus
 var _zone: HeatZone
-var _star: Node3D
+var _star: StarSystem
 var _far: Planet
 var _reduce_motion: bool
 
@@ -21,7 +21,7 @@ func before_test() -> void:
 	Settings.reduce_motion = true
 	var space := auto_free(Node3D.new()) as Node3D
 	add_child(space)
-	_star = Node3D.new()
+	_star = StarSystem.new()
 	space.add_child(_star)
 	var home := _planet(space, Vector3(12.0, 0.0, 0.0))
 	# Beyond the star, so the straight way there runs through it.
@@ -40,7 +40,10 @@ func before_test() -> void:
 	space.add_child(map_zoom)
 	_zone = HeatZone.new()
 	_zone.bus = _bus
-	_zone.star = _star
+	var star_map := StarMap.new()
+	star_map.world = space
+	space.add_child(star_map)
+	_zone.star_map = star_map
 	_zone.map_zoom = map_zoom
 	_zone.zone = disc
 	space.add_child(_zone)

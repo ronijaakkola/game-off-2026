@@ -194,7 +194,8 @@ func test_angry_the_lids_slant_toward_the_middle_and_a_mark_shows_with_the_skin_
 	assert_bool(portrait.anger_mark.visible).is_true()
 
 
-func test_the_expression_preview_shows_each_head_in_each_expression_eating_and_drinking() -> void:
+func test_the_expression_preview_shows_each_head_in_each_expression_eating_drinking_dancing(
+) -> void:
 	var runner := scene_runner(EXPRESSIONS)
 	await runner.simulate_frames(40, 50)
 
@@ -202,28 +203,32 @@ func test_the_expression_preview_shows_each_head_in_each_expression_eating_and_d
 	var joys: Array[float] = []
 	var contents: Array[bool] = []
 	var actions: Array[Need.Action] = []
+	var dancing: Array[bool] = []
 	for node: Node in runner.scene().get_children():
 		var photo := node as PassengerPhoto
 		if not photo:
 			continue
-		var portrait := photo.studio.get_portrait(photo.get_photo() as AtlasTexture)
+		var portrait := photo.get_portrait()
 		angers.append(portrait.anger)
 		joys.append(portrait.joy)
 		contents.append(portrait.content)
 		actions.append(portrait.action)
-	# Okay, happy, annoyed, furious, joyful, eating, drinking and watching, for each of six
-	# heads.
-	var row_anger: Array[float] = [0.0, 0.0, 0.5, 1.0, 0.0, 0.0, 0.0, 0.0]
-	var row_joy: Array[float] = [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
-	var row_content: Array[bool] = [false, true, false, false, false, false, false, false]
+		dancing.append(portrait.dancing)
+	# Okay, happy, annoyed, furious, joyful, eating, drinking, watching and dancing, for each
+	# of six heads.
+	var row_anger: Array[float] = [0.0, 0.0, 0.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var row_joy: Array[float] = [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+	var row_content: Array[bool] = [false, true, false, false, false, false, false, false, true]
 	var none := Need.Action.NONE
 	var row_action: Array[Need.Action] = [
-		none, none, none, none, none, Need.Action.EAT, Need.Action.DRINK, Need.Action.WATCH
+		none, none, none, none, none, Need.Action.EAT, Need.Action.DRINK, Need.Action.WATCH, none
 	]
+	var row_dancing: Array[bool] = [false, false, false, false, false, false, false, false, true]
 	assert_array(angers).is_equal(_rows(row_anger))
 	assert_array(joys).is_equal(_rows(row_joy))
 	assert_array(contents).is_equal(_rows(row_content))
 	assert_array(actions).is_equal(_rows(row_action))
+	assert_array(dancing).is_equal(_rows(row_dancing))
 
 
 func test_content_they_beam_now_and_then_and_stop_when_not() -> void:

@@ -22,12 +22,12 @@ _Avoid_: `Bus` as a class name (it shadows `Audio.Bus`), ship, vehicle
 The ordered stops the bus flies through, each a planet or a point in space. A **course** is the route the player sets with a click.
 _Avoid_: path, waypoints list
 
-**Checkpoint**:
+**Waypoint**:
 A point in space on the route before a planet, which the bus flies through on its way there.
-_Never_: waypoint
+_Avoid_: checkpoint (where the run is saved)
 
 **Docked**:
-The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, which starts from the warmth left while the drive is still **warm**, just after docking, and builds faster, until it goes **cold**. Leaving on a warm charge never let go is a **quick stop**.
+The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key. Leaving soon after docking is a **quick stop**. With the **Warm drive** upgrade the drive is **warm** meanwhile, and a charge from warm starts from the warmth left and takes a moment, until it goes **cold**.
 _Avoid_: landed, parked
 
 **Signal bus**:
@@ -176,8 +176,8 @@ Something the player is asked to do and the game tracks, several at a time: a **
 _Avoid_: objective, mission, achievement (a one-off reward, not something asked)
 
 **Quest**:
-What one passenger asks of the player mid-ride, in a transmission, for a reward: an **express** quest has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each such as `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
-_Avoid_: task, errand, mission
+What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); an **errand** has it stop at a planet before their own stop; an **express** quest has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `ErrandQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
+_Avoid_: task, mission, errand (for any quest: it is the one kind)
 
 **Transmission**:
 A call that pauses the game: someone, a passenger, the player's boss or the **mechanic**, talks from a screen in a modal, and the player answers with a button. A **message** only says something; a quest transmission asks the player to take on a quest, shows its reward, and is accepted or declined. `Transmission`, shown by the `TransmissionPanel`, in code.
@@ -206,14 +206,14 @@ The company's mechanic, who calls in a **transmission** to open research: every 
 What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
 
 **Promotion**:
-What the player earns by meeting every goal a star system gives at once: it opens the next star system, or joins every system after the last one. `Progression.promote()` in code.
+What the player earns by meeting every goal a star system gives at once, with The Boss's call: it opens the next star system and jumps there, or joins every system after the last one. `Progression.advance()` in code, which calls `promote()`.
 
 **Star system**:
 A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
 _Avoid_: level, galaxy, sector, stage (a band of research rows)
 
 **Jump**:
-The bus's frameshift from one star system to the next, once a promotion opens it: it leaves with nobody on board and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
+The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
 _Avoid_: warp, hyperspace, travel (a trip between planets)
 
 **Upgrade**:
@@ -221,7 +221,7 @@ One step in a research tree: its cost in credits and research points, the upgrad
 _Avoid_: tech, node, perk, unlock
 
 **Need**:
-Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves.
+Something a passenger asks for during the ride, such as a snack. An open one is a **request**, which the player or an amenity serves. When each next asks is their **appetite** (`Appetite` in code): a random wait between requests, and only part of one for someone just on board.
 _Avoid_: want, demand, task
 
 **Amenity**:

@@ -1,10 +1,11 @@
 class_name UpgradeButton
 extends Control
 ## One upgrade in the research screen: a rounded square tile with its icon, and, where its
-## title ends in a step ("Speed 2", "Bigger portions II"), that step as a numeral in the
-## top left corner. It shows its [enum Research.State] in the shades of its tree's race
-## ([member palette]):
-## researched is a solid fill in the race's colour with the icon in its deep shade;
+## title ends in a step ("Speed 2", "Bigger portions II"), that step as a numeral on a chip
+## across the tile's bottom edge. The icon is a line icon tinted for the state, or a
+## rendered one ([RenderedIcon]) in its own colours, dimmed for the state. It shows its
+## [enum Research.State] in the shades of its tree's race ([member palette]):
+## researched is a solid fill in the race's colour with a line icon in its deep shade;
 ## available is dark, tinted toward the race's colour, with a border in it; can't afford is
 ## dark with a faint border in it, a dim icon and a red badge for what the player lacks;
 ## locked is dark and dim with a thin grey outline; and hidden is a near-black tile with a
@@ -24,8 +25,12 @@ signal held
 
 const SIZE := Vector2(52, 52)
 const RADIUS := TilePaint.RADIUS
-## The icon's size and its offset from the tile's corner, in pixels.
+## A line icon's size, and a rendered one's, in pixels, centred on the tile.
 const ICON_SIZE := 24.0
+const RENDERED_ICON_SIZE := 36.0
+## A rendered icon's tint while it can't be afforded, and while locked.
+const RENDERED_UNAFFORDABLE_TINT := Color(0.62, 0.6, 0.72)
+const RENDERED_LOCKED_TINT := Color(0.42, 0.4, 0.52)
 ## Seconds it has to be held to research it, and the fill takes to drain, easing out:
 ## after a let-go, and off the lit tile once researched.
 const HOLD_SECONDS := 0.6
@@ -111,7 +116,9 @@ var _nudge: Tween
 var _reveal: Tween
 var _ink := TEXT_COLOR
 var _icon := TextureRect.new()
-var _step := Label.new()
+# The step its chip shows, "" for none, and the numeral's colour.
+var _step := ""
+var _step_ink := TEXT_COLOR
 var _badge_icon := TextureRect.new()
 var _tooltip := TOOLTIP.instantiate() as Tooltip
 
@@ -123,14 +130,7 @@ func _init() -> void:
 	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_icon.position = (SIZE - Vector2.ONE * ICON_SIZE) * 0.5
-	_icon.size = Vector2.ONE * ICON_SIZE
 	add_child(_icon)
-	_step.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_step.theme_type_variation = &"SmallStrongLabel"
-	_step.add_theme_font_size_override(&"font_size", 13)
-	_step.position = Vector2(6, 0)
-	add_child(_step)
 	_badge_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_badge_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_badge_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -155,6 +155,8 @@ func _ready() -> void:
 	# Godot turns processing on at ready for a script with _process(); it runs only held.
 	set_process(false)
 	_show_state()
+	# A resized window scales the UI, so a rendered icon picks its size again.
+	get_viewport().size_changed.connect(_show_state)
 
 
 ## Shows [param state]; [param lacks_points] says whether, unaffordable, the player lacks
@@ -366,13 +368,25 @@ func _show_state() -> void:
 		Research.State.LOCKED:
 			ink = Color(TEXT_COLOR, 0.4)
 	_icon.texture = upgrade.icon if upgrade else null
+	var rendered := upgrade != null and RenderedIcon.is_rendered(upgrade.icon)
+	_icon.size = Vector2.ONE * (RENDERED_ICON_SIZE if rendered else ICON_SIZE)
+	_icon.position = (SIZE - _icon.size) * 0.5
+	if rendered:
+		ink = _rendered_ink()
+		# The window's UI scale is in the viewport's final transform, not the screen transform.
+		var scale_on_screen := (
+			get_viewport().get_final_transform().get_scale().x
+			* get_global_transform_with_canvas().get_scale().x
+		)
+		_icon.texture = RenderedIcon.sized(
+			upgrade.icon, RENDERED_ICON_SIZE * scale_on_screen, _silhouette()
+		)
 	_ink = ink
 	_apply_ink()
-	_step.text = "" if _silhouette() or not upgrade else step_of(upgrade.title)
-	var step_ink := ink
-	if _state == Research.State.UNAFFORDABLE:
-		step_ink = Color(TEXT_COLOR, 0.4)
-	_step.add_theme_color_override(&"font_color", step_ink)
+	_step = "" if _silhouette() or not upgrade else step_of(upgrade.title)
+	# The chip is dark on every tile, so its numeral is light, dimmed as the tile is.
+	var dim := _state == Research.State.UNAFFORDABLE or _state == Research.State.LOCKED
+	_step_ink = Color(TEXT_COLOR, 0.4) if dim else TEXT_COLOR
 	_badge_icon.visible = _state == Research.State.UNAFFORDABLE
 	_badge_icon.texture = FLASK if _lacks_points else DOLLAR
 	var available := _state == Research.State.AVAILABLE
@@ -407,11 +421,41 @@ func _draw() -> void:
 			TilePaint.rounded(rect, RADIUS), TilePaint.rect_points(filled)
 		):
 			draw_colored_polygon(part, HOLD_COLOR)
+	if not _step.is_empty():
+		_draw_chip(accent)
 	if _state == Research.State.UNAFFORDABLE:
 		var radius := BADGE_RADIUS * _badge_scale
 		var ring := LACKING_COLOR.lerp(Color.WHITE, 0.5 * _flash)
 		draw_circle(_badge_center(), radius, BADGE_COLOR, true, -1.0, true)
 		draw_circle(_badge_center(), radius - 0.5, ring, false, 1.0, true)
+
+
+# A rendered icon keeps its own colours, dimmed as a line icon is for the state.
+func _rendered_ink() -> Color:
+	match _state:
+		Research.State.UNAFFORDABLE:
+			return RENDERED_UNAFFORDABLE_TINT
+		Research.State.LOCKED:
+			return RENDERED_LOCKED_TINT
+	return Color.WHITE
+
+
+# The step's chip across the bottom edge: in the race's deep shade once researched and dark
+# before, with a border in the race's colour, dimmed as the tile is.
+func _draw_chip(accent: Color) -> void:
+	var border := 1.0
+	if _state == Research.State.UNAFFORDABLE:
+		border = 0.5
+	elif _state == Research.State.LOCKED:
+		border = 0.35
+	var researched := _state == Research.State.RESEARCHED
+	var colors: Dictionary[StringName, Color] = {
+		&"fill": _shades()[&"ink"] if researched else BADGE_COLOR,
+		&"border": Color(accent, border),
+		&"ink": _step_ink,
+	}
+	var font := get_theme_font(&"font", &"SmallStrongLabel")
+	TilePaint.chip(self, Vector2(SIZE.x * 0.5, SIZE.y), _step, font, colors)
 
 
 # The silhouette's flat tile, with a faint border under the pointer, at [param strength]

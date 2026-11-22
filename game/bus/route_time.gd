@@ -1,8 +1,9 @@
 class_name RouteTime
 ## How long the bus takes to fly its whole route from where everything is now: to the
 ## first planet as [method FrameshiftBus.estimate_time_to_next_planet] counts it, then the
-## straight legs on to each planet after it, docking at each and leaving warm, with no
-## charge, and on to a point in space when the route ends at one. Planets move and the bus
+## straight legs on to each planet after it, docking at each and leaving it on a cold
+## charge, or at once with the Warm drive, and on to a point in space when the route ends
+## at one. Planets move and the bus
 ## turns, so it is an estimate.
 
 
@@ -29,13 +30,21 @@ static func estimate(bus: FrameshiftBus) -> float:
 	# points: in flight the bus cruises toward it, and waiting it starts from rest.
 	var start_speed := 0.0 if waiting else top
 	var distance := 0.0
+	var warm := bus.get_stats().get_traits().has(BusTraits.Type.WARM_DRIVE)
+	var leave := 0.0 if warm else bus.charge_time
+	# Whether the bus is docked at a planet on the way, to leave it before the next leg.
+	var docked := false
 	for stop: RouteStop in stops:
+		if docked:
+			time += leave
+			docked = false
 		var to := stop.get_target(from, bus.dock_gap)
 		distance += RouteStop.flat(from).distance_to(RouteStop.flat(to))
 		from = to
 		if stop.planet:
 			time += _to_planet(distance, top, bus.acceleration)
 			distance = 0.0
+			docked = true
 	if distance > 0.0:
 		time += FlightTime.straight(distance, start_speed, 0.0, top, bus.acceleration)
 	return time

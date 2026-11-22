@@ -131,6 +131,8 @@ home = NodePath("Hollow")
 bounds_radius = 16.0
 deliveries = 50
 rating = 4.0
+zone_radius = 0.0
+star_radius = 2.0
 
 [node name="Star" type="Node3D" parent="." unique_id=2084677052]
 
@@ -143,10 +145,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_star")
 cast_shadow = 0
 mesh = SubResource("QuadMesh_halo")
 surface_material_override/0 = SubResource("ShaderMaterial_halo")
-
-[node name="Light" type="OmniLight3D" parent="Star" unique_id=1018447261]
-omni_range = 40.0
-omni_attenuation = 0.0
 
 [node name="Ashfall" type="Node3D" parent="." unique_id=283211324]
 script = ExtResource("2_planet")

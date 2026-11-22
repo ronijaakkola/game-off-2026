@@ -126,9 +126,10 @@ func _load_dependencies(path: String) -> void:
 ## Draws [param scene] for the first time under the card, its 3D objects one new material at
 ## a time, and fills the rest of the bar as they show. The first draw of a material compiles
 ## its shader, which is most of the wait on the web: drawn all at once, the bar would stand
-## still at its end. Objects whose materials are already drawn show with the next step. They
-## are hidden in the RenderingServer only, so their [member Node3D.visible] stays as the
-## scene set it.
+## still at its end. Objects whose materials are already drawn show with the next step.
+## An object the scene starts hidden or off screen draws for its step too, so its shader
+## doesn't compile, and the game hitch, when it first shows. Both are set in the
+## RenderingServer only, so [member Node3D.visible] stays as the scene set it.
 func _warm_up(scene: Node) -> void:
 	var steps := _warm_up_steps(scene)
 	for step: Array in steps:
@@ -141,29 +142,36 @@ func _warm_up(scene: Node) -> void:
 	_bar.value = lerpf(LOAD_SHARE, 1.0, 1.0 / parts)
 	await get_tree().process_frame
 	for i: int in steps.size():
-		# Variant, not typed: the scene may have freed an object since, and a typed loop
-		# variable fails on a freed one.
-		for item: Variant in steps[i]:
-			if not is_instance_valid(item):
-				continue
-			var geometry := item as GeometryInstance3D
-			if geometry.get_instance().is_valid():
-				RenderingServer.instance_set_visible(
-					geometry.get_instance(), geometry.is_visible_in_tree()
-				)
+		_draw_step(steps[i], true)
 		_bar.value = lerpf(LOAD_SHARE, 1.0, float(i + 2) / parts)
 		await get_tree().process_frame
+		_draw_step(steps[i], false)
 
 
-## [param scene]'s visible 3D objects in the steps to draw them in: each step starts with an
-## object that has a material no earlier step has.
+## Draws the objects of one warm-up [param step] wherever they are, hidden and off screen
+## ones too, while [param forced]; otherwise gives each back the visibility its node has.
+func _draw_step(step: Array, forced: bool) -> void:
+	# Variant, not typed: the scene may have freed an object since, and a typed loop
+	# variable fails on a freed one.
+	for item: Variant in step:
+		if not is_instance_valid(item):
+			continue
+		var geometry := item as GeometryInstance3D
+		var instance := geometry.get_instance()
+		if not instance.is_valid():
+			continue
+		RenderingServer.instance_set_ignore_culling(instance, forced)
+		RenderingServer.instance_set_visible(instance, forced or geometry.is_visible_in_tree())
+
+
+## [param scene]'s 3D objects in the steps to draw them in: each step starts with an object
+## that has a material no earlier step has. A hidden object is in a step only when it
+## starts one.
 func _warm_up_steps(scene: Node) -> Array[Array]:
 	var steps: Array[Array] = []
 	var drawn := {}
 	for node: Node in scene.find_children("*", "GeometryInstance3D", true, false):
 		var geometry := node as GeometryInstance3D
-		if not geometry.is_visible_in_tree():
-			continue
 		var new_material := false
 		for key: Variant in _material_keys(geometry):
 			if not drawn.has(key):
@@ -171,7 +179,7 @@ func _warm_up_steps(scene: Node) -> Array[Array]:
 				new_material = true
 		if new_material or steps.is_empty():
 			steps.append([geometry])
-		else:
+		elif geometry.is_visible_in_tree():
 			steps.back().append(geometry)
 	return steps
 

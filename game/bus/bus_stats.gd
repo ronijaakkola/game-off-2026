@@ -9,7 +9,8 @@ extends RefCounted
 ## doesn't, rather than numbers.
 
 ## Which stat a [StatModifier] changes. A [code].tres[/code] saves a type as its number, so
-## each keeps its own: a new one takes the next unused number.
+## each keeps its own: a new one takes the next unused number. 4 was the drive's warm time,
+## now the Warm drive trait.
 enum Type {
 	## Top speed, in units per second.
 	MAX_SPEED = 0,
@@ -20,8 +21,6 @@ enum Type {
 	## How long a served snack or drink lasts, as a multiple of the need's own time: the
 	## next request for it waits that much longer.
 	PORTION_SIZE = 3,
-	## Seconds the drive stays warm at a planet, once the passengers getting off are off.
-	WARM_TIME = 4,
 	## How fast the pump fills the tank, as a multiple of its own rate ([FuelPump]).
 	PUMP_SPEED = 5,
 	## How fast the player serves a request by hand, as a multiple of its own pace ([Cabin]).
@@ -41,7 +40,6 @@ const MINIMUMS: Dictionary[Type, float] = {
 	Type.FUEL_CAPACITY: 1.0,
 	Type.SEATS: 1.0,
 	Type.PORTION_SIZE: 0.1,
-	Type.WARM_TIME: 0.1,
 	Type.PUMP_SPEED: 0.1,
 	Type.SERVING_SPEED: 0.1,
 }
