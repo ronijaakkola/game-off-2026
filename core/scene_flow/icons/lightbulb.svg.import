@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://suwje6nuvyor"
-path="res://.godot/imported/bus.svg-25a4cf2ad94e3559aaf02868a2e983ed.ctex"
+uid="uid://dvqj5wdg1fsg"
+path="res://.godot/imported/lightbulb.svg-09d2195e0d33bf7741d2c3aef0cd6ef8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/bus/icons/bus.svg"
-dest_files=["res://.godot/imported/bus.svg-25a4cf2ad94e3559aaf02868a2e983ed.ctex"]
+source_file="res://core/scene_flow/icons/lightbulb.svg"
+dest_files=["res://.godot/imported/lightbulb.svg-09d2195e0d33bf7741d2c3aef0cd6ef8.ctex"]
 
 [params]
 

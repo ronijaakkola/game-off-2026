@@ -59,9 +59,11 @@ func restore(saved: Dictionary, bus_planet: Planet) -> void:
 	rig.position = systems[_current].position
 
 
-## What a save keeps: how many systems are open and whether they are joined.
+## What a save keeps: how many systems are open and whether they are joined, and the
+## system the bus works in, by name, for the main menu to show its level's loading screen.
+## [method restore] finds that from the bus's planet instead.
 func to_save() -> Dictionary:
-	return {"opened": _opened, "joined": _joined}
+	return {"opened": _opened, "joined": _joined, "system": String(get_current().name)}
 
 
 ## Every star system, in the order they open.

@@ -12,6 +12,12 @@ const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
 const VOICE_LAB_SCENE := "res://game/transmissions/voice_lab.tscn"
 const MIXER_SCENE := "res://ui/mixer/mixer.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
+## The levels, each with its loading screen, until the campaign screen picks one. A run
+## shows the one of the star system it starts or continues in.
+const LEVELS: Array[Level] = [
+	preload("res://shared/level_art/level_1.tres"),
+	preload("res://shared/level_art/level_2.tres"),
+]
 # Written into exports by `check.py export`, so the editor has none.
 const BUILD_COMMIT := "res://ui/main_menu/build_commit.txt"
 
@@ -65,12 +71,24 @@ func _first_button() -> Button:
 
 func _on_continue_button_pressed() -> void:
 	SaveGame.continue_saved()
-	SceneFlow.go_to(GAME_SCENE)
+	SceneFlow.go_to(GAME_SCENE, _started_level())
 
 
 func _on_play_button_pressed() -> void:
 	SaveGame.start_new()
-	SceneFlow.go_to(GAME_SCENE)
+	SceneFlow.go_to(GAME_SCENE, _started_level())
+
+
+# The level of the star system the started run is in: Sol for a new run. A save from before
+# saves kept the system has none, and loads on the black card.
+func _started_level() -> Level:
+	var run := SaveGame.get_started_run()
+	var star_map: Dictionary = run.get("star_map", {})
+	var system: String = star_map.get("system", "") if not run.is_empty() else "Sol"
+	for level: Level in LEVELS:
+		if level.star_system == system:
+			return level
+	return null
 
 
 func _on_new_game_button_confirmed() -> void:

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Level" format=3 uid="uid://caekixi5qk2j7"]
+
+[ext_resource type="Script" uid="uid://dy6baj578ou0p" path="res://shared/level_art/level.gd" id="1_level"]
+
+[resource]
+script = ExtResource("1_level")
+title = "Double trouble"
+star_system = "Lyra"
+picture = "res://shared/level_art/level_2_loading.jpg"
+card_crop = Rect2(0.4258, 0.0502, 0.4089, 0.8603)
+from_planet_color = Color(0.416, 0.82, 0.627, 1)
+to_planet_color = Color(1, 0.561, 0.659, 1)
+tips = PackedStringArray("Among the asteroids the bus slows to a crawl, and every knock shakes your passengers. Look for the gaps.")

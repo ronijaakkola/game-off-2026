@@ -59,6 +59,12 @@ func has_started_run() -> bool:
 	return _started
 
 
+## The run the main menu started, without taking it: the saved run it continues, empty for
+## a new one.
+func get_started_run() -> Dictionary:
+	return _pending
+
+
 ## Takes the run the main menu started: the saved run to continue, or an empty one for a
 ## new run, or when none was started. After it, there is none to claim.
 func claim_run() -> Dictionary:

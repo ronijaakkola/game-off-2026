@@ -1,7 +1,8 @@
 extends CanvasLayer
 ## Moves between top-level scenes with a fade to a black loading card, "Loading…" over a
-## bar that fills as the next scene loads. Input is blocked while fading. It processes
-## always, so a paused scene can leave too, and the next scene starts unpaused.
+## bar that fills as the next scene loads, or, entering a level, to the level's own loading
+## screen ([LoadingCard]). Input is blocked while fading. It processes always, so a paused
+## scene can leave too, and the next scene starts unpaused.
 ##
 ## The bar counts the two kinds of work the wait is made of, each in steps it can draw
 ## between, because the web build has one thread: a threaded load blocks it and can't
@@ -14,6 +15,7 @@ extends CanvasLayer
 
 const FADE := 0.25
 const THEME := preload("res://ui/theme.tres")
+const LOADING_CARD := preload("res://core/scene_flow/loading_card.tscn")
 ## The bar's share for loading files; drawing the scene the first time fills the rest. Set
 ## from the solar system's load in Chrome (web export, Windows, measured 2026-11-08): files
 ## 0.24 s, the first draw 2.7 s.
@@ -26,6 +28,8 @@ var step_msec := 33
 ## The black card with the bar on it. Its alpha is the fade.
 var _curtain: Control
 var _bar: ProgressBar
+## The level's loading screen, over the black card while a level loads.
+var _level_card: LoadingCard
 var _busy := false
 var _fade: Tween
 
@@ -63,18 +67,25 @@ func _ready() -> void:
 	_bar.add_theme_stylebox_override("background", _bar_style(Color(1, 1, 1, 0.12)))
 	_bar.add_theme_stylebox_override("fill", _bar_style(Color(1, 1, 1, 0.85)))
 	rows.add_child(_bar)
+	_level_card = LOADING_CARD.instantiate()
+	_level_card.hide()
+	_curtain.add_child(_level_card)
 
 
 ## Fades to the loading card, loads the scene at [param path] while its bar fills, changes
-## to it and fades back in. Callers hold [param path] as a [code]const[/code]; preloading
+## to it and fades back in. Entering a [param level] with a picture, the card is the
+## level's loading screen. Callers hold [param path] as a [code]const[/code]; preloading
 ## the scene would make menu and game preload each other. A call made during a transition
 ## is ignored.
-func go_to(path: String) -> void:
+func go_to(path: String, level: Level = null) -> void:
 	if _busy:
 		return
 	_busy = true
 	get_tree().root.set_disable_input(true)
-	_bar.value = 0.0
+	if level and not level.picture.is_empty():
+		_level_card.show_level(level)
+		_level_card.show()
+	_set_progress(0.0)
 	_curtain.show()
 	await _fade_to(1.0)
 	# The fade reached the card in this step, so the screen still shows the frame before.
@@ -95,6 +106,8 @@ func go_to(path: String) -> void:
 		push_error("SceneFlow can't change to %s: %s" % [path, error_string(error)])
 	await _fade_to(0.0)
 	_curtain.hide()
+	_level_card.hide()
+	_level_card.clear()
 	get_tree().root.set_disable_input(false)
 	_busy = false
 
@@ -117,10 +130,10 @@ func _load_dependencies(path: String) -> void:
 	for i: int in files.size():
 		load(files[i])
 		if Time.get_ticks_msec() - step_start >= step_msec:
-			_bar.value = LOAD_SHARE * (i + 1) / parts
+			_set_progress(LOAD_SHARE * (i + 1) / parts)
 			await get_tree().process_frame
 			step_start = Time.get_ticks_msec()
-	_bar.value = LOAD_SHARE
+	_set_progress(LOAD_SHARE)
 
 
 ## Draws [param scene] for the first time under the card, its 3D objects one new material at
@@ -139,11 +152,11 @@ func _warm_up(scene: Node) -> void:
 	# The bar is set before each frame, so the frame that does a step shows it done.
 	var parts := steps.size() + 1
 	# The first frame draws the sky, the environment and the UI, with no 3D objects.
-	_bar.value = lerpf(LOAD_SHARE, 1.0, 1.0 / parts)
+	_set_progress(lerpf(LOAD_SHARE, 1.0, 1.0 / parts))
 	await get_tree().process_frame
 	for i: int in steps.size():
 		_draw_step(steps[i], true)
-		_bar.value = lerpf(LOAD_SHARE, 1.0, float(i + 2) / parts)
+		_set_progress(lerpf(LOAD_SHARE, 1.0, float(i + 2) / parts))
 		await get_tree().process_frame
 		_draw_step(steps[i], false)
 
@@ -240,6 +253,12 @@ func _collect_dependencies(path: String, files: Array[String], seen: Dictionary)
 		seen[file] = true
 		_collect_dependencies(file, files, seen)
 		files.append(file)
+
+
+## Fills the bar, and moves the level card's bus marker, to [param progress], 0 to 1.
+func _set_progress(progress: float) -> void:
+	_bar.value = progress
+	_level_card.set_progress(progress)
 
 
 func _fade_to(alpha: float) -> void:

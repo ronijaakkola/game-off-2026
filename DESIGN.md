@@ -437,10 +437,13 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 ## Scenes and flow
 
 ```
-main menu ──Play / Continue / New game──▶ solar system ──Esc / pause button──▶ pause menu ──Main menu──▶ main menu
-    │                                          │
-    └──Settings──▶ settings panel ◀──────────Settings
+main menu ──Play / Continue / New game──▶ level's loading screen ──▶ solar system ──Esc / pause button──▶ pause menu ──Main menu──▶ main menu
+    │                                                                    │
+    └──Settings──▶ settings panel ◀──────────────────────────────────Settings
 ```
+
+- **Loading:** entering a level from the main menu shows that level's loading screen: its picture, its name and a tip. Until the campaign screen picks levels, the level is the one of the star system the run starts or continues in, level 1 for Sol and level 2 for Lyra. Every other scene change, a level with no picture, and a save from before saves kept their star system load on the black card.
+- **Tips:** one picked at random each time, never the one shown last. A tip may belong to one level; the rest show on any.
 
 - The game is one scene, the solar system, which holds every star system. A new run opens on the tutorial's zoomed map (Tutorial) until the player has been through it.
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
