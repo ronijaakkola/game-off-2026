@@ -24,6 +24,8 @@ const CALL_DELAY := 5.0
 const NOTICE_SECONDS := 8.0
 const DEBUG_CALL_TEXT := "Promotion call"
 const DEBUG_COMPLETE_TEXT := "Complete system"
+## A button for each system after the first, which jumps there.
+const DEBUG_JUMP_TEXT := "Jump to %s"
 ## The debug panel's group for the star system buttons: its own card.
 const DEBUG_GROUP := "Star systems"
 
@@ -57,6 +59,9 @@ func _ready() -> void:
 	system_jump.finished.connect(_on_jumped)
 	DebugPanel.add_button(DEBUG_CALL_TEXT, _ring, self, DEBUG_GROUP)
 	DebugPanel.add_button(DEBUG_COMPLETE_TEXT, _debug_complete_system, self, DEBUG_GROUP)
+	for system: StarSystem in star_map.get_systems().slice(1):
+		var text := DEBUG_JUMP_TEXT % system.display_name
+		DebugPanel.add_button(text, _debug_jump_to.bind(system), self, DEBUG_GROUP)
 
 
 func _process(delta: float) -> void:
@@ -191,3 +196,14 @@ func _is_last() -> bool:
 func _debug_complete_system() -> void:
 	if _started:
 		advance()
+
+
+# Completes one system after another, each with its jump, until the bus works in
+# [param system]. Nothing once it is there or past it, or before the run proper starts.
+func _debug_jump_to(system: StarSystem) -> void:
+	var systems := star_map.get_systems()
+	while _started and systems.find(star_map.get_current()) < systems.find(system):
+		if star_map.is_joined() or system_jump.is_jumping() or cabin.is_stopping():
+			return
+		advance()
+		await system_jump.finished

@@ -131,6 +131,8 @@ home = NodePath("Hollow")
 bounds_radius = 16.0
 deliveries = 50
 rating = 4.0
+zone_radius = 0.0
+star_radius = 2.0
 
 [node name="Star" type="Node3D" parent="." unique_id=2084677052]
 

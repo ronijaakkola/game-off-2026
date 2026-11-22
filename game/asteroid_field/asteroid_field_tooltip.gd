@@ -60,7 +60,9 @@ func _process(delta: float) -> void:
 
 func _is_over_field(pointer: Vector2) -> bool:
 	var camera := get_viewport().get_camera_3d()
-	if not field or not camera or get_viewport().gui_get_hovered_control():
+	if not field or not field.is_visible_in_tree() or not camera:
+		return false
+	if get_viewport().gui_get_hovered_control():
 		return false
 	var point: Variant = CourseDrag.point_under(camera, pointer)
 	if point == null:

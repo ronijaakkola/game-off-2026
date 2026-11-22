@@ -21,12 +21,17 @@ signal entered_rocks
 ## A rock knocked the bus.
 signal bumped
 
+const ALERT := preload("res://shared/icons/triangle_alert.svg")
+const ROUGH_RIDE := "Rough ride!"
+
 ## Where the rocks are and where the gaps are.
 @export var belt: AsteroidBelt
 ## The bus it slows. None, and the field only draws.
 @export var bus: FrameshiftBus
 ## Whose passengers the bumps shock. None shocks nobody.
 @export var cabin: Cabin
+## Says "Rough ride!" over the bus as it flies into the rocks. None says nothing.
+@export var quick_text: BusQuickText
 ## Turns the belt at the planets' pace, slowing when they do. None turns it at full speed.
 @export var orbit_clock: OrbitClock
 ## Seconds per turn of the belt, at full speed. Negative turns it the other way. The gaps
@@ -94,9 +99,11 @@ func _process(delta: float) -> void:
 	if orbit_period != 0.0:
 		rotation.y = wrapf(rotation.y + TAU / orbit_period * pace * delta, 0.0, TAU)
 	# Each on its own, so the pebbles stop tumbling too should they get their own material.
+	# The star they circle lights them, wherever the field sits on the map.
 	for node: Node in [%Rocks, %Pebbles]:
 		var material := (node as MultiMeshInstance3D).material_override as ShaderMaterial
 		material.set_shader_parameter(&"tumble", 0.0 if Settings.reduce_motion else 1.0)
+		material.set_shader_parameter(&"light_source", global_position)
 	if bus:
 		_ride(delta)
 
@@ -120,6 +127,8 @@ func _ride(delta: float) -> void:
 	if not was_in:
 		_cap = bus.get_stats().get_stat(BusStats.Type.MAX_SPEED).get_value()
 		_until_bump = 0.0
+		if quick_text:
+			quick_text.show_text(ROUGH_RIDE, ALERT, BusQuickText.Kind.LOSS)
 		entered_rocks.emit()
 	_cap = move_toward(_cap, rough_speed, brake * delta)
 	bus.speed_cap = minf(bus.speed_cap, _cap)

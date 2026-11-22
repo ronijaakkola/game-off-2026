@@ -9,10 +9,8 @@ extends Node
 ## so its tooltip shows.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
-const ALERT := preload("res://game/solar_system/icons/triangle_alert.svg")
 ## Where Frost orbits here, out past the belt: 17.5 in the game's own solar system.
 const FROST_ORBIT := 21.0
-const ROUGH_RIDE := "Rough ride!"
 
 
 func _ready() -> void:
@@ -25,10 +23,7 @@ func _ready() -> void:
 	field.bus = bus
 	field.cabin = cabin
 	field.orbit_clock = system.find_child("OrbitClock") as OrbitClock
-	var quick := system.find_child("BusQuickText") as BusQuickText
-	field.entered_rocks.connect(
-		func() -> void: quick.show_text(ROUGH_RIDE, ALERT, BusQuickText.Kind.LOSS)
-	)
+	field.quick_text = system.find_child("BusQuickText") as BusQuickText
 	for i: int in 3:
 		cabin.board(Passenger.new(COMMUTER, frost, 60.0, 40.0))
 	var args := OS.get_cmdline_user_args()

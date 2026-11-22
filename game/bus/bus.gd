@@ -249,13 +249,13 @@ func tow_to(planet: Planet) -> void:
 		state = State.FLYING
 
 
-## Sends the bus from where it is straight to [param planet] at [param speed], with no
-## charge, to park and dock there: how it comes out of a jump to another star system.
-func fly_in(planet: Planet, speed: float) -> void:
+## Sends the bus from where it is straight to [param stop] at [param speed], with no
+## charge, to dock there or come to rest: how it comes out of a jump to another system.
+func fly_in(stop: RouteStop, speed: float) -> void:
 	_drive.clear()
 	_drive.held = false
 	_glide.planet = null
-	_route = [RouteStop.at_planet(planet)]
+	_route = [stop]
 	_speed = speed
 	state = State.FLYING
 

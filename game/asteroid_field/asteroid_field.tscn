@@ -13,8 +13,8 @@ render_priority = 0
 shader = ExtResource("3_rock")
 shader_parameter/light_source = null
 shader_parameter/light_is_directional = null
-shader_parameter/shadow_color = null
-shader_parameter/color = null
+shader_parameter/shadow_color = Color(0.541, 0.651, 0.902, 1)
+shader_parameter/color = Color(0.831, 0.925, 1, 1)
 shader_parameter/tumble = null
 
 [node name="AsteroidField" type="Node3D" unique_id=1365222423]

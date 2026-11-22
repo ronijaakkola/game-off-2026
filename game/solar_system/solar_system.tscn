@@ -64,6 +64,8 @@
 [ext_resource type="Script" uid="uid://dgsmbbo1mghgj" path="res://game/goals/first_shift_call.gd" id="146_first_shift"]
 [ext_resource type="PackedScene" uid="uid://gthierx1a5bx" path="res://game/quests/flyby_zone.tscn" id="147_flyby_zone"]
 [ext_resource type="Script" uid="uid://b3mxwkjdb6b51" path="res://game/feature_hints/quest_hint.gd" id="148_quest_hint"]
+[ext_resource type="PackedScene" uid="uid://qv3tpe8vkcn4" path="res://game/asteroid_field/asteroid_field.tscn" id="150_asteroid_field"]
+[ext_resource type="Script" uid="uid://djm0drj0kjupe" path="res://game/asteroid_field/asteroid_belt.gd" id="151_asteroid_belt"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -80,6 +82,11 @@ shader_parameter/smoke_scale = 5.0
 shader_parameter/drift = 1.0
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_heat_zone"]
+
+[sub_resource type="Resource" id="Resource_lyra_belt"]
+script = ExtResource("151_asteroid_belt")
+inner_radius = 18.6
+outer_radius = 20.8
 
 [node name="SolarSystem" type="Node3D" unique_id=1939531791]
 script = ExtResource("11_system")
@@ -125,16 +132,27 @@ quest_giver = NodePath("../../QuestGiver")
 [node name="Sol" parent="World" unique_id=1865132520 instance=ExtResource("114_sol")]
 
 [node name="Lyra" parent="World" unique_id=616666113 instance=ExtResource("115_lyra")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 0, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 0, -8)
+
+[node name="AsteroidField" parent="World/Lyra" unique_id=2124261091 node_paths=PackedStringArray("bus", "cabin", "quick_text", "orbit_clock") instance=ExtResource("150_asteroid_field")]
+belt = SubResource("Resource_lyra_belt")
+orbit_period = 680.0
+rock_count = 400
+pebble_count = 340
+bus = NodePath("../../../Bus")
+cabin = NodePath("../../../Cabin")
+quick_text = NodePath("../../../Hud/BusQuickText")
+orbit_clock = NodePath("../../../OrbitClock")
 
 [node name="Draco" parent="World" unique_id=1231504114 instance=ExtResource("116_draco")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -42)
 
-[node name="StarMap" type="Node" parent="." unique_id=1875360574 node_paths=PackedStringArray("world", "rig")]
+[node name="StarMap" type="Node" parent="." unique_id=1875360574 node_paths=PackedStringArray("world", "rig", "sky")]
 unique_name_in_owner = true
 script = ExtResource("117_star_map")
 world = NodePath("../World")
 rig = NodePath("../CameraRig")
+sky = NodePath("../SpaceSky")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
 unique_name_in_owner = true
@@ -269,10 +287,10 @@ quest_giver = NodePath("../QuestGiver")
 test_destination = NodePath("../World/Sol/Giant")
 test_flyby_planet = NodePath("../World/Sol/Frost")
 
-[node name="HeatZone" type="Node" parent="." unique_id=743044272 node_paths=PackedStringArray("bus", "star", "map_zoom", "zone")]
+[node name="HeatZone" type="Node" parent="." unique_id=743044272 node_paths=PackedStringArray("bus", "star_map", "map_zoom", "zone")]
 script = ExtResource("114_heat_zone")
 bus = NodePath("../Bus")
-star = NodePath("../World/Sol/Star")
+star_map = NodePath("../StarMap")
 map_zoom = NodePath("../MapZoom")
 zone = NodePath("../World/HeatZoneDisc")
 

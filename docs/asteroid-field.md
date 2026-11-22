@@ -1,10 +1,10 @@
-# Asteroid field: research and test map
+# Asteroid field
 
-An experiment for the second level: a band of asteroids round the star, with gaps the bus flies through freely. Flying through the rocks instead slows the bus and bumps the passengers. This page records how the field is drawn and why, what the test map measured, and what is still open. Nothing here is in the game yet.
+Lyra's asteroid field: a band of asteroids round the star, with gaps the bus flies through freely. Flying through the rocks instead slows the bus and bumps the passengers. This page records how the field is drawn and why, what the test map measured, and what is still open. Its place in Lyra is in `DESIGN.md`, Star systems, and its look in `docs/ui.md`.
 
 ## Try it
 
-Open `test/previews/asteroid_field_preview.tscn` and run it with F6. It is the real solar system with the field added between Giant and Frost, and Frost moved out from 17.5 to 21 to make room. Three commuters going to Frost are on board, so the bumps show in their happiness bars, and "Rough ride!" shows over the bus as it flies into the rocks.
+`test/previews/lyra_preview.tscn` starts the game in Lyra, docked at Hither, to play with F6 (`-- wide` pulls the camera back over the system, `-- Cinder` looks at a planet). In any run, the debug panel (F2) has Star systems › Jump to Lyra, once the tutorial is over or skipped. The test map, `test/previews/asteroid_field_preview.tscn` (F6), is the real solar system with the field added between Giant and Frost, and Frost moved out from 17.5 to 21 to make room. Three commuters going to Frost are on board, so the bumps show in their happiness bars, and "Rough ride!" shows over the bus as it flies into the rocks.
 
 - Tune it live: in the Remote tree, select `AsteroidField` and change the Ride numbers, or `belt` for the band and its gaps. Rock count and shapes apply only at load.
 - `-- Rocks` flies the bus from Ember straight into the rocks, with the camera on it. `-- Gap` flies it along the nearest gap. These are for `capture`, or for the editor's Main Run Args.
