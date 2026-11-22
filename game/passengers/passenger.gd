@@ -126,6 +126,10 @@ var _shaken := false
 var _held_request: Need
 # Seconds of flying the open or held request has gone unserved.
 var _request_age := 0.0
+# Whether the line is a plain idle line, which changes as the bus docks and leaves: not a
+# sleep, a show, a complaint or the boarding line. And whether the bus was docked last tick.
+var _idling := false
+var _was_docked := false
 
 
 ## A passenger of [param kind] going to [param to]. [param trip_seconds] is the direct
@@ -365,6 +369,10 @@ func tick(
 		if _departed and not stopped:
 			_request_age += delta
 		return
+	if docked != _was_docked:
+		_was_docked = docked
+		if _idling:
+			_activity_left = 0.0
 	_activity_left -= delta
 	if not asleep and not _held_request and not docked:
 		_appetite.run(delta)
@@ -381,7 +389,7 @@ func tick(
 		_open(due)
 		return
 	if _activity_left <= 0.0:
-		_idle(giving)
+		_idle(giving, docked)
 
 
 ## Who they are and how their ride stands, for a save game ([method from_save]). Planets
@@ -460,6 +468,7 @@ func _complain(lines: Array[String], seconds: float) -> void:
 		return
 	activity = _pick(lines)
 	_activity_left = seconds
+	_idling = false
 
 
 # The most the bus giving [param comfort] can give them now, before frustration, less discomfort.
@@ -489,13 +498,14 @@ func _close(line: String, seconds: float) -> void:
 	activity = line
 	_activity_left = seconds
 	_busy = true
+	_idling = false
 
 
-# A new idle line. Where the bus lets them sleep, a sleep line comes up as often as any
-# one idle line, and lasts as long as the comfort's sleeps do; where it has shows, so does
-# a watch line, as long as the comfort's shows.
-func _idle(comfort: Comfort) -> void:
-	var lines := type.get_idle_lines(ride.get_reason())
+# A new idle line, from the type's docked lines while [param docked]. Where the bus lets them
+# sleep, a sleep line comes up as often as any one idle line, and lasts as long as the
+# comfort's sleeps do; where it has shows, so does a watch line, as long as the comfort's shows.
+func _idle(comfort: Comfort, docked: bool) -> void:
+	var lines := type.get_idle_lines(ride.get_reason(), docked)
 	var sleep_from := lines.size()
 	if comfort.can_sleep():
 		lines.append_array(type.sleep_lines)
@@ -513,6 +523,7 @@ func _idle(comfort: Comfort) -> void:
 		_activity_left = _rng.randf_range(comfort.watch_min, comfort.watch_max)
 	else:
 		_activity_left = _rng.randf_range(IDLE_MIN, IDLE_MAX)
+	_idling = not asleep and not watching
 
 
 func _pick(lines: Array[String]) -> String:

@@ -15,7 +15,7 @@ extends Node
 ## `-- RerouteAlone` sends the only passenger going to Giant to Dust, where nobody goes yet,
 ## so Giant's group folds as Dust's opens.
 ## The bus is in flight unless `-- Docked`, which holds every bar still under its pause
-## mark and has the station serve the open requests.
+## mark, has the station serve the open requests and the others idle on a docked line.
 ## `-- PointBar`, `-- PointMark` and `-- PointCap` rest the pointer on the third seat's
 ## bar: near its start, on the docked mark (with `Docked`) and on the striped end (with
 ## `Frustrated`), so whichever tooltip belongs there opens.
@@ -80,6 +80,9 @@ func _ready() -> void:
 			if cabin.docked:
 				passenger.activity = Cabin.STATION_LINE % passenger.request.item
 				passenger.serving = 0.6
+		elif cabin.docked:
+			# Past finding their seat, so the idle ones show a docked line.
+			passenger.tick(Passenger.BOARDING_SECONDS, true)
 		if "Frustrated" in OS.get_cmdline_user_args():
 			passenger.frustration = FRUSTRATION[seat]
 			if not passenger.request and not type.stop_lines.is_empty():

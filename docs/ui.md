@@ -224,7 +224,7 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 
 ### Goal panel
 
-In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promoted" and a row for each goal, in the order given. Under a thin faint line, a dim flag and "Quests", and a row for each quest. Each part shows only while it has rows, the line only between the two, and the panel only while there are any.
+In the top right corner, 264 px wide, with the dock panel 8 px under it: "To get promoted" and a row for each goal, in the order given. Under a thin faint line, a dim flag and "Quests", and a row for each quest. Each part shows only while it has rows, the line only between the two, and the panel only while there are any. A promotion leaves the goals on it, ticked, until the next system's replace them.
 
 - **A goal's row:** an icon, the goal's text and, at the right, how far along it is, over a 3 px bar.
 - **The icon** is an empty circle in faint white until the goal is met, then a green tick (`#8CD966`). The bar's fill is white, and green while met.

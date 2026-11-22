@@ -3,12 +3,12 @@ extends Node
 ## The player's way through the star systems ([StarMap]). Each system gives the goals a
 ## promotion takes there, and once they have all held at once for [constant CALL_DELAY]
 ## seconds of play, The Boss calls with the promotion ([GoalsMetCall]). Answered, the goals
-## go and the next system opens, and the [SystemJump] takes the bus across at once, from
-## wherever it is, after any stop under way; whoever is still on board stays behind, paying
-## and rating nothing. There the lines start at the new system's planets and its goals
-## come, and the mechanic calls with the next research stage ([MechanicCall]). The promotion
-## in the last system joins every system instead: lines start at every planet, passengers go
-## anywhere, and the last goals come.
+## stay on show as they stand, the next system opens, and the [SystemJump] takes the bus
+## across at once, from wherever it is, after any stop under way; whoever is still on board
+## stays behind, paying and rating nothing. There the lines start at the new system's
+## planets, its goals replace the old ones, and the mechanic calls with the next research
+## stage ([MechanicCall]). The promotion in the last system joins every system instead:
+## lines start at every planet, passengers go anywhere, and the last goals come.
 ## The debug panel's Star systems card has The Boss call at once, or completes the system:
 ## promoted, the bus jumps to the next one at once, as answering the call does.
 
@@ -66,6 +66,7 @@ func _process(delta: float) -> void:
 		and not star_map.is_joined()
 		and not boss_call.is_ringing()
 		and not system_jump.is_jumping()
+		and not goals.frozen
 		and goals.are_all_met()
 	)
 	_met_seconds = _met_seconds + delta if counting else 0.0
@@ -92,8 +93,8 @@ func promote() -> void:
 	if star_map.is_joined():
 		return
 	_met_seconds = 0.0
-	for goal: Goal in goals.get_goals():
-		goals.remove(goal)
+	# The goals stay on the panel, ticked, until the next system's replace them.
+	goals.frozen = true
 	star_map.promote()
 	if star_map.is_joined():
 		_join()
@@ -140,6 +141,9 @@ func _join() -> void:
 
 
 func _add_goals() -> void:
+	for goal: Goal in goals.get_goals():
+		goals.remove(goal)
+	goals.frozen = false
 	var deliveries := star_map.joined_deliveries
 	var rating := star_map.joined_rating
 	if not star_map.is_joined():

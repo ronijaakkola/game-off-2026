@@ -298,9 +298,27 @@ func test_finds_their_seat_then_idles_on_one_of_the_type_s_lines() -> void:
 	kind.idle_lines = ["Reading", "Counting stars"]
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
 	assert_str(passenger.activity).is_equal(Passenger.BOARDING_LINE)
-	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, true)
+	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, false)
 	assert_array(kind.idle_lines).contains([passenger.activity])
 	assert_bool(passenger.asleep).is_false()
+
+
+func test_docking_changes_an_idle_line_to_a_docked_one_once_a_complaint_ends() -> void:
+	var kind := _type()
+	kind.idle_lines = ["Reading"]
+	kind.docked_lines = ["Calmly waiting"]
+	kind.overheat_lines = ["Fanning themselves"]
+	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
+	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, false)
+	passenger.tick(0.1, true)
+	assert_str(passenger.activity).is_equal("Calmly waiting")
+	passenger.tick(0.1, false)
+	assert_str(passenger.activity).is_equal("Reading")
+	passenger.react_to_overheat(2.0)
+	passenger.tick(0.1, true)
+	assert_str(passenger.activity).is_equal("Fanning themselves")
+	passenger.tick(2.0, true)
+	assert_str(passenger.activity).is_equal("Calmly waiting")
 
 
 func test_overheating_shows_an_overheat_line_for_the_cooldown_then_they_idle_again() -> void:
@@ -308,12 +326,12 @@ func test_overheating_shows_an_overheat_line_for_the_cooldown_then_they_idle_aga
 	kind.idle_lines = ["Reading"]
 	kind.overheat_lines = ["Fanning themselves"]
 	var passenger := Passenger.new(kind, _planet, TRIP, FARE)
-	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, true)
+	passenger.tick(Passenger.BOARDING_SECONDS + 0.1, false)
 	passenger.react_to_overheat(8.0)
 	assert_str(passenger.activity).is_equal("Fanning themselves")
-	passenger.tick(7.0, true)
+	passenger.tick(7.0, false)
 	assert_str(passenger.activity).is_equal("Fanning themselves")
-	passenger.tick(1.5, true)
+	passenger.tick(1.5, false)
 	assert_str(passenger.activity).is_equal("Reading")
 
 
