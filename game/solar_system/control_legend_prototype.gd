@@ -1,5 +1,5 @@
 extends PanelContainer
-## PROTOTYPE, throwaway (variant A of [ControlsPrototype]): a legend in the bottom right
+## PROTOTYPE, throwaway: a legend in the bottom right
 ## corner that says what a right click does now. With no route, one row: right click sets
 ## a route. With a route, that row morphs to "Start a new route" and a second row opens
 ## under it: the queue key + right click adds a stop. While the queue key is held the
@@ -38,7 +38,6 @@ var _shown := 0.0
 
 
 func _ready() -> void:
-	ControlsPrototype.read_args()
 	theme = THEME
 	add_theme_stylebox_override(&"panel", StyleBoxEmpty.new())
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -57,18 +56,13 @@ func _ready() -> void:
 	_add_row = _make_row(QueueKey.get_icons() + "+{mouse_right}", "Add a stop")
 	rows.add_child(_add_row)
 	modulate.a = 0.0
-	var group := "Controls prototype"
-	for value: int in ControlsPrototype.Variant.values():
-		var text := String(ControlsPrototype.Variant.keys()[value]).capitalize()
-		DebugPanel.add_button(text, _debug_show.bind(value), self, group)
 	_debug_set_up.call_deferred()
 
 
 func _process(delta: float) -> void:
 	var has_route := bus != null and not bus.get_route_stops().is_empty()
 	var can_route := _can_route()
-	ControlsPrototype.can_route = can_route
-	var showing := can_route and ControlsPrototype.shows_legend() and bars and bars.visible
+	var showing := can_route and bars and bars.visible
 	_shown = move_toward(_shown, 1.0 if showing else 0.0, delta / FADE_SECONDS)
 	modulate.a = _shown * (bars.modulate.a if bars else 1.0)
 	visible = modulate.a > 0.0
@@ -135,10 +129,6 @@ func _make_row(icons: String, text: String) -> Control:
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(icon)
 	return room
-
-
-func _debug_show(value: int) -> void:
-	ControlsPrototype.variant = value as ControlsPrototype.Variant
 
 
 # For captures: a route through two planets, and the queue key held down.
