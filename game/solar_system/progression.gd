@@ -2,12 +2,13 @@ class_name Progression
 extends Node
 ## The player's way through the star systems ([StarMap]). Each system gives the goals a
 ## promotion takes there, and once they are all met at once, and still are a moment later,
-## the player is promoted: the goals go, and the next system opens. Then the dock panel
-## offers to jump there, which it allows only with nobody on board, and the [SystemJump]
-## takes the bus across. There the lines start at the new system's planets and its goals
-## come, and the mechanic calls with the next research stage ([MechanicCall]). The promotion
-## in the last system joins every system instead: lines start at every planet, passengers go
-## anywhere, and the last goals come.
+## the player is promoted: the goals stay on show, as they stand, and the next system
+## opens. Then the dock panel offers to jump there, which it allows only with nobody on
+## board, and the [SystemJump] takes the bus across. There the lines start at the new
+## system's planets and its goals replace the old ones, and the mechanic calls with the
+## next research stage ([MechanicCall]). The promotion in the last system joins every
+## system instead: lines start at every planet, passengers go anywhere, and the last goals
+## come.
 ## The debug panel's Star systems card promotes at once, or completes the system: promoted,
 ## the bus jumps to the next one at once, from wherever it is, kicking anyone on board.
 
@@ -96,8 +97,8 @@ func promote() -> void:
 	if star_map.is_joined():
 		return
 	_until_promotion = -1.0
-	for goal: Goal in goals.get_goals():
-		goals.remove(goal)
+	# The goals stay on the panel, ticked, until the next system's replace them.
+	goals.frozen = true
 	star_map.promote()
 	if star_map.is_joined():
 		_join()
@@ -124,6 +125,9 @@ func _join() -> void:
 
 
 func _add_goals() -> void:
+	for goal: Goal in goals.get_goals():
+		goals.remove(goal)
+	goals.frozen = false
 	var deliveries := star_map.joined_deliveries
 	var rating := star_map.joined_rating
 	if not star_map.is_joined():

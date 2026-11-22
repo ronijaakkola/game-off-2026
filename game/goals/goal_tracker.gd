@@ -41,13 +41,17 @@ var ledger: Ledger:
 			ledger.rated.connect(_on_rated)
 			_on_rated(0.0)
 
+## While true, the goals are told nothing more, so each stays as it stands: a promotion
+## freezes the goals it took, which stay on show until the next ones replace them.
+var frozen := false
+
 var _goals: Array[Goal] = []
 # The callables each goal's changed, completed and failed signals are connected to.
 var _relays: Dictionary[Goal, Array] = {}
 
 
 func _process(_delta: float) -> void:
-	if not bus or _goals.is_empty():
+	if not bus or _goals.is_empty() or frozen:
 		return
 	var on_board: Array[Passenger] = cabin.get_passengers() if cabin else []
 	var in_flight := not bus.is_at_planet()
@@ -70,7 +74,7 @@ func add(goal: Goal) -> void:
 	goal.failed.connect(relays[2])
 	_relays[goal] = relays
 	goal_added.emit(goal)
-	if ledger:
+	if ledger and not frozen:
 		goal.rating_changed(ledger.get_recent_rating(), ledger.get_rating_count())
 
 
@@ -104,21 +108,29 @@ func are_all_met() -> bool:
 
 
 func _on_delivered(passenger: Passenger, _payout: int) -> void:
+	if frozen:
+		return
 	for goal: Goal in _goals.duplicate():
 		goal.passenger_delivered(passenger)
 
 
 func _on_kicked(passenger: Passenger) -> void:
+	if frozen:
+		return
 	for goal: Goal in _goals.duplicate():
 		goal.passenger_kicked(passenger)
 
 
 func _on_bus_docked(planet: Planet) -> void:
+	if frozen:
+		return
 	for goal: Goal in _goals.duplicate():
 		goal.bus_docked(planet)
 
 
 func _on_rated(_stars: float) -> void:
+	if frozen:
+		return
 	var recent := ledger.get_recent_rating()
 	var count := ledger.get_rating_count()
 	for goal: Goal in _goals.duplicate():

@@ -61,7 +61,9 @@ func _process(delta: float) -> void:
 		return
 	if _called or not goals:
 		return
-	_met_seconds = _met_seconds + delta if goals.are_all_met() else 0.0
+	# Frozen goals are the ones a promotion took, which the jump is already for.
+	var met := goals.are_all_met() and not goals.frozen
+	_met_seconds = _met_seconds + delta if met else 0.0
 	if _met_seconds < DELAY or (quest_giver and quest_giver.is_calling()):
 		return
 	ring()
