@@ -5,6 +5,7 @@
 [ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
 [ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
+[ext_resource type="Script" uid="uid://b3wlb2uewmlfq" path="res://game/warp_gate/warp_gate.gd" id="9_gate"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.9
@@ -139,10 +140,14 @@ script = ExtResource("1_system")
 display_name = "Lyra"
 home = NodePath("Hither")
 jump_arrival = Vector3(0, 0, 12)
-bounds_radius = 24.5
-max_distance = 68.0
-deliveries = 40
-rating = 3.8
+bounds_radius = 22.5
+max_distance = 63.0
+arrival_call = "Welcome to Lyra. This system is full of [money]business passengers[/money], and they have a lot of money for this company. Keep them happy. Your performance is being tracked."
+business_share = 0.5
+fare_multiplier = 1.5
+deliveries = 15
+business_deliveries = 10
+rating = 4.0
 zone_radius = 8.8
 hot_zone_radius = 6.6
 star_radius = 2.9
@@ -172,7 +177,7 @@ display_name = "Cinder"
 radius = 0.4
 orbit_radius = 8.8
 orbit_period = 120.0
-start_angle = 80.0
+start_angle = 270.0
 spin_period = 22.0
 surface_material = SubResource("ShaderMaterial_cinder")
 icon_color = Color(0.949, 0.651, 0.353, 1)
@@ -185,9 +190,8 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 script = ExtResource("2_planet")
 display_name = "Janus"
 radius = 0.22
-orbit_radius = 4.4
+orbit_radius = 4.0
 orbit_period = 50.0
-start_angle = 300.0
 spin_period = 0.0
 surface_material = SubResource("ShaderMaterial_pip")
 icon_color = Color(0.933, 0.965, 1, 1)
@@ -201,7 +205,7 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 script = ExtResource("2_planet")
 display_name = "Hither"
 radius = 0.55
-orbit_radius = 23.0
+orbit_radius = 21.0
 orbit_period = 310.0
 start_angle = 200.0
 spin_period = 30.0
@@ -218,7 +222,7 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 script = ExtResource("2_planet")
 display_name = "Yon"
 radius = 0.55
-orbit_radius = 23.0
+orbit_radius = 21.0
 orbit_period = 310.0
 start_angle = 20.0
 spin_period = 26.0
@@ -235,7 +239,7 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 script = ExtResource("2_planet")
 display_name = "Brume"
 radius = 0.75
-orbit_radius = 15.8
+orbit_radius = 15.0
 orbit_period = 215.0
 start_angle = 120.0
 spin_period = 44.0
@@ -250,3 +254,13 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 ring_material = SubResource("ShaderMaterial_brume_rings")
 ring_outer = 2.0
 icon_ring_color = Color(0.839, 0.957, 1, 1)
+
+[node name="HitherGate" type="Node3D" parent="." unique_id=1756774711 node_paths=PackedStringArray("planet", "partner")]
+script = ExtResource("9_gate")
+planet = NodePath("../Hither")
+partner = NodePath("../YonGate")
+
+[node name="YonGate" type="Node3D" parent="." unique_id=787791101 node_paths=PackedStringArray("planet", "partner")]
+script = ExtResource("9_gate")
+planet = NodePath("../Yon")
+partner = NodePath("../HitherGate")

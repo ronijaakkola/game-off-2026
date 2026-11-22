@@ -3,7 +3,8 @@ extends RefCounted
 ## The bus's stats: one [Stat] of each [enum Type], made here, with the bus setting their
 ## bases. Upgrades hand their [StatModifier]s to [method add_modifier], which applies each
 ## to the stat it names. Each stat has a floor ([constant MINIMUMS]), so however much
-## modifiers take away, the bus still moves, holds some fuel and has a seat.
+## modifiers take away, the bus still moves, holds some fuel and has a seat; the count of
+## upgrades starts at 0.
 ## Most bases come from the bus's exports; the rest start at [constant BASES].
 ## Its traits ([method get_traits]) are the other kind of stat: features the bus has or
 ## doesn't, rather than numbers.
@@ -26,6 +27,9 @@ enum Type {
 	PUMP_SPEED = 5,
 	## How fast the player serves a request by hand, as a multiple of its own pace ([Cabin]).
 	SERVING_SPEED = 6,
+	## How many upgrades the bus has that do something: each makes it a better bus to ride,
+	## which lifts everyone's happiness ([Cabin]). [Research] adds one for each.
+	UPGRADES = 7,
 }
 
 ## The base of each stat no node of the bus sets: a stat missing here starts at 0.
