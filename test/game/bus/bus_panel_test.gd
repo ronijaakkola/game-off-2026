@@ -191,9 +191,9 @@ func test_the_pointer_over_the_bus_shows_its_border_unless_it_is_open() -> void:
 	assert_bool(model.border).is_false()
 
 
-# The rows are in the order of BusStats.Type.
+# The rows are in the order of BusStats.Type, which skips retired numbers.
 func _row(runner: GdUnitSceneRunner, type: BusStats.Type) -> Node:
-	return runner.find_child("StatRows").get_child(type)
+	return runner.find_child("StatRows").get_child(BusStats.Type.values().find(type))
 
 
 func _row_label(row: Node, label_name: String) -> Label:

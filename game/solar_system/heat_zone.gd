@@ -54,6 +54,8 @@ func _ready() -> void:
 
 
 func _fade_in() -> void:
+	# Placed while the world was scaled for the tutorial, the disc came out off the star.
+	zone.global_position = _system.global_position
 	var material := zone.material_override as ShaderMaterial
 	material.set_shader_parameter(&"opacity", 0.0)
 	zone.visible = true

@@ -13,6 +13,7 @@ badges = Array[Texture2D]([ExtResource("5_briefcase")])
 wears_bow_tie = true
 description = "These passengers are more demanding but pay more."
 fare_multiplier = 1.6
+research_points = 3
 slack = 1.2
 needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink")])
 need_interval_scale = 0.6

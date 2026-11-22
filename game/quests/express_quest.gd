@@ -41,7 +41,7 @@ func plan(
 	var flying := bus.state == FrameshiftBus.State.FLYING
 	var distance := get_chase_distance(bus, planet)
 	trip_seconds = waiting.get_trip_seconds(distance, flying) + PARK_SECONDS
-	base_fare = distance * waiting.fare_per_unit
+	base_fare = distance * waiting.get_fare_per_unit()
 	reward_credits = get_reward(REWARD_CREDITS)
 	reward_research = get_reward(REWARD_RESEARCH)
 	_line = LINES[rng.randi_range(0, LINES.size() - 1)]

@@ -6,7 +6,8 @@ extends Node
 ## stay on show as they stand, the next system opens, and the [SystemJump] takes the bus
 ## across at once, from wherever it is, after any stop under way; whoever is still on board
 ## stays behind, paying and rating nothing. There the lines start at the new system's
-## planets, its goals replace the old ones, and the mechanic calls with the next research
+## planets, its goals replace the old ones, and The Boss calls about the system
+## ([FirstShiftCall]); a few deliveries later the mechanic calls with the next research
 ## stage ([MechanicCall]). The promotion in the last system joins every system instead:
 ## lines start at every planet, passengers go anywhere, and the last goals come.
 ## The debug panel's Star systems card has The Boss call at once, or completes the system:
@@ -16,11 +17,10 @@ extends Node
 signal jump_started
 
 const JOINED := "Promoted! Every star system is open, and passengers now travel between them."
-const ARRIVED := "Welcome to {system}. Deliver passengers to get promotion."
 ## Seconds of play every goal must hold before The Boss calls with the promotion. A goal
 ## dropping back starts it over.
 const CALL_DELAY := 5.0
-## Seconds the notices that a system or every system is open show.
+## Seconds the notice that every system is open shows.
 const NOTICE_SECONDS := 8.0
 const DEBUG_CALL_TEXT := "Promotion call"
 const DEBUG_COMPLETE_TEXT := "Complete system"
@@ -36,8 +36,12 @@ const DEBUG_GROUP := "Star systems"
 @export var quest_giver: QuestGiver
 @export var notices: NoticeStack
 @export var cabin: Cabin
+## Its tank fills as it jumps into a system.
+@export var bus: FrameshiftBus
 ## The Boss's call with the promotion.
 @export var boss_call: GoalsMetCall
+## The Boss's call as the bus arrives in a system, which brings the HUD back.
+@export var arrival_call: FirstShiftCall
 @export var system_jump: SystemJump
 ## Saves nothing through a jump.
 @export var saver: GameSaver
@@ -57,6 +61,7 @@ func _ready() -> void:
 	boss_call.answered.connect(advance)
 	system_jump.crossed.connect(_on_crossed)
 	system_jump.finished.connect(_on_jumped)
+	arrival_call.closed.connect(_on_arrival_call_closed)
 	DebugPanel.add_button(DEBUG_CALL_TEXT, _ring, self, DEBUG_GROUP)
 	DebugPanel.add_button(DEBUG_COMPLETE_TEXT, _debug_complete_system, self, DEBUG_GROUP)
 	for system: StarSystem in star_map.get_systems().slice(1):
@@ -123,6 +128,7 @@ func advance() -> void:
 		await cabin.stop_finished
 		if system_jump.is_jumping():
 			return
+	arrival_call.cancel()
 	jump_started.emit()
 	system_jump.start(star_map.get_jump_target())
 
@@ -155,14 +161,21 @@ func _add_goals() -> void:
 		deliveries = star_map.get_current().deliveries
 		rating = star_map.get_current().rating
 	goals.add(DeliveryCountGoal.new(deliveries))
+	if not star_map.is_joined() and star_map.get_current().business_deliveries > 0:
+		var business := star_map.get_current().business_deliveries
+		goals.add(DeliveryCountGoal.new(business, waiting.business))
 	goals.add(RatingGoal.new(rating))
 
 
 # The camera is over the new system: it becomes the one the bus works in, and its lines
-# start empty. Whoever was still on board is gone, out of sight, paying and rating nothing.
+# start empty, its planets start where its layout puts them, and the bus's tank is full.
+# Whoever was still on board is gone, out of sight, paying and rating nothing.
 func _on_crossed(system: StarSystem) -> void:
+	for planet: Planet in system.get_planets():
+		planet.orbit_time = 0.0
 	for passenger: Passenger in cabin.get_passengers():
 		cabin.leave_behind(passenger)
+	bus.get_fuel_tank().fill()
 	star_map.enter(system)
 	waiting.set_planets(system.get_planets())
 	_start_quests(system.get_planets())
@@ -171,9 +184,14 @@ func _on_crossed(system: StarSystem) -> void:
 func _on_jumped(system: StarSystem) -> void:
 	waiting.add_starting_passengers(system.home)
 	_add_goals()
-	saver.holding = false
-	var arrived := ARRIVED.format({"system": system.display_name})
-	notices.push(arrived, Notice.Kind.INFO, false, NOTICE_SECONDS)
+	# Nothing saves until The Boss's call is over, so a run continued from before it starts
+	# from before the jump, and gets the jump again.
+	arrival_call.arrive(system)
+
+
+func _on_arrival_call_closed() -> void:
+	if not system_jump.is_jumping():
+		saver.holding = false
 
 
 # The Boss calls with the promotion now, in the system the bus works in, unless the
@@ -183,7 +201,8 @@ func _ring() -> void:
 	if not _started or star_map.is_joined() or system_jump.is_jumping():
 		return
 	_met_seconds = 0.0
-	boss_call.ring(star_map.get_jump_target() == null and _is_last())
+	var joins := star_map.get_jump_target() == null and _is_last()
+	boss_call.ring(joins, star_map.get_current().promotion_call)
 
 
 # Whether the bus works in the last system, whose promotion joins them all.

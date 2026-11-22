@@ -37,6 +37,8 @@ const JOIN_ANSWER := "Sure boss"
 
 var _ringing := false
 var _joins := false
+# What The Boss says in place of the usual offer, or empty for it.
+var _own_text := ""
 var _notice: Notice
 # Seconds of play the call notice has shown unanswered.
 var _ringing_seconds := 0.0
@@ -61,25 +63,29 @@ func is_ringing() -> bool:
 
 
 ## The Boss calls with the promotion, unless they already are: with [param joins] the one
-## in the last system, which joins every system, else the one that jumps to the next.
-func ring(joins: bool) -> void:
+## in the last system, which joins every system, else the one that jumps to the next. With
+## [param text], they say that in place of their usual words, after the telling off when
+## the call opened by itself.
+func ring(joins: bool, text := "") -> void:
 	if _ringing:
 		return
 	_ringing = true
 	_joins = joins
+	_own_text = text
 	_quests_were_enabled = quest_giver and quest_giver.enabled
 	if quest_giver:
 		quest_giver.enabled = false
 	_ringing_seconds = 0.0
 	_notice = notices.announce_transmission(_boss())
-	_notice.action_pressed.connect(_open.bind(TEXT))
+	_notice.action_pressed.connect(_open.bind("" if _own_text else TEXT))
 
 
 # The Boss's transmission opens, starting with [param opening], answered or by itself.
 func _open(opening: String) -> void:
 	_notice = null
 	var call := _boss()
-	call.text = opening + (JOIN_OFFER if _joins else OFFER)
+	var offer := JOIN_OFFER if _joins else OFFER
+	call.text = opening + (_own_text if _own_text else offer)
 	# Left ringing, The Boss opens annoyed: the voice's annoyed stinger.
 	if opening == UNANSWERED_TEXT:
 		call.mood = Passenger.Mood.ANNOYED

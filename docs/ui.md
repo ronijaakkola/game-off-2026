@@ -24,6 +24,7 @@ Anything new follows the same rules: flat colour, hard edges, a two-tone shade a
 - **Fly past zone.** While a fly past quest is under way, a disc on the orbit plane round its planet, as far out as the bus must come: a faint aqua fill, a little stronger toward the edge, inside a ring of 28 brighter aqua dashes that turns slowly. Cool and outlined where the heat zone is warm and edgeless, so the one reads as somewhere to go and the other as somewhere to avoid. It follows the planet, fades in over 0.4 s as the quest is taken on and out as it ends, and its dashes hold still under Reduce motion. While the pointer is on the quest's row in the goal panel, the fill and the ring pulse brighter about once a second, easing in and out in 0.2 s; under Reduce motion they brighten without pulsing.
 - **Rings and orbits.** Unlit, flat bands with hard edges. Every orbit is a thin, faint line, lilac in Sol and pale blue in Lyra, so the player sees where each planet is going. Lyra's Brume has pale cyan rings standing nearly upright, as Uranus is drawn.
 - **Lyra's planets.** Amber Cinder near the star, its icy white moon Janus, violet-striped Brume, and the twins on one orbit, mint green Hither and coral pink Yon, each its own hue against the blue.
+- **Warp gates.** A pale lavender hexagonal ring 1.4 units from its planet, on the side away from the star, leaning back 50° so the camera sees it open and turning once every 9 s, with a bright cyan core and a soft cyan glow behind it. Resting the pointer on the ring opens a "Warp drive" tooltip that follows it, in the asteroid field's text-card style; the player-facing name is warp drive. The station panel's warp row, with a hexagon icon, sits under Research and reads "Warp to Yon (50% fuel)", greyed out while the tank holds less or the bus can't go. With the pointer on it, greyed out or not, the way to the other twin shows as a waiting passenger's trip does, in white, in place of any passenger's. Pressed, only the bus's part of the jump to the next star system (below) plays: the bus turns to face the gate, winds up and shifts out toward it, and 0.3 s later shifts in out of the far gate, heading for the planet, and flies in to dock. The camera stays where the player has it, with no iris, and the HUD stays up but takes no clicks until the bus is out.
 - **Asteroid field.** Pale blue-white crystal rocks with flat facets, shaded in blue on their night side, lit by Lyra's star and tumbling slowly; still under Reduce motion.
 - **Sky.** In its star system's colours, set as the bus jumps there: Sol's deep navy-violet, Lyra's navy-cyan. A background with faint coloured fog and two layers of small stars, dim on purpose so the planets stand out. Its layers drift slightly as the camera moves.
 - **Names.** Each planet has its name just under it: small off-white text in Baloo 2 semibold with the sky's lilac, a little see-through, with a thin navy outline. It faces the camera and keeps its size on screen at any zoom; the bus passes in front of it.
@@ -98,7 +99,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 - **Model.** A flat yellow space bus with faceted edges, shaped to read when small: a short tapered nose in front of a taller cabin, a thruster pod out past each side at the back, a sloped windscreen, a door and three large side windows over a white band, a white roof with a wide stripe, a hull underneath (no wheels).
 - Windows, stripe, hull and nozzles are a mid lilac, lighter than the sky, so they don't vanish into it.
-- **Thrusters** are dark while docked. As the drive charges, a pale cyan exhaust cone grows out of each, full length in flight, and shrinks back after docking. They stay dark under tow.
+- **Thrusters** are dark while docked. As the drive charges, a pale cyan exhaust cone grows out of each, full length in flight, and shrinks back after docking. With the Warm drive they keep burning through parking and shrink with the warmth instead, so they run for as long as the drive is warm. They stay dark under tow.
 - **Trail.** In flight, a flat pale cyan trail on the orbit plane that narrows and fades over 2.5 s.
 - **Docked,** it floats beside its planet with a barely visible bob and sway.
 - **Charging,** a white ring round the bus fills clockwise (temporary), and the bus shakes slightly. It pulls out a little from the planet as it turns, so its tail clears it.
@@ -111,7 +112,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 A stamp of a few words with an icon that lands over the bus when something about the driving is worth a nod, then goes.
 
-- **Quick stop.** Leaving a planet on a charge started warm and never let go: "Quick stop!" with a clock, as a remark.
+- **Quick stop.** Leaving a planet on a quick stop: "Quick stop!" with a clock, as a remark.
 - **Quest completed.** A quest done: "Quest completed!" with a circled check, as a gain.
 - **Quest failed.** A quest failed: "Quest failed!" with a circled cross, as a loss.
 
@@ -138,7 +139,7 @@ A stamp of a few words with an icon that lands over the bus when something about
 - It frameshifts out as the tow ship does: stretched long and thin along its heading, leaving the same streak. Meanwhile black closes in on a circle round where it was, over 0.9 s, easing in, until the screen is black.
 - The screen stays black for 0.4 s while the old system hides and the camera cuts to the new one. Anyone still on board is gone then, their cards out of the On board panel when the HUD comes back.
 - A circle opens from where the bus will come out, over 0.9 s, easing out, a little way off the new system's home planet. 0.35 s in, the bus frameshifts in there.
-- It flies in, parks and docks with the bell, while the camera eases back out to the map over the new system and the HUD comes back. A notice says "Welcome to Lyra. Deliver passengers to get promotion." for 8 s.
+- It flies in, parks and docks with the bell, while the camera eases back out to the map over the new system and the bus bars come back. The Boss's call about the system rings over them, as on the first shift, and the rest of the HUD comes in once it closes.
 - Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the screen fades to black and back over 0.5 s each way.
 - **The join**, in the last system, is the first time two systems show at once: every system appears, and the camera pulls back over 5 s, easing in and out, from where it is to over the middle of them all at its farthest zoom, zooming by the same factor every step so it reads as a steady rise. Pan and zoom wait until it ends. Under Reduce motion it cuts there.
 - Under Reduce motion the camera and the bus cut straight there, and the bus flies in from where it comes out.
@@ -218,7 +219,7 @@ Two bars on the bottom edge of the screen, centred: the route bar on top, the bu
 - **The Frameshift key** is a physical key: its cap sits proud in a dark well and sinks while pressed.
 - Space works the Frameshift key as the pointer does, without clicking it first, while the bus bar shows. The bus keys never take keyboard focus.
 - With a course set and the bus waiting, the key is up and ready: its cap pulses slightly lighter once every two seconds, and a hard 2 px outline in the bus's yellow round the cap fades between 35 % and full strength in step. Under Reduce motion both hold still, the outline at full strength. Held, the drive charges: the pulse and outline go, the key stays down and the bus's yellow fills it as the charge does. Let go, the fill drains back and the key stays down until it is empty. Charged, the key pops up by itself as the bus leaves, even with the button still held.
-- Docked with the drive warm, the key is up and ready and the bus's yellow fills it by the warmth left, emptying as the drive cools. The ring round the bus on the map shows the same. Held, the key goes down and fills from there, faster than a cold charge; let go, the fill drains back fast and the drive is cold.
+- Docked with the drive warm, the key is up and ready and the bus's yellow fills it by the warmth left, emptying as the drive cools. The ring round the bus on the map shows the same. Held, the key goes down and fills from there, in half a second at most; let go, the fill drains back fast and the drive is cold.
 - While the bus flies under its own power it is the red Stop key, which slows the bus to a stop in space. Not while it brakes in to dock: then it is dim.
 - Otherwise it is dim. Out of fuel, or while the bus cools down after overheating, it is off.
 - Pressing the Frameshift key as Stop clears the whole route; Backspace takes off only the last stop. Stop acts on the press, not the release, so a key still held as the bus leaves doesn't stop it.
@@ -316,7 +317,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
   - The pointer on it opens a tooltip to its right: "Docked", and under it "Passengers lose no happiness while the bus is docked."
 - **What moves their happiness.** The pointer on the bar, or within 3 px above or below it, opens a panel to the right of it, with a notch 12 px wide and 6 px long on its left edge pointing at the bar, part of the panel's outline as a guide card's is: a face in the mood's colour (a smile, a straight mouth, a frown, an angry face) with the mood's name in the same colour, and under it one line for each thing moving their happiness, with an arrow in front, up in the gain's green or down in the loss's red. No numbers.
   - The arrows' left edge lines up with the face's, and the lines' words with the mood's name.
-  - Up: "Got a snack" while what they were served lasts, or "Feeling better" while it climbs for no other reason, such as after a scare; then "Movies", "Games", "Station lounge", "Quick stop", "Quest done". Down: "Waiting for a snack", "Quest declined", "Quest failed", "Extra stop" ("2 extra stops"), "Running late", "Too hot".
+  - Up: "Got a snack" while what they were served lasts, or "Feeling better" while it climbs for no other reason, such as after a scare; then "Bus quality" once the bus has an upgrade, "Movies", "Games", "Station lounge", "Quick stop", "Quest done". Down: "Waiting for a snack", "Quest declined", "Quest failed", "Extra stop" ("2 extra stops"), "Running late", "Too hot".
   - The striped end and the pause mark keep their own tooltips where they are.
 - **The activity line morphs** when it changes: a wave sweeps left to right, the old letters drift up and blur away and the new ones rise into focus, in about half a second. Under Reduce motion the lines crossfade.
 - **A request.** A serve button takes the place of the activity line, with the need's icon and label: "Hand a snack" with a sandwich, "Pour a drink" with a cup. A faint cyan fill sweeps across the button as it is held, or as an amenity serves.
@@ -435,7 +436,7 @@ Titled "Frameshift Bus".
 
 - One row per stat: its name, its value, and once upgrades change it, how much they add in green ("Top speed 1.44 +20%") or take away in red ("Fuel tank 80 -20%").
 - Each row's value right-aligns on one vertical line, and the delta has a fixed 44 px slot to its right (right-aligned, tabular figures, kept when empty), so the deltas form their own column.
-- Seats show whole ("Seats 5 +1"). Portion size, pump speed and serving speed show as "1.5x", warm time in seconds ("6.0 s").
+- Seats show whole ("Seats 5 +1"). Portion size, pump speed and serving speed show as "1.5x".
 - Sections: 8 px between a section's title and its first row and between rows, 16 px between the end of one section and the next section's title.
 - A Traits section names each trait the bus has, or reads "None yet.".
 

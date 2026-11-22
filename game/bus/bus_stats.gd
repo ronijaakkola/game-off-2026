@@ -3,13 +3,15 @@ extends RefCounted
 ## The bus's stats: one [Stat] of each [enum Type], made here, with the bus setting their
 ## bases. Upgrades hand their [StatModifier]s to [method add_modifier], which applies each
 ## to the stat it names. Each stat has a floor ([constant MINIMUMS]), so however much
-## modifiers take away, the bus still moves, holds some fuel and has a seat.
+## modifiers take away, the bus still moves, holds some fuel and has a seat; the count of
+## upgrades starts at 0.
 ## Most bases come from the bus's exports; the rest start at [constant BASES].
 ## Its traits ([method get_traits]) are the other kind of stat: features the bus has or
 ## doesn't, rather than numbers.
 
 ## Which stat a [StatModifier] changes. A [code].tres[/code] saves a type as its number, so
-## each keeps its own: a new one takes the next unused number.
+## each keeps its own: a new one takes the next unused number. 4 was the drive's warm time,
+## now the Warm drive trait.
 enum Type {
 	## Top speed, in units per second.
 	MAX_SPEED = 0,
@@ -20,12 +22,13 @@ enum Type {
 	## How long a served snack or drink lasts, as a multiple of the need's own time: the
 	## next request for it waits that much longer.
 	PORTION_SIZE = 3,
-	## Seconds the drive stays warm at a planet, once the passengers getting off are off.
-	WARM_TIME = 4,
 	## How fast the pump fills the tank, as a multiple of its own rate ([FuelPump]).
 	PUMP_SPEED = 5,
 	## How fast the player serves a request by hand, as a multiple of its own pace ([Cabin]).
 	SERVING_SPEED = 6,
+	## How many upgrades the bus has that do something: each makes it a better bus to ride,
+	## which lifts everyone's happiness ([Cabin]). [Research] adds one for each.
+	UPGRADES = 7,
 }
 
 ## The base of each stat no node of the bus sets: a stat missing here starts at 0.
@@ -41,7 +44,6 @@ const MINIMUMS: Dictionary[Type, float] = {
 	Type.FUEL_CAPACITY: 1.0,
 	Type.SEATS: 1.0,
 	Type.PORTION_SIZE: 0.1,
-	Type.WARM_TIME: 0.1,
 	Type.PUMP_SPEED: 0.1,
 	Type.SERVING_SPEED: 0.1,
 }
