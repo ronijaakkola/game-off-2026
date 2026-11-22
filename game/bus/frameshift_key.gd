@@ -29,6 +29,8 @@ const BADGE_INSET := 5.0
 const BADGE_RADIUS := 9.0
 const BADGE_PIE_RADIUS := 6.0
 const BADGE_SEGMENTS := 32
+# Under this share of the time left the pie is too thin to draw, and the disc shows empty.
+const BADGE_PIE_MIN := 0.02
 
 ## How far the drive has charged, from 0 to 1. Above 0 the key latches down and fills.
 var charge := 0.0:
@@ -101,6 +103,12 @@ func _draw_quick_stop() -> void:
 	var center := Vector2(size.x - BADGE_INSET, BADGE_INSET)
 	draw_circle(center, BADGE_RADIUS, WELL_COLOR)
 	draw_circle(center, BADGE_RADIUS - 1.0, OUTLINE_COLOR, false, 1.5, true)
+	# A whole pie's arc would close on its first point, which the polygon can't take.
+	if quick_stop >= 1.0:
+		draw_circle(center, BADGE_PIE_RADIUS, OUTLINE_COLOR)
+		return
+	if quick_stop < BADGE_PIE_MIN:
+		return
 	var steps := maxi(ceili(BADGE_SEGMENTS * quick_stop), 1)
 	var points := PackedVector2Array([center])
 	for i: int in steps + 1:

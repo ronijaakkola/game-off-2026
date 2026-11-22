@@ -3,7 +3,7 @@ extends Node
 ## them taken, and the bus already flying from Ember to Terra, since the drive charges
 ## at once and the key is held. With "ready" after `--`, the key isn't held, so the bus
 ## waits at Ember with its course set; with "quick" too, a third of a quick stop's time
-## gone, so the key shows its clock.
+## gone, so the key shows its clock, and with "unloading" too, held full.
 
 const SEATS := 8
 const ON_BOARD := 3
@@ -24,3 +24,6 @@ func _ready() -> void:
 	if "quick" in OS.get_cmdline_user_args():
 		bus.drive.begin_stop(true, false)
 		bus.drive.wait(bus.quick_time / 3.0)
+		bus.unloading = "unloading" in OS.get_cmdline_user_args()
+		if bus.unloading:
+			bus.drive.begin_stop(true, false)
