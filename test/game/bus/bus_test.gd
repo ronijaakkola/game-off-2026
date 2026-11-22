@@ -141,6 +141,20 @@ func test_the_thrusters_light_up_while_charging_burn_in_flight_and_go_dark_docke
 	assert_float(glow.scale.z).is_less(0.2)
 
 
+func test_with_the_warm_drive_the_thrusters_run_while_the_drive_is_warm() -> void:
+	var model := _bus.get_node(^"%Model") as BusModel
+	_bus.get_stats().get_traits().add(BusTraits.Type.WARM_DRIVE)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	assert_bool(_step_until(FrameshiftBus.State.PARKING)).is_true()
+	assert_bool(_step_until_docked()).is_true()
+	assert_float(model.thrust).is_greater(0.9)
+	# They fade with the warmth, out once the drive is cold.
+	_step_for(_bus.quick_time * 0.5)
+	assert_float(model.thrust).is_between(0.4, 0.6)
+	_step_for(_bus.quick_time * 0.5 + 1.0)
+	assert_float(model.thrust).is_equal(0.0)
+
+
 func test_a_flight_leaves_a_trail_that_fades_after_it_arrives() -> void:
 	var trail := _bus.get_node(^"%ThrusterTrail") as ThrusterTrail
 	_bus.plot_course(RouteStop.at_planet(_near))

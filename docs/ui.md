@@ -96,7 +96,7 @@ The setting holds everywhere. As a rule: a slide becomes a fade in place, and no
 
 - **Model.** A flat yellow space bus with faceted edges, shaped to read when small: a short tapered nose in front of a taller cabin, a thruster pod out past each side at the back, a sloped windscreen, a door and three large side windows over a white band, a white roof with a wide stripe, a hull underneath (no wheels).
 - Windows, stripe, hull and nozzles are a mid lilac, lighter than the sky, so they don't vanish into it.
-- **Thrusters** are dark while docked. As the drive charges, a pale cyan exhaust cone grows out of each, full length in flight, and shrinks back after docking. They stay dark under tow.
+- **Thrusters** are dark while docked. As the drive charges, a pale cyan exhaust cone grows out of each, full length in flight, and shrinks back after docking. With the Warm drive they keep burning through parking and shrink with the warmth instead, so they run for as long as the drive is warm. They stay dark under tow.
 - **Trail.** In flight, a flat pale cyan trail on the orbit plane that narrows and fades over 2.5 s.
 - **Docked,** it floats beside its planet with a barely visible bob and sway.
 - **Charging,** a white ring round the bus fills clockwise (temporary), and the bus shakes slightly. It pulls out a little from the planet as it turns, so its tail clears it.

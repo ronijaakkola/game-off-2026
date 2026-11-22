@@ -401,8 +401,11 @@ func _process(delta: float) -> void:
 			_holding_time += delta
 			_start_charge()
 	_feel(delta)
-	# The thrusters light up as the drive charges, burn in flight (not towed) and fade after.
-	var thrust := 1.0 if state == State.FLYING and not _towing else get_charge_progress()
+	# The thrusters light up as the drive charges and burn in flight (not towed). With the
+	# Warm drive they keep burning as the bus parks, then fade with the warmth.
+	var warm := state == State.PARKING and _stats.get_traits().has(BusTraits.Type.WARM_DRIVE)
+	var burning := (state == State.FLYING or warm) and not _towing
+	var thrust := 1.0 if burning else maxf(get_charge_progress(), get_warmth())
 	var still := state != State.FLYING
 	(%Model as BusModel).animate(delta, still, get_charge_progress(), _turn_rate, thrust)
 	var burn := (%Model as BusModel).thrust if state == State.FLYING else 0.0
