@@ -23,7 +23,7 @@ var overheats := 0
 ## When each tow and overheat came, in seconds.
 var tow_times: Array[float] = []
 var overheat_times: Array[float] = []
-## Times the bus left a planet on a charge started warm: a quick stop.
+## Times the bus left a planet on a quick stop.
 var quick_stops := 0
 var kicks := 0
 var docks := 0

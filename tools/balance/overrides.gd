@@ -3,7 +3,7 @@ extends RefCounted
 ## config's "overrides":
 ## "waiting.max_per_planet", "commuter.slack", "business.fare_multiplier",
 ## "snack.min_interval", "drink.max_interval", "cabin.seats", "tank.burn_per_unit", and
-## the drive's "bus.charge_time", "bus.cool_time" and "bus.warm_boost", and
+## the drive's "bus.charge_time", "bus.quick_time" and "bus.warm_charge_time", and
 ## "temperature.comfortable_temperature", "quests.done_happiness" and
 ## "cabin.quality_per_upgrade", and a star system's by its name, as "lyra.fare_multiplier":
 ## any exported number on those resources and nodes.

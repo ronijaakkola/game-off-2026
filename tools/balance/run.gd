@@ -25,9 +25,9 @@ const Overrides := preload("res://tools/balance/overrides.gd")
 const HAND_SWITCH := 0.3
 ## Seconds a player takes to ask for a tow once the bus has stopped.
 const TOW_THINK := 3.0
-# Seconds a player who misses a quick stop spends docked: long enough for the drive to
-# go cold.
-const SLOW_STOP_SECONDS := 9.0
+# Seconds past the quick stop's time a player who misses one thinks, once the stop is over
+# (their thinking waits for it), so even a warm charge started then leaves too late.
+const SLOW_STOP_MARGIN := 2.0
 
 var _config: Dictionary
 var _recorder := Recorder.new()
@@ -110,7 +110,7 @@ func _ready() -> void:
 	var call_dice := RandomNumberGenerator.new()
 	call_dice.seed = seed_value + 15485863
 	_calls = Calls.new(_player.policy, call_dice, _system, _detour)
-	_bus.left_warm.connect(func() -> void: _recorder.quick_stops += 1)
+	_bus.left_quickly.connect(func() -> void: _recorder.quick_stops += 1)
 	_cabin.boarded.connect(_on_boarded)
 	_cabin.delivered.connect(_on_delivered)
 	_cabin.kicked.connect(func(_passenger: Passenger) -> void: _recorder.kicks += 1)
@@ -419,9 +419,9 @@ func _write(path: String, data: Dictionary) -> void:
 
 func _on_docked(planet: Planet) -> void:
 	_think_left = float(_player.policy.get("dock_think", 3.0))
-	# A player who dawdles past the warm drive, by the policy's "quick_stop_miss" chance.
+	# A player who dawdles past the quick stop, by the policy's "quick_stop_miss" chance.
 	if _stop_dice.randf() < float(_player.policy.get("quick_stop_miss", 0.0)):
-		_think_left = maxf(_think_left, SLOW_STOP_SECONDS)
+		_think_left = maxf(_think_left, _bus.quick_time + SLOW_STOP_MARGIN)
 	_recorder.dock(planet, _cabin.get_passengers())
 
 
