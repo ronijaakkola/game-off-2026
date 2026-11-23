@@ -1,40 +1,46 @@
-extends MarginContainer
-## The main scene: title, Play, Settings and Quit. With a save game, Continue comes first
-## and New game takes Play's place: it starts over and replaces the save, so it has to be
-## held, and a stray click can't lose a run. On the web, a "Click to start" title card
-## comes first, because Safari starts audio only after a click in the game.
-## The debug panel's Delete save button deletes the save and forgets the tutorial, so the
-## game starts as on a first visit, its Reset settings puts every setting back to its
-## default, its Voice lab opens the scene for trying the alien voices, and its Mixer opens
-## the scene for setting how loud each sound and voice is.
+extends Control
+## The main scene: the logo over the menus' background, and under it the main menu's
+## slanted buttons. With no level in progress Play opens the campaign screen; with one,
+## Continue plays it straight away and names it, and Levels opens the campaign screen.
+## Settings and Controls open their screens over the background, the menu's rows
+## staggering out as they come in ([MenuScreen]), and the campaign screen pans the
+## background to its other half as it opens. On the web, a "Click to start" title
+## card comes first, because Safari starts audio only after a click in the game.
+## The debug panel's Delete save resets the campaign and forgets the tutorial, so the game
+## starts as on a first visit, its Reset settings puts every setting back to its default,
+## its Voice lab opens the scene for trying the alien voices, and its Mixer opens the scene
+## for setting how loud each sound and voice is.
 
-const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
 const VOICE_LAB_SCENE := "res://game/transmissions/voice_lab.tscn"
 const MIXER_SCENE := "res://ui/mixer/mixer.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
-# Written into exports by `check.py export`, so the editor has none.
-const BUILD_COMMIT := "res://ui/main_menu/build_commit.txt"
+## Seconds the background takes to pan to the campaign screen's half and back.
+const PAN_SECONDS := 0.6
 
 # Survives scene changes, so coming back to the menu doesn't ask for the click again.
 static var _music_started := false
 
+var _pan: Tween
+
 
 func _ready() -> void:
 	%QuitButton.visible = not OS.has_feature("web")
-	_show_save_buttons()
+	_show_level_buttons()
 	DebugPanel.add_button("Delete save", _debug_delete_save, self)
 	DebugPanel.add_button("Reset settings", Settings.reset, self)
 	DebugPanel.add_button("Voice lab", _debug_voice_lab, self)
 	DebugPanel.add_button("Mixer", _debug_mixer, self)
-	if FileAccess.file_exists(BUILD_COMMIT):
-		%BuildLabel.text = "Commit %s" % FileAccess.get_file_as_string(BUILD_COMMIT).strip_edges()
-		%BuildLabel.show()
+	%Background.resized.connect(_on_background_resized)
+	_on_background_resized()
+	%CampaignScreen.visibility_changed.connect(_on_campaign_screen_visibility_changed)
+	# The cards come in once the pan has all but settled, and the menu's rows on the way back.
+	%CampaignScreen.enter_delay = PAN_SECONDS * 0.8
 	if OS.has_feature("web") and not _music_started:
 		%StartOverlay.show()
 	else:
 		_start_music()
 		# Deferred, as the grab_focus docs advise for a call from _ready().
-		_first_button().grab_focus.call_deferred()
+		FocusRing.grab.call_deferred(_first_button())
 
 
 func _start_music() -> void:
@@ -47,52 +53,84 @@ func _on_start_overlay_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		%StartOverlay.hide()
 		_start_music()
-		_first_button().grab_focus()
+		FocusRing.grab(_first_button())
 
 
-# Continue and New game with a save, else Play.
-func _show_save_buttons() -> void:
-	var saved := SaveGame.has_save()
-	%ContinueButton.visible = saved
-	%NewGameButton.visible = saved
-	%PlayButton.visible = not saved
+# Continue, naming the level, and Levels while a level is in progress, else Play.
+func _show_level_buttons() -> void:
+	var level := Campaign.get_in_progress()
+	%ContinueButton.visible = level != null
+	%LevelsButton.visible = level != null
+	%PlayButton.visible = level == null
+	if level:
+		%Where.text = level.title
 
 
-# Continue when there is a save to continue, else Play.
 func _first_button() -> Button:
 	return %ContinueButton if %ContinueButton.visible else %PlayButton
 
 
+# The logo and each plate shown, top to bottom, which stagger out as a screen opens.
+func _rows() -> Array[Control]:
+	var rows: Array[Control] = [%LogoMargin]
+	for plate: Control in %Items.get_children():
+		if plate.visible:
+			rows.append(plate)
+	return rows
+
+
 func _on_continue_button_pressed() -> void:
-	SaveGame.continue_saved()
-	SceneFlow.go_to(GAME_SCENE)
+	Campaign.play(Campaign.get_in_progress())
 
 
 func _on_play_button_pressed() -> void:
-	SaveGame.start_new()
-	SceneFlow.go_to(GAME_SCENE)
+	%CampaignScreen.open(%Home, _rows)
 
 
-func _on_new_game_button_confirmed() -> void:
-	_on_play_button_pressed()
+func _on_levels_button_pressed() -> void:
+	%CampaignScreen.open(%Home, _rows)
 
 
 func _on_settings_button_pressed() -> void:
-	%SettingsMenu.open(%Items)
+	%SettingsMenu.open(%Home, _rows)
 
 
-# Deleted from the settings panel: the menu under it shows as with no save. Its Settings
-# button keeps focus for when the panel closes.
-func _on_settings_menu_save_deleted() -> void:
-	_show_save_buttons()
+func _on_controls_button_pressed() -> void:
+	%ControlsScreen.open(%Home, _rows)
 
 
-# The debug panel's Delete save: the menu shows as with no save, Play focused, and the
+# Reset from the settings screen: the menu under it shows as on a first visit. Its
+# Settings button keeps focus for when the screen closes.
+func _on_settings_menu_campaign_reset() -> void:
+	_show_level_buttons()
+
+
+func _on_campaign_screen_visibility_changed() -> void:
+	var material := %Background.material as ShaderMaterial
+	var to := 1.0 if %CampaignScreen.is_open() else 0.0
+	if _pan:
+		_pan.kill()
+	if Settings.reduce_motion:
+		material.set_shader_parameter(&"pan", to)
+		return
+	_pan = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	_pan.tween_property(material, ^"shader_parameter/pan", to, PAN_SECONDS)
+
+
+func _on_background_resized() -> void:
+	var size: Vector2 = %Background.size
+	if size.y > 0.0:
+		(%Background.material as ShaderMaterial).set_shader_parameter(
+			&"screen_aspect", size.x / size.y
+		)
+
+
+# The debug panel's Delete save: the menu shows as on a first visit, Play focused, and the
 # next run has the tutorial.
 func _debug_delete_save() -> void:
-	SaveGame.delete()
-	_show_save_buttons()
-	_first_button().grab_focus()
+	Campaign.reset()
+	_show_level_buttons()
+	FocusRing.grab(_first_button())
 
 
 # The debug panel's Voice lab: the scene for trying the alien voices.

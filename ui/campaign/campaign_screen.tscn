@@ -1,0 +1,130 @@
+[gd_scene format=3 uid="uid://cg1ig63kqenbw"]
+
+[ext_resource type="Script" uid="uid://dnyoj4i0x6ecr" path="res://ui/campaign/campaign_screen.gd" id="1_screen"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" uid="uid://c1ob2wrywiacn" path="res://ui/icons/arrow_left.svg" id="3_back"]
+[ext_resource type="Texture2D" uid="uid://p8stij300qva" path="res://ui/icons/play.svg" id="4_play"]
+[ext_resource type="Texture2D" uid="uid://dxo3qfdhj8t17" path="res://ui/icons/rotate_ccw.svg" id="6_restart"]
+[ext_resource type="PackedScene" uid="uid://pri7ypbh8mxk" path="res://ui/campaign/restart_dialog.tscn" id="7_dialog"]
+[ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="8_tooltip"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_restart"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(1, 1, 1, 0.1412)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1216)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="CampaignScreen" type="Control" unique_id=1574605049]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_screen")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=1563404086]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 48
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 48
+
+[node name="Column" type="VBoxContainer" parent="Margin" unique_id=1006807962]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Margin/Column" unique_id=659794968]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="Margin/Column/Header" unique_id=1753334043]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"SquareButton"
+icon = ExtResource("3_back")
+icon_alignment = 1
+
+[node name="Title" type="Label" parent="Margin/Column/Header" unique_id=375745620]
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+theme_override_font_sizes/font_size = 44
+text = "Campaign"
+
+[node name="Cards" type="HBoxContainer" parent="Margin/Column" unique_id=615374257]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="ActionsTrack" type="Control" parent="Margin/Column" unique_id=672925763]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Actions" type="HBoxContainer" parent="Margin/Column/ActionsTrack" unique_id=1797024502]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 304.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="PlayButton" type="Button" parent="Margin/Column/ActionsTrack/Actions" unique_id=1734638372]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"LargePrimaryButton"
+theme_override_font_sizes/font_size = 20
+text = "Play"
+icon = ExtResource("4_play")
+alignment = 0
+
+[node name="RestartButton" type="Button" parent="Margin/Column/ActionsTrack/Actions" unique_id=1982941409]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_type_variation = &"SquareButton"
+theme_override_styles/normal = SubResource("StyleBoxFlat_restart")
+icon = ExtResource("6_restart")
+icon_alignment = 1
+
+[node name="Tooltip" parent="Margin/Column/ActionsTrack/Actions/RestartButton" unique_id=607996675 node_paths=PackedStringArray("target") instance=ExtResource("8_tooltip")]
+layout_mode = 0
+target = NodePath("..")
+title = "Restart level"
+
+[node name="RestartDialog" parent="." unique_id=310325024 instance=ExtResource("7_dialog")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[connection signal="pressed" from="Margin/Column/ActionsTrack/Actions/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="Margin/Column/ActionsTrack/Actions/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="confirmed" from="RestartDialog" to="." method="_on_restart_dialog_confirmed"]

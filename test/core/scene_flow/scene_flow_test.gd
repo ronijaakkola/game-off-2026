@@ -2,6 +2,9 @@ extends GdUnitTestSuite
 
 const SceneFlowScript := preload("res://core/scene_flow/scene_flow.gd")
 const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
+const LEVEL_1 := "res://shared/level_art/level_1.tres"
+## A level with no picture yet.
+const LEVEL_3 := "res://shared/level_art/level_3.tres"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 ## How long the simulated slow frame takes.
 const SLOW_FRAME_SECONDS := 0.4
@@ -46,6 +49,41 @@ func test_changes_the_current_scene_and_hides_the_loading_card() -> void:
 	await _flow.go_to(SOLAR_SYSTEM)
 	assert_str(get_tree().current_scene.scene_file_path).is_equal(SOLAR_SYSTEM)
 	assert_bool(_curtain().visible).is_false()
+
+
+func test_a_level_waits_paused_under_its_loading_screen_until_start() -> void:
+	_flow.go_to(SOLAR_SYSTEM, load(LEVEL_1))
+	var start := _flow.find_child("StartButton", true, false) as Button
+	var shown := await PauseProofWait.for_condition(start.is_visible_in_tree, 5000)
+	assert_bool(shown).override_failure_message("Start never showed").is_true()
+	if is_failure():
+		return
+	assert_str(get_tree().current_scene.scene_file_path).is_equal(SOLAR_SYSTEM)
+	assert_bool(get_tree().paused).is_true()
+	assert_bool(_flow.is_busy()).is_true()
+
+	start.pressed.emit()
+	assert_bool(get_tree().paused).is_false()
+	await assert_func(_flow, "is_busy").wait_until(2000).is_false()
+	assert_bool(_curtain().visible).is_false()
+
+
+# The curtain's fade reaches each of its children apart, so "Loading…" under the level's
+# loading screen showed through the picture as it faded.
+func test_the_plain_loading_card_shows_only_for_a_level_without_a_picture() -> void:
+	_flow.go_to(SOLAR_SYSTEM, load(LEVEL_1))
+	assert_bool(_flow._plain.visible).override_failure_message("Under the picture").is_false()
+	var start := _flow.find_child("StartButton", true, false) as Button
+	assert_bool(await PauseProofWait.for_condition(start.is_visible_in_tree, 5000)).is_true()
+	start.pressed.emit()
+	await assert_func(_flow, "is_busy").wait_until(2000).is_false()
+
+	_flow.go_to(SOLAR_SYSTEM)
+	assert_bool(_flow._plain.visible).override_failure_message("Not entering a level").is_false()
+	await assert_func(_flow, "is_busy").wait_until(5000).is_false()
+
+	_flow.go_to(SOLAR_SYSTEM, load(LEVEL_3))
+	assert_bool(_flow._plain.visible).is_true()
 
 
 func test_blocks_input_only_while_fading() -> void:
