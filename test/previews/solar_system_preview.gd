@@ -63,7 +63,13 @@ func _ready() -> void:
 		var line := system.find_child("WaitingPassengers") as WaitingPassengers
 		for planet: Planet in [terra, giant, giant, giant, forecast_bus.get_docked_planet()]:
 			line.add(planet)
-		forecast_bus.plot_course(RouteStop.at_planet(giant))
+		if "space" in name_given:
+			forecast_bus.plot_course(
+				RouteStop.at_point(forecast_bus.global_position + Vector3(-9.0, 0.0, 5.0))
+			)
+			forecast_bus.plot_course(RouteStop.at_planet(giant), true)
+		else:
+			forecast_bus.plot_course(RouteStop.at_planet(giant))
 		forecast_bus.plot_course(RouteStop.at_planet(terra), true)
 		if "hover" in name_given:
 			# With `leave`, the pointer moves off after 40 frames, so the card closes.
