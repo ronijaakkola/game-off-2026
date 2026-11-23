@@ -2,7 +2,8 @@ class_name Goal
 extends RefCounted
 ## One thing the player is asked to do, tracked by the [GoalTracker], which tells every goal
 ## what happens in the game: a passenger delivered or kicked, a rating counted, the bus
-## moving or docking. Each kind of goal overrides the facts it cares about.
+## moving, docking, holding still, warping or flying among rocks. Each kind of goal
+## overrides the facts it cares about.
 ## A [b]milestone[/b], such as delivering 50 passengers, is met once it is completed, and
 ## stays completed. A [b]standing[/b] goal, such as keeping the recent rating at 4 stars,
 ## is met or not as things stand, and never completes by itself. A quest, a goal about one
@@ -79,6 +80,26 @@ func bus_docked(planet: Planet) -> void:
 		_on_bus_docked(planet)
 
 
+## Every frame the bus holds still in space, at [param position] with [param on_board]
+## riding.
+func bus_held(position: Vector3, on_board: Array[Passenger]) -> void:
+	if is_active():
+		_on_bus_held(position, on_board)
+
+
+## The bus went through a warp gate with [param on_board] riding.
+func bus_warped(on_board: Array[Passenger]) -> void:
+	if is_active():
+		_on_bus_warped(on_board)
+
+
+## Every frame the bus flies among an asteroid field's rocks, for [param delta] seconds,
+## with [param on_board] riding.
+func bus_in_rocks(delta: float, on_board: Array[Passenger]) -> void:
+	if is_active():
+		_on_bus_in_rocks(delta, on_board)
+
+
 ## Its progress, for a save game. A kind of goal with progress of its own adds it.
 func to_save() -> Dictionary:
 	return {"state": state}
@@ -107,6 +128,18 @@ func _on_bus_moved(_position: Vector3, _on_board: Array[Passenger], _in_flight: 
 
 
 func _on_bus_docked(_planet: Planet) -> void:
+	pass
+
+
+func _on_bus_held(_position: Vector3, _on_board: Array[Passenger]) -> void:
+	pass
+
+
+func _on_bus_warped(_on_board: Array[Passenger]) -> void:
+	pass
+
+
+func _on_bus_in_rocks(_delta: float, _on_board: Array[Passenger]) -> void:
 	pass
 
 

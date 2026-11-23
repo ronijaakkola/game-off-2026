@@ -4,8 +4,9 @@ extends Node
 ## delivered [constant FIRST_CALL_DELIVERIES] passengers, a passenger on board calls:
 ## an incoming transmission notice, whose Answer opens their [Quest]'s transmission. They
 ## ask to fly past a planet ([FlybyQuest]) or to stop at one ([ErrandQuest]), as likely one
-## as the other; a Business passenger asks for an [ExpressQuest] instead, where
-## [method start] allows it. One
+## as the other. Past the first star system a Business passenger asks for an errand, a photo
+## stop ([PhotoStopQuest]) or a warp ([WarpQuest]) instead, and now and then for a ride
+## through the rocks ([RockRideQuest]); in the second, only Business passengers call. One
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
@@ -39,6 +40,16 @@ const FIRST_CALL_DELIVERIES := 13
 const EARLY_DELIVERIES := 20
 const EARLY_CALL_MIN_SECONDS := 35.0
 const EARLY_CALL_MAX_SECONDS := 50.0
+## The star system, counted from 0, where only Business passengers call.
+const BUSINESS_ONLY_LEVEL := 1
+## How likely a Business passenger past the first system is to ask for each kind of quest,
+## against the others that suit: a ride through the rocks is the rare one.
+const BUSINESS_WEIGHTS: Dictionary[String, float] = {
+	ErrandQuest.KIND: 1.0,
+	PhotoStopQuest.PHOTO_KIND: 1.0,
+	WarpQuest.KIND: 1.0,
+	RockRideQuest.KIND: 0.2,
+}
 ## Seconds before trying again when nobody on board could call.
 const RETRY_SECONDS := 3.0
 ## Seconds the bus has flown before anyone calls, so a call never lands on leaving.
@@ -71,6 +82,8 @@ const FAILED_ICON := preload("res://shared/icons/circle_x.svg")
 @export var transmission_panel: TransmissionPanel
 ## Tells the quests' goals what happens in the game.
 @export var quests: GoalTracker
+## Whose rocks a ride through them asks for. None, and nobody asks for one.
+@export var asteroid_field: AsteroidField
 ## Stamps how a quest ended over the bus.
 @export var quick_text: BusQuickText
 
@@ -82,7 +95,7 @@ var _ledger: Ledger
 # Prices and times the trips quests ask for.
 var _waiting: WaitingPassengers
 # Which star system the bus works in, counted from 0 in the order they open. Quests pay by
-# it, and past the first, Business passengers ask for an express quest.
+# it, and it sets who calls and what they ask for.
 var _level := 0
 # Made once it is in the tree: a scene stores every member of a node another node exports,
 # and dice made here would differ in every save of it.
@@ -144,8 +157,7 @@ func _process(delta: float) -> void:
 ## Tells it the run's [param planets], which quests send passengers to, the
 ## [param ledger] their rewards go into, and [param waiting], which prices and times the
 ## trips they ask for. [param level] is the star system the bus works in, counted from 0 in
-## the order they open: quests pay by it, and past the first, Business passengers ask for
-## an express quest.
+## the order they open: quests pay by it, and it sets who calls and what they ask for.
 func start(planets: Array[Planet], ledger: Ledger, waiting: WaitingPassengers, level := 0) -> void:
 	_planets = planets
 	_ledger = ledger
@@ -216,6 +228,12 @@ func load_save(
 			quest = FlybyQuest.new()
 		ErrandQuest.KIND:
 			quest = ErrandQuest.new()
+		PhotoStopQuest.PHOTO_KIND:
+			quest = PhotoStopQuest.new()
+		WarpQuest.KIND:
+			quest = WarpQuest.new()
+		RockRideQuest.KIND:
+			quest = RockRideQuest.new()
 	if quest and quest.restore(saved, on_board[index], planets):
 		take_on(quest)
 
@@ -225,6 +243,8 @@ func load_save(
 func take_on(quest: Quest) -> void:
 	_quest = quest
 	quest.passenger.quest_line = quest.goal.get_text()
+	if quest is RockRideQuest:
+		cabin.thrill(quest.passenger)
 	quests.add(quest.goal)
 	quest_added.emit(quest)
 
@@ -249,20 +269,47 @@ func _pick_caller() -> Passenger:
 	return able[_rng.randi_range(0, able.size() - 1)] if not able.is_empty() else null
 
 
-# The quest [param passenger] would offer as things stand, or null when none suits: a
-# Business passenger an express quest where those are asked, anyone else a fly past or an
-# errand, whichever the dice pick first that suits.
+# The quest [param passenger] would offer as things stand, or null when none suits: past the
+# first star system a Business passenger one of theirs, picked by [constant BUSINESS_WEIGHTS],
+# anyone else a fly past or an errand, whichever the dice pick first that suits. In the
+# system where only Business passengers call, anyone else offers none.
 func _plan(passenger: Passenger) -> Quest:
+	var business := passenger.type == _waiting.business
+	if _level == BUSINESS_ONLY_LEVEL and not business:
+		return null
 	var kinds: Array[Quest] = [FlybyQuest.new(), ErrandQuest.new()]
 	if _rng.randf() < 0.5:
 		kinds.reverse()
-	if _level > 0 and passenger.type == _waiting.business:
-		kinds = [ExpressQuest.new()]
+	if _level > 0 and business:
+		kinds = _business_kinds()
 	for quest: Quest in kinds:
 		quest.level = _level
 		if quest.plan(passenger, bus, _planets, _waiting, _rng):
 			return quest
 	return null
+
+
+# The quests a Business passenger past the first system can ask for, in the order the dice
+# try them: each drawn by its weight among those left.
+func _business_kinds() -> Array[Quest]:
+	var rocks := RockRideQuest.new()
+	rocks.field = asteroid_field
+	var left: Array[Quest] = [ErrandQuest.new(), PhotoStopQuest.new(), WarpQuest.new(), rocks]
+	var order: Array[Quest] = []
+	while not left.is_empty():
+		var total := 0.0
+		for quest: Quest in left:
+			total += BUSINESS_WEIGHTS[quest.get_kind()]
+		var roll := _rng.randf() * total
+		var pick := left.size() - 1
+		for i: int in left.size():
+			roll -= BUSINESS_WEIGHTS[left[i].get_kind()]
+			if roll < 0.0:
+				pick = i
+				break
+		order.append(left[pick])
+		left.remove_at(pick)
+	return order
 
 
 func _is_arriving(passenger: Passenger) -> bool:

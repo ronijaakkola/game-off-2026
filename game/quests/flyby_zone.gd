@@ -1,8 +1,9 @@
 class_name FlybyZone
 extends MeshInstance3D
-## The zone round the planet of a fly past quest ([FlybyQuest]) under way: a disc on the
-## orbit plane, 2 units across before it is sized, that follows the planet and reaches as
-## far from its surface as the quest's goal does, so flying into it is the flyby. It fades
+## The zone round the planet of a fly past or photo stop quest ([FlybyQuest],
+## [PhotoStopQuest]) under way: a disc on the orbit plane, 2 units across before it is
+## sized, that follows the planet and reaches as far from its surface as the quest's goal
+## does, so flying into it is the flyby, and stopping in it the photo stop. It fades
 ## in when the quest is taken on and out when it ends. Its ring of dashes turns slowly,
 ## and holds still under Reduce motion. While the pointer is on the quest's row in the goal
 ## panel it pulses brighter, so the player sees where the row sends them; under Reduce
@@ -32,7 +33,7 @@ var _time := 0.0
 
 
 func _process(delta: float) -> void:
-	var quest := quest_giver.get_quest() as FlybyQuest if quest_giver else null
+	var quest := quest_giver.get_quest() if quest_giver else null
 	var goal := quest.goal as FlybyGoal if quest else null
 	if goal:
 		_planet = goal.planet

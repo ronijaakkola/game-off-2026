@@ -43,6 +43,8 @@ const KICK_SHOCK := -25.0
 const QUIET_SEATS := 2
 ## The happiness everyone on board gains when the bus leaves a planet on a quick stop.
 const QUICK_STOP_CHEER := 3.0
+## Seconds someone thrilled by the rocks dances at each knock ([method bump]).
+const THRILL_DANCE_SECONDS := 1.0
 ## How fast the bus's temperature past comfortable takes happiness off the most everyone
 ## can reach, a second, how much it takes at most, and how fast that wears off once it is
 ## comfortable again. Small: a clean ride on a bare bus keeps its four stars.
@@ -121,6 +123,8 @@ var _bus_stats: BusStats
 var _served_by: Dictionary[Passenger, Amenity] = {}
 # The passengers whose serve button the player holds.
 var _hands: Dictionary[Passenger, bool] = {}
+# Who a rock's knock lifts rather than shakes, for the rest of their ride ([method thrill]).
+var _thrilled: Array[Passenger] = []
 
 
 func _process(delta: float) -> void:
@@ -258,6 +262,24 @@ func shock(amount: float) -> void:
 		passenger.shock(amount)
 
 
+## A rock knocks the bus: everyone on board takes a shock of [param amount], but for
+## whoever [method thrill] marked, whom it lifts by as much and sets dancing for a moment.
+func bump(amount: float) -> void:
+	for passenger: Passenger in _passengers:
+		if passenger not in _thrilled:
+			passenger.shock(amount)
+			continue
+		passenger.happiness = minf(passenger.happiness - amount, Passenger.MAX_HAPPINESS)
+		passenger.dancing = maxf(passenger.dancing, THRILL_DANCE_SECONDS)
+
+
+## [param passenger] loves a rough ride: for the rest of theirs, a rock's knock lifts them
+## ([method bump]).
+func thrill(passenger: Passenger) -> void:
+	if passenger not in _thrilled:
+		_thrilled.append(passenger)
+
+
 ## Everyone on board admires a quick stop ([method Passenger.admire]).
 func cheer_quick_stop() -> void:
 	for passenger: Passenger in _passengers:
@@ -391,6 +413,7 @@ func _users(amenity: Amenity) -> int:
 func _forget(passenger: Passenger) -> void:
 	_served_by.erase(passenger)
 	_hands.erase(passenger)
+	_thrilled.erase(passenger)
 
 
 func _take_seat(passenger: Passenger) -> void:
