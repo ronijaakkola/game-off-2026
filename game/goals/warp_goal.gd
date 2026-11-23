@@ -14,7 +14,7 @@ func _init(who: Passenger) -> void:
 
 
 func get_text() -> String:
-	return "Warp %s through a gate" % passenger.name
+	return "Take %s through the warp drive" % passenger.name
 
 
 func _on_delivered(who: Passenger) -> void:

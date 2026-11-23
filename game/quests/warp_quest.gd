@@ -11,9 +11,9 @@ const KIND := "warp"
 const REWARD_CREDITS: Array[int] = [140, 320, 640]
 const REWARD_RESEARCH: Array[int] = [2, 4, 7]
 const LINES: Array[String] = [
-	"I've flown all over and never once been through a warp gate. Could we take one?",
-	"Everyone at the office has warped but me. Take us through a gate before my stop?",
-	"I've always wondered what a warp gate feels like. Can we go through one?",
+	"I've flown all over and never once taken a warp drive. Could we try it?",
+	"Everyone at the office has warped but me. Take the warp drive before my stop?",
+	"I've always wondered what a warp drive feels like. Can we take one?",
 ]
 
 ## Seconds the detour adds to their ride.
@@ -61,7 +61,7 @@ func get_kind() -> String:
 
 
 func get_ask() -> String:
-	return "Warp through a gate"
+	return "Take the warp drive"
 
 
 func get_transmission() -> Transmission:

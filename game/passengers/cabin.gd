@@ -263,12 +263,15 @@ func shock(amount: float) -> void:
 
 
 ## A rock knocks the bus: everyone on board takes a shock of [param amount], but for
-## whoever [method thrill] marked, whom it lifts by as much and sets dancing for a moment.
+## whoever [method thrill] marked, whom it lifts by as much, at once and in what they can
+## reach for the rest of their ride, as a quest done does, and sets dancing for a moment.
+## A shock wears off as happiness climbs back; the lift stays, so it is felt.
 func bump(amount: float) -> void:
 	for passenger: Passenger in _passengers:
 		if passenger not in _thrilled:
 			passenger.shock(amount)
 			continue
+		passenger.quest_bonus -= amount
 		passenger.happiness = minf(passenger.happiness - amount, Passenger.MAX_HAPPINESS)
 		passenger.dancing = maxf(passenger.dancing, THRILL_DANCE_SECONDS)
 

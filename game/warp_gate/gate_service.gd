@@ -7,7 +7,7 @@ extends Node
 ## coming out of the other gate and flying the short way in to dock at its planet. Its
 ## course is gone; whoever is on board rides along.
 
-## The bus set off through a gate, with whoever is on board.
+## The bus came out of the far gate, with whoever is on board.
 signal warped
 
 const TEXT := "Warp to %s (%d%% fuel)"
@@ -22,6 +22,7 @@ const TEXT := "Warp to %s (%d%% fuel)"
 
 func _ready() -> void:
 	dock_panel.teleport_pressed.connect(_on_teleport_pressed)
+	system_jump.came_through.connect(_on_came_through)
 
 
 func _process(_delta: float) -> void:
@@ -63,4 +64,7 @@ func _on_teleport_pressed() -> void:
 	var tank := bus.get_fuel_tank()
 	tank.fuel -= gate.fuel_share * tank.capacity
 	system_jump.warp(gate, gate.partner)
+
+
+func _on_came_through(_gate: WarpGate) -> void:
 	warped.emit()

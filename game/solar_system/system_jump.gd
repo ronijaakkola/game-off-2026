@@ -17,12 +17,15 @@ extends Node
 ## the bus turns to face the gate beside it, winds up and shifts out toward it, and after
 ## [constant WARP_GAP_SECONDS] shifts in out of the far gate, heading for its planet, and
 ## flies in to dock there. The camera stays where the player has it, with no iris, and the
-## HUD stays up but takes no clicks until the bus is out. Neither signal is sent.
+## HUD stays up but takes no clicks until the bus is out. It sends only
+## [signal came_through], as the bus comes out.
 
 ## The screen is black: the bus is about to come out at [param system].
 signal crossed(system: StarSystem)
 ## The bus has come out of the jump at [param system] and is flying in to where it stops.
 signal finished(system: StarSystem)
+## The bus has come out of [param gate] on a warp ([method warp]) and is flying in to dock.
+signal came_through(gate: WarpGate)
 
 enum Phase { NONE, CLOSING_IN, TURNING, WINDING_UP, LEAVING, ARRIVING }
 
@@ -234,6 +237,7 @@ func _arrive() -> void:
 	bus.fly_in(_destination(), bus.max_speed * ARRIVE_SPEED)
 	if _exit:
 		hud.uncover()
+		came_through.emit(_exit)
 		return
 	rig.release_focus()
 	rig.locked = false
