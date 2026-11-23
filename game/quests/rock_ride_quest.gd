@@ -3,7 +3,7 @@ extends Quest
 ## A quest, a rock ride: the passenger wants a thrill, so the bus flies among an asteroid
 ## field's rocks for [constant RockRideGoal.SECONDS] with them on board ([RockRideGoal]).
 ## The rocks' knocks lift them rather than shake them for the rest of their ride
-## ([method Cabin.thrill]), while everyone else takes them as ever. Only where
+## ([method Cabin.bump]), while everyone else takes them as ever. Only where
 ## [member field] shows. Accepting it gives them the time it takes to reach the rocks, ride
 ## them and come back.
 

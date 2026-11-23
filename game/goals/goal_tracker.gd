@@ -70,12 +70,15 @@ func _process(delta: float) -> void:
 	var in_flight := not bus.is_at_planet()
 	var held := bus.state == FrameshiftBus.State.HOLDING
 	var in_rocks := asteroid_field != null and asteroid_field.is_bus_in_rocks()
+	var hot := bus.temperature.is_uncomfortable()
 	for goal: Goal in _goals.duplicate():
 		goal.bus_moved(bus.global_position, on_board, in_flight)
 		if held:
 			goal.bus_held(bus.global_position, on_board)
 		if in_rocks:
 			goal.bus_in_rocks(delta, on_board)
+		if hot:
+			goal.bus_hot(on_board)
 
 
 ## Starts tracking [param goal], from how things stand now.

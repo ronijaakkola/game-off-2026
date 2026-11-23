@@ -6,7 +6,8 @@ extends Node
 ## ask to fly past a planet ([FlybyQuest]) or to stop at one ([ErrandQuest]), as likely one
 ## as the other. Past the first star system a Business passenger asks for an errand, a photo
 ## stop ([PhotoStopQuest]) or a warp ([WarpQuest]) instead, and now and then for a ride
-## through the rocks ([RockRideQuest]); in the second, only Business passengers call. One
+## through the rocks ([RockRideQuest]) or a sauna ([SaunaQuest]); in the second, only
+## Business passengers call. One
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
@@ -43,12 +44,13 @@ const EARLY_CALL_MAX_SECONDS := 50.0
 ## The star system, counted from 0, where only Business passengers call.
 const BUSINESS_ONLY_LEVEL := 1
 ## How likely a Business passenger past the first system is to ask for each kind of quest,
-## against the others that suit: a ride through the rocks is the rare one.
+## against the others that suit: a ride through the rocks and a sauna are the rare ones.
 const BUSINESS_WEIGHTS: Dictionary[String, float] = {
 	ErrandQuest.KIND: 1.0,
 	PhotoStopQuest.PHOTO_KIND: 1.0,
 	WarpQuest.KIND: 1.0,
 	RockRideQuest.KIND: 0.2,
+	SaunaQuest.KIND: 0.2,
 }
 ## Seconds before trying again when nobody on board could call.
 const RETRY_SECONDS := 3.0
@@ -234,6 +236,8 @@ func load_save(
 			quest = WarpQuest.new()
 		RockRideQuest.KIND:
 			quest = RockRideQuest.new()
+		SaunaQuest.KIND:
+			quest = SaunaQuest.new()
 	if quest and quest.restore(saved, on_board[index], planets):
 		take_on(quest)
 
@@ -244,7 +248,9 @@ func take_on(quest: Quest) -> void:
 	_quest = quest
 	quest.passenger.quest_line = quest.goal.get_text()
 	if quest is RockRideQuest:
-		cabin.thrill(quest.passenger)
+		cabin.fondness.add(quest.passenger, Fondness.Kind.ROCKS)
+	elif quest is SaunaQuest:
+		cabin.fondness.add(quest.passenger, Fondness.Kind.HEAT)
 	quests.add(quest.goal)
 	quest_added.emit(quest)
 
@@ -294,7 +300,9 @@ func _plan(passenger: Passenger) -> Quest:
 func _business_kinds() -> Array[Quest]:
 	var rocks := RockRideQuest.new()
 	rocks.field = asteroid_field
-	var left: Array[Quest] = [ErrandQuest.new(), PhotoStopQuest.new(), WarpQuest.new(), rocks]
+	var left: Array[Quest] = [
+		ErrandQuest.new(), PhotoStopQuest.new(), WarpQuest.new(), rocks, SaunaQuest.new()
+	]
 	var order: Array[Quest] = []
 	while not left.is_empty():
 		var total := 0.0
