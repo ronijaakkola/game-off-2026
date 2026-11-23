@@ -18,46 +18,50 @@ func after() -> void:
 		Settings.set(key, _saved[key])
 
 
-func test_delete_save_is_offered_only_where_asked_and_with_a_save() -> void:
+func test_reset_campaign_is_offered_only_where_asked_and_off_with_nothing_to_reset() -> void:
 	SaveGame.write({"credits": 1})
 	var runner := scene_runner(SCENE)
-	var button := runner.find_child("DeleteSaveButton") as Button
+	var card := runner.find_child("CampaignCard") as Control
+	var button := runner.find_child("ResetCampaignButton") as Button
 	runner.invoke("open", _covered(runner))
-	assert_bool(button.visible).override_failure_message("Offered by default").is_false()
+	assert_bool(card.visible).override_failure_message("Offered by default").is_false()
 	runner.scene().hide()
 
-	(runner.scene() as SettingsMenu).offers_save_deletion = true
+	(runner.scene() as SettingsMenu).offers_campaign_reset = true
 	runner.invoke("open", _covered(runner))
-	assert_bool(button.visible).is_true()
+	assert_bool(card.visible).is_true()
+	assert_bool(button.disabled).is_false()
 	runner.scene().hide()
 
 	SaveGame.delete()
 	runner.invoke("open", _covered(runner))
-	assert_bool(button.visible).override_failure_message("Offered with no save").is_false()
+	assert_bool(button.disabled).override_failure_message("On with nothing to reset").is_true()
 
 
-func test_holding_delete_save_deletes_it_and_a_click_does_not() -> void:
+func test_holding_reset_campaign_resets_it_and_a_click_does_not() -> void:
 	SaveGame.write({"credits": 1})
+	SaveGame.write_campaign({"done": 1})
 	SaveGame.mark_tutorial_done()
 	SaveGame.mark_hint_seen(&"heat_zone")
 	var runner := scene_runner(SCENE)
-	(runner.scene() as SettingsMenu).offers_save_deletion = true
+	(runner.scene() as SettingsMenu).offers_campaign_reset = true
 	runner.invoke("open", _covered(runner))
-	var button := runner.find_child("DeleteSaveButton") as HoldButton
-	var deleted := [false]
-	runner.scene().connect(&"save_deleted", func() -> void: deleted[0] = true)
+	var button := runner.find_child("ResetCampaignButton") as HoldButton
+	var reset := [false]
+	runner.scene().connect(&"campaign_reset", func() -> void: reset[0] = true)
 
 	button.button_down.emit()
 	button.button_up.emit()
 	await runner.simulate_frames(20, 100)
-	assert_bool(SaveGame.has_save()).override_failure_message("A click deleted it").is_true()
+	assert_bool(SaveGame.has_save()).override_failure_message("A click reset it").is_true()
 
 	button.button_down.emit()
-	await runner.simulate_frames(20, 100)
+	await runner.simulate_frames(25, 100)
 	assert_bool(SaveGame.has_save()).is_false()
+	assert_bool(SaveGame.read_campaign().is_empty()).is_true()
 	assert_bool(SaveGame.is_tutorial_done()).override_failure_message("Tutorial kept").is_false()
 	assert_bool(SaveGame.has_seen_hint(&"heat_zone")).is_false()
-	assert_bool(deleted[0]).is_true()
+	assert_bool(reset[0]).is_true()
 	assert_bool(button.disabled).is_true()
 	assert_object(button.get_viewport().gui_get_focus_owner()).is_same(
 		runner.find_child("BackButton")
@@ -89,12 +93,14 @@ func test_moving_a_slider_is_heard_at_once() -> void:
 	assert_float(Audio.get_volume(Audio.Bus.SFX)).is_equal_approx(0.3, 0.001)
 
 
-# Every setting, so a control wired to the wrong setting, or a setting with no control,
-# fails here.
+# Every setting but the debug panel's, so a control wired to the wrong setting, or a
+# setting with no control, fails here.
 func test_each_control_changes_only_its_own_setting() -> void:
 	var runner := scene_runner(SCENE)
 	runner.invoke("open", _covered(runner))
 	for setting: String in Settings.get_names():
+		if setting in SettingsMenu.DEBUG_SETTINGS:
+			continue
 		var before := _current_settings()
 		var control := runner.find_child(setting.to_pascal_case()) as Control
 		assert_object(control).override_failure_message("No control for %s" % setting).is_not_null()

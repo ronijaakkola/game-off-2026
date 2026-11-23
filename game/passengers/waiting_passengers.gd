@@ -26,7 +26,8 @@ const MAX_SAME_DESTINATION := 2
 ## The ordinary kinds of passenger that turn up, picked at random.
 @export var types: Array[PassengerType] = []
 ## The harder, better-paying kind, which turns up more often the higher the player's recent
-## rating. Without one, everyone is ordinary.
+## rating, or by the star system's own share where it has one. Without one, everyone is
+## ordinary.
 @export var business: PassengerType
 ## Which star system the bus works in: no Business passenger turns up in the first. Without
 ## one, they turn up anywhere.
@@ -62,8 +63,8 @@ const MAX_SAME_DESTINATION := 2
 ## The player's ratings, whose recent mean sets how many are Business. Without one, the
 ## lowest band counts.
 var ledger: Ledger
-## Whether the first Business passenger has turned up. Until then, the next passenger
-## decided past the first star system is Business for certain.
+## Whether a line has been decided at the bus's stop past the first star system. Until
+## then, the first passenger decided in every line there is Business.
 var first_business_dealt := false
 
 var _rng := RandomNumberGenerator.new()
@@ -245,6 +246,13 @@ func get_lounge_bonus(seconds: float) -> float:
 	return minf(floorf(seconds / lounge_seconds), lounge_bonus_max)
 
 
+## Credits a unit flown pays before the type's multiplier: [member fare_per_unit] times the
+## fare multiplier of the system the bus works in.
+func get_fare_per_unit() -> float:
+	var system := star_map.get_current() if star_map else null
+	return fare_per_unit * (system.fare_multiplier if system else 1.0)
+
+
 ## A new passenger at [param origin], decided as one joining its line now would be. Null
 ## when there is no other planet or no type. They are not put in the line.
 func create(origin: Planet) -> Passenger:
@@ -256,7 +264,11 @@ func create(origin: Planet) -> Passenger:
 		destination.get_body_global_position()
 	)
 	var passenger := Passenger.new(
-		_pick_type(line), destination, get_trip_seconds(distance), distance * fare_per_unit, _rng
+		_pick_type(origin, line),
+		destination,
+		get_trip_seconds(distance),
+		distance * get_fare_per_unit(),
+		_rng
 	)
 	passenger.origin = origin
 	passenger.race = _deal_race()
@@ -264,11 +276,14 @@ func create(origin: Planet) -> Passenger:
 	return passenger
 
 
-# A roll among the other planets: with Timetables likelier where someone in [param line]
-# is going, and never where MAX_SAME_DESTINATION of the line already go, unless that
-# leaves nowhere.
+# A roll among the other planets, but never the one [param origin]'s warp gate leads to:
+# with Timetables likelier where someone in [param line] is going, and never where
+# MAX_SAME_DESTINATION of the line already go, unless that leaves nowhere.
 func _pick_destination(origin: Planet, line: Array) -> Planet:
-	var others := _planets.filter(func(planet: Planet) -> bool: return planet != origin)
+	var twin := WarpGate.twin_of(origin)
+	var others := _planets.filter(
+		func(planet: Planet) -> bool: return planet != origin and planet != twin
+	)
 	if others.is_empty():
 		return null
 	var leaning := timetables_in_line_weight if _has(BusTraits.Type.TIMETABLES) else 1.0
@@ -288,22 +303,40 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 	return others[_rng.rand_weighted(weights)]
 
 
-# Business by the share of the band the recent rating is in, while [param line] has room
-# for one more of them and still a place for someone ordinary, and none in the first star
-# system. The first one decided past it is Business for certain.
-func _pick_type(line: Array) -> PassengerType:
+# Business by the star system's share, or else by the share of the band the recent rating
+# is in, while [param line] at [param origin] has room for one more of them and still a
+# place for someone ordinary, and none in the first star system. Past it, until a line is
+# decided at the planet the bus is docked at or heading for, the first decided in every line
+# is Business, so the player meets one at their first stop, however many lines they look at
+# before it.
+func _pick_type(origin: Planet, line: Array) -> PassengerType:
 	var ordinary := types[_rng.randi_range(0, types.size() - 1)]
 	if not business or _in_first_system():
 		return ordinary
-	if not first_business_dealt:
-		first_business_dealt = true
-		return business
-	var band := RatingBand.of(ledger.get_recent_rating() if ledger else 0.0)
-	var limit := mini(RatingBand.BUSINESS_PER_LINE[band], max_per_planet - 1)
 	var count := line.filter(func(p: Passenger) -> bool: return p.type == business).size()
-	if count < limit and _rng.randf() < RatingBand.BUSINESS_SHARE[band]:
+	if not first_business_dealt:
+		first_business_dealt = _is_bus_stop(origin)
+		if count == 0:
+			return business
+	var band := RatingBand.of(ledger.get_recent_rating() if ledger else 0.0)
+	var share := RatingBand.BUSINESS_SHARE[band]
+	var limit := mini(RatingBand.BUSINESS_PER_LINE[band], max_per_planet - 1)
+	var system := star_map.get_current() if star_map else null
+	if system and system.business_share >= 0.0 and not star_map.is_joined():
+		share = system.business_share
+		limit = max_per_planet - 1
+	if count < limit and _rng.randf() < share:
 		return business
 	return ordinary
+
+
+# Whether the bus is docked at [param planet] or has it next on its route. Without a bus,
+# every planet is.
+func _is_bus_stop(planet: Planet) -> bool:
+	if not bus:
+		return true
+	var docked := bus.is_at_planet() and planet == bus.get_docked_planet()
+	return docked or planet == bus.get_next_planet()
 
 
 # Whether the bus works in the first star system. Once the systems are joined, it works

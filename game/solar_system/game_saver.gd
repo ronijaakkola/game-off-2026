@@ -47,6 +47,10 @@ var holding := false
 
 var _recording := false
 var _continued := false
+var _tutorial := false
+# The star system the run last saved in, so the first save in another is where its level
+# began ([Campaign]).
+var _saved_system := ""
 var _saved: Dictionary = {}
 var _ledger: Ledger
 var _planets: Array[Planet] = []
@@ -67,8 +71,11 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	_planets = planets
 	_ledger = ledger
 	_recording = SaveGame.has_started_run()
+	_tutorial = SaveGame.wants_tutorial()
 	_saved = SaveGame.claim_run()
 	_continued = not _saved.is_empty()
+	var saved_map: Dictionary = _saved.get("star_map", {})
+	_saved_system = str(saved_map.get("system", ""))
 	if not _continued:
 		if _recording and new_run_planet:
 			bus.start_planet = new_run_planet
@@ -90,10 +97,10 @@ func get_saved_star_map() -> Dictionary:
 	return _saved.get("star_map", {})
 
 
-## Whether this run starts with the tutorial: a new run, until the player has been through
-## it once.
+## Whether this run starts with the tutorial: a new run the main menu started with it, as
+## it does until the player has been through it once.
 func wants_tutorial() -> bool:
-	return is_new_run() and not SaveGame.is_tutorial_done()
+	return is_new_run() and _tutorial
 
 
 ## Keeps that the player has been through the tutorial, for a run the main menu started.
@@ -179,6 +186,13 @@ func _write() -> void:
 		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
 	}
 	SaveGame.write(run)
+	if star_map:
+		var system := String(star_map.get_current().name)
+		# A save from before saves kept their system says nothing of where the run was, so
+		# its first save is no entry.
+		var entered := not _saved_system.is_empty() and system != _saved_system
+		Campaign.record(run, system, star_map.count_done(), entered)
+		_saved_system = system
 
 
 # Upgrades first, so the seats and the tank are the saved bus's before anyone boards or

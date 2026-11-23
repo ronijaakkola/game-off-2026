@@ -129,6 +129,7 @@ script = ExtResource("1_system")
 display_name = "Draco"
 home = NodePath("Hollow")
 bounds_radius = 16.0
+arrival_call = "Welcome to Draco. Your last promotion was noted. Do not let it go to your head."
 deliveries = 50
 rating = 4.0
 zone_radius = 0.0

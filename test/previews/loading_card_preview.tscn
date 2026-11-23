@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://22nf8fnd5auj"]
+
+[ext_resource type="Script" uid="uid://rwcrxu3qr5ap" path="res://test/previews/loading_card_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" uid="uid://c5chv3cesqafc" path="res://core/scene_flow/loading_card.tscn" id="2_card"]
+
+[node name="LoadingCardPreview" type="Node" unique_id=473474984]
+script = ExtResource("1_preview")
+
+[node name="LoadingCard" parent="." unique_id=1168986452 instance=ExtResource("2_card")]

@@ -39,18 +39,18 @@ func _process(delta: float) -> void:
 		_reach = goal.reach
 	_shown = move_toward(_shown, 1.0 if goal else 0.0, delta / FADE_SECONDS)
 	var material := material_override as ShaderMaterial
-	material.set_shader_parameter(&"opacity", _shown)
+	ShaderValues.show(material, &"opacity", _shown)
 	if _shown <= 0.0 or not _planet:
 		return
 	if not Settings.reduce_motion:
 		_turn = fmod(_turn + TURN_SPEED * delta, TAU)
-	material.set_shader_parameter(&"turn", _turn)
+	ShaderValues.show(material, &"turn", _turn)
 	var pointed := quest != null and quest_giver.pointed == quest
 	_flash = move_toward(_flash, 1.0 if pointed else 0.0, FLASH_EASE * delta)
 	_time = _time + delta if _flash > 0.0 else 0.0
 	var pulse := 0.6
 	if not Settings.reduce_motion:
 		pulse = 0.6 + 0.4 * cos(TAU * PULSE_RATE * _time)
-	material.set_shader_parameter(&"flash", _flash * pulse)
+	ShaderValues.show(material, &"flash", _flash * pulse)
 	global_position = _planet.get_body_global_position()
 	scale = Vector3.ONE * (_planet.get_body_radius() + _reach)

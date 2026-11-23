@@ -156,6 +156,9 @@ What a ride running past the time a passenger expects, or a stop past their type
 What the bus's comfort upgrades give everyone on board: a bonus on the happiness they settle at, and how long and how slowly their ride's clock runs while they sleep or watch a show. `Comfort` in code, read off the bus's traits.
 _Avoid_: luxury, amenities (the things that serve needs)
 
+**Bus quality**:
+What every upgrade the bus has adds to the happiness everyone on board can reach, up to a most, whatever the upgrade does: a better bus is a nicer ride. Part of **comfort**'s bonus. `Cabin.quality_per_upgrade` and the bus's `UPGRADES` stat in code.
+
 **Rating**:
 The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **recent rating** is the mean of the last 10, shown in the **resource bar**; its **band** sets how many of the passengers who turn up are Business (`RatingBand`). The **average rating** is the mean of every rating so far. `Passenger.get_rating()`, and `Ledger.rate()`, `Ledger.get_recent_rating()` in code.
 _Avoid_: review, score
@@ -210,11 +213,23 @@ What the player earns by meeting every goal a star system gives at once, with Th
 
 **Star system**:
 A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
-_Avoid_: level, galaxy, sector, stage (a band of research rows)
+_Avoid_: level (the stage of the run played in one), galaxy, sector, stage (a band of research rows)
+
+**Level**:
+The stage of the run played in one star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in Draco. It is **done** once a promotion there opens the next system, and the next level is **open** once the one before is done. `Level` in code, a resource in `shared/level_art/` with its name and picture.
+_Avoid_: mission, stage (a band of research rows), chapter
+
+**Campaign**:
+The levels in order and how far the player has got through them, which outlives the run: replaying a level starts the run over from where that level began and keeps what is done. Reset campaign forgets it with the save. `Campaign` in code; the campaign screen shows it.
+_Avoid_: progress (the goals' own), level select
 
 **Jump**:
 The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
 _Avoid_: warp, hyperspace, travel (a trip between planets)
+
+**Warp gate**:
+A hexagonal ring floating beside a planet that the bus, docked there, spends half a tank of fuel to go through and come out of its twin's gate beside another planet: Hither's and Yon's in Lyra. Called a **warp drive** in the game's text, and the dock panel's button reads "Warp to <planet>". `WarpGate` in code, sold by the `GateService`.
+_Avoid_: portal, wormhole
 
 **Upgrade**:
 One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.

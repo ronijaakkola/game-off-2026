@@ -1,0 +1,370 @@
+[gd_scene format=3 uid="uid://bx1585cifjvbb"]
+
+[ext_resource type="Script" uid="uid://b8f86m46gh4iw" path="res://ui/controls/controls_screen.gd" id="1_screen"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="Texture2D" uid="uid://c1ob2wrywiacn" path="res://ui/icons/arrow_left.svg" id="4_back"]
+[ext_resource type="Texture2D" uid="uid://bv3he6oofkmxy" path="res://shared/icons/route.svg" id="5_route"]
+[ext_resource type="Texture2D" uid="uid://dvygx4s7lvvm5" path="res://ui/icons/video.svg" id="6_camera"]
+[ext_resource type="Texture2D" uid="uid://cgca3qehvoaca" path="res://ui/controls/glyphs/mouse_right.svg" id="7_right"]
+[ext_resource type="Texture2D" uid="uid://bcvpbt0pa8ca2" path="res://ui/controls/glyphs/key_shift.svg" id="8_shift"]
+[ext_resource type="Texture2D" uid="uid://ba132pjbbshbk" path="res://ui/controls/glyphs/key_q.svg" id="9_q"]
+[ext_resource type="Texture2D" uid="uid://d3vmws6m1m8id" path="res://ui/controls/glyphs/key_space.svg" id="10_space"]
+[ext_resource type="Texture2D" uid="uid://cesmbbki8fyrk" path="res://ui/controls/glyphs/keys_wasd.svg" id="11_wasd"]
+[ext_resource type="Texture2D" uid="uid://mq6m0j25q81s" path="res://ui/controls/glyphs/keys_arrows.svg" id="12_arrows"]
+[ext_resource type="Texture2D" uid="uid://b8qbowwpd3q7c" path="res://ui/controls/glyphs/mouse_drag.svg" id="13_drag"]
+[ext_resource type="Texture2D" uid="uid://dlsvl3saf6sb2" path="res://ui/controls/glyphs/mouse_scroll.svg" id="14_scroll"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile"]
+content_margin_left = 4.0
+content_margin_top = 6.0
+content_margin_right = 4.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 1, 1, 0.0706)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ControlsScreen" type="Control" unique_id=1444903754]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_screen")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=420652669]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 56
+
+[node name="Column" type="VBoxContainer" parent="Margin" unique_id=240067883]
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Header" type="HBoxContainer" parent="Margin/Column" unique_id=722581033]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="Margin/Column/Header" unique_id=76989870]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"SquareButton"
+icon = ExtResource("4_back")
+icon_alignment = 1
+
+[node name="Title" type="Label" parent="Margin/Column/Header" unique_id=911226707]
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+theme_override_font_sizes/font_size = 44
+text = "Controls"
+
+[node name="Cards" type="VBoxContainer" parent="Margin/Column" unique_id=1563632242]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="BusCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=1049477311]
+material = ExtResource("3_glass")
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"SheetPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/BusCard" unique_id=1700272938]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/BusCard/Rows" unique_id=624460189]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/Cards/BusCard/Rows/Heading" unique_id=425946689]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("5_route")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/BusCard/Rows/Heading" unique_id=167758685]
+layout_mode = 2
+theme_type_variation = &"SectionHeadingLabel"
+text = "Bus and route"
+
+[node name="Lines" type="VBoxContainer" parent="Margin/Column/Cards/BusCard/Rows" unique_id=1371247458]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="SetCourse" type="PanelContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines" unique_id=1671461882]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Row" type="HBoxContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines/SetCourse" unique_id=670137283]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 56
+
+[node name="Glyphs" type="HBoxContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines/SetCourse/Row" unique_id=1697339202]
+custom_minimum_size = Vector2(136, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="RightClick" type="TextureRect" parent="Margin/Column/Cards/BusCard/Rows/Lines/SetCourse/Row/Glyphs" unique_id=1929050800]
+custom_minimum_size = Vector2(20, 27)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("7_right")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/BusCard/Rows/Lines/SetCourse/Row" unique_id=89277436]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+theme_override_font_sizes/font_size = 15
+text = "Set a course to a planet"
+
+[node name="AddStop" type="PanelContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines" unique_id=1855790308]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Row" type="HBoxContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines/AddStop" unique_id=556199977]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 56
+
+[node name="Glyphs" type="HBoxContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines/AddStop/Row" unique_id=322473177]
+custom_minimum_size = Vector2(136, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Shift" type="TextureRect" parent="Margin/Column/Cards/BusCard/Rows/Lines/AddStop/Row/Glyphs" unique_id=331383723]
+custom_minimum_size = Vector2(47, 27)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("8_shift")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Or" type="Label" parent="Margin/Column/Cards/BusCard/Rows/Lines/AddStop/Row/Glyphs" unique_id=341007816]
+layout_mode = 2
+theme_type_variation = &"DescriptionLabel"
+theme_override_font_sizes/font_size = 12
+text = "or"
+
+[node name="Q" type="TextureRect" parent="Margin/Column/Cards/BusCard/Rows/Lines/AddStop/Row/Glyphs" unique_id=1256860980]
+custom_minimum_size = Vector2(24, 27)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("9_q")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Plus" type="Label" parent="Margin/Column/Cards/BusCard/Rows/Lines/AddStop/Row/Glyphs" unique_id=243157440]
+layout_mode = 2
+theme_type_variation = &"DescriptionLabel"
+theme_override_font_sizes/font_size = 12
+text = "+"
+
+[node name="RightClick" type="TextureRect" parent="Margin/Column/Cards/BusCard/Rows/Lines/AddStop/Row/Glyphs" unique_id=225957113]
+custom_minimum_size = Vector2(20, 27)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("7_right")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/BusCard/Rows/Lines/AddStop/Row" unique_id=424263121]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+theme_override_font_sizes/font_size = 15
+text = "Add a stop to the route"
+
+[node name="Charge" type="PanelContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines" unique_id=2060144701]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Row" type="HBoxContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines/Charge" unique_id=112673969]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 56
+
+[node name="Glyphs" type="HBoxContainer" parent="Margin/Column/Cards/BusCard/Rows/Lines/Charge/Row" unique_id=1353893184]
+custom_minimum_size = Vector2(136, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Space" type="TextureRect" parent="Margin/Column/Cards/BusCard/Rows/Lines/Charge/Row/Glyphs" unique_id=727240241]
+custom_minimum_size = Vector2(57, 27)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("10_space")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/BusCard/Rows/Lines/Charge/Row" unique_id=1292197349]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+theme_override_font_sizes/font_size = 15
+text = "Hold to charge the drive"
+
+[node name="CameraCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=1073159654]
+material = ExtResource("3_glass")
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"SheetPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/CameraCard" unique_id=1169189308]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/CameraCard/Rows" unique_id=369369885]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/Cards/CameraCard/Rows/Heading" unique_id=2126567632]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_camera")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/CameraCard/Rows/Heading" unique_id=2087659203]
+layout_mode = 2
+theme_type_variation = &"SectionHeadingLabel"
+text = "Camera"
+
+[node name="Tiles" type="HBoxContainer" parent="Margin/Column/Cards/CameraCard/Rows" unique_id=1394789436]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Pan" type="PanelContainer" parent="Margin/Column/Cards/CameraCard/Rows/Tiles" unique_id=1063819959]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tile")
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Pan" unique_id=1609549554]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Glyphs" type="HBoxContainer" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Pan/Rows" unique_id=591132498]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Wasd" type="TextureRect" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Pan/Rows/Glyphs" unique_id=526153332]
+custom_minimum_size = Vector2(55, 42)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("11_wasd")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Or" type="Label" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Pan/Rows/Glyphs" unique_id=2121819401]
+layout_mode = 2
+theme_type_variation = &"DescriptionLabel"
+theme_override_font_sizes/font_size = 12
+text = "or"
+
+[node name="Arrows" type="TextureRect" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Pan/Rows/Glyphs" unique_id=443477289]
+custom_minimum_size = Vector2(55, 42)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("12_arrows")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Or2" type="Label" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Pan/Rows/Glyphs" unique_id=1716608312]
+layout_mode = 2
+theme_type_variation = &"DescriptionLabel"
+theme_override_font_sizes/font_size = 12
+text = "or"
+
+[node name="Drag" type="TextureRect" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Pan/Rows/Glyphs" unique_id=1825601251]
+custom_minimum_size = Vector2(102, 27)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("13_drag")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Pan/Rows" unique_id=1760321077]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Pan the camera"
+horizontal_alignment = 1
+
+[node name="Zoom" type="PanelContainer" parent="Margin/Column/Cards/CameraCard/Rows/Tiles" unique_id=1693764880]
+custom_minimum_size = Vector2(116, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tile")
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Zoom" unique_id=812652409]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Scroll" type="TextureRect" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Zoom/Rows" unique_id=1053227899]
+custom_minimum_size = Vector2(38, 42)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("14_scroll")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/CameraCard/Rows/Tiles/Zoom/Rows" unique_id=1570119461]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Scroll to zoom"
+horizontal_alignment = 1

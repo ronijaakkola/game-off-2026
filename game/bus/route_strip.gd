@@ -64,7 +64,7 @@ const EXIT_SECONDS := 0.15
 const ENTER_SCALE := 0.5
 const ENTER_SLIDE := 8.0
 
-const BUS_TEXTURE := preload("res://game/bus/icons/bus.svg")
+const BUS_TEXTURE := preload("res://shared/icons/bus.svg")
 const POINT_TEXTURE := preload("res://game/bus/icons/diamond.svg")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 ## Where the X's middle sits from the icon's top right corner.

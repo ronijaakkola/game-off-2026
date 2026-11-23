@@ -5,8 +5,11 @@ extends Node
 ## has delivered [member research_deliveries] passengers and the bus is docked at a planet
 ## with a lab, where it holds the bus ([member FrameshiftBus.grounded]) from then until
 ## the player closes it, so the [ResearchGuide] starts at a lab. In each system after it, the
-## mechanic calls as the bus works there, and the next stage opens in every tree. Once the
-## systems are joined, nobody calls: every stage is open.
+## mechanic calls once the player has delivered [member stage_deliveries] passengers there,
+## wherever the bus is, and the next stage opens in every tree. Research is open there from
+## the start: a player promoted before the first call has it open, on its first stage, with
+## no call, as the bus works past the first system. Once the systems are joined,
+## nobody calls: every stage is open.
 ## The call notice shows the mechanic as an unknown caller until the run has had a call
 ## from them, so on their first; its Answer opens the mechanic's transmission; left
 ## unanswered for
@@ -40,11 +43,14 @@ const RESEARCH_TEXT := (
 const RESEARCH_ANSWERS: Array[String] = ["Thanks Rusty!", "Let's do it!"]
 ## What the mechanic says as each stage after the first opens, from the second.
 const STAGE_TEXTS: Array[String] = [
-	"New system, new parts. Every tree in the lab has a new row of upgrades for you.",
+	(
+		"Good news, kid! A new shipment of parts just came in. Find a research lab, and it "
+		+ "will have a lot of new toys for you!"
+	),
 	"Last shipment, and the best I've got. The lab has the final upgrades in every tree.",
 ]
 ## The two answers to a call that opens a stage, which mean the same.
-const ANSWERS: Array[String] = ["Thanks", "On my way"]
+const ANSWERS: Array[String] = ["Thanks, Rusty!", "Will do!"]
 const DEBUG_TEXT := "Mechanic calls"
 const DEBUG_UNLOCK_TEXT := "Unlock research"
 
@@ -69,6 +75,11 @@ const DEBUG_UNLOCK_TEXT := "Unlock research"
 @export var resource_bar: ResourceBar
 ## How many passengers the run has delivered before the first call opens research.
 @export var research_deliveries := 10
+## How many passengers the player has delivered in a system after the first before the
+## call that opens its stage.
+@export var stage_deliveries := 3
+## Counts the deliveries in the system the bus works in, through its delivery goal.
+@export var goals: GoalTracker
 
 ## The player's credits, research points and deliveries. The parent sets it.
 var ledger: Ledger
@@ -101,6 +112,8 @@ func _process(delta: float) -> void:
 			_notice.dismiss()
 			_open()
 		return
+	if _started and _system_index() > 0 and not _research().is_opened():
+		_open_quietly()
 	if _started and enabled and not _talking and _is_due():
 		# From the moment it is due, stop included, so a charge held through the stop
 		# can't take the bus off before the call rings.
@@ -138,18 +151,29 @@ func ring() -> void:
 	_notice.action_pressed.connect(_open)
 
 
-# Whether something should open now: the next stage in a system past the first, or in the
-# first, research once enough passengers are delivered and the bus is docked at a lab.
+# Whether something should open now: the next stage in a system past the first once enough
+# passengers are delivered there, or in the first, research once enough passengers are
+# delivered and the bus is docked at a lab.
 func _is_due() -> bool:
 	if _opens_nothing():
 		return false
 	if _opens_stage():
-		return true
+		return _delivered_here() >= stage_deliveries
 	if _system_index() > 0:
 		return false
 	if not _is_at_lab():
 		return false
 	return _debug_due or (ledger and ledger.get_rating_count() >= research_deliveries)
+
+
+# How many passengers the player has delivered in the system the bus works in: what its
+# goal of delivering anyone counts, which the save keeps.
+func _delivered_here() -> int:
+	var delivered := 0
+	for goal: Goal in goals.get_goals():
+		if goal is DeliveryCountGoal and not (goal as DeliveryCountGoal).type:
+			delivered = maxi(delivered, (goal as DeliveryCountGoal).delivered)
+	return delivered
 
 
 # Whether the bus is docked at a planet with a lab.
@@ -203,6 +227,14 @@ func _open() -> void:
 		_bring_in_research()
 		research_opened.emit()
 	research_added.emit()
+
+
+# Research opens on its first stage with no call, as the bus works past the first system
+# with research never opened there: the player can research from the start, and the
+# mechanic's call a few deliveries in still brings the next stage.
+func _open_quietly() -> void:
+	_research().open()
+	_bring_in_research()
 
 
 # The Research button and the research points show, and the lab badges, each popping in.

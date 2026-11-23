@@ -280,7 +280,12 @@ DOC_DECLARATION = re.compile(
 )
 DECLARED_PARAM = re.compile(r",\s*(?:\.\.\.)?(\w+)")
 DOC_PARAM = re.compile(r"\[param (\w+)\]")
-OWN_GET_PARENT = re.compile(r"(?<![\w.])get_parent\s*\(|\bself\s*\.\s*get_parent\s*\(")
+# The node's own parent, by any of the calls that return it: get_parent(), the typed
+# get_parent_node_3d() and get_parent_control(), and find_parent(). get_parent_area_size()
+# is layout, not a node, and is left alone.
+OWN_GET_PARENT = re.compile(
+    r"(?:(?<![\w.])|\bself\s*\.\s*)(get_parent(?:_node_3d|_control)?|find_parent)\s*\("
+)
 # A node looked up by path under another node, the way into another scene's insides. The
 # root's own children are autoloads and LimboConsole (Dev console), so they are left alone.
 # The match starts right after the word before the dot, so a space there can't slip past.
@@ -817,7 +822,7 @@ def surroundings_problems(path: str, code: str, strings: list[tuple[int, str]]) 
         "and anything else with an @export var or a setter the parent calls."
     )
     found = [
-        (line_at(code, m.start()), "no-get-parent", f"get_parent() reaches {out}")
+        (line_at(code, m.start()), "no-get-parent", f"{m.group(1)}() reaches {out}")
         for m in OWN_GET_PARENT.finditer(code)
     ]
     found += [

@@ -111,6 +111,8 @@ func test_a_course_from_space_waits_for_a_charge_once_the_drive_is_cold() -> voi
 func test_the_bus_pulls_out_and_turns_toward_its_next_stop_while_charging() -> void:
 	var parked := _bus.global_position.distance_to(_home.global_position)
 	var behind := _planet(_home.get_parent() as Node3D, Vector3(-6.0, 0.0, 0.0))
+	# Long enough for the pull-out to settle before the bus leaves.
+	_bus.charge_time = 3.0
 	_bus.plot_course(RouteStop.at_planet(behind))
 	_step_for(_bus.charge_time - 0.5)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
