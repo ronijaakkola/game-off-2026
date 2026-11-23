@@ -102,6 +102,7 @@ var passenger: Passenger:
 	set(value):
 		passenger = value
 		_mood = -1
+		_requests_heard = -1
 		if is_node_ready():
 			(%PassengerPhoto as PassengerPhoto).passenger = value
 			_show()
@@ -133,8 +134,9 @@ var _fill_fade: Tween
 var _rated := false
 # Seconds left until the card has shown the rating long enough to slide out.
 var _linger_left := 0.0
-# The request shown, so a new one is heard once.
-var _shown_request: Need
+# How many requests the passenger had opened when last shown, so a new one is heard
+# once. -1 before the first show: one open by then was heard on its old card, if any.
+var _requests_heard := -1
 # The middle row's swap from the happiness bar to the stars, then the stars filling.
 var _rating_swap: Tween
 # Whether the card is on its way out, after leave().
@@ -438,10 +440,9 @@ func _show() -> void:
 	# The button takes the activity's place, across the card.
 	(%ActivityLabel as Control).visible = not button.visible
 	button.progress = passenger.serving
-	# A request already open when the card first shows was heard on its old card, if any.
-	if passenger.request and passenger.request != _shown_request and not first:
+	if _requests_heard >= 0 and passenger.requests_opened > _requests_heard:
 		Psst.play()
-	_shown_request = passenger.request
+	_requests_heard = passenger.requests_opened
 	if passenger.request:
 		# Docked, the station serves it, and the cabin's line says so.
 		var label := passenger.activity if docked else passenger.request.serve_label
