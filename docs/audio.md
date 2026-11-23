@@ -43,6 +43,8 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 | `game/transmissions/voice/orange/` | 59: blips 18, long 8, question 9, exclaim 7, annoyed 3, happy 5, scared 9 | The same | Done |
 | `game/transmissions/voice/green/` | None | Green callers are silent | Missing |
 
+Kicked clips (`k`, one set a race) are being recorded: Orange has two so far, not in the game yet. Once every race has them, a kicked passenger screams in their own race's voice and `wilhelm_scream.ogg` goes.
+
 ## What is still silent
 
 Nothing in the specs asks for these, so none is a bug. Every event below makes no sound today. Ordered by how often a player meets it, most first.

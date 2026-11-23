@@ -21,6 +21,7 @@ One folder per race: `blue/`, `orange/`, `green/`. Mono, dry, normalised, silenc
 | `a` | annoyed stinger | When a transmission opens or the player answers, in an annoyed mood |
 | `h` | happy stinger | The same, happy |
 | `s` | scared stinger | The same, scared |
+| `k` | kicked | When a passenger of the race is kicked off the bus, in place of the Wilhelm scream. Not wired up yet: it waits until every race has them |
 
 The number only tells clips of a kind apart. Takes of one blip are numbered on like any other, and the game treats every clip of a kind alike.
 
