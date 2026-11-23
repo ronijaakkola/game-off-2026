@@ -27,7 +27,6 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 |---|---|---|---|
 | `game/solar_system/fuel.ogg` | The fuel pump, for as long as fuel flows | 0.35 | Done |
 | `game/solar_system/ringtone.ogg` | A call notice shows: 2 beats at 88 bpm, looped from the music's next beat, fading out in 0.15 s as the call is answered or goes. Silent while the notices are hidden or the game is paused | 0.15 | Placeholder, "to be replaced with the final ringtone" |
-| `game/passengers/psst_1.ogg`, `psst_2.ogg`, `psst_3.ogg` | A passenger card opens a request for food or a drink: one at random, never the same twice running, pitch varied up to 6 % | 0.3 each | Done |
 | `game/passengers/wilhelm_scream.ogg` | A kicked passenger flies out of the bus, fading fastest at first | 0.23 | Placeholder |
 
 ### Menus and research
@@ -40,7 +39,7 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 
 | Folder | Clips | Plays when | Status |
 |---|---|---|---|
-| `game/transmissions/voice/blue/` | 48: blips 23, long 8, question 4, exclaim 4, annoyed 4, happy 2, scared 3 | A transmission's text types out: a blip per word of three letters or more, the question and exclaim clips before `?` and `!`, a long clip at the start of a line, a stinger as it opens (the caller's mood). Each caller of a race has a pitch of their own. Each race's loudness is its voice's volume, set in the mixer | Done |
+| `game/transmissions/voice/blue/` | 48: blips 23, long 8, question 4, exclaim 4, annoyed 4, happy 2, scared 3 | A transmission's text types out: a blip per word of three letters or more, the question and exclaim clips before `?` and `!`, a long clip at the start of a line, a stinger as it opens (the caller's mood). A passenger card opening a request for food or a drink plays the passenger's race's annoyed stinger, at their pitch. Each caller of a race has a pitch of their own. Each race's loudness is its voice's volume, set in the mixer | Done |
 | `game/transmissions/voice/orange/` | 59: blips 18, long 8, question 9, exclaim 7, annoyed 3, happy 5, scared 9 | The same | Done |
 | `game/transmissions/voice/green/` | None | Green callers are silent | Missing |
 
