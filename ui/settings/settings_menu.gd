@@ -85,7 +85,7 @@ func _set_resettable(resettable: bool) -> void:
 func _on_reset_campaign_button_confirmed() -> void:
 	Campaign.reset()
 	_set_resettable(false)
-	%BackButton.grab_focus()
+	FocusRing.grab(%BackButton as Control)
 	campaign_reset.emit()
 
 
