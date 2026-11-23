@@ -57,6 +57,7 @@ mouse_filter = 2
 theme_override_constants/separation = 24
 
 [node name="Header" type="HBoxContainer" parent="Margin/Column" unique_id=722581033]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 16
@@ -77,6 +78,7 @@ theme_override_font_sizes/font_size = 44
 text = "Controls"
 
 [node name="Cards" type="VBoxContainer" parent="Margin/Column" unique_id=1563632242]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 12

@@ -2,8 +2,9 @@ extends Control
 ## The main scene: the logo over the menus' background, and under it the main menu's
 ## slanted buttons. With no level in progress Play opens the campaign screen; with one,
 ## Continue plays it straight away and names it, and Levels opens the campaign screen.
-## Settings and Controls open their screens over the background, and the campaign screen
-## pans the background to its other half as it opens. On the web, a "Click to start" title
+## Settings and Controls open their screens over the background, the menu's rows
+## staggering out as they come in ([MenuScreen]), and the campaign screen pans the
+## background to its other half as it opens. On the web, a "Click to start" title
 ## card comes first, because Safari starts audio only after a click in the game.
 ## The debug panel's Delete save resets the campaign and forgets the tutorial, so the game
 ## starts as on a first visit, its Reset settings puts every setting back to its default,
@@ -32,6 +33,8 @@ func _ready() -> void:
 	%Background.resized.connect(_on_background_resized)
 	_on_background_resized()
 	%CampaignScreen.visibility_changed.connect(_on_campaign_screen_visibility_changed)
+	# The cards come in once the pan has all but settled, and the menu's rows on the way back.
+	%CampaignScreen.enter_delay = PAN_SECONDS * 0.8
 	if OS.has_feature("web") and not _music_started:
 		%StartOverlay.show()
 	else:
@@ -67,24 +70,33 @@ func _first_button() -> Button:
 	return %ContinueButton if %ContinueButton.visible else %PlayButton
 
 
+# The logo and each plate shown, top to bottom, which stagger out as a screen opens.
+func _rows() -> Array[Control]:
+	var rows: Array[Control] = [%LogoMargin]
+	for plate: Control in %Items.get_children():
+		if plate.visible:
+			rows.append(plate)
+	return rows
+
+
 func _on_continue_button_pressed() -> void:
 	Campaign.play(Campaign.get_in_progress())
 
 
 func _on_play_button_pressed() -> void:
-	%CampaignScreen.open(%Home)
+	%CampaignScreen.open(%Home, _rows)
 
 
 func _on_levels_button_pressed() -> void:
-	%CampaignScreen.open(%Home)
+	%CampaignScreen.open(%Home, _rows)
 
 
 func _on_settings_button_pressed() -> void:
-	%SettingsMenu.open(%Home)
+	%SettingsMenu.open(%Home, _rows)
 
 
 func _on_controls_button_pressed() -> void:
-	%ControlsScreen.open(%Home)
+	%ControlsScreen.open(%Home, _rows)
 
 
 # Reset from the settings screen: the menu under it shows as on a first visit. Its
@@ -95,7 +107,7 @@ func _on_settings_menu_campaign_reset() -> void:
 
 func _on_campaign_screen_visibility_changed() -> void:
 	var material := %Background.material as ShaderMaterial
-	var to := 1.0 if %CampaignScreen.visible else 0.0
+	var to := 1.0 if %CampaignScreen.is_open() else 0.0
 	if _pan:
 		_pan.kill()
 	if Settings.reduce_motion:

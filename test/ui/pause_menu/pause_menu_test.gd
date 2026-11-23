@@ -96,7 +96,9 @@ func test_esc_in_settings_goes_back_to_the_paused_menu() -> void:
 	(runner.find_child("SettingsButton") as Button).pressed.emit()
 
 	_press_pause()
-	assert_bool((runner.find_child("SettingsMenu") as Control).visible).is_false()
+	# The screen's rows stagger out first.
+	var settings := runner.find_child("SettingsMenu") as Control
+	assert_bool(await PauseProofWait.for_signal(settings.hidden, 2000)).is_true()
 	assert_bool(runner.scene().visible).is_true()
 	assert_bool(get_tree().paused).is_true()
 
@@ -116,6 +118,9 @@ func test_keyboard_focus_follows_the_open_panel() -> void:
 	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterVolume"))
 
 	back.pressed.emit()
+	# The screen's rows stagger out first.
+	var settings := runner.find_child("SettingsMenu") as Control
+	assert_bool(await PauseProofWait.for_signal(settings.hidden, 2000)).is_true()
 	assert_object(_focused()).is_same(settings_button)
 
 
@@ -197,10 +202,12 @@ func test_controls_opens_its_screen_and_esc_goes_back() -> void:
 	(runner.find_child("ControlsButton") as Button).pressed.emit()
 	var controls := runner.find_child("ControlsScreen") as Control
 	assert_bool(controls.visible).is_true()
-	assert_bool((runner.find_child("Content") as Control).visible).is_false()
+	# The menu's rows stagger out first, and the screen's on the way back.
+	var content := runner.find_child("Content") as Control
+	assert_bool(await PauseProofWait.for_signal(content.hidden, 2000)).is_true()
 
 	_press_pause()
-	assert_bool(controls.visible).is_false()
+	assert_bool(await PauseProofWait.for_signal(controls.hidden, 2000)).is_true()
 	assert_bool(runner.scene().visible).is_true()
 	assert_bool(get_tree().paused).is_true()
 

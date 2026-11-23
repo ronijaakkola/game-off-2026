@@ -39,7 +39,7 @@ Two renders, 2304 × 1296, 16:9. Each is a level's loading image, and its card i
 | Level | Name in the design | Star system | Picture |
 |---|---|---|---|
 | 1 | Your first shift | Sol | The bus coming from the Moon towards Terra |
-| 2 | Double trouble | Lyra | The bus in the asteroid field, Brume behind |
+| 2 | Rough ride | Lyra | The bus in the asteroid field, Brume behind |
 | 3 | Return to home | not decided | None yet |
 
 The names are placeholders from the design.

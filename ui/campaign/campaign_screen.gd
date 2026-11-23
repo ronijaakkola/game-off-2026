@@ -1,5 +1,6 @@
 extends MenuScreen
-## The campaign screen: a card for each level, and under the picked one what it can do.
+## The campaign screen: a card for each level, and under the picked one what it can do. A
+## card is picked as it takes focus, by a click or the keyboard.
 ## It opens with the level in progress picked, or else the next one not done. A level in
 ## progress continues, with a restart beside it; one done plays again from where it began;
 ## any other open one plays. Starting a level over, or any level that would replace the
@@ -7,13 +8,15 @@ extends MenuScreen
 ## card has a Play tutorial box, ticked until the player has been through the tutorial. A
 ## menu opens it over itself ([MenuScreen]).
 
-## Seconds the actions take to slide under a newly picked card.
-const SLIDE_SECONDS := 0.2
+## Seconds the actions take to appear under a newly picked card.
+const APPEAR_SECONDS := 0.2
+## Pixels above their place the actions start as they appear.
+const DROP := 6.0
 const CARD := preload("res://ui/campaign/level_card.tscn")
 
 var _cards: Array[LevelCard] = []
 var _picked: LevelCard
-var _slide: Tween
+var _appear: Tween
 
 
 func _ready() -> void:
@@ -21,7 +24,7 @@ func _ready() -> void:
 	for level: Level in Campaign.LEVELS:
 		var card: LevelCard = CARD.instantiate()
 		(%Cards as Control).add_child(card)
-		card.pressed.connect(_pick.bind(card))
+		card.focus_entered.connect(_pick.bind(card))
 		_cards.append(card)
 	visibility_changed.connect(_on_shown_or_hidden)
 
@@ -59,9 +62,18 @@ func _first_control() -> Control:
 	return _picked
 
 
-# Picks [param card]: its border lights, and the actions slide under it, at once while
-# the screen opens or under Reduce motion.
+func _items() -> Array[Control]:
+	var items := super._items()
+	items.append(%ActionsTrack)
+	return items
+
+
+# Picks [param card]: its border lights, its picture zooms in, and the actions appear under
+# it, dropping into place as they fade in, at once while the screen opens. Under Reduce
+# motion they only fade.
 func _pick(card: LevelCard, at_once := false) -> void:
+	if card == _picked and not at_once:
+		return
 	_picked = card
 	for each: LevelCard in _cards:
 		each.picked = each == card
@@ -75,14 +87,18 @@ func _pick(card: LevelCard, at_once := false) -> void:
 			play.text = "Play"
 	(%RestartButton as Control).visible = card.state == LevelCard.State.IN_PROGRESS
 	var actions := %Actions as Control
-	var x := card.position.x
-	if _slide:
-		_slide.kill()
-	if at_once or Settings.reduce_motion or not is_visible_in_tree():
-		actions.position.x = x
+	actions.position = Vector2(MenuScreen.rest_position(card).x, 0.0)
+	if _appear:
+		_appear.kill()
+	actions.modulate.a = 1.0
+	if at_once or not is_visible_in_tree():
 		return
-	_slide = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	_slide.tween_property(actions, ^"position:x", x, SLIDE_SECONDS)
+	actions.modulate.a = 0.0
+	_appear = create_tween().set_parallel().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_appear.tween_property(actions, ^"modulate:a", 1.0, APPEAR_SECONDS)
+	if not Settings.reduce_motion:
+		actions.position.y = -DROP
+		_appear.tween_property(actions, ^"position:y", 0.0, APPEAR_SECONDS)
 
 
 func _on_play_button_pressed() -> void:
@@ -105,7 +121,7 @@ func _on_restart_dialog_confirmed() -> void:
 func _on_shown_or_hidden() -> void:
 	if visible and _picked:
 		await get_tree().process_frame
-		(%Actions as Control).position.x = _picked.position.x
+		(%Actions as Control).position.x = MenuScreen.rest_position(_picked).x
 	elif not visible:
 		for card: LevelCard in _cards:
 			card.clear()

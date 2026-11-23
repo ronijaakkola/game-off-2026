@@ -63,6 +63,7 @@ mouse_filter = 2
 theme_override_constants/separation = 38
 
 [node name="LogoMargin" type="MarginContainer" parent="Home/Column" unique_id=1141166750]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 3
@@ -121,21 +122,21 @@ theme_override_constants/separation = 1
 [node name="Label" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=476412501]
 layout_mode = 2
 theme_type_variation = &"SlantTitleLabel"
-theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 1)
+theme_override_font_sizes/font_size = 22
 text = "Continue"
 
 [node name="Where" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=1351472788]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"BodyTextLabel"
-theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 0.702)
+theme_override_font_sizes/font_size = 13
 text = "Your first shift"
 
 [node name="PlayButton" type="Button" parent="Home/Column/Items" unique_id=1929021640]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(290, 54)
+custom_minimum_size = Vector2(300, 54)
 layout_mode = 2
 theme_type_variation = &"SlantPrimaryButton"
 text = "Play"

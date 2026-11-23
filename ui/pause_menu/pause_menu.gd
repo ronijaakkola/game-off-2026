@@ -8,7 +8,8 @@ extends CanvasLayer
 ## way ([method hold], [method release]), so the game runs again only once nothing holds it.
 ## It shows over the game as it stood, blurred and dimmed, its HUD too: its layer draws
 ## over theirs, so the backdrop's glass reads them from the screen.
-## It fades in; it closes at once, as the game picks up again at once.
+## It fades in; it closes at once, as the game picks up again at once. Settings and Controls
+## open over it as from the main menu, its rows staggering out and back.
 ## While [member offers_skip_tutorial], as through the tutorial, a Skip tutorial button
 ## sits at the bottom, a little apart from the rest: it closes the menu and
 ## [signal skip_tutorial_pressed].
@@ -127,11 +128,21 @@ func _on_resume_button_pressed() -> void:
 
 
 func _on_settings_button_pressed() -> void:
-	%SettingsMenu.open(%Content)
+	%SettingsMenu.open(%Content, _rows)
 
 
 func _on_controls_button_pressed() -> void:
-	%ControlsScreen.open(%Content)
+	%ControlsScreen.open(%Content, _rows)
+
+
+# The title and each row of plates shown, top to bottom, which stagger out as a screen
+# opens over the menu ([MenuScreen]).
+func _rows() -> Array[Control]:
+	var rows: Array[Control] = [%TitleMargin]
+	for row: Control in %Items.get_children():
+		if row.visible:
+			rows.append(row)
+	return rows
 
 
 func _on_restart_button_pressed() -> void:

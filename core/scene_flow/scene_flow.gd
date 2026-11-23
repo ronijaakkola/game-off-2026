@@ -1,8 +1,11 @@
 extends CanvasLayer
-## Moves between top-level scenes with a fade to a black loading card, "Loading…" over a
-## bar that fills as the next scene loads, or, entering a level, to the level's own loading
-## screen ([LoadingCard]). Input is blocked while fading. It processes always, so a paused
-## scene can leave too, and the next scene starts unpaused.
+## Moves between top-level scenes with a fade through black. Entering a level, the black
+## holds the level's own loading screen ([LoadingCard]), or for a level with no picture yet,
+## "Loading…" over a bar that fills as the level loads; anywhere else it stays plain black.
+## Input is blocked while fading. It processes always, so a paused scene can leave too, and
+## the next scene starts unpaused. A level, once loaded, waits
+## paused under its loading screen until the player presses Start (a click, Enter or Space),
+## so they can read the tip first; meanwhile no other key reaches the game.
 ##
 ## The bar counts the two kinds of work the wait is made of, each in steps it can draw
 ## between, because the web build has one thread: a threaded load blocks it and can't
@@ -27,11 +30,16 @@ var step_msec := 33
 
 ## The black card with the bar on it. Its alpha is the fade.
 var _curtain: Control
+## "Loading…" over the bar, shown only on its own: the curtain's fade reaches each of its
+## children apart, so it would show through the level's loading screen as that fades.
+var _plain: Control
 var _bar: ProgressBar
 ## The level's loading screen, over the black card while a level loads.
 var _level_card: LoadingCard
 var _busy := false
 var _fade: Tween
+# Whether the loaded level waits for Start.
+var _waiting := false
 
 
 func _ready() -> void:
@@ -53,6 +61,7 @@ func _ready() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_curtain.add_child(center)
+	_plain = center
 	var rows := VBoxContainer.new()
 	rows.add_theme_constant_override("separation", 14)
 	center.add_child(rows)
@@ -72,19 +81,21 @@ func _ready() -> void:
 	_curtain.add_child(_level_card)
 
 
-## Fades to the loading card, loads the scene at [param path] while its bar fills, changes
-## to it and fades back in. Entering a [param level] with a picture, the card is the
-## level's loading screen. Callers hold [param path] as a [code]const[/code]; preloading
-## the scene would make menu and game preload each other. A call made during a transition
-## is ignored.
+## Fades to black, loads the scene at [param path], changes to it and fades back in.
+## Entering a [param level], the black holds the level's loading screen, or "Loading…" over
+## a filling bar while the level has no picture yet. Callers hold [param path] as a
+## [code]const[/code]; preloading the scene would make menu and game preload each other. A
+## call made during a transition is ignored.
 func go_to(path: String, level: Level = null) -> void:
 	if _busy:
 		return
 	_busy = true
 	get_tree().root.set_disable_input(true)
-	if level and not level.picture.is_empty():
+	var has_picture := level != null and not level.picture.is_empty()
+	if has_picture:
 		_level_card.show_level(level)
 		_level_card.show()
+	_plain.visible = level != null and not has_picture
 	_set_progress(0.0)
 	_curtain.show()
 	await _fade_to(1.0)
@@ -102,6 +113,8 @@ func go_to(path: String, level: Level = null) -> void:
 		# and the last warm-up frame can be slow. Fade in after a frame that isn't.
 		await get_tree().process_frame
 		await get_tree().process_frame
+		if _level_card.visible:
+			await _wait_for_start()
 	else:
 		push_error("SceneFlow can't change to %s: %s" % [path, error_string(error)])
 	await _fade_to(0.0)
@@ -110,6 +123,29 @@ func go_to(path: String, level: Level = null) -> void:
 	_level_card.clear()
 	get_tree().root.set_disable_input(false)
 	_busy = false
+
+
+## Holds the loaded level paused under its loading screen, the Start button showing, until
+## the player presses it. The card takes the clicks meant for the game under it.
+func _wait_for_start() -> void:
+	get_tree().paused = true
+	_curtain.mouse_filter = Control.MOUSE_FILTER_STOP
+	_waiting = true
+	get_tree().root.set_disable_input(false)
+	await _level_card.wait_for_start()
+	get_tree().root.set_disable_input(true)
+	_waiting = false
+	_curtain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_tree().paused = false
+
+
+# While the level waits for Start, Enter and Space reach the focused Start button, and no
+# other key reaches the game: Esc would open its pause menu under the card.
+func _input(event: InputEvent) -> void:
+	if not _waiting or event.is_action(&"ui_accept"):
+		return
+	if event is InputEventKey or event is InputEventJoypadButton:
+		get_viewport().set_input_as_handled()
 
 
 ## Whether a scene change is under way, until the new scene has faded in.

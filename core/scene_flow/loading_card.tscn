@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://dvqj5wdg1fsg" path="res://core/scene_flow/icons/lightbulb.svg" id="3_bulb"]
 [ext_resource type="Texture2D" uid="uid://suwje6nuvyor" path="res://shared/icons/bus.svg" id="4_bus"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="5_theme"]
+[ext_resource type="Texture2D" uid="uid://p8stij300qva" path="res://ui/icons/play.svg" id="6_play"]
 
 [sub_resource type="Gradient" id="Gradient_scrim"]
 offsets = PackedFloat32Array(0, 0.35, 1)
@@ -107,6 +108,7 @@ mouse_filter = 2
 theme_override_constants/separation = 0
 
 [node name="LoadingLabel" type="Label" parent="Margin/Rows/Top/Level" unique_id=594670673]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
@@ -177,12 +179,23 @@ theme_override_constants/shadow_outline_size = 8
 text = "Tip"
 autowrap_mode = 2
 
-[node name="Bar" type="HBoxContainer" parent="Margin/Rows" unique_id=2083998232]
+[node name="Footer" type="Control" parent="Margin/Rows" unique_id=186163149]
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
+mouse_filter = 2
+
+[node name="Bar" type="HBoxContainer" parent="Margin/Rows/Footer" unique_id=2083998232]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/separation = 6
 
-[node name="FromPlanet" type="ColorRect" parent="Margin/Rows/Bar" unique_id=1897954575]
+[node name="FromPlanet" type="ColorRect" parent="Margin/Rows/Footer/Bar" unique_id=1897954575]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
@@ -190,7 +203,13 @@ size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("2_planet")
 
-[node name="Loaded" type="Panel" parent="Margin/Rows/Bar" unique_id=702899532]
+[node name="Track" type="HBoxContainer" parent="Margin/Rows/Footer/Bar" unique_id=1237181242]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Loaded" type="Panel" parent="Margin/Rows/Footer/Bar/Track" unique_id=702899532]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
@@ -200,13 +219,13 @@ size_flags_stretch_ratio = 0.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_loaded")
 
-[node name="Marker" type="PanelContainer" parent="Margin/Rows/Bar" unique_id=1020074117]
+[node name="Marker" type="PanelContainer" parent="Margin/Rows/Footer/Bar/Track" unique_id=1020074117]
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_marker")
 
-[node name="Bus" type="TextureRect" parent="Margin/Rows/Bar/Marker" unique_id=430281300]
+[node name="Bus" type="TextureRect" parent="Margin/Rows/Footer/Bar/Track/Marker" unique_id=430281300]
 self_modulate = Color(0.961, 0.78, 0.29, 1)
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
@@ -215,7 +234,7 @@ texture = ExtResource("4_bus")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Left" type="Panel" parent="Margin/Rows/Bar" unique_id=711177285]
+[node name="Left" type="Panel" parent="Margin/Rows/Footer/Bar/Track" unique_id=711177285]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
@@ -224,10 +243,28 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_left")
 
-[node name="ToPlanet" type="ColorRect" parent="Margin/Rows/Bar" unique_id=448647801]
+[node name="ToPlanet" type="ColorRect" parent="Margin/Rows/Footer/Bar" unique_id=448647801]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("2_planet")
+
+[node name="StartButton" type="Button" parent="Margin/Rows/Footer" unique_id=1450801438]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(340, 48)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -24.0
+offset_right = 340.0
+offset_bottom = 24.0
+grow_vertical = 2
+theme_type_variation = &"LargePrimaryButton"
+theme_override_font_sizes/font_size = 20
+text = "Start"
+icon = ExtResource("6_play")
+alignment = 0

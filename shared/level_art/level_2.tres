@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_level")
-title = "Double trouble"
+title = "Rough ride"
 star_system = "Lyra"
 picture = "res://shared/level_art/level_2_loading.jpg"
 card_crop = Rect2(0.4258, 0.0502, 0.4089, 0.8603)

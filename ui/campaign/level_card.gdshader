@@ -7,6 +7,8 @@ uniform bool has_picture = false;
 // The crop, as x, y, width and height in shares of the picture.
 uniform vec4 region = vec4(0.0, 0.0, 1.0, 1.0);
 uniform bool locked = false;
+// How far the picture is zoomed in about its middle: 1 shows the whole crop.
+uniform float zoom = 1.0;
 // The card's size and corner radius in pixels.
 uniform vec2 size = vec2(304.0, 360.0);
 uniform float radius = 12.0;
@@ -17,7 +19,7 @@ const vec4 LOCKED_DIM = vec4(0.043, 0.035, 0.125, 0.45);
 void fragment() {
 	vec4 colour = COLOR;
 	if (has_picture) {
-		colour = vec4(texture(picture, region.xy + UV * region.zw).rgb, 1.0);
+		colour = vec4(texture(picture, region.xy + ((UV - 0.5) / zoom + 0.5) * region.zw).rgb, 1.0);
 	}
 	if (locked) {
 		float grey = dot(colour.rgb, vec3(0.299, 0.587, 0.114));
