@@ -84,7 +84,7 @@ const CARDS := {
 	},
 	"SERVE":
 	{
-		title = "A request",
+		title = "Heard that sound?",
 		text =
 		(
 			"To keep your passengers happy, you need to serve them during their trip. This "
