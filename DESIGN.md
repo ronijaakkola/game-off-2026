@@ -441,10 +441,19 @@ There are three trees, all paid for with the same research points. Frost, Terra 
 ## Scenes and flow
 
 ```
-main menu ──Play / Continue / New game──▶ solar system ──Esc / pause button──▶ pause menu ──Main menu──▶ main menu
-    │                                          │
-    └──Settings──▶ settings panel ◀──────────Settings
+main menu ──Play / Levels──▶ campaign ──Play / Continue / Play again / Restart──▶ level's loading screen ──▶ solar system
+    │  └──Continue──────────────────────────────────────────────────────────────▲                       │
+    │                                                                                              Esc / pause button
+    └──Settings / Controls──▶ settings, controls ◀──Settings / Controls── pause menu ◀──────────────────┘
+                                                                           └──Main menu──▶ main menu
 ```
+
+- **Levels are stages of the one run,** each in its own star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in Draco (placeholder names: "Your first shift", "Rough ride", "Return to home"). A level is done once a promotion there opens the next system, and the next level is open once the one before is done; how far the player has got outlives the run. The run as it entered each level after the first is kept, so restarting a level puts the run back to how it began, with everything earned before it.
+- **The main menu** offers Play with no run in progress, which opens the campaign screen; with one, Continue plays it at once and Levels opens the campaign screen.
+- **The campaign screen** opens with the level in progress picked, or else the next one not done. The level in progress offers Continue and Restart level; a done one offers Play again, which starts the run over from where that level began; another open one offers Play. A locked one can't be picked. Restarting, and playing a done level again while a run is in progress, ask first: the run in play is lost, and what was earned in the levels before carries over. Level 1's card has a Play tutorial box, ticked until the player has been through the tutorial: starting Level 1, the run opens on the tutorial if it is ticked.
+- **The pause menu** can restart the level it is in, with the same question, through the tutorial again if it is under way.
+- **Loading:** entering a level shows that level's loading screen: its picture, its name and a tip. Every other scene change, and a level with no picture (Level 3 for now), load on the black card.
+- **Tips:** one picked at random each time, never the one shown last. A tip may belong to one level; the rest show on any.
 
 - The game is one scene, the solar system, which holds every star system. A new run opens on the tutorial's zoomed map (Tutorial) until the player has been through it.
 - Pausing stops the game; music keeps playing. The pause menu also opens when the player leaves browser fullscreen.
@@ -457,7 +466,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 
 ## Tutorial
 
-- **A new run starts with it until the player has been through it once,** done or skipped; after that New game starts without it, as does a continued run. Whether they have is kept beside the save and outlives the run; deleting the save data, from the main menu's settings or the debug panel's Delete save, forgets it, so the next run has it again. The pause menu's Skip tutorial skips it, as does the debug panel: what shows closes, and it goes straight to the zoom out it ends with. A passenger still waiting at Terra leaves the line while the HUD is out, unseen.
+- **A new run starts with it until the player has been through it once,** done or skipped; after that Level 1 starts without it, as does a continued run, unless the player ticks Play tutorial on Level 1's card, which is ticked until then. Whether they have is kept beside the save and outlives the run; resetting the campaign, from the main menu's settings or the debug panel's Delete save, forgets it, so the next run has it again. The pause menu's Skip tutorial skips it, as does the debug panel: what shows closes, and it goes straight to the zoom out it ends with. A passenger still waiting at Terra leaves the line while the HUD is out, unseen.
 - **The zoomed map.** Only Terra and the Moon, the map zoomed in 6.5× on Terra, so the Moon orbits 13 units out, about as far as a trip across the whole map. The bus keeps its size, speed and fuel burn, so the ride costs the time, fuel and fare a trip across the whole map does.
 - **Nothing orbits.** Terra and the Moon hold still on their orbits, still spinning, so the bus always finds them where they were and stays in view.
 - **A clear way out.** The bus starts docked on the side of Terra facing the Moon, so the straight flight there never crosses Terra.
@@ -490,7 +499,7 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 
 ## Feature hints
 
-- **The first time the player meets a feature in play,** the game pauses with a feature hint pointing at it, until the player presses Got it; the pause menu can open over it, and closing that leaves the game paused. Each hint shows once across every run, kept beside the save; deleting the save data, from the main menu's settings or the debug panel's Delete save, forgets them, so they show again.
+- **The first time the player meets a feature in play,** the game pauses with a feature hint pointing at it, until the player presses Got it; the pause menu can open over it, and closing that leaves the game paused. Each hint shows once across every run, kept beside the save; resetting the campaign, from the main menu's settings or the debug panel's Delete save, forgets them, so they show again.
 - **Never during the tutorial,** which has its own cards, and never on a hidden target: a hint passed over that way isn't kept as seen, so the next meeting offers it again. Two at once show one after the other.
 - **The heat zone:** the first time the passengers become uncomfortable (past 32°, where the gauge leaves green), a hint above the gauge says the star heats the bus, that passengers are getting uncomfortable and it will soon overheat, and to move away from the star to cool it (the words are in `feature_hints.gd`).
 - **The goals:** after The Boss's first-shift call (The start), a hint beside the goal panel says it shows the goals that reach the promotion.
@@ -501,8 +510,8 @@ main menu ──Play / Continue / New game──▶ solar system ──Esc / pau
 
 ## Save game
 
-- **One run is saved.** With a save, the main menu offers Continue, and New game in place of Play. New game replaces the save once the tutorial is over, so it is held to confirm, like refuelling, and a stray click can't lose a run. The main menu's settings can delete the save, held the same way; the pause menu's can't, since the run in play would save it again at the next planet.
-- **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next New game starts the tutorial again. Once it has ended, done or skipped, it is kept as done, even if the player quits in the zoom out.
+- **One run is saved,** with the campaign's record beside it (Scenes and flow): how many levels are done and the run as it entered each level. Starting a level over replaces the run, after asking. The main menu's settings can reset the campaign, held to confirm like refuelling, which deletes both, the tutorial and the feature hints seen; with nothing to reset it is off. The pause menu's settings can't, since the run in play would save it again at the next planet.
+- **Nothing saves during the tutorial.** Quitting in it keeps the save from before, and the next start of Level 1 offers the tutorial again. Once it has ended, done or skipped, it is kept as done, even if the player quits in the zoom out.
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
 - **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel, credits, research points and ratings, researched upgrades, whether research and which stages are open, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), the goals' progress, the quest under way, and how many star systems are open and whether they are joined. The system the bus works in is the one its planet is in, so a run continued after a promotion still offers the jump.
 - **Nothing saves through a jump.** Quitting mid-jump keeps the save from before it.

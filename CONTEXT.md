@@ -213,7 +213,15 @@ What the player earns by meeting every goal a star system gives at once, with Th
 
 **Star system**:
 A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
-_Avoid_: level, galaxy, sector, stage (a band of research rows)
+_Avoid_: level (the stage of the run played in one), galaxy, sector, stage (a band of research rows)
+
+**Level**:
+The stage of the run played in one star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in Draco. It is **done** once a promotion there opens the next system, and the next level is **open** once the one before is done. `Level` in code, a resource in `shared/level_art/` with its name and picture.
+_Avoid_: mission, stage (a band of research rows), chapter
+
+**Campaign**:
+The levels in order and how far the player has got through them, which outlives the run: replaying a level starts the run over from where that level began and keeps what is done. Reset campaign forgets it with the save. `Campaign` in code; the campaign screen shows it.
+_Avoid_: progress (the goals' own), level select
 
 **Jump**:
 The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.

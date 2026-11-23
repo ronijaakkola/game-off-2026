@@ -3,9 +3,26 @@
 [ext_resource type="Script" uid="uid://b0edylrhdf8aq" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="PackedScene" uid="uid://du1swv634nyif" path="res://ui/settings/settings_menu.tscn" id="3_settings"]
-[ext_resource type="Script" uid="uid://dcy77e65i1dbl" path="res://ui/hold_button.gd" id="4_hold"]
+[ext_resource type="Shader" uid="uid://csxrabi0e6vgk" path="res://ui/main_menu/panorama.gdshader" id="4_panorama"]
+[ext_resource type="Texture2D" uid="uid://cq0t7yfx0jn3d" path="res://ui/main_menu/background.jpg" id="5_background"]
+[ext_resource type="Texture2D" uid="uid://jxl4lq5xa0ne" path="res://ui/main_menu/logo.svg" id="6_logo"]
+[ext_resource type="Script" uid="uid://b5eb6ce3prea4" path="res://ui/slant_column.gd" id="7_column"]
+[ext_resource type="Texture2D" uid="uid://p8stij300qva" path="res://ui/icons/play.svg" id="8_play"]
+[ext_resource type="Texture2D" uid="uid://phj5jxo0b4od" path="res://ui/icons/layout_grid.svg" id="9_levels"]
+[ext_resource type="Texture2D" uid="uid://1kymvvivvto0" path="res://ui/icons/settings.svg" id="10_settings"]
+[ext_resource type="Texture2D" uid="uid://ciwqbucui3yd6" path="res://ui/icons/keyboard.svg" id="11_controls"]
+[ext_resource type="PackedScene" uid="uid://cg1ig63kqenbw" path="res://ui/campaign/campaign_screen.tscn" id="12_campaign"]
+[ext_resource type="PackedScene" uid="uid://bx1585cifjvbb" path="res://ui/controls/controls_screen.tscn" id="13_controls"]
+[ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://shared/icons/x.svg" id="14_quit"]
+[ext_resource type="Script" uid="uid://ccakhq4ektqka" path="res://ui/build_label.gd" id="99_build"]
 
-[node name="MainMenu" type="MarginContainer" unique_id=1815156436]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_panorama"]
+shader = ExtResource("4_panorama")
+shader_parameter/pan = 0.0
+shader_parameter/screen_aspect = 1.7777778
+
+[node name="MainMenu" type="Control" unique_id=1815156436]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -14,70 +31,198 @@ grow_vertical = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_menu")
 
-[node name="Background" type="PanelContainer" parent="." unique_id=1509656223]
+[node name="Background" type="TextureRect" parent="." unique_id=1509656223]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_panorama")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_background")
+expand_mode = 1
+
+[node name="Home" type="MarginContainer" parent="." unique_id=1545752174]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 93
+
+[node name="Column" type="VBoxContainer" parent="Home" unique_id=369810127]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 38
+
+[node name="LogoMargin" type="MarginContainer" parent="Home/Column" unique_id=1141166750]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_type_variation = &"SpacePanel"
+theme_override_constants/margin_left = 3
 
-[node name="Center" type="CenterContainer" parent="." unique_id=463875649]
+[node name="Logo" type="TextureRect" parent="Home/Column/LogoMargin" unique_id=511644935]
+custom_minimum_size = Vector2(383, 130)
 layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("6_logo")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Column" type="VBoxContainer" parent="Center" unique_id=1668939052]
-layout_mode = 2
-theme_override_constants/separation = 28
-
-[node name="Title" type="Label" parent="Center/Column" unique_id=952514897]
-layout_mode = 2
-theme_type_variation = &"TitleLabel"
-text = "Jam Game"
-horizontal_alignment = 1
-
-[node name="Items" type="VBoxContainer" parent="Center/Column" unique_id=579640886]
+[node name="Items" type="Container" parent="Home/Column" unique_id=2020171703]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
-size_flags_horizontal = 4
+mouse_filter = 2
+script = ExtResource("7_column")
 
-[node name="ContinueButton" type="Button" parent="Center/Column/Items" unique_id=2041035537]
+[node name="ContinueButton" type="Button" parent="Home/Column/Items" unique_id=2043497073]
 unique_name_in_owner = true
-visible = false
+custom_minimum_size = Vector2(300, 66)
 layout_mode = 2
-theme_type_variation = &"PrimaryButton"
+theme_type_variation = &"SlantPrimaryButton"
+
+[node name="Margin" type="MarginContainer" parent="Home/Column/Items/ContinueButton" unique_id=715668834]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 20
+
+[node name="Lead" type="HBoxContainer" parent="Home/Column/Items/ContinueButton/Margin" unique_id=1402147514]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Icon" type="TextureRect" parent="Home/Column/Items/ContinueButton/Margin/Lead" unique_id=1533803000]
+self_modulate = Color(0.1059, 0.0902, 0.251, 1)
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("8_play")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Lines" type="VBoxContainer" parent="Home/Column/Items/ContinueButton/Margin/Lead" unique_id=13733879]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Label" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=476412501]
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 1)
+theme_override_font_sizes/font_size = 22
 text = "Continue"
 
-[node name="PlayButton" type="Button" parent="Center/Column/Items" unique_id=1142676507]
+[node name="Where" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=1351472788]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"PrimaryButton"
+theme_type_variation = &"BodyTextLabel"
+theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 0.702)
+theme_override_font_sizes/font_size = 13
+text = "Your first shift"
+
+[node name="PlayButton" type="Button" parent="Home/Column/Items" unique_id=1929021640]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 54)
+layout_mode = 2
+theme_type_variation = &"SlantPrimaryButton"
 text = "Play"
+icon = ExtResource("8_play")
+alignment = 0
 
-[node name="NewGameButton" type="Button" parent="Center/Column/Items" unique_id=1837312500]
+[node name="LevelsButton" type="Button" parent="Home/Column/Items" unique_id=1931240940]
 unique_name_in_owner = true
-visible = false
+custom_minimum_size = Vector2(300, 44)
 layout_mode = 2
-text = "New game"
-script = ExtResource("4_hold")
+theme_type_variation = &"SlantButton"
+text = "Levels"
+icon = ExtResource("9_levels")
+alignment = 0
 
-[node name="SettingsButton" type="Button" parent="Center/Column/Items" unique_id=1148331793]
+[node name="SettingsButton" type="Button" parent="Home/Column/Items" unique_id=2123220921]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 44)
 layout_mode = 2
+theme_type_variation = &"SlantButton"
 text = "Settings"
+icon = ExtResource("10_settings")
+alignment = 0
 
-[node name="QuitButton" type="Button" parent="Center/Column/Items" unique_id=479414804]
+[node name="ControlsButton" type="Button" parent="Home/Column/Items" unique_id=1149460418]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 44)
 layout_mode = 2
-text = "Quit"
+theme_type_variation = &"SlantButton"
+text = "Controls"
+icon = ExtResource("11_controls")
+alignment = 0
 
-[node name="SettingsMenu" parent="." unique_id=959905961 instance=ExtResource("3_settings")]
+[node name="QuitButton" type="Button" parent="Home/Column/Items" unique_id=1267935034]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+theme_type_variation = &"SlantButton"
+text = "Quit"
+icon = ExtResource("14_quit")
+alignment = 0
+
+[node name="CampaignScreen" parent="." unique_id=571690517 instance=ExtResource("12_campaign")]
 unique_name_in_owner = true
 visible = false
+layout_mode = 1
+
+[node name="SettingsMenu" parent="." unique_id=1625463631 instance=ExtResource("3_settings")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+offers_campaign_reset = true
+
+[node name="ControlsScreen" parent="." unique_id=587962420 instance=ExtResource("13_controls")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="BuildMargin" type="MarginContainer" parent="." unique_id=1616412392]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="BuildLabel" type="Label" parent="BuildMargin" unique_id=1974554180]
+visible = false
 layout_mode = 2
-offers_save_deletion = true
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_type_variation = &"FaintLabel"
+script = ExtResource("99_build")
 
 [node name="StartOverlay" type="PanelContainer" parent="." unique_id=298445105]
 unique_name_in_owner = true
 visible = false
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_type_variation = &"SpacePanel"
 
 [node name="Center" type="CenterContainer" parent="StartOverlay" unique_id=2123297052]
@@ -89,11 +234,13 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 28
 
-[node name="Title" type="Label" parent="StartOverlay/Center/Items" unique_id=335360452]
+[node name="Logo" type="TextureRect" parent="StartOverlay/Center/Items" unique_id=911897652]
+custom_minimum_size = Vector2(383, 130)
 layout_mode = 2
-theme_type_variation = &"TitleLabel"
-text = "Jam Game"
-horizontal_alignment = 1
+mouse_filter = 2
+texture = ExtResource("6_logo")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Label" type="Label" parent="StartOverlay/Center/Items" unique_id=2085566611]
 layout_mode = 2
@@ -102,24 +249,11 @@ theme_override_font_sizes/font_size = 13
 text = "Click to start"
 horizontal_alignment = 1
 
-[node name="BuildMargin" type="MarginContainer" parent="." unique_id=1616412392]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="BuildLabel" type="Label" parent="BuildMargin" unique_id=1974554180]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 8
-theme_type_variation = &"FaintLabel"
-
-[connection signal="pressed" from="Center/Column/Items/ContinueButton" to="." method="_on_continue_button_pressed"]
-[connection signal="pressed" from="Center/Column/Items/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="confirmed" from="Center/Column/Items/NewGameButton" to="." method="_on_new_game_button_confirmed"]
-[connection signal="pressed" from="Center/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
-[connection signal="pressed" from="Center/Column/Items/QuitButton" to="." method="_on_quit_button_pressed"]
-[connection signal="save_deleted" from="SettingsMenu" to="." method="_on_settings_menu_save_deleted"]
+[connection signal="pressed" from="Home/Column/Items/ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="Home/Column/Items/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="Home/Column/Items/LevelsButton" to="." method="_on_levels_button_pressed"]
+[connection signal="pressed" from="Home/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="Home/Column/Items/ControlsButton" to="." method="_on_controls_button_pressed"]
+[connection signal="pressed" from="Home/Column/Items/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="campaign_reset" from="SettingsMenu" to="." method="_on_settings_menu_campaign_reset"]
 [connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]

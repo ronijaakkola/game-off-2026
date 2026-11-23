@@ -1,0 +1,292 @@
+[gd_scene format=3 uid="uid://b2bxxyarldn1c"]
+
+[ext_resource type="Script" uid="uid://bkan64p1ql1s3" path="res://ui/campaign/level_card.gd" id="1_card"]
+[ext_resource type="Texture2D" uid="uid://bgxv87og87rfb" path="res://shared/icons/circle_check.svg" id="2_check"]
+[ext_resource type="Texture2D" uid="uid://d2q1cpvvdw8as" path="res://ui/icons/circle_play.svg" id="3_play"]
+[ext_resource type="Texture2D" uid="uid://y2li7kgyrfui" path="res://shared/icons/lock.svg" id="4_lock"]
+[ext_resource type="Texture2D" uid="uid://ciqgs3wp1i7fu" path="res://ui/campaign/icons/checkbox_on.svg" id="5_on"]
+[ext_resource type="Texture2D" uid="uid://dytdbw3om3v5d" path="res://ui/campaign/icons/checkbox_off.svg" id="6_off"]
+[ext_resource type="FontFile" uid="uid://dvkne24ql3ctu" path="res://ui/fonts/baloo_2.ttf" id="7_baloo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_card"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_focus"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.957, 0.945, 1, 0.651)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+expand_margin_left = 4.0
+expand_margin_top = 4.0
+expand_margin_right = 4.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_strip"]
+content_margin_left = 16.0
+content_margin_right = 16.0
+bg_color = Color(0.1216, 0.102, 0.2784, 0.72)
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1216)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_picked"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.957, 0.945, 1, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="FontVariation" id="FontVariation_stamp"]
+base_font = ExtResource("7_baloo")
+variation_opentype = {
+2003265652: 800
+}
+spacing_top = -2
+spacing_bottom = -4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lock"]
+bg_color = Color(0.043, 0.035, 0.125, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.2)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+
+[node name="LevelCard" type="Button" unique_id=917718049]
+custom_minimum_size = Vector2(304, 360)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_card")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_card")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_card")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_card")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_card")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+script = ExtResource("1_card")
+
+[node name="Picture" type="ColorRect" parent="." unique_id=740735304]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.1216, 0.102, 0.2784, 1)
+
+[node name="Strip" type="PanelContainer" parent="." unique_id=419383514]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -68.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_strip")
+
+[node name="Rows" type="VBoxContainer" parent="Strip" unique_id=1080043769]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Number" type="Label" parent="Strip/Rows" unique_id=842181778]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+text = "Level 1"
+
+[node name="Title" type="Label" parent="Strip/Rows" unique_id=2046847316]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Level"
+
+[node name="Border" type="Panel" parent="." unique_id=84876255]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_border")
+
+[node name="PickedBorder" type="Panel" parent="." unique_id=461382481]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_picked")
+
+[node name="Completed" type="HBoxContainer" parent="." unique_id=179875340]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 12.0
+offset_bottom = 47.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Completed" unique_id=106007521]
+self_modulate = Color(0.549, 0.851, 0.4, 1)
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_check")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Shadow" type="TextureRect" parent="Completed/Icon" unique_id=1895438760]
+self_modulate = Color(0.043, 0.035, 0.125, 1)
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 2.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_check")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Completed" unique_id=1967986168]
+layout_mode = 2
+theme_override_fonts/font = SubResource("FontVariation_stamp")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.549, 0.851, 0.4, 1)
+theme_override_colors/font_shadow_color = Color(0.043, 0.035, 0.125, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 3
+text = "Completed!"
+
+[node name="InProgress" type="PanelContainer" parent="." unique_id=1583165719]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 126.0
+offset_bottom = 42.0
+mouse_filter = 2
+theme_type_variation = &"BadgePanel"
+
+[node name="Row" type="HBoxContainer" parent="InProgress" unique_id=1200880058]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="InProgress/Row" unique_id=1465396705]
+self_modulate = Color(0.961, 0.78, 0.29, 1)
+custom_minimum_size = Vector2(15, 15)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("3_play")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="InProgress/Row" unique_id=1613289652]
+layout_mode = 2
+theme_type_variation = &"GuideTitleLabel"
+theme_override_colors/font_color = Color(0.961, 0.78, 0.29, 1)
+text = "In progress"
+
+[node name="Locked" type="VBoxContainer" parent="." unique_id=1548645292]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 120.0
+offset_bottom = 190.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Badge" type="PanelContainer" parent="Locked" unique_id=2064716639]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lock")
+
+[node name="Icon" type="TextureRect" parent="Locked/Badge" unique_id=1581899171]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("4_lock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LockedReason" type="Label" parent="Locked" unique_id=371259018]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"GuideTitleLabel"
+theme_override_font_sizes/font_size = 13
+text = "Complete Level 1 first"
+horizontal_alignment = 1
+
+[node name="TutorialChip" type="PanelContainer" parent="." unique_id=450572459]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 12.0
+offset_top = 248.0
+offset_right = 129.0
+offset_bottom = 280.0
+theme_type_variation = &"ChipPanel"
+
+[node name="PlayTutorial" type="CheckBox" parent="TutorialChip" unique_id=285775439]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_card")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_card")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_card")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_card")
+theme_override_font_sizes/font_size = 13
+theme_override_constants/h_separation = 8
+theme_override_icons/checked = ExtResource("5_on")
+theme_override_icons/unchecked = ExtResource("6_off")
+text = "Play tutorial"

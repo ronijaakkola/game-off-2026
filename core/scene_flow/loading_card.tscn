@@ -1,0 +1,270 @@
+[gd_scene format=3 uid="uid://c5chv3cesqafc"]
+
+[ext_resource type="Script" uid="uid://cyjvo53mnmx0l" path="res://core/scene_flow/loading_card.gd" id="1_card"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="2_planet"]
+[ext_resource type="Texture2D" uid="uid://dvqj5wdg1fsg" path="res://core/scene_flow/icons/lightbulb.svg" id="3_bulb"]
+[ext_resource type="Texture2D" uid="uid://suwje6nuvyor" path="res://shared/icons/bus.svg" id="4_bus"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="5_theme"]
+[ext_resource type="Texture2D" uid="uid://p8stij300qva" path="res://ui/icons/play.svg" id="6_play"]
+
+[sub_resource type="Gradient" id="Gradient_scrim"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(0.043, 0.035, 0.125, 0, 0.043, 0.035, 0.125, 0.6, 0.043, 0.035, 0.125, 0.95)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_scrim"]
+gradient = SubResource("Gradient_scrim")
+width = 4
+height = 128
+fill_to = Vector2(0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_loaded"]
+bg_color = Color(1, 0.6, 0.22, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_marker"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.1137, 0.0941, 0.2588, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_left"]
+bg_color = Color(1, 1, 1, 0.1412)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="LoadingCard" type="Control" unique_id=104089236]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("5_theme")
+script = ExtResource("1_card")
+
+[node name="Picture" type="TextureRect" parent="." unique_id=498482330]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Scrim" type="TextureRect" parent="." unique_id=1059135946]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -264.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_scrim")
+expand_mode = 1
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=856608797]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 96
+theme_override_constants/margin_right = 96
+theme_override_constants/margin_bottom = 48
+
+[node name="Rows" type="VBoxContainer" parent="Margin" unique_id=1279905983]
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_override_constants/separation = 20
+
+[node name="Top" type="HBoxContainer" parent="Margin/Rows" unique_id=1200376298]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Level" type="VBoxContainer" parent="Margin/Rows/Top" unique_id=1108220556]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="LoadingLabel" type="Label" parent="Margin/Rows/Top/Level" unique_id=594670673]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+theme_override_colors/font_shadow_color = Color(0.043, 0.035, 0.125, 0.5)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 8
+text = "Loading…"
+
+[node name="Title" type="Label" parent="Margin/Rows/Top/Level" unique_id=676402569]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+theme_override_font_sizes/font_size = 52
+theme_override_colors/font_shadow_color = Color(0.043, 0.035, 0.125, 0.5)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 8
+text = "Level"
+
+[node name="Tip" type="MarginContainer" parent="Margin/Rows/Top" unique_id=991234723]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_override_constants/margin_bottom = 10
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Rows/Top/Tip" unique_id=574357073]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Heading" type="HBoxContainer" parent="Margin/Rows/Top/Tip/Rows" unique_id=1265954078]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="Margin/Rows/Top/Tip/Rows/Heading" unique_id=861101009]
+self_modulate = Color(0.961, 0.78, 0.29, 1)
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("3_bulb")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Rows/Top/Tip/Rows/Heading" unique_id=1494677334]
+layout_mode = 2
+theme_type_variation = &"GuideTitleLabel"
+theme_override_colors/font_shadow_color = Color(0.043, 0.035, 0.125, 0.5)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 8
+text = "Tip"
+
+[node name="TipBody" type="Label" parent="Margin/Rows/Top/Tip/Rows" unique_id=1206154364]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"BodyTextLabel"
+theme_override_constants/line_spacing = 3
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+theme_override_colors/font_shadow_color = Color(0.043, 0.035, 0.125, 0.5)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 8
+text = "Tip"
+autowrap_mode = 2
+
+[node name="Footer" type="Control" parent="Margin/Rows" unique_id=186163149]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Bar" type="HBoxContainer" parent="Margin/Rows/Footer" unique_id=2083998232]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="FromPlanet" type="ColorRect" parent="Margin/Rows/Footer/Bar" unique_id=1897954575]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("2_planet")
+
+[node name="Track" type="HBoxContainer" parent="Margin/Rows/Footer/Bar" unique_id=1237181242]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Loaded" type="Panel" parent="Margin/Rows/Footer/Bar/Track" unique_id=702899532]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+size_flags_stretch_ratio = 0.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_loaded")
+
+[node name="Marker" type="PanelContainer" parent="Margin/Rows/Footer/Bar/Track" unique_id=1020074117]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_marker")
+
+[node name="Bus" type="TextureRect" parent="Margin/Rows/Footer/Bar/Track/Marker" unique_id=430281300]
+self_modulate = Color(0.961, 0.78, 0.29, 1)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("4_bus")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Left" type="Panel" parent="Margin/Rows/Footer/Bar/Track" unique_id=711177285]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_left")
+
+[node name="ToPlanet" type="ColorRect" parent="Margin/Rows/Footer/Bar" unique_id=448647801]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("2_planet")
+
+[node name="StartButton" type="Button" parent="Margin/Rows/Footer" unique_id=1450801438]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(340, 48)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -24.0
+offset_right = 340.0
+offset_bottom = 24.0
+grow_vertical = 2
+theme_type_variation = &"LargePrimaryButton"
+theme_override_font_sizes/font_size = 20
+text = "Start"
+icon = ExtResource("6_play")
+alignment = 0
