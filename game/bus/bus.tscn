@@ -10,6 +10,8 @@
 [ext_resource type="Script" uid="uid://bl44x5cob22py" path="res://game/bus/fuel_tank.gd" id="8_fuel"]
 [ext_resource type="Script" uid="uid://dnnnb7j2pc502" path="res://game/bus/bus_temperature.gd" id="9_temperature"]
 [ext_resource type="Script" uid="uid://bku3behogiyk5" path="res://game/bus/heat_smoke.gd" id="10_smoke"]
+[ext_resource type="Script" uid="uid://dyujb2e5hvdou" path="res://game/bus/flight_sound.gd" id="11_flight"]
+[ext_resource type="AudioStream" uid="uid://dq1u3ecnw810g" path="res://game/bus/flying.ogg" id="12_flying"]
 
 [node name="Bus" type="Node3D" unique_id=845724280]
 script = ExtResource("1_bus")
@@ -47,3 +49,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, -0.15)
 script = ExtResource("10_smoke")
 temperature = NodePath("../Temperature")
 model = NodePath("../Model")
+
+[node name="FlightSound" type="Node" parent="." unique_id=291160042 node_paths=PackedStringArray("bus")]
+script = ExtResource("11_flight")
+sound = ExtResource("12_flying")
+bus = NodePath("..")
