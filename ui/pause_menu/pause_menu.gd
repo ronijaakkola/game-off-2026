@@ -105,7 +105,7 @@ func open() -> void:
 	root.modulate.a = 0.0
 	var fade := root.create_tween()
 	fade.tween_property(root, ^"modulate:a", 1.0, FADE_IN_SECONDS).set_ease(Tween.EASE_OUT)
-	%ResumeButton.grab_focus()
+	FocusRing.grab(%ResumeButton as Control)
 	hold(self)
 
 

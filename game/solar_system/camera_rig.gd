@@ -127,6 +127,10 @@ func _ready() -> void:
 # _input, not _unhandled_input: a Control under the pointer must not hide where it is, or
 # take the drag's motion and its release from it.
 func _input(event: InputEvent) -> void:
+	# The arrow keys pan, so the button last clicked lets go of focus rather than show its
+	# ring as they move it.
+	if event.is_pressed() and _is_pan(event):
+		FocusRing.drop_hidden()
 	var motion := event as InputEventMouseMotion
 	if motion:
 		_pointer_inside = true
@@ -339,6 +343,15 @@ func _start_drag(screen_point: Vector2, moved: bool) -> void:
 
 static func _is_left(button: InputEventMouseButton) -> bool:
 	return button.button_index == MOUSE_BUTTON_LEFT
+
+
+static func _is_pan(event: InputEvent) -> bool:
+	for action: StringName in [
+		&"camera_pan_left", &"camera_pan_right", &"camera_pan_forward", &"camera_pan_back"
+	]:
+		if event.is_action(action):
+			return true
+	return false
 
 
 # Moves the look-at point, and its target with it, so the grabbed point is under

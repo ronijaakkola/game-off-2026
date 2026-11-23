@@ -53,7 +53,7 @@ func wait_for_start() -> void:
 	(%Bar as Control).hide()
 	var start := %StartButton as Button
 	start.show()
-	start.grab_focus()
+	FocusRing.grab(start)
 	if _appear:
 		_appear.kill()
 	start.modulate.a = 0.0

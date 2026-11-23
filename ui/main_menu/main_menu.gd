@@ -40,7 +40,7 @@ func _ready() -> void:
 	else:
 		_start_music()
 		# Deferred, as the grab_focus docs advise for a call from _ready().
-		_first_button().grab_focus.call_deferred()
+		FocusRing.grab.call_deferred(_first_button())
 
 
 func _start_music() -> void:
@@ -53,7 +53,7 @@ func _on_start_overlay_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		%StartOverlay.hide()
 		_start_music()
-		_first_button().grab_focus()
+		FocusRing.grab(_first_button())
 
 
 # Continue, naming the level, and Levels while a level is in progress, else Play.
@@ -130,7 +130,7 @@ func _on_background_resized() -> void:
 func _debug_delete_save() -> void:
 	Campaign.reset()
 	_show_level_buttons()
-	_first_button().grab_focus()
+	FocusRing.grab(_first_button())
 
 
 # The debug panel's Voice lab: the scene for trying the alien voices.

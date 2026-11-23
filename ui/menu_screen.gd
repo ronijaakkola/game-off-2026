@@ -67,7 +67,7 @@ func open(covered: Control, covered_rows := Callable()) -> void:
 	if not covered_rows.is_valid():
 		_covered.hide()
 		show()
-		_first_control().grab_focus()
+		FocusRing.grab(_first_control())
 		return
 	var items := _items()
 	for item: Control in items:
@@ -75,7 +75,7 @@ func open(covered: Control, covered_rows := Callable()) -> void:
 	# Takes the clicks meant for the menu's items while they leave.
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	show()
-	_first_control().grab_focus()
+	FocusRing.grab(_first_control())
 	_covered_items = covered_rows.call()
 	var motion := _start_motion()
 	var left := _stagger(motion, _covered_items, -1.0, 0.0, false)
@@ -247,7 +247,7 @@ func _on_visibility_changed() -> void:
 	_covered_rows = Callable()
 	_covered_items = []
 	if is_instance_valid(_opener):
-		_opener.grab_focus()
+		FocusRing.grab(_opener)
 
 
 # Esc goes back, like the Back button, and stops there: the pause menu under the screen
