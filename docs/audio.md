@@ -26,7 +26,7 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 | File | Plays when | Level | Status |
 |---|---|---|---|
 | `game/solar_system/fuel.ogg` | The fuel pump, for as long as fuel flows | 0.35 | Done |
-| `game/solar_system/ringtone.ogg` | A call notice shows: 2 beats at 88 bpm, looped from the music's next beat, fading out in 0.15 s as the call is answered or goes. Silent while the notices are hidden or the game is paused | 0.15 | Placeholder, "to be replaced with the final ringtone" |
+| `game/solar_system/ringtone.ogg` | A call notice shows: 2 beats at 88 bpm, looped from the music's next beat, fading out in 0.15 s as the call is answered or goes. Silent while the notices are hidden or the game is paused | 0.15 | Done |
 | `game/passengers/psst_1.ogg`, `psst_2.ogg`, `psst_3.ogg` | A passenger card opens a request for food or a drink: one at random, never the same twice running, pitch varied up to 6 % | 0.3 each | Done |
 | `game/passengers/wilhelm_scream.ogg` | A kicked passenger flies out of the bus, fading fastest at first | 0.23 | Placeholder |
 
@@ -95,4 +95,4 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 
 ### Placeholders to replace before release
 
-`dock_bell.ogg`, `key_click.ogg`, `ui_click.ogg`, `ringtone.ogg` and `wilhelm_scream.ogg`.
+`dock_bell.ogg`, `key_click.ogg`, `ui_click.ogg` and `wilhelm_scream.ogg`.
