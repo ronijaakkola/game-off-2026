@@ -58,14 +58,14 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 ## Plays each time the bus docks after flying to a planet.
 @export var dock_sound: AudioStream
 ## Seconds of holding the Frameshift key before the bus leaves a planet, or space once cold.
-@export_range(0.0, 10.0, 0.1) var charge_time := 3.0:
+@export_range(0.0, 10.0, 0.1) var charge_time := 1.5:
 	set(value):
 		charge_time = value
 		_drive.charge_time = value
 ## Seconds the drive stays warm after the bus stops in space: a course set later waits for a charge.
 @export_range(0.0, 30.0, 0.1) var warm_time := 1.0
 ## Seconds after those getting off are off within which leaving a planet is a quick stop.
-@export_range(0.0, 30.0, 0.1) var quick_time := 7.0:
+@export_range(0.0, 30.0, 0.1) var quick_time := 5.5:
 	set(value):
 		quick_time = value
 		_drive.quick_time = value
