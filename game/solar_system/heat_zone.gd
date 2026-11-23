@@ -132,5 +132,5 @@ func _pulse(delta: float, target: float) -> void:
 	if not Settings.reduce_motion:
 		pulse = 0.5 - 0.5 * cos(TAU * PULSE_RATE * _time)
 	var material := zone.material_override as ShaderMaterial
-	material.set_shader_parameter(&"flash", _flash * pulse)
-	material.set_shader_parameter(&"drift", 0.0 if Settings.reduce_motion else 1.0)
+	ShaderValues.show(material, &"flash", _flash * pulse)
+	ShaderValues.show(material, &"drift", 0.0 if Settings.reduce_motion else 1.0)

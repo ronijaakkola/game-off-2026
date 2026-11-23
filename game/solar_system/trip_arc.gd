@@ -142,9 +142,9 @@ func _process(delta: float) -> void:
 		_scroll = fmod(_scroll + flow_speed * delta, dash_pixels + gap_pixels)
 		if ring >= 1.0:
 			_pulse = fmod(_pulse + delta / pulse_seconds, 1.0)
-	_arc_material.set_shader_parameter(&"color", _color)
-	_ring_material.set_shader_parameter(&"color", _color)
-	_arc_material.set_shader_parameter(&"scroll", _scroll)
+	ShaderValues.show(_arc_material, &"color", _color)
+	ShaderValues.show(_ring_material, &"color", _color)
+	ShaderValues.show(_arc_material, &"scroll", _scroll)
 	_draw_arc(grown)
 	if ring > 0.0:
 		_draw_rings(ring, still)

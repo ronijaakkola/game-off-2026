@@ -102,8 +102,8 @@ func _process(delta: float) -> void:
 	# The star they circle lights them, wherever the field sits on the map.
 	for node: Node in [%Rocks, %Pebbles]:
 		var material := (node as MultiMeshInstance3D).material_override as ShaderMaterial
-		material.set_shader_parameter(&"tumble", 0.0 if Settings.reduce_motion else 1.0)
-		material.set_shader_parameter(&"light_source", global_position)
+		ShaderValues.show(material, &"tumble", 0.0 if Settings.reduce_motion else 1.0)
+		ShaderValues.show(material, &"light_source", global_position)
 	if bus:
 		_ride(delta)
 
