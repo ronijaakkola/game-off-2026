@@ -321,6 +321,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
   - The striped end and the pause mark keep their own tooltips where they are.
 - **The activity line morphs** when it changes: a wave sweeps left to right, the old letters drift up and blur away and the new ones rise into focus, in about half a second. Under Reduce motion the lines crossfade.
 - **A request.** A serve button takes the place of the activity line, with the need's icon and label: "Hand a snack" with a sandwich, "Pour a drink" with a cup. A faint cyan fill sweeps across the button as it is held, or as an amenity serves.
+  - Sound: a faint "psst" as it opens, one of three whispers at random, never the same one twice running, its pitch varied by up to 6 %.
   - Served: "Munching a snack".
   - Amenities have their own lines: "Getting a snack from the dispenser", "Waiting for the dispenser", "A droid brings a snack", "Waiting for a droid".
   - Docked, the station serves it: the button reads "Station serves a snack" and fills by itself.
