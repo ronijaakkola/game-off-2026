@@ -84,7 +84,8 @@ func advance(delta: float, sweat: float, motion: float) -> void:
 
 # Every corner of [param meshes]' faces, in the head's space.
 func _points(meshes: Array[MeshInstance3D]) -> PackedVector3Array:
-	var to_head := get_parent_node_3d().global_transform.affine_inverse()
+	# It sits on the head unmoved, so its own space is the head's.
+	var to_head := global_transform.affine_inverse()
 	var points := PackedVector3Array()
 	for mesh: MeshInstance3D in meshes:
 		if not mesh.mesh:
