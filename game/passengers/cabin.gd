@@ -77,6 +77,10 @@ const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.
 ## How many times as long someone picked up waits for their first requests, once the bus
 ## has Free station coffee.
 @export_range(1.0, 3.0, 0.05) var coffee_delay := 1.5
+## Happiness every upgrade the bus has that does anything adds to what everyone can reach:
+## a better bus is a nicer ride. Up to [member quality_max] in all.
+@export_range(0.0, 10.0, 0.1) var quality_per_upgrade := 1.0
+@export_range(0.0, 50.0, 0.5) var quality_max := 10.0
 
 ## Whether the bus waits at a planet, docked or charging, so everyone's happiness and ride
 ## clock hold and the station serves their requests. The scene that holds the bus sets it.
@@ -151,6 +155,7 @@ func follow(stats: BusStats) -> void:
 		_bus_stats.get_stat(BusStats.Type.SEATS).changed.disconnect(_on_seats_stat_changed)
 		_bus_stats.get_stat(BusStats.Type.PORTION_SIZE).changed.disconnect(_on_portion_changed)
 		_bus_stats.get_traits().changed.disconnect(_on_trait_changed)
+		_bus_stats.get_stat(BusStats.Type.UPGRADES).changed.disconnect(_on_upgrades_changed)
 	_bus_stats = stats
 	var stat := stats.get_stat(BusStats.Type.SEATS)
 	stat.base = seats
@@ -158,6 +163,7 @@ func follow(stats: BusStats) -> void:
 	stats.get_stat(BusStats.Type.PORTION_SIZE).changed.connect(_on_portion_changed)
 	_on_portion_changed()
 	stats.get_traits().changed.connect(_on_trait_changed)
+	stats.get_stat(BusStats.Type.UPGRADES).changed.connect(_on_upgrades_changed)
 	_on_trait_changed(BusTraits.Type.FOOD_DISPENSER)
 
 
@@ -399,6 +405,12 @@ func _get_hand_speed() -> float:
 	return _bus_stats.get_stat(BusStats.Type.SERVING_SPEED).get_value() if _bus_stats else 1.0
 
 
+# What the bus's upgrades add to everyone's happiness as a better bus to ride.
+func _get_quality() -> float:
+	var upgrades := _bus_stats.get_stat(BusStats.Type.UPGRADES).get_value()
+	return minf(upgrades * quality_per_upgrade, quality_max)
+
+
 # Whether the bus the cabin follows has [param type]. Before it follows one, nothing.
 func _has(type: BusTraits.Type) -> bool:
 	return _bus_stats != null and _bus_stats.get_traits().has(type)
@@ -412,10 +424,14 @@ func _on_portion_changed() -> void:
 	portion = _bus_stats.get_stat(BusStats.Type.PORTION_SIZE).get_value()
 
 
+func _on_upgrades_changed() -> void:
+	_on_trait_changed(BusTraits.Type.FOOD_DISPENSER)
+
+
 func _on_trait_changed(_type: BusTraits.Type) -> void:
 	var traits := _bus_stats.get_traits()
 	var discomfort := comfort.discomfort
-	comfort = Comfort.from_traits(traits)
+	comfort = Comfort.from_traits(traits, _get_quality())
 	comfort.discomfort = discomfort
 	for passenger: Passenger in _passengers:
 		passenger.settle(comfort)

@@ -42,6 +42,11 @@ signal board_pressed(passenger: Passenger)
 signal trip_previewed(passenger: Passenger)
 ## The player pressed the Research button, to research at [param at]'s lab.
 signal research_pressed(at: Planet)
+## The player pressed the Teleport button, to go through the shown planet's warp gate.
+signal teleport_pressed
+## The pointer came onto the Teleport button, or left it: the way through the gate shows
+## from [param from] to [param to], or nowhere when both are null.
+signal gate_previewed(from: Planet, to: Planet)
 
 const ROW := preload("res://game/solar_system/boarding_row.tscn")
 ## Seconds to slide in from past the right edge, or back out.
@@ -137,12 +142,16 @@ var _offset := 1.0
 var _slide: Tween
 # The passenger whose row was clicked, whose trip shows while no row is under the pointer.
 var _pinned: Passenger
+# The planet the gate leads to whose way shows, as last sent in gate_previewed.
+var _gate_previewed: Planet
 # The passenger whose trip shows, as last sent in trip_previewed.
 var _previewed: Passenger
 var _beckon: Tween
 # Whether "Nobody waiting." shows, or is on its way in, and its fade.
 var _empty := true
 var _empty_fade: Tween
+# What the Teleport button reads, or empty while its row hides.
+var _teleport_text := ""
 # How much of its height the Research row has, from 0 to 1, and the tween growing it in.
 var _research_open := 1.0
 var _research_in: Tween
@@ -198,6 +207,18 @@ func show_fuel(fraction: float, cost: int, can_fuel: bool, reason: String) -> vo
 	(%FuelButton as FuelButton).show_fuel(fraction, cost, can_fuel, reason)
 
 
+## Shows the Teleport button reading [param text], on or off by [param can_teleport], or
+## hides its row while [param text] is empty.
+func show_teleport(text: String, can_teleport: bool) -> void:
+	var button := %TeleportButton as Button
+	button.text = text
+	button.disabled = not can_teleport
+	var changed := _teleport_text.is_empty() != text.is_empty()
+	_teleport_text = text
+	if changed:
+		_show_services()
+
+
 func _show_planet() -> void:
 	if planet:
 		if planet != _shown:
@@ -251,10 +272,17 @@ func _show_services() -> void:
 	if not _shown:
 		return
 	var fuel := _shown.sells_fuel and not fuel_hidden
+	var teleport := not _teleport_text.is_empty()
 	(%FuelRow as Control).visible = fuel
 	(%ResearchSlot as Control).visible = _shows_lab()
-	(%Services as Control).visible = fuel or _shows_lab()
-	(%FuelRule as Control).visible = fuel or _shows_lab()
+	(%TeleportSlot as Control).visible = teleport
+	(%Services as Control).visible = fuel or _shows_lab() or teleport
+	(%FuelRule as Control).visible = fuel or _shows_lab() or teleport
+	# Under the fuel or Research row's gap when either shows.
+	var gap := (
+		(%Content as Control).get_theme_constant(&"separation") if fuel or _shows_lab() else 0
+	)
+	(%TeleportSlot as Control).add_theme_constant_override(&"margin_top", gap)
 	_fit_research()
 
 
@@ -391,11 +419,18 @@ func _set_beckon_glow(glow: float) -> void:
 	card.add_theme_stylebox_override(&"panel", style)
 
 
-# Shows the trip of the passenger whose row the pointer is over, else the pinned one's, and
-# nobody's once the bus has left. Highlights that row, and tells the parent when it changes.
+# Shows the way through the gate while the pointer is over the Teleport button, else the
+# trip of the passenger whose row it is over, else the pinned one's, and nobody's once the
+# bus has left. Highlights that row, and tells the parent when either changes.
 func _preview() -> void:
+	var gate_to: Planet = null
+	if planet and not _teleport_text.is_empty() and (%TeleportButton as Button).is_hovered():
+		gate_to = WarpGate.twin_of(planet)
+	if gate_to != _gate_previewed:
+		_gate_previewed = gate_to
+		gate_previewed.emit(planet if gate_to else null, gate_to)
 	var shown: Passenger = null
-	if planet:
+	if planet and not gate_to:
 		for passenger: Passenger in _rows:
 			if _rows[passenger].is_hovered():
 				shown = passenger
@@ -427,6 +462,11 @@ func get_fuel_button() -> Control:
 ## The fuel row, its icon and button, for a guide card to point at.
 func get_fuel_row() -> Control:
 	return %FuelRow
+
+
+## The warp row, its icon and button, for a guide card to point at.
+func get_teleport_row() -> Control:
+	return %TeleportRow
 
 
 ## The Research button's row, its icon included, for a guide card to point at.
@@ -503,6 +543,10 @@ func _on_row_clicked(passenger: Passenger) -> void:
 func _on_research_button_pressed() -> void:
 	if _shown:
 		research_pressed.emit(_shown)
+
+
+func _on_teleport_button_pressed() -> void:
+	teleport_pressed.emit()
 
 
 func _on_board_all_button_pressed() -> void:

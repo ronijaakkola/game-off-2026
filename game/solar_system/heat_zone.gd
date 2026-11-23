@@ -54,6 +54,8 @@ func _ready() -> void:
 
 
 func _fade_in() -> void:
+	# Placed while the world was scaled for the tutorial, the disc came out off the star.
+	zone.global_position = _system.global_position
 	var material := zone.material_override as ShaderMaterial
 	material.set_shader_parameter(&"opacity", 0.0)
 	zone.visible = true
@@ -130,5 +132,5 @@ func _pulse(delta: float, target: float) -> void:
 	if not Settings.reduce_motion:
 		pulse = 0.5 - 0.5 * cos(TAU * PULSE_RATE * _time)
 	var material := zone.material_override as ShaderMaterial
-	material.set_shader_parameter(&"flash", _flash * pulse)
-	material.set_shader_parameter(&"drift", 0.0 if Settings.reduce_motion else 1.0)
+	ShaderValues.show(material, &"flash", _flash * pulse)
+	ShaderValues.show(material, &"drift", 0.0 if Settings.reduce_motion else 1.0)

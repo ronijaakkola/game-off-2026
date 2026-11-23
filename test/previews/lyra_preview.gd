@@ -4,7 +4,9 @@ extends Node
 ## after `--`, the camera pulls back over the whole system, and with a planet's name it
 ## looks at that planet: `capture <this scene> -- Cinder`. With `fly` before
 ## the name, the bus flies there from Hither instead, across the asteroid field, with the
-## camera on the bus: `-- fly Janus`.
+## camera on the bus: `-- fly Janus`. With `warp`, the whole system shows and a second in
+## the bus warps through Hither's gate to Yon: `-- warp`. With `gate`, the pointer rests on
+## the station's Teleport button, showing the way through the gate: `-- gate`.
 
 ## How far the camera pulls back to show the whole system.
 const WIDE_DISTANCE := 68.0
@@ -35,6 +37,17 @@ func _ready() -> void:
 			rig.set_distance(NEAR_DISTANCE)
 			rig.move_to(planet.get_body_global_position())
 			return
-	if "wide" in args:
+	if "wide" in args or "warp" in args:
 		rig.set_distance(WIDE_DISTANCE)
 		rig.move_to(star_map.get_current().global_position)
+	if "gate" in args:
+		await get_tree().create_timer(1.0).timeout
+		var button := find_child("TeleportButton", true, false) as Control
+		var motion := InputEventMouseMotion.new()
+		motion.position = button.get_global_rect().get_center()
+		motion.global_position = motion.position
+		get_viewport().push_input(motion)
+	if "warp" in args:
+		await get_tree().create_timer(1.0).timeout
+		var gate := WarpGate.of(find_child("Hither") as Planet)
+		(find_child("SystemJump") as SystemJump).warp(gate, gate.partner)

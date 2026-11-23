@@ -105,21 +105,15 @@ requires = Array[Resource]([SubResource("Resource_speed_1")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_2_mod")])
 tier = 2
 
-[sub_resource type="Resource" id="Resource_warm_drive_mod"]
-script = ExtResource("3_modifier")
-stat = 4
-kind = 1
-amount = 50.0
-
 [sub_resource type="Resource" id="Resource_warm_drive"]
 script = ExtResource("2_upgrade")
-title = "Warmer drive"
-description = "Frameshift drive stays warm longer when docking to a planet."
+title = "Warm drive"
+description = "The frameshift drive stays warm while docked, so leaving takes a moment."
 icon = ExtResource("30_warmer_drive")
 credits = 240
 points = 4
 requires = Array[Resource]([SubResource("Resource_speed_1")])
-modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_warm_drive_mod")])
+traits = Array[int]([13])
 tier = 1
 column = 1
 

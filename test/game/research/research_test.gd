@@ -105,6 +105,16 @@ func _state(upgrade: Upgrade) -> Research.State:
 	return _research.get_state(upgrade, 1000, 1000)
 
 
+func test_every_upgrade_that_does_anything_counts_on_the_upgrades_stat() -> void:
+	var unbuilt := _upgrade()
+	unbuilt.description = "Coming soon. NOT IMPLEMENTED"
+	_research.research(_upgrade())
+	_research.research(_upgrade())
+	_research.research(unbuilt)
+
+	assert_float(_stats.get_stat(BusStats.Type.UPGRADES).get_value()).is_equal(2.0)
+
+
 func _upgrade(requires: Array[Upgrade] = [], credits := 0, points := 0) -> Upgrade:
 	var upgrade := Upgrade.new()
 	upgrade.requires.assign(requires)

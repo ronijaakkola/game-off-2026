@@ -41,6 +41,26 @@ const HINTS := {
 		),
 		side = GuideCard.Side.LEFT,
 	},
+	&"asteroid_field":
+	{
+		title = "Asteroid field",
+		text =
+		(
+			"The rocks slow the bus to a crawl, and every knock shakes up your passengers. "
+			+ "Fly through a gap, or go around the field."
+		),
+		side = GuideCard.Side.ABOVE,
+	},
+	&"warp_drive":
+	{
+		title = "Warp drives",
+		text =
+		(
+			"This planet has a warp drive. It can be used to quickly travel to other planets "
+			+ "with warp drives."
+		),
+		side = GuideCard.Side.LEFT,
+	},
 	&"goals":
 	{
 		title = "Goals",
