@@ -75,6 +75,9 @@ var frustration := 0.0
 var activity := ""
 ## The need they are asking for, or null.
 var request: Need
+## How many requests they have opened this ride, so a card can tell a new one from one
+## that was already open. A request a save held, opening again, doesn't count.
+var requests_opened := 0
 ## Added to the happiness they settle at, all ride long, for the time they waited before
 ## the Station waiting lounge picked them up ([WaitingPassengers]).
 var lounge_bonus := 0.0
@@ -505,6 +508,7 @@ func _open(need: Need) -> void:
 	action = Need.Action.NONE
 	activity = need.request_line
 	_request_age = 0.0
+	requests_opened += 1
 
 
 func _close(line: String, seconds: float) -> void:

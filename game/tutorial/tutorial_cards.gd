@@ -30,7 +30,7 @@ const CARDS := {
 		title = "Look around",
 		text =
 		(
-			"Drag {mouse_left} or use {wasd} to move around.\nUse the mouse wheel "
+			"Hold {mouse_left} and drag, or use {wasd}, to move around.\nUse the mouse wheel "
 			+ "{mouse_wheel} to zoom. Try both."
 		),
 		side = GuideCard.Side.RIGHT,
@@ -84,7 +84,7 @@ const CARDS := {
 	},
 	"SERVE":
 	{
-		title = "A request",
+		title = "Heard that sound?",
 		text =
 		(
 			"To keep your passengers happy, you need to serve them during their trip. This "

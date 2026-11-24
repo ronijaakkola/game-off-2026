@@ -17,3 +17,6 @@ Icons used by more than one feature, from [Lucide](https://lucide.dev) (`lucide-
 | `pause.svg` | `pause` | ISC (`LICENSE.txt`) |
 | `circle_x.svg` | `circle-x` | ISC (`LICENSE.txt`) |
 | `x.svg` | `x` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `bus.svg` | `bus` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `route.svg` | `route` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `lock.svg` | `lock` | ISC (`LICENSE.txt`) |

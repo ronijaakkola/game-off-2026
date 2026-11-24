@@ -59,9 +59,11 @@ func restore(saved: Dictionary, bus_planet: Planet) -> void:
 	rig.position = systems[_current].position
 
 
-## What a save keeps: how many systems are open and whether they are joined.
+## What a save keeps: how many systems are open and whether they are joined, and the
+## system the bus works in, by name, for the main menu to show its level's loading screen.
+## [method restore] finds that from the bus's planet instead.
 func to_save() -> Dictionary:
-	return {"opened": _opened, "joined": _joined}
+	return {"opened": _opened, "joined": _joined, "system": String(get_current().name)}
 
 
 ## Every star system, in the order they open.
@@ -80,6 +82,12 @@ func get_current() -> StarSystem:
 
 func is_joined() -> bool:
 	return _joined
+
+
+## How many systems the player has been promoted out of: each opened the next, and the
+## last joined them.
+func count_done() -> int:
+	return get_systems().size() if _joined else _opened - 1
 
 
 ## The system the bus can jump to, now that a promotion has opened it, or null.

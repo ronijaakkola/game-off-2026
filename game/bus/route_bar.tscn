@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://eikeiir2oo3l" path="res://game/bus/route_bar.gd" id="1_bar"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="2_glass"]
-[ext_resource type="Texture2D" uid="uid://bv3he6oofkmxy" path="res://game/bus/icons/route.svg" id="3_route"]
+[ext_resource type="Texture2D" uid="uid://bv3he6oofkmxy" path="res://shared/icons/route.svg" id="3_route"]
 [ext_resource type="Script" uid="uid://dl6jwib3kd3a0" path="res://game/passengers/morph_label.gd" id="4_morph"]
 [ext_resource type="Texture2D" uid="uid://8bhcmnls71nl" path="res://game/bus/icons/timer.svg" id="5_timer"]
 [ext_resource type="Texture2D" uid="uid://j6t52jcdwrsr" path="res://shared/icons/fuel.svg" id="6_fuel"]
