@@ -8,6 +8,9 @@ extends Node
 ## course is gone; whoever is on board rides along. With Gate tuning it costs
 ## [constant TUNED_SHARE] of what the gate asks.
 
+## The bus came out of the far gate, with whoever is on board.
+signal warped
+
 const TEXT := "Warp to %s (%d%% fuel)"
 const TUNED_SHARE := 0.5
 
@@ -21,6 +24,7 @@ const TUNED_SHARE := 0.5
 
 func _ready() -> void:
 	dock_panel.teleport_pressed.connect(_on_teleport_pressed)
+	system_jump.came_through.connect(_on_came_through)
 
 
 func _process(_delta: float) -> void:
@@ -68,3 +72,7 @@ func _on_teleport_pressed() -> void:
 func _fuel_share(gate: WarpGate) -> float:
 	var tuned := bus.get_stats().get_traits().has(BusTraits.Type.GATE_TUNING)
 	return gate.fuel_share * (TUNED_SHARE if tuned else 1.0)
+
+
+func _on_came_through(_gate: WarpGate) -> void:
+	warped.emit()

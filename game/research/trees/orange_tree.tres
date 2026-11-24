@@ -6,9 +6,13 @@
 [ext_resource type="Texture2D" uid="uid://okb3f2gln87o" path="res://game/research/icons/heart.svg" id="20_heart"]
 [ext_resource type="Texture2D" uid="uid://dhwkix42ykakn" path="res://game/research/icons/rendered/bigger_portions_36.png" id="30_bigger_portions"]
 [ext_resource type="Texture2D" uid="uid://cmaaxrk8rpikg" path="res://game/research/icons/rendered/extra_seat_36.png" id="30_extra_seat"]
+[ext_resource type="Texture2D" uid="uid://cw6ovyp7vs8yu" path="res://game/research/icons/rendered/food_dispenser_36.png" id="30_food_dispenser"]
 [ext_resource type="Texture2D" uid="uid://c2woqdtwefc0f" path="res://game/research/icons/rendered/in_flight_movies_36.png" id="30_in_flight_movies"]
 [ext_resource type="Texture2D" uid="uid://c0kyw5g4df7f5" path="res://game/research/icons/rendered/pillows_36.png" id="30_pillows"]
 [ext_resource type="Texture2D" uid="uid://dtjv7stxkojm5" path="res://game/research/icons/rendered/quick_hands_36.png" id="30_quick_hands"]
+[ext_resource type="Texture2D" uid="uid://cxr7nxrhjyr1q" path="res://game/research/icons/rendered/shock_absorbers_36.png" id="30_shock_absorbers"]
+[ext_resource type="Texture2D" uid="uid://bp0fi2a4xe08v" path="res://game/research/icons/rendered/sleeping_pods_36.png" id="30_sleeping_pods"]
+[ext_resource type="Texture2D" uid="uid://cm8en7w3ptbc6" path="res://game/research/icons/rendered/space_invaders_36.png" id="30_space_invaders"]
 [ext_resource type="Texture2D" uid="uid://cspxodsva0min" path="res://game/research/icons/rendered/placeholder_36.png" id="31_placeholder"]
 
 [sub_resource type="Resource" id="Resource_pillows"]
@@ -85,7 +89,7 @@ column = 3
 script = ExtResource("2_upgrade")
 title = "Space Invaders"
 description = "Arcade games on board: passengers are happier still, and use more time consuming entertainment."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_space_invaders")
 credits = 300
 points = 4
 requires = Array[Resource]([SubResource("Resource_entertainment_system")])
@@ -132,7 +136,7 @@ column = 4
 script = ExtResource("2_upgrade")
 title = "Sleeping pods"
 description = "Passengers sleep long and deep, and the ride flies by while they do."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_sleeping_pods")
 credits = 800
 points = 10
 requires = Array[Resource]([SubResource("Resource_pillows")])
@@ -143,7 +147,7 @@ tier = 3
 script = ExtResource("2_upgrade")
 title = "Shock absorbers"
 description = "Asteroid knocks upset passengers half as much, and the bus flies through the rocks faster."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_shock_absorbers")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_gaming_system"), SubResource("Resource_extra_seat_2")])
@@ -155,7 +159,7 @@ column = 1
 script = ExtResource("2_upgrade")
 title = "Food Dispenser"
 description = "Hungry passengers fetch their own snacks and drinks, one at a time."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_food_dispenser")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_pneumatic_galley"), SubResource("Resource_portions_2")])

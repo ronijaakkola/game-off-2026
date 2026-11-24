@@ -8,7 +8,7 @@ const FRAME_MS := 50
 
 var _held: Array[Key] = []
 var _window_size: Vector2i
-var _edge_pan: bool
+var _edge_scroll: bool
 
 
 func before() -> void:
@@ -16,19 +16,19 @@ func before() -> void:
 	# position by 18. At the base size it scales by 1.
 	_window_size = get_tree().root.size
 	get_tree().root.size = Vector2i(1152, 648)
-	# The developer's own settings may have edge pan off.
-	_edge_pan = Settings.edge_pan
+	# The developer's own settings may have edge scrolling off.
+	_edge_scroll = Settings.edge_scroll
 
 
 func after() -> void:
 	get_tree().root.size = _window_size
-	if Settings.edge_pan != _edge_pan:
-		Settings.edge_pan = _edge_pan
+	if Settings.edge_scroll != _edge_scroll:
+		Settings.edge_scroll = _edge_scroll
 
 
 func before_test() -> void:
-	if not Settings.edge_pan:
-		Settings.edge_pan = true
+	if not Settings.edge_scroll:
+		Settings.edge_scroll = true
 
 
 func after_test() -> void:
@@ -100,7 +100,7 @@ func test_wheel_zooms_toward_what_is_under_the_pointer_even_mid_zoom() -> void:
 func test_zooming_mid_pan_keeps_the_pan_going() -> void:
 	var runner := scene_runner(SOLAR_SYSTEM)
 	var rig := runner.find_child("CameraRig") as CameraRig
-	rig.edge_pan_margin = 0.0
+	rig.edge_scroll_margin = 0.0
 	# Room to pan for the whole test: the frames wait in real time, which runs longer.
 	rig.bounds_radius = 1000.0
 	var screen_right := Vector3(rig.basis.x.x, 0.0, rig.basis.x.z).normalized()
@@ -121,7 +121,7 @@ func test_zooming_mid_pan_keeps_the_pan_going() -> void:
 	assert_float(pan_after).is_greater(pan_before * (1.0 - rig.zoom_step))
 
 
-func test_pointer_at_an_edge_pans_until_it_leaves_the_window() -> void:
+func test_pointer_at_an_edge_scrolls_until_it_leaves_the_window() -> void:
 	var runner := scene_runner(SCENE)
 	var rig := runner.scene() as CameraRig
 	rig.smoothing = 1000.0
@@ -159,7 +159,7 @@ func test_pointer_from_a_panel_waits_at_the_edge_before_panning() -> void:
 	await runner.simulate_frames(2, FRAME_MS)
 	# Overshooting the panel into the edge, briefly, doesn't pan.
 	_send_motion(Vector2(rect.end.x - 2.0, 200.0))
-	await runner.simulate_frames(int(rig.edge_pan_delay * 1000.0 / FRAME_MS) - 2, FRAME_MS)
+	await runner.simulate_frames(int(rig.edge_scroll_delay * 1000.0 / FRAME_MS) - 2, FRAME_MS)
 	assert_vector(rig.position).is_equal_approx(start, Vector3.ONE * 0.001)
 
 	# Staying there does.
@@ -169,8 +169,8 @@ func test_pointer_from_a_panel_waits_at_the_edge_before_panning() -> void:
 	assert_float(moved.dot(screen_right)).is_greater(0.1)
 
 
-func test_pointer_at_an_edge_does_nothing_with_edge_pan_off() -> void:
-	Settings.edge_pan = false
+func test_pointer_at_an_edge_does_nothing_with_edge_scroll_off() -> void:
+	Settings.edge_scroll = false
 	var runner := scene_runner(SCENE)
 	var rig := runner.scene() as CameraRig
 	rig.smoothing = 1000.0
@@ -256,7 +256,7 @@ func test_dragging_with_the_middle_button_keeps_the_grabbed_point_under_the_poin
 	await runner.simulate_frames(3, FRAME_MS)
 	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(250, 350))).is_less(1.0)
 
-	# At the window edge, where edge pan would take over, the drag carries on by itself.
+	# At the window edge, where edge scrolling would take over, the drag carries on by itself.
 	_send_motion(Vector2(4, 350))
 	await runner.simulate_frames(3, FRAME_MS)
 	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(4, 350))).is_less(1.0)

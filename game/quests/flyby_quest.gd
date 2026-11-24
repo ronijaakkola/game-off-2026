@@ -42,10 +42,11 @@ func plan(
 		return false
 	passenger = who
 	planet = others[rng.randi_range(0, others.size() - 1)]
-	detour_seconds = get_detour_seconds(who, bus, planet, waiting, false)
-	reward_credits = get_reward(REWARD_CREDITS)
-	reward_research = get_reward(REWARD_RESEARCH)
-	_line = LINES[rng.randi_range(0, LINES.size() - 1)]
+	detour_seconds = get_detour_seconds(who, bus, planet, waiting, _stops())
+	reward_credits = get_reward(_get_reward_credits())
+	reward_research = get_reward(_get_reward_research())
+	var lines := _get_lines()
+	_line = lines[rng.randi_range(0, lines.size() - 1)]
 	return true
 
 
@@ -54,7 +55,7 @@ func restore(saved: Dictionary, who: Passenger, planets: Dictionary[String, Plan
 	if not planet:
 		return false
 	passenger = who
-	goal = FlybyGoal.new(who, planet)
+	goal = _make_goal()
 	load_save(saved)
 	return true
 
@@ -81,7 +82,30 @@ func get_transmission() -> Transmission:
 
 func accept() -> void:
 	passenger.ride.extend(detour_seconds, passenger.type.slack)
-	goal = FlybyGoal.new(passenger, planet)
+	goal = _make_goal()
+
+
+# What tracks it, about [member passenger] and [member planet].
+func _make_goal() -> FlybyGoal:
+	return FlybyGoal.new(passenger, planet)
+
+
+# Whether the bus stops on the way for it, as a photo stop's does, so the detour counts the
+# time to stop and charge again.
+func _stops() -> bool:
+	return false
+
+
+func _get_lines() -> Array[String]:
+	return LINES
+
+
+func _get_reward_credits() -> Array[int]:
+	return REWARD_CREDITS
+
+
+func _get_reward_research() -> Array[int]:
+	return REWARD_RESEARCH
 
 
 # Whether [param point] is within the flyby's reach of [param other].

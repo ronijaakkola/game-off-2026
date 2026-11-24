@@ -33,7 +33,8 @@ var bonus := 0.0
 ## passenger's happiness ([HappinessCause]).
 var perks: Array[String] = []
 ## Taken off the most every passenger can reach, after comfort's bonus, while the bus is
-## past its comfortable temperature. It wears off once it is back in the band.
+## past its comfortable temperature. It wears off once it is back in the band. Negative for
+## someone who loves the heat ([method warmed]): it adds.
 var discomfort := 0.0
 ## How long each sleep lasts, a random while between these, in seconds. Nobody sleeps
 ## while the longest is 0.
@@ -47,6 +48,22 @@ var watch_min := 0.0
 var watch_max := 0.0
 ## How fast a passenger's ride clock runs while they watch a show.
 var watch_clock := 1.0
+
+
+## The same comfort as felt by someone who loves the heat: [member discomfort] adds to the
+## most they can reach rather than taking it off.
+func warmed() -> Comfort:
+	var warm := Comfort.new()
+	warm.bonus = bonus
+	warm.perks = perks
+	warm.discomfort = -discomfort
+	warm.sleep_min = sleep_min
+	warm.sleep_max = sleep_max
+	warm.sleep_clock = sleep_clock
+	warm.watch_min = watch_min
+	warm.watch_max = watch_max
+	warm.watch_clock = watch_clock
+	return warm
 
 
 ## The comfort the bus's [param traits] give, with [param quality] more on the bonus for a

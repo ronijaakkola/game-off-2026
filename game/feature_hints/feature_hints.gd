@@ -41,6 +41,16 @@ const HINTS := {
 		),
 		side = GuideCard.Side.LEFT,
 	},
+	&"returning":
+	{
+		title = "Returning passenger",
+		text =
+		(
+			"This passenger gave you 5 stars the last time they were on board. Now they are "
+			+ "back, happier than before, and will tip you at the end of the trip."
+		),
+		side = GuideCard.Side.LEFT,
+	},
 	&"asteroid_field":
 	{
 		title = "Asteroid field",

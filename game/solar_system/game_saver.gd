@@ -8,7 +8,8 @@ extends Node
 ## docked at [member new_run_planet]. A continued run starts docked at the planet it was
 ## saved at, so quitting in flight loses only the flight. It keeps where each planet is on
 ## its orbit, the bus's planet, fuel and reserve, the [Ledger], the researched upgrades, whether
-## research and which stages are open, the passengers on board and in every line, the goals'
+## research and which stages are open, the passengers on board and in every line, those
+## who may come back, the goals'
 ## progress, the quest under way and how far through the star systems the player has got.
 ## The course, the charge and what passengers were doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
@@ -108,8 +109,7 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	_tutorial = SaveGame.wants_tutorial()
 	_saved = SaveGame.claim_run()
 	_continued = not _saved.is_empty()
-	var saved_map: Dictionary = _saved.get("star_map", {})
-	_saved_system = str(saved_map.get("system", ""))
+	_saved_system = SavedStarMap.get_system(SavedStarMap.of(_saved))
 	if not _continued:
 		if _recording and new_run_planet:
 			bus.start_planet = new_run_planet
@@ -128,7 +128,7 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 ## What the continued run kept of the [StarMap], for [method StarMap.restore]: empty for a
 ## new run. Only before [method start].
 func get_saved_star_map() -> Dictionary:
-	return _saved.get("star_map", {})
+	return SavedStarMap.of(_saved)
 
 
 ## Whether this run starts with the tutorial: a new run the main menu started with it, as
@@ -214,10 +214,11 @@ func _write() -> void:
 		"research_layout": RESEARCH_LAYOUT,
 		"research_stages": research.get_open_stages(),
 		"research_open": research.is_opened(),
-		"star_map": star_map.to_save() if star_map else {},
+		SavedStarMap.KEY: star_map.to_save() if star_map else {},
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,
+		"returning": waiting.get_returning().to_save(),
 		"goals": progress,
 		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
 	}
@@ -256,6 +257,7 @@ func _restore() -> void:
 	var by_name := _get_planets_by_name()
 	var types := _get_types_by_path()
 	waiting.first_business_dealt = bool(_saved.get("first_business", false))
+	waiting.get_returning().load_save(_saved.get("returning", []), types)
 	var lines: Dictionary = _saved.get("lines", {})
 	for planet: Planet in _planets:
 		var line: Dictionary = lines.get(String(planet.name), {})

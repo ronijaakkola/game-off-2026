@@ -33,6 +33,17 @@ signal goal_failed(goal: Goal)
 			cabin.kicked.connect(_on_kicked)
 			cabin.left_behind.connect(_on_kicked)
 
+## Tells the goals when the bus warps. None, and no goal hears of a warp.
+@export var gate_service: GateService:
+	set(value):
+		if gate_service:
+			gate_service.warped.disconnect(_on_warped)
+		gate_service = value
+		if gate_service:
+			gate_service.warped.connect(_on_warped)
+## Tells the goals when the bus flies among its rocks. None, and no goal hears of rocks.
+@export var asteroid_field: AsteroidField
+
 ## The ledger whose recent rating the goals follow. The scene that owns it sets it.
 var ledger: Ledger:
 	set(value):
@@ -52,13 +63,22 @@ var _goals: Array[Goal] = []
 var _relays: Dictionary[Goal, Array] = {}
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not bus or _goals.is_empty() or frozen:
 		return
 	var on_board: Array[Passenger] = cabin.get_passengers() if cabin else []
 	var in_flight := not bus.is_at_planet()
+	var held := bus.state == FrameshiftBus.State.HOLDING
+	var in_rocks := asteroid_field != null and asteroid_field.is_bus_in_rocks()
+	var hot := bus.temperature.is_uncomfortable()
 	for goal: Goal in _goals.duplicate():
 		goal.bus_moved(bus.global_position, on_board, in_flight)
+		if held:
+			goal.bus_held(bus.global_position, on_board)
+		if in_rocks:
+			goal.bus_in_rocks(delta, on_board)
+		if hot:
+			goal.bus_hot(on_board)
 
 
 ## Starts tracking [param goal], from how things stand now.
@@ -129,6 +149,14 @@ func _on_bus_docked(planet: Planet) -> void:
 		return
 	for goal: Goal in _goals.duplicate():
 		goal.bus_docked(planet)
+
+
+func _on_warped() -> void:
+	if frozen:
+		return
+	var on_board: Array[Passenger] = cabin.get_passengers() if cabin else []
+	for goal: Goal in _goals.duplicate():
+		goal.bus_warped(on_board)
 
 
 func _on_rated(_stars: float) -> void:

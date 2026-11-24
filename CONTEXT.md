@@ -56,6 +56,10 @@ _Avoid_: juice, screen effects, FX manager
 The player's preferences (volumes, mouse sensitivity and similar), kept across sessions. Never game progress. Named `Settings` in code.
 _Avoid_: options, config, preferences file
 
+**Edge scrolling**:
+The camera moving while the pointer rests at a window edge, which a setting turns off. `edge_scroll` in code, as in `Settings.edge_scroll` and `Cursor.Shape.EDGE_SCROLL`.
+_Never_: edge pan
+
 **Save game**:
 The player's run in the game itself, kept so it can be continued from the main menu: one run, saved at checkpoints while the bus waits at a planet. Named `SaveGame` in code, and `GameSaver` is what writes the run into it and puts it back.
 _Avoid_: settings, save file (ambiguous)
@@ -144,6 +148,10 @@ _Avoid_: mini map, small map
 Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it. They pay the fare, and more for a ride they rate 4 or 5 stars. `Passenger` in code.
 _Never_: customer, rider, NPC
 
+**Returning passenger**:
+A passenger who rated a ride five stars and turns up in a line again later, the same in name, race, look and type, with a badge on their portrait. They pay more, ride a little happier and are likelier to call with a quest. `Passenger.returning` in code; `ReturningPassengers` remembers who may come back.
+_Avoid_: regular, loyal passenger, repeat passenger
+
 **Happiness**:
 How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort and their open request, and holding while the bus is docked. A **shock** changes it at once, such as a kick scaring the rest, and so does their **timing** as they get off (how their ride compares with the trip time: arriving early adds to it). It sets the mood and the rating. `Passenger.happiness` in code.
 _Avoid_: satisfaction
@@ -179,7 +187,7 @@ Something the player is asked to do and the game tracks, several at a time: a **
 _Avoid_: objective, mission, achievement (a one-off reward, not something asked)
 
 **Quest**:
-What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); an **errand** has it stop at a planet before their own stop; an **express** quest has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `ErrandQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
+What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); a **photo stop** has it come to rest in that zone; an **errand** has it stop at a planet before their own stop; a **warp** has it go through a warp gate with them on board; a **rock ride** has it fly among the asteroid field's rocks for a while, whose knocks lift them; a **sauna** has it run hot, past the gauge's green band, which lifts them; an **express** quest, no longer given, has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `PhotoStopQuest`, `ErrandQuest`, `WarpQuest`, `RockRideQuest`, `SaunaQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
 _Avoid_: task, mission, errand (for any quest: it is the one kind)
 
 **Transmission**:
@@ -194,6 +202,10 @@ _Avoid_: science, XP, tech points
 The pill at the top centre showing the player's credits, research points and recent rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
 _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
+
+**Credits screen**:
+The main menu's screen naming the team and what the game is made with, opened by its Credits button. Not the player's credits, the money the resource bar shows. In `ui/credits/`.
+_Avoid_: about screen
 
 **Research tree**:
 The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. Every tree opens at once, with the **mechanic's** first call. The player researches from every tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched, and whether research and which stages are open.
