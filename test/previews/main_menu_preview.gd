@@ -13,7 +13,7 @@ func _enter_tree() -> void:
 	SaveGame.use_test_files("main_menu_preview")
 	SaveGame.delete()
 	if "progress" in args:
-		SaveGame.write({"star_map": {"opened": 2, "joined": false, "system": "Lyra"}})
+		SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Lyra")})
 		SaveGame.write_campaign({"done": 1, "starts": {}})
 
 
