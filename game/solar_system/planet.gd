@@ -139,6 +139,9 @@ var outline_width := 0.05:
 		outline_width = value
 		var local := _get_local_radius() + value / get_world_scale()
 		_outline.scale = Vector3.ONE * local / _get_sphere().radius
+		if _border_material is ShaderMaterial:
+			_border_material.set_shader_parameter(&"body_radius", get_body_radius())
+			_border_material.set_shader_parameter(&"world_per_pixel", value / border_reach_pixels())
 ## Where the name hangs from, in global space, from the body's centre. The solar system
 ## sets it each frame to just past the body's lower edge as the camera sees it.
 var label_offset := Vector3.ZERO:
@@ -206,7 +209,7 @@ var _last_scale := 1.0
 var _faded_orbit_material: StandardMaterial3D
 # This planet's own border material, so its colour and opacity change on it alone. Always
 # see-through, so a fade never switches it to another shader.
-var _border_material := _make_border_material()
+var _border_material: Material = _make_border_material()
 
 
 func _init() -> void:
@@ -455,11 +458,47 @@ func _show_border() -> void:
 	if _outline.visible:
 		var color := BORDER_COLORS[border]
 		color.a = border_opacity
-		_border_material.albedo_color = color
+		if _border_material is ShaderMaterial:
+			_border_material.set_shader_parameter(&"color", color)
+		else:
+			_border_material.albedo_color = color
+
+
+## PROTOTYPE: the border style from `border=N` in the user args, 0 for the solid one.
+static func border_style() -> int:
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("border="):
+			return int(arg.trim_prefix("border="))
+	return 0
+
+
+## PROTOTYPE: how far past the body's edge the border's shell reaches, in pixels.
+static func border_reach_pixels() -> float:
+	match border_style():
+		1:
+			return 2.0 + 5.0
+		2:
+			return 3.0 + 2.0 + 5.0
+		3:
+			return 7.0
+	return 3.0
+
+
+## PROTOTYPE: the gap the route line leaves before a planet's edge, in pixels.
+static func border_line_gap() -> float:
+	return 3.0 if border_style() == 2 else 0.0
 
 
 # A shell drawn from behind, so only its rim past the body shows.
-static func _make_border_material() -> StandardMaterial3D:
+static func _make_border_material() -> Material:
+	var style := border_style()
+	if style > 0:
+		var shader_material := ShaderMaterial.new()
+		shader_material.shader = preload("res://game/solar_system/planet_border.gdshader")
+		shader_material.set_shader_parameter(&"style", style)
+		shader_material.set_shader_parameter(&"gap_px", 3.0 if style == 2 else 0.0)
+		shader_material.set_shader_parameter(&"glow_px", 7.0 if style == 3 else 4.0)
+		return shader_material
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_FRONT

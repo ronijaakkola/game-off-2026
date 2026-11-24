@@ -192,7 +192,7 @@ func _process(delta: float) -> void:
 			planet.border = Planet.Border.NONE
 		if planet.border != Planet.Border.NONE:
 			planet.outline_width = _pixels_to_world(
-				OUTLINE_PIXELS, planet.get_body_global_position()
+				Planet.border_reach_pixels(), planet.get_body_global_position()
 			)
 
 

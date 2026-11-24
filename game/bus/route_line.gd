@@ -16,6 +16,8 @@ var _flow_speed := 0.0
 var _period := 14.0
 var _marker_pixels := 6.0
 var _legs := PackedVector3Array()
+# Whether each point in _legs is on a planet's edge.
+var _on_planet: Array[bool] = []
 var _markers := PackedVector3Array()
 var _scroll := 0.0
 var _mesh := ImmediateMesh.new()
@@ -78,6 +80,7 @@ func _configure() -> void:
 func draw_stops(from: Vector3, stops: Array[RouteStop]) -> void:
 	var legs := PackedVector3Array()
 	var markers := PackedVector3Array()
+	var on_planet: Array[bool] = []
 	var at := _flat(from)
 	var from_planet: Planet
 	for stop: RouteStop in stops:
@@ -85,6 +88,7 @@ func draw_stops(from: Vector3, stops: Array[RouteStop]) -> void:
 		if stop.planet:
 			end = _flat(stop.planet.get_body_global_position())
 		var start := _surface_point(from_planet, end) if from_planet else at
+		on_planet.append_array([from_planet != null, stop.planet != null])
 		if stop.planet:
 			legs.append_array([start, _surface_point(stop.planet, start)])
 		else:
@@ -93,11 +97,13 @@ func draw_stops(from: Vector3, stops: Array[RouteStop]) -> void:
 		at = end
 		from_planet = stop.planet
 	draw_route(legs, markers)
+	_on_planet = on_planet
 
 
 func draw_route(legs: PackedVector3Array, markers: PackedVector3Array) -> void:
 	_legs = legs
 	_markers = markers
+	_on_planet = []
 
 
 func _process(delta: float) -> void:
@@ -111,7 +117,16 @@ func _process(delta: float) -> void:
 	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _material)
 	var along := 0.0
 	for i: int in range(0, _legs.size() - 1, 2):
-		along = _leg(camera, _legs[i], _legs[i + 1], along)
+		var from := _legs[i]
+		var to := _legs[i + 1]
+		var gap := Planet.border_line_gap()
+		if gap > 0.0 and i + 1 < _on_planet.size():
+			var direction := (to - from).normalized()
+			if _on_planet[i]:
+				from += direction * _pixels_to_world(camera, gap, from)
+			if _on_planet[i + 1]:
+				to -= direction * _pixels_to_world(camera, gap, to)
+		along = _leg(camera, from, to, along)
 	for marker: Vector3 in _markers:
 		_diamond(camera, marker)
 	_mesh.surface_end()
