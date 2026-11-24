@@ -420,7 +420,7 @@ func _on_research_pressed(_planet: Planet) -> void:
 func _on_delivered(passenger: Passenger, payout: int) -> void:
 	_ledger.earn(payout)
 	_ledger.rate(passenger.get_rating())
-	_ledger.earn_research(passenger.type.research_points)
+	_ledger.earn_research((%Cabin as Cabin).get_research_points(passenger))
 
 
 func _on_kicked(passenger: Passenger) -> void:

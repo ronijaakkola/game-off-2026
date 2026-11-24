@@ -135,7 +135,7 @@ func _is_worth(offer: Quest) -> bool:
 	var from := _bus.global_position
 	var via := planet.get_body_global_position()
 	var tank := _bus.get_fuel_tank()
-	if from.distance_to(via) * Player.FUEL_MARGIN * tank.burn_per_unit > tank.fuel:
+	if from.distance_to(via) * Player.FUEL_MARGIN * tank.get_burn_per_unit() > tank.fuel:
 		return false
 	if is_inf(limit):
 		return true

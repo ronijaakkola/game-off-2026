@@ -76,6 +76,9 @@ const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.
 ## What a ride that pays more than the fare pays on top, as a multiple of the fare, once
 ## the bus has the Tip jar ([method Payment.multiple]).
 @export_range(0.0, 1.0, 0.05) var tip := 0.1
+## The research points a 5-star ride earns on top of the type's, once the bus has the
+## Passenger happiness survey.
+@export_range(0, 10) var survey_points := 1
 ## How many times as long someone picked up waits for their first requests, once the bus
 ## has Free station coffee.
 @export_range(1.0, 3.0, 0.05) var coffee_delay := 1.5
@@ -431,7 +434,22 @@ func _forget(passenger: Passenger) -> void:
 func _take_seat(passenger: Passenger) -> void:
 	_passengers.append(passenger)
 	passenger.settle(comfort)
+	_seat_class(passenger)
 	boarded.emit(passenger)
+
+
+## The research points [param passenger], delivered, earns: their type's, and with the
+## Passenger happiness survey [member survey_points] more for a 5-star ride.
+func get_research_points(passenger: Passenger) -> int:
+	var surveyed := _has(BusTraits.Type.HAPPINESS_SURVEY) and passenger.get_rating() >= 5
+	return passenger.type.research_points + (survey_points if surveyed else 0)
+
+
+# Sets how many stops [param passenger] puts up with: their type's, and with Business class
+# the type's own more.
+func _seat_class(passenger: Passenger) -> void:
+	var extra := passenger.type.business_class_stops if _has(BusTraits.Type.BUSINESS_CLASS) else 0
+	passenger.ride.tolerance = passenger.type.stop_tolerance + extra
 
 
 # How many times as fast as [constant HAND_SECONDS] the player serves: the SERVING_SPEED
@@ -470,6 +488,7 @@ func _on_trait_changed(_type: BusTraits.Type) -> void:
 	comfort.discomfort = discomfort
 	for passenger: Passenger in _passengers:
 		passenger.settle(comfort)
+		_seat_class(passenger)
 	amenities.clear()
 	for fitted: Amenity in fittings:
 		if traits.has(fitted.bus_trait):

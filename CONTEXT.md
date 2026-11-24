@@ -112,7 +112,7 @@ _Avoid_: bonus, effect
 _Never_: buff
 
 **Trait**:
-A feature on the bus that an upgrade unlocks, which the bus either has or doesn't, such as the **fuel forecast** (the fuel the course burns, shown over its last stop, `FuelForecast`): the on/off kind of stat. Whatever shows or does the feature asks whether the bus has it first. `BusTraits` in code, one of each `BusTraits.Type`, reached through `BusStats.get_traits()`.
+A feature on the bus that an upgrade unlocks, which the bus either has or doesn't, such as the **waiting markers** or the **fuel forecast** (the fuel the course burns, shown over its last stop, `FuelForecast`; no upgrade gives it for now): the on/off kind of stat. Whatever shows or does the feature asks whether the bus has it first. `BusTraits` in code, one of each `BusTraits.Type`, reached through `BusStats.get_traits()`.
 _Avoid_: perk, flag, unlock (the purchase, not the thing)
 
 **Tow**:
