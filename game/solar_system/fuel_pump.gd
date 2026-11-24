@@ -8,7 +8,7 @@ extends Node
 ## [member sound] plays from the moment fuel starts to flow until it stops, however that
 ## happens.
 ## The button is the dock panel's fuel button, and each frame it shows there whether it
-## can pump.
+## can pump. With the Pit crew it pumps as if the button were held.
 
 ## Fuel a second the pump gives as the button goes down, the most it speeds up to, and the
 ## seconds it takes to get there. The bus's PUMP_SPEED stat scales both rates.
@@ -64,7 +64,8 @@ func _process(delta: float) -> void:
 	if docked:
 		# Not while the drive is held to charge: the two holds take turns, as they must for
 		# a player with only a mouse.
-		var held := dock_panel.is_fuel_held() and not bus.frameshift_held
+		var crew := bus.get_stats().get_traits().has(BusTraits.Type.PIT_CREW)
+		var held := (dock_panel.is_fuel_held() or crew) and not bus.frameshift_held
 		run(delta, docked, held, tank, ledger)
 	else:
 		stop(ledger)

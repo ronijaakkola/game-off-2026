@@ -57,11 +57,11 @@ const DOOR := Vector3(-0.19, 0.03, 0.095)
 @export var start_planet: Planet
 ## Plays each time the bus docks after flying to a planet.
 @export var dock_sound: AudioStream
-## Seconds of holding the Frameshift key before the bus leaves a planet, or space once cold.
-@export_range(0.0, 10.0, 0.1) var charge_time := 1.5:
+## Seconds of holding the Frameshift key to leave, before upgrades: the CHARGE_TIME stat's base.
+@export_range(0.1, 10.0, 0.1) var charge_time := 1.5:
 	set(value):
 		charge_time = value
-		_drive.charge_time = value
+		_stats.get_stat(BusStats.Type.CHARGE_TIME).base = value
 ## Seconds the drive stays warm after the bus stops in space: a course set later waits for a charge.
 @export_range(0.0, 30.0, 0.1) var warm_time := 1.0
 ## Seconds after those getting off are off within which leaving a planet is a quick stop.
@@ -157,12 +157,14 @@ var _holding_time := 0.0
 # through the export's setter.
 func _init() -> void:
 	_stats.get_stat(BusStats.Type.MAX_SPEED).base = max_speed
+	_stats.get_stat(BusStats.Type.CHARGE_TIME).base = charge_time
+	_drive.follow(_stats.get_stat(BusStats.Type.CHARGE_TIME))
 
 
 func _ready() -> void:
 	(%FuelTank as FuelTank).emptied.connect(_on_fuel_emptied)
 	temperature.overheated.connect(_on_overheated)
-	(%FuelTank as FuelTank).follow(_stats.get_stat(BusStats.Type.FUEL_CAPACITY))
+	(%FuelTank as FuelTank).follow(_stats)
 	rotation.y = PI * 0.5
 	if start_planet:
 		global_position = RouteStop.approach_point(start_planet, start_direction, dock_gap)
@@ -429,7 +431,7 @@ func _fly(delta: float) -> void:
 	var target := _stop_position(stop, global_position)
 	var to_target := RouteStop.flat(target - global_position)
 	var distance := to_target.length()
-	if _reached(stop, distance, last):
+	if stop.is_reached(distance, last, pass_radius):
 		_route.pop_front()
 		if stop.planet or last:
 			_arrive(stop)
@@ -501,14 +503,6 @@ func _turn_toward(direction: Vector3, delta: float) -> void:
 	var previous := rotation.y
 	rotation.y = rotate_toward(rotation.y, atan2(direction.x, direction.z), turn_speed * delta)
 	_turn_rate = angle_difference(previous, rotation.y) / delta if delta > 0.0 else 0.0
-
-
-func _reached(stop: RouteStop, distance: float, last: bool) -> bool:
-	if stop.planet:
-		return distance < DOCK_DISTANCE
-	if last:
-		return distance < STOP_DISTANCE
-	return distance < pass_radius
 
 
 func _arrive(stop: RouteStop) -> void:
