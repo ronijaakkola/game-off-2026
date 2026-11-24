@@ -14,13 +14,9 @@ extends Control
 const VOICE_LAB_SCENE := "res://game/transmissions/voice_lab.tscn"
 const MIXER_SCENE := "res://ui/mixer/mixer.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
-## Seconds the background takes to pan to the campaign screen's half and back.
-const PAN_SECONDS := 0.6
 
 # Survives scene changes, so coming back to the menu doesn't ask for the click again.
 static var _music_started := false
-
-var _pan: Tween
 
 
 func _ready() -> void:
@@ -30,11 +26,9 @@ func _ready() -> void:
 	DebugPanel.add_button("Reset settings", Settings.reset, self)
 	DebugPanel.add_button("Voice lab", _debug_voice_lab, self)
 	DebugPanel.add_button("Mixer", _debug_mixer, self)
-	%Background.resized.connect(_on_background_resized)
-	_on_background_resized()
 	%CampaignScreen.visibility_changed.connect(_on_campaign_screen_visibility_changed)
 	# The cards come in once the pan has all but settled, and the menu's rows on the way back.
-	%CampaignScreen.enter_delay = PAN_SECONDS * 0.8
+	%CampaignScreen.enter_delay = MenuBackground.PAN_SECONDS * 0.8
 	if OS.has_feature("web") and not _music_started:
 		%StartOverlay.show()
 	else:
@@ -106,23 +100,7 @@ func _on_settings_menu_campaign_reset() -> void:
 
 
 func _on_campaign_screen_visibility_changed() -> void:
-	var material := %Background.material as ShaderMaterial
-	var to := 1.0 if %CampaignScreen.is_open() else 0.0
-	if _pan:
-		_pan.kill()
-	if Settings.reduce_motion:
-		material.set_shader_parameter(&"pan", to)
-		return
-	_pan = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
-	_pan.tween_property(material, ^"shader_parameter/pan", to, PAN_SECONDS)
-
-
-func _on_background_resized() -> void:
-	var size: Vector2 = %Background.size
-	if size.y > 0.0:
-		(%Background.material as ShaderMaterial).set_shader_parameter(
-			&"screen_aspect", size.x / size.y
-		)
+	(%Background as MenuBackground).pan_to(%CampaignScreen.is_open())
 
 
 # The debug panel's Delete save: the menu shows as on a first visit, Play focused, and the

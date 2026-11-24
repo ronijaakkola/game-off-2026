@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://bx1585cifjvbb" path="res://ui/controls/controls_screen.tscn" id="13_controls"]
 [ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://shared/icons/x.svg" id="14_quit"]
 [ext_resource type="Script" uid="uid://ccakhq4ektqka" path="res://ui/build_label.gd" id="99_build"]
+[ext_resource type="Script" uid="uid://dumwopf6q5ybi" path="res://ui/main_menu/menu_background.gd" id="15_background"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_panorama"]
 shader = ExtResource("4_panorama")
@@ -42,6 +43,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("5_background")
+script = ExtResource("15_background")
 expand_mode = 1
 
 [node name="Home" type="MarginContainer" parent="." unique_id=1545752174]

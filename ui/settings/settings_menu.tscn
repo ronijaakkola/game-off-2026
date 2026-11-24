@@ -200,26 +200,26 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="EdgePanRow" type="HBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows" unique_id=341330043]
+[node name="EdgeScrollRow" type="HBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows" unique_id=341330043]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Text" type="VBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows/EdgePanRow" unique_id=603601648]
+[node name="Text" type="VBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows/EdgeScrollRow" unique_id=603601648]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 3
 
-[node name="Label" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/EdgePanRow/Text" unique_id=971070663]
+[node name="Label" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/EdgeScrollRow/Text" unique_id=971070663]
 layout_mode = 2
 theme_type_variation = &"RowLabel"
-text = "Edge pan"
+text = "Edge scrolling"
 
-[node name="Description" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/EdgePanRow/Text" unique_id=1746206283]
+[node name="Description" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/EdgeScrollRow/Text" unique_id=1746206283]
 layout_mode = 2
 theme_type_variation = &"DescriptionLabel"
-text = "Move the pointer to a window edge to pan the camera."
+text = "Move the pointer to a window edge to scroll the map."
 
-[node name="EdgePan" type="CheckButton" parent="Margin/Column/Cards/ComfortCard/Rows/EdgePanRow" unique_id=636141833]
+[node name="EdgeScroll" type="CheckButton" parent="Margin/Column/Cards/ComfortCard/Rows/EdgeScrollRow" unique_id=636141833]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4

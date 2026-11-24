@@ -32,10 +32,10 @@ var reduce_motion := false:
 	set(value):
 		reduce_motion = value
 		_queue_save()
-## Whether the pointer at a window edge pans the camera. WASD and the arrow keys pan either way.
-var edge_pan := true:
+## Whether the pointer at a window edge moves the camera. WASD and the arrow keys pan either way.
+var edge_scroll := true:
 	set(value):
-		edge_pan = value
+		edge_scroll = value
 		_queue_save()
 ## Whether the frame rate shows in the top right corner, for checking performance.
 var show_fps := false:
