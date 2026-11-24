@@ -10,6 +10,7 @@ func test_the_lab_shows_a_race_s_settings_and_speaks() -> void:
 	assert_bool(params.get_child_count() > 8).is_true()
 	assert_bool((runner.find_child("NoVoice") as Control).visible).is_false()
 	# A race with no voice has nothing to tune.
+	lab._tuned.erase(Race.Type.GREEN)
 	races.select(races.get_item_index(Race.Type.GREEN))
 	lab._on_race_option_item_selected(0)
 	assert_bool((runner.find_child("NoVoice") as Control).visible).is_true()

@@ -429,7 +429,7 @@ func _on_kicked(passenger: Passenger) -> void:
 	figure.light_source = bus.get_model().light_source
 	add_child(figure)
 	var door := bus.global_transform * FrameshiftBus.DOOR
-	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color)
+	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color, passenger)
 
 
 # The bus jumps to the next star system: whatever is open closes.

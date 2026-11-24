@@ -27,7 +27,6 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 |---|---|---|---|
 | `game/solar_system/fuel.ogg` | The fuel pump, for as long as fuel flows | 0.35 | Done |
 | `game/solar_system/ringtone.ogg` | A call notice shows: 2 beats at 88 bpm, looped from the music's next beat, fading out in 0.15 s as the call is answered or goes. Silent while the notices are hidden or the game is paused | 0.15 | Placeholder, "to be replaced with the final ringtone" |
-| `game/passengers/wilhelm_scream.ogg` | A kicked passenger flies out of the bus, fading fastest at first | 0.23 | Placeholder |
 
 ### Menus and research
 
@@ -39,11 +38,11 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 
 | Folder | Clips | Plays when | Status |
 |---|---|---|---|
-| `game/transmissions/voice/blue/` | 48: blips 23, long 8, question 4, exclaim 4, annoyed 4, happy 2, scared 3 | A transmission's text types out: a blip per word of three letters or more, the question and exclaim clips before `?` and `!`, a long clip at the start of a line, a stinger as it opens (the caller's mood). A passenger card opening a request for food or a drink plays the passenger's race's annoyed stinger, at their pitch. Each caller of a race has a pitch of their own. Each race's loudness is its voice's volume, set in the mixer | Done |
-| `game/transmissions/voice/orange/` | 59: blips 18, long 8, question 9, exclaim 7, annoyed 3, happy 5, scared 9 | The same | Done |
-| `game/transmissions/voice/green/` | None | Green callers are silent | Missing |
+| `game/transmissions/voice/blue/` | 53: blips 23, long 8, question 4, exclaim 4, annoyed 4, happy 4, scared 3, kicked 3 | A transmission's text types out: a blip per word of three letters or more, the question and exclaim clips before `?` and `!`, a long clip at the start of a line, a stinger as it opens (the caller's mood). A passenger card opening a request for food or a drink plays the passenger's race's annoyed stinger, at their pitch. Each caller of a race has a pitch of their own. Each race's loudness is its voice's volume, set in the mixer | Done |
+| `game/transmissions/voice/orange/` | 61: blips 18, long 8, question 9, exclaim 7, annoyed 3, happy 5, scared 9, kicked 2 | The same | Done |
+| `game/transmissions/voice/green/` | 61: blips 19, long 8, question 4, exclaim 7, annoyed 6, happy 8, scared 7, kicked 2 | The same. Wired in with Orange's delivery numbers as a start; its loudness and delivery are still to be tuned in the voice lab and the mixer | Wired, to tune |
 
-Kicked clips (`k`, one set a race) are being recorded: Orange has two so far, not in the game yet. Once every race has them, a kicked passenger screams in their own race's voice and `wilhelm_scream.ogg` goes.
+A kicked passenger screams one of their race's kicked clips (`k`), at their pitch times the voice's `kicked_pitch`, fading out over `kicked_fade`, at the voice's volume times `kicked_volume`. The kick is off in the game: hear it in the voice lab's Kicked button or the mixer's Kicked line.
 
 ## What is still silent
 
@@ -91,9 +90,8 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 
 ### Voices and the rest
 
-- **Green's voice.** One folder of clips in the same kinds as Blue and Orange, `g_<kind><number>.ogg` (see `game/transmissions/voice/README.md`), and a `green.tres` added to `VOICES` in `voice_speaker.gd`.
 - **The Boss.** His calls use a race's voice; a voice of his own would set him apart.
 
 ### Placeholders to replace before release
 
-`dock_bell.ogg`, `key_click.ogg`, `ui_click.ogg`, `ringtone.ogg` and `wilhelm_scream.ogg`.
+`dock_bell.ogg`, `key_click.ogg`, `ui_click.ogg` and `ringtone.ogg`.

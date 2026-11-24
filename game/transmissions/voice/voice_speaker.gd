@@ -16,6 +16,7 @@ extends Node
 const VOICES: Dictionary[Race.Type, Voice] = {
 	Race.Type.BLUE: preload("res://game/transmissions/voice/blue.tres"),
 	Race.Type.ORANGE: preload("res://game/transmissions/voice/orange.tres"),
+	Race.Type.GREEN: preload("res://game/transmissions/voice/green.tres"),
 }
 ## The lowest and highest rate a clip plays at.
 const MIN_PITCH := 0.5
@@ -161,6 +162,31 @@ func play_stinger(stinger: Voice.Stinger) -> void:
 	_quiet_until = _now() + _sound(clips[index], 1.0, false) + voice.long_pause
 
 
+## Screams one of the current voice's kicked clips, as a passenger kicked off the bus would:
+## in the caller's pitch times [member Voice.kicked_pitch], fading out over
+## [member Voice.kicked_fade] from its start, as if flying away. It sounds on a player of its
+## own, so it carries on whatever else this speaker says and [method stop] doesn't cut it.
+func play_kicked() -> void:
+	if not voice or voice.kicked.is_empty():
+		return
+	var clip := voice.kicked[_pick(voice.kicked, &"kicked")]
+	var player := AudioStreamPlayer.new()
+	player.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
+	player.stream = clip
+	player.pitch_scale = clampf(get_caller_pitch() * voice.kicked_pitch, MIN_PITCH, MAX_PITCH)
+	player.volume_linear = voice.volume * voice.kicked_volume
+	add_child(player)
+	player.play()
+	var fade := create_tween()
+	(
+		fade
+		. tween_property(player, "volume_linear", 0.0, voice.kicked_fade)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_OUT)
+	)
+	fade.tween_callback(player.queue_free)
+
+
 ## Cuts off whatever sounds, at once.
 func stop() -> void:
 	for i: int in _players.size():
@@ -241,9 +267,9 @@ func _pick(clips: Array[AudioStream], key: StringName) -> int:
 
 
 # A blip for the words that take [param slot] seconds before the next sound: a clip short
-# enough to fit, or one up to [member Voice.fit_speed] too long, played faster to fit. Not if
-# the clip playing would be stacked on more than allowed, or a long clip is still on. Returns
-# whether it played.
+# enough to fit, or one up to [member Voice.fit_speed] too long, played faster to fit, or any
+# clip but the last when none fit. Not if the clip playing would be stacked on more than
+# allowed, or a long clip is still on. Returns whether it played.
 func _blip(slot: float) -> bool:
 	if voice.blips.is_empty() or _now() < _quiet_until:
 		return false
@@ -253,14 +279,15 @@ func _blip(slot: float) -> bool:
 	var rate := get_caller_pitch() * voice.blip_speed
 	var room := maxf(slot + voice.max_overlap - remaining, 0.01)
 	var fits: Array[int] = []
-	var shortest := 0
+	var others: Array[int] = []
 	for i: int in voice.blips.size():
-		var length := voice.blips[i].get_length()
-		if length < voice.blips[shortest].get_length():
-			shortest = i
-		if length / rate / room <= voice.fit_speed and i != _last.get(BLIP, -1):
+		if i == _last.get(BLIP, -1):
+			continue
+		others.append(i)
+		if voice.blips[i].get_length() / rate / room <= voice.fit_speed:
 			fits.append(i)
-	var index := fits[_rng.randi_range(0, fits.size() - 1)] if not fits.is_empty() else shortest
+	var pool := fits if not fits.is_empty() else others
+	var index := pool[_rng.randi_range(0, pool.size() - 1)] if not pool.is_empty() else 0
 	_last[BLIP] = index
 	var squeeze := clampf(voice.blips[index].get_length() / rate / room, 1.0, voice.fit_speed)
 	_sound(voice.blips[index], voice.blip_speed * squeeze, true)
