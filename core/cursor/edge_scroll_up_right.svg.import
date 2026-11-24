@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d4dxu7yx0jri5"
-path="res://.godot/imported/edge_pan_right.svg-6bd6d818dd0bd1b4a9ee1e74f0aeb650.ctex"
+uid="uid://bdalfx6rr827h"
+path="res://.godot/imported/edge_scroll_up_right.svg-454e62ce22ab0ccec7fe59b4cd4f6802.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://core/cursor/edge_pan_right.svg"
-dest_files=["res://.godot/imported/edge_pan_right.svg-6bd6d818dd0bd1b4a9ee1e74f0aeb650.ctex"]
+source_file="res://core/cursor/edge_scroll_up_right.svg"
+dest_files=["res://.godot/imported/edge_scroll_up_right.svg-454e62ce22ab0ccec7fe59b4cd4f6802.ctex"]
 
 [params]
 
