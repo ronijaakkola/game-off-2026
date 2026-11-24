@@ -16,8 +16,8 @@ var _flow_speed := 0.0
 var _period := 14.0
 var _marker_pixels := 6.0
 var _legs := PackedVector3Array()
-# Whether each point in _legs is on a planet's edge.
-var _on_planet: Array[bool] = []
+# The planet each point in _legs is on the edge of, or null.
+var _leg_planets: Array[Planet] = []
 var _markers := PackedVector3Array()
 var _scroll := 0.0
 var _mesh := ImmediateMesh.new()
@@ -80,7 +80,7 @@ func _configure() -> void:
 func draw_stops(from: Vector3, stops: Array[RouteStop]) -> void:
 	var legs := PackedVector3Array()
 	var markers := PackedVector3Array()
-	var on_planet: Array[bool] = []
+	var leg_planets: Array[Planet] = []
 	var at := _flat(from)
 	var from_planet: Planet
 	for stop: RouteStop in stops:
@@ -88,7 +88,7 @@ func draw_stops(from: Vector3, stops: Array[RouteStop]) -> void:
 		if stop.planet:
 			end = _flat(stop.planet.get_body_global_position())
 		var start := _surface_point(from_planet, end) if from_planet else at
-		on_planet.append_array([from_planet != null, stop.planet != null])
+		leg_planets.append_array([from_planet, stop.planet])
 		if stop.planet:
 			legs.append_array([start, _surface_point(stop.planet, start)])
 		else:
@@ -97,13 +97,13 @@ func draw_stops(from: Vector3, stops: Array[RouteStop]) -> void:
 		at = end
 		from_planet = stop.planet
 	draw_route(legs, markers)
-	_on_planet = on_planet
+	_leg_planets = leg_planets
 
 
 func draw_route(legs: PackedVector3Array, markers: PackedVector3Array) -> void:
 	_legs = legs
 	_markers = markers
-	_on_planet = []
+	_leg_planets = []
 
 
 func _process(delta: float) -> void:
@@ -119,17 +119,42 @@ func _process(delta: float) -> void:
 	for i: int in range(0, _legs.size() - 1, 2):
 		var from := _legs[i]
 		var to := _legs[i + 1]
-		var gap := Planet.border_line_gap()
-		if gap > 0.0 and i + 1 < _on_planet.size():
-			var direction := (to - from).normalized()
-			if _on_planet[i]:
-				from += direction * _pixels_to_world(camera, gap, from)
-			if _on_planet[i + 1]:
-				to -= direction * _pixels_to_world(camera, gap, to)
+		if i + 1 < _leg_planets.size():
+			# Each end on a planet stops at the border's outer edge as seen on screen, so the
+			# line never runs over the planet's disc.
+			var start_planet := _leg_planets[i]
+			var end_planet := _leg_planets[i + 1]
+			var start_t := _edge_t(camera, start_planet, from, to) if start_planet else 0.0
+			var end_t := 1.0 - _edge_t(camera, end_planet, to, from) if end_planet else 1.0
+			if end_t <= start_t:
+				continue
+			var clipped_from := from.lerp(to, start_t)
+			to = from.lerp(to, end_t)
+			from = clipped_from
 		along = _leg(camera, from, to, along)
 	for marker: Vector3 in _markers:
 		_diamond(camera, marker)
 	_mesh.surface_end()
+
+
+# How far from near to far the line leaves planet's border on screen, from 0 to 1: the
+# share of the way at which it is first the border's reach past the planet's edge.
+func _edge_t(camera: Camera3D, planet: Planet, near: Vector3, far: Vector3) -> float:
+	var center := planet.get_body_global_position()
+	var on_screen := camera.unproject_position(center)
+	var edge := camera.unproject_position(center + camera.global_basis.x * planet.get_body_radius())
+	var reach := on_screen.distance_to(edge) + Planet.border_visible_pixels()
+	var inside := 0.0
+	var outside := 1.0
+	if camera.unproject_position(far).distance_to(on_screen) <= reach:
+		return 1.0
+	for i: int in 20:
+		var middle := (inside + outside) * 0.5
+		if camera.unproject_position(near.lerp(far, middle)).distance_to(on_screen) <= reach:
+			inside = middle
+		else:
+			outside = middle
+	return outside
 
 
 func _leg(camera: Camera3D, from: Vector3, to: Vector3, along: float) -> float:

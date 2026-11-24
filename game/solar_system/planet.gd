@@ -488,9 +488,18 @@ static func border_reach_pixels() -> float:
 	return 3.0
 
 
-## PROTOTYPE: the gap the route line leaves before a planet's edge, in pixels.
-static func border_line_gap() -> float:
-	return 3.0 if border_style() == 2 else 0.0
+## PROTOTYPE: how far past the body's edge the border shows, in pixels.
+static func border_visible_pixels() -> float:
+	match border_style():
+		1:
+			return 2.0
+		2:
+			return 5.0
+		4:
+			return 2.5 + 1.25
+		5:
+			return 1.25 + 2.5 + 1.25
+	return 3.0
 
 
 # A shell drawn from behind, so only its rim past the body shows.
