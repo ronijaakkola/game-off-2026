@@ -86,9 +86,10 @@ func _process(_delta: float) -> void:
 	if shown != _seats_shown:
 		_seats_shown = shown
 		(%SeatLabel as Label).text = "%d/%d" % [shown.x, shown.y]
-	for card: PassengerCard in _cards.values():
+	for passenger: Passenger in _cards:
+		var card: PassengerCard = _cards[passenger]
 		card.docked = cabin.docked and not cabin.parking
-		card.comfort = cabin.comfort
+		card.comfort = cabin.get_comfort(passenger)
 
 
 func _show_all() -> void:

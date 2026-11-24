@@ -220,13 +220,15 @@ script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="Quests" type="Node" parent="." unique_id=668166964 node_paths=PackedStringArray("bus", "cabin")]
+[node name="Quests" type="Node" parent="." unique_id=668166964 node_paths=PackedStringArray("bus", "cabin", "gate_service", "asteroid_field")]
 unique_name_in_owner = true
 script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
+gate_service = NodePath("../GateService")
+asteroid_field = NodePath("../World/Lyra/AsteroidField")
 
-[node name="QuestGiver" type="Node" parent="." unique_id=1899460635 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quests", "quick_text")]
+[node name="QuestGiver" type="Node" parent="." unique_id=1899460635 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quests", "quick_text", "asteroid_field")]
 unique_name_in_owner = true
 script = ExtResource("140_quests")
 bus = NodePath("../Bus")
@@ -235,6 +237,7 @@ notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
 quests = NodePath("../Quests")
 quick_text = NodePath("../Hud/BusQuickText")
+asteroid_field = NodePath("../World/Lyra/AsteroidField")
 
 [node name="GoalsMetCall" type="Node" parent="." unique_id=1075418356 node_paths=PackedStringArray("notices", "transmission_panel", "quest_giver")]
 script = ExtResource("141_goals_met_call")

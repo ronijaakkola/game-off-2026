@@ -4,10 +4,11 @@ extends Node3D
 ## slowly about it as the planets do, with gaps the bus flies through freely. Flying among
 ## the rocks, the bus is slowed to [member rough_speed], braking into it rather than
 ## stopping dead, and every [member bump_seconds] a rock knocks it: everyone on board takes
-## a shock of [member bump_shock] and is thrown about in their seat, the bus rocks and the
-## camera shakes. Holding still among them, or towed, costs nothing. With Shock absorbers
-## the bus flies among them at [member absorbed_speed] and each shock is
-## [member absorbed_share] as big. Put it at the star's centre.
+## a shock of [member bump_shock] ([method Cabin.bump], which lifts a rock lover instead) and
+## is thrown about in their seat, the bus rocks and the camera shakes. Holding still among
+## them, or towed, costs nothing. With Shock absorbers the bus flies among them at
+## [member absorbed_speed] and each shock is [member absorbed_share] as big. Put it at the
+## star's centre.
 ##
 ## The rocks are two MultiMeshes, big rocks and pebbles, each one draw call, built at load
 ## from [RockMesh] shapes, so there is nothing to model and nothing to update per frame but
@@ -145,7 +146,7 @@ func _ride(delta: float) -> void:
 
 func _bump() -> void:
 	if cabin:
-		cabin.shock(bump_shock * (absorbed_share if _absorbs() else 1.0))
+		cabin.bump(bump_shock * (absorbed_share if _absorbs() else 1.0))
 	# From one side or the other, a light knock or a hard one.
 	var side := randf_range(0.35, 1.0) * (1.0 if randf() < 0.5 else -1.0)
 	bus.felt_push.jolt(Vector2(side, randf_range(-0.5, 0.5)) * bump_jolt)
