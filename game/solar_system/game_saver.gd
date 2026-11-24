@@ -74,6 +74,8 @@ const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
 @export var research_lab: ResearchLab
 ## Which star systems are open and joined. The bus's planet says which one it works in.
 @export var star_map: StarMap
+## How close the next capsule is to holding the castaway.
+@export var capsules: CapsuleField
 
 ## Who waits at each planet. The parent sets it before [method start].
 var waiting: WaitingPassengers
@@ -218,6 +220,8 @@ func _write() -> void:
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,
+		"castaway_met": waiting.castaway_met,
+		"castaway_misses": capsules.castaway_misses if capsules else 0,
 		"returning": waiting.get_returning().to_save(),
 		"goals": progress,
 		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
@@ -257,6 +261,9 @@ func _restore() -> void:
 	var by_name := _get_planets_by_name()
 	var types := _get_types_by_path()
 	waiting.first_business_dealt = bool(_saved.get("first_business", false))
+	waiting.castaway_met = bool(_saved.get("castaway_met", false))
+	if capsules:
+		capsules.castaway_misses = int(_saved.get("castaway_misses", 0))
 	waiting.get_returning().load_save(_saved.get("returning", []), types)
 	var lines: Dictionary = _saved.get("lines", {})
 	for planet: Planet in _planets:
