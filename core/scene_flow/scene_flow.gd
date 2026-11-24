@@ -5,7 +5,9 @@ extends CanvasLayer
 ## Input is blocked while fading. It processes always, so a paused scene can leave too, and
 ## the next scene starts unpaused. A level, once loaded, waits
 ## paused under its loading screen until the player presses Start (a click, Enter or Space),
-## so they can read the tip first; meanwhile no other key reaches the game.
+## so they can read the tip first; meanwhile no other key reaches the game. The jump into the
+## next level within the game scene shows the same screen, with nothing to load
+## ([method show_loading_screen]).
 ##
 ## The bar counts the two kinds of work the wait is made of, each in steps it can draw
 ## between, because the web build has one thread: a threaded load blocks it and can't
@@ -117,6 +119,31 @@ func go_to(path: String, level: Level = null) -> void:
 			await _wait_for_start()
 	else:
 		push_error("SceneFlow can't change to %s: %s" % [path, error_string(error)])
+	await _lift()
+
+
+## Shows [param level]'s loading screen over a scene that is already black, as the bus jumps
+## into the level within the game scene: nothing loads, so it fades in with its Start
+## button, holds the game paused until the player presses it, and fades back to the scene's
+## black. It returns then. A level with no picture yet shows nothing, and neither does a
+## call made during a transition.
+func show_loading_screen(level: Level) -> void:
+	if _busy or level == null or level.picture.is_empty():
+		return
+	_busy = true
+	get_tree().root.set_disable_input(true)
+	_level_card.show_level(level)
+	_level_card.show_start()
+	_level_card.show()
+	_plain.hide()
+	_curtain.show()
+	await _fade_to(1.0)
+	await _wait_for_start()
+	await _lift()
+
+
+# Fades the curtain away and takes input again: the transition is over.
+func _lift() -> void:
 	await _fade_to(0.0)
 	_curtain.hide()
 	_level_card.hide()
