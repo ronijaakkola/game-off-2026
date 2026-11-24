@@ -6,6 +6,7 @@ extends Node
 ## system's home planet, its thrusters lighting, then winds up: it draws back a little as a
 ## rumble builds, and frameshifts out as the tow ship does ([FrameshiftShift]) while the
 ## [JumpIris] closes on where it was. In the black
+## the next level's loading screen shows until the player presses Start ([SceneFlow]), then
 ## the old system hides and the camera cuts to the new one, a little way off its home
 ## planet, or at the point in space where that system has the bus come to rest. The iris
 ## opens there, the bus frameshifts in, and as it flies in to dock, or stops there at rest
@@ -17,12 +18,15 @@ extends Node
 ## the bus turns to face the gate beside it, winds up and shifts out toward it, and after
 ## [constant WARP_GAP_SECONDS] shifts in out of the far gate, heading for its planet, and
 ## flies in to dock there. The camera stays where the player has it, with no iris, and the
-## HUD stays up but takes no clicks until the bus is out. Neither signal is sent.
+## HUD stays up but takes no clicks until the bus is out. It sends only
+## [signal came_through], as the bus comes out.
 
 ## The screen is black: the bus is about to come out at [param system].
 signal crossed(system: StarSystem)
 ## The bus has come out of the jump at [param system] and is flying in to where it stops.
 signal finished(system: StarSystem)
+## The bus has come out of [param gate] on a warp ([method warp]) and is flying in to dock.
+signal came_through(gate: WarpGate)
 
 enum Phase { NONE, CLOSING_IN, TURNING, WINDING_UP, LEAVING, ARRIVING }
 
@@ -51,6 +55,9 @@ const CROSS_BOUNDS := 10000.0
 @export var bus: FrameshiftBus
 @export var rig: CameraRig
 @export var hud: HudLayout
+## Whether the black between the systems holds the next level's loading screen, which waits
+## for the player. Off for a run nobody watches, such as a balance run.
+@export var shows_loading_screen := true
 
 var _phase := Phase.NONE
 var _target: StarSystem
@@ -179,6 +186,8 @@ func _leave() -> void:
 		_warp_out()
 		return
 	await (%Iris as JumpIris).close(_on_screen(anchor.global_position))
+	if shows_loading_screen:
+		await SceneFlow.show_loading_screen(Campaign.find(String(_target.name)))
 	# Halfway to where the bus comes to rest in space, so it shows with the star.
 	rig.move_to(_target.position + _target.jump_arrival * 0.5)
 	crossed.emit(_target)
@@ -234,6 +243,7 @@ func _arrive() -> void:
 	bus.fly_in(_destination(), bus.max_speed * ARRIVE_SPEED)
 	if _exit:
 		hud.uncover()
+		came_through.emit(_exit)
 		return
 	rig.release_focus()
 	rig.locked = false

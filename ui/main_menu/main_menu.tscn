@@ -14,12 +14,17 @@
 [ext_resource type="PackedScene" uid="uid://cg1ig63kqenbw" path="res://ui/campaign/campaign_screen.tscn" id="12_campaign"]
 [ext_resource type="PackedScene" uid="uid://bx1585cifjvbb" path="res://ui/controls/controls_screen.tscn" id="13_controls"]
 [ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://shared/icons/x.svg" id="14_quit"]
+[ext_resource type="Script" uid="uid://dumwopf6q5ybi" path="res://ui/main_menu/menu_background.gd" id="15_background"]
+[ext_resource type="PackedScene" uid="uid://cnkby7aoge78f" path="res://ui/credits/credits_screen.tscn" id="16_credits"]
+[ext_resource type="Texture2D" uid="uid://cegpug3j7vho6" path="res://ui/icons/users.svg" id="17_credits_icon"]
 [ext_resource type="Script" uid="uid://ccakhq4ektqka" path="res://ui/build_label.gd" id="99_build"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_panorama"]
 shader = ExtResource("4_panorama")
 shader_parameter/pan = 0.0
 shader_parameter/screen_aspect = 1.7777778
+shader_parameter/screen_height = null
+shader_parameter/drift = null
 
 [node name="MainMenu" type="Control" unique_id=1815156436]
 layout_mode = 3
@@ -43,6 +48,7 @@ grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("5_background")
 expand_mode = 1
+script = ExtResource("15_background")
 
 [node name="Home" type="MarginContainer" parent="." unique_id=1545752174]
 unique_name_in_owner = true
@@ -122,16 +128,16 @@ theme_override_constants/separation = 1
 [node name="Label" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=476412501]
 layout_mode = 2
 theme_type_variation = &"SlantTitleLabel"
-theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 1)
 theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 1)
 text = "Continue"
 
 [node name="Where" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=1351472788]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"BodyTextLabel"
-theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 0.702)
 theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 0.702)
 text = "Your first shift"
 
 [node name="PlayButton" type="Button" parent="Home/Column/Items" unique_id=1929021640]
@@ -170,6 +176,15 @@ text = "Controls"
 icon = ExtResource("11_controls")
 alignment = 0
 
+[node name="CreditsButton" type="Button" parent="Home/Column/Items" unique_id=729688650]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+theme_type_variation = &"SlantButton"
+text = "Credits"
+icon = ExtResource("17_credits_icon")
+alignment = 0
+
 [node name="QuitButton" type="Button" parent="Home/Column/Items" unique_id=1267935034]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 44)
@@ -191,6 +206,11 @@ layout_mode = 1
 offers_campaign_reset = true
 
 [node name="ControlsScreen" parent="." unique_id=587962420 instance=ExtResource("13_controls")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="CreditsScreen" parent="." unique_id=286562652 instance=ExtResource("16_credits")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -254,6 +274,7 @@ horizontal_alignment = 1
 [connection signal="pressed" from="Home/Column/Items/LevelsButton" to="." method="_on_levels_button_pressed"]
 [connection signal="pressed" from="Home/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="Home/Column/Items/ControlsButton" to="." method="_on_controls_button_pressed"]
+[connection signal="pressed" from="Home/Column/Items/CreditsButton" to="." method="_on_credits_button_pressed"]
 [connection signal="pressed" from="Home/Column/Items/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="campaign_reset" from="SettingsMenu" to="." method="_on_settings_menu_campaign_reset"]
 [connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]

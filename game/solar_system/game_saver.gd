@@ -7,8 +7,9 @@ extends Node
 ## at a planet with no stop under way. A new run saves at once, over any save, and starts
 ## docked at [member new_run_planet]. A continued run starts docked at the planet it was
 ## saved at, so quitting in flight loses only the flight. It keeps where each planet is on
-## its orbit, the bus's planet and fuel, the [Ledger], the researched upgrades, whether
-## research and which stages are open, the passengers on board and in every line, the goals'
+## its orbit, the bus's planet, fuel and reserve, the [Ledger], the researched upgrades, whether
+## research and which stages are open, the passengers on board and in every line, those
+## who may come back, the goals'
 ## progress, the quest under way and how far through the star systems the player has got.
 ## The course, the charge and what passengers were doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
@@ -23,6 +24,40 @@ const PLANET_TREES: Dictionary[String, String] = {
 	"Frost": "blue_tree",
 	"Terra": "green_tree",
 	"Giant": "orange_tree",
+}
+## Which layout of the research trees a save keys its upgrades by. A save from before the
+## trees were laid out again keys them by the first layout, saved as no number.
+const RESEARCH_LAYOUT := 2
+## Where each upgrade the first layout kept somewhere else sits now, or "" for one that is
+## gone, by its key then.
+const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
+	"blue_tree/0/0": "blue_tree/0/2",
+	"blue_tree/1/1": "blue_tree/1/0",
+	"blue_tree/1/2": "",
+	"blue_tree/2/0": "blue_tree/2/2",
+	"blue_tree/3/1": "",
+	"blue_tree/3/2": "blue_tree/3/1",
+	"blue_tree/3/4": "",
+	"blue_tree/4/0": "blue_tree/4/2",
+	"green_tree/2/3": "green_tree/3/3",
+	"green_tree/3/2": "green_tree/4/2",
+	"green_tree/3/4": "",
+	"green_tree/4/1": "green_tree/4/0",
+	"green_tree/4/3": "green_tree/4/4",
+	"orange_tree/0/0": "orange_tree/0/2",
+	"orange_tree/0/1": "orange_tree/0/0",
+	"orange_tree/0/3": "orange_tree/0/4",
+	"orange_tree/1/2": "orange_tree/1/1",
+	"orange_tree/1/4": "orange_tree/1/3",
+	"orange_tree/2/0": "orange_tree/2/2",
+	"orange_tree/2/2": "orange_tree/2/1",
+	"orange_tree/2/3": "orange_tree/2/4",
+	"orange_tree/3/1": "orange_tree/3/0",
+	"orange_tree/3/3": "",
+	"orange_tree/3/4": "orange_tree/3/3",
+	"orange_tree/4/0": "orange_tree/4/2",
+	"orange_tree/4/2": "orange_tree/4/0",
+	"orange_tree/5/1": "orange_tree/5/2",
 }
 
 ## The bus whose planet, fuel and stats are kept.
@@ -74,8 +109,7 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	_tutorial = SaveGame.wants_tutorial()
 	_saved = SaveGame.claim_run()
 	_continued = not _saved.is_empty()
-	var saved_map: Dictionary = _saved.get("star_map", {})
-	_saved_system = str(saved_map.get("system", ""))
+	_saved_system = SavedStarMap.get_system(SavedStarMap.of(_saved))
 	if not _continued:
 		if _recording and new_run_planet:
 			bus.start_planet = new_run_planet
@@ -94,7 +128,7 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 ## What the continued run kept of the [StarMap], for [method StarMap.restore]: empty for a
 ## new run. Only before [method start].
 func get_saved_star_map() -> Dictionary:
-	return _saved.get("star_map", {})
+	return SavedStarMap.of(_saved)
 
 
 ## Whether this run starts with the tutorial: a new run the main menu started with it, as
@@ -174,14 +208,17 @@ func _write() -> void:
 		"planets": orbits,
 		"bus_planet": String(bus.get_docked_planet().name),
 		"fuel": bus.get_fuel_tank().fuel,
+		"reserve_used": bus.get_fuel_tank().reserve_used,
 		"ledger": _ledger.to_save(),
 		"research": researched,
+		"research_layout": RESEARCH_LAYOUT,
 		"research_stages": research.get_open_stages(),
 		"research_open": research.is_opened(),
-		"star_map": star_map.to_save() if star_map else {},
+		SavedStarMap.KEY: star_map.to_save() if star_map else {},
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,
+		"returning": waiting.get_returning().to_save(),
 		"goals": progress,
 		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
 	}
@@ -200,8 +237,11 @@ func _write() -> void:
 func _restore() -> void:
 	var upgrades := _get_upgrades_by_key()
 	var research := research_lab.get_research()
+	var first_layout := int(_saved.get("research_layout", 1)) < RESEARCH_LAYOUT
 	for key: Variant in _saved.get("research", []):
 		var found := _upgrade_key(str(key))
+		if first_layout:
+			found = FIRST_LAYOUT_PLACES.get(found, found)
 		if upgrades.has(found):
 			research.research(upgrades[found])
 	for stage: int in range(1, int(_saved.get("research_stages", 1))):
@@ -213,9 +253,11 @@ func _restore() -> void:
 		research.open()
 	var tank := bus.get_fuel_tank()
 	tank.fuel = clampf(float(_saved.get("fuel", tank.capacity)), 0.0, tank.capacity)
+	tank.reserve_used = bool(_saved.get("reserve_used", false))
 	var by_name := _get_planets_by_name()
 	var types := _get_types_by_path()
 	waiting.first_business_dealt = bool(_saved.get("first_business", false))
+	waiting.get_returning().load_save(_saved.get("returning", []), types)
 	var lines: Dictionary = _saved.get("lines", {})
 	for planet: Planet in _planets:
 		var line: Dictionary = lines.get(String(planet.name), {})

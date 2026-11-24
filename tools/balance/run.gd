@@ -88,6 +88,8 @@ func _ready() -> void:
 	# Unless told where to, nobody is promoted, so the run stays on the first research
 	# stage after the goals.
 	_progression.promotes = _config.has("promote_to")
+	# Nobody is there to press Start.
+	_jump.shows_loading_screen = false
 	_jump.finished.connect(_on_jumped)
 	var first := _star_map.get_current()
 	_ledger = _system.get_ledger()
@@ -308,8 +310,8 @@ func _describe() -> Dictionary:
 		{
 			"fuel": roundi(tank.fuel),
 			"capacity": roundi(tank.capacity),
-			"burn_per_unit": tank.burn_per_unit,
-			"range": snappedf(tank.fuel / tank.burn_per_unit, 0.1),
+			"burn_per_unit": tank.get_burn_per_unit(),
+			"range": snappedf(tank.fuel / tank.get_burn_per_unit(), 0.1),
 			"fill_costs": ceili((tank.capacity - tank.fuel) * here.fuel_price),
 		},
 		"seats": _cabin.seats,

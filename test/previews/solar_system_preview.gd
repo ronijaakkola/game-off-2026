@@ -8,6 +8,8 @@ extends Node
 ## course by Giant to Terra and lines of one, two and three, so the forecast shows over
 ## Terra, each leg's cost over it and the dots under the names; `hover` puts the pointer on
 ## Giant, so its line shows as photos, and `hover leave` takes it off again after 40 frames.
+## `space` starts the course with a point in space, so its diamond shows, and `fly` sends the
+## bus off on it.
 ## `chime` leaves out the station cameras, so the hover shows how many wait in a tooltip.
 ## `-- Trip`
 ## opens nothing, puts two passengers in line at Ember, where the bus is docked, boards one
@@ -63,8 +65,16 @@ func _ready() -> void:
 		var line := system.find_child("WaitingPassengers") as WaitingPassengers
 		for planet: Planet in [terra, giant, giant, giant, forecast_bus.get_docked_planet()]:
 			line.add(planet)
-		forecast_bus.plot_course(RouteStop.at_planet(giant))
+		if "space" in name_given:
+			forecast_bus.plot_course(
+				RouteStop.at_point(forecast_bus.global_position + Vector3(-9.0, 0.0, 5.0))
+			)
+			forecast_bus.plot_course(RouteStop.at_planet(giant), true)
+		else:
+			forecast_bus.plot_course(RouteStop.at_planet(giant))
 		forecast_bus.plot_course(RouteStop.at_planet(terra), true)
+		if "fly" in name_given:
+			forecast_bus.frameshift_held = true
 		if "hover" in name_given:
 			# With `leave`, the pointer moves off after 40 frames, so the card closes.
 			var frames := 0
