@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dosqy8bh07bb"]
 
 [ext_resource type="Script" uid="uid://u6cb1bticmi" path="res://game/passengers/kicked_passenger.gd" id="1_kicked"]
+[ext_resource type="Script" uid="uid://b0qfu6wawycw7" path="res://game/transmissions/voice/voice_speaker.gd" id="2_speaker"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_torso"]
 radius = 0.026
@@ -28,6 +29,10 @@ rings = 2
 
 [node name="KickedPassenger" type="Node3D" unique_id=672729603]
 script = ExtResource("1_kicked")
+
+[node name="Speaker" type="Node" parent="." unique_id=541868573]
+unique_name_in_owner = true
+script = ExtResource("2_speaker")
 
 [node name="Torso" type="MeshInstance3D" parent="." unique_id=1719673416]
 mesh = SubResource("CapsuleMesh_torso")

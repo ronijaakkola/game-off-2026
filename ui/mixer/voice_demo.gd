@@ -10,6 +10,8 @@ signal finished
 ## Seconds from a stinger to the first word, as in a transmission, and the gap between lines.
 const LEAD_SECONDS := 0.6
 const GAP_SECONDS := 0.8
+## Seconds a kicked scream has to fade out before the next line.
+const KICKED_SECONDS := 2.5
 ## The lines to hear a voice in. A caller is "low", "mid" or "high": the lowest, middle or
 ## highest of the race's pitch steps.
 const LINES: Array[Dictionary] = [
@@ -49,6 +51,13 @@ const LINES: Array[Dictionary] = [
 		"mood": Passenger.Mood.OKAY,
 		"scared": true,
 		"text": "Please, no. Not the black hole, I beg you. Turn the bus around!",
+	},
+	{
+		"label": "Kicked",
+		"caller": "mid",
+		"mood": Passenger.Mood.OKAY,
+		"kicked": true,
+		"text": "",
 	},
 	{
 		"label": "Low voice",
@@ -115,6 +124,7 @@ static func entry(race: Race.Type, voice: Voice, line: Dictionary) -> Dictionary
 		"caller": caller_for(voice.voice_count, step),
 		"mood": line["mood"],
 		"scared": line.get("scared", false),
+		"kicked": line.get("kicked", false),
 		"text": line["text"],
 	}
 
@@ -147,6 +157,13 @@ func _next() -> void:
 	var line: Dictionary = _queue.pop_front()
 	var race: Race.Type = line["race"]
 	_speaker.begin(race, line["caller"])
+	if line["kicked"]:
+		_speaker.play_kicked()
+		_text = ""
+		_saying = false
+		_wait = KICKED_SECONDS
+		set_process(true)
+		return
 	if line["scared"]:
 		_speaker.play_stinger(Voice.Stinger.SCARED)
 	else:

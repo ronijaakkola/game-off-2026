@@ -326,7 +326,7 @@ In the top left corner: how many seats are taken ("3/4") and, under it, a card f
   - The striped end and the pause mark keep their own tooltips where they are.
 - **The activity line morphs** when it changes: a wave sweeps left to right, the old letters drift up and blur away and the new ones rise into focus, in about half a second. Under Reduce motion the lines crossfade.
 - **A request.** A serve button takes the place of the activity line, with the need's icon and label: "Hand a snack" with a sandwich, "Pour a drink" with a cup. A faint cyan fill sweeps across the button as it is held, or as an amenity serves.
-  - Sound: a faint "psst" as it opens, one of three whispers at random, never the same one twice running, its pitch varied by up to 6 %.
+  - Sound: as it opens, the passenger calls out with their race's annoyed stinger, as in a transmission, at their own pitch. A race with no voice makes no sound.
   - Served: "Munching a snack".
   - Amenities have their own lines: "Getting a snack from the dispenser", "Waiting for the dispenser", "A droid brings a snack", "Waiting for a droid".
   - Docked, the station serves it: the button reads "Station serves a snack" and fills by itself.
@@ -365,7 +365,7 @@ A small photo on the left of a card or a waiting row: the passenger's head and s
 ### A kicked passenger
 
 - Out of the bus's door, a small, soft human figure in a star jump, all in their skin colour, is thrown out and up. It slows and tumbles as if weightless, and shrinks away after 4 s.
-- It lets out a quiet Wilhelm scream that fades fast, as if it flew away from the bus.
+- It screams as its passenger, with one of their race's kicked clips at their pitch, a little higher so it sounds thinner, fading out over about 1.5 s as if it flew away from the bus.
 
 ### Transmission
 

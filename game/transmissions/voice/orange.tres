@@ -59,6 +59,8 @@
 [ext_resource type="AudioStream" uid="uid://kdh1i6nfp483" path="res://game/transmissions/voice/orange/o_s07.ogg" id="s07"]
 [ext_resource type="AudioStream" uid="uid://3xsux6jvx74o" path="res://game/transmissions/voice/orange/o_s08.ogg" id="s08"]
 [ext_resource type="AudioStream" uid="uid://d27rl11gmj5iq" path="res://game/transmissions/voice/orange/o_s09.ogg" id="s09"]
+[ext_resource type="AudioStream" uid="uid://cfmiyq7ipqf38" path="res://game/transmissions/voice/orange/o_k01.ogg" id="k01"]
+[ext_resource type="AudioStream" uid="uid://h3fsl3qrw8t2" path="res://game/transmissions/voice/orange/o_k02.ogg" id="k02"]
 [ext_resource type="Script" uid="uid://jvrxrmesvlbt" path="res://game/transmissions/voice/voice.gd" id="voice_script"]
 
 [resource]
@@ -70,6 +72,7 @@ longs = Array[AudioStream]([ExtResource("l01"), ExtResource("l02"), ExtResource(
 stingers_annoyed = Array[AudioStream]([ExtResource("a01"), ExtResource("a02"), ExtResource("a03")])
 stingers_happy = Array[AudioStream]([ExtResource("h01"), ExtResource("h02"), ExtResource("h03"), ExtResource("h04"), ExtResource("h05")])
 stingers_scared = Array[AudioStream]([ExtResource("s01"), ExtResource("s02"), ExtResource("s03"), ExtResource("s04"), ExtResource("s05"), ExtResource("s06"), ExtResource("s07"), ExtResource("s08"), ExtResource("s09")])
+kicked = Array[AudioStream]([ExtResource("k01"), ExtResource("k02")])
 typing_speed = 1.0
 volume = 0.4
 pitch_min = 0.9
@@ -79,10 +82,11 @@ pitch_jitter = 0.0
 start_long_chance = 0.5
 pause_long_chance = 0.3
 long_pause = 0.15
+kicked_pitch = 1.2
 blip_speed = 1.0
 min_word_letters = 3
 long_word_letters = 8
-max_overlap = 0.0
+max_overlap = 0.13
 fade_in = 0.006
 fade_out = 0.027
 words_per_blip_min = 1
