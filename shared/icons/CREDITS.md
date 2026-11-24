@@ -20,3 +20,4 @@ Icons used by more than one feature, from [Lucide](https://lucide.dev) (`lucide-
 | `bus.svg` | `bus` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `route.svg` | `route` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `lock.svg` | `lock` | ISC (`LICENSE.txt`) |
+| `rotate_ccw.svg` | `rotate-ccw` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |

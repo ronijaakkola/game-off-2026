@@ -5,7 +5,7 @@ extends Node
 ## an incoming transmission notice, whose Answer opens their [Quest]'s transmission. They
 ## ask to fly past a planet ([FlybyQuest]) or to stop at one ([ErrandQuest]), as likely one
 ## as the other; a Business passenger asks for an [ExpressQuest] instead, where
-## [method start] allows it. One
+## [method start] allows it. A returning passenger is likelier to be the one who calls. One
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
@@ -49,6 +49,9 @@ const ARRIVING_SECONDS := 6.0
 ## what failing one does.
 const DECLINE_SHOCK := -5.0
 const FAIL_SHOCK := -15.0
+## How many times as likely a returning passenger is to be the one who calls as anyone
+## else who could. It changes who calls, never how often.
+const RETURNING_WEIGHT := 3.0
 ## Seconds a finished quest stays among the quests.
 const SHOWN_SECONDS := 8.0
 ## Seconds the notice of how a quest ended shows.
@@ -238,15 +241,23 @@ func _is_time_to_call() -> bool:
 
 
 # Someone on board who could call now: awake, not about to get off, and with a quest to
-# offer as things stand.
+# offer as things stand. A returning passenger is RETURNING_WEIGHT times as likely as
+# anyone else.
 func _pick_caller() -> Passenger:
 	var able: Array[Passenger] = []
+	var weights := PackedFloat32Array()
 	for passenger: Passenger in cabin.get_passengers():
 		if passenger.asleep or _is_arriving(passenger):
 			continue
 		if _plan(passenger):
 			able.append(passenger)
-	return able[_rng.randi_range(0, able.size() - 1)] if not able.is_empty() else null
+			weights.append(RETURNING_WEIGHT if passenger.returning else 1.0)
+	if able.is_empty():
+		return null
+	# With nobody returning the roll is the plain one, so such a run plays as before.
+	if not able.any(func(passenger: Passenger) -> bool: return passenger.returning):
+		return able[_rng.randi_range(0, able.size() - 1)]
+	return able[_rng.rand_weighted(weights)]
 
 
 # The quest [param passenger] would offer as things stand, or null when none suits: a
