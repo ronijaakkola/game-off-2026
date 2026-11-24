@@ -19,3 +19,13 @@ static func for_signal(sig: Signal, timeout_ms: int) -> bool:
 	if sig.is_connected(on_fired):
 		sig.disconnect(on_fired)
 	return fired[0]
+
+
+## Waits up to [param timeout_ms] of wall-clock time for [param condition] to return true.
+## Returns whether it did.
+static func for_condition(condition: Callable, timeout_ms: int) -> bool:
+	var tree := Engine.get_main_loop() as SceneTree
+	var deadline := Time.get_ticks_msec() + timeout_ms
+	while not condition.call() and Time.get_ticks_msec() < deadline:
+		await tree.process_frame
+	return condition.call()

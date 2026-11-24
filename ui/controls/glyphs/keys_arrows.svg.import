@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y2li7kgyrfui"
-path="res://.godot/imported/lock.svg-03bd6e154d88ed37374c925b1e11bd20.ctex"
+uid="uid://mq6m0j25q81s"
+path="res://.godot/imported/keys_arrows.svg-f0a0e25c696ad377207ed3f3089000e0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/research/icons/lock.svg"
-dest_files=["res://.godot/imported/lock.svg-03bd6e154d88ed37374c925b1e11bd20.ctex"]
+source_file="res://ui/controls/glyphs/keys_arrows.svg"
+dest_files=["res://.godot/imported/keys_arrows.svg-f0a0e25c696ad377207ed3f3089000e0.ctex"]
 
 [params]
 
@@ -38,6 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
+svg/scale=3.0
 editor/scale_with_editor_scale=false
 editor/convert_colors_with_editor_theme=false

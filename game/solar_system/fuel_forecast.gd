@@ -53,7 +53,7 @@ static func leg_costs(from_bus: FrameshiftBus) -> PackedFloat32Array:
 		var leg := Vector2(points[i + 1].x - points[i].x, points[i + 1].z - points[i].z).length()
 		if stops[i].planet:
 			leg = maxf(leg - FrameshiftBus.DOCK_DISTANCE, 0.0)
-		costs.append(leg * from_bus.get_fuel_tank().burn_per_unit)
+		costs.append(leg * from_bus.get_fuel_tank().get_burn_per_unit())
 	return costs
 
 

@@ -58,6 +58,7 @@
 [ext_resource type="Script" uid="uid://bu4j550daikvp" path="res://game/goals/goals_met_call.gd" id="141_goals_met_call"]
 [ext_resource type="Script" uid="uid://bbous2naro572" path="res://game/feature_hints/feature_hints.gd" id="141_hints"]
 [ext_resource type="Script" uid="uid://d0yafx2jib6ve" path="res://game/feature_hints/business_hint.gd" id="142_business_hint"]
+[ext_resource type="Script" uid="uid://cj5hruo35t0qc" path="res://game/feature_hints/returning_hint.gd" id="142_returning_hint"]
 [ext_resource type="PackedScene" uid="uid://dhfaboh7sticu" path="res://ui/pause_menu/pause_button.tscn" id="143_pause_button"]
 [ext_resource type="Script" uid="uid://bh8bscq7fi6lc" path="res://game/research/mechanic_call.gd" id="144_mechanic_call"]
 [ext_resource type="Script" uid="uid://cpcbx8tu81xmd" path="res://game/research/research_guide.gd" id="145_research_guide"]
@@ -219,13 +220,15 @@ script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="Quests" type="Node" parent="." unique_id=668166964 node_paths=PackedStringArray("bus", "cabin")]
+[node name="Quests" type="Node" parent="." unique_id=668166964 node_paths=PackedStringArray("bus", "cabin", "gate_service", "asteroid_field")]
 unique_name_in_owner = true
 script = ExtResource("104_goals")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
+gate_service = NodePath("../GateService")
+asteroid_field = NodePath("../World/Lyra/AsteroidField")
 
-[node name="QuestGiver" type="Node" parent="." unique_id=1899460635 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quests", "quick_text")]
+[node name="QuestGiver" type="Node" parent="." unique_id=1899460635 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quests", "quick_text", "asteroid_field")]
 unique_name_in_owner = true
 script = ExtResource("140_quests")
 bus = NodePath("../Bus")
@@ -234,6 +237,7 @@ notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
 quests = NodePath("../Quests")
 quick_text = NodePath("../Hud/BusQuickText")
+asteroid_field = NodePath("../World/Lyra/AsteroidField")
 
 [node name="GoalsMetCall" type="Node" parent="." unique_id=1075418356 node_paths=PackedStringArray("notices", "transmission_panel", "quest_giver")]
 script = ExtResource("141_goals_met_call")
@@ -319,6 +323,11 @@ script = ExtResource("142_business_hint")
 hints = NodePath("../FeatureHints")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 
+[node name="ReturningHint" type="Node" parent="." unique_id=14047910 node_paths=PackedStringArray("hints", "dock_panel")]
+script = ExtResource("142_returning_hint")
+hints = NodePath("../FeatureHints")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+
 [node name="WarpHint" type="Node" parent="." unique_id=915439757 node_paths=PackedStringArray("hints", "dock_panel")]
 script = ExtResource("154_warp_hint")
 hints = NodePath("../FeatureHints")
@@ -369,13 +378,14 @@ resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
 research_screen = NodePath("../Hud/ResearchScreen")
 trees = Array[ExtResource("94_research_tree")]([ExtResource("95_blue_tree"), ExtResource("96_green_tree"), ExtResource("97_orange_tree")])
 
-[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("star_map", "bus")]
+[node name="WaitingPassengers" type="Node" parent="." unique_id=857569411 node_paths=PackedStringArray("star_map", "bus", "cabin")]
 unique_name_in_owner = true
 script = ExtResource("14_waiting")
 types = Array[ExtResource("16_type")]([ExtResource("15_commuter")])
 business = ExtResource("15_business")
 star_map = NodePath("../StarMap")
 bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
 
 [node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "notices", "cabin", "bus", "boss_call", "arrival_call", "system_jump", "saver")]
 unique_name_in_owner = true
@@ -538,6 +548,7 @@ anchors_preset = 11
 
 [node name="TransmissionPanel" parent="." unique_id=319147727 instance=ExtResource("109_transmission")]
 
-[node name="PauseMenu" parent="." unique_id=557675524 instance=ExtResource("9_pause")]
+[node name="PauseMenu" parent="." unique_id=557675524 node_paths=PackedStringArray("star_map") instance=ExtResource("9_pause")]
+star_map = NodePath("../StarMap")
 
 [connection signal="pressed" from="Hud/PauseButton" to="PauseMenu" method="open"]

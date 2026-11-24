@@ -13,6 +13,8 @@ var _runner_scene: Node
 
 
 func before() -> void:
+	# Restart level reads the saved run, so the player's own save stays out of it.
+	SaveGame.use_test_files("pause_menu")
 	# In the editor, gdUnit's runner is the current scene, and changing scenes would free
 	# it mid-run. Headless, there is no current scene.
 	_runner_scene = get_tree().current_scene
@@ -22,6 +24,7 @@ func before() -> void:
 
 
 func after() -> void:
+	SaveGame.use_player_files()
 	get_tree().root.size = _window_size
 	get_tree().current_scene = _runner_scene
 
@@ -66,7 +69,7 @@ func test_resume_closes_the_settings_panel_too() -> void:
 	assert_bool(get_tree().paused).is_false()
 
 
-func test_skip_tutorial_shows_only_when_offered_and_skips_from_a_closed_menu() -> void:
+func test_skip_tutorial_shows_last_only_when_offered_and_skips_from_a_closed_menu() -> void:
 	var runner := scene_runner(SCENE)
 	runner.invoke("open")
 	var skip := runner.find_child("SkipTutorialButton") as Button
@@ -74,6 +77,12 @@ func test_skip_tutorial_shows_only_when_offered_and_skips_from_a_closed_menu() -
 
 	runner.set_property("offers_skip_tutorial", true)
 	assert_bool(skip.is_visible_in_tree()).is_true()
+	# It sits under the others, a step further apart.
+	await runner.simulate_frames(1)
+	var main_menu := runner.find_child("MainMenuButton") as Button
+	assert_float(skip.get_global_rect().position.y).is_greater(
+		main_menu.get_global_rect().end.y + 16
+	)
 	monitor_signals(runner.scene())
 	skip.pressed.emit()
 	assert_bool(runner.scene().visible).is_false()
@@ -87,7 +96,9 @@ func test_esc_in_settings_goes_back_to_the_paused_menu() -> void:
 	(runner.find_child("SettingsButton") as Button).pressed.emit()
 
 	_press_pause()
-	assert_bool((runner.find_child("SettingsMenu") as Control).visible).is_false()
+	# The screen's rows stagger out first.
+	var settings := runner.find_child("SettingsMenu") as Control
+	assert_bool(await PauseProofWait.for_signal(settings.hidden, 2000)).is_true()
 	assert_bool(runner.scene().visible).is_true()
 	assert_bool(get_tree().paused).is_true()
 
@@ -102,11 +113,14 @@ func test_keyboard_focus_follows_the_open_panel() -> void:
 	settings_button.grab_focus()
 	settings_button.pressed.emit()
 	assert_object(_focused()).is_same(runner.find_child("MasterVolume"))
-	# Tab from the panel's last control wraps inside the panel, not to the buttons under it.
-	var back := runner.find_child("BackButton") as Button
+	# Tab from the screen's last control wraps inside the screen, not to the buttons under it.
+	var back := runner.find_child("SettingsMenu").find_child("BackButton") as Button
 	assert_object(back.find_next_valid_focus()).is_same(runner.find_child("MasterVolume"))
 
 	back.pressed.emit()
+	# The screen's rows stagger out first.
+	var settings := runner.find_child("SettingsMenu") as Control
+	assert_bool(await PauseProofWait.for_signal(settings.hidden, 2000)).is_true()
 	assert_object(_focused()).is_same(settings_button)
 
 
@@ -180,3 +194,33 @@ func _press_pause() -> void:
 		event.pressed = pressed
 		Input.parse_input_event(event)
 	Input.flush_buffered_events()
+
+
+func test_controls_opens_its_screen_and_esc_goes_back() -> void:
+	var runner := scene_runner(SCENE)
+	runner.invoke("open")
+	(runner.find_child("ControlsButton") as Button).pressed.emit()
+	var controls := runner.find_child("ControlsScreen") as Control
+	assert_bool(controls.visible).is_true()
+	# The menu's rows stagger out first, and the screen's on the way back.
+	var content := runner.find_child("Content") as Control
+	assert_bool(await PauseProofWait.for_signal(content.hidden, 2000)).is_true()
+
+	_press_pause()
+	assert_bool(await PauseProofWait.for_signal(controls.hidden, 2000)).is_true()
+	assert_bool(runner.scene().visible).is_true()
+	assert_bool(get_tree().paused).is_true()
+
+
+func test_restart_level_asks_first_and_cancel_keeps_playing_paused() -> void:
+	var runner := scene_runner(SCENE)
+	runner.invoke("open")
+	(runner.find_child("RestartButton") as Button).pressed.emit()
+	var dialog := runner.find_child("RestartDialog") as Control
+	assert_bool(dialog.visible).is_true()
+	assert_str((dialog.find_child("Title") as Label).text).is_equal("Restart Level 1?")
+
+	(dialog.find_child("CancelButton") as Button).pressed.emit()
+	assert_bool(dialog.visible).is_false()
+	assert_bool(runner.scene().visible).is_true()
+	assert_bool(get_tree().paused).is_true()

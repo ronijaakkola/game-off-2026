@@ -11,6 +11,15 @@
 [ext_resource type="Texture2D" uid="uid://dtjv7stxkojm5" path="res://game/research/icons/rendered/quick_hands_36.png" id="30_quick_hands"]
 [ext_resource type="Texture2D" uid="uid://cspxodsva0min" path="res://game/research/icons/rendered/placeholder_36.png" id="31_placeholder"]
 
+[sub_resource type="Resource" id="Resource_pillows"]
+script = ExtResource("2_upgrade")
+title = "Pillows"
+description = "Passengers take short naps, and time passes slower while they doze."
+icon = ExtResource("30_pillows")
+credits = 120
+points = 2
+traits = Array[int]([2])
+
 [sub_resource type="Resource" id="Resource_extra_seat_1_mod"]
 script = ExtResource("3_modifier")
 stat = 2
@@ -24,16 +33,7 @@ icon = ExtResource("30_extra_seat")
 credits = 120
 points = 2
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_1_mod")])
-
-[sub_resource type="Resource" id="Resource_pillows"]
-script = ExtResource("2_upgrade")
-title = "Pillows"
-description = "Passengers take short naps, and time passes slower while they doze."
-icon = ExtResource("30_pillows")
-credits = 120
-points = 2
-traits = Array[int]([2])
-column = 1
+column = 2
 
 [sub_resource type="Resource" id="Resource_portions_1_mod"]
 script = ExtResource("3_modifier")
@@ -49,7 +49,7 @@ icon = ExtResource("30_bigger_portions")
 credits = 120
 points = 2
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_portions_1_mod")])
-column = 3
+column = 4
 
 [sub_resource type="Resource" id="Resource_entertainment_system"]
 script = ExtResource("2_upgrade")
@@ -58,28 +58,40 @@ description = "Movies on board: passengers are happier, and the ride flies by wh
 icon = ExtResource("30_in_flight_movies")
 credits = 240
 points = 4
-requires = Array[Resource]([SubResource("Resource_pillows"), SubResource("Resource_portions_1")])
+requires = Array[Resource]([SubResource("Resource_pillows"), SubResource("Resource_extra_seat_1")])
 traits = Array[int]([5])
 tier = 1
-column = 2
+column = 1
 
-[sub_resource type="Resource" id="Resource_quick_hands_mod"]
+[sub_resource type="Resource" id="Resource_pneumatic_galley_mod"]
 script = ExtResource("3_modifier")
 stat = 6
 kind = 1
 amount = 50.0
 
-[sub_resource type="Resource" id="Resource_quick_hands"]
+[sub_resource type="Resource" id="Resource_pneumatic_galley"]
 script = ExtResource("2_upgrade")
-title = "Quick hands"
+title = "Pneumatic galley"
 description = "Serving passenger requests is now 50% faster."
 icon = ExtResource("30_quick_hands")
 credits = 240
 points = 4
 requires = Array[Resource]([SubResource("Resource_portions_1")])
-modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_quick_hands_mod")])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_pneumatic_galley_mod")])
 tier = 1
-column = 4
+column = 3
+
+[sub_resource type="Resource" id="Resource_gaming_system"]
+script = ExtResource("2_upgrade")
+title = "Space Invaders"
+description = "Arcade games on board: passengers are happier still, and use more time consuming entertainment."
+icon = ExtResource("31_placeholder")
+credits = 300
+points = 4
+requires = Array[Resource]([SubResource("Resource_entertainment_system")])
+traits = Array[int]([4])
+tier = 2
+column = 1
 
 [sub_resource type="Resource" id="Resource_extra_seat_2_mod"]
 script = ExtResource("3_modifier")
@@ -95,17 +107,6 @@ credits = 300
 points = 4
 requires = Array[Resource]([SubResource("Resource_extra_seat_1")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_2_mod")])
-tier = 2
-
-[sub_resource type="Resource" id="Resource_gaming_system"]
-script = ExtResource("2_upgrade")
-title = "Space Invaders"
-description = "Arcade games on board: passengers are happier still, and use more time consuming entertainment."
-icon = ExtResource("31_placeholder")
-credits = 300
-points = 4
-requires = Array[Resource]([SubResource("Resource_entertainment_system")])
-traits = Array[int]([4])
 tier = 2
 column = 2
 
@@ -125,7 +126,7 @@ points = 4
 requires = Array[Resource]([SubResource("Resource_portions_1")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_portions_2_mod")])
 tier = 2
-column = 3
+column = 4
 
 [sub_resource type="Resource" id="Resource_sleeping_pods"]
 script = ExtResource("2_upgrade")
@@ -137,19 +138,18 @@ points = 10
 requires = Array[Resource]([SubResource("Resource_pillows")])
 traits = Array[int]([3])
 tier = 3
-column = 1
 
-[sub_resource type="Resource" id="Resource_airlock"]
+[sub_resource type="Resource" id="Resource_shock_absorbers"]
 script = ExtResource("2_upgrade")
-title = "Airlock"
-description = "Other passengers no longer get upset for kicking passengers out.
-NOT IMPLEMENTED"
+title = "Shock absorbers"
+description = "Asteroid knocks upset passengers half as much, and the bus flies through the rocks faster."
 icon = ExtResource("31_placeholder")
-credits = 800
-points = 10
-requires = Array[Resource]([SubResource("Resource_gaming_system"), SubResource("Resource_portions_2")])
+credits = 550
+points = 7
+requires = Array[Resource]([SubResource("Resource_gaming_system"), SubResource("Resource_extra_seat_2")])
+traits = Array[int]([20])
 tier = 3
-column = 3
+column = 1
 
 [sub_resource type="Resource" id="Resource_food_dispenser"]
 script = ExtResource("2_upgrade")
@@ -158,10 +158,21 @@ description = "Hungry passengers fetch their own snacks and drinks, one at a tim
 icon = ExtResource("31_placeholder")
 credits = 550
 points = 7
-requires = Array[Resource]([SubResource("Resource_quick_hands"), SubResource("Resource_portions_2")])
+requires = Array[Resource]([SubResource("Resource_pneumatic_galley"), SubResource("Resource_portions_2")])
 traits = Array[int]([6])
 tier = 3
-column = 4
+column = 3
+
+[sub_resource type="Resource" id="Resource_karaoke"]
+script = ExtResource("2_upgrade")
+title = "Karaoke"
+description = "Happy passengers lift the mood of other passengers; furious ones bring it down.
+NOT IMPLEMENTED"
+icon = ExtResource("31_placeholder")
+credits = 1100
+points = 14
+requires = Array[Resource]([SubResource("Resource_shock_absorbers"), SubResource("Resource_sleeping_pods")])
+tier = 4
 
 [sub_resource type="Resource" id="Resource_extra_seat_4_mod"]
 script = ExtResource("3_modifier")
@@ -177,17 +188,6 @@ credits = 800
 points = 10
 requires = Array[Resource]([SubResource("Resource_extra_seat_2")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_extra_seat_4_mod")])
-tier = 4
-
-[sub_resource type="Resource" id="Resource_karaoke"]
-script = ExtResource("2_upgrade")
-title = "Karaoke"
-description = "Happy passengers lift the mood of other passengers; furious ones bring it down.
-NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
-credits = 1100
-points = 14
-requires = Array[Resource]([SubResource("Resource_gaming_system")])
 tier = 4
 column = 2
 
@@ -210,13 +210,13 @@ description = "NOT IMPLEMENTED"
 icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14
-requires = Array[Resource]([SubResource("Resource_sleeping_pods"), SubResource("Resource_extra_seat_4")])
+requires = Array[Resource]([SubResource("Resource_extra_seat_4"), SubResource("Resource_karaoke"), SubResource("Resource_serving_robots")])
 tier = 5
-column = 1
+column = 2
 
 [resource]
 script = ExtResource("1_tree")
 title = "Comfort"
 icon = ExtResource("20_heart")
 palette = 1
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_extra_seat_1"), SubResource("Resource_pillows"), SubResource("Resource_portions_1"), SubResource("Resource_entertainment_system"), SubResource("Resource_quick_hands"), SubResource("Resource_extra_seat_2"), SubResource("Resource_gaming_system"), SubResource("Resource_portions_2"), SubResource("Resource_sleeping_pods"), SubResource("Resource_airlock"), SubResource("Resource_food_dispenser"), SubResource("Resource_extra_seat_4"), SubResource("Resource_karaoke"), SubResource("Resource_serving_robots"), SubResource("Resource_time_dilation_cabin")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_pillows"), SubResource("Resource_extra_seat_1"), SubResource("Resource_portions_1"), SubResource("Resource_entertainment_system"), SubResource("Resource_pneumatic_galley"), SubResource("Resource_gaming_system"), SubResource("Resource_extra_seat_2"), SubResource("Resource_portions_2"), SubResource("Resource_sleeping_pods"), SubResource("Resource_shock_absorbers"), SubResource("Resource_food_dispenser"), SubResource("Resource_karaoke"), SubResource("Resource_extra_seat_4"), SubResource("Resource_serving_robots"), SubResource("Resource_time_dilation_cabin")])

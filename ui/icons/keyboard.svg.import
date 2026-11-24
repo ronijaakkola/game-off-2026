@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bv3he6oofkmxy"
-path="res://.godot/imported/route.svg-a8edb4de0698d2f94a76173ee46be8c5.ctex"
+uid="uid://ciwqbucui3yd6"
+path="res://.godot/imported/keyboard.svg-f7c670e346c970a4a6ba938e97cad440.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/bus/icons/route.svg"
-dest_files=["res://.godot/imported/route.svg-a8edb4de0698d2f94a76173ee46be8c5.ctex"]
+source_file="res://ui/icons/keyboard.svg"
+dest_files=["res://.godot/imported/keyboard.svg-f7c670e346c970a4a6ba938e97cad440.ctex"]
 
 [params]
 

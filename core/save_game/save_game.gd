@@ -6,9 +6,12 @@ extends Node
 ## starts ([method claim_run]). Only a claimed run is saved, so a game scene started any
 ## other way, by a test, a smoke run or F6, never reads or writes the file.
 ## It also keeps, in [constant TUTORIAL_PATH], whether the player has been through the
-## tutorial: it outlives the run, so a New game after it starts without the tutorial.
+## tutorial: it outlives the run, so a new run after it starts without the tutorial.
 ## And it keeps, in [constant HINTS_PATH], which feature hints the player has closed, so
 ## each shows once ([FeatureHints]) until the player deletes their save data.
+## And it keeps the campaign's record in [constant CAMPAIGN_PATH], which outlives the run:
+## a replayed level starts the run over and keeps how far the player has got. As with the
+## run, it holds a plain Dictionary and knows nothing of what is in it ([Campaign]).
 ## On the web, saves are best effort: without persistent storage, the save lasts for the
 ## session only (docs/web-constraints.md).
 
@@ -17,13 +20,15 @@ const PATH := "user://save_game.json"
 const TUTORIAL_PATH := "user://tutorial.cfg"
 ## Where the feature hints the player has closed are kept.
 const HINTS_PATH := "user://feature_hints.cfg"
+## Where the campaign's record is kept.
+const CAMPAIGN_PATH := "user://campaign.json"
 ## Bumped when what the game writes changes so that an older save can't be read: a save
 ## of another version counts as none.
 const VERSION := 1
 
 ## Every file the save game keeps, each deleted by [method delete]. A new file's path
 ## goes here too, or deleting the save data leaves it behind (save_game_test checks).
-const FILES: Array[String] = [PATH, TUTORIAL_PATH, HINTS_PATH]
+const FILES: Array[String] = [PATH, TUTORIAL_PATH, HINTS_PATH, CAMPAIGN_PATH]
 const _PLAYER_FOLDER := "user://"
 
 # What each file's path starts with in place of [constant _PLAYER_FOLDER]: the player's
@@ -34,6 +39,8 @@ var _prefix := _PLAYER_FOLDER
 # saved run it continues, empty for a new one.
 var _started := false
 var _pending: Dictionary = {}
+# Whether the started run opens on the tutorial.
+var _tutorial := false
 
 
 ## Whether there is a save to continue.
@@ -41,17 +48,41 @@ func has_save() -> bool:
 	return not _read().is_empty()
 
 
-## Starts a new run for the next game scene. The save stays until the new run first saves
-## over it, so a New game left at once loses nothing.
+## The saved run, without starting it: empty when there is none.
+func get_saved_run() -> Dictionary:
+	return _read()
+
+
+## Starts a new run for the next game scene, with the tutorial until the player has been
+## through it. The save stays until the new run first saves over it, so a new run left at
+## once loses nothing.
 func start_new() -> void:
+	start_new_with_tutorial(not is_tutorial_done())
+
+
+## Starts a new run for the next game scene, opening on the tutorial if [param tutorial].
+func start_new_with_tutorial(tutorial: bool) -> void:
 	_started = true
 	_pending = {}
+	_tutorial = tutorial
 
 
 ## Starts the next game scene from the save.
 func continue_saved() -> void:
+	start_run(_read())
+
+
+## Starts the next game scene from [param run], a run as [method write] took it, such as
+## where a level began.
+func start_run(run: Dictionary) -> void:
 	_started = true
-	_pending = _read()
+	_pending = run.duplicate(true)
+	_tutorial = false
+
+
+## Whether the run the main menu started opens on the tutorial.
+func wants_tutorial() -> bool:
+	return _started and _tutorial
 
 
 ## Whether the main menu started a run that no game scene has claimed yet.
@@ -65,20 +96,23 @@ func claim_run() -> Dictionary:
 	var run := _pending
 	_started = false
 	_pending = {}
+	_tutorial = false
 	return run
 
 
 ## Saves [param run] over the save.
 func write(run: Dictionary) -> void:
-	var file := FileAccess.open(_at(PATH), FileAccess.WRITE)
-	if not file:
-		push_warning("Couldn't save the game: %s" % error_string(FileAccess.get_open_error()))
-		return
-	var saved := run.duplicate()
-	saved["version"] = VERSION
-	file.store_string(JSON.stringify(saved))
-	# Closing it is what saves it on the web.
-	file.close()
+	_write_json(PATH, run)
+
+
+## The campaign's record, empty when there is none.
+func read_campaign() -> Dictionary:
+	return _read_json(CAMPAIGN_PATH)
+
+
+## Saves [param campaign] as the campaign's record.
+func write_campaign(campaign: Dictionary) -> void:
+	_write_json(CAMPAIGN_PATH, campaign)
 
 
 ## Deletes the save data: the run, whether the player has been through the tutorial and
@@ -148,13 +182,32 @@ func forget_hints() -> void:
 
 # The saved run, or empty when there is none, it can't be read or it is of another version.
 func _read() -> Dictionary:
-	if not FileAccess.file_exists(_at(PATH)):
+	return _read_json(PATH)
+
+
+# What [param path], one of [constant FILES], holds, or empty when it isn't there, can't be
+# read or is of another version.
+func _read_json(path: String) -> Dictionary:
+	if not FileAccess.file_exists(_at(path)):
 		return {}
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(_at(PATH)))
-	var run := parsed as Dictionary if parsed is Dictionary else {}
-	if int(run.get("version", 0)) != VERSION:
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(_at(path)))
+	var data := parsed as Dictionary if parsed is Dictionary else {}
+	if int(data.get("version", 0)) != VERSION:
 		return {}
-	return run
+	return data
+
+
+# Saves [param data] in [param path], one of [constant FILES], with the version.
+func _write_json(path: String, data: Dictionary) -> void:
+	var file := FileAccess.open(_at(path), FileAccess.WRITE)
+	if not file:
+		push_warning("Couldn't save the game: %s" % error_string(FileAccess.get_open_error()))
+		return
+	var saved := data.duplicate()
+	saved["version"] = VERSION
+	file.store_string(JSON.stringify(saved))
+	# Closing it is what saves it on the web.
+	file.close()
 
 
 # Where [param file], one of [constant FILES], is now.

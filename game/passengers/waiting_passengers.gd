@@ -6,9 +6,12 @@ extends Node
 ## Someone waiting is only a count until the player first sees the line
 ## ([method get_waiting]). Then each is decided, one after another: a destination, which
 ## leans toward where those already in the line are going only once the bus has
-## Timetables, a race dealt from a bag, and a type by the band of the player's recent
+## Timetables, and toward where someone on board is going once it has the Destination sign,
+## a race dealt from a bag, and a type by the band of the player's recent
 ## rating ([RatingBand]), with no Business passenger in the first star system. Their
 ## trip time and fare come from the distance to their destination then.
+## Someone who rated a ride five stars may turn up again later as a returning passenger
+## ([ReturningPassengers]), the same in name, type, race and look, at most one in a line.
 ## Once seen, the one who has waited longest leaves after [member leave_seconds] without
 ## being picked up, so a line the player passes over doesn't stay the same for good.
 ## Everyone's wait is counted while their planet's clock runs: once the bus has the Station
@@ -34,6 +37,10 @@ const MAX_SAME_DESTINATION := 2
 @export var star_map: StarMap
 ## The bus, whose speed and charge time set how long a trip should take.
 @export var bus: FrameshiftBus
+## Who is on board, whose destinations the Destination sign leans toward, and who, as
+## they get off, may come back later ([method remember]). None, and it leans toward
+## nothing and nobody comes back unless told to.
+@export var cabin: Cabin
 @export_range(0, 10) var max_per_planet := 3
 ## How many wait at all the planets together at most, so some lines are short or empty.
 @export_range(0, 60) var max_total := 7
@@ -51,6 +58,9 @@ const MAX_SAME_DESTINATION := 2
 ## once the bus has Timetables. Likelier, never certain. Without Timetables every
 ## destination is as likely as the next.
 @export_range(1.0, 10.0, 0.1) var timetables_in_line_weight := 3.0
+## How much likelier a destination is when someone on board is going there, once the bus
+## has the Destination sign. It stacks with Timetables.
+@export_range(1.0, 10.0, 0.1) var destination_sign_weight := 3.0
 ## Seconds the longest-waiting passenger of a line the player has seen stays before they
 ## leave.
 @export_range(1.0, 600.0, 1.0) var leave_seconds := 60.0
@@ -59,6 +69,10 @@ const MAX_SAME_DESTINATION := 2
 ## for their whole ride.
 @export_range(1.0, 120.0, 1.0) var lounge_seconds := 10.0
 @export_range(0.0, 20.0, 0.5) var lounge_bonus_max := 5.0
+## The chance that someone who rates a ride five stars comes back later.
+@export_range(0.0, 1.0, 0.05) var return_chance := 0.5
+## The chance that the next passenger decided is one who comes back, while one is due.
+@export_range(0.0, 1.0, 0.05) var returning_share := 0.25
 
 ## The player's ratings, whose recent mean sets how many are Business. Without one, the
 ## lowest band counts.
@@ -84,9 +98,16 @@ var _waited: Dictionary[Planet, Array] = {}
 var _race_bag: Array[Race.Type] = []
 # Races to deal before the bag's, first first ([method deal_next]).
 var _next_races: Array[Race.Type] = []
+var _returning := ReturningPassengers.new()
+
+
+func _ready() -> void:
+	if cabin:
+		cabin.delivered.connect(remember.unbind(1))
 
 
 func _process(delta: float) -> void:
+	_returning.run(delta)
 	var held: Planet = bus.get_docked_planet() if bus and bus.is_at_planet() else null
 	for planet: Planet in _planets:
 		if planet == held:
@@ -105,6 +126,18 @@ func _process(delta: float) -> void:
 ## [param value], so a run can be played again: a balance run (`tools/balance.py`).
 func seed_dice(value: int) -> void:
 	_rng.seed = value
+	_returning.seed_dice(value + 7919)
+
+
+## Those who may come back, for a save game to keep and put back.
+func get_returning() -> ReturningPassengers:
+	return _returning
+
+
+## [param passenger] got off at their destination: after a five-star ride they may come
+## back later, by [member return_chance].
+func remember(passenger: Passenger) -> void:
+	_returning.remember(passenger, return_chance)
 
 
 ## The planets passengers wait at and travel between. Starts every planet empty, those
@@ -254,7 +287,8 @@ func get_fare_per_unit() -> float:
 
 
 ## A new passenger at [param origin], decided as one joining its line now would be. Null
-## when there is no other planet or no type. They are not put in the line.
+## when there is no other planet or no type. They are not put in the line. They may be
+## someone who comes back, with the name, type, race and look they had.
 func create(origin: Planet) -> Passenger:
 	var line: Array = _waiting.get(origin, [])
 	var destination := _pick_destination(origin, line)
@@ -263,22 +297,48 @@ func create(origin: Planet) -> Passenger:
 	var distance := origin.get_body_global_position().distance_to(
 		destination.get_body_global_position()
 	)
+	var back := _take_returning(line)
 	var passenger := Passenger.new(
-		_pick_type(origin, line),
+		back.type if back else _pick_type(origin, line),
 		destination,
 		get_trip_seconds(distance),
 		distance * get_fare_per_unit(),
 		_rng
 	)
 	passenger.origin = origin
-	passenger.race = _deal_race()
-	passenger.look = AlienLook.random(_rng, passenger.race)
+	if back:
+		passenger.name = back.name
+		passenger.race = back.race
+		passenger.look = back.look
+		passenger.returning = true
+	else:
+		passenger.race = _deal_race()
+		passenger.look = AlienLook.random(_rng, passenger.race)
 	return passenger
 
 
+# Someone who comes back into [param line] now, by [member returning_share], or null: at
+# most one in a line, and a Business passenger only where the line has room for one more
+# of them and still a place for someone ordinary, and never in the first star system.
+# Nobody, past it, until the first Business passenger there is dealt.
+func _take_returning(line: Array) -> ReturningPassengers.Person:
+	if line.any(func(p: Passenger) -> bool: return p.returning):
+		return null
+	var first := _in_first_system()
+	if business and not first and not first_business_dealt:
+		return null
+	var count := line.filter(func(p: Passenger) -> bool: return p.type == business).size()
+	var room := not first and count < max_per_planet - 1
+	return _returning.take(
+		returning_share,
+		func(person: ReturningPassengers.Person) -> bool: return person.type != business or room
+	)
+
+
 # A roll among the other planets, but never the one [param origin]'s warp gate leads to:
-# with Timetables likelier where someone in [param line] is going, and never where
-# MAX_SAME_DESTINATION of the line already go, unless that leaves nowhere.
+# with Timetables likelier where someone in [param line] is going, with the Destination sign
+# likelier where someone on board is going, and never where MAX_SAME_DESTINATION of the
+# line already go, unless that leaves nowhere.
 func _pick_destination(origin: Planet, line: Array) -> Planet:
 	var twin := WarpGate.twin_of(origin)
 	var others := _planets.filter(
@@ -287,6 +347,12 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 	if others.is_empty():
 		return null
 	var leaning := timetables_in_line_weight if _has(BusTraits.Type.TIMETABLES) else 1.0
+	var signed := _has(BusTraits.Type.DESTINATION_SIGN) and cabin != null
+	var aboard: Array[Planet] = []
+	if signed:
+		aboard.assign(
+			cabin.get_passengers().map(func(p: Passenger) -> Planet: return p.destination)
+		)
 	var weights := PackedFloat32Array()
 	var total := 0.0
 	for planet: Planet in others:
@@ -296,6 +362,8 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 			weight = 0.0
 		elif same > 0:
 			weight *= leaning
+		if planet in aboard:
+			weight *= destination_sign_weight
 		weights.append(weight)
 		total += weight
 	if total <= 0.0:

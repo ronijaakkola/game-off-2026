@@ -99,15 +99,15 @@ func test_after_boarding_a_card_on_the_passenger_goes_on_to_the_course() -> void
 	_click(runner, guide.find_child("GotItButton") as Control)
 
 	# The camera card waits until the player has moved the camera.
-	await _wait_for_card(guide, "Drag {mouse_left} or use {wasd}")
+	await _wait_for_card(guide, "Hold {mouse_left} and drag")
 	await runner.simulate_frames(30)
-	assert_bool(guide.text.begins_with("Drag {mouse_left}")).is_true()
+	assert_bool(guide.text.begins_with("Hold {mouse_left} and drag")).is_true()
 	runner.simulate_action_press(&"camera_pan_right")
 	await runner.simulate_frames(30, 16)
 	runner.simulate_action_release(&"camera_pan_right")
 	# Panning alone isn't enough: the card waits for a zoom too.
 	await runner.simulate_frames(60, 16)
-	assert_bool(guide.text.begins_with("Drag {mouse_left}")).is_true()
+	assert_bool(guide.text.begins_with("Hold {mouse_left} and drag")).is_true()
 	(runner.find_child("CameraRig") as CameraRig).zoom_to(30.0)
 	await runner.simulate_frames(30, 16)
 

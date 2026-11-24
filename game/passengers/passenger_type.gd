@@ -44,6 +44,8 @@ extends Resource
 ## How many stops the bus can make on their ride before theirs, before they grow frustrated
 ## ([RideProgress]).
 @export_range(0, 10) var stop_tolerance := 4
+## How many more stops they put up with on a bus with Business class.
+@export_range(0, 10) var business_class_stops := 0
 ## Idle lines they show once a stop past their tolerance has frustrated them, and one of
 ## them at once at that stop.
 @export var stop_lines: Array[String] = []

@@ -11,8 +11,9 @@ extends Control
 ## The framed photo is drawn at [constant FRAME_SIZE] and scaled to the photo's minimum
 ## size, so a scene can make it smaller. Their type's badges ([member PassengerType.badges])
 ## sit in a row from the photo's top left corner, a little past it, tilted with it, and the
-## pointer over one shows a tooltip with the type's name and description. A flag badge
-## joins them while a quest is about the passenger, its tooltip saying what the quest
+## pointer over one shows a tooltip with the type's name and description. A returning
+## passenger ([member Passenger.returning]) wears a badge for it after those, and a flag
+## badge joins them while a quest is about the passenger, its tooltip saying what the quest
 ## asks. With
 ## [member flat] on, it is a flat square with rounded corners instead, as big as the minimum
 ## size, with no frame and no tilt.
@@ -20,6 +21,10 @@ extends Control
 const BADGE := preload("res://game/passengers/photo_badge.tscn")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 const FLAG := preload("res://shared/icons/flag.svg")
+## A returning passenger's badge, and what its tooltip says.
+const RETURNING := preload("res://shared/icons/undo_2.svg")
+const RETURNING_TITLE := "Returning passenger"
+const RETURNING_TEXT := "They loved their last ride and came back. They pay 10% more."
 ## A badge's size, the gap between its rim and its icon, and how far the badges reach past
 ## the photo's top left corner, in pixels, on a photo [constant BADGE_PHOTO_SIZE] wide.
 ## On a bigger photo they all grow, [constant BADGE_GROWTH] as fast as the photo.
@@ -130,8 +135,8 @@ func _on_lent(photo: AtlasTexture) -> void:
 	(%Photo as TextureRect).texture = photo
 
 
-# One badge for each of the passenger's type's, then a flag while a quest is about them,
-# or none without a passenger.
+# One badge for each of the passenger's type's, one for coming back, then a flag while a
+# quest is about them, or none without a passenger.
 func _show_badges() -> void:
 	var badges := %Badges as Control
 	for badge: Node in badges.get_children():
@@ -143,6 +148,8 @@ func _show_badges() -> void:
 	var type := passenger.type
 	for texture: Texture2D in type.badges:
 		badges.add_child(_make_badge(texture, type.display_name, type.description))
+	if passenger.returning:
+		badges.add_child(_make_badge(RETURNING, RETURNING_TITLE, RETURNING_TEXT))
 	if not _quest_line.is_empty():
 		badges.add_child(_make_badge(FLAG, "Quest", _quest_line))
 	var grow := _badge_growth()
