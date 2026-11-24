@@ -11,7 +11,9 @@ const PATH := "user://settings.cfg"
 const SECTION := "settings"
 const SAVE_DELAY := 0.4
 
-var master_volume := 0.8:
+## Starts at a quarter, 12 dB under full, so a first launch, often with the system volume
+## up, isn't loud.
+var master_volume := 0.25:
 	set(value):
 		master_volume = value
 		Audio.set_volume(Audio.Bus.MASTER, value)
