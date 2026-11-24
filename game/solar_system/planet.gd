@@ -25,6 +25,15 @@ const LABEL_FONT_SIZE := 32
 const LABEL_FONT := preload("res://ui/fonts/baloo_2.ttf")
 const LABEL_FONT_WEIGHT := 600
 const LABEL_OUTLINE_SIZE := 8
+const BORDER_SHADER := preload("res://game/solar_system/planet_border.gdshader")
+## The border's ring and the dark line either side of it, on screen, in pixels, and how far
+## the whole border reaches past the body's edge: where the route line stops.
+const BORDER_RING_PIXELS := 2.5
+const BORDER_OUTLINE_PIXELS := 1.25
+const BORDER_PIXELS := BORDER_RING_PIXELS + BORDER_OUTLINE_PIXELS * 2.0
+## How far the shell the border is drawn on reaches, in pixels: a pixel past the border, so
+## its outer edge is smoothed.
+const BORDER_SHELL_PIXELS := BORDER_PIXELS + 1.0
 const BORDER_COLORS: Dictionary[Border, Color] = {
 	Border.HOVER: Color.WHITE,
 	Border.ROUTE: Color(1.0, 0.6, 0.22),
@@ -133,15 +142,15 @@ var label_opacity := 1.0:
 		_label.modulate.a = LABEL_COLOR.a * label_opacity
 		_label.outline_modulate.a = LABEL_OUTLINE_COLOR.a * label_opacity
 		_label.visible = display_name != "" and label_opacity > 0.0
-## How far the border reaches past the body's edge.
+## How far the border's shell reaches past the body's edge: [constant BORDER_SHELL_PIXELS]
+## on screen, which the solar system sets each frame.
 var outline_width := 0.05:
 	set(value):
 		outline_width = value
 		var local := _get_local_radius() + value / get_world_scale()
 		_outline.scale = Vector3.ONE * local / _get_sphere().radius
-		if _border_material is ShaderMaterial:
-			_border_material.set_shader_parameter(&"body_radius", get_body_radius())
-			_border_material.set_shader_parameter(&"world_per_pixel", value / border_reach_pixels())
+		_border_material.set_shader_parameter(&"body_radius", get_body_radius())
+		_border_material.set_shader_parameter(&"world_per_pixel", value / BORDER_SHELL_PIXELS)
 ## Where the name hangs from, in global space, from the body's centre. The solar system
 ## sets it each frame to just past the body's lower edge as the camera sees it.
 var label_offset := Vector3.ZERO:
@@ -209,7 +218,7 @@ var _last_scale := 1.0
 var _faded_orbit_material: StandardMaterial3D
 # This planet's own border material, so its colour and opacity change on it alone. Always
 # see-through, so a fade never switches it to another shader.
-var _border_material: Material = _make_border_material()
+var _border_material := _make_border_material()
 
 
 func _init() -> void:
@@ -458,64 +467,13 @@ func _show_border() -> void:
 	if _outline.visible:
 		var color := BORDER_COLORS[border]
 		color.a = border_opacity
-		if _border_material is ShaderMaterial:
-			_border_material.set_shader_parameter(&"color", color)
-		else:
-			_border_material.albedo_color = color
-
-
-## PROTOTYPE: the border style from `border=N` in the user args, 0 for the solid one.
-static func border_style() -> int:
-	for arg: String in OS.get_cmdline_user_args():
-		if arg.begins_with("border="):
-			return int(arg.trim_prefix("border="))
-	return 0
-
-
-## PROTOTYPE: how far past the body's edge the border's shell reaches, in pixels.
-static func border_reach_pixels() -> float:
-	match border_style():
-		1:
-			return 2.0 + 5.0
-		2:
-			return 3.0 + 2.0 + 5.0
-		3:
-			return 7.0
-		4:
-			return 2.5 + 1.25 + 1.0
-		5:
-			return 1.25 + 2.5 + 1.25 + 1.0
-	return 3.0
-
-
-## PROTOTYPE: how far past the body's edge the border shows, in pixels.
-static func border_visible_pixels() -> float:
-	match border_style():
-		1:
-			return 2.0
-		2:
-			return 5.0
-		4:
-			return 2.5 + 1.25
-		5:
-			return 1.25 + 2.5 + 1.25
-	return 3.0
+		_border_material.set_shader_parameter(&"color", color)
 
 
 # A shell drawn from behind, so only its rim past the body shows.
-static func _make_border_material() -> Material:
-	var style := border_style()
-	if style > 0:
-		var shader_material := ShaderMaterial.new()
-		shader_material.shader = preload("res://game/solar_system/planet_border.gdshader")
-		shader_material.set_shader_parameter(&"style", style)
-		shader_material.set_shader_parameter(&"gap_px", 3.0 if style == 2 else 0.0)
-		shader_material.set_shader_parameter(&"glow_px", 7.0 if style == 3 else 4.0)
-		if style >= 4:
-			shader_material.set_shader_parameter(&"ring_px", 2.5)
-		return shader_material
-	var material := StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.cull_mode = BaseMaterial3D.CULL_FRONT
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+static func _make_border_material() -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = BORDER_SHADER
+	material.set_shader_parameter(&"ring", BORDER_RING_PIXELS)
+	material.set_shader_parameter(&"outline", BORDER_OUTLINE_PIXELS)
 	return material

@@ -8,6 +8,8 @@ extends Node
 ## course by Giant to Terra and lines of one, two and three, so the forecast shows over
 ## Terra, each leg's cost over it and the dots under the names; `hover` puts the pointer on
 ## Giant, so its line shows as photos, and `hover leave` takes it off again after 40 frames.
+## `space` starts the course with a point in space, so its diamond shows, and `fly` sends the
+## bus off on it.
 ## `chime` leaves out the station cameras, so the hover shows how many wait in a tooltip.
 ## `-- Trip`
 ## opens nothing, puts two passengers in line at Ember, where the bus is docked, boards one
