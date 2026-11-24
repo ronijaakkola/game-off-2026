@@ -481,6 +481,10 @@ static func border_reach_pixels() -> float:
 			return 3.0 + 2.0 + 5.0
 		3:
 			return 7.0
+		4:
+			return 2.5 + 1.25 + 1.0
+		5:
+			return 1.25 + 2.5 + 1.25 + 1.0
 	return 3.0
 
 
@@ -498,6 +502,8 @@ static func _make_border_material() -> Material:
 		shader_material.set_shader_parameter(&"style", style)
 		shader_material.set_shader_parameter(&"gap_px", 3.0 if style == 2 else 0.0)
 		shader_material.set_shader_parameter(&"glow_px", 7.0 if style == 3 else 4.0)
+		if style >= 4:
+			shader_material.set_shader_parameter(&"ring_px", 2.5)
 		return shader_material
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
