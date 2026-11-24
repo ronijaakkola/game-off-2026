@@ -4,8 +4,13 @@
 [ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
 [ext_resource type="Texture2D" uid="uid://cuy347k31em51" path="res://game/research/icons/globe.svg" id="20_globe"]
+[ext_resource type="Texture2D" uid="uid://duv25g27frs7s" path="res://game/research/icons/rendered/business_class_36.png" id="30_business_class"]
+[ext_resource type="Texture2D" uid="uid://by1fbfwd0enwn" path="res://game/research/icons/rendered/destination_sign_36.png" id="30_destination_sign"]
 [ext_resource type="Texture2D" uid="uid://dpn2s273nxiq5" path="res://game/research/icons/rendered/door_chime_36.png" id="30_door_chime"]
 [ext_resource type="Texture2D" uid="uid://co26sodmq11dq" path="res://game/research/icons/rendered/free_station_coffee_36.png" id="30_free_station_coffee"]
+[ext_resource type="Texture2D" uid="uid://txx64nb06dj1" path="res://game/research/icons/rendered/gate_tuning_36.png" id="30_gate_tuning"]
+[ext_resource type="Texture2D" uid="uid://bbngpdaurltol" path="res://game/research/icons/rendered/honk_36.png" id="30_honk"]
+[ext_resource type="Texture2D" uid="uid://c0yamgcbcuuyp" path="res://game/research/icons/rendered/passenger_happiness_survey_36.png" id="30_passenger_happiness_survey"]
 [ext_resource type="Texture2D" uid="uid://cp1r7s70puyrh" path="res://game/research/icons/rendered/station_cameras_36.png" id="30_station_cameras"]
 [ext_resource type="Texture2D" uid="uid://b08chvh403uvi" path="res://game/research/icons/rendered/station_waiting_lounge_36.png" id="30_station_waiting_lounge"]
 [ext_resource type="Texture2D" uid="uid://dxxctcn471r17" path="res://game/research/icons/rendered/timetables_36.png" id="30_timetables"]
@@ -72,7 +77,7 @@ script = ExtResource("2_upgrade")
 title = "Honk"
 description = "Honk before arriving to a planet to increase chance of new passengers appearing in the queue.
 NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_honk")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_tip_jar")])
@@ -90,64 +95,52 @@ traits = Array[int]([8])
 tier = 2
 column = 1
 
+[sub_resource type="Resource" id="Resource_gate_tuning"]
+script = ExtResource("2_upgrade")
+title = "Gate tuning"
+description = "Warping through a gate costs a quarter of the tank instead of half."
+icon = ExtResource("30_gate_tuning")
+credits = 550
+points = 7
+requires = Array[Resource]([SubResource("Resource_free_station_coffee")])
+traits = Array[int]([16])
+tier = 2
+column = 2
+
 [sub_resource type="Resource" id="Resource_destination_sign"]
 script = ExtResource("2_upgrade")
 title = "Destination sign"
-description = "Increased chance that waiting passengers have the same destination than one of your passengers on board.
-NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
+description = "Waiting passengers are likelier to go where someone on board is going."
+icon = ExtResource("30_destination_sign")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_timetables")])
+traits = Array[int]([17])
 tier = 2
 column = 4
-
-[sub_resource type="Resource" id="Resource_business_lounge"]
-script = ExtResource("2_upgrade")
-title = "Business lounge"
-description = "Increase the chance of getting Business passengers.
-NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
-credits = 550
-points = 7
-requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
-tier = 2
-column = 3
 
 [sub_resource type="Resource" id="Resource_passenger_happiness_survey"]
 script = ExtResource("2_upgrade")
 title = "Passenger happiness survey"
-description = "4- and 5-star reviews give you 2 extra research points.
-NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
+description = "5-star rides earn 1 extra research point."
+icon = ExtResource("30_passenger_happiness_survey")
 credits = 800
 points = 10
-requires = Array[Resource]([SubResource("Resource_honk")])
+requires = Array[Resource]([SubResource("Resource_honk"), SubResource("Resource_station_cameras")])
+traits = Array[int]([18])
 tier = 3
 
-[sub_resource type="Resource" id="Resource_remote_terminal"]
+[sub_resource type="Resource" id="Resource_business_class"]
 script = ExtResource("2_upgrade")
-title = "Remote terminal"
-description = "Research from any docked planet.
-NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
-credits = 800
-points = 10
-requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_business_lounge")])
+title = "Business class"
+description = "Business passengers put up with one more stop on the way."
+icon = ExtResource("30_business_class")
+credits = 550
+points = 7
+requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
+traits = Array[int]([19])
 tier = 3
-column = 2
-
-[sub_resource type="Resource" id="Resource_passenger_loyalty_program"]
-script = ExtResource("2_upgrade")
-title = "Passenger loyalty program"
-description = "Increase the chance of getting returning passengers. Returning passengers pay 1.5x more.
-NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
-credits = 800
-points = 10
-requires = Array[Resource]([SubResource("Resource_destination_sign")])
-tier = 3
-column = 4
+column = 3
 
 [sub_resource type="Resource" id="Resource_bottomless_complaints_box"]
 script = ExtResource("2_upgrade")
@@ -159,18 +152,17 @@ credits = 1100
 points = 14
 requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_passenger_happiness_survey")])
 tier = 4
-column = 1
 
-[sub_resource type="Resource" id="Resource_research_grant"]
+[sub_resource type="Resource" id="Resource_remote_terminal"]
 script = ExtResource("2_upgrade")
-title = "Research grant"
-description = "You can exchange 200 credits for 1 research point of any race.
+title = "Remote terminal"
+description = "Research from any docked planet.
 NOT IMPLEMENTED"
 icon = ExtResource("31_placeholder")
-credits = 1100
-points = 14
-requires = Array[Resource]([SubResource("Resource_remote_terminal")])
-tier = 5
+credits = 800
+points = 10
+requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_business_class"), SubResource("Resource_gate_tuning")])
+tier = 4
 column = 2
 
 [sub_resource type="Resource" id="Resource_express_service"]
@@ -181,13 +173,25 @@ NOT IMPLEMENTED"
 icon = ExtResource("31_placeholder")
 credits = 800
 points = 10
-requires = Array[Resource]([SubResource("Resource_passenger_loyalty_program"), SubResource("Resource_business_lounge")])
+requires = Array[Resource]([SubResource("Resource_destination_sign"), SubResource("Resource_business_class")])
 tier = 4
-column = 3
+column = 4
+
+[sub_resource type="Resource" id="Resource_research_grant"]
+script = ExtResource("2_upgrade")
+title = "Research grant"
+description = "You can exchange 200 credits for 1 research point of any race.
+NOT IMPLEMENTED"
+icon = ExtResource("31_placeholder")
+credits = 1100
+points = 14
+requires = Array[Resource]([SubResource("Resource_remote_terminal"), SubResource("Resource_express_service"), SubResource("Resource_bottomless_complaints_box")])
+tier = 5
+column = 2
 
 [resource]
 script = ExtResource("1_tree")
 title = "Planets"
 icon = ExtResource("20_globe")
 palette = 2
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_door_chime"), SubResource("Resource_station_waiting_lounge"), SubResource("Resource_tip_jar"), SubResource("Resource_free_station_coffee"), SubResource("Resource_timetables"), SubResource("Resource_honk"), SubResource("Resource_station_cameras"), SubResource("Resource_destination_sign"), SubResource("Resource_business_lounge"), SubResource("Resource_passenger_happiness_survey"), SubResource("Resource_remote_terminal"), SubResource("Resource_passenger_loyalty_program"), SubResource("Resource_bottomless_complaints_box"), SubResource("Resource_research_grant"), SubResource("Resource_express_service")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_door_chime"), SubResource("Resource_station_waiting_lounge"), SubResource("Resource_tip_jar"), SubResource("Resource_free_station_coffee"), SubResource("Resource_timetables"), SubResource("Resource_honk"), SubResource("Resource_station_cameras"), SubResource("Resource_gate_tuning"), SubResource("Resource_destination_sign"), SubResource("Resource_passenger_happiness_survey"), SubResource("Resource_business_class"), SubResource("Resource_bottomless_complaints_box"), SubResource("Resource_remote_terminal"), SubResource("Resource_express_service"), SubResource("Resource_research_grant")])

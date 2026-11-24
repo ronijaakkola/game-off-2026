@@ -180,6 +180,34 @@ func test_a_chevron_shown_holds_until_the_trend_drops_clearly_under_its_step() -
 	assert_int(_chevrons(card).count).is_equal(1)
 
 
+func test_a_new_request_is_heard_as_a_psst() -> void:
+	var card := _card(1.0)
+	await await_idle_frame()
+	_hush()
+	card.passenger.ask_for(COMMUTER.needs[0])
+	await await_idle_frame()
+	assert_bool(_psst_playing()).is_true()
+
+
+func test_a_request_open_when_the_game_was_saved_stays_silent_on_load() -> void:
+	var planet: Planet = auto_free(Planet.new())
+	planet.name = &"Frost"
+	var asking := Passenger.new(COMMUTER, planet, 60.0, 40.0)
+	asking.ask_for(COMMUTER.needs[0])
+	var types: Dictionary[String, PassengerType] = {COMMUTER.resource_path: COMMUTER}
+	var planets: Dictionary[String, Planet] = {"Frost": planet}
+	var card: PassengerCard = auto_free(SCENE.instantiate())
+	card.passenger = Passenger.from_save(asking.to_save(), types, planets)
+	add_child(card)
+	await await_idle_frame()
+	_hush()
+	# The first tick after loading opens the held request again.
+	card.passenger.tick(0.1, false)
+	await await_idle_frame()
+	assert_object(card.passenger.request).is_not_null()
+	assert_bool(_psst_playing()).is_false()
+
+
 func _card(happiness_fraction: float) -> PassengerCard:
 	var planet: Planet = auto_free(Planet.new())
 	var passenger := Passenger.new(COMMUTER, planet, 60.0, 40.0)
@@ -210,3 +238,19 @@ func _trail(card: PassengerCard) -> ProgressBar:
 
 func _chevrons(card: PassengerCard) -> TrendChevrons:
 	return card.find_child("HappinessTrend") as TrendChevrons
+
+
+# Stops every sound effect, so only what plays next is heard.
+func _hush() -> void:
+	for node: Node in Audio.get_children():
+		if node is AudioStreamPlayer:
+			(node as AudioStreamPlayer).stop()
+
+
+func _psst_playing() -> bool:
+	for node: Node in Audio.get_children():
+		if node is AudioStreamPlayer:
+			var sound := node as AudioStreamPlayer
+			if sound.playing and sound.stream in Psst.CLIPS:
+				return true
+	return false

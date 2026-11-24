@@ -39,7 +39,8 @@ extends Node3D
 ## can be clicked while it jumps.
 ## How fast the planets orbit is the [OrbitClock]'s.
 
-## The border's width on screen, in pixels at the base window height.
+## The bus's border's width on screen, in pixels at the base window height. A planet's is
+## [constant Planet.BORDER_PIXELS].
 const OUTLINE_PIXELS := 3.0
 ## How tall a planet's name is on screen, in pixels at the base window height.
 const LABEL_PIXELS := 13.0
@@ -192,7 +193,7 @@ func _process(delta: float) -> void:
 			planet.border = Planet.Border.NONE
 		if planet.border != Planet.Border.NONE:
 			planet.outline_width = _pixels_to_world(
-				OUTLINE_PIXELS, planet.get_body_global_position()
+				Planet.BORDER_SHELL_PIXELS, planet.get_body_global_position()
 			)
 
 
@@ -420,7 +421,7 @@ func _on_research_pressed(_planet: Planet) -> void:
 func _on_delivered(passenger: Passenger, payout: int) -> void:
 	_ledger.earn(payout)
 	_ledger.rate(passenger.get_rating())
-	_ledger.earn_research(passenger.type.research_points)
+	_ledger.earn_research((%Cabin as Cabin).get_research_points(passenger))
 
 
 func _on_kicked(passenger: Passenger) -> void:

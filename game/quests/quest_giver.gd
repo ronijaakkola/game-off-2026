@@ -4,10 +4,15 @@ extends Node
 ## delivered [constant FIRST_CALL_DELIVERIES] passengers, a passenger on board calls:
 ## an incoming transmission notice, whose Answer opens their [Quest]'s transmission. They
 ## ask to fly past a planet ([FlybyQuest]) or to stop at one ([ErrandQuest]), as likely one
-## as the other; a Business passenger asks for an [ExpressQuest] instead, where
-## [method start] allows it. One
+## as the other. Past the first star system a Business passenger asks for an errand, a photo
+## stop ([PhotoStopQuest]) or a warp ([WarpQuest]) instead, and now and then for a ride
+## through the rocks ([RockRideQuest]) or a sauna ([SaunaQuest]); in the second, only
+## Business passengers call. Of those who can call, a returning passenger is likelier to
+## be the one. One
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
+## A passenger picked up from a capsule adrift calls with a [RescueQuest] as soon as nothing
+## else is in the way ([method rescue]).
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
 ## passenger. A completed quest pays its reward and lifts the passenger by
 ## [member done_happiness] for the rest of their ride; a failed one costs the passenger
@@ -39,6 +44,17 @@ const FIRST_CALL_DELIVERIES := 13
 const EARLY_DELIVERIES := 20
 const EARLY_CALL_MIN_SECONDS := 35.0
 const EARLY_CALL_MAX_SECONDS := 50.0
+## The star system, counted from 0, where only Business passengers call.
+const BUSINESS_ONLY_LEVEL := 1
+## How likely a Business passenger past the first system is to ask for each kind of quest,
+## against the others that suit: a ride through the rocks and a sauna are the rare ones.
+const BUSINESS_WEIGHTS: Dictionary[String, float] = {
+	ErrandQuest.KIND: 1.0,
+	PhotoStopQuest.PHOTO_KIND: 1.0,
+	WarpQuest.KIND: 1.0,
+	RockRideQuest.KIND: 0.2,
+	SaunaQuest.KIND: 0.2,
+}
 ## Seconds before trying again when nobody on board could call.
 const RETRY_SECONDS := 3.0
 ## Seconds the bus has flown before anyone calls, so a call never lands on leaving.
@@ -49,6 +65,9 @@ const ARRIVING_SECONDS := 6.0
 ## what failing one does.
 const DECLINE_SHOCK := -5.0
 const FAIL_SHOCK := -15.0
+## How many times as likely a returning passenger is to be the one who calls as anyone
+## else who could. It changes who calls, never how often.
+const RETURNING_WEIGHT := 3.0
 ## Seconds a finished quest stays among the quests.
 const SHOWN_SECONDS := 8.0
 ## Seconds the notice of how a quest ended shows.
@@ -71,6 +90,8 @@ const FAILED_ICON := preload("res://shared/icons/circle_x.svg")
 @export var transmission_panel: TransmissionPanel
 ## Tells the quests' goals what happens in the game.
 @export var quests: GoalTracker
+## Whose rocks a ride through them asks for. None, and nobody asks for one.
+@export var asteroid_field: AsteroidField
 ## Stamps how a quest ended over the bus.
 @export var quick_text: BusQuickText
 
@@ -82,7 +103,7 @@ var _ledger: Ledger
 # Prices and times the trips quests ask for.
 var _waiting: WaitingPassengers
 # Which star system the bus works in, counted from 0 in the order they open. Quests pay by
-# it, and past the first, Business passengers ask for an express quest.
+# it, and it sets who calls and what they ask for.
 var _level := 0
 # Made once it is in the tree: a scene stores every member of a node another node exports,
 # and dice made here would differ in every save of it.
@@ -98,6 +119,10 @@ var _caller: Passenger
 # The quest on offer in the transmission panel, and the one under way.
 var _offer: Quest
 var _quest: Quest
+# Who was picked up from a capsule and has yet to call, and whether the call ringing is
+# theirs.
+var _rescued: Passenger
+var _rescue_call := false
 # Seconds each finished quest still shows.
 var _shown: Dictionary[Quest, float] = {}
 
@@ -129,23 +154,16 @@ func _process(delta: float) -> void:
 		return
 	if _quest or not enabled:
 		return
-	_until_call -= delta
-	if _until_call > 0.0 or not _is_time_to_call():
-		return
-	_caller = _pick_caller()
-	if not _caller:
-		_until_call = RETRY_SECONDS
-		return
-	_call = notices.announce_transmission(Transmission.from_passenger(_caller), true, true)
-	_call.action_pressed.connect(_on_call_answered)
-	_call.declined.connect(_on_call_declined)
+	if _rescued:
+		_ring_rescue()
+	else:
+		_wait_for_call(delta)
 
 
 ## Tells it the run's [param planets], which quests send passengers to, the
 ## [param ledger] their rewards go into, and [param waiting], which prices and times the
 ## trips they ask for. [param level] is the star system the bus works in, counted from 0 in
-## the order they open: quests pay by it, and past the first, Business passengers ask for
-## an express quest.
+## the order they open: quests pay by it, and it sets who calls and what they ask for.
 func start(planets: Array[Planet], ledger: Ledger, waiting: WaitingPassengers, level := 0) -> void:
 	_planets = planets
 	_ledger = ledger
@@ -190,6 +208,13 @@ func call_soon() -> void:
 	_call_asked = true
 
 
+## [param passenger] was picked up from a capsule adrift: they call with a [RescueQuest] as
+## soon as no other call, offer or quest is in the way, however long since the last call
+## and however few passengers have been delivered. Nothing once they have left the bus.
+func rescue(passenger: Passenger) -> void:
+	_rescued = passenger
+
+
 ## The quest under way, for a save game, with its passenger as their place among
 ## [param on_board]. Empty with none.
 func to_save(on_board: Array[Passenger]) -> Dictionary:
@@ -216,6 +241,16 @@ func load_save(
 			quest = FlybyQuest.new()
 		ErrandQuest.KIND:
 			quest = ErrandQuest.new()
+		PhotoStopQuest.PHOTO_KIND:
+			quest = PhotoStopQuest.new()
+		WarpQuest.KIND:
+			quest = WarpQuest.new()
+		RockRideQuest.KIND:
+			quest = RockRideQuest.new()
+		SaunaQuest.KIND:
+			quest = SaunaQuest.new()
+		RescueQuest.KIND:
+			quest = RescueQuest.new()
 	if quest and quest.restore(saved, on_board[index], planets):
 		take_on(quest)
 
@@ -225,6 +260,10 @@ func load_save(
 func take_on(quest: Quest) -> void:
 	_quest = quest
 	quest.passenger.quest_line = quest.goal.get_text()
+	if quest is RockRideQuest:
+		cabin.fondness.add(quest.passenger, Fondness.Kind.ROCKS)
+	elif quest is SaunaQuest:
+		cabin.fondness.add(quest.passenger, Fondness.Kind.HEAT)
 	quests.add(quest.goal)
 	quest_added.emit(quest)
 
@@ -238,31 +277,74 @@ func _is_time_to_call() -> bool:
 
 
 # Someone on board who could call now: awake, not about to get off, and with a quest to
-# offer as things stand.
+# offer as things stand. A returning passenger is RETURNING_WEIGHT times as likely as
+# anyone else.
 func _pick_caller() -> Passenger:
 	var able: Array[Passenger] = []
+	var weights := PackedFloat32Array()
 	for passenger: Passenger in cabin.get_passengers():
 		if passenger.asleep or _is_arriving(passenger):
 			continue
 		if _plan(passenger):
 			able.append(passenger)
-	return able[_rng.randi_range(0, able.size() - 1)] if not able.is_empty() else null
+			weights.append(RETURNING_WEIGHT if passenger.returning else 1.0)
+	if able.is_empty():
+		return null
+	# With nobody returning the roll is the plain one, so such a run plays as before.
+	if not able.any(func(passenger: Passenger) -> bool: return passenger.returning):
+		return able[_rng.randi_range(0, able.size() - 1)]
+	return able[_rng.rand_weighted(weights)]
 
 
-# The quest [param passenger] would offer as things stand, or null when none suits: a
-# Business passenger an express quest where those are asked, anyone else a fly past or an
-# errand, whichever the dice pick first that suits.
+# The quest [param passenger] would offer as things stand, or null when none suits: past the
+# first star system a Business passenger one of theirs, picked by [constant BUSINESS_WEIGHTS],
+# anyone else a fly past or an errand, whichever the dice pick first that suits. In the
+# system where only Business passengers call, anyone else offers none.
 func _plan(passenger: Passenger) -> Quest:
+	var business := passenger.type == _waiting.business
+	if _level == BUSINESS_ONLY_LEVEL and not business:
+		return null
 	var kinds: Array[Quest] = [FlybyQuest.new(), ErrandQuest.new()]
 	if _rng.randf() < 0.5:
 		kinds.reverse()
-	if _level > 0 and passenger.type == _waiting.business:
-		kinds = [ExpressQuest.new()]
+	if _level > 0 and business:
+		kinds = _business_kinds()
 	for quest: Quest in kinds:
 		quest.level = _level
 		if quest.plan(passenger, bus, _planets, _waiting, _rng):
 			return quest
 	return null
+
+
+func _plan_rescue(passenger: Passenger) -> Quest:
+	var quest := RescueQuest.new()
+	quest.level = _level
+	return quest if quest.plan(passenger, bus, _planets, _waiting, _rng) else null
+
+
+# The quests a Business passenger past the first system can ask for, in the order the dice
+# try them: each drawn by its weight among those left.
+func _business_kinds() -> Array[Quest]:
+	var rocks := RockRideQuest.new()
+	rocks.field = asteroid_field
+	var left: Array[Quest] = [
+		ErrandQuest.new(), PhotoStopQuest.new(), WarpQuest.new(), rocks, SaunaQuest.new()
+	]
+	var order: Array[Quest] = []
+	while not left.is_empty():
+		var total := 0.0
+		for quest: Quest in left:
+			total += BUSINESS_WEIGHTS[quest.get_kind()]
+		var roll := _rng.randf() * total
+		var pick := left.size() - 1
+		for i: int in left.size():
+			roll -= BUSINESS_WEIGHTS[left[i].get_kind()]
+			if roll < 0.0:
+				pick = i
+				break
+		order.append(left[pick])
+		left.remove_at(pick)
+	return order
 
 
 func _is_arriving(passenger: Passenger) -> bool:
@@ -285,11 +367,42 @@ func _watch_call() -> void:
 	_rest()
 
 
+# Counts down to the next call, and once it is time, has someone on board call.
+func _wait_for_call(delta: float) -> void:
+	_until_call -= delta
+	if _until_call > 0.0 or not _is_time_to_call():
+		return
+	_caller = _pick_caller()
+	if not _caller:
+		_until_call = RETRY_SECONDS
+		return
+	_ring()
+
+
+func _ring() -> void:
+	_call = notices.announce_transmission(Transmission.from_passenger(_caller), true, true)
+	_call.action_pressed.connect(_on_call_answered)
+	_call.declined.connect(_on_call_declined)
+
+
+# The passenger picked up from a capsule calls, once nothing else shows.
+func _ring_rescue() -> void:
+	if _rescued not in cabin.get_passengers():
+		_rescued = null
+		return
+	if transmission_panel.is_open():
+		return
+	_caller = _rescued
+	_rescued = null
+	_rescue_call = true
+	_ring()
+
+
 func _on_call_answered() -> void:
 	if not _call:
 		return
 	_call = null
-	_offer = _plan(_caller)
+	_offer = _plan_rescue(_caller) if _rescue_call else _plan(_caller)
 	if not _offer:
 		_rest()
 		return
@@ -371,6 +484,7 @@ func _finish() -> void:
 func _rest() -> void:
 	_caller = null
 	_call_asked = false
+	_rescue_call = false
 	if _ledger and _ledger.get_rating_count() < EARLY_DELIVERIES:
 		_until_call = _rng.randf_range(EARLY_CALL_MIN_SECONDS, EARLY_CALL_MAX_SECONDS)
 	else:

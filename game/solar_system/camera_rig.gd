@@ -1,7 +1,7 @@
 class_name CameraRig
 extends Node3D
 ## An RTS camera. WASD, the arrow keys or the pointer at a window edge (unless
-## [code]Settings.edge_pan[/code] is off) pan it across the orbit plane, holding the
+## [code]Settings.edge_scroll[/code] is off) pan it across the orbit plane, holding the
 ## middle mouse button drags it (the point under the pointer stays under it), as does the
 ## left button once the pointer has moved [constant DRAG_START_PIXELS], so a left click
 ## still clicks, and the mouse wheel zooms it toward the point under the pointer. A drag
@@ -42,14 +42,14 @@ const DRAG_START_PIXELS := 4.0
 ## Pan speed, in multiples of the zoom distance per second, so a pan crosses the same share
 ## of the screen at any zoom.
 @export_range(0.0, 5.0, 0.01) var pan_speed := 0.6
-## How close to a window edge, in pixels, the pointer pans the camera. 0 turns edge pan off.
-@export_range(0.0, 100.0, 1.0) var edge_pan_margin := 12.0
+## How close to a window edge, in pixels, the pointer pans the camera. 0 turns edge scrolling off.
+@export_range(0.0, 100.0, 1.0) var edge_scroll_margin := 12.0
 ## Seconds the pointer has to stay at a window edge before the camera pans, when it got
 ## there from a panel, so a pointer that overshoots a panel's button doesn't pan.
-@export_range(0.0, 2.0, 0.05) var edge_pan_delay := 0.4
+@export_range(0.0, 2.0, 0.05) var edge_scroll_delay := 0.4
 ## How recently, in seconds, the pointer must have been over a Control for it to count as
 ## coming from a panel.
-@export_range(0.0, 2.0, 0.05) var edge_pan_from_panel := 0.3
+@export_range(0.0, 2.0, 0.05) var edge_scroll_from_panel := 0.3
 ## How much one wheel notch changes the zoom distance, as a share of it.
 @export_range(0.0, 0.5, 0.01) var zoom_step := 0.12
 ## How fast pan and zoom catch up with their target. Higher is snappier.
@@ -81,7 +81,7 @@ var _target_position := Vector3.ZERO
 var _target_distance := 0.0
 # How fast the pan moves the look-at point, in the parent's space, per second.
 var _pan_velocity := Vector3.ZERO
-# Edge pan waits for the pointer to move inside the window: before that its position is
+# Edge scrolling waits for the pointer to move inside the window: before that its position is
 # unknown, and after it leaves, the last position may sit on the edge it left through.
 var _pointer_inside := false
 var _pointer_position := Vector2.ZERO
@@ -90,8 +90,8 @@ var _since_over_panel := INF
 # Seconds the pointer has been at an edge this time, and whether it got there from a panel.
 var _at_edge_seconds := 0.0
 var _edge_from_panel := false
-# The direction edge pan pans in this frame, once any delay is over.
-var _edge_pan := Vector2.ZERO
+# The direction edge scrolling pans in this frame, once any delay is over.
+var _edge_scroll := Vector2.ZERO
 # While the drag button is held, the point on the orbit plane that was under the pointer
 # when it went down, which the drag keeps under the pointer.
 var _dragging := false
@@ -127,6 +127,10 @@ func _ready() -> void:
 # _input, not _unhandled_input: a Control under the pointer must not hide where it is, or
 # take the drag's motion and its release from it.
 func _input(event: InputEvent) -> void:
+	# The arrow keys pan, so the button last clicked lets go of focus rather than show its
+	# ring as they move it.
+	if event.is_pressed() and _is_pan(event):
+		FocusRing.drop_hidden()
 	var motion := event as InputEventMouseMotion
 	if motion:
 		_pointer_inside = true
@@ -165,8 +169,8 @@ func _process(delta: float) -> void:
 	var keys := Input.get_vector(
 		&"camera_pan_left", &"camera_pan_right", &"camera_pan_forward", &"camera_pan_back"
 	)
-	_edge_pan = _delayed_edge_pan(delta)
-	var input := (keys + _edge_pan).limit_length(1.0)
+	_edge_scroll = _delayed_edge_scroll(delta)
+	var input := (keys + _edge_scroll).limit_length(1.0)
 	if locked:
 		input = Vector2.ZERO
 	if is_focused():
@@ -217,8 +221,8 @@ func is_dragging() -> bool:
 
 
 ## The screen direction the pointer at a window edge pans in now, -1, 0 or 1 on each axis.
-func get_edge_pan() -> Vector2:
-	return Vector2.ZERO if locked or is_focused() else _edge_pan
+func get_edge_scroll() -> Vector2:
+	return Vector2.ZERO if locked or is_focused() else _edge_scroll
 
 
 ## Sets the zoom at once to [param value], within [member min_distance] and
@@ -289,36 +293,36 @@ func _place_focus_shot() -> void:
 	)
 
 
-# The edge pan direction, held at zero for edge_pan_delay when the pointer reached the edge
+# The edge scrolling direction, held at zero for edge_scroll_delay when the pointer reached the edge
 # from a panel. Moving off the edge starts the wait again.
-func _delayed_edge_pan(delta: float) -> Vector2:
+func _delayed_edge_scroll(delta: float) -> Vector2:
 	var over_panel := get_viewport().gui_get_hovered_control() != null
 	_since_over_panel = 0.0 if over_panel else _since_over_panel + delta
-	var direction := _edge_pan_input()
+	var direction := _edge_scroll_input()
 	if direction == Vector2.ZERO:
 		_at_edge_seconds = 0.0
 		return direction
 	if _at_edge_seconds == 0.0:
-		_edge_from_panel = _since_over_panel <= edge_pan_from_panel
+		_edge_from_panel = _since_over_panel <= edge_scroll_from_panel
 	_at_edge_seconds += delta
-	if _edge_from_panel and _at_edge_seconds < edge_pan_delay:
+	if _edge_from_panel and _at_edge_seconds < edge_scroll_delay:
 		return Vector2.ZERO
 	return direction
 
 
 # Screen directions to pan in, -1, 0 or 1 on each axis, from the pointer at the edges.
-func _edge_pan_input() -> Vector2:
-	if not Settings.edge_pan or edge_pan_margin <= 0.0 or not _pointer_inside or _dragging:
+func _edge_scroll_input() -> Vector2:
+	if not Settings.edge_scroll or edge_scroll_margin <= 0.0 or not _pointer_inside or _dragging:
 		return Vector2.ZERO
 	var rect := get_viewport().get_visible_rect()
 	var direction := Vector2.ZERO
-	if _pointer_position.x < rect.position.x + edge_pan_margin:
+	if _pointer_position.x < rect.position.x + edge_scroll_margin:
 		direction.x = -1.0
-	elif _pointer_position.x > rect.end.x - edge_pan_margin:
+	elif _pointer_position.x > rect.end.x - edge_scroll_margin:
 		direction.x = 1.0
-	if _pointer_position.y < rect.position.y + edge_pan_margin:
+	if _pointer_position.y < rect.position.y + edge_scroll_margin:
 		direction.y = -1.0
-	elif _pointer_position.y > rect.end.y - edge_pan_margin:
+	elif _pointer_position.y > rect.end.y - edge_scroll_margin:
 		direction.y = 1.0
 	return direction
 
@@ -339,6 +343,15 @@ func _start_drag(screen_point: Vector2, moved: bool) -> void:
 
 static func _is_left(button: InputEventMouseButton) -> bool:
 	return button.button_index == MOUSE_BUTTON_LEFT
+
+
+static func _is_pan(event: InputEvent) -> bool:
+	for action: StringName in [
+		&"camera_pan_left", &"camera_pan_right", &"camera_pan_forward", &"camera_pan_back"
+	]:
+		if event.is_action(action):
+			return true
+	return false
 
 
 # Moves the look-at point, and its target with it, so the grabbed point is under

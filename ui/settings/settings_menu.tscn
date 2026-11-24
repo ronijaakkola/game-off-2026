@@ -4,140 +4,279 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="Script" uid="uid://dcy77e65i1dbl" path="res://ui/hold_button.gd" id="4_hold"]
-[ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
+[ext_resource type="Texture2D" uid="uid://c1ob2wrywiacn" path="res://ui/icons/arrow_left.svg" id="5_back"]
+[ext_resource type="Texture2D" uid="uid://bsidi4js3s4om" path="res://ui/icons/volume_2.svg" id="6_audio"]
+[ext_resource type="Texture2D" uid="uid://br1rxdwxet3gm" path="res://ui/icons/sliders_horizontal.svg" id="7_comfort"]
+[ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://shared/icons/flag.svg" id="8_flag"]
+[ext_resource type="Texture2D" uid="uid://dxo3qfdhj8t17" path="res://ui/icons/rotate_ccw.svg" id="9_reset"]
+[ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="10_tooltip"]
 
-[node name="SettingsMenu" type="PanelContainer" unique_id=432771015]
+[node name="SettingsMenu" type="Control" unique_id=432771015]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme = ExtResource("2_theme")
-theme_type_variation = &"DimPanel"
 script = ExtResource("1_settings")
 
-[node name="Center" type="CenterContainer" parent="." unique_id=1592326828]
-layout_mode = 2
+[node name="Margin" type="MarginContainer" parent="." unique_id=1263564927]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 56
 
-[node name="Panel" type="PanelContainer" parent="Center" unique_id=1243128876]
+[node name="Column" type="VBoxContainer" parent="Margin" unique_id=891415624]
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Header" type="HBoxContainer" parent="Margin/Column" unique_id=574105286]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="Margin/Column/Header" unique_id=707033197]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"SquareButton"
+icon = ExtResource("5_back")
+icon_alignment = 1
+
+[node name="Title" type="Label" parent="Margin/Column/Header" unique_id=476727165]
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+theme_override_font_sizes/font_size = 44
+text = "Settings"
+
+[node name="Cards" type="VBoxContainer" parent="Margin/Column" unique_id=2051912386]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="AudioCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=1378949639]
 material = ExtResource("3_glass")
-custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 theme_type_variation = &"SheetPanel"
 
-[node name="Items" type="VBoxContainer" parent="Center/Panel" unique_id=1340884994]
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/AudioCard" unique_id=2039444640]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/AudioCard/Rows" unique_id=1100019704]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/Cards/AudioCard/Rows/Heading" unique_id=1100917324]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("6_audio")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/AudioCard/Rows/Heading" unique_id=824256272]
+layout_mode = 2
+theme_type_variation = &"SectionHeadingLabel"
+text = "Audio"
+
+[node name="MasterVolumeRow" type="HBoxContainer" parent="Margin/Column/Cards/AudioCard/Rows" unique_id=1396124034]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Title" type="Label" parent="Center/Panel/Items" unique_id=476727165]
-layout_mode = 2
-theme_type_variation = &"HeadingLabel"
-text = "Settings"
-
-[node name="Volumes" type="GridContainer" parent="Center/Panel/Items" unique_id=1472541372]
-layout_mode = 2
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 0
-columns = 2
-
-[node name="MasterLabel" type="Label" parent="Center/Panel/Items/Volumes" unique_id=461604631]
-custom_minimum_size = Vector2(0, 38)
+[node name="Label" type="Label" parent="Margin/Column/Cards/AudioCard/Rows/MasterVolumeRow" unique_id=1074156470]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"SettingLabel"
+theme_type_variation = &"RowLabel"
 text = "Master"
-vertical_alignment = 1
 
-[node name="MasterVolume" type="HSlider" parent="Center/Panel/Items/Volumes" unique_id=641526796]
+[node name="MasterVolume" type="HSlider" parent="Margin/Column/Cards/AudioCard/Rows/MasterVolumeRow" unique_id=1264445658]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(170, 0)
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
 
-[node name="MusicLabel" type="Label" parent="Center/Panel/Items/Volumes" unique_id=1537516988]
-custom_minimum_size = Vector2(0, 38)
+[node name="MusicVolumeRow" type="HBoxContainer" parent="Margin/Column/Cards/AudioCard/Rows" unique_id=446962345]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/AudioCard/Rows/MusicVolumeRow" unique_id=775514195]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"SettingLabel"
+theme_type_variation = &"RowLabel"
 text = "Music"
-vertical_alignment = 1
 
-[node name="MusicVolume" type="HSlider" parent="Center/Panel/Items/Volumes" unique_id=974600151]
+[node name="MusicVolume" type="HSlider" parent="Margin/Column/Cards/AudioCard/Rows/MusicVolumeRow" unique_id=515224243]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(170, 0)
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
 
-[node name="SfxLabel" type="Label" parent="Center/Panel/Items/Volumes" unique_id=1262025992]
-custom_minimum_size = Vector2(0, 38)
+[node name="SfxVolumeRow" type="HBoxContainer" parent="Margin/Column/Cards/AudioCard/Rows" unique_id=775764978]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/AudioCard/Rows/SfxVolumeRow" unique_id=1498142997]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"SettingLabel"
+theme_type_variation = &"RowLabel"
 text = "Sound effects"
-vertical_alignment = 1
 
-[node name="SfxVolume" type="HSlider" parent="Center/Panel/Items/Volumes" unique_id=1456820036]
+[node name="SfxVolume" type="HSlider" parent="Margin/Column/Cards/AudioCard/Rows/SfxVolumeRow" unique_id=519502459]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(170, 0)
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
 
-[node name="Divider" type="Control" parent="Center/Panel/Items" unique_id=182092921]
-custom_minimum_size = Vector2(0, 1)
+[node name="ComfortCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=736465797]
+material = ExtResource("3_glass")
 layout_mode = 2
-mouse_filter = 2
-script = ExtResource("90_hairline")
-horizontal = true
+theme_type_variation = &"SheetPanel"
 
-[node name="Toggles" type="VBoxContainer" parent="Center/Panel/Items" unique_id=1280329430]
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/ComfortCard" unique_id=2017686615]
 layout_mode = 2
-theme_override_constants/separation = 0
+theme_override_constants/separation = 14
 
-[node name="ReduceMotion" type="CheckButton" parent="Center/Panel/Items/Toggles" unique_id=99440932]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+[node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows" unique_id=1154552688]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/Cards/ComfortCard/Rows/Heading" unique_id=416280111]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("7_comfort")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/Heading" unique_id=1555233095]
+layout_mode = 2
+theme_type_variation = &"SectionHeadingLabel"
+text = "Comfort and camera"
+
+[node name="ReduceMotionRow" type="HBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows" unique_id=112097823]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Text" type="VBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows/ReduceMotionRow" unique_id=830755756]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/ReduceMotionRow/Text" unique_id=2138348701]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
 text = "Reduce motion"
 
-[node name="EdgePan" type="CheckButton" parent="Center/Panel/Items/Toggles" unique_id=907609201]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+[node name="Description" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/ReduceMotionRow/Text" unique_id=805286535]
 layout_mode = 2
-text = "Edge pan"
+theme_type_variation = &"DescriptionLabel"
+text = "Reduces the amount of animation."
 
-[node name="ShowFps" type="CheckButton" parent="Center/Panel/Items/Toggles" unique_id=2147462642]
+[node name="ReduceMotion" type="CheckButton" parent="Margin/Column/Cards/ComfortCard/Rows/ReduceMotionRow" unique_id=1982435598]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
-text = "Show FPS"
+size_flags_vertical = 4
 
-[node name="SaveDivider" type="Control" parent="Center/Panel/Items" unique_id=1072961561]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 1)
+[node name="EdgeScrollRow" type="HBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows" unique_id=341330043]
 layout_mode = 2
-mouse_filter = 2
-script = ExtResource("90_hairline")
-horizontal = true
+theme_override_constants/separation = 16
 
-[node name="DeleteSaveButton" type="Button" parent="Center/Panel/Items" unique_id=1014371880]
-unique_name_in_owner = true
-visible = false
+[node name="Text" type="VBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows/EdgeScrollRow" unique_id=603601648]
 layout_mode = 2
-text = "Hold to delete save data"
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/EdgeScrollRow/Text" unique_id=971070663]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+text = "Edge scrolling"
+
+[node name="Description" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/EdgeScrollRow/Text" unique_id=1746206283]
+layout_mode = 2
+theme_type_variation = &"DescriptionLabel"
+text = "Move the pointer to a window edge to scroll the map."
+
+[node name="EdgeScroll" type="CheckButton" parent="Margin/Column/Cards/ComfortCard/Rows/EdgeScrollRow" unique_id=636141833]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="CampaignCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=544534340]
+unique_name_in_owner = true
+material = ExtResource("3_glass")
+layout_mode = 2
+theme_type_variation = &"SheetPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/CampaignCard" unique_id=1525261646]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/CampaignCard/Rows" unique_id=1939159266]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/Cards/CampaignCard/Rows/Heading" unique_id=347118206]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("8_flag")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/CampaignCard/Rows/Heading" unique_id=211867226]
+layout_mode = 2
+theme_type_variation = &"SectionHeadingLabel"
+text = "Campaign progress"
+
+[node name="ResetRow" type="HBoxContainer" parent="Margin/Column/Cards/CampaignCard/Rows" unique_id=771274852]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/CampaignCard/Rows/ResetRow" unique_id=1515860622]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"RowLabel"
+text = "Reset campaign"
+
+[node name="ResetCampaignButton" type="Button" parent="Margin/Column/Cards/CampaignCard/Rows/ResetRow" unique_id=900807766]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(156, 36)
+layout_mode = 2
+theme_type_variation = &"DangerButton"
+text = "Hold to reset"
+icon = ExtResource("9_reset")
 script = ExtResource("4_hold")
+hold_seconds = 1.5
 
-[node name="BackButton" type="Button" parent="Center/Panel/Items" unique_id=707033197]
+[node name="Tooltip" parent="Margin/Column/Cards/CampaignCard/Rows/ResetRow/ResetCampaignButton" unique_id=2033986545 node_paths=PackedStringArray("target") instance=ExtResource("10_tooltip")]
 unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"PrimaryButton"
-text = "Back"
+layout_mode = 0
+target = NodePath("..")
+sentence = "There is nothing to reset yet."
 
-[connection signal="drag_ended" from="Center/Panel/Items/Volumes/SfxVolume" to="." method="_on_sfx_volume_drag_ended"]
-[connection signal="confirmed" from="Center/Panel/Items/DeleteSaveButton" to="." method="_on_delete_save_button_confirmed"]
-[connection signal="pressed" from="Center/Panel/Items/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="drag_ended" from="Margin/Column/Cards/AudioCard/Rows/SfxVolumeRow/SfxVolume" to="." method="_on_sfx_volume_drag_ended"]
+[connection signal="confirmed" from="Margin/Column/Cards/CampaignCard/Rows/ResetRow/ResetCampaignButton" to="." method="_on_reset_campaign_button_confirmed"]

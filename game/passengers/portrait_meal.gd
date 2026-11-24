@@ -29,6 +29,13 @@ const CUP_COLOR := Color(0.95, 0.94, 1.0)
 const BAND_COLOR := Color(0.36, 0.62, 0.95)
 const STRAW_COLOR := Color(0.98, 0.78, 0.25)
 
+# Every portrait of one head model holds food of one size, and all food has the same few
+# colours, so the portraits share its meshes and materials: boxes by their size, cylinders
+# by their top radius, bottom radius and height, and materials by their colour.
+static var _boxes: Dictionary[Vector3, BoxMesh] = {}
+static var _cylinders: Dictionary[Vector3, CylinderMesh] = {}
+static var _materials: Dictionary[Color, ShaderMaterial] = {}
+
 ## What they act out now. The food changes once the last one is out of view.
 var action := Need.Action.NONE
 ## How far the head dips forward this frame, in radians, for the portrait to add.
@@ -145,28 +152,35 @@ func _make_drink() -> Node3D:
 
 
 func _box(box_size: Vector3, color: Color) -> MeshInstance3D:
-	var mesh := BoxMesh.new()
-	mesh.size = box_size
-	return _part(mesh, color)
+	if not _boxes.has(box_size):
+		var mesh := BoxMesh.new()
+		mesh.size = box_size
+		_boxes[box_size] = mesh
+	return _part(_boxes[box_size], color)
 
 
 func _cylinder(top: float, bottom: float, height: float, color: Color) -> MeshInstance3D:
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = top
-	mesh.bottom_radius = bottom
-	mesh.height = height
-	mesh.radial_segments = 16
-	mesh.rings = 1
-	return _part(mesh, color)
+	var shape := Vector3(top, bottom, height)
+	if not _cylinders.has(shape):
+		var mesh := CylinderMesh.new()
+		mesh.top_radius = top
+		mesh.bottom_radius = bottom
+		mesh.height = height
+		mesh.radial_segments = 16
+		mesh.rings = 1
+		_cylinders[shape] = mesh
+	return _part(_cylinders[shape], color)
 
 
 func _part(mesh: Mesh, color: Color) -> MeshInstance3D:
-	var material := ShaderMaterial.new()
-	material.shader = AlienPortrait.BODY_SHADER
-	material.set_shader_parameter(&"light_source", AlienPortrait.LIGHT_DIRECTION)
-	material.set_shader_parameter(&"light_is_directional", true)
-	material.set_shader_parameter(&"color", color)
+	if not _materials.has(color):
+		var material := ShaderMaterial.new()
+		material.shader = AlienPortrait.BODY_SHADER
+		material.set_shader_parameter(&"light_source", AlienPortrait.LIGHT_DIRECTION)
+		material.set_shader_parameter(&"light_is_directional", true)
+		material.set_shader_parameter(&"color", color)
+		_materials[color] = material
 	var part := MeshInstance3D.new()
 	part.mesh = mesh
-	part.material_override = material
+	part.material_override = _materials[color]
 	return part

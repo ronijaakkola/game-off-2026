@@ -56,6 +56,10 @@ _Avoid_: juice, screen effects, FX manager
 The player's preferences (volumes, mouse sensitivity and similar), kept across sessions. Never game progress. Named `Settings` in code.
 _Avoid_: options, config, preferences file
 
+**Edge scrolling**:
+The camera moving while the pointer rests at a window edge, which a setting turns off. `edge_scroll` in code, as in `Settings.edge_scroll` and `Cursor.Shape.EDGE_SCROLL`.
+_Never_: edge pan
+
 **Save game**:
 The player's run in the game itself, kept so it can be continued from the main menu: one run, saved at checkpoints while the bus waits at a planet. Named `SaveGame` in code, and `GameSaver` is what writes the run into it and puts it back.
 _Avoid_: settings, save file (ambiguous)
@@ -112,7 +116,7 @@ _Avoid_: bonus, effect
 _Never_: buff
 
 **Trait**:
-A feature on the bus that an upgrade unlocks, which the bus either has or doesn't, such as the **fuel forecast** (the fuel the course burns, shown over its last stop, `FuelForecast`): the on/off kind of stat. Whatever shows or does the feature asks whether the bus has it first. `BusTraits` in code, one of each `BusTraits.Type`, reached through `BusStats.get_traits()`.
+A feature on the bus that an upgrade unlocks, which the bus either has or doesn't, such as the **waiting markers** or the **fuel forecast** (the fuel the course burns, shown over its last stop, `FuelForecast`; no upgrade gives it for now): the on/off kind of stat. Whatever shows or does the feature asks whether the bus has it first. `BusTraits` in code, one of each `BusTraits.Type`, reached through `BusStats.get_traits()`.
 _Avoid_: perk, flag, unlock (the purchase, not the thing)
 
 **Tow**:
@@ -143,6 +147,10 @@ _Avoid_: mini map, small map
 **Passenger**:
 Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it. They pay the fare, and more for a ride they rate 4 or 5 stars. `Passenger` in code.
 _Never_: customer, rider, NPC
+
+**Returning passenger**:
+A passenger who rated a ride five stars and turns up in a line again later, the same in name, race, look and type, with a badge on their portrait. They pay more, ride a little happier and are likelier to call with a quest. `Passenger.returning` in code; `ReturningPassengers` remembers who may come back.
+_Avoid_: regular, loyal passenger, repeat passenger
 
 **Happiness**:
 How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort and their open request, and holding while the bus is docked. A **shock** changes it at once, such as a kick scaring the rest, and so does their **timing** as they get off (how their ride compares with the trip time: arriving early adds to it). It sets the mood and the rating. `Passenger.happiness` in code.
@@ -179,8 +187,16 @@ Something the player is asked to do and the game tracks, several at a time: a **
 _Avoid_: objective, mission, achievement (a one-off reward, not something asked)
 
 **Quest**:
-What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); an **errand** has it stop at a planet before their own stop; an **express** quest has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `ErrandQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
+What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); a **photo stop** has it come to rest in that zone; an **errand** has it stop at a planet before their own stop; a **warp** has it go through a warp gate with them on board; a **rock ride** has it fly among the asteroid field's rocks for a while, whose knocks lift them; a **sauna** has it run hot, past the gauge's green band, which lifts them; a **rescue** has the bus get a passenger picked up from a **capsule** to their destination in time; an **express** quest, no longer given, has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `PhotoStopQuest`, `ErrandQuest`, `WarpQuest`, `RockRideQuest`, `SaunaQuest`, `RescueQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
 _Avoid_: task, mission, errand (for any quest: it is the one kind)
+
+**Capsule**:
+A small capsule drifting in space, holding credits, research points or the **castaway**, which the bus collects by flying into it. Not a stop: the route never follows one. `Capsule` in code; the `CapsuleField` makes them, drifts them and hands out what they hold.
+_Avoid_: pickup, loot, crate, pod
+
+**Castaway**:
+The one passenger a capsule ever holds, always the same person, who keeps drifting off in space. Rescued again in a run, they come back as a **returning passenger**, and never wait in a line. `Castaway` in code.
+_Avoid_: survivor, stranded passenger
 
 **Transmission**:
 A call that pauses the game: someone, a passenger, the player's boss or the **mechanic**, talks from a screen in a modal, and the player answers with a button. A **message** only says something; a quest transmission asks the player to take on a quest, shows its reward, and is accepted or declined. `Transmission`, shown by the `TransmissionPanel`, in code.
@@ -194,6 +210,10 @@ _Avoid_: science, XP, tech points
 The pill at the top centre showing the player's credits, research points and recent rating, each counting to its new value. It only shows them; the player's `Ledger` holds them. `ResourceBar` in code.
 _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
+
+**Credits screen**:
+The main menu's screen naming the team and what the game is made with, opened by its Credits button. Not the player's credits, the money the resource bar shows. In `ui/credits/`.
+_Avoid_: about screen
 
 **Research tree**:
 The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. Every tree opens at once, with the **mechanic's** first call. The player researches from every tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched, and whether research and which stages are open.
@@ -213,7 +233,15 @@ What the player earns by meeting every goal a star system gives at once, with Th
 
 **Star system**:
 A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
-_Avoid_: level, galaxy, sector, stage (a band of research rows)
+_Avoid_: level (the stage of the run played in one), galaxy, sector, stage (a band of research rows)
+
+**Level**:
+The stage of the run played in one star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in Draco. It is **done** once a promotion there opens the next system, and the next level is **open** once the one before is done. `Level` in code, a resource in `shared/level_art/` with its name and picture.
+_Avoid_: mission, stage (a band of research rows), chapter
+
+**Campaign**:
+The levels in order and how far the player has got through them, which outlives the run: replaying a level starts the run over from where that level began and keeps what is done. Reset campaign forgets it with the save. `Campaign` in code; the campaign screen shows it.
+_Avoid_: progress (the goals' own), level select
 
 **Jump**:
 The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.

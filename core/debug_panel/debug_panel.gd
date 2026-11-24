@@ -2,7 +2,8 @@ extends CanvasLayer
 ## The debug panel: buttons for testing, in the bottom left corner, opened and closed
 ## with F2. It starts closed and works while the game is paused. A scene adds its own
 ## buttons with [method add_button], and they go when the scene does, so the panel never
-## needs to know which scene is running. Buttons given a group go on that group's own
+## needs to know which scene is running. The main card lays them out in two columns, in the
+## order added, row by row. Buttons given a group go on that group's own
 ## card to the right of the main one, which a button of the group's name in the main card
 ## opens and closes. One group's card shows at a time.
 ## It ships in every build, release builds included, until [constant ENABLED] is set to
@@ -70,6 +71,8 @@ func _make_button(text: String) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.theme_type_variation = &"SmallButton"
+	# The main card's two columns share its width evenly.
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# So keys the game uses, such as Space, never press it.
 	button.focus_mode = Control.FOCUS_NONE
 	return button

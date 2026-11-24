@@ -24,14 +24,14 @@ static func estimate(bus: FrameshiftBus) -> float:
 		if bus.state != FrameshiftBus.State.PARKING:
 			stops = stops.slice(stops.find_custom(RouteStop.is_planet) + 1)
 	elif waiting:
-		time = bus.charge_time * (1.0 - bus.get_charge_progress())
+		time = bus.drive.charge_time * (1.0 - bus.get_charge_progress())
 	var top := bus.get_stats().get_stat(BusStats.Type.MAX_SPEED).get_value()
 	# Only a route of points in space ends past the planets, which all come after its
 	# points: in flight the bus cruises toward it, and waiting it starts from rest.
 	var start_speed := 0.0 if waiting else top
 	var distance := 0.0
 	var warm := bus.get_stats().get_traits().has(BusTraits.Type.WARM_DRIVE)
-	var leave := 0.0 if warm else bus.charge_time
+	var leave := 0.0 if warm else bus.drive.charge_time
 	# Whether the bus is docked at a planet on the way, to leave it before the next leg.
 	var docked := false
 	for stop: RouteStop in stops:

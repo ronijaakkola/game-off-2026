@@ -83,7 +83,8 @@ func _process(delta: float) -> void:
 	# How much of the bus's heading points at the star: 1 straight at it, below 0 away.
 	var closing := forward.normalized().dot(-offset.normalized())
 	var to_star := _distance_to_star(distance, closing)
-	temperature.advance(delta, distance, flying, to_star < INF, exempt)
+	var heating := bus.get_stats().get_stat(BusStats.Type.HEATING).get_value()
+	temperature.advance(delta, distance, flying, to_star < INF, exempt, heating)
 	bus.speed_cap = INF if exempt else sqrt(2.0 * bus.acceleration * maxf(to_star, 0.0))
 	var target := 0.0
 	if not exempt and distance < temperature.zone_radius:
@@ -132,5 +133,5 @@ func _pulse(delta: float, target: float) -> void:
 	if not Settings.reduce_motion:
 		pulse = 0.5 - 0.5 * cos(TAU * PULSE_RATE * _time)
 	var material := zone.material_override as ShaderMaterial
-	material.set_shader_parameter(&"flash", _flash * pulse)
-	material.set_shader_parameter(&"drift", 0.0 if Settings.reduce_motion else 1.0)
+	ShaderValues.show(material, &"flash", _flash * pulse)
+	ShaderValues.show(material, &"drift", 0.0 if Settings.reduce_motion else 1.0)

@@ -19,6 +19,8 @@ extends Node
 ## `-- PointBar`, `-- PointMark` and `-- PointCap` rest the pointer on the third seat's
 ## bar: near its start, on the docked mark (with `Docked`) and on the striped end (with
 ## `Frustrated`), so whichever tooltip belongs there opens.
+## `-- Returning` makes the first two seats returning passengers, a Commuter and a
+## Business one, so their badge shows alone and after the briefcase.
 ## `-- Breakdown` opens the panel the pointer on a happiness bar opens, for the third
 ## seat, on a bus with Movies, after a stop too many and a quest failed.
 
@@ -74,6 +76,7 @@ func _ready() -> void:
 		var type := BUSINESS if seat in BUSINESS_SEATS else COMMUTER
 		var passenger := Passenger.new(type, destination, 60.0, 40.0, rng)
 		passenger.trend = 0.0 if cabin.docked else TRENDS[seat]
+		passenger.returning = seat < 2 and "Returning" in args
 		if seat in ASKING:
 			passenger.request = COMMUTER.needs[seat % COMMUTER.needs.size()]
 			passenger.activity = passenger.request.request_line

@@ -4,7 +4,7 @@ extends Node3D
 ## the bus docked at that planet spends [member fuel_share] of a full tank to go through,
 ## coming out of [member partner] beside the other planet ([GateService]). It keeps beside
 ## the planet as it orbits, on the side away from the star, and turns slowly. It builds its
-## meshes in code, so the scene saves only its exports. Put it in the planet's star system.
+## meshes in code, so the scene saves only its exports.
 
 ## The group every gate is in, so a planet's gate can be found from it.
 const GROUP := &"warp_gates"
@@ -58,7 +58,8 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or not planet:
 		return
 	var body := planet.get_body_global_position()
-	var star := get_parent_node_3d().global_position if get_parent_node_3d() else Vector3.ZERO
+	# The planet's star system tells the planet where its star is every frame.
+	var star := planet.light_source
 	var out := Vector3(body.x - star.x, 0.0, body.z - star.z).normalized()
 	global_position = body + out * DISTANCE
 	_ring.rotate_object_local(Vector3.UP, TAU * delta / TURN_SECONDS)

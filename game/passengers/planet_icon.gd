@@ -40,6 +40,15 @@ func _show() -> void:
 	_material.set_shader_parameter(&"ring_tilt", deg_to_rad(planet.tilt))
 
 
+## Shows a planet without rings in [param color], its icon colour, where there is no
+## [Planet] to read, as on the loading screen.
+func show_color(color: Color) -> void:
+	planet = null
+	visible = true
+	_material.set_shader_parameter(&"color", color)
+	_material.set_shader_parameter(&"has_rings", false)
+
+
 ## Cuts a circle of [param radius] pixels at [param center], in the icon's own pixels, out
 ## of the icon, as where something sits on top of it and the background should show
 ## between. A radius of 0 cuts nothing.
