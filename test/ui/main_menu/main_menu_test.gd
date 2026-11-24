@@ -150,7 +150,7 @@ func _music_playing() -> bool:
 
 
 func test_a_level_in_progress_shows_continue_naming_it_and_levels() -> void:
-	SaveGame.write({"star_map": {"opened": 2, "joined": false, "system": "Lyra"}})
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Lyra")})
 	var runner := scene_runner(MENU)
 	await runner.simulate_frames(1)
 	assert_bool((runner.find_child("PlayButton") as Control).visible).is_false()

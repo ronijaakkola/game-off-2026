@@ -74,8 +74,7 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	_tutorial = SaveGame.wants_tutorial()
 	_saved = SaveGame.claim_run()
 	_continued = not _saved.is_empty()
-	var saved_map: Dictionary = _saved.get("star_map", {})
-	_saved_system = str(saved_map.get("system", ""))
+	_saved_system = SavedStarMap.get_system(SavedStarMap.of(_saved))
 	if not _continued:
 		if _recording and new_run_planet:
 			bus.start_planet = new_run_planet
@@ -94,7 +93,7 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 ## What the continued run kept of the [StarMap], for [method StarMap.restore]: empty for a
 ## new run. Only before [method start].
 func get_saved_star_map() -> Dictionary:
-	return _saved.get("star_map", {})
+	return SavedStarMap.of(_saved)
 
 
 ## Whether this run starts with the tutorial: a new run the main menu started with it, as
@@ -178,7 +177,7 @@ func _write() -> void:
 		"research": researched,
 		"research_stages": research.get_open_stages(),
 		"research_open": research.is_opened(),
-		"star_map": star_map.to_save() if star_map else {},
+		SavedStarMap.KEY: star_map.to_save() if star_map else {},
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,
