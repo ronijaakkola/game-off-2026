@@ -203,6 +203,10 @@ The pill at the top centre showing the player's credits, research points and rec
 _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
 
+**Credits screen**:
+The main menu's screen naming the team and what the game is made with, opened by its Credits button. Not the player's credits, the money the resource bar shows. In `ui/credits/`.
+_Avoid_: about screen
+
 **Research tree**:
 The upgrades for one part of the bus, linked by which ones each needs first, split into three **stages** by row. Every tree opens at once, with the **mechanic's** first call. The player researches from every tree at any planet with a **lab**, while the bus is docked or charging there. `ResearchTree` in code; `Research` keeps which upgrades are researched, and whether research and which stages are open.
 _Never_: tech tree, skill tree
