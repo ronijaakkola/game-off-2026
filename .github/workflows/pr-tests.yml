@@ -28,6 +28,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7.0.1
+        # The merge commit and its first parent, main as it is, which lint measures a
+        # script's growth from (script-growth).
+        with:
+          fetch-depth: 2
       - uses: astral-sh/setup-uv@v10.2.0
       - uses: chickensoft-games/setup-godot@v2.4.3
         with:
@@ -36,6 +40,8 @@ jobs:
           include-templates: false
       - name: Lint
         run: uv run tools/check.py lint
+        env:
+          LINT_BASE: HEAD^1
       - name: Load check
         run: uv run tools/check.py load
       - name: Smoke run
