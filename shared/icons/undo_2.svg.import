@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bue0cvs0qyof5"
-path="res://.godot/imported/rotate_ccw.svg-8238efeb21467c96fe8d1e8140ec216e.ctex"
+uid="uid://c8xd07maiktd4"
+path="res://.godot/imported/undo_2.svg-62f0e127002359af2a7be34c05835771.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://shared/icons/rotate_ccw.svg"
-dest_files=["res://.godot/imported/rotate_ccw.svg-8238efeb21467c96fe8d1e8140ec216e.ctex"]
+source_file="res://shared/icons/undo_2.svg"
+dest_files=["res://.godot/imported/undo_2.svg-62f0e127002359af2a7be34c05835771.ctex"]
 
 [params]
 

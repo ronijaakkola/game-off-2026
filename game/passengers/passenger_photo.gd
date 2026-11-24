@@ -22,7 +22,7 @@ const BADGE := preload("res://game/passengers/photo_badge.tscn")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 const FLAG := preload("res://shared/icons/flag.svg")
 ## A returning passenger's badge, and what its tooltip says.
-const RETURNING := preload("res://shared/icons/rotate_ccw.svg")
+const RETURNING := preload("res://shared/icons/undo_2.svg")
 const RETURNING_TITLE := "Returning passenger"
 const RETURNING_TEXT := "They loved their last ride and came back. They pay 10% more."
 ## A badge's size, the gap between its rim and its icon, and how far the badges reach past
