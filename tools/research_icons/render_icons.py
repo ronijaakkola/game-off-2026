@@ -215,22 +215,6 @@ def warm_drive_model(root):
     cyl(root, 0.26, 0.26, 0.04, YELLOW, (0, -0.46, 0.95), rot=(90, 0, 0), verts=24, bevel=0, unlit=True)
 
 
-def fuel_forecast_model(root):
-    """A fuel gauge: its needle reads how much the course will burn."""
-    face = bpy.data.objects.new("Face", None)
-    bpy.context.scene.collection.objects.link(face)
-    face.parent = root
-    face.location = (0, 0, 0.9)
-    face.rotation_euler = (math.radians(75), 0, 0)
-    cyl(face, 0.85, 0.85, 0.16, DARK, (0, 0, 0), verts=32, bevel=0.04)
-    cyl(face, 0.72, 0.72, 0.06, WHITE, (0, 0, 0.1), verts=32, bevel=0.01)
-    # The used part of the tank, in low fuel's red, and what's left, in fuel's cyan.
-    box(face, (0.36, 0.14, 0.04), RED, (-0.42, 0.22, 0.14), rot=(0, 0, 40), bevel=0.02, unlit=True)
-    box(face, (0.36, 0.14, 0.04), CYAN, (0.42, 0.22, 0.14), rot=(0, 0, -40), bevel=0.02, unlit=True)
-    box(face, (0.08, 0.62, 0.05), DARK, (0.14, 0.2, 0.17), rot=(0, 0, -25), bevel=0.02)
-    cyl(face, 0.1, 0.1, 0.08, DARK, (0, 0, 0.18), verts=16)
-
-
 def pumps_model(root):
     """A station's fuel pump with its nozzle on the side."""
     box(root, (0.9, 0.6, 1.7), WHITE, (0, 0, 0.85), bevel=0.08)
@@ -291,6 +275,210 @@ def placeholder_model(root):
     box(root, (1.36, 0.22, 1.3), WHITE, (0, 0, 0.66), bevel=0.02)
     torus(root, 0.28, 0.1, WHITE, (-0.24, 0, 1.36), rot=(90, 0, -25))
     torus(root, 0.28, 0.1, WHITE, (0.24, 0, 1.36), rot=(90, 0, 25))
+
+
+def group(root, loc, rot=(0, 0, 0)):
+    """An empty under [root] to build a tilted part in."""
+    g = bpy.data.objects.new("Group", None)
+    bpy.context.scene.collection.objects.link(g)
+    g.parent = root
+    g.location = loc
+    g.rotation_euler = [math.radians(r) for r in rot]
+    return g
+
+
+def prism(root, points, depth, color, loc, rot=(0, 0, 0), unlit=False, bevel=0.03):
+    """A flat shape facing the front: [points] are its outline as (x, z), counter-clockwise."""
+    n = len(points)
+    verts = [(x, -depth / 2, z) for x, z in points] + [(x, depth / 2, z) for x, z in points]
+    faces = [list(range(n)), list(range(2 * n - 1, n - 1, -1))]
+    faces += [[(i + 1) % n, i, i + n, (i + 1) % n + n] for i in range(n)]
+    mesh = bpy.data.meshes.new("Prism")
+    mesh.from_pydata(verts, [], faces)
+    o = bpy.data.objects.new("Prism", mesh)
+    bpy.context.scene.collection.objects.link(o)
+    o.location = loc
+    o.rotation_euler = [math.radians(r) for r in rot]
+    return add(o, root, color, unlit, bevel)
+
+
+def drop(root, radius, color, loc):
+    """A drop of fuel: a ball with a point on top."""
+    x, y, z = loc
+    sphere(root, radius, color, (x, y, z), segments=24)
+    cyl(root, radius * 0.87, 0, radius * 1.4, color, (x, y, z + radius * 1.2), verts=24, bevel=0)
+
+
+def quick_charge_model(root):
+    """A stopwatch, a third of its face filled in the frameshift's cyan."""
+    cyl(root, 0.9, 0.9, 0.24, GREY, (0, 0, 1.0), rot=(90, 0, 0), verts=32, bevel=0.05)
+    cyl(root, 0.74, 0.74, 0.06, WHITE, (0, -0.11, 1.0), rot=(90, 0, 0), verts=32, bevel=0)
+    wedge = [(0, 0)] + [(math.cos(math.radians(a)) * 0.66, math.sin(math.radians(a)) * 0.66)
+                        for a in range(-30, 91, 15)]
+    prism(root, wedge, 0.04, CYAN, (0, -0.15, 1.0), unlit=True, bevel=0)
+    box(root, (0.6, 0.05, 0.1), DARK, (0.24, -0.18, 0.86), rot=(0, 30, 0), bevel=0.02)
+    cyl(root, 0.1, 0.1, 0.08, DARK, (0, -0.18, 1.0), rot=(90, 0, 0), verts=16, bevel=0)
+    cyl(root, 0.16, 0.16, 0.3, GREY, (0, 0, 1.98), verts=12, bevel=0.03)
+    cyl(root, 0.24, 0.24, 0.14, DARK, (0, 0, 2.16), verts=12, bevel=0.03)
+    cyl(root, 0.12, 0.12, 0.3, DARK, (0.72, 0, 1.72), rot=(0, 45, 0), verts=12, bevel=0.03)
+    root.rotation_euler.z = math.radians(20)
+
+
+def pit_crew_model(root):
+    """A fuel nozzle, a drop of fuel falling from it."""
+    box(root, (1.0, 0.42, 0.56), RED, (0.25, 0, 1.35), bevel=0.1)
+    box(root, (0.4, 0.4, 0.85), RED, (0.6, 0, 0.8), rot=(0, -15, 0), bevel=0.1)
+    torus(root, 0.3, 0.07, DARK, (0.15, 0, 0.95), rot=(90, 0, 0))
+    cyl(root, 0.14, 0.14, 0.5, DARK, (0.7, 0, 0.25), verts=12)
+    cyl(root, 0.15, 0.15, 0.9, GREY, (-0.6, 0, 1.4), rot=(0, 90, 0), verts=16)
+    cyl(root, 0.13, 0.13, 0.7, GREY, (-1.2, 0, 1.18), rot=(0, 37, 0), verts=16)
+    drop(root, 0.22, CYAN, (-1.45, 0, 0.3))
+    root.rotation_euler.z = math.radians(15)
+
+
+def heat_shielding_model(root):
+    """A shield with a sun on it."""
+    shield = [(-0.8, 0.85), (-0.8, 0.0), (-0.52, -0.62), (0, -1.0), (0.52, -0.62), (0.8, 0.0),
+              (0.8, 0.85), (0, 1.0)]
+    prism(root, shield, 0.24, GREY, (0, 0, 1.05), bevel=0.05)
+    prism(root, [(x * 0.8, z * 0.8) for x, z in shield], 0.3, WHITE, (0, 0, 1.05), bevel=0.04)
+    cyl(root, 0.34, 0.34, 0.06, EMBER, (0, -0.16, 1.08), rot=(90, 0, 0), verts=24, bevel=0, unlit=True)
+    cyl(root, 0.17, 0.17, 0.06, YELLOW, (0, -0.18, 1.08), rot=(90, 0, 0), verts=24, bevel=0, unlit=True)
+    root.rotation_euler.z = math.radians(20)
+
+
+def efficient_burn_model(root):
+    """A drop of fuel with an arrow down: less of it burnt."""
+    drop(root, 0.72, CYAN, (0, 0, 0.72))
+    arrow = [(-0.13, 0.36), (-0.13, 0.0), (-0.34, 0.0), (0, -0.4), (0.34, 0.0), (0.13, 0.0), (0.13, 0.36)]
+    prism(root, arrow, 0.08, DARK, (0.4, -0.6, 0.72), rot=(0, 0, 34), unlit=True, bevel=0)
+
+
+def reserve_tank_model(root):
+    """A red jerrycan."""
+    box(root, (1.2, 0.62, 1.5), RED, (0, 0, 0.75), bevel=0.1)
+    box(root, (1.23, 0.65, 0.3), WHITE, (0, 0, 0.7), bevel=0.02)
+    for x in (-0.42, 0.08):
+        box(root, (0.12, 0.16, 0.26), DARK, (x, 0, 1.6), bevel=0.02)
+    box(root, (0.62, 0.16, 0.13), DARK, (-0.17, 0, 1.76), bevel=0.04)
+    cyl(root, 0.15, 0.15, 0.42, DARK, (0.44, 0, 1.62), rot=(0, 35, 0), verts=12)
+    cyl(root, 0.18, 0.18, 0.14, YELLOW, (0.58, 0, 1.82), rot=(0, 35, 0), verts=12)
+    root.rotation_euler.z = math.radians(15)
+
+
+def honk_model(root):
+    """An old bulb horn: a rubber ball, a chrome tube and a flared bell."""
+    cyl(root, 0.78, 0.26, 0.8, GREY, (-0.75, 0, 1.0), rot=(0, 90, 0), verts=32, bevel=0)
+    torus(root, 0.78, 0.08, WHITE, (-1.15, 0, 1.0), rot=(0, 90, 0))
+    cyl(root, 0.66, 0.66, 0.04, DARK, (-1.14, 0, 1.0), rot=(0, 90, 0), verts=32, bevel=0, unlit=True)
+    cyl(root, 0.24, 0.24, 1.1, GREY, (0.15, 0, 1.0), rot=(0, 90, 0), verts=16, bevel=0)
+    cyl(root, 0.33, 0.33, 0.22, WHITE, (0.66, 0, 1.0), rot=(0, 90, 0), verts=16, bevel=0.03)
+    # Black rubber, lightened so it shows on a dark tile.
+    sphere(root, 0.62, lin("#4a4475"), (1.2, 0, 1.0), segments=24)
+    root.rotation_euler = (0, math.radians(12), math.radians(50))
+
+
+def gate_tuning_model(root):
+    """A warp gate with a cog at its foot."""
+    torus(root, 0.82, 0.17, PALE_LILAC, (0, 0, 1.0), rot=(90, 0, 0), segments=6)
+    cyl(root, 0.7, 0.7, 0.05, CYAN, (0, 0, 1.0), rot=(90, 0, 0), verts=6, bevel=0, unlit=True)
+    cog = group(root, (0.72, -0.35, 0.38), rot=(90, 0, 0))
+    cyl(cog, 0.3, 0.3, 0.18, GOLD, (0, 0, 0), verts=20)
+    for i in range(8):
+        turn = math.radians(i * 45)
+        box(cog, (0.16, 0.16, 0.18), GOLD, (math.cos(turn) * 0.34, math.sin(turn) * 0.34, 0),
+            rot=(0, 0, i * 45), bevel=0.02)
+    cyl(cog, 0.11, 0.11, 0.2, DARK, (0, 0, 0), verts=12, bevel=0)
+    root.rotation_euler.z = math.radians(20)
+
+
+def destination_sign_model(root):
+    """The sign over the bus's windscreen: an arrow and a planet in amber lights."""
+    box(root, (2.5, 0.7, 0.22), YELLOW, (0, 0.05, 0.11), bevel=0.06)
+    box(root, (2.3, 0.5, 0.95), WHITE, (0, 0, 0.66), bevel=0.12)
+    box(root, (2.0, 0.05, 0.66), DARK, (0, -0.25, 0.66), bevel=0.04, unlit=True)
+    arrow = [(-0.42, -0.07), (0.1, -0.07), (0.1, -0.22), (0.42, 0), (0.1, 0.22), (0.1, 0.07), (-0.42, 0.07)]
+    prism(root, arrow, 0.04, EMBER, (-0.42, -0.28, 0.66), unlit=True, bevel=0)
+    cyl(root, 0.2, 0.2, 0.04, EMBER, (0.5, -0.28, 0.66), rot=(90, 0, 0), verts=20, bevel=0, unlit=True)
+    box(root, (0.66, 0.03, 0.06), YELLOW, (0.5, -0.3, 0.66), rot=(0, 20, 0), bevel=0, unlit=True)
+    root.rotation_euler.z = math.radians(15)
+
+
+def survey_model(root):
+    """A clipboard: a gold star and two filled-in lines."""
+    board = group(root, (0, 0, 1.0), rot=(-15, 0, 15))
+    box(board, (1.35, 0.1, 1.85), BROWN, (0, 0, 0), bevel=0.05)
+    box(board, (1.13, 0.04, 1.5), WHITE, (0, -0.06, -0.08), bevel=0.01)
+    box(board, (0.55, 0.12, 0.24), GREY, (0, -0.08, 0.85), bevel=0.04)
+    star = []
+    for i in range(10):
+        r, turn = (0.34, 0.15)[i % 2], math.radians(90 + i * 36)
+        star.append((math.cos(turn) * r, math.sin(turn) * r))
+    prism(board, star, 0.04, GOLD, (0, -0.1, 0.25), unlit=True, bevel=0)
+    for z in (-0.25, -0.52):
+        box(board, (0.75, 0.03, 0.12), GREY, (0, -0.09, z), bevel=0.01, unlit=True)
+
+
+def business_class_model(root):
+    """A briefcase."""
+    box(root, (1.8, 0.56, 1.15), COFFEE, (0, 0, 0.6), bevel=0.1)
+    box(root, (1.83, 0.59, 0.2), BROWN, (0, 0, 0.92), bevel=0.02)
+    torus(root, 0.32, 0.075, DARK, (0, 0, 1.2), rot=(90, 0, 0))
+    for x in (-0.5, 0.5):
+        box(root, (0.18, 0.06, 0.24), GOLD, (x, -0.3, 0.92), bevel=0.02)
+    root.rotation_euler.z = math.radians(15)
+
+
+def arcade_model(root):
+    """An arcade cabinet."""
+    box(root, (1.1, 1.0, 1.0), TEAL, (0, 0, 0.5), bevel=0.05)
+    box(root, (1.1, 0.7, 1.25), TEAL, (0, 0.15, 1.6), bevel=0.05)
+    box(root, (1.16, 0.85, 0.32), YELLOW, (0, 0.1, 2.3), bevel=0.05)
+    box(root, (1.12, 0.36, 0.1), DARK, (0, -0.33, 1.04), bevel=0.02)
+    box(root, (0.86, 0.05, 0.72), DARK, (0, -0.2, 1.62), bevel=0.02, unlit=True)
+    box(root, (0.07, 0.03, 0.07), WHITE, (0.12, -0.23, 1.76), bevel=0, unlit=True)
+    box(root, (0.26, 0.03, 0.07), WHITE, (-0.1, -0.23, 1.42), bevel=0, unlit=True)
+    cyl(root, 0.035, 0.035, 0.2, GREY, (-0.25, -0.36, 1.18), verts=8, bevel=0)
+    sphere(root, 0.1, RED, (-0.25, -0.36, 1.32), segments=12)
+    cyl(root, 0.08, 0.08, 0.06, RED, (0.22, -0.36, 1.11), verts=12, bevel=0.01)
+
+
+def sleeping_pod_model(root):
+    """A sleeping pod leaning back with someone tucked in, and a sleepy Z."""
+    box(root, (1.4, 1.05, 0.22), DARK, (0, 0.1, 0.11), bevel=0.05)
+    pod = group(root, (0, 0, 0.15), rot=(-14, 0, 0))
+    rounded(pod, (1.15, 0.8, 2.0), WHITE, (0, 0, 1.0), softness=0.48)
+    box(pod, (0.76, 0.1, 1.3), DARK, (0, -0.37, 1.08), bevel=0.14, unlit=True)
+    cyl(pod, 0.22, 0.22, 0.04, PINK, (0, -0.43, 1.4), rot=(90, 0, 0), verts=20, bevel=0, unlit=True)
+    box(pod, (0.62, 0.04, 0.62), PALE_LILAC, (0, -0.43, 0.82), bevel=0.06, unlit=True)
+    letter(root, "Z", 0.75, LILAC, (1.0, -0.3, 1.75), rot=(80, 0, 35))
+    letter(root, "z", 0.5, LILAC, (1.5, -0.45, 2.3), rot=(80, 0, 35))
+
+
+def shock_absorber_model(root):
+    """A shock absorber: a damper with a spring round it."""
+    part = group(root, (0, 0, 1.3), rot=(0, 22, 0))
+    cyl(part, 0.3, 0.3, 1.0, DARK, (0, 0, -0.55), verts=20, bevel=0.04)
+    cyl(part, 0.13, 0.13, 1.3, GREY, (0, 0, 0.5), verts=12, bevel=0)
+    for z in (-1.22, 1.25):
+        torus(part, 0.2, 0.09, GREY, (0, 0, z), rot=(90, 0, 0), segments=20)
+    for z in (-0.28, 1.02):
+        cyl(part, 0.52, 0.52, 0.1, GREY, (0, 0, z), verts=24, bevel=0.03)
+    for i in range(4):
+        torus(part, 0.42, 0.085, BLUE, (0, 0, -0.08 + i * 0.3), rot=(12, 0, 0))
+
+
+def food_dispenser_model(root):
+    """A vending machine with snacks behind its glass."""
+    box(root, (1.25, 0.8, 2.0), LILAC, (0, 0, 1.0), bevel=0.08)
+    box(root, (0.8, 0.05, 1.05), DARK, (-0.14, -0.4, 1.3), bevel=0.03, unlit=True)
+    snacks = ((PINK, YELLOW), (WHITE, PINK), (YELLOW, WHITE))
+    for row, pair in enumerate(snacks):
+        for col, color in enumerate(pair):
+            box(root, (0.26, 0.04, 0.22), color, (-0.33 + col * 0.38, -0.43, 1.63 - row * 0.33),
+                bevel=0.02, unlit=True)
+    box(root, (0.17, 0.05, 0.5), GREY, (0.45, -0.4, 1.45), bevel=0.02)
+    box(root, (0.8, 0.05, 0.26), DARK, (-0.14, -0.4, 0.4), bevel=0.03, unlit=True)
 
 
 # How much longer and fatter the exhaust is than in flight.
@@ -405,7 +593,7 @@ ICONS = {
     "speed": bus_model,
     "fuel_tank": fuel_tank_model,
     "warmer_drive": warm_drive_model,
-    "fuel_forecast": fuel_forecast_model,
+    "quick_charge": quick_charge_model,
     "faster_pumps": pumps_model,
     "extra_seat": seat_model,
     "pillows": pillow_model,
@@ -418,6 +606,19 @@ ICONS = {
     "free_station_coffee": coffee_model,
     "timetables": timetables_model,
     "station_cameras": camera_model,
+    "pit_crew": pit_crew_model,
+    "heat_shielding": heat_shielding_model,
+    "efficient_burn": efficient_burn_model,
+    "reserve_tank": reserve_tank_model,
+    "honk": honk_model,
+    "gate_tuning": gate_tuning_model,
+    "destination_sign": destination_sign_model,
+    "passenger_happiness_survey": survey_model,
+    "business_class": business_class_model,
+    "space_invaders": arcade_model,
+    "sleeping_pods": sleeping_pod_model,
+    "shock_absorbers": shock_absorber_model,
+    "food_dispenser": food_dispenser_model,
     "placeholder": placeholder_model,
 }
 for icon in ONLY or list(ICONS):

@@ -4,8 +4,13 @@
 [ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
 [ext_resource type="Texture2D" uid="uid://d0wkrmsprhvk0" path="res://game/research/icons/rocket.svg" id="20_rocket"]
+[ext_resource type="Texture2D" uid="uid://cagf2taana70b" path="res://game/research/icons/rendered/efficient_burn_36.png" id="30_efficient_burn"]
 [ext_resource type="Texture2D" uid="uid://m438oejdnap5" path="res://game/research/icons/rendered/faster_pumps_36.png" id="30_faster_pumps"]
 [ext_resource type="Texture2D" uid="uid://byyowxcoinwok" path="res://game/research/icons/rendered/fuel_tank_36.png" id="30_fuel_tank"]
+[ext_resource type="Texture2D" uid="uid://bcta8v4fvmsyw" path="res://game/research/icons/rendered/heat_shielding_36.png" id="30_heat_shielding"]
+[ext_resource type="Texture2D" uid="uid://2uveskney62y" path="res://game/research/icons/rendered/pit_crew_36.png" id="30_pit_crew"]
+[ext_resource type="Texture2D" uid="uid://d02x2jum5y3ko" path="res://game/research/icons/rendered/quick_charge_36.png" id="30_quick_charge"]
+[ext_resource type="Texture2D" uid="uid://dcahldgrv2qb0" path="res://game/research/icons/rendered/reserve_tank_36.png" id="30_reserve_tank"]
 [ext_resource type="Texture2D" uid="uid://biwwigvpyxyfw" path="res://game/research/icons/rendered/speed_36.png" id="30_speed"]
 [ext_resource type="Texture2D" uid="uid://cpcgqfpmhy2v8" path="res://game/research/icons/rendered/warmer_drive_36.png" id="30_warmer_drive"]
 [ext_resource type="Texture2D" uid="uid://cspxodsva0min" path="res://game/research/icons/rendered/placeholder_36.png" id="31_placeholder"]
@@ -55,14 +60,13 @@ tier = 1
 [sub_resource type="Resource" id="Resource_quick_charge_mod"]
 script = ExtResource("3_modifier")
 stat = 8
-kind = 0
 amount = -0.5
 
 [sub_resource type="Resource" id="Resource_quick_charge"]
 script = ExtResource("2_upgrade")
 title = "Quick charge"
 description = "The frameshift drive charges in 1 s instead of 1.5."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_quick_charge")
 credits = 240
 points = 4
 requires = Array[Resource]([SubResource("Resource_speed_1")])
@@ -127,7 +131,7 @@ column = 3
 script = ExtResource("2_upgrade")
 title = "Pit crew"
 description = "The tank fills by itself at a station, unless the drive is charging."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_pit_crew")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_faster_pumps")])
@@ -145,7 +149,7 @@ amount = -30.0
 script = ExtResource("2_upgrade")
 title = "Heat shielding"
 description = "The bus heats up 30% slower near a star."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_heat_shielding")
 credits = 300
 points = 4
 requires = Array[Resource]([SubResource("Resource_warm_drive")])
@@ -162,7 +166,7 @@ amount = -20.0
 script = ExtResource("2_upgrade")
 title = "Efficient burn"
 description = "The bus burns 20% less fuel."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_efficient_burn")
 credits = 800
 points = 10
 requires = Array[Resource]([SubResource("Resource_speed_2"), SubResource("Resource_quick_charge")])
@@ -174,7 +178,7 @@ column = 1
 script = ExtResource("2_upgrade")
 title = "Reserve tank"
 description = "Running dry in flight opens a reserve of 20 fuel, once each time the tank is filled up."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_reserve_tank")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_pit_crew"), SubResource("Resource_fuel_tank_2")])
