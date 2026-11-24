@@ -71,6 +71,8 @@ func _ready() -> void:
 		else:
 			forecast_bus.plot_course(RouteStop.at_planet(giant))
 		forecast_bus.plot_course(RouteStop.at_planet(terra), true)
+		if "fly" in name_given:
+			forecast_bus.frameshift_held = true
 		if "hover" in name_given:
 			# With `leave`, the pointer moves off after 40 frames, so the card closes.
 			var frames := 0

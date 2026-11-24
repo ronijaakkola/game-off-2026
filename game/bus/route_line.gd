@@ -6,6 +6,10 @@ extends MeshInstance3D
 const SHADER := preload("res://game/bus/route_line.gdshader")
 const CAMERA_HOST_PRIORITY := 300
 const SEGMENTS := 12
+## The gap between the bus's footprint and where the line starts, in pixels, and half the
+## bus's width on the orbit plane.
+const BUS_GAP_PIXELS := 4.0
+const BUS_HALF_WIDTH := 0.2
 
 @export var color := Color(1.0, 0.6, 0.22, 0.9)
 
@@ -20,6 +24,12 @@ var _legs := PackedVector3Array()
 var _leg_planets: Array[Planet] = []
 var _markers := PackedVector3Array()
 var _scroll := 0.0
+# PROTOTYPE: how the line leaves the bus, from `bus=N` in the user args: 0 from its middle,
+# 1 a gap past its footprint, 2 that and a fade in.
+var _bus_style := 0
+# Where the bus is and which way it faces on the orbit plane, as of the last draw_stops().
+var _bus_at := Vector3.ZERO
+var _bus_forward := Vector3.FORWARD
 var _mesh := ImmediateMesh.new()
 var _material := ShaderMaterial.new()
 
@@ -33,6 +43,8 @@ func _ready() -> void:
 	_material.shader = SHADER
 	_material.set_shader_parameter(&"color", color)
 	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("bus="):
+			_bus_style = int(arg.trim_prefix("bus="))
 		if arg.begins_with("style="):
 			_style = int(arg.trim_prefix("style="))
 	_configure()
@@ -77,7 +89,9 @@ func _configure() -> void:
 		_material.set_shader_parameter(key, p[key])
 
 
-func draw_stops(from: Vector3, stops: Array[RouteStop]) -> void:
+func draw_stops(from: Vector3, stops: Array[RouteStop], forward := Vector3.FORWARD) -> void:
+	_bus_at = _flat(from)
+	_bus_forward = _flat(forward).normalized()
 	var legs := PackedVector3Array()
 	var markers := PackedVector3Array()
 	var leg_planets: Array[Planet] = []
@@ -119,6 +133,13 @@ func _process(delta: float) -> void:
 	for i: int in range(0, _legs.size() - 1, 2):
 		var from := _legs[i]
 		var to := _legs[i + 1]
+		var fade := 0.0
+		if i == 0 and _bus_style > 0 and (_leg_planets.is_empty() or not _leg_planets[0]):
+			var bus_t := _bus_edge_t(camera, from, to)
+			if bus_t >= 1.0:
+				continue
+			from = from.lerp(to, bus_t)
+			fade = 10.0 if _bus_style == 2 else 0.0
 		if i + 1 < _leg_planets.size():
 			# Each end on a planet stops at the border's outer edge as seen on screen, so the
 			# line never runs over the planet's disc.
@@ -131,7 +152,7 @@ func _process(delta: float) -> void:
 			var clipped_from := from.lerp(to, start_t)
 			to = from.lerp(to, end_t)
 			from = clipped_from
-		along = _leg(camera, from, to, along)
+		along = _leg(camera, from, to, along, fade)
 	for marker: Vector3 in _markers:
 		_diamond(camera, marker)
 	_mesh.surface_end()
@@ -157,7 +178,27 @@ func _edge_t(camera: Camera3D, planet: Planet, near: Vector3, far: Vector3) -> f
 	return outside
 
 
-func _leg(camera: Camera3D, from: Vector3, to: Vector3, along: float) -> float:
+# How far from the bus at from toward to the line leaves its footprint on the orbit
+# plane, grown by a few pixels, from 0 to 1.
+func _bus_edge_t(camera: Camera3D, from: Vector3, to: Vector3) -> float:
+	var pad := _pixels_to_world(camera, BUS_GAP_PIXELS, from)
+	var forward := _bus_forward
+	var right := forward.cross(Vector3.UP)
+	var inside := 0.0
+	var outside := 1.0
+	for i: int in 20:
+		var middle := (inside + outside) * 0.5
+		var offset := from.lerp(to, middle) - _bus_at
+		var length := absf(offset.dot(forward)) - (FrameshiftBus.RADIUS + pad)
+		var width := absf(offset.dot(right)) - (BUS_HALF_WIDTH + pad)
+		if length <= 0.0 and width <= 0.0:
+			inside = middle
+		else:
+			outside = middle
+	return outside
+
+
+func _leg(camera: Camera3D, from: Vector3, to: Vector3, along: float, fade_pixels := 0.0) -> float:
 	if from.distance_squared_to(to) < 1e-6:
 		return along
 	var tangent := to - from
@@ -165,6 +206,8 @@ func _leg(camera: Camera3D, from: Vector3, to: Vector3, along: float) -> float:
 	var last_inner := Vector3.ZERO
 	var last_outer := Vector3.ZERO
 	var last_along := 0.0
+	var last_alpha := 1.0
+	var start_along := along
 	for i: int in SEGMENTS + 1:
 		var point := from.lerp(to, float(i) / SEGMENTS)
 		var on_screen := camera.unproject_position(point)
@@ -174,16 +217,20 @@ func _leg(camera: Camera3D, from: Vector3, to: Vector3, along: float) -> float:
 		side *= _pixels_to_world(camera, _reach, point)
 		var inner := point - side
 		var outer := point + side
+		var alpha := 1.0
+		if fade_pixels > 0.0:
+			alpha = clampf((along - start_along) / fade_pixels, 0.0, 1.0)
 		if i > 0:
-			_vertex(last_inner, Vector2(last_along, -1.0))
-			_vertex(last_outer, Vector2(last_along, 1.0))
-			_vertex(outer, Vector2(along, 1.0))
-			_vertex(last_inner, Vector2(last_along, -1.0))
-			_vertex(outer, Vector2(along, 1.0))
-			_vertex(inner, Vector2(along, -1.0))
+			_vertex(last_inner, Vector2(last_along, -1.0), 0.0, last_alpha)
+			_vertex(last_outer, Vector2(last_along, 1.0), 0.0, last_alpha)
+			_vertex(outer, Vector2(along, 1.0), 0.0, alpha)
+			_vertex(last_inner, Vector2(last_along, -1.0), 0.0, last_alpha)
+			_vertex(outer, Vector2(along, 1.0), 0.0, alpha)
+			_vertex(inner, Vector2(along, -1.0), 0.0, alpha)
 		last_inner = inner
 		last_outer = outer
 		last_along = along
+		last_alpha = alpha
 	return along
 
 
@@ -202,9 +249,9 @@ func _diamond(camera: Camera3D, point: Vector3) -> void:
 		_vertex(corners[index][0], corners[index][1], 1.0)
 
 
-func _vertex(point: Vector3, uv: Vector2, marker := 0.0) -> void:
+func _vertex(point: Vector3, uv: Vector2, marker := 0.0, alpha := 1.0) -> void:
 	_mesh.surface_set_uv(uv)
-	_mesh.surface_set_uv2(Vector2(1.0, marker))
+	_mesh.surface_set_uv2(Vector2(alpha, marker))
 	_mesh.surface_add_vertex(point)
 
 
