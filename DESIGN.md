@@ -507,6 +507,7 @@ main menu ──Play / Levels──▶ campaign ──Play / Continue / Play aga
 - **Quests:** the first time the player takes on a quest, once its row has slid into the goal panel, a hint beside the panel's quests says the active quests show up there.
 - **The asteroid field:** the first time the bus flies into the rocks, a hint beside the bus says the rocks slow it to a crawl and every knock shakes the passengers, and to fly through a gap or go round the field.
 - **Business passengers:** the first time a Business passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they ask more but pay better.
+- **Returning passengers:** the first time a returning passenger waits in the dock panel, once the panel is in and their row has slid in, a hint beside their row says they gave 5 stars last time, are back happier, and will tip at the end of the trip.
 - **Warp drives:** the first time the bus docks at a planet with a warp gate, once the dock panel is in, a hint beside its warp row says the planet has a warp drive, which can be used to travel quickly to other planets with one.
 
 ## Save game

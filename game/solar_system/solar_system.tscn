@@ -58,6 +58,7 @@
 [ext_resource type="Script" uid="uid://bu4j550daikvp" path="res://game/goals/goals_met_call.gd" id="141_goals_met_call"]
 [ext_resource type="Script" uid="uid://bbous2naro572" path="res://game/feature_hints/feature_hints.gd" id="141_hints"]
 [ext_resource type="Script" uid="uid://d0yafx2jib6ve" path="res://game/feature_hints/business_hint.gd" id="142_business_hint"]
+[ext_resource type="Script" uid="uid://cj5hruo35t0qc" path="res://game/feature_hints/returning_hint.gd" id="142_returning_hint"]
 [ext_resource type="PackedScene" uid="uid://dhfaboh7sticu" path="res://ui/pause_menu/pause_button.tscn" id="143_pause_button"]
 [ext_resource type="Script" uid="uid://bh8bscq7fi6lc" path="res://game/research/mechanic_call.gd" id="144_mechanic_call"]
 [ext_resource type="Script" uid="uid://cpcbx8tu81xmd" path="res://game/research/research_guide.gd" id="145_research_guide"]
@@ -316,6 +317,11 @@ saver = NodePath("../GameSaver")
 
 [node name="BusinessHint" type="Node" parent="." unique_id=538199482 node_paths=PackedStringArray("hints", "dock_panel")]
 script = ExtResource("142_business_hint")
+hints = NodePath("../FeatureHints")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+
+[node name="ReturningHint" type="Node" parent="." unique_id=14047910 node_paths=PackedStringArray("hints", "dock_panel")]
+script = ExtResource("142_returning_hint")
 hints = NodePath("../FeatureHints")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 
