@@ -17,6 +17,13 @@ const LINES: Array[String] = [
 	"My library book is due back on %s today. Could we stop there on the way?",
 	"The best dumplings in the system are on %s. Stop there before my stop?",
 ]
+## What a Business passenger says instead.
+const BUSINESS_LINES: Array[String] = [
+	"I left the contract documents on %s! Can we stop there before my meeting?",
+	"I have to sign some papers on %s. Could we stop there on the way?",
+	"My client is waiting on %s. A quick stop there first, please?",
+	"I forgot my laptop at the office on %s. Can we swing by and stop there?",
+]
 
 ## Where their errand is.
 var planet: Planet
@@ -40,7 +47,8 @@ func plan(
 	detour_seconds = get_detour_seconds(who, bus, planet, waiting, true)
 	reward_credits = get_reward(REWARD_CREDITS)
 	reward_research = get_reward(REWARD_RESEARCH)
-	_line = LINES[rng.randi_range(0, LINES.size() - 1)]
+	var lines := BUSINESS_LINES if who.type == waiting.business else LINES
+	_line = lines[rng.randi_range(0, lines.size() - 1)]
 	return true
 
 

@@ -43,6 +43,8 @@ const KICK_SHOCK := -25.0
 const QUIET_SEATS := 2
 ## The happiness everyone on board gains when the bus leaves a planet on a quick stop.
 const QUICK_STOP_CHEER := 3.0
+## Seconds someone thrilled by the rocks dances at each knock ([method bump]).
+const THRILL_DANCE_SECONDS := 1.0
 ## How fast the bus's temperature past comfortable takes happiness off the most everyone
 ## can reach, a second, how much it takes at most, and how fast that wears off once it is
 ## comfortable again. Small: a clean ride on a bare bus keeps its four stars.
@@ -110,6 +112,8 @@ var comfort := Comfort.new()
 ## How long served food lasts, as a multiple of the need's time: the PORTION_SIZE stat once
 ## the cabin follows the bus.
 var portion := 1.0
+## Who loves the rocks or the heat, as a quest leaves them.
+var fondness := Fondness.new()
 
 var _passengers: Array[Passenger] = []
 # The stop under way: who still gets off, with what they pay, and who still gets on.
@@ -124,6 +128,9 @@ var _bus_stats: BusStats
 var _served_by: Dictionary[Passenger, Amenity] = {}
 # The passengers whose serve button the player holds.
 var _hands: Dictionary[Passenger, bool] = {}
+# The comfort as those who love the heat feel it, and the comfort it was made from.
+var _warm_comfort := Comfort.new()
+var _warm_from: Comfort
 
 
 func _process(delta: float) -> void:
@@ -139,7 +146,7 @@ func _process(delta: float) -> void:
 	var open := _passengers.filter(func(p: Passenger) -> bool: return p.request != null).size()
 	for passenger: Passenger in _passengers:
 		var asking := passenger.request != null
-		passenger.tick(delta, docked, parking, comfort, open < get_request_limit())
+		passenger.tick(delta, docked, parking, get_comfort(passenger), open < get_request_limit())
 		if passenger.request and not asking:
 			open += 1
 		_serve_request(passenger, delta)
@@ -259,6 +266,33 @@ func leave_behind(passenger: Passenger) -> bool:
 func shock(amount: float) -> void:
 	for passenger: Passenger in _passengers:
 		passenger.shock(amount)
+
+
+## A rock knocks the bus: everyone on board takes a shock of [param amount], but for
+## whoever loves the rocks ([member fondness]), whom it lifts by as much, at once and in
+## what they can reach for the rest of their ride, as a quest done does, and sets dancing
+## for a moment.
+## A shock wears off as happiness climbs back; the lift stays, so it is felt.
+func bump(amount: float) -> void:
+	for passenger: Passenger in _passengers:
+		if not fondness.has(passenger, Fondness.Kind.ROCKS):
+			passenger.shock(amount)
+			continue
+		passenger.quest_bonus -= amount
+		passenger.happiness = minf(passenger.happiness - amount, Passenger.MAX_HAPPINESS)
+		passenger.dancing = maxf(passenger.dancing, THRILL_DANCE_SECONDS)
+
+
+## What the bus gives [param passenger]: its [member comfort], or as someone who loves the
+## heat feels it ([member fondness]), whom the bus past its comfortable temperature lifts as
+## much as it wears everyone else down.
+func get_comfort(passenger: Passenger) -> Comfort:
+	if not fondness.has(passenger, Fondness.Kind.HEAT):
+		return comfort
+	if _warm_from != comfort or _warm_comfort.discomfort != -comfort.discomfort:
+		_warm_from = comfort
+		_warm_comfort = comfort.warmed()
+	return _warm_comfort
 
 
 ## Everyone on board admires a quick stop ([method Passenger.admire]).
@@ -394,6 +428,7 @@ func _users(amenity: Amenity) -> int:
 func _forget(passenger: Passenger) -> void:
 	_served_by.erase(passenger)
 	_hands.erase(passenger)
+	fondness.forget(passenger)
 
 
 func _take_seat(passenger: Passenger) -> void:
