@@ -24,6 +24,40 @@ const PLANET_TREES: Dictionary[String, String] = {
 	"Terra": "green_tree",
 	"Giant": "orange_tree",
 }
+## Which layout of the research trees a save keys its upgrades by. A save from before the
+## trees were laid out again keys them by the first layout, saved as no number.
+const RESEARCH_LAYOUT := 2
+## Where each upgrade the first layout kept somewhere else sits now, or "" for one that is
+## gone, by its key then.
+const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
+	"blue_tree/0/0": "blue_tree/0/2",
+	"blue_tree/1/1": "blue_tree/1/0",
+	"blue_tree/1/2": "",
+	"blue_tree/2/0": "blue_tree/2/2",
+	"blue_tree/3/1": "",
+	"blue_tree/3/2": "blue_tree/3/1",
+	"blue_tree/3/4": "",
+	"blue_tree/4/0": "blue_tree/4/2",
+	"green_tree/2/3": "green_tree/3/3",
+	"green_tree/3/2": "green_tree/4/2",
+	"green_tree/3/4": "",
+	"green_tree/4/1": "green_tree/4/0",
+	"green_tree/4/3": "green_tree/4/4",
+	"orange_tree/0/0": "orange_tree/0/2",
+	"orange_tree/0/1": "orange_tree/0/0",
+	"orange_tree/0/3": "orange_tree/0/4",
+	"orange_tree/1/2": "orange_tree/1/1",
+	"orange_tree/1/4": "orange_tree/1/3",
+	"orange_tree/2/0": "orange_tree/2/2",
+	"orange_tree/2/2": "orange_tree/2/1",
+	"orange_tree/2/3": "orange_tree/2/4",
+	"orange_tree/3/1": "orange_tree/3/0",
+	"orange_tree/3/3": "",
+	"orange_tree/3/4": "orange_tree/3/3",
+	"orange_tree/4/0": "orange_tree/4/2",
+	"orange_tree/4/2": "orange_tree/4/0",
+	"orange_tree/5/1": "orange_tree/5/2",
+}
 
 ## The bus whose planet, fuel and stats are kept.
 @export var bus: FrameshiftBus
@@ -169,6 +203,7 @@ func _write() -> void:
 		"fuel": bus.get_fuel_tank().fuel,
 		"ledger": _ledger.to_save(),
 		"research": researched,
+		"research_layout": RESEARCH_LAYOUT,
 		"research_stages": research.get_open_stages(),
 		"research_open": research.is_opened(),
 		"star_map": star_map.to_save() if star_map else {},
@@ -186,8 +221,11 @@ func _write() -> void:
 func _restore() -> void:
 	var upgrades := _get_upgrades_by_key()
 	var research := research_lab.get_research()
+	var first_layout := int(_saved.get("research_layout", 1)) < RESEARCH_LAYOUT
 	for key: Variant in _saved.get("research", []):
 		var found := _upgrade_key(str(key))
+		if first_layout:
+			found = FIRST_LAYOUT_PLACES.get(found, found)
 		if upgrades.has(found):
 			research.research(upgrades[found])
 	for stage: int in range(1, int(_saved.get("research_stages", 1))):

@@ -4,7 +4,8 @@ extends Control
 ## the player's driving is worth a nod, then goes after 1.5 s. Any system given it calls
 ## [method show_text]. It keeps its size on screen at any zoom, follows the bus while it
 ## shows, and hides while a planet's or the bus's panel is open, dropping any text then.
-## One shows at a time: a new text takes the place of the one showing.
+## One shows at a time: a new text takes the place of the one showing. It says
+## [constant RESERVE_TEXT] itself when the bus's Reserve tank opens.
 
 ## What the text says about the driving, which picks its colour.
 enum Kind { REMARK = 0, GAIN = 1, LOSS = 2 }
@@ -35,6 +36,8 @@ const BUS_GAP := 6.0
 const PROCESS_PRIORITY := 302
 const FONT := preload("res://ui/fonts/baloo_2.ttf")
 const WEIGHT_TAG := 2003265652
+const RESERVE_TEXT := "Reserve tank!"
+const FUEL_ICON := preload("res://shared/icons/fuel.svg")
 const DEBUG_GROUP := "Quick text"
 const DEBUG_TEXTS: Dictionary[Kind, String] = {
 	Kind.REMARK: "Quick stop!",
@@ -44,7 +47,7 @@ const DEBUG_TEXTS: Dictionary[Kind, String] = {
 const DEBUG_ICONS: Dictionary[Kind, Texture2D] = {
 	Kind.REMARK: preload("res://game/bus/icons/timer.svg"),
 	Kind.GAIN: preload("res://shared/icons/circle_check.svg"),
-	Kind.LOSS: preload("res://shared/icons/fuel.svg"),
+	Kind.LOSS: FUEL_ICON,
 }
 
 ## The camera the bus is seen through.
@@ -73,6 +76,10 @@ func _ready() -> void:
 	_font.variation_opentype = {WEIGHT_TAG: 800}
 	hide()
 	set_process(false)
+	if bus:
+		bus.get_fuel_tank().reserve_opened.connect(
+			show_text.bind(RESERVE_TEXT, FUEL_ICON, Kind.REMARK)
+		)
 	DebugPanel.add_button("Remark", _debug_show.bind(Kind.REMARK), self, DEBUG_GROUP)
 	DebugPanel.add_button("Gain", _debug_show.bind(Kind.GAIN), self, DEBUG_GROUP)
 	DebugPanel.add_button("Loss", _debug_show.bind(Kind.LOSS), self, DEBUG_GROUP)
