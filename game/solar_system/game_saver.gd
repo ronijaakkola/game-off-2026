@@ -7,7 +7,7 @@ extends Node
 ## at a planet with no stop under way. A new run saves at once, over any save, and starts
 ## docked at [member new_run_planet]. A continued run starts docked at the planet it was
 ## saved at, so quitting in flight loses only the flight. It keeps where each planet is on
-## its orbit, the bus's planet and fuel, the [Ledger], the researched upgrades, whether
+## its orbit, the bus's planet, fuel and reserve, the [Ledger], the researched upgrades, whether
 ## research and which stages are open, the passengers on board and in every line, the goals'
 ## progress, the quest under way and how far through the star systems the player has got.
 ## The course, the charge and what passengers were doing start afresh.
@@ -208,6 +208,7 @@ func _write() -> void:
 		"planets": orbits,
 		"bus_planet": String(bus.get_docked_planet().name),
 		"fuel": bus.get_fuel_tank().fuel,
+		"reserve_used": bus.get_fuel_tank().reserve_used,
 		"ledger": _ledger.to_save(),
 		"research": researched,
 		"research_layout": RESEARCH_LAYOUT,
@@ -251,6 +252,7 @@ func _restore() -> void:
 		research.open()
 	var tank := bus.get_fuel_tank()
 	tank.fuel = clampf(float(_saved.get("fuel", tank.capacity)), 0.0, tank.capacity)
+	tank.reserve_used = bool(_saved.get("reserve_used", false))
 	var by_name := _get_planets_by_name()
 	var types := _get_types_by_path()
 	waiting.first_business_dealt = bool(_saved.get("first_business", false))

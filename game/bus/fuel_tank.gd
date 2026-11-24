@@ -27,11 +27,13 @@ var fuel := capacity:
 	set(value):
 		fuel = value
 		if fuel >= capacity:
-			_reserve_used = false
+			reserve_used = false
+
+## Whether the reserve has opened since the tank was last full, so it can't open again
+## until the tank is. A saved run keeps it.
+var reserve_used := false
 
 var _stats: BusStats
-# Whether the reserve has opened since the tank was last full.
-var _reserve_used := false
 
 
 func _ready() -> void:
@@ -57,8 +59,9 @@ func burn(distance: float) -> void:
 	if not is_empty():
 		return
 	if _has_reserve():
-		_reserve_used = true
+		# After the fuel: a reserve that fills a tiny tank would otherwise clear it again.
 		fuel = minf(reserve, capacity)
+		reserve_used = true
 		reserve_opened.emit()
 		return
 	emptied.emit()
@@ -101,7 +104,7 @@ func get_fraction() -> float:
 # Whether running dry now opens the reserve: with the Reserve tank, once each time the tank
 # is filled up.
 func _has_reserve() -> bool:
-	if _reserve_used or reserve <= 0.0 or not _stats:
+	if reserve_used or reserve <= 0.0 or not _stats:
 		return false
 	return _stats.get_traits().has(BusTraits.Type.RESERVE_TANK)
 
