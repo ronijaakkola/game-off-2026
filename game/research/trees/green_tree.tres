@@ -4,8 +4,13 @@
 [ext_resource type="Script" uid="uid://b44yubtso85h1" path="res://game/research/upgrade.gd" id="2_upgrade"]
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
 [ext_resource type="Texture2D" uid="uid://cuy347k31em51" path="res://game/research/icons/globe.svg" id="20_globe"]
+[ext_resource type="Texture2D" uid="uid://duv25g27frs7s" path="res://game/research/icons/rendered/business_class_36.png" id="30_business_class"]
+[ext_resource type="Texture2D" uid="uid://by1fbfwd0enwn" path="res://game/research/icons/rendered/destination_sign_36.png" id="30_destination_sign"]
 [ext_resource type="Texture2D" uid="uid://dpn2s273nxiq5" path="res://game/research/icons/rendered/door_chime_36.png" id="30_door_chime"]
 [ext_resource type="Texture2D" uid="uid://co26sodmq11dq" path="res://game/research/icons/rendered/free_station_coffee_36.png" id="30_free_station_coffee"]
+[ext_resource type="Texture2D" uid="uid://txx64nb06dj1" path="res://game/research/icons/rendered/gate_tuning_36.png" id="30_gate_tuning"]
+[ext_resource type="Texture2D" uid="uid://bbngpdaurltol" path="res://game/research/icons/rendered/honk_36.png" id="30_honk"]
+[ext_resource type="Texture2D" uid="uid://c0yamgcbcuuyp" path="res://game/research/icons/rendered/passenger_happiness_survey_36.png" id="30_passenger_happiness_survey"]
 [ext_resource type="Texture2D" uid="uid://cp1r7s70puyrh" path="res://game/research/icons/rendered/station_cameras_36.png" id="30_station_cameras"]
 [ext_resource type="Texture2D" uid="uid://b08chvh403uvi" path="res://game/research/icons/rendered/station_waiting_lounge_36.png" id="30_station_waiting_lounge"]
 [ext_resource type="Texture2D" uid="uid://dxxctcn471r17" path="res://game/research/icons/rendered/timetables_36.png" id="30_timetables"]
@@ -72,7 +77,7 @@ script = ExtResource("2_upgrade")
 title = "Honk"
 description = "Honk before arriving to a planet to increase chance of new passengers appearing in the queue.
 NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_honk")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_tip_jar")])
@@ -94,7 +99,7 @@ column = 1
 script = ExtResource("2_upgrade")
 title = "Gate tuning"
 description = "Warping through a gate costs a quarter of the tank instead of half."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_gate_tuning")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_free_station_coffee")])
@@ -106,7 +111,7 @@ column = 2
 script = ExtResource("2_upgrade")
 title = "Destination sign"
 description = "Waiting passengers are likelier to go where someone on board is going."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_destination_sign")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_timetables")])
@@ -118,7 +123,7 @@ column = 4
 script = ExtResource("2_upgrade")
 title = "Passenger happiness survey"
 description = "5-star rides earn 1 extra research point."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_passenger_happiness_survey")
 credits = 800
 points = 10
 requires = Array[Resource]([SubResource("Resource_honk"), SubResource("Resource_station_cameras")])
@@ -129,7 +134,7 @@ tier = 3
 script = ExtResource("2_upgrade")
 title = "Business class"
 description = "Business passengers put up with one more stop on the way."
-icon = ExtResource("31_placeholder")
+icon = ExtResource("30_business_class")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_station_waiting_lounge")])
