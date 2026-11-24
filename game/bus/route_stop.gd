@@ -46,6 +46,16 @@ static func flat(at: Vector3) -> Vector3:
 	return Vector3(at.x, 0.0, at.z)
 
 
+## Whether the bus [param distance] from this stop has reached it: a planet within
+## [constant FrameshiftBus.DOCK_DISTANCE], where it glides into its dock; a point that is the
+## route's [param last] stop within [constant FrameshiftBus.STOP_DISTANCE]; any other point
+## within [param pass_radius], where it heads on.
+func is_reached(distance: float, last: bool, pass_radius: float) -> bool:
+	if planet:
+		return distance < FrameshiftBus.DOCK_DISTANCE
+	return distance < (FrameshiftBus.STOP_DISTANCE if last else pass_radius)
+
+
 ## Where the bus heads for this stop coming from [param from], on the orbit plane: the
 ## planet's side facing [param from], [param gap] off its surface, or the point itself.
 func get_target(from: Vector3, gap: float) -> Vector3:

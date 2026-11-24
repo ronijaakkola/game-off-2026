@@ -3,6 +3,26 @@
 [ext_resource type="Script" uid="uid://b6fec5pw3wl58" path="res://ui/pause_menu/pause_menu.gd" id="1_pause"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="PackedScene" uid="uid://du1swv634nyif" path="res://ui/settings/settings_menu.tscn" id="3_settings"]
+[ext_resource type="Shader" uid="uid://6ppgi64epc31" path="res://ui/glass.gdshader" id="4_glass"]
+[ext_resource type="Script" uid="uid://b5eb6ce3prea4" path="res://ui/slant_column.gd" id="5_column"]
+[ext_resource type="Texture2D" uid="uid://p8stij300qva" path="res://ui/icons/play.svg" id="6_play"]
+[ext_resource type="Texture2D" uid="uid://1kymvvivvto0" path="res://ui/icons/settings.svg" id="7_settings"]
+[ext_resource type="Texture2D" uid="uid://c8i3ycd4h8nib" path="res://ui/icons/house.svg" id="8_house"]
+[ext_resource type="Texture2D" uid="uid://dtsm4f15ak1s6" path="res://ui/icons/skip_forward.svg" id="9_skip"]
+[ext_resource type="Script" uid="uid://ccakhq4ektqka" path="res://ui/build_label.gd" id="10_build"]
+[ext_resource type="Texture2D" uid="uid://dxo3qfdhj8t17" path="res://ui/icons/rotate_ccw.svg" id="11_restart"]
+[ext_resource type="Texture2D" uid="uid://ciwqbucui3yd6" path="res://ui/icons/keyboard.svg" id="12_controls"]
+[ext_resource type="PackedScene" uid="uid://bx1585cifjvbb" path="res://ui/controls/controls_screen.tscn" id="13_controls"]
+[ext_resource type="PackedScene" uid="uid://pri7ypbh8mxk" path="res://ui/campaign/restart_dialog.tscn" id="14_dialog"]
+[ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="15_tooltip"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
+shader = ExtResource("4_glass")
+shader_parameter/blur_radius = 14.0
+shader_parameter/fill_opacity = 0.6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backdrop"]
+bg_color = Color(0.0784, 0.0706, 0.1882, 1)
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=357960298]
 process_mode = 3
@@ -10,71 +30,171 @@ layer = 10
 visible = false
 script = ExtResource("1_pause")
 
-[node name="Root" type="PanelContainer" parent="." unique_id=1212393202]
+[node name="Root" type="Control" parent="." unique_id=1212393202]
 unique_name_in_owner = true
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_theme")
-theme_type_variation = &"DimPanel"
 
-[node name="Center" type="CenterContainer" parent="Root" unique_id=818951029]
-layout_mode = 2
+[node name="Backdrop" type="Panel" parent="Root" unique_id=260252791]
+material = SubResource("ShaderMaterial_backdrop")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_backdrop")
 
-[node name="Column" type="VBoxContainer" parent="Root/Center" unique_id=469091894]
-layout_mode = 2
-theme_override_constants/separation = 28
-
-[node name="Title" type="Label" parent="Root/Center/Column" unique_id=670269238]
-layout_mode = 2
-theme_type_variation = &"TitleLabel"
-theme_override_font_sizes/font_size = 40
-text = "Paused"
-horizontal_alignment = 1
-
-[node name="Items" type="VBoxContainer" parent="Root/Center/Column" unique_id=1638955660]
+[node name="Content" type="MarginContainer" parent="Root" unique_id=350181817]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 0)
-layout_mode = 2
-size_flags_horizontal = 4
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 93
+theme_override_constants/margin_top = 124
 
-[node name="SkipTutorialButton" type="Button" parent="Root/Center/Column/Items" unique_id=779703960]
-unique_name_in_owner = true
-visible = false
+[node name="Column" type="VBoxContainer" parent="Root/Content" unique_id=1446665376]
 layout_mode = 2
-text = "Skip tutorial"
+size_flags_horizontal = 0
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 26
 
-[node name="SkipGap" type="Control" parent="Root/Center/Column/Items" unique_id=1557866180]
+[node name="TitleMargin" type="MarginContainer" parent="Root/Content/Column" unique_id=1746851395]
 unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/margin_left = 3
 
-[node name="ResumeButton" type="Button" parent="Root/Center/Column/Items" unique_id=682729662]
+[node name="Title" type="Label" parent="Root/Content/Column/TitleMargin" unique_id=2035184016]
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+text = "Paused"
+
+[node name="Items" type="Container" parent="Root/Content/Column" unique_id=1604052404]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"PrimaryButton"
+mouse_filter = 2
+script = ExtResource("5_column")
+
+[node name="TopRow" type="HBoxContainer" parent="Root/Content/Column/Items" unique_id=2065503036]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 18
+
+[node name="ResumeButton" type="Button" parent="Root/Content/Column/Items/TopRow" unique_id=682729662]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(216, 66)
+layout_mode = 2
+theme_type_variation = &"SlantPrimaryButton"
 text = "Resume"
+icon = ExtResource("6_play")
+alignment = 0
 
-[node name="SettingsButton" type="Button" parent="Root/Center/Column/Items" unique_id=960285462]
+[node name="RestartButton" type="Button" parent="Root/Content/Column/Items/TopRow" unique_id=666569552]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(66, 66)
 layout_mode = 2
+theme_type_variation = &"SlantButton"
+theme_override_constants/icon_max_width = 22
+icon = ExtResource("11_restart")
+icon_alignment = 1
+
+[node name="Tooltip" parent="Root/Content/Column/Items/TopRow/RestartButton" unique_id=255093947 node_paths=PackedStringArray("target") instance=ExtResource("15_tooltip")]
+layout_mode = 0
+target = NodePath("..")
+title = "Restart level"
+side = 2
+
+[node name="SettingsButton" type="Button" parent="Root/Content/Column/Items" unique_id=960285462]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+theme_type_variation = &"SlantButton"
 text = "Settings"
+icon = ExtResource("7_settings")
+alignment = 0
 
-[node name="MainMenuButton" type="Button" parent="Root/Center/Column/Items" unique_id=2051010234]
+[node name="ControlsButton" type="Button" parent="Root/Content/Column/Items" unique_id=1287286638]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 44)
 layout_mode = 2
+theme_type_variation = &"SlantButton"
+text = "Controls"
+icon = ExtResource("12_controls")
+alignment = 0
+
+[node name="MainMenuButton" type="Button" parent="Root/Content/Column/Items" unique_id=2051010234]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+theme_type_variation = &"SlantButton"
 text = "Main menu"
+icon = ExtResource("8_house")
+alignment = 0
+
+[node name="SkipGap" type="MarginContainer" parent="Root/Content/Column/Items" unique_id=1557866180]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_top = 12
+
+[node name="SkipTutorialButton" type="Button" parent="Root/Content/Column/Items/SkipGap" unique_id=779703960]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+theme_type_variation = &"SlantButton"
+text = "Skip tutorial"
+icon = ExtResource("9_skip")
+alignment = 0
+
+[node name="BuildMargin" type="MarginContainer" parent="Root" unique_id=209575476]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="BuildLabel" type="Label" parent="Root/BuildMargin" unique_id=514957930]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_type_variation = &"FaintLabel"
+script = ExtResource("10_build")
+
+[node name="ControlsScreen" parent="Root" unique_id=1150482799 instance=ExtResource("13_controls")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="RestartDialog" parent="Root" unique_id=152274086 instance=ExtResource("14_dialog")]
+unique_name_in_owner = true
+layout_mode = 1
 
 [node name="SettingsMenu" parent="Root" unique_id=1862376984 instance=ExtResource("3_settings")]
 unique_name_in_owner = true
 visible = false
-layout_mode = 2
+layout_mode = 1
 
-[connection signal="pressed" from="Root/Center/Column/Items/SkipTutorialButton" to="." method="_on_skip_tutorial_button_pressed"]
-[connection signal="pressed" from="Root/Center/Column/Items/ResumeButton" to="." method="_on_resume_button_pressed"]
-[connection signal="pressed" from="Root/Center/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
-[connection signal="pressed" from="Root/Center/Column/Items/MainMenuButton" to="." method="_on_main_menu_button_pressed"]
+[connection signal="pressed" from="Root/Content/Column/Items/TopRow/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="Root/Content/Column/Items/TopRow/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="Root/Content/Column/Items/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="Root/Content/Column/Items/ControlsButton" to="." method="_on_controls_button_pressed"]
+[connection signal="pressed" from="Root/Content/Column/Items/MainMenuButton" to="." method="_on_main_menu_button_pressed"]
+[connection signal="pressed" from="Root/Content/Column/Items/SkipGap/SkipTutorialButton" to="." method="_on_skip_tutorial_button_pressed"]
+[connection signal="confirmed" from="Root/RestartDialog" to="." method="_on_restart_dialog_confirmed"]

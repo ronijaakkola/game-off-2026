@@ -124,6 +124,25 @@ func test_a_removed_goal_takes_in_nothing_more() -> void:
 	assert_array(_tracker.get_goals()).is_empty()
 
 
+func test_frozen_goals_stay_as_they_stand() -> void:
+	var deliveries := DeliveryCountGoal.new(2)
+	var rating := RatingGoal.new(4.0)
+	_tracker.add(deliveries)
+	_tracker.add(rating)
+	_ledger.rate(5.0)
+	await _deliver(_passenger())
+	await _deliver(_passenger())
+	assert_bool(_tracker.are_all_met()).is_true()
+
+	_tracker.frozen = true
+	_ledger.rate(0.0)
+	_ledger.rate(0.0)
+	await _deliver(_passenger())
+
+	assert_bool(_tracker.are_all_met()).override_failure_message("a frozen goal moved").is_true()
+	assert_float(rating.get_progress()).is_equal(1.0)
+
+
 func _passenger() -> Passenger:
 	return Passenger.new(PassengerType.new(), _away, 100.0, 40.0)
 

@@ -35,6 +35,8 @@ const UNSERVED_SHOCK := -10.0
 const REQUEST_GRACE := 5.0
 ## The most quick stops add to what they can reach over one ride.
 const QUICK_BONUS_MAX := 6.0
+## Seconds they dance once a quest is done for them: six beats of the music.
+const DANCE_SECONDS := 6.0 * 60.0 / Audio.MUSIC_BPM
 ## Seconds of flying a request is open before their happiness starts to fall, so serving
 ## it at once costs nothing.
 const REQUEST_LEEWAY := 1.5
@@ -73,12 +75,21 @@ var frustration := 0.0
 var activity := ""
 ## The need they are asking for, or null.
 var request: Need
+## How many requests they have opened this ride, so a card can tell a new one from one
+## that was already open. A request a save held, opening again, doesn't count.
+var requests_opened := 0
 ## Added to the happiness they settle at, all ride long, for the time they waited before
 ## the Station waiting lounge picked them up ([WaitingPassengers]).
 var lounge_bonus := 0.0
 ## What the quick stops on their ride add to the most they can reach, up to
 ## [constant QUICK_BONUS_MAX] ([method admire]).
 var quick_bonus := 0.0
+## What the quests they had done add to the most they can reach, for the rest of their ride
+## ([method admire]).
+var quest_bonus := 0.0
+## Seconds left of the dance a quest done for them sets off ([method admire]), which
+## their portrait shows.
+var dancing := 0.0
 ## The one-off that last cost them, for the panel that says what moves their happiness.
 var cause := HappinessCause.new()
 ## The need they were just served, while its served activity lasts, or null.
@@ -126,6 +137,10 @@ var _shaken := false
 var _held_request: Need
 # Seconds of flying the open or held request has gone unserved.
 var _request_age := 0.0
+# Whether the line is a plain idle line, which changes as the bus docks and leaves: not a
+# sleep, a show, a complaint or the boarding line. And whether the bus was docked last tick.
+var _idling := false
+var _was_docked := false
 
 
 ## A passenger of [param kind] going to [param to]. [param trip_seconds] is the direct
@@ -173,6 +188,7 @@ static func from_save(
 	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
 	passenger.lounge_bonus = float(saved.get("lounge_bonus", 0.0))
 	passenger.quick_bonus = float(saved.get("quick_bonus", 0.0))
+	passenger.quest_bonus = float(saved.get("quest_bonus", 0.0))
 	passenger.activity = ""
 	passenger._activity_left = 0.0
 	passenger._departed = bool(saved.get("departed", false))
@@ -243,21 +259,30 @@ func get_target(comfort: Comfort = null) -> float:
 ## one of their type's lines about it unless busy.
 func shock(amount: float, why := HappinessCause.Type.NONE) -> void:
 	cause.mark(why)
-	_complain(type.get_event_lines(why), COMPLAINT_SECONDS)
 	if asleep:
 		amount += WAKE_SHOCK
 		asleep = false
 		_activity_left = 0.0
+	# Once awake, so someone woken by it still says why.
+	_complain(type.get_event_lines(why), COMPLAINT_SECONDS)
 	happiness = clampf(happiness + amount, 0.0, MAX_HAPPINESS)
 	if not _departed:
 		_shaken = true
 
 
-## They admire a quick stop: [param amount] more happiness at once, and as much more of
-## what they can reach for the rest of the ride, up to [constant QUICK_BONUS_MAX] in all.
-func admire(amount: float) -> void:
-	var gained := minf(amount, QUICK_BONUS_MAX - quick_bonus)
-	quick_bonus += gained
+## They admire a quick stop, or a [param quest] done for them: [param amount] more
+## happiness at once, and as much more of what they can reach for the rest of the ride; a
+## quest also sets them dancing for [constant DANCE_SECONDS] and saying one of their type's
+## quest done lines. The
+## quick stops' part goes up to [constant QUICK_BONUS_MAX] in all; a quest's has no limit.
+func admire(amount: float, quest := false) -> void:
+	var gained := amount if quest else minf(amount, QUICK_BONUS_MAX - quick_bonus)
+	if quest:
+		quest_bonus += gained
+		dancing = DANCE_SECONDS
+		_complain(type.quest_done_lines, COMPLAINT_SECONDS)
+	else:
+		quick_bonus += gained
 	happiness = minf(happiness + gained, MAX_HAPPINESS)
 
 
@@ -356,11 +381,16 @@ func tick(
 	if _departed:
 		frustration = ride.get_lost(_get_best(giving))
 	cause.run(delta)
+	dancing = maxf(dancing - delta, 0.0)
 	if request:
 		# Stops count for nothing, so one asked as the bus pulls in is forgiven.
 		if _departed and not stopped:
 			_request_age += delta
 		return
+	if docked != _was_docked:
+		_was_docked = docked
+		if _idling:
+			_activity_left = 0.0
 	_activity_left -= delta
 	if not asleep and not _held_request and not docked:
 		_appetite.run(delta)
@@ -377,7 +407,7 @@ func tick(
 		_open(due)
 		return
 	if _activity_left <= 0.0:
-		_idle(giving)
+		_idle(giving, docked)
 
 
 ## Who they are and how their ride stands, for a save game ([method from_save]). Planets
@@ -400,6 +430,7 @@ func to_save() -> Dictionary:
 		"request_age": _request_age,
 		"lounge_bonus": lounge_bonus,
 		"quick_bonus": quick_bonus,
+		"quest_bonus": quest_bonus,
 	}
 	saved.merge(ride.to_save())
 	return saved
@@ -453,11 +484,12 @@ func _complain(lines: Array[String], seconds: float) -> void:
 		return
 	activity = _pick(lines)
 	_activity_left = seconds
+	_idling = false
 
 
 # The most the bus giving [param comfort] can give them now, before frustration, less discomfort.
 func _get_best(comfort: Comfort) -> float:
-	var bonus := comfort.bonus + lounge_bonus + quick_bonus
+	var bonus := comfort.bonus + lounge_bonus + quick_bonus + quest_bonus
 	return maxf(minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS) - comfort.discomfort, 0.0)
 
 
@@ -469,6 +501,7 @@ func _open(need: Need) -> void:
 	action = Need.Action.NONE
 	activity = need.request_line
 	_request_age = 0.0
+	requests_opened += 1
 
 
 func _close(line: String, seconds: float) -> void:
@@ -482,13 +515,14 @@ func _close(line: String, seconds: float) -> void:
 	activity = line
 	_activity_left = seconds
 	_busy = true
+	_idling = false
 
 
-# A new idle line. Where the bus lets them sleep, a sleep line comes up as often as any
-# one idle line, and lasts as long as the comfort's sleeps do; where it has shows, so does
-# a watch line, as long as the comfort's shows.
-func _idle(comfort: Comfort) -> void:
-	var lines := type.get_idle_lines(ride.get_reason())
+# A new idle line, from the type's docked lines while [param docked]. Where the bus lets them
+# sleep, a sleep line comes up as often as any one idle line, and lasts as long as the
+# comfort's sleeps do; where it has shows, so does a watch line, as long as the comfort's shows.
+func _idle(comfort: Comfort, docked: bool) -> void:
+	var lines := type.get_idle_lines(ride.get_reason(), docked)
 	var sleep_from := lines.size()
 	if comfort.can_sleep():
 		lines.append_array(type.sleep_lines)
@@ -506,6 +540,7 @@ func _idle(comfort: Comfort) -> void:
 		_activity_left = _rng.randf_range(comfort.watch_min, comfort.watch_max)
 	else:
 		_activity_left = _rng.randf_range(IDLE_MIN, IDLE_MAX)
+	_idling = not asleep and not watching
 
 
 func _pick(lines: Array[String]) -> String:

@@ -1,7 +1,11 @@
 extends CanvasLayer
-## Moves between top-level scenes with a fade to a black loading card, "Loading…" over a
-## bar that fills as the next scene loads. Input is blocked while fading. It processes
-## always, so a paused scene can leave too, and the next scene starts unpaused.
+## Moves between top-level scenes with a fade through black. Entering a level, the black
+## holds the level's own loading screen ([LoadingCard]), or for a level with no picture yet,
+## "Loading…" over a bar that fills as the level loads; anywhere else it stays plain black.
+## Input is blocked while fading. It processes always, so a paused scene can leave too, and
+## the next scene starts unpaused. A level, once loaded, waits
+## paused under its loading screen until the player presses Start (a click, Enter or Space),
+## so they can read the tip first; meanwhile no other key reaches the game.
 ##
 ## The bar counts the two kinds of work the wait is made of, each in steps it can draw
 ## between, because the web build has one thread: a threaded load blocks it and can't
@@ -14,6 +18,7 @@ extends CanvasLayer
 
 const FADE := 0.25
 const THEME := preload("res://ui/theme.tres")
+const LOADING_CARD := preload("res://core/scene_flow/loading_card.tscn")
 ## The bar's share for loading files; drawing the scene the first time fills the rest. Set
 ## from the solar system's load in Chrome (web export, Windows, measured 2026-11-08): files
 ## 0.24 s, the first draw 2.7 s.
@@ -25,9 +30,16 @@ var step_msec := 33
 
 ## The black card with the bar on it. Its alpha is the fade.
 var _curtain: Control
+## "Loading…" over the bar, shown only on its own: the curtain's fade reaches each of its
+## children apart, so it would show through the level's loading screen as that fades.
+var _plain: Control
 var _bar: ProgressBar
+## The level's loading screen, over the black card while a level loads.
+var _level_card: LoadingCard
 var _busy := false
 var _fade: Tween
+# Whether the loaded level waits for Start.
+var _waiting := false
 
 
 func _ready() -> void:
@@ -49,6 +61,7 @@ func _ready() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_curtain.add_child(center)
+	_plain = center
 	var rows := VBoxContainer.new()
 	rows.add_theme_constant_override("separation", 14)
 	center.add_child(rows)
@@ -63,18 +76,27 @@ func _ready() -> void:
 	_bar.add_theme_stylebox_override("background", _bar_style(Color(1, 1, 1, 0.12)))
 	_bar.add_theme_stylebox_override("fill", _bar_style(Color(1, 1, 1, 0.85)))
 	rows.add_child(_bar)
+	_level_card = LOADING_CARD.instantiate()
+	_level_card.hide()
+	_curtain.add_child(_level_card)
 
 
-## Fades to the loading card, loads the scene at [param path] while its bar fills, changes
-## to it and fades back in. Callers hold [param path] as a [code]const[/code]; preloading
-## the scene would make menu and game preload each other. A call made during a transition
-## is ignored.
-func go_to(path: String) -> void:
+## Fades to black, loads the scene at [param path], changes to it and fades back in.
+## Entering a [param level], the black holds the level's loading screen, or "Loading…" over
+## a filling bar while the level has no picture yet. Callers hold [param path] as a
+## [code]const[/code]; preloading the scene would make menu and game preload each other. A
+## call made during a transition is ignored.
+func go_to(path: String, level: Level = null) -> void:
 	if _busy:
 		return
 	_busy = true
 	get_tree().root.set_disable_input(true)
-	_bar.value = 0.0
+	var has_picture := level != null and not level.picture.is_empty()
+	if has_picture:
+		_level_card.show_level(level)
+		_level_card.show()
+	_plain.visible = level != null and not has_picture
+	_set_progress(0.0)
 	_curtain.show()
 	await _fade_to(1.0)
 	# The fade reached the card in this step, so the screen still shows the frame before.
@@ -91,12 +113,39 @@ func go_to(path: String) -> void:
 		# and the last warm-up frame can be slow. Fade in after a frame that isn't.
 		await get_tree().process_frame
 		await get_tree().process_frame
+		if _level_card.visible:
+			await _wait_for_start()
 	else:
 		push_error("SceneFlow can't change to %s: %s" % [path, error_string(error)])
 	await _fade_to(0.0)
 	_curtain.hide()
+	_level_card.hide()
+	_level_card.clear()
 	get_tree().root.set_disable_input(false)
 	_busy = false
+
+
+## Holds the loaded level paused under its loading screen, the Start button showing, until
+## the player presses it. The card takes the clicks meant for the game under it.
+func _wait_for_start() -> void:
+	get_tree().paused = true
+	_curtain.mouse_filter = Control.MOUSE_FILTER_STOP
+	_waiting = true
+	get_tree().root.set_disable_input(false)
+	await _level_card.wait_for_start()
+	get_tree().root.set_disable_input(true)
+	_waiting = false
+	_curtain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_tree().paused = false
+
+
+# While the level waits for Start, Enter and Space reach the focused Start button, and no
+# other key reaches the game: Esc would open its pause menu under the card.
+func _input(event: InputEvent) -> void:
+	if not _waiting or event.is_action(&"ui_accept"):
+		return
+	if event is InputEventKey or event is InputEventJoypadButton:
+		get_viewport().set_input_as_handled()
 
 
 ## Whether a scene change is under way, until the new scene has faded in.
@@ -117,10 +166,10 @@ func _load_dependencies(path: String) -> void:
 	for i: int in files.size():
 		load(files[i])
 		if Time.get_ticks_msec() - step_start >= step_msec:
-			_bar.value = LOAD_SHARE * (i + 1) / parts
+			_set_progress(LOAD_SHARE * (i + 1) / parts)
 			await get_tree().process_frame
 			step_start = Time.get_ticks_msec()
-	_bar.value = LOAD_SHARE
+	_set_progress(LOAD_SHARE)
 
 
 ## Draws [param scene] for the first time under the card, its 3D objects one new material at
@@ -139,11 +188,11 @@ func _warm_up(scene: Node) -> void:
 	# The bar is set before each frame, so the frame that does a step shows it done.
 	var parts := steps.size() + 1
 	# The first frame draws the sky, the environment and the UI, with no 3D objects.
-	_bar.value = lerpf(LOAD_SHARE, 1.0, 1.0 / parts)
+	_set_progress(lerpf(LOAD_SHARE, 1.0, 1.0 / parts))
 	await get_tree().process_frame
 	for i: int in steps.size():
 		_draw_step(steps[i], true)
-		_bar.value = lerpf(LOAD_SHARE, 1.0, float(i + 2) / parts)
+		_set_progress(lerpf(LOAD_SHARE, 1.0, float(i + 2) / parts))
 		await get_tree().process_frame
 		_draw_step(steps[i], false)
 
@@ -240,6 +289,12 @@ func _collect_dependencies(path: String, files: Array[String], seen: Dictionary)
 		seen[file] = true
 		_collect_dependencies(file, files, seen)
 		files.append(file)
+
+
+## Fills the bar, and moves the level card's bus marker, to [param progress], 0 to 1.
+func _set_progress(progress: float) -> void:
+	_bar.value = progress
+	_level_card.set_progress(progress)
 
 
 func _fade_to(alpha: float) -> void:

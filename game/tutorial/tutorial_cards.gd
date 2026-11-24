@@ -30,7 +30,7 @@ const CARDS := {
 		title = "Look around",
 		text =
 		(
-			"Drag {mouse_left} or use {wasd} to move around.\nUse the mouse wheel "
+			"Hold {mouse_left} and drag, or use {wasd}, to move around.\nUse the mouse wheel "
 			+ "{mouse_wheel} to zoom. Try both."
 		),
 		side = GuideCard.Side.RIGHT,
@@ -84,7 +84,7 @@ const CARDS := {
 	},
 	"SERVE":
 	{
-		title = "A request",
+		title = "Heard that sound?",
 		text =
 		(
 			"To keep your passengers happy, you need to serve them during their trip. This "
@@ -156,8 +156,8 @@ const CARDS := {
 		title = "Chain stops",
 		text =
 		(
-			"Welcome home! You can also chain stops together: hold {queue_key} as you right "
-			+ "click {mouse_right} to add each one to the end of your route."
+			"Welcome home! Tip: you can also chain stops together: hold {queue_key} as you "
+			+ "right click {mouse_right} to add each one to the end of your route."
 		),
 		side = GuideCard.Side.ABOVE,
 		got_it = true,

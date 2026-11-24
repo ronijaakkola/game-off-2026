@@ -5,7 +5,6 @@
 [ext_resource type="Script" uid="uid://c771vit4e4v6a" path="res://game/bus/stat_modifier.gd" id="3_modifier"]
 [ext_resource type="Texture2D" uid="uid://d0wkrmsprhvk0" path="res://game/research/icons/rocket.svg" id="20_rocket"]
 [ext_resource type="Texture2D" uid="uid://m438oejdnap5" path="res://game/research/icons/rendered/faster_pumps_36.png" id="30_faster_pumps"]
-[ext_resource type="Texture2D" uid="uid://dv83pabsrordj" path="res://game/research/icons/rendered/fuel_forecast_36.png" id="30_fuel_forecast"]
 [ext_resource type="Texture2D" uid="uid://byyowxcoinwok" path="res://game/research/icons/rendered/fuel_tank_36.png" id="30_fuel_tank"]
 [ext_resource type="Texture2D" uid="uid://biwwigvpyxyfw" path="res://game/research/icons/rendered/speed_36.png" id="30_speed"]
 [ext_resource type="Texture2D" uid="uid://cpcgqfpmhy2v8" path="res://game/research/icons/rendered/warmer_drive_36.png" id="30_warmer_drive"]
@@ -24,6 +23,7 @@ icon = ExtResource("30_speed")
 credits = 120
 points = 2
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_1_mod")])
+column = 2
 
 [sub_resource type="Resource" id="Resource_fuel_tank_1_mod"]
 script = ExtResource("3_modifier")
@@ -41,17 +41,34 @@ points = 2
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_fuel_tank_1_mod")])
 column = 3
 
-[sub_resource type="Resource" id="Resource_fuel_forecast"]
+[sub_resource type="Resource" id="Resource_warm_drive"]
 script = ExtResource("2_upgrade")
-title = "Fuel forecast"
-description = "Shows how much of the tank the course burns, over its last stop."
-icon = ExtResource("30_fuel_forecast")
+title = "Warm drive"
+description = "The frameshift drive stays warm while docked, so leaving takes a moment."
+icon = ExtResource("30_warmer_drive")
 credits = 240
 points = 4
-requires = Array[Resource]([SubResource("Resource_fuel_tank_1")])
-traits = Array[int]([0])
+requires = Array[Resource]([SubResource("Resource_speed_1")])
+traits = Array[int]([13])
 tier = 1
-column = 2
+
+[sub_resource type="Resource" id="Resource_quick_charge_mod"]
+script = ExtResource("3_modifier")
+stat = 8
+kind = 0
+amount = -0.5
+
+[sub_resource type="Resource" id="Resource_quick_charge"]
+script = ExtResource("2_upgrade")
+title = "Quick charge"
+description = "The frameshift drive charges in 1 s instead of 1.5."
+icon = ExtResource("31_placeholder")
+credits = 240
+points = 4
+requires = Array[Resource]([SubResource("Resource_speed_1")])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_quick_charge_mod")])
+tier = 1
+column = 1
 
 [sub_resource type="Resource" id="Resource_faster_pumps_mod"]
 script = ExtResource("3_modifier")
@@ -71,6 +88,23 @@ modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_faster_pumps
 tier = 1
 column = 4
 
+[sub_resource type="Resource" id="Resource_speed_2_mod"]
+script = ExtResource("3_modifier")
+kind = 1
+amount = 10.0
+
+[sub_resource type="Resource" id="Resource_speed_2"]
+script = ExtResource("2_upgrade")
+title = "Speed 2"
+description = "The bus flies another 10% faster."
+icon = ExtResource("30_speed")
+credits = 300
+points = 4
+requires = Array[Resource]([SubResource("Resource_speed_1")])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_2_mod")])
+tier = 2
+column = 2
+
 [sub_resource type="Resource" id="Resource_fuel_tank_2_mod"]
 script = ExtResource("3_modifier")
 stat = 1
@@ -89,87 +123,76 @@ modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_fuel_tank_2_
 tier = 2
 column = 3
 
-[sub_resource type="Resource" id="Resource_speed_2_mod"]
-script = ExtResource("3_modifier")
-kind = 1
-amount = 10.0
-
-[sub_resource type="Resource" id="Resource_speed_2"]
-script = ExtResource("2_upgrade")
-title = "Speed 2"
-description = "The bus flies another 10% faster."
-icon = ExtResource("30_speed")
-credits = 300
-points = 4
-requires = Array[Resource]([SubResource("Resource_speed_1")])
-modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_2_mod")])
-tier = 2
-
-[sub_resource type="Resource" id="Resource_warm_drive_mod"]
-script = ExtResource("3_modifier")
-stat = 4
-kind = 1
-amount = 50.0
-
-[sub_resource type="Resource" id="Resource_warm_drive"]
-script = ExtResource("2_upgrade")
-title = "Warmer drive"
-description = "Frameshift drive stays warm longer when docking to a planet."
-icon = ExtResource("30_warmer_drive")
-credits = 240
-points = 4
-requires = Array[Resource]([SubResource("Resource_speed_1")])
-modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_warm_drive_mod")])
-tier = 1
-column = 1
-
 [sub_resource type="Resource" id="Resource_pit_crew"]
 script = ExtResource("2_upgrade")
 title = "Pit crew"
-description = "Fills the tank automatically at a station.
-NOT IMPLEMENTED"
+description = "The tank fills by itself at a station, unless the drive is charging."
 icon = ExtResource("31_placeholder")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_faster_pumps")])
+traits = Array[int]([14])
 tier = 2
 column = 4
 
-[sub_resource type="Resource" id="Resource_how_is_my_driving"]
+[sub_resource type="Resource" id="Resource_heat_shielding_mod"]
+script = ExtResource("3_modifier")
+stat = 9
+kind = 1
+amount = -30.0
+
+[sub_resource type="Resource" id="Resource_heat_shielding"]
 script = ExtResource("2_upgrade")
-title = "How is my driving?"
-description = "Reroutes give happiness for passengers: they think you’re avoiding traffic.
-NOT IMPLEMENTED"
+title = "Heat shielding"
+description = "The bus heats up 30% slower near a star."
 icon = ExtResource("31_placeholder")
-credits = 800
-points = 10
-requires = Array[Resource]([SubResource("Resource_warm_drive"), SubResource("Resource_speed_2")])
+credits = 300
+points = 4
+requires = Array[Resource]([SubResource("Resource_warm_drive")])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_heat_shielding_mod")])
 tier = 3
-column = 1
+
+[sub_resource type="Resource" id="Resource_efficient_burn_mod"]
+script = ExtResource("3_modifier")
+stat = 10
+kind = 1
+amount = -20.0
 
 [sub_resource type="Resource" id="Resource_efficient_burn"]
 script = ExtResource("2_upgrade")
 title = "Efficient burn"
-description = "Fuel consumption gets smaller the longer your route is.
-NOT IMPLEMENTED"
+description = "The bus burns 20% less fuel."
 icon = ExtResource("31_placeholder")
 credits = 800
 points = 10
-requires = Array[Resource]([SubResource("Resource_fuel_forecast"), SubResource("Resource_fuel_tank_2")])
+requires = Array[Resource]([SubResource("Resource_speed_2"), SubResource("Resource_quick_charge")])
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_efficient_burn_mod")])
 tier = 3
-column = 2
+column = 1
 
-[sub_resource type="Resource" id="Resource_tow_loyalty_card"]
+[sub_resource type="Resource" id="Resource_reserve_tank"]
 script = ExtResource("2_upgrade")
-title = "Tow loyalty card"
-description = "Towing costs 25% less, and every second time is free.
-NOT IMPLEMENTED"
+title = "Reserve tank"
+description = "Running dry in flight opens a reserve of 20 fuel, once each time the tank is filled up."
 icon = ExtResource("31_placeholder")
 credits = 550
 points = 7
 requires = Array[Resource]([SubResource("Resource_pit_crew"), SubResource("Resource_fuel_tank_2")])
+traits = Array[int]([15])
 tier = 3
 column = 4
+
+[sub_resource type="Resource" id="Resource_slingshot"]
+script = ExtResource("2_upgrade")
+title = "Slingshot"
+description = "Driving past planet's gravitational field give the bus a speed boost.
+NOT IMPLEMENTED"
+icon = ExtResource("31_placeholder")
+credits = 1100
+points = 14
+requires = Array[Resource]([SubResource("Resource_efficient_burn"), SubResource("Resource_heat_shielding")])
+tier = 4
+column = 1
 
 [sub_resource type="Resource" id="Resource_speed_3_mod"]
 script = ExtResource("3_modifier")
@@ -186,6 +209,7 @@ points = 10
 requires = Array[Resource]([SubResource("Resource_speed_2")])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_speed_3_mod")])
 tier = 4
+column = 2
 
 [sub_resource type="Resource" id="Resource_fuel_tank_3"]
 script = ExtResource("2_upgrade")
@@ -195,21 +219,9 @@ NOT IMPLEMENTED"
 icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14
-requires = Array[Resource]([SubResource("Resource_fuel_tank_2"), SubResource("Resource_efficient_burn")])
+requires = Array[Resource]([SubResource("Resource_fuel_tank_2"), SubResource("Resource_reserve_tank")])
 tier = 4
 column = 3
-
-[sub_resource type="Resource" id="Resource_slingshot"]
-script = ExtResource("2_upgrade")
-title = "Slingshot"
-description = "Driving past planet's gravitational field give the bus a speed boost.
-NOT IMPLEMENTED"
-icon = ExtResource("31_placeholder")
-credits = 1100
-points = 14
-requires = Array[Resource]([SubResource("Resource_warm_drive")])
-tier = 4
-column = 1
 
 [sub_resource type="Resource" id="Resource_warp_gate"]
 script = ExtResource("2_upgrade")
@@ -219,7 +231,7 @@ NOT IMPLEMENTED"
 icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14
-requires = Array[Resource]([SubResource("Resource_efficient_burn"), SubResource("Resource_fuel_tank_3"), SubResource("Resource_slingshot")])
+requires = Array[Resource]([SubResource("Resource_fuel_tank_3"), SubResource("Resource_slingshot"), SubResource("Resource_speed_3")])
 tier = 5
 column = 2
 
@@ -227,4 +239,4 @@ column = 2
 script = ExtResource("1_tree")
 title = "Performance"
 icon = ExtResource("20_rocket")
-upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_speed_1"), SubResource("Resource_fuel_tank_1"), SubResource("Resource_fuel_forecast"), SubResource("Resource_faster_pumps"), SubResource("Resource_fuel_tank_2"), SubResource("Resource_speed_2"), SubResource("Resource_warm_drive"), SubResource("Resource_pit_crew"), SubResource("Resource_how_is_my_driving"), SubResource("Resource_efficient_burn"), SubResource("Resource_tow_loyalty_card"), SubResource("Resource_speed_3"), SubResource("Resource_fuel_tank_3"), SubResource("Resource_slingshot"), SubResource("Resource_warp_gate")])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Resource_speed_1"), SubResource("Resource_fuel_tank_1"), SubResource("Resource_warm_drive"), SubResource("Resource_quick_charge"), SubResource("Resource_faster_pumps"), SubResource("Resource_speed_2"), SubResource("Resource_fuel_tank_2"), SubResource("Resource_pit_crew"), SubResource("Resource_heat_shielding"), SubResource("Resource_efficient_burn"), SubResource("Resource_reserve_tank"), SubResource("Resource_slingshot"), SubResource("Resource_speed_3"), SubResource("Resource_fuel_tank_3"), SubResource("Resource_warp_gate")])

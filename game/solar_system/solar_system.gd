@@ -16,14 +16,15 @@ extends Node3D
 ## the panel's close button, closes it, and the camera goes back to where it was. While a
 ## planet is open, the planets' names fade out, and the open planet's white hover border
 ## fades out and stays off; both fade back in when it closes.
-## A left click on the bus opens it the same way, with its stats in its panel. One of the
-## two is open at a time: opening either closes the other.
+## A left click on the bus would open it the same way, with its stats in its panel, but that
+## is off for now ([member left_click_opens_bus]). One of the two is open at a time:
+## opening either closes the other.
 ## It also runs the passengers: every time the bus docks, the cabin runs a stop there,
 ## where the passengers going to that planet get off one by one, pay and rate the ride,
-## which goes into the average rating beside the credits, and earn a research point,
-## whatever their race or rating. Under each planet's name, dots say how many wait
-## there ([WaitingMarkers]), and a badge on its rim says it has a lab ([LabBadges]). While
-## the bus is docked
+## which goes into the average rating beside the credits, and earn their type's
+## research points, whatever their race or rating. Under each planet's name,
+## dots say how many wait there ([WaitingMarkers]), and a badge on its rim says it has a lab
+## ([LabBadges]). While the bus is docked
 ## or charging, the dock panel above the bus status lists who waits there, and the player
 ## picks them up one by one while seats are free; the row under the pointer, or a clicked
 ## one, shows their trip as an arc to their destination. The bus can't charge, and a
@@ -63,6 +64,11 @@ const KICKED_PASSENGER := preload("res://game/passengers/kicked_passenger.tscn")
 ## Whether a left click on a planet opens it. Off for now: the planet acts as empty space,
 ## and the panel opens only from code ([method open_planet]).
 static var left_click_opens_planets := false
+
+## Whether a left click on the bus opens it, and the pointer over it shows its white border.
+## Off for now: the bus acts as empty space, and its panel opens only from code
+## ([method open_bus]).
+static var left_click_opens_bus := false
 
 var _planets: Array[Planet] = []
 # The player's credits, research points and ratings. The resource bar shows them.
@@ -125,6 +131,7 @@ func _ready() -> void:
 	dock_panel.cabin = %Cabin as Cabin
 	dock_panel.board_pressed.connect(_on_board_pressed)
 	dock_panel.trip_previewed.connect((%TripArc as TripArc).show_passenger)
+	dock_panel.gate_previewed.connect((%TripArc as TripArc).show_gate)
 	dock_panel.research_pressed.connect(_on_research_pressed)
 	var tow := %TowDispatch as TowDispatch
 	tow.ledger = _ledger
@@ -328,7 +335,7 @@ func _start_passengers() -> void:
 	var planets := (%StarMap as StarMap).get_active_planets()
 	waiting.start(planets, bus.get_docked_planet(), _ledger)
 	bus.docked.connect(_on_bus_docked)
-	bus.left_warm.connect(_on_bus_left_warm)
+	bus.left_quickly.connect(_on_bus_left_quickly)
 	var cabin := %Cabin as Cabin
 	cabin.delivered.connect(_on_delivered)
 	cabin.kicked.connect(_on_kicked)
@@ -342,7 +349,7 @@ func _start_passengers() -> void:
 	var lab := %ResearchLab as ResearchLab
 	lab.ledger = _ledger
 	# Researching takes the time a quick stop doesn't have.
-	lab.get_research().researched.connect(func(_upgrade: Upgrade) -> void: bus.drive.go_cold())
+	lab.get_research().researched.connect(func(_upgrade: Upgrade) -> void: bus.drive.end_stop())
 	cabin.unloaded.connect(lab.commit)
 	cabin.unloaded.connect(func() -> void: bus.unloading = false)
 	cabin.stop_finished.connect(_on_stop_finished)
@@ -379,7 +386,7 @@ func _on_map_zoomed_out() -> void:
 	(%FirstShiftCall as FirstShiftCall).play()
 
 
-func _on_bus_left_warm() -> void:
+func _on_bus_left_quickly() -> void:
 	(%Cabin as Cabin).cheer_quick_stop()
 	(%BusQuickText as BusQuickText).show_text(QUICK_STOP, QUICK_STOP_ICON)
 
@@ -413,7 +420,7 @@ func _on_research_pressed(_planet: Planet) -> void:
 func _on_delivered(passenger: Passenger, payout: int) -> void:
 	_ledger.earn(payout)
 	_ledger.rate(passenger.get_rating())
-	_ledger.earn_research()
+	_ledger.earn_research((%Cabin as Cabin).get_research_points(passenger))
 
 
 func _on_kicked(passenger: Passenger) -> void:
@@ -449,10 +456,12 @@ func _stop_at(screen_point: Vector2) -> RouteStop:
 
 # What a left click at screen_point opens: the bus, a planet, or null. Where the bus and a
 # planet overlap, as when it is docked, whichever centre is nearer wins, so the docked
-# planet stays easy to open.
+# planet stays easy to open. With [member left_click_opens_bus] off the bus is never picked.
 func _pick_at(screen_point: Vector2) -> Node3D:
-	var bus := %Bus as FrameshiftBus
 	var planet := _planet_at(screen_point)
+	if not left_click_opens_bus:
+		return planet
+	var bus := %Bus as FrameshiftBus
 	return ScreenPick.bus_or_planet_at(%Camera as Camera3D, bus, planet, screen_point)
 
 

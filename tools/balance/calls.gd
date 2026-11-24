@@ -5,12 +5,15 @@ extends RefCounted
 ## caller takes as a no at the next planet) or "off" (nobody calls, as before quests). A
 ## call that offers no quest, as the mechanic's, is read and closed.
 ## "quest_max_detour" declines a quest whose planet adds more than that many units to the
-## way to the nearest planet someone else on board is going to. "call_think" is the
+## way to the nearest planet someone else on board is going to, and the player declines one
+## whose planet is too far for the fuel left, as a dock decision would refuel for
+## ([constant Player.FUEL_MARGIN]). "call_think" is the
 ## seconds from the call ringing to the answer. An accepted quest sets the course to its
 ## planet at once: docking there is an express quest's stop and an errand's, and flying in
 ## is a flyby.
 
 const Detour := preload("res://tools/balance/detour.gd")
+const Player := preload("res://tools/balance/player.gd")
 ## What the call notice says, as [method NoticeStack.announce_transmission] puts it.
 const CALL_TEXT := "Incoming transmission"
 
@@ -122,14 +125,20 @@ func _answer() -> void:
 	_panel.close()
 
 
-# Whether the detour to the quest's planet is short enough for everyone else on board.
+# Whether the quest's planet is in reach of the fuel left, and the detour to it short
+# enough for everyone else on board.
 func _is_worth(offer: Quest) -> bool:
 	var limit := float(_policy.get("quest_max_detour", INF))
 	var planet := offer.get_planet()
-	if is_inf(limit) or not planet:
+	if not planet:
 		return true
 	var from := _bus.global_position
 	var via := planet.get_body_global_position()
+	var tank := _bus.get_fuel_tank()
+	if from.distance_to(via) * Player.FUEL_MARGIN * tank.get_burn_per_unit() > tank.fuel:
+		return false
+	if is_inf(limit):
+		return true
 	var detour := INF
 	for passenger: Passenger in _cabin.get_passengers():
 		if passenger == offer.passenger:

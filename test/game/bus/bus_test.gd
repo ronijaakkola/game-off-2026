@@ -111,6 +111,8 @@ func test_a_course_from_space_waits_for_a_charge_once_the_drive_is_cold() -> voi
 func test_the_bus_pulls_out_and_turns_toward_its_next_stop_while_charging() -> void:
 	var parked := _bus.global_position.distance_to(_home.global_position)
 	var behind := _planet(_home.get_parent() as Node3D, Vector3(-6.0, 0.0, 0.0))
+	# Long enough for the pull-out to settle before the bus leaves.
+	_bus.charge_time = 3.0
 	_bus.plot_course(RouteStop.at_planet(behind))
 	_step_for(_bus.charge_time - 0.5)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
@@ -141,6 +143,20 @@ func test_the_thrusters_light_up_while_charging_burn_in_flight_and_go_dark_docke
 	assert_float(glow.scale.z).is_less(0.2)
 
 
+func test_with_the_warm_drive_the_thrusters_run_while_the_drive_is_warm() -> void:
+	var model := _bus.get_node(^"%Model") as BusModel
+	_bus.get_stats().get_traits().add(BusTraits.Type.WARM_DRIVE)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	assert_bool(_step_until(FrameshiftBus.State.PARKING)).is_true()
+	assert_bool(_step_until_docked()).is_true()
+	assert_float(model.thrust).is_greater(0.9)
+	# They fade with the warmth, out once the drive is cold.
+	_step_for(_bus.quick_time * 0.5)
+	assert_float(model.thrust).is_between(0.4, 0.6)
+	_step_for(_bus.quick_time * 0.5 + 1.0)
+	assert_float(model.thrust).is_equal(0.0)
+
+
 func test_a_flight_leaves_a_trail_that_fades_after_it_arrives() -> void:
 	var trail := _bus.get_node(^"%ThrusterTrail") as ThrusterTrail
 	_bus.plot_course(RouteStop.at_planet(_near))
@@ -156,35 +172,55 @@ func test_a_flight_leaves_a_trail_that_fades_after_it_arrives() -> void:
 	assert_bool(trail.is_empty()).is_true()
 
 
-func test_each_planet_docks_warm_and_a_hold_from_warm_leaves_sooner() -> void:
+func test_leaving_within_the_quick_stop_time_is_a_quick_stop_without_the_warm_drive() -> void:
 	var quick := [0]
-	_bus.left_warm.connect(func() -> void: quick[0] += 1)
+	_bus.left_quickly.connect(func() -> void: quick[0] += 1)
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_planet(_far), true)
-	_step_for(_bus.charge_time + STEP)
 	assert_bool(_step_until_docked()).is_true()
 	assert_object(_bus.get_docked_planet()).is_same(_near)
-	assert_float(_bus.get_warmth()).is_greater(0.9)
+	assert_float(_bus.get_warmth()).is_equal(0.0)
+	assert_bool(_bus.drive.is_quick_stop()).is_true()
 	# Leaving let go of the key, so it waits for the player.
 	_step_for(1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
-	assert_int(quick[0]).is_equal(0)
 
 	_bus.frameshift_held = true
 
-	# From 3/4 warm, the missing quarter of a 3 s charge at 1.5 times is 0.5 s.
-	_step_for(0.3)
+	# A cold charge, done inside the quick stop's time.
+	_step_for(_bus.charge_time - 0.5)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
-	_step_for(0.4)
+	_step_for(1.0)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 	assert_int(quick[0]).is_equal(1)
-	# The end of the route docks warm too, so a course set now still leaves sooner.
+	# At the end of the route, a charge that ends past it is no quick stop.
+	assert_bool(_step_until_docked()).is_true()
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_step_for(_bus.quick_time - _bus.charge_time + 0.5)
+	_bus.frameshift_held = true
+	assert_bool(_step_until(FrameshiftBus.State.FLYING)).is_true()
+	assert_int(quick[0]).is_equal(1)
+
+
+func test_with_the_warm_drive_a_charge_from_warm_takes_a_moment_and_is_a_quick_stop() -> void:
+	var quick := [0]
+	_bus.left_quickly.connect(func() -> void: quick[0] += 1)
+	_bus.get_stats().get_traits().add(BusTraits.Type.WARM_DRIVE)
+	_bus.plot_course(RouteStop.at_planet(_near))
+	_bus.plot_course(RouteStop.at_planet(_far), true)
 	assert_bool(_step_until_docked()).is_true()
 	assert_float(_bus.get_warmth()).is_greater(0.9)
-	_bus.plot_course(RouteStop.at_planet(_near))
+	# Warm for as long as the quick stop lasts: held with a moment of it left, it still is one.
+	_step_for(_bus.quick_time - 0.2)
+	assert_float(_bus.get_warmth()).is_greater(0.0)
+
 	_bus.frameshift_held = true
-	_step_for(0.3)
+
+	_step_for(STEP)
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
+	_step_for(_bus.warm_charge_time + STEP)
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
+	assert_int(quick[0]).is_equal(1)
 
 
 func test_a_charge_builds_while_boarding_and_leaves_once_boarding_is_over() -> void:
@@ -203,45 +239,23 @@ func test_a_charge_builds_while_boarding_and_leaves_once_boarding_is_over() -> v
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
 
 
-func test_letting_go_of_a_warm_charge_drops_it_fast_and_the_drive_goes_cold() -> void:
-	var quick := [0]
-	_bus.left_warm.connect(func() -> void: quick[0] += 1)
-	_bus.plot_course(RouteStop.at_planet(_near))
-	_bus.plot_course(RouteStop.at_planet(_far), true)
-	assert_bool(_step_until_docked()).is_true()
-	_bus.frameshift_held = true
-	_step_for(STEP)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
-
-	_bus.frameshift_held = false
-
-	# A full charge drains at four times its build: 0.75 s.
-	_step_for(0.8)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
-	assert_float(_bus.get_warmth()).is_equal(0.0)
-	# Held again, it charges cold, at the normal speed, and isn't a quick stop.
-	_bus.frameshift_held = true
-	_step_for(_bus.charge_time - 0.5)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
-	_step_for(1.0)
-	assert_int(_bus.state).is_equal(FrameshiftBus.State.FLYING)
-	assert_int(quick[0]).is_equal(0)
-
-
-func test_the_drive_holds_warm_while_unloading_then_cools_and_needs_a_charge() -> void:
+func test_the_quick_stop_holds_while_unloading_then_runs_out() -> void:
+	_bus.get_stats().get_traits().add(BusTraits.Type.WARM_DRIVE)
 	_bus.docked.connect(func(_planet: Planet) -> void: _bus.unloading = true)
 	_bus.plot_course(RouteStop.at_planet(_near))
 	_bus.plot_course(RouteStop.at_planet(_far), true)
 	assert_bool(_step_until_docked()).is_true()
-	_step_for(_bus.cool_time + 1.0)
+	_step_for(_bus.quick_time + 1.0)
 	assert_float(_bus.get_warmth()).is_equal(1.0)
+	assert_bool(_bus.drive.is_quick_stop()).is_true()
 
 	_bus.unloading = false
-	_step_for(_bus.cool_time + STEP)
+	_step_for(_bus.quick_time + STEP)
 	_bus.frameshift_held = true
 	_step_for(STEP)
 
 	assert_float(_bus.get_warmth()).is_equal(0.0)
+	assert_bool(_bus.drive.is_quick_stop()).is_false()
 	assert_int(_bus.state).is_equal(FrameshiftBus.State.CHARGING)
 
 

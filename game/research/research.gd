@@ -38,6 +38,8 @@ const STAGES := 3
 const ROWS_PER_STAGE := 2
 
 var _stats: BusStats
+# One more on the bus's UPGRADES stat, added for every upgrade researched that does anything.
+var _upgrade_count := StatModifier.new(BusStats.Type.UPGRADES, StatModifier.Kind.FLAT, 1.0)
 var _researched: Dictionary[Upgrade, bool] = {}
 var _open_stages := 1
 var _opened := false
@@ -131,9 +133,9 @@ func get_state(upgrade: Upgrade, credits: int, points: int) -> State:
 	return State.AVAILABLE
 
 
-## Marks [param upgrade] researched and puts its modifiers and traits on the bus. It doesn't
-## check the cost, the stage or what it requires: [method get_state] does. Researched
-## already, it does nothing.
+## Marks [param upgrade] researched and puts its modifiers and traits on the bus, and one
+## more on its UPGRADES stat if it does anything yet. It doesn't check the cost, the stage
+## or what it requires: [method get_state] does. Researched already, it does nothing.
 func research(upgrade: Upgrade) -> void:
 	if is_researched(upgrade):
 		return
@@ -142,4 +144,6 @@ func research(upgrade: Upgrade) -> void:
 		_stats.add_modifier(modifier)
 	for type: BusTraits.Type in upgrade.traits:
 		_stats.get_traits().add(type)
+	if upgrade.is_built():
+		_stats.add_modifier(_upgrade_count)
 	researched.emit(upgrade)

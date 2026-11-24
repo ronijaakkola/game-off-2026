@@ -13,7 +13,8 @@ extends Node3D
 ## blushing cheeks, since any curve cut into it reads as a mouth. Eating or drinking, a
 ## [PortraitMeal] holds the food up to the face and nods the head. Watching something, a
 ## [PortraitScreen] lights the face in the screen's shifting colours, the eyes stay on it,
-## and now and then they laugh: a joyful face, the head tipped back and bouncing.
+## and now and then they laugh: a joyful face, the head tipped back and bouncing. Dancing,
+## a [PortraitDance] puts on the joyful face and bounces and rocks them to the music.
 
 const BODY_SHADER := preload("res://shared/two_tone.gdshader")
 const EYE_SHADER := preload("res://game/passengers/alien_eye.gdshader")
@@ -104,6 +105,8 @@ const CENTRED_EYE_REACH := 1.6
 ## Whether they are content: now and then they beam with full joy for a moment, as they
 ## blink. A partial joy doesn't read at a card's size, so contentment is these moments.
 @export var content := false
+## Whether they dance, as when their quest is done.
+@export var dancing := false
 ## What they are eating or drinking, if anything.
 @export var action := Need.Action.NONE
 ## The push they feel on the bus, in units per second squared: +x toward their own right
@@ -155,6 +158,7 @@ var _beam_left := 0.0
 var _meal: PortraitMeal
 var _sweat: PortraitSweat
 var _screen := PortraitScreen.new()
+var _dance := PortraitDance.new()
 
 
 func _ready() -> void:
@@ -192,7 +196,7 @@ func _ready() -> void:
 		_add_meal()
 		_sweat = PortraitSweat.new()
 		_head.add_child(_sweat)
-		_sweat.setup(_head_shape_meshes())
+		_sweat.setup(_head_shape_meshes(), head_model.resource_path)
 	_blink_in = randf_range(1.0, 4.0)
 
 
@@ -215,6 +219,8 @@ func _process(delta: float) -> void:
 		_blink_in = randf_range(2.0, 5.5)
 	_sway_with_push(delta)
 	_watch(delta, motion)
+	_dance.dancing = dancing and not asleep
+	_dance.advance(delta, motion)
 	_show_expression(delta)
 	if _meal:
 		_meal.action = action
@@ -224,6 +230,7 @@ func _process(delta: float) -> void:
 	var lurch := _lurch * motion
 	if _model:
 		_model.rotation = _model_rest + Vector3(lurch.y, 0.0, lurch.x) * BODY_LURCH
+		_model.rotation.z += _dance.body_roll
 	if _head:
 		# Asleep, they breathe slower and deeper.
 		_breath += delta * lerpf(1.6, 1.0, _sleep)
@@ -245,10 +252,13 @@ func _process(delta: float) -> void:
 			_head.rotation.x += _meal.pitch
 		var tremble := _get_fury() * TREMBLE * motion
 		_head.rotation.z += sin(_time * TREMBLE_SPEED) * tremble
-		# A laugh bounces the head its own way, in place of the joyful bob.
-		var bob := absf(sin(t * BOB_SPEED)) * BOB * _joy * (1.0 - _screen.laugh) * motion
-		var lift := _startle * 0.02 * motion - lurch.y * FORWARD_DIP + bob + _screen.bounce
+		# A laugh and a dance bounce the head their own way, in place of the joyful bob.
+		var own := maxf(_screen.laugh, _dance.amount)
+		var bob := absf(sin(t * BOB_SPEED)) * BOB * _joy * (1.0 - own) * motion
+		var lift := _startle * 0.02 * motion - lurch.y * FORWARD_DIP + bob
+		lift += _screen.bounce + _dance.bounce
 		_head.rotation.x += _screen.pitch
+		_head.rotation.z += _dance.roll
 		_head.position = _head_rest + Vector3.UP * lift
 	for i: int in _stalks.size():
 		# Stalks trail behind a swing of the head.
@@ -334,7 +344,7 @@ func _show_expression(delta: float) -> void:
 			_beam_left = randf_range(BEAM_SECONDS.x, BEAM_SECONDS.y)
 			_beam_in = _beam_left + randf_range(BEAM_WAIT.x, BEAM_WAIT.y)
 	var beaming := content and _beam_left > 0.0
-	var target := maxf(1.0 if beaming else joy, _screen.laugh)
+	var target := maxf(maxf(1.0 if beaming else joy, _screen.laugh), _dance.amount)
 	_joy = move_toward(_joy, target, delta * EXPRESSION_SPEED)
 	_set_eyes(&"anger", _anger)
 	_set_eyes(&"pupil_scale", lerpf(1.0, ANGRY_PUPIL, _anger) * lerpf(1.0, JOYFUL_PUPIL, _joy))
@@ -351,8 +361,8 @@ func _watch(delta: float, motion: float) -> void:
 	_screen.may_laugh = anger < 0.5 and not asleep
 	_screen.advance(delta, motion)
 	for material: ShaderMaterial in _materials.values():
-		material.set_shader_parameter(&"screen_light", _screen.light)
-		material.set_shader_parameter(&"screen_side", _screen.side)
+		ShaderValues.show(material, &"screen_light", _screen.light)
+		ShaderValues.show(material, &"screen_side", _screen.side)
 
 
 ## Paints every part of the model [param color], whatever they hold too, for an outline in
@@ -388,7 +398,7 @@ func _get_head_body_bounds() -> AABB:
 
 func _set_eyes(parameter: StringName, value: Variant) -> void:
 	for material: ShaderMaterial in _eye_materials:
-		material.set_shader_parameter(parameter, value)
+		ShaderValues.show(material, parameter, value)
 
 
 # The lean follows the push on a spring: the push holds it at a lean, and when the push

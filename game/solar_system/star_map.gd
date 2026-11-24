@@ -15,6 +15,8 @@ signal changed
 ## Holds the [StarSystem]s, in the order they open.
 @export var world: Node3D
 @export var rig: CameraRig
+## Takes the colours of the system the bus works in.
+@export var sky: SpaceSky
 ## How far the camera may zoom out once the systems are joined, and where it zooms out to
 ## as they join.
 @export_range(1.0, 400.0, 0.1, "or_greater") var joined_max_distance := 110.0
@@ -57,9 +59,11 @@ func restore(saved: Dictionary, bus_planet: Planet) -> void:
 	rig.position = systems[_current].position
 
 
-## What a save keeps: how many systems are open and whether they are joined.
+## What a save keeps: how many systems are open and whether they are joined, and the
+## system the bus works in, by name, for the main menu to show its level's loading screen.
+## [method restore] finds that from the bus's planet instead.
 func to_save() -> Dictionary:
-	return {"opened": _opened, "joined": _joined}
+	return {"opened": _opened, "joined": _joined, "system": String(get_current().name)}
 
 
 ## Every star system, in the order they open.
@@ -78,6 +82,12 @@ func get_current() -> StarSystem:
 
 func is_joined() -> bool:
 	return _joined
+
+
+## How many systems the player has been promoted out of: each opened the next, and the
+## last joined them.
+func count_done() -> int:
+	return get_systems().size() if _joined else _opened - 1
 
 
 ## The system the bus can jump to, now that a promotion has opened it, or null.
@@ -156,15 +166,32 @@ func _pull_back_step(progress: float, from: Vector3, from_distance: float, to: V
 	rig.set_distance(from_distance * pow(joined_max_distance / from_distance, progress))
 
 
-## Shows the systems the bus works in and hides the rest, and keeps the camera over them.
+## Shows the systems the bus works in and hides the rest, keeps the camera over them and lets
+## it zoom out as far as the one it works in allows, and gives the sky that one's colours.
 func show_systems() -> void:
 	var systems := get_systems()
 	for i: int in systems.size():
 		systems[i].visible = _joined or i == _current
 	if _joined:
 		rig.max_distance = maxf(rig.max_distance, joined_max_distance)
+	else:
+		rig.max_distance = get_current().max_distance
+		# Further out than the new system allows, it eases back in.
+		rig.zoom_to(rig.distance)
 	rig.bounds_center = get_bounds_center()
 	rig.bounds_radius = get_bounds_radius()
+	_colour_sky(get_current())
+
+
+# The sky takes [param system]'s colours. Joined, it keeps those of the last system the
+# bus worked in.
+func _colour_sky(system: StarSystem) -> void:
+	if not sky:
+		return
+	sky.background_color = system.background_color
+	sky.fog_color = system.fog_color
+	sky.fog_accent_color = system.fog_accent_color
+	sky.star_color = system.sky_star_color
 
 
 ## The centre of the area the camera's look-at point stays in: the current system's star,

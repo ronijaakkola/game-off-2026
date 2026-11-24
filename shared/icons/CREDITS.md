@@ -10,9 +10,13 @@ Icons used by more than one feature, from [Lucide](https://lucide.dev) (`lucide-
 | `dollar_sign.svg` | `dollar-sign` | ISC (`LICENSE.txt`) |
 | `flask_conical.svg` | `flask-conical` | ISC (`LICENSE.txt`) |
 | `phone_call.svg` | `phone-call` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `triangle_alert.svg` | `triangle-alert` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `star.svg` | `star` | ISC (`LICENSE.txt`) |
 | `circle_check.svg` | `circle-check` | ISC (`LICENSE.txt`) |
 | `flag.svg` | `flag` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `pause.svg` | `pause` | ISC (`LICENSE.txt`) |
 | `circle_x.svg` | `circle-x` | ISC (`LICENSE.txt`) |
 | `x.svg` | `x` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `bus.svg` | `bus` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `route.svg` | `route` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `lock.svg` | `lock` | ISC (`LICENSE.txt`) |

@@ -3,8 +3,10 @@ extends RefCounted
 ## config's "overrides":
 ## "waiting.max_per_planet", "commuter.slack", "business.fare_multiplier",
 ## "snack.min_interval", "drink.max_interval", "cabin.seats", "tank.burn_per_unit", and
-## the drive's "bus.charge_time", "bus.cool_time" and "bus.warm_boost", and
-## "temperature.comfortable_temperature": any exported number on those resources and nodes.
+## the drive's "bus.charge_time", "bus.quick_time" and "bus.warm_charge_time", and
+## "temperature.comfortable_temperature", "quests.done_happiness" and
+## "cabin.quality_per_upgrade", and a star system's by its name, as "lyra.fare_multiplier":
+## any exported number on those resources and nodes.
 ## "upgrade_credits" / "upgrade_points", a list of costs by tree row, and "upgrade_cost",
 ## one upgrade's own {title: [credits, points]}. "start_with" set to "all" starts on a bus
 ## with every built upgrade researched, and to a list of titles, with those.
@@ -66,10 +68,13 @@ func apply_to_scene(system: SolarSystem, planets: Array[Planet]) -> void:
 			"tank": tank,
 			"bus": bus,
 			"temperature": bus.temperature,
+			"quests": system.get_node(^"%QuestGiver"),
 		}
 	)
 	for planet: Planet in planets:
 		planet.fuel_price *= float(_overrides.get("fuel_price_scale", 1.0))
+	for star: StarSystem in (system.get_node(^"%StarMap") as StarMap).get_systems():
+		_set_on({star.name.to_lower(): star})
 	var research := lab.get_research()
 	var mechanic := system.get_node(^"%MechanicCall") as MechanicCall
 	mechanic.enabled = bool(_overrides.get("mechanic", false))

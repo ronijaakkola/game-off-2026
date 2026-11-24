@@ -27,7 +27,7 @@ A point in space on the route before a planet, which the bus flies through on it
 _Avoid_: checkpoint (where the run is saved)
 
 **Docked**:
-The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key, which starts from the warmth left while the drive is still **warm**, just after docking, and builds faster, until it goes **cold**. Leaving on a warm charge never let go is a **quick stop**.
+The bus waiting beside a planet, moving with it. Leaving a planet takes a **charge** of the frameshift drive first, which the player gives by holding the Frameshift key. Leaving soon after docking is a **quick stop**. With the **Warm drive** upgrade the drive is **warm** meanwhile, and a charge from warm starts from the warmth left and takes a moment, until it goes **cold**.
 _Avoid_: landed, parked
 
 **Signal bus**:
@@ -112,7 +112,7 @@ _Avoid_: bonus, effect
 _Never_: buff
 
 **Trait**:
-A feature on the bus that an upgrade unlocks, which the bus either has or doesn't, such as the **fuel forecast** (the fuel the course burns, shown over its last stop, `FuelForecast`): the on/off kind of stat. Whatever shows or does the feature asks whether the bus has it first. `BusTraits` in code, one of each `BusTraits.Type`, reached through `BusStats.get_traits()`.
+A feature on the bus that an upgrade unlocks, which the bus either has or doesn't, such as the **waiting markers** or the **fuel forecast** (the fuel the course burns, shown over its last stop, `FuelForecast`; no upgrade gives it for now): the on/off kind of stat. Whatever shows or does the feature asks whether the bus has it first. `BusTraits` in code, one of each `BusTraits.Type`, reached through `BusStats.get_traits()`.
 _Avoid_: perk, flag, unlock (the purchase, not the thing)
 
 **Tow**:
@@ -155,6 +155,9 @@ What a ride running past the time a passenger expects, or a stop past their type
 **Comfort**:
 What the bus's comfort upgrades give everyone on board: a bonus on the happiness they settle at, and how long and how slowly their ride's clock runs while they sleep or watch a show. `Comfort` in code, read off the bus's traits.
 _Avoid_: luxury, amenities (the things that serve needs)
+
+**Bus quality**:
+What every upgrade the bus has adds to the happiness everyone on board can reach, up to a most, whatever the upgrade does: a better bus is a nicer ride. Part of **comfort**'s bonus. `Cabin.quality_per_upgrade` and the bus's `UPGRADES` stat in code.
 
 **Rating**:
 The stars, from 0 to 5, a passenger gives the ride on getting off. The player's **recent rating** is the mean of the last 10, shown in the **resource bar**; its **band** sets how many of the passengers who turn up are Business (`RatingBand`). The **average rating** is the mean of every rating so far. `Passenger.get_rating()`, and `Ledger.rate()`, `Ledger.get_recent_rating()` in code.
@@ -206,15 +209,27 @@ The company's mechanic, who calls in a **transmission** to open research: every 
 What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
 
 **Promotion**:
-What the player earns by meeting every goal a star system gives at once: it opens the next star system, or joins every system after the last one. `Progression.promote()` in code.
+What the player earns by meeting every goal a star system gives at once, with The Boss's call: it opens the next star system and jumps there, or joins every system after the last one. `Progression.advance()` in code, which calls `promote()`.
 
 **Star system**:
 A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
-_Avoid_: level, galaxy, sector, stage (a band of research rows)
+_Avoid_: level (the stage of the run played in one), galaxy, sector, stage (a band of research rows)
+
+**Level**:
+The stage of the run played in one star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in Draco. It is **done** once a promotion there opens the next system, and the next level is **open** once the one before is done. `Level` in code, a resource in `shared/level_art/` with its name and picture.
+_Avoid_: mission, stage (a band of research rows), chapter
+
+**Campaign**:
+The levels in order and how far the player has got through them, which outlives the run: replaying a level starts the run over from where that level began and keeps what is done. Reset campaign forgets it with the save. `Campaign` in code; the campaign screen shows it.
+_Avoid_: progress (the goals' own), level select
 
 **Jump**:
-The bus's frameshift from one star system to the next, once a promotion opens it: it leaves with nobody on board and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
+The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
 _Avoid_: warp, hyperspace, travel (a trip between planets)
+
+**Warp gate**:
+A hexagonal ring floating beside a planet that the bus, docked there, spends half a tank of fuel to go through and come out of its twin's gate beside another planet: Hither's and Yon's in Lyra. Called a **warp drive** in the game's text, and the dock panel's button reads "Warp to <planet>". `WarpGate` in code, sold by the `GateService`.
+_Avoid_: portal, wormhole
 
 **Upgrade**:
 One step in a research tree: its cost in credits and research points, the upgrades it needs first, and what it does to the bus once **researched** (modifiers, traits, or both). `Upgrade` in code.

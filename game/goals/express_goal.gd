@@ -1,9 +1,9 @@
 class_name ExpressGoal
 extends Goal
-## A quest: make [member passenger]'s destination the bus's next stop. It is done when
-## they get off there, and fails when the bus docks at any other planet first, by a tow as
-## much as by a course, or when they are kicked off. Passing through points in space, or
-## coming to rest there, is no stop.
+## A quest: make [member passenger]'s destination the bus's next stop. It is done when the
+## bus docks there, before they get off and rate, and fails when the bus docks at any other
+## planet first, by a tow as much as by a course, or when they are kicked off. Passing
+## through points in space, or coming to rest there, is no stop.
 
 var passenger: Passenger
 
@@ -17,17 +17,14 @@ func get_text() -> String:
 	return "Take %s straight to %s" % [passenger.name, planet]
 
 
-func _on_delivered(who: Passenger) -> void:
-	if who == passenger:
-		_complete()
-
-
 func _on_kicked(who: Passenger) -> void:
 	if who == passenger:
 		_fail("%s was kicked" % passenger.name)
 
 
 func _on_bus_docked(planet: Planet) -> void:
-	if planet != passenger.destination:
+	if planet == passenger.destination:
+		_complete()
+	else:
 		var stopped := planet.display_name if planet.display_name else String(planet.name)
 		_fail("Stopped at %s first" % stopped)

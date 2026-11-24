@@ -108,6 +108,23 @@ func test_following_other_stats_stops_following_the_first() -> void:
 	assert_float(_cabin.comfort.bonus).is_equal(Comfort.GAMING_BONUS)
 
 
+func test_every_upgrade_lifts_everyone_as_a_better_bus_up_to_its_most() -> void:
+	var stats := BusStats.new()
+	var research := Research.new(stats)
+	_cabin.follow(stats)
+	var passenger := _passenger(_away)
+	_cabin.board(passenger)
+
+	research.research(Upgrade.new())
+	assert_float(_cabin.comfort.bonus).is_equal(_cabin.quality_per_upgrade)
+	assert_bool(_cabin.comfort.perks.has("Bus quality")).is_true()
+	assert_float(passenger.happiness).is_equal(START + _cabin.quality_per_upgrade)
+
+	for i: int in ceili(_cabin.quality_max / _cabin.quality_per_upgrade) + 2:
+		research.research(Upgrade.new())
+	assert_float(_cabin.comfort.bonus).is_equal(_cabin.quality_max)
+
+
 func test_comfort_follows_the_bus_s_traits() -> void:
 	var stats := BusStats.new()
 	_cabin.follow(stats)

@@ -6,9 +6,12 @@ extends CanvasLayer
 ## takes input while the game is paused, and its layer draws it over the game's own UI.
 ## Whatever else pauses the game, such as the research screen, holds the pause the same
 ## way ([method hold], [method release]), so the game runs again only once nothing holds it.
-## It fades in; it closes at once, as the game picks up again at once.
+## It shows over the game as it stood, blurred and dimmed, its HUD too: its layer draws
+## over theirs, so the backdrop's glass reads them from the screen.
+## It fades in; it closes at once, as the game picks up again at once. Settings and Controls
+## open over it as from the main menu, its rows staggering out and back.
 ## While [member offers_skip_tutorial], as through the tutorial, a Skip tutorial button
-## sits at the top, a little apart from the rest: it closes the menu and
+## sits at the bottom, a little apart from the rest: it closes the menu and
 ## [signal skip_tutorial_pressed].
 
 ## The player pressed Skip tutorial.
@@ -20,6 +23,10 @@ const HOLDERS := &"pause_holders"
 const FADE_IN_SECONDS := 0.2
 
 const MAIN_MENU_SCENE := "res://ui/main_menu/main_menu.tscn"
+
+## Where the game is, to know which level Restart level starts over. Without it, as in the
+## menu's own scene, it is the saved run's level.
+@export var star_map: StarMap
 
 ## Whether the window shrinking opens the menu. In browser fullscreen, Esc only leaves
 ## fullscreen and the game never receives it, so leaving fullscreen opens the menu, as that Esc
@@ -98,13 +105,15 @@ func open() -> void:
 	root.modulate.a = 0.0
 	var fade := root.create_tween()
 	fade.tween_property(root, ^"modulate:a", 1.0, FADE_IN_SECONDS).set_ease(Tween.EASE_OUT)
-	%ResumeButton.grab_focus()
+	FocusRing.grab(%ResumeButton as Control)
 	hold(self)
 
 
-## Hides the menu, and the settings panel if it's open, and unpauses the game.
+## Hides the menu, and any screen open over it, and unpauses the game.
 func close() -> void:
 	%SettingsMenu.hide()
+	%ControlsScreen.hide()
+	%RestartDialog.hide()
 	hide()
 	release(self)
 
@@ -119,7 +128,39 @@ func _on_resume_button_pressed() -> void:
 
 
 func _on_settings_button_pressed() -> void:
-	%SettingsMenu.open(%Items)
+	%SettingsMenu.open(%Content, _rows)
+
+
+func _on_controls_button_pressed() -> void:
+	%ControlsScreen.open(%Content, _rows)
+
+
+# The title and each row of plates shown, top to bottom, which stagger out as a screen
+# opens over the menu ([MenuScreen]).
+func _rows() -> Array[Control]:
+	var rows: Array[Control] = [%TitleMargin]
+	for row: Control in %Items.get_children():
+		if row.visible:
+			rows.append(row)
+	return rows
+
+
+func _on_restart_button_pressed() -> void:
+	var level := _level()
+	(%RestartDialog as RestartDialog).ask(level, level)
+
+
+# Starts the level over, through the tutorial again if it is under way.
+func _on_restart_dialog_confirmed() -> void:
+	Campaign.restart(_level(), offers_skip_tutorial)
+
+
+# The level the game is in.
+func _level() -> Level:
+	var level := Campaign.find(String(star_map.get_current().name)) if star_map else null
+	if level == null:
+		level = Campaign.get_in_progress()
+	return level if level else Campaign.LEVELS[0]
 
 
 func _on_main_menu_button_pressed() -> void:

@@ -21,18 +21,26 @@ const STAT_NAMES := {
 	BusStats.Type.FUEL_CAPACITY: "Fuel tank",
 	BusStats.Type.SEATS: "Seats",
 	BusStats.Type.PORTION_SIZE: "Portion size",
-	BusStats.Type.WARM_TIME: "Warm time",
 	BusStats.Type.PUMP_SPEED: "Pump speed",
 	BusStats.Type.SERVING_SPEED: "Serving speed",
+	BusStats.Type.CHARGE_TIME: "Charge time",
+	BusStats.Type.HEATING: "Heating",
+	BusStats.Type.FUEL_BURN: "Fuel burn",
 }
 ## How each stat's value shows, by type. A stat missing here shows two decimals.
 const VALUE_FORMATS := {
 	BusStats.Type.FUEL_CAPACITY: "%.0f",
 	BusStats.Type.PORTION_SIZE: "%.1fx",
-	BusStats.Type.WARM_TIME: "%.1f s",
 	BusStats.Type.PUMP_SPEED: "%.1fx",
 	BusStats.Type.SERVING_SPEED: "%.1fx",
+	BusStats.Type.CHARGE_TIME: "%.1f s",
+	BusStats.Type.HEATING: "%.1fx",
+	BusStats.Type.FUEL_BURN: "%.1fx",
 }
+## The stats a modifier improves by taking away, whose drops show in the bonus colour.
+const LOWER_IS_BETTER: Array[BusStats.Type] = [
+	BusStats.Type.CHARGE_TIME, BusStats.Type.HEATING, BusStats.Type.FUEL_BURN
+]
 ## Each trait's name in its row, by [enum BusTraits.Type]. A trait missing here shows its
 ## type's name.
 const TRAIT_NAMES := {
@@ -49,6 +57,14 @@ const TRAIT_NAMES := {
 	BusTraits.Type.TIP_JAR: "Tip jar",
 	BusTraits.Type.FREE_COFFEE: "Free station coffee",
 	BusTraits.Type.TIMETABLES: "Timetables",
+	BusTraits.Type.WARM_DRIVE: "Warm drive",
+	BusTraits.Type.PIT_CREW: "Pit crew",
+	BusTraits.Type.RESERVE_TANK: "Reserve tank",
+	BusTraits.Type.GATE_TUNING: "Gate tuning",
+	BusTraits.Type.DESTINATION_SIGN: "Destination sign",
+	BusTraits.Type.HAPPINESS_SURVEY: "Passenger happiness survey",
+	BusTraits.Type.BUSINESS_CLASS: "Business class",
+	BusTraits.Type.SHOCK_ABSORBERS: "Shock absorbers",
 }
 
 ## The width of each row's delta slot, wide enough for "+100%".
@@ -111,7 +127,7 @@ func _make_row(type: BusStats.Type) -> HBoxContainer:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override(&"separation", 12)
 	var name_label := _make_label("NameLabel")
-	name_label.text = STAT_NAMES.get(type, String(BusStats.Type.keys()[type]).capitalize())
+	name_label.text = STAT_NAMES.get(type, String(BusStats.Type.find_key(type)).capitalize())
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_label)
 	var value_label := _make_label("ValueLabel")
@@ -155,7 +171,8 @@ func _show_stats() -> void:
 		_value_labels[type].text = _value_text(type, stat)
 		var bonus := _bonus_labels[type]
 		bonus.text = _bonus_text(type, stat)
-		var color := PENALTY_COLOR if bonus.text.begins_with("-") else BONUS_COLOR
+		var worse := bonus.text.begins_with("-") != (type in LOWER_IS_BETTER)
+		var color := PENALTY_COLOR if worse else BONUS_COLOR
 		bonus.add_theme_color_override(&"font_color", color)
 
 

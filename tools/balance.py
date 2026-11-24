@@ -11,8 +11,11 @@
       numbers set without touching a file and where the run starts
       (tools/balance/overrides.gd: by default where a new run starts once the tutorial is
       over, or "after_tutorial": false for Ember with nothing researched), and "project" is
-      another checkout to play, for a change to a constant. Without a file it plays the
-      game as it is.
+      another checkout to play, for a change to a constant. A variant with "promote_to"
+      naming a star system ("Lyra") is promoted as in play until it works there, and the
+      table adds rows for that system from the bus's arrival ("next: ..."); give it
+      "overrides": {"mechanic": true} so research opens as in play. Without a file it
+      plays the game as it is.
   uv run tools/balance.py play DIR [DECISION] [--seed N] [--minutes M] [--policy JSON]
       A game played turn by turn, one dock at a time, for a person or an agent. With no
       DECISION it starts the game in DIR (or shows where it stands). A DECISION is JSON:
@@ -228,10 +231,60 @@ def summarize(reports: list[dict]) -> dict:
         ),
         "direct ride stars": mean([ride["stars"] for ride in rides if ride["stops"] == 0]),
         "1-2 stop ride stars": mean([ride["stars"] for ride in rides if ride["stops"] in (1, 2)]),
+        "quest done rides": len([ride for ride in rides if ride.get("quest_done")]) / max(len(reports), 1),
+        "quest done ride stars": mean([ride["stars"] for ride in rides if ride.get("quest_done")]),
+        "quest done 5* %": share(
+            [ride for ride in rides if ride.get("quest_done")], lambda ride: ride["stars"] == 5
+        ),
         "pay % of fare": 100.0 * sum(ride["payout"] for ride in rides)
         / max(sum(ride["fare"] for ride in rides), 1),
     }
+    row.update(summarize_promoted(reports))
     return row
+
+
+def summarize_promoted(reports: list[dict]) -> dict:
+    """The system a run with "promote_to" was promoted to last, from the moment the bus
+    arrived there: nan for a run that never was."""
+    arrived = [(r, r["systems"][-1]) for r in reports if r.get("systems")]
+    rides = [ride for r, system in arrived for ride in r["deliveries"]
+             if ride["t"] >= system["arrived"]]
+    business = [ride for ride in rides if ride["type"] == "Business"]
+    commuters = [ride for ride in rides if ride["type"] != "Business"]
+    met = [(r, system) for r, system in arrived if system["goals_at"] >= 0]
+    return {
+        "promoted %": share(reports, lambda r: bool(r.get("systems"))),
+        "promoted at min": mean([system["arrived"] / 60.0 for _, system in arrived]),
+        "upgrades on arrival": mean(
+            [len([u for u in r["upgrades"] if u["t"] < system["arrived"]])
+             for r, system in arrived]
+        ),
+        "next: goals met %": share(arrived, lambda pair: pair[1]["goals_at"] >= 0),
+        "next: goals in min": mean(
+            [(system["goals_at"] - system["arrived"]) / 60.0 for _, system in met]
+        ),
+        "next: rides/min": mean(
+            [len([d for d in r["deliveries"] if d["t"] >= system["arrived"]])
+             / max((r["seconds"] - system["arrived"]) / 60.0, 0.01) for r, system in arrived]
+        ),
+        "next: avg stars": mean([ride["stars"] for ride in rides]),
+        "next: towed rides %": share(rides, lambda ride: ride.get("towed", False)),
+        "next: stars untowed": mean([ride["stars"] for ride in rides if not ride.get("towed")]),
+        "next: commuter stars": mean([ride["stars"] for ride in commuters]),
+        "next: business stars": mean([ride["stars"] for ride in business]),
+        "next: business %": share(rides, lambda ride: ride["type"] == "Business"),
+        "next: 5* %": share(rides, lambda ride: ride["stars"] == 5),
+        "next: tows/10 min": mean(
+            [600.0 * len([t for t in r.get("tow_times", []) if t >= system["arrived"]])
+             / max(r["seconds"] - system["arrived"], 1.0) for r, system in arrived]
+        ),
+        "before: tows/10 min": mean(
+            [600.0 * len([t for t in r.get("tow_times", []) if t < system["arrived"]])
+             / max(system["arrived"], 1.0) for r, system in arrived]
+        ),
+        "next: recent at end": mean([r["recent_rating"] for r, _ in arrived]),
+        "next: recent>=4 at end %": share(arrived, lambda pair: pair[0]["recent_rating"] >= 4.0),
+    }
 
 
 def print_table(table: dict[str, dict]) -> None:
@@ -260,6 +313,8 @@ def command_run(args: argparse.Namespace) -> None:
                 "policy": variant.get("policy", {}),
                 "overrides": variant.get("overrides", {}),
             }
+            if "promote_to" in variant:
+                config["promote_to"] = variant["promote_to"]
             jobs.append((variant, path, config))
     for project in {str(variant.get("project", ROOT)) for variant in variants}:
         import_project(Path(project))

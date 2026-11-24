@@ -12,6 +12,18 @@ extends WorldEnvironment
 ## holds the only default for it.
 
 const SHADER := preload("res://game/space_sky/space_sky.gdshader")
+## Draws the parallax layers with the fog read from a [SpaceFogMap], which costs a
+## fraction of working the fog out per pixel. The game's sky uses it; the editor keeps
+## [constant SHADER], which needs no camera to tell it what is in view.
+const LAYERS_SHADER := preload("res://game/space_sky/space_sky_layers.gdshader")
+## The shaders' FOG_DEPTH and FOG_SCALE (space_sky.gdshaderinc): how many parallax depths
+## away the fog layer sits, and how many units of fog one depth spans.
+const FOG_DEPTH := 4.0
+const FOG_SCALE := 2.2
+## How much wider than the camera's view the part of the fog layer asked of the map is.
+const FOG_VIEW_GROWTH := 1.04
+## The part of the fog layer the map holds before a camera says what is in view.
+const FOG_START_VIEW := Rect2(-2.0, -1.0, 4.0, 2.0)
 
 ## The empty space between the fog.
 @export var background_color := Color(0.004, 0.005, 0.011):
@@ -51,6 +63,7 @@ const SHADER := preload("res://game/space_sky/space_sky.gdshader")
 		parallax = value
 		_set_param(&"parallax", value)
 		set_process(value)
+		_pick_shader()
 ## How far past the world origin, in world units, the nearest star layer sits; the farther
 ## stars sit at twice that and the fog at four times. Nearer layers slide faster.
 @export_range(10.0, 5000.0, 1.0, "or_greater") var parallax_depth := 1000.0:
@@ -64,6 +77,8 @@ const SHADER := preload("res://game/space_sky/space_sky.gdshader")
 		environment.ambient_light_color = value
 
 var _material := ShaderMaterial.new()
+# The fog layer as a texture, while LAYERS_SHADER draws the sky.
+var _fog_map: SpaceFogMap
 var _fade: Tween
 # How far the camera moved while Reduce motion held the parallax layers still.
 var _held_back := Vector3.ZERO
@@ -107,8 +122,12 @@ func _process(_delta: float) -> void:
 		_held_back += camera_position - _last_camera_position
 	_last_camera_position = camera_position
 	_has_last_camera_position = true
-	_set_param(&"camera_position", camera_position - _held_back)
-	_set_param(&"camera_basis", camera.global_basis.orthonormalized())
+	var layer_position := camera_position - _held_back
+	var layer_basis := camera.global_basis.orthonormalized()
+	ShaderValues.show(_material, &"camera_position", layer_position)
+	ShaderValues.show(_material, &"camera_basis", layer_basis)
+	if _fog_map:
+		_show_fog(_get_fog_view(camera.get_camera_projection(), layer_position, layer_basis))
 
 
 ## Blends the fog to new colours over [param duration] seconds.
@@ -123,6 +142,45 @@ func fade_to(new_fog_color: Color, new_accent_color: Color, duration := 1.0) -> 
 	_fade = create_tween().set_parallel().set_trans(Tween.TRANS_SINE)
 	_fade.tween_property(self, ^"fog_color", new_fog_color, duration)
 	_fade.tween_property(self, ^"fog_accent_color", new_accent_color, duration)
+
+
+# The game's parallax sky reads its fog from a map; any other sky works it out per pixel.
+func _pick_shader() -> void:
+	var layers := parallax and not Engine.is_editor_hint()
+	_material.shader = LAYERS_SHADER if layers else SHADER
+	if layers and not _fog_map:
+		_fog_map = SpaceFogMap.new()
+		add_child(_fog_map, false, INTERNAL_MODE_BACK)
+		_set_param(&"fog_map", _fog_map.get_texture())
+		_show_fog(FOG_START_VIEW)
+
+
+# Has the map hold [param view] of the fog layer, and tells the shader what it holds.
+func _show_fog(view: Rect2) -> void:
+	var held := _fog_map.cover(view)
+	ShaderValues.show(_material, &"fog_map_origin", held.position)
+	ShaderValues.show(_material, &"fog_map_span", held.size)
+
+
+# The part of the fog layer a camera with [param projection] sees from [param at], facing
+# along [param basis], in the layer's units: where the shader's fog_layer_point() lands
+# for the corners of the screen, and a little past them.
+func _get_fog_view(projection: Projection, at: Vector3, basis: Basis) -> Rect2:
+	var fog_depth := parallax_depth * FOG_DEPTH
+	var along := fog_depth - at.dot(-basis.z)
+	# The view ray through a corner, as the sky shader builds it, per unit of depth.
+	var low := Vector2(projection.z.x - 1.0, projection.z.y - 1.0)
+	var high := Vector2(projection.z.x + 1.0, projection.z.y + 1.0)
+	var reach := Vector2(projection.x.x, projection.y.y)
+	var middle := Vector2(at.dot(basis.x), at.dot(basis.y))
+	var seen := Rect2(middle + low / reach * along, (high - low) / reach * along).abs()
+	var view := Rect2(seen.position * FOG_SCALE / fog_depth, seen.size * FOG_SCALE / fog_depth)
+	return view.grow_individual(
+		view.size.x * (FOG_VIEW_GROWTH - 1.0) * 0.5,
+		view.size.y * (FOG_VIEW_GROWTH - 1.0) * 0.5,
+		view.size.x * (FOG_VIEW_GROWTH - 1.0) * 0.5,
+		view.size.y * (FOG_VIEW_GROWTH - 1.0) * 0.5
+	)
 
 
 ## The name of every export, read from this script so no list can miss one.

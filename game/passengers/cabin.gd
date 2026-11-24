@@ -28,6 +28,9 @@ signal delivered(passenger: Passenger, payout: int)
 ## The player kicked [param passenger] off the bus mid-ride ([method kick]). They pay
 ## nothing and rate nothing, and the rest take a [constant KICK_SHOCK].
 signal kicked(passenger: Passenger)
+## [param passenger] stayed behind as the bus jumped to the next star system
+## ([method leave_behind]). They pay nothing and rate nothing.
+signal left_behind(passenger: Passenger)
 ## Everyone getting off at the stop [method stop_at] started has got off, one step after
 ## the last of them. Emitted even when nobody got off.
 signal unloaded
@@ -71,9 +74,16 @@ const SERVING_ROBOTS := preload("res://game/passengers/amenities/serving_robots.
 ## What a ride that pays more than the fare pays on top, as a multiple of the fare, once
 ## the bus has the Tip jar ([method Payment.multiple]).
 @export_range(0.0, 1.0, 0.05) var tip := 0.1
+## The research points a 5-star ride earns on top of the type's, once the bus has the
+## Passenger happiness survey.
+@export_range(0, 10) var survey_points := 1
 ## How many times as long someone picked up waits for their first requests, once the bus
 ## has Free station coffee.
 @export_range(1.0, 3.0, 0.05) var coffee_delay := 1.5
+## Happiness every upgrade the bus has that does anything adds to what everyone can reach:
+## a better bus is a nicer ride. Up to [member quality_max] in all.
+@export_range(0.0, 10.0, 0.1) var quality_per_upgrade := 1.0
+@export_range(0.0, 50.0, 0.5) var quality_max := 10.0
 
 ## Whether the bus waits at a planet, docked or charging, so everyone's happiness and ride
 ## clock hold and the station serves their requests. The scene that holds the bus sets it.
@@ -148,6 +158,7 @@ func follow(stats: BusStats) -> void:
 		_bus_stats.get_stat(BusStats.Type.SEATS).changed.disconnect(_on_seats_stat_changed)
 		_bus_stats.get_stat(BusStats.Type.PORTION_SIZE).changed.disconnect(_on_portion_changed)
 		_bus_stats.get_traits().changed.disconnect(_on_trait_changed)
+		_bus_stats.get_stat(BusStats.Type.UPGRADES).changed.disconnect(_on_upgrades_changed)
 	_bus_stats = stats
 	var stat := stats.get_stat(BusStats.Type.SEATS)
 	stat.base = seats
@@ -155,6 +166,7 @@ func follow(stats: BusStats) -> void:
 	stats.get_stat(BusStats.Type.PORTION_SIZE).changed.connect(_on_portion_changed)
 	_on_portion_changed()
 	stats.get_traits().changed.connect(_on_trait_changed)
+	stats.get_stat(BusStats.Type.UPGRADES).changed.connect(_on_upgrades_changed)
 	_on_trait_changed(BusTraits.Type.FOOD_DISPENSER)
 
 
@@ -227,6 +239,18 @@ func kick(passenger: Passenger) -> bool:
 	_forget(passenger)
 	shock(KICK_SHOCK)
 	kicked.emit(passenger)
+	return true
+
+
+## [param passenger] stays behind as the bus jumps to the next star system: they leave their
+## seat at once, out of sight, paying and rating nothing, and nobody takes a shock. False,
+## and nothing happens, when they aren't on board.
+func leave_behind(passenger: Passenger) -> bool:
+	if passenger not in _passengers:
+		return false
+	_passengers.erase(passenger)
+	_forget(passenger)
+	left_behind.emit(passenger)
 	return true
 
 
@@ -375,13 +399,34 @@ func _forget(passenger: Passenger) -> void:
 func _take_seat(passenger: Passenger) -> void:
 	_passengers.append(passenger)
 	passenger.settle(comfort)
+	_seat_class(passenger)
 	boarded.emit(passenger)
+
+
+## The research points [param passenger], delivered, earns: their type's, and with the
+## Passenger happiness survey [member survey_points] more for a 5-star ride.
+func get_research_points(passenger: Passenger) -> int:
+	var surveyed := _has(BusTraits.Type.HAPPINESS_SURVEY) and passenger.get_rating() >= 5
+	return passenger.type.research_points + (survey_points if surveyed else 0)
+
+
+# Sets how many stops [param passenger] puts up with: their type's, and with Business class
+# the type's own more.
+func _seat_class(passenger: Passenger) -> void:
+	var extra := passenger.type.business_class_stops if _has(BusTraits.Type.BUSINESS_CLASS) else 0
+	passenger.ride.tolerance = passenger.type.stop_tolerance + extra
 
 
 # How many times as fast as [constant HAND_SECONDS] the player serves: the SERVING_SPEED
 # stat of the bus the cabin follows, or 1 before it follows one.
 func _get_hand_speed() -> float:
 	return _bus_stats.get_stat(BusStats.Type.SERVING_SPEED).get_value() if _bus_stats else 1.0
+
+
+# What the bus's upgrades add to everyone's happiness as a better bus to ride.
+func _get_quality() -> float:
+	var upgrades := _bus_stats.get_stat(BusStats.Type.UPGRADES).get_value()
+	return minf(upgrades * quality_per_upgrade, quality_max)
 
 
 # Whether the bus the cabin follows has [param type]. Before it follows one, nothing.
@@ -397,13 +442,18 @@ func _on_portion_changed() -> void:
 	portion = _bus_stats.get_stat(BusStats.Type.PORTION_SIZE).get_value()
 
 
+func _on_upgrades_changed() -> void:
+	_on_trait_changed(BusTraits.Type.FOOD_DISPENSER)
+
+
 func _on_trait_changed(_type: BusTraits.Type) -> void:
 	var traits := _bus_stats.get_traits()
 	var discomfort := comfort.discomfort
-	comfort = Comfort.from_traits(traits)
+	comfort = Comfort.from_traits(traits, _get_quality())
 	comfort.discomfort = discomfort
 	for passenger: Passenger in _passengers:
 		passenger.settle(comfort)
+		_seat_class(passenger)
 	amenities.clear()
 	for fitted: Amenity in fittings:
 		if traits.has(fitted.bus_trait):

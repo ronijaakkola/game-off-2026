@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bd6jyra6m631q"]
+
+[ext_resource type="Script" uid="uid://bym8hbklubbti" path="res://test/previews/lyra_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="2_system"]
+
+[node name="LyraPreview" type="Node" unique_id=466935851]
+script = ExtResource("1_preview")
+
+[node name="SolarSystem" parent="." unique_id=1156955646 instance=ExtResource("2_system")]

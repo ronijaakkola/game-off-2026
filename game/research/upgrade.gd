@@ -29,6 +29,11 @@ extends Resource
 @export var column := 0
 
 
+## Whether it does anything yet: one that doesn't says so on its card.
+func is_built() -> bool:
+	return not description.contains("NOT IMPLEMENTED")
+
+
 ## Whether [param credits_held] and [param points_held], research points, pay for it.
 func can_afford(credits_held: int, points_held: int) -> bool:
 	return credits_held >= credits and points_held >= points
