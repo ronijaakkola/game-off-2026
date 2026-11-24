@@ -55,8 +55,8 @@ func run(delta: float) -> void:
 
 ## What lifts [param passenger]'s happiness on a bus giving [param comfort], a few words
 ## each: what they were just served, or that they are getting over something while it
-## climbs for no other reason, then the comfort's perks, the station lounge they waited
-## in, a quick stop, a quest done, the heat for someone who loves it.
+## climbs for no other reason, then the comfort's perks, that they came back, the station
+## lounge they waited in, a quick stop, a quest done, the heat for someone who loves it.
 static func get_ups(passenger: Passenger, comfort: Comfort) -> Array[String]:
 	var ups: Array[String] = []
 	if passenger.served:
@@ -64,6 +64,8 @@ static func get_ups(passenger: Passenger, comfort: Comfort) -> Array[String]:
 	elif passenger.trend > 0.0:
 		ups.append("Feeling better")
 	ups.append_array(comfort.perks)
+	if passenger.returning:
+		ups.append("Returning passenger")
 	if passenger.lounge_bonus > 0.0:
 		ups.append("Station lounge")
 	if passenger.quick_bonus > 0.0:

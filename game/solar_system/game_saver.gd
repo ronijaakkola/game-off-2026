@@ -8,7 +8,8 @@ extends Node
 ## docked at [member new_run_planet]. A continued run starts docked at the planet it was
 ## saved at, so quitting in flight loses only the flight. It keeps where each planet is on
 ## its orbit, the bus's planet, fuel and reserve, the [Ledger], the researched upgrades, whether
-## research and which stages are open, the passengers on board and in every line, the goals'
+## research and which stages are open, the passengers on board and in every line, those
+## who may come back, the goals'
 ## progress, the quest under way and how far through the star systems the player has got.
 ## The course, the charge and what passengers were doing start afresh.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
@@ -218,6 +219,7 @@ func _write() -> void:
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,
+		"returning": waiting.get_returning().to_save(),
 		"goals": progress,
 		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
 	}
@@ -256,6 +258,7 @@ func _restore() -> void:
 	var by_name := _get_planets_by_name()
 	var types := _get_types_by_path()
 	waiting.first_business_dealt = bool(_saved.get("first_business", false))
+	waiting.get_returning().load_save(_saved.get("returning", []), types)
 	var lines: Dictionary = _saved.get("lines", {})
 	for planet: Planet in _planets:
 		var line: Dictionary = lines.get(String(planet.name), {})

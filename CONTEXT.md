@@ -144,6 +144,10 @@ _Avoid_: mini map, small map
 Someone riding the bus to a destination planet, with a fare, a **happiness** that changes during the ride, and a mood that comes from it. They pay the fare, and more for a ride they rate 4 or 5 stars. `Passenger` in code.
 _Never_: customer, rider, NPC
 
+**Returning passenger**:
+A passenger who rated a ride five stars and turns up in a line again later, the same in name, race, look and type, with a badge on their portrait. They pay more, ride a little happier and are likelier to call with a quest. `Passenger.returning` in code; `ReturningPassengers` remembers who may come back.
+_Avoid_: regular, loyal passenger, repeat passenger
+
 **Happiness**:
 How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort and their open request, and holding while the bus is docked. A **shock** changes it at once, such as a kick scaring the rest, and so does their **timing** as they get off (how their ride compares with the trip time: arriving early adds to it). It sets the mood and the rating. `Passenger.happiness` in code.
 _Avoid_: satisfaction
