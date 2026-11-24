@@ -34,6 +34,11 @@ var _markers := PackedVector3Array()
 var _bus_at := Vector3.ZERO
 var _bus_forward := Vector3.ZERO
 var _mesh := ImmediateMesh.new()
+# This frame's vertices, gathered before the surface opens: ImmediateMesh errors on a surface
+# with none, as when every leg is clipped away.
+var _points := PackedVector3Array()
+var _uvs := PackedVector2Array()
+var _uv2s := PackedVector2Array()
 var _material := ShaderMaterial.new()
 
 
@@ -89,11 +94,20 @@ func _process(_delta: float) -> void:
 	var camera := get_viewport().get_camera_3d()
 	if not camera or (_legs.size() < 2 and _markers.is_empty()):
 		return
-	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _material)
+	_points.clear()
+	_uvs.clear()
+	_uv2s.clear()
 	for i: int in range(0, _legs.size() - 1, 2):
 		_draw_leg(camera, i)
 	for marker: Vector3 in _markers:
 		_diamond(camera, marker)
+	if _points.is_empty():
+		return
+	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, _material)
+	for i: int in _points.size():
+		_mesh.surface_set_uv(_uvs[i])
+		_mesh.surface_set_uv2(_uv2s[i])
+		_mesh.surface_add_vertex(_points[i])
 	_mesh.surface_end()
 
 
@@ -216,9 +230,9 @@ func _diamond(camera: Camera3D, point: Vector3) -> void:
 
 
 func _vertex(point: Vector3, uv: Vector2, alpha: float, marker := 0.0) -> void:
-	_mesh.surface_set_uv(uv)
-	_mesh.surface_set_uv2(Vector2(alpha, marker))
-	_mesh.surface_add_vertex(point)
+	_points.append(point)
+	_uvs.append(uv)
+	_uv2s.append(Vector2(alpha, marker))
 
 
 # How wide pixels are in world units at point, seen through the camera.
