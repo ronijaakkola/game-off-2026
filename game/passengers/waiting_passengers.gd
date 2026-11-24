@@ -6,7 +6,8 @@ extends Node
 ## Someone waiting is only a count until the player first sees the line
 ## ([method get_waiting]). Then each is decided, one after another: a destination, which
 ## leans toward where those already in the line are going only once the bus has
-## Timetables, a race dealt from a bag, and a type by the band of the player's recent
+## Timetables, and toward where someone on board is going once it has the Destination sign,
+## a race dealt from a bag, and a type by the band of the player's recent
 ## rating ([RatingBand]), with no Business passenger in the first star system. Their
 ## trip time and fare come from the distance to their destination then.
 ## Someone who rated a ride five stars may turn up again later as a returning passenger
@@ -36,8 +37,9 @@ const MAX_SAME_DESTINATION := 2
 @export var star_map: StarMap
 ## The bus, whose speed and charge time set how long a trip should take.
 @export var bus: FrameshiftBus
-## Whose passengers, as they get off, may come back later ([method remember]). Without
-## one, nobody does unless told to.
+## Who is on board, whose destinations the Destination sign leans toward, and who, as
+## they get off, may come back later ([method remember]). None, and it leans toward
+## nothing and nobody comes back unless told to.
 @export var cabin: Cabin
 @export_range(0, 10) var max_per_planet := 3
 ## How many wait at all the planets together at most, so some lines are short or empty.
@@ -56,6 +58,9 @@ const MAX_SAME_DESTINATION := 2
 ## once the bus has Timetables. Likelier, never certain. Without Timetables every
 ## destination is as likely as the next.
 @export_range(1.0, 10.0, 0.1) var timetables_in_line_weight := 3.0
+## How much likelier a destination is when someone on board is going there, once the bus
+## has the Destination sign. It stacks with Timetables.
+@export_range(1.0, 10.0, 0.1) var destination_sign_weight := 3.0
 ## Seconds the longest-waiting passenger of a line the player has seen stays before they
 ## leave.
 @export_range(1.0, 600.0, 1.0) var leave_seconds := 60.0
@@ -331,8 +336,9 @@ func _take_returning(line: Array) -> ReturningPassengers.Person:
 
 
 # A roll among the other planets, but never the one [param origin]'s warp gate leads to:
-# with Timetables likelier where someone in [param line] is going, and never where
-# MAX_SAME_DESTINATION of the line already go, unless that leaves nowhere.
+# with Timetables likelier where someone in [param line] is going, with the Destination sign
+# likelier where someone on board is going, and never where MAX_SAME_DESTINATION of the
+# line already go, unless that leaves nowhere.
 func _pick_destination(origin: Planet, line: Array) -> Planet:
 	var twin := WarpGate.twin_of(origin)
 	var others := _planets.filter(
@@ -341,6 +347,12 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 	if others.is_empty():
 		return null
 	var leaning := timetables_in_line_weight if _has(BusTraits.Type.TIMETABLES) else 1.0
+	var signed := _has(BusTraits.Type.DESTINATION_SIGN) and cabin != null
+	var aboard: Array[Planet] = []
+	if signed:
+		aboard.assign(
+			cabin.get_passengers().map(func(p: Passenger) -> Planet: return p.destination)
+		)
 	var weights := PackedFloat32Array()
 	var total := 0.0
 	for planet: Planet in others:
@@ -350,6 +362,8 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 			weight = 0.0
 		elif same > 0:
 			weight *= leaning
+		if planet in aboard:
+			weight *= destination_sign_weight
 		weights.append(weight)
 		total += weight
 	if total <= 0.0:

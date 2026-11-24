@@ -34,6 +34,7 @@ var _warm_charge := false
 var _dropped := false
 # Seconds the stop's clock has run. INF with no stop that can be a quick one.
 var _stop_time := INF
+var _charge_stat: Stat
 
 
 ## Made with the bus's [param charge] for [member charge_time], [param quick] for
@@ -42,6 +43,13 @@ func _init(charge: float, quick: float, warm_charge: float) -> void:
 	charge_time = charge
 	quick_time = quick
 	warm_charge_time = warm_charge
+
+
+## Makes [member charge_time] [param stat]'s value from now on, as upgrades change it.
+func follow(stat: Stat) -> void:
+	_charge_stat = stat
+	charge_time = stat.get_value()
+	stat.changed.connect(_on_charge_stat_changed)
 
 
 ## Empties the charge.
@@ -138,3 +146,7 @@ func get_warmth() -> float:
 # How many times as fast as a cold charge a warm one builds.
 func _warm_rate() -> float:
 	return charge_time / warm_charge_time if warm_charge_time > 0.0 else INF
+
+
+func _on_charge_stat_changed() -> void:
+	charge_time = _charge_stat.get_value()

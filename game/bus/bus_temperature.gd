@@ -61,8 +61,11 @@ func _ready() -> void:
 ## Moves the temperature on by [param delta] seconds, the bus [param distance] from the
 ## star's centre and [param flying] ([param at_star] when heading into the star) or
 ## standing still. While [param exempt] it holds and can't overheat, but a cooldown under way
-## goes on.
-func advance(delta: float, distance: float, flying: bool, at_star: bool, exempt := false) -> void:
+## goes on. In the heat zone it rises [param heating] times as fast, as the bus's heat
+## shielding has it.
+func advance(
+	delta: float, distance: float, flying: bool, at_star: bool, exempt := false, heating := 1.0
+) -> void:
 	_exempt = exempt
 	if is_cooling():
 		_cooldown_left = maxf(_cooldown_left - delta, 0.0)
@@ -77,9 +80,9 @@ func advance(delta: float, distance: float, flying: bool, at_star: bool, exempt 
 		temperature = maxf(temperature - fall_rate * delta, rest_temperature)
 	elif flying:
 		var share := escape_share if _escaping and not at_star else 1.0
-		set_temperature(temperature + get_rise_rate(distance) * share * delta)
+		set_temperature(temperature + get_rise_rate(distance) * share * heating * delta)
 	else:
-		set_temperature(temperature + standing_rate * delta)
+		set_temperature(temperature + standing_rate * heating * delta)
 
 
 ## Degrees a second the temperature rises in flight [param distance] from the star's

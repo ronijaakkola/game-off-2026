@@ -308,8 +308,8 @@ func _describe() -> Dictionary:
 		{
 			"fuel": roundi(tank.fuel),
 			"capacity": roundi(tank.capacity),
-			"burn_per_unit": tank.burn_per_unit,
-			"range": snappedf(tank.fuel / tank.burn_per_unit, 0.1),
+			"burn_per_unit": tank.get_burn_per_unit(),
+			"range": snappedf(tank.fuel / tank.get_burn_per_unit(), 0.1),
 			"fill_costs": ceili((tank.capacity - tank.fuel) * here.fuel_price),
 		},
 		"seats": _cabin.seats,
