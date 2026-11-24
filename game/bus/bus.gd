@@ -587,7 +587,7 @@ func _feel(delta: float) -> void:
 
 # The line through the route still ahead.
 func _draw_route() -> void:
-	(%RouteLine as RouteLine).draw_stops(global_position, _route)
+	(%RouteLine as RouteLine).draw_stops(global_position, _route, _forward())
 
 
 func _forward() -> Vector3:
