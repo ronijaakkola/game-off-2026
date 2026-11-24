@@ -5,7 +5,8 @@ extends RefCounted
 ## "snack.min_interval", "drink.max_interval", "cabin.seats", "tank.burn_per_unit", and
 ## the drive's "bus.charge_time", "bus.quick_time" and "bus.warm_charge_time", and
 ## "temperature.comfortable_temperature", "quests.done_happiness" and
-## "cabin.quality_per_upgrade", and a star system's by its name, as "lyra.fare_multiplier":
+## "cabin.quality_per_upgrade", "capsules.enabled" and "capsules.passenger_chance",
+## and a star system's by its name, as "lyra.fare_multiplier":
 ## any exported number on those resources and nodes.
 ## "upgrade_credits" / "upgrade_points", a list of costs by tree row, and "upgrade_cost",
 ## one upgrade's own {title: [credits, points]}. "start_with" set to "all" starts on a bus
@@ -69,6 +70,7 @@ func apply_to_scene(system: SolarSystem, planets: Array[Planet]) -> void:
 			"bus": bus,
 			"temperature": bus.temperature,
 			"quests": system.get_node(^"%QuestGiver"),
+			"capsules": system.get_node(^"%CapsuleField"),
 		}
 	)
 	for planet: Planet in planets:

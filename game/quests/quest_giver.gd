@@ -11,6 +11,8 @@ extends Node
 ## be the one. One
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
+## A passenger picked up from a capsule adrift calls with a [RescueQuest] as soon as nothing
+## else is in the way ([method rescue]).
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
 ## passenger. A completed quest pays its reward and lifts the passenger by
 ## [member done_happiness] for the rest of their ride; a failed one costs the passenger
@@ -117,6 +119,10 @@ var _caller: Passenger
 # The quest on offer in the transmission panel, and the one under way.
 var _offer: Quest
 var _quest: Quest
+# Who was picked up from a capsule and has yet to call, and whether the call ringing is
+# theirs.
+var _rescued: Passenger
+var _rescue_call := false
 # Seconds each finished quest still shows.
 var _shown: Dictionary[Quest, float] = {}
 
@@ -148,16 +154,10 @@ func _process(delta: float) -> void:
 		return
 	if _quest or not enabled:
 		return
-	_until_call -= delta
-	if _until_call > 0.0 or not _is_time_to_call():
-		return
-	_caller = _pick_caller()
-	if not _caller:
-		_until_call = RETRY_SECONDS
-		return
-	_call = notices.announce_transmission(Transmission.from_passenger(_caller), true, true)
-	_call.action_pressed.connect(_on_call_answered)
-	_call.declined.connect(_on_call_declined)
+	if _rescued:
+		_ring_rescue()
+	else:
+		_wait_for_call(delta)
 
 
 ## Tells it the run's [param planets], which quests send passengers to, the
@@ -208,6 +208,13 @@ func call_soon() -> void:
 	_call_asked = true
 
 
+## [param passenger] was picked up from a capsule adrift: they call with a [RescueQuest] as
+## soon as no other call, offer or quest is in the way, however long since the last call
+## and however few passengers have been delivered. Nothing once they have left the bus.
+func rescue(passenger: Passenger) -> void:
+	_rescued = passenger
+
+
 ## The quest under way, for a save game, with its passenger as their place among
 ## [param on_board]. Empty with none.
 func to_save(on_board: Array[Passenger]) -> Dictionary:
@@ -242,6 +249,8 @@ func load_save(
 			quest = RockRideQuest.new()
 		SaunaQuest.KIND:
 			quest = SaunaQuest.new()
+		RescueQuest.KIND:
+			quest = RescueQuest.new()
 	if quest and quest.restore(saved, on_board[index], planets):
 		take_on(quest)
 
@@ -307,6 +316,12 @@ func _plan(passenger: Passenger) -> Quest:
 	return null
 
 
+func _plan_rescue(passenger: Passenger) -> Quest:
+	var quest := RescueQuest.new()
+	quest.level = _level
+	return quest if quest.plan(passenger, bus, _planets, _waiting, _rng) else null
+
+
 # The quests a Business passenger past the first system can ask for, in the order the dice
 # try them: each drawn by its weight among those left.
 func _business_kinds() -> Array[Quest]:
@@ -352,11 +367,42 @@ func _watch_call() -> void:
 	_rest()
 
 
+# Counts down to the next call, and once it is time, has someone on board call.
+func _wait_for_call(delta: float) -> void:
+	_until_call -= delta
+	if _until_call > 0.0 or not _is_time_to_call():
+		return
+	_caller = _pick_caller()
+	if not _caller:
+		_until_call = RETRY_SECONDS
+		return
+	_ring()
+
+
+func _ring() -> void:
+	_call = notices.announce_transmission(Transmission.from_passenger(_caller), true, true)
+	_call.action_pressed.connect(_on_call_answered)
+	_call.declined.connect(_on_call_declined)
+
+
+# The passenger picked up from a capsule calls, once nothing else shows.
+func _ring_rescue() -> void:
+	if _rescued not in cabin.get_passengers():
+		_rescued = null
+		return
+	if transmission_panel.is_open():
+		return
+	_caller = _rescued
+	_rescued = null
+	_rescue_call = true
+	_ring()
+
+
 func _on_call_answered() -> void:
 	if not _call:
 		return
 	_call = null
-	_offer = _plan(_caller)
+	_offer = _plan_rescue(_caller) if _rescue_call else _plan(_caller)
 	if not _offer:
 		_rest()
 		return
@@ -438,6 +484,7 @@ func _finish() -> void:
 func _rest() -> void:
 	_caller = null
 	_call_asked = false
+	_rescue_call = false
 	if _ledger and _ledger.get_rating_count() < EARLY_DELIVERIES:
 		_until_call = _rng.randf_range(EARLY_CALL_MIN_SECONDS, EARLY_CALL_MAX_SECONDS)
 	else:
