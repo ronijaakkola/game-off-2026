@@ -290,6 +290,20 @@ What the comfort upgrades give everyone on board. Each line has one main job:
 - The star rating says only that a higher rating brings more Business passengers: no bands, no odds.
 - *(not built)* The player is told the first time the recent rating reaches a new band, and not again on coming back to it.
 
+## Capsules
+
+Capsules adrift in space are something worth a detour: a small reward for flying into one, now and then a passenger with a quest.
+
+- **Where and when.** From when the run proper starts (after the tutorial's zoom out), a capsule appears every 40 to 70 s while fewer than 2 drift, in the star system the bus works in (once joined, the one nearest the bus): between 1.5 units past its heat zone's edge and 1 unit inside the edge the camera stops at, 1.5 clear of any planet's surface and 5 from the bus. It drifts in a straight line at 0.05 units a second, barely moving next to the planets, and is gone after 90 s. None appear during a jump, and a new system starts with none.
+- **What it holds** is rolled as the bus collects it, and every capsule looks alike, so nothing gives it away: the castaway, otherwise credits or research points, as likely one as the other.
+- **A pity counter** makes the castaway certain in the end: they are 10 % likely, and 15 points likelier for every capsule collected since they were last in one, so the 7th at the latest holds them. The count is saved with the run. The castaway can only turn up with a seat free and while they aren't on board already; otherwise the roll is between the other two, and still counts toward the castaway.
+- **The debug panel's capsules** hold what they say, without a roll or a count, and the castaway's holds credits when they can't board.
+- **Collecting** is flying into it: the bus within its own radius plus the capsule's, in any state, towed too. Credits and research points go to the player at once: 50, 115 and 230 credits, or 1, 2 and 3 points, in Sol, Lyra and Draco (as Draco once joined), about half a fly past's pay, so a capsule is worth a short detour and never a long one. Unmeasured: the scripted player decides only at docks and goes for none.
+- **Not a stop.** A right click on a capsule sets a point in space where it is, as on empty space: the route doesn't follow it as it drifts.
+- **The castaway** is always the same person, Driff: a green Commuter with the hammer head and googly eyes, who keeps drifting off in space, so the player gets to know them. On board, they go to any planet, with their fare and trip time from the capsule, flown without a charge, ride and pay like anyone else, and call with a rescue quest (Goals).
+- **The castaway comes back.** The first rescue in a run is an ordinary ride; from the second on they are a returning passenger (Who turns up): the badge, 1.1× the pay and +3 on the target, and their call says they are back. Unlike other returning passengers this takes no five-star ride, and they never wait in a line, however they rate a ride. Whether the player has met them is saved with the run, and a new run meets them afresh.
+- **Not saved.** A continued run starts with none adrift; a rescued passenger is saved as anyone on board.
+
 ## Research
 
 Upgrades for the bus, bought with credits and research points.
@@ -391,7 +405,7 @@ There are three trees, all paid for with the same research points. In Sol, Frost
   | | Sol | Lyra | Draco |
   |---|---|---|---|
   | Fly past | 100 credits, 2 points | 230, 3 | 460, 7 |
-  | Errand, photo stop, warp, rock ride, sauna | 140, 2 | 320, 4 | 640, 7 |
+  | Errand, photo stop, warp, rock ride, sauna, rescue | 140, 2 | 320, 4 | 640, 7 |
 
   - **Two quests pay for one upgrade at the higher cost level of the stage that system opens** (240 and 4, 550 and 7, 1,100 and 14): a fly past and an errand together, the fly past less because it costs no stop. In Sol those are the two a new player meets before 20 deliveries.
   - Over 24 seeds in Sol the scripted player, who docks at a fly past's planet too, takes 4.0 quests in 10 minutes and finishes 3.8 for 464 credits and 7.6 points: 237 credits a minute against 200 declining them all, with the same rating and 12.7 upgrades against 11. Lyra's and Draco's amounts follow the rule and aren't measured, as balance runs never leave Sol, and nor are the Business quests.
@@ -410,6 +424,7 @@ There are three trees, all paid for with the same research points. In Sol, Frost
 - **Warp.** The caller has never been through a warp gate. It is done when the bus comes out of the far gate with them on board, through either gate, and fails when the bus docks at their destination first, or when they are kicked. Accepting adds the detour to the nearest gate's planet and the far dock. Docking at the gate's planet still counts against the stops they tolerate.
 - **Rock ride.** The caller wants a thrill: the bus flies among the asteroid field's rocks for 3 s in all with them on board, not all at once. From accepting it for the rest of their ride, every knock lifts them by as much as it costs the rest (+1), at once and in what they can reach, as a quest done does, so it stays where a shock wears off, and they dance for a moment. Accepting adds the time to the band's middle and back, and the 3 s. It fails when the bus docks at their destination first, or when they are kicked.
 - **Sauna.** The caller misses a proper sauna. It is done when the bus runs past its comfortable temperature, out of the gauge's green band (32°), with them on board, so they dance sweating. From accepting it for the rest of their ride, the heat lifts them as much as it costs everyone else (up to +3 against −3, Temperature), and their card lists it as "Sauna". Accepting adds the time to the hot zone's edge and back, and to heat up there. It fails when the bus docks at their destination first, or when they are kicked.
+- **Rescue.** A passenger picked up from a capsule (Capsules) calls with it as soon as no other call, quest or transmission is in the way, whatever the wait since the last call and however few have been delivered, from anyone in any system: get them to their destination in time. It is done when the bus docks there with them on board, and fails the moment their ride runs late (past their expected time and leeway) or when they are kicked. Accepting changes nothing about their ride. A first try: whether it is worth a call, the transmission, the decline's cost and a reward, when getting there on time is already rewarded, is untested.
 - **Express** is built but nothing gives it any more: it annoyed more than it paid. A save with one under way still loads it.
 - **Failing by reaching their destination costs the caller the 15** before they rate, so accepting a quest and flying straight on is never better than declining.
 - *(not built)* **Pick up my friend:** fetch a named passenger at another planet and deliver both.
@@ -527,7 +542,7 @@ main menu ──Play / Levels──▶ campaign ──Play / Continue / Play aga
 - **Checkpoints at planets.** The run saves whenever something it keeps has changed while the bus waits at a planet with no stop under way: after a stop, a pick-up, a kick, research, refuelling. Never in flight, so quitting in flight loses only the flight, and a continued run always starts docked.
 - **What's kept:** where each planet is on its orbit (its progress in full-speed seconds, since orbit speed changes with the bus), the bus's planet and fuel and whether its reserve tank has opened, credits, research points and ratings, researched upgrades (each by its tree and its place in it, with which layout of the trees the save was made in, so a save from before a layout changed finds its upgrades where they sit now), whether research and which stages are open, the passengers on board with their happiness, ride clock and needs, every line (who was seen, and how many not yet), who may come back, the goals' progress, the quest under way, and how many star systems are open and whether they are joined. The system the bus works in is the one its planet is in, so a run continued after a promotion still offers the jump.
 - **Nothing saves through a jump.** Quitting mid-jump keeps the save from before it.
-- **What starts afresh:** the course, the charge, the wait until the next call, what each passenger was doing (an open request opens again at once), and the lines' clocks.
+- **What starts afresh:** the course, the charge, the wait until the next call, the capsules adrift, what each passenger was doing (an open request opens again at once), and the lines' clocks.
 - **Continuing builds a new run first, then applies the save,** so a continued run starts from the same code as a new one.
 - Only a run started from the main menu is saved, so tests and a scene run on its own never touch the save.
 

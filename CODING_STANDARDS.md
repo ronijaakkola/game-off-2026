@@ -15,7 +15,7 @@ Folders are by feature:
 | `addons/` | Vendored plugins at pinned versions. Left exactly as vendored, except `addons/limbo_console.cfg`, which is the project's console config, and Phantom Camera, vendored without its `examples/` folder. |
 | `core/<system>/` | One folder per autoload: `core/events/`, `core/audio/`, `core/scene_flow/`, `core/settings/`, `core/save_game/`, `core/feedback/`, `core/cursor/`, `core/focus_ring/`, `core/online/`, `core/dev_console/`, `core/debug_panel/`, `core/fps_counter/`. |
 | `ui/` | Main menu, campaign screen (`ui/campaign/`), settings and controls screens, pause menu, the shared Theme, shared widgets. |
-| `game/<feature>/` | The game, one folder per feature: `game/asteroid_field/`, `game/bus/`, `game/feature_hints/`, `game/goals/`, `game/passengers/`, `game/quests/`, `game/research/`, `game/solar_system/`, `game/space_sky/`, `game/transmissions/`, `game/tutorial/`, `game/warp_gate/`. |
+| `game/<feature>/` | The game, one folder per feature: `game/asteroid_field/`, `game/bus/`, `game/capsules/`, `game/feature_hints/`, `game/goals/`, `game/passengers/`, `game/quests/`, `game/research/`, `game/solar_system/`, `game/space_sky/`, `game/transmissions/`, `game/tutorial/`, `game/warp_gate/`. |
 | `shared/` | Assets used by more than one feature, such as `shared/two_tone.gdshader`, and the levels with their pictures (`shared/level_art/`), which the menus and the loading screen both show. |
 | `test/` | gdUnit4 tests, and preview scenes in `test/previews/` (Visual checks and previews). |
 | `tools/` | `check.py`, `blender.py` and their helper scripts, and `research_icons/`, which renders the research upgrades' icons. Not exported. |
