@@ -56,6 +56,10 @@ _Avoid_: juice, screen effects, FX manager
 The player's preferences (volumes, mouse sensitivity and similar), kept across sessions. Never game progress. Named `Settings` in code.
 _Avoid_: options, config, preferences file
 
+**Edge scrolling**:
+The camera moving while the pointer rests at a window edge, which a setting turns off. `edge_scroll` in code, as in `Settings.edge_scroll` and `Cursor.Shape.EDGE_SCROLL`.
+_Never_: edge pan
+
 **Save game**:
 The player's run in the game itself, kept so it can be continued from the main menu: one run, saved at checkpoints while the bus waits at a planet. Named `SaveGame` in code, and `GameSaver` is what writes the run into it and puts it back.
 _Avoid_: settings, save file (ambiguous)

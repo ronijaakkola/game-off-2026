@@ -433,8 +433,8 @@ There are three trees, all paid for with the same research points. In Sol, Frost
 | Hold the right button on empty space | The point in space follows the pointer until let go, to steer by hand |
 | Backspace or Delete | Take the last stop off the route |
 | The X on a stop in the route bar | Take that stop off the route |
-| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A pointer that reaches the edge within 0.3 s of being over a panel waits 0.4 s there before it pans, so overshooting a panel's button doesn't. A setting turns edge pan off |
-| Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge pan stays out of it |
+| W A S D, arrow keys, or the pointer at a window edge | Pan the camera. A pointer that reaches the edge within 0.3 s of being over a panel waits 0.4 s there before it pans, so overshooting a panel's button doesn't. A setting turns edge scrolling off |
+| Hold the middle mouse button and move | Drag the camera: the point under the pointer when the button went down stays under it. The drag goes on past the window edge, and edge scrolling stays out of it |
 | Hold the left button on the map and move | Drag the camera as the middle button does, once the pointer has moved 4 px, so a left click still clicks. A press on a panel never drags |
 | Mouse wheel | Zoom toward the point under the pointer |
 | Esc, or the pause button | Pause |
@@ -472,7 +472,7 @@ main menu ──Play / Levels──▶ campaign ──Play / Continue / Play aga
 - **A transmission** pauses the game until the player answers it. Closing the pause menu over one leaves the game paused.
 - **The call shows who calls, once the player knows them:** The Boss always, a passenger on board always, and the mechanic from their second call in a run on, so a new run's first call from them, where they introduce themselves, comes from an unknown caller. Of the passengers, only those on board call.
 - **A caller's voice:** each race has its own set of short recorded clips (`game/transmissions/voice/`), strung together while the text types out. A race with no clips yet is silent. Every caller of a race has a pitch of their own, fixed by their name. The voice lab, from the debug panel on the main menu, is where the delivery is tuned.
-- **Settings:** Master, Music and SFX volume, Reduce motion, and Edge pan (on by default). They are saved across sessions.
+- **Settings:** Master, Music and SFX volume, Reduce motion, and Edge scrolling (on by default). They are saved across sessions.
 - On the web a title card comes before the main menu, and its click starts the music (`docs/web-constraints.md`, Audio).
 
 ## Tutorial
