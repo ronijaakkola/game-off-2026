@@ -5,6 +5,7 @@ extends GdUnitTestSuite
 ## stay on the goal panel, ticked, until the next system's goals replace them.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
+const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 
 
 ## A goal that is always met.
@@ -13,6 +14,13 @@ class MetGoal:
 
 	func is_met() -> bool:
 		return true
+
+
+# A jump that failed under the loading screen must not leave the next test paused.
+func after_test() -> void:
+	get_tree().paused = false
+	await assert_func(SceneFlow, "is_busy").wait_until(5000).is_false()
+	get_tree().root.set_disable_input(false)
 
 
 func before() -> void:
@@ -63,9 +71,20 @@ func test_the_boss_calls_once_the_goals_hold_and_answered_jumps_with_anyone_on_b
 
 	panel.accept()
 
-	var lyra := runner.find_child("Lyra") as StarSystem
-	await assert_signal(jump).wait_until(10000).is_emitted("finished", [lyra])
+	# In the black between the systems, Level 2's loading screen waits for Start.
+	var start := SceneFlow.find_child("StartButton", true, false) as Button
+	var shown := await PauseProofWait.for_condition(
+		func() -> bool: return start.is_visible_in_tree() and get_tree().paused, 20000
+	)
+	assert_bool(shown).override_failure_message("Level 2's loading screen never showed").is_true()
+	if is_failure():
+		return
 	var star_map := runner.find_child("StarMap") as StarMap
+	var lyra := runner.find_child("Lyra") as StarSystem
+	assert_object(star_map.get_current()).is_not_same(lyra)
+	start.pressed.emit()
+
+	await assert_signal(jump).wait_until(10000).is_emitted("finished", [lyra])
 	assert_object(star_map.get_current()).is_same(lyra)
 	assert_array(cabin.get_passengers()).not_contains([passenger])
 	assert_bool(boss.is_ringing()).is_false()

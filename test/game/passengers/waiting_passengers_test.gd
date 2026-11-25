@@ -283,3 +283,16 @@ func test_set_planets_says_every_line_it_empties_has_changed() -> void:
 
 	assert_int(_waiting.count_at(_home)).is_equal(0)
 	assert_array(changed).contains_exactly_in_any_order([_home, _away, next])
+
+
+func test_a_capsule_always_holds_the_castaway_who_comes_back_once_met() -> void:
+	var first := _waiting.create_adrift(Vector3(5.0, 0.0, 0.0))
+	var second := _waiting.create_adrift(Vector3(-5.0, 0.0, 0.0))
+
+	for passenger: Passenger in [first, second]:
+		assert_str(passenger.name).is_equal(Castaway.NAME)
+		assert_int(passenger.race).is_equal(Castaway.RACE)
+	assert_object(second.look.head).is_same(first.look.head)
+	assert_bool(first.returning).is_false()
+	assert_bool(second.returning).is_true()
+	assert_bool(_waiting.castaway_met).is_true()

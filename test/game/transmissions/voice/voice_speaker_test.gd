@@ -37,6 +37,30 @@ func test_a_clip_never_repeats_the_last() -> void:
 	assert_int(VoiceSpeaker.pick_index(1, 0, rng)).is_equal(0)
 
 
+func test_a_kicked_scream_is_a_kicked_clip_at_the_caller_s_pitch_and_fades_out() -> void:
+	_voice.kicked_pitch = 1.2
+	_voice.kicked_fade = 0.5
+	_speaker.play_kicked()
+	var player: AudioStreamPlayer = null
+	for node: Node in _speaker.get_children():
+		if node is AudioStreamPlayer and node.playing:
+			player = node
+	assert_object(player).is_not_null()
+	assert_bool(_voice.kicked.has(player.stream)).is_true()
+	assert_float(player.pitch_scale).is_equal_approx(_speaker.get_caller_pitch() * 1.2, 0.001)
+	assert_float(player.volume_linear).is_equal_approx(_voice.volume * _voice.kicked_volume, 0.001)
+	await await_millis(300)
+	assert_float(player.volume_linear).is_less(_voice.volume * 0.5)
+	await await_millis(400)
+	assert_bool(is_instance_valid(player)).is_false()
+
+
+func test_a_voice_without_kicked_clips_makes_no_scream() -> void:
+	_voice.kicked = []
+	_speaker.play_kicked()
+	assert_int(_playing().size()).is_equal(0)
+
+
 func test_a_caller_keeps_one_voice_inside_the_range() -> void:
 	for name: String in ["Sufoi", "Reizhis", "Mibbo", "Draz", "Olmek"]:
 		var step := VoiceSpeaker.voice_step(name, 8)
@@ -78,6 +102,7 @@ func test_a_short_word_gets_none() -> void:
 
 
 func test_no_voice_is_silent() -> void:
+	_speaker.voices.erase(Race.Type.GREEN)
 	_speaker.begin(Race.Type.GREEN, "Zhenn")
 	assert_object(_speaker.voice).is_null()
 	_speaker.letter("Hello there", 0)

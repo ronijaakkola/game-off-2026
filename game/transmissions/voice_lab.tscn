@@ -114,7 +114,7 @@ text = "Speak"
 [node name="StingerLabel" type="Label" parent="Controls/Root/Columns/Setup/Rows" unique_id=218756327]
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
-text = "Stingers"
+text = "Stingers and kicked"
 
 [node name="Stingers" type="HBoxContainer" parent="Controls/Root/Columns/Setup/Rows" unique_id=1429836745]
 layout_mode = 2
@@ -140,6 +140,13 @@ size_flags_horizontal = 3
 focus_mode = 0
 theme_type_variation = &"SmallButton"
 text = "Scared"
+
+[node name="KickedButton" type="Button" parent="Controls/Root/Columns/Setup/Rows/Stingers" unique_id=50713004]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"SmallButton"
+text = "Kicked"
 
 [node name="BackButton" type="Button" parent="Controls/Root/Columns/Setup/Rows" unique_id=541153031]
 layout_mode = 2
@@ -206,6 +213,7 @@ text = "Reset"
 [connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/Stingers/AnnoyedButton" to="." method="_on_annoyed_button_pressed"]
 [connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/Stingers/HappyButton" to="." method="_on_happy_button_pressed"]
 [connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/Stingers/ScaredButton" to="." method="_on_scared_button_pressed"]
+[connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/Stingers/KickedButton" to="." method="_on_kicked_button_pressed"]
 [connection signal="pressed" from="Controls/Root/Columns/Setup/Rows/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="pressed" from="Controls/Root/Columns/Tuning/Rows/ParamButtons/CopyButton" to="." method="_on_copy_button_pressed"]
 [connection signal="pressed" from="Controls/Root/Columns/Tuning/Rows/ParamButtons/ResetButton" to="." method="_on_reset_button_pressed"]

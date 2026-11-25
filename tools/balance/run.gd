@@ -88,6 +88,8 @@ func _ready() -> void:
 	# Unless told where to, nobody is promoted, so the run stays on the first research
 	# stage after the goals.
 	_progression.promotes = _config.has("promote_to")
+	# Nobody is there to press Start.
+	_jump.shows_loading_screen = false
 	_jump.finished.connect(_on_jumped)
 	var first := _star_map.get_current()
 	_ledger = _system.get_ledger()
@@ -99,6 +101,7 @@ func _ready() -> void:
 	var seed_value := int(_config.get("seed", 1))
 	_waiting.seed_dice(seed_value)
 	(_system.get_node(^"%QuestGiver") as QuestGiver).seed_dice(seed_value + 104729)
+	(_system.get_node(^"%CapsuleField") as CapsuleField).seed_dice(seed_value + 130363)
 	_waiting.start(_planets, _bus.get_docked_planet(), _ledger)
 	_player = Player.new(_config.get("policy", {}), seed_value + 7919)
 	_think_left = float(_player.policy.get("dock_think", 3.0))

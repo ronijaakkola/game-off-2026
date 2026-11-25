@@ -34,6 +34,8 @@ const DEBUG_GROUP := "Star systems"
 @export var goals: GoalTracker
 @export var waiting: WaitingPassengers
 @export var quest_giver: QuestGiver
+## Its capsules start afresh in each system, paying by it.
+@export var capsules: CapsuleField
 @export var notices: NoticeStack
 @export var cabin: Cabin
 ## Its tank fills as it jumps into a system.
@@ -133,14 +135,16 @@ func advance() -> void:
 	system_jump.start(star_map.get_jump_target())
 
 
-# Passengers call with quests about [param planets], which pay by the system the bus works
-# in: the last one once they are joined.
+# Passengers call with quests about [param planets], and capsules drift, which pay by the
+# system the bus works in: the last one once they are joined.
 func _start_quests(planets: Array[Planet]) -> void:
 	var systems := star_map.get_systems()
 	var level := systems.find(star_map.get_current())
 	if star_map.is_joined():
 		level = systems.size() - 1
 	quest_giver.start(planets, ledger, waiting, level)
+	if capsules:
+		capsules.start(ledger, level)
 
 
 func _join() -> void:

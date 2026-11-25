@@ -80,6 +80,9 @@ var ledger: Ledger
 ## Whether a line has been decided at the bus's stop past the first star system. Until
 ## then, the first passenger decided in every line there is Business.
 var first_business_dealt := false
+## Whether the player has rescued the [Castaway] in this run, so they come back as a
+## returning passenger.
+var castaway_met := false
 
 var _rng := RandomNumberGenerator.new()
 var _planets: Array[Planet] = []
@@ -135,9 +138,10 @@ func get_returning() -> ReturningPassengers:
 
 
 ## [param passenger] got off at their destination: after a five-star ride they may come
-## back later, by [member return_chance].
+## back later, by [member return_chance]. Never the [Castaway], who only ever drifts.
 func remember(passenger: Passenger) -> void:
-	_returning.remember(passenger, return_chance)
+	if not Castaway.is_castaway(passenger):
+		_returning.remember(passenger, return_chance)
 
 
 ## The planets passengers wait at and travel between. Starts every planet empty, those
@@ -314,6 +318,27 @@ func create(origin: Planet) -> Passenger:
 	else:
 		passenger.race = _deal_race()
 		passenger.look = AlienLook.random(_rng, passenger.race)
+	return passenger
+
+
+## The [Castaway], stranded in a capsule adrift at [param at]: the first ordinary type,
+## going to any planet, with their fare and trip time from there, flown without a charge,
+## and a returning passenger once [member castaway_met]. Null when there is no planet or no
+## type.
+func create_adrift(at: Vector3) -> Passenger:
+	var destination := _pick_destination(null, [])
+	if not destination or types.is_empty():
+		return null
+	var distance := at.distance_to(destination.get_body_global_position())
+	var passenger := Passenger.new(
+		types[0],
+		destination,
+		get_trip_seconds(distance, true),
+		distance * get_fare_per_unit(),
+		_rng
+	)
+	Castaway.dress(passenger, castaway_met)
+	castaway_met = true
 	return passenger
 
 

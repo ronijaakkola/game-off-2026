@@ -2,7 +2,7 @@ extends Control
 ## The main scene: the logo over the menus' background, and under it the main menu's
 ## slanted buttons. With no level in progress Play opens the campaign screen; with one,
 ## Continue plays it straight away and names it, and Levels opens the campaign screen.
-## Settings and Controls open their screens over the background, the menu's rows
+## Settings, Controls and Credits open their screens over the background, the menu's rows
 ## staggering out as they come in ([MenuScreen]), and the campaign screen pans the
 ## background to its other half as it opens. On the web, a "Click to start" title
 ## card comes first, because Safari starts audio only after a click in the game.
@@ -91,6 +91,10 @@ func _on_settings_button_pressed() -> void:
 
 func _on_controls_button_pressed() -> void:
 	%ControlsScreen.open(%Home, _rows)
+
+
+func _on_credits_button_pressed() -> void:
+	%CreditsScreen.open(%Home, _rows)
 
 
 # Reset from the settings screen: the menu under it shows as on a first visit. Its

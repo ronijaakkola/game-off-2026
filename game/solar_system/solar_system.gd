@@ -39,7 +39,8 @@ extends Node3D
 ## can be clicked while it jumps.
 ## How fast the planets orbit is the [OrbitClock]'s.
 
-## The border's width on screen, in pixels at the base window height.
+## The bus's border's width on screen, in pixels at the base window height. A planet's is
+## [constant Planet.BORDER_PIXELS].
 const OUTLINE_PIXELS := 3.0
 ## How tall a planet's name is on screen, in pixels at the base window height.
 const LABEL_PIXELS := 13.0
@@ -192,7 +193,7 @@ func _process(delta: float) -> void:
 			planet.border = Planet.Border.NONE
 		if planet.border != Planet.Border.NONE:
 			planet.outline_width = _pixels_to_world(
-				OUTLINE_PIXELS, planet.get_body_global_position()
+				Planet.BORDER_SHELL_PIXELS, planet.get_body_global_position()
 			)
 
 
@@ -429,7 +430,7 @@ func _on_kicked(passenger: Passenger) -> void:
 	figure.light_source = bus.get_model().light_source
 	add_child(figure)
 	var door := bus.global_transform * FrameshiftBus.DOOR
-	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color)
+	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color, passenger)
 
 
 # The bus jumps to the next star system: whatever is open closes.

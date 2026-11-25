@@ -180,13 +180,14 @@ func test_a_chevron_shown_holds_until_the_trend_drops_clearly_under_its_step() -
 	assert_int(_chevrons(card).count).is_equal(1)
 
 
-func test_a_new_request_is_heard_as_a_psst() -> void:
+func test_a_new_request_is_called_out_in_the_annoyed_stinger() -> void:
 	var card := _card(1.0)
+	card.passenger.race = Race.Type.BLUE
 	await await_idle_frame()
 	_hush()
 	card.passenger.ask_for(COMMUTER.needs[0])
 	await await_idle_frame()
-	assert_bool(_psst_playing()).is_true()
+	assert_bool(_stinger_playing(card)).is_true()
 
 
 func test_a_request_open_when_the_game_was_saved_stays_silent_on_load() -> void:
@@ -198,6 +199,7 @@ func test_a_request_open_when_the_game_was_saved_stays_silent_on_load() -> void:
 	var planets: Dictionary[String, Planet] = {"Frost": planet}
 	var card: PassengerCard = auto_free(SCENE.instantiate())
 	card.passenger = Passenger.from_save(asking.to_save(), types, planets)
+	card.passenger.race = Race.Type.BLUE
 	add_child(card)
 	await await_idle_frame()
 	_hush()
@@ -205,7 +207,7 @@ func test_a_request_open_when_the_game_was_saved_stays_silent_on_load() -> void:
 	card.passenger.tick(0.1, false)
 	await await_idle_frame()
 	assert_object(card.passenger.request).is_not_null()
-	assert_bool(_psst_playing()).is_false()
+	assert_bool(_stinger_playing(card)).is_false()
 
 
 func _card(happiness_fraction: float) -> PassengerCard:
@@ -247,10 +249,12 @@ func _hush() -> void:
 			(node as AudioStreamPlayer).stop()
 
 
-func _psst_playing() -> bool:
-	for node: Node in Audio.get_children():
-		if node is AudioStreamPlayer:
-			var sound := node as AudioStreamPlayer
-			if sound.playing and sound.stream in Psst.CLIPS:
-				return true
+func _stinger_playing(card: PassengerCard) -> bool:
+	var stingers := VoiceSpeaker.VOICES[card.passenger.race].get_stingers(Voice.Stinger.ANNOYED)
+	for node: Node in card.get_children():
+		if node is VoiceSpeaker:
+			for player: Node in node.get_children():
+				var sound := player as AudioStreamPlayer
+				if sound and sound.playing and sound.stream in stingers:
+					return true
 	return false

@@ -3,11 +3,10 @@ extends Node3D
 ## A passenger kicked off the bus: a small, soft human figure in a star jump, arms and
 ## legs spread, all in their skin colour, thrown out of the bus's door. It flies off,
 ## slowing as it goes and tumbling, then shrinks away and frees itself. Under Reduce motion
-## it is still thrown, but doesn't tumble. It screams as it goes, quietly, and the scream
-## fades out fast, as if it flew away from the bus.
+## it is still thrown, but doesn't tumble. It screams as it goes, in its race's voice, and
+## the scream fades out fast, as if it flew away from the bus.
 
 const SHADER := preload("res://shared/two_tone.gdshader")
-const SCREAM := preload("res://game/passengers/wilhelm_scream.ogg")
 
 ## How fast it leaves the door, out of it and upward, in units per second.
 @export_range(0.0, 5.0, 0.05) var throw_speed := 0.5
@@ -19,8 +18,6 @@ const SCREAM := preload("res://game/passengers/wilhelm_scream.ogg")
 ## Seconds it flies before it shrinks away, and the seconds the shrink takes.
 @export_range(0.0, 10.0, 0.1) var flight_seconds := 4.0
 @export_range(0.05, 2.0, 0.05) var shrink_seconds := 0.35
-## The seconds the scream, which starts at its mixed level, takes to fade out.
-@export_range(0.1, 5.0, 0.05) var scream_fade_seconds := 1.6
 
 ## Where the star that lights it is, in global space. Set before [method throw].
 var light_source := Vector3.ZERO
@@ -29,12 +26,11 @@ var _velocity := Vector3.ZERO
 var _spin_axis := Vector3.RIGHT
 var _spin := 0.0
 var _vanish: Tween
-var _scream_fade: Tween
 
 
 ## Throws the figure out of a door at [param from] (global space), along [param out], the
-## way out of it, in [param color].
-func throw(from: Vector3, out: Vector3, color: Color) -> void:
+## way out of it, in [param color]. It screams as [param passenger] would.
+func throw(from: Vector3, out: Vector3, color: Color, passenger: Passenger) -> void:
 	global_position = from
 	var material := ShaderMaterial.new()
 	material.shader = SHADER
@@ -58,27 +54,9 @@ func throw(from: Vector3, out: Vector3, color: Color) -> void:
 		. set_ease(Tween.EASE_IN)
 	)
 	_vanish.tween_callback(queue_free)
-	_scream()
-
-
-# Plays the scream on the figure's own player, so it can fade without touching the shared
-# sound effects. It fades fastest at first, as a sound does flying away.
-func _scream() -> void:
-	var player := AudioStreamPlayer.new()
-	player.stream = SCREAM
-	player.bus = Audio.BUS_NAMES[Audio.Bus.SFX]
-	player.volume_linear = Audio.get_clip_volume(SCREAM)
-	add_child(player)
-	player.play()
-	if _scream_fade:
-		_scream_fade.kill()
-	_scream_fade = create_tween()
-	(
-		_scream_fade
-		. tween_property(player, ^"volume_linear", 0.0, scream_fade_seconds)
-		. set_trans(Tween.TRANS_QUAD)
-		. set_ease(Tween.EASE_OUT)
-	)
+	var speaker := %Speaker as VoiceSpeaker
+	speaker.begin(passenger.race, passenger.name)
+	speaker.play_kicked()
 
 
 func _process(delta: float) -> void:
