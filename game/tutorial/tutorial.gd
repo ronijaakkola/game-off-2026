@@ -28,7 +28,7 @@ extends Node
 ## [TutorialRules]'.
 ## Through it, only home and the destination have lines, with the one passenger at home,
 ## and nobody joins or leaves a line. The passenger asks for nothing but the snack. The
-## debug panel's Skip tutorial finishes it at once.
+## debug panel's Skip tutorial, on its Progress card, finishes it at once.
 
 ## The tutorial is over, done or skipped. The lines run again.
 signal finished
@@ -106,6 +106,8 @@ var waiting: WaitingPassengers
 
 var _step := Step.DONE
 var _running := false
+# The debug panel's Skip tutorial, null with the panel off.
+var _skip_button: Button
 # The passenger the tutorial is about, on their ride, and their card once they get off.
 var _ride: TutorialRide
 var _card: PassengerCard
@@ -128,7 +130,9 @@ var _camera: CameraWatch
 
 func _ready() -> void:
 	set_process(false)
-	DebugPanel.add_button("Skip tutorial", _debug_skip_tutorial, self)
+	var group := Progression.DEBUG_GROUP
+	_skip_button = DebugPanel.add_button("Skip tutorial", _debug_skip_tutorial, self, group)
+	_show_skippable()
 
 
 func _process(_delta: float) -> void:
@@ -189,6 +193,7 @@ func _process(_delta: float) -> void:
 ## passenger at home.
 func start() -> void:
 	_running = true
+	_show_skippable()
 	_goal = destination
 	rig.locked = true
 	_cards = TutorialCards.new(guide)
@@ -451,6 +456,7 @@ func _finish() -> void:
 	if not _running:
 		return
 	_running = false
+	_show_skippable()
 	hud.cover()
 	_empty_home_line()
 	lab_badges.hide()
@@ -481,3 +487,9 @@ func _empty_home_line() -> void:
 # Skip tutorial: finishes it, and the map zooms out.
 func _debug_skip_tutorial() -> void:
 	skip()
+
+
+# Skip tutorial is grey unless the tutorial runs, as there is nothing to skip.
+func _show_skippable() -> void:
+	if _skip_button:
+		_skip_button.disabled = not _running
