@@ -47,6 +47,19 @@ theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 4
 columns = 2
 
+[node name="GroupsLabel" type="Label" parent="Root/Cards/Card/Rows" unique_id=1779604741]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"FaintLabel"
+text = "Sections"
+
+[node name="Groups" type="GridContainer" parent="Root/Cards/Card/Rows" unique_id=255436937]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 2
+
 [node name="EmptyLabel" type="Label" parent="Root/Cards/Card/Rows" unique_id=1458485150]
 unique_name_in_owner = true
 layout_mode = 2

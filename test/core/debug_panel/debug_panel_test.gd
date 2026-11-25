@@ -50,19 +50,28 @@ func test_a_groups_buttons_go_on_their_own_card_that_its_toggle_opens() -> void:
 	var runner := scene_runner(SCENE)
 	var panel := runner.scene()
 	var buttons := runner.find_child("Buttons") as Container
+	var groups := runner.find_child("Groups") as Container
+	var groups_label := runner.find_child("GroupsLabel") as Control
 	var cards := runner.find_child("Cards") as Container
 	var scene := Node.new()
 	add_child(scene)
 
 	panel.call(&"add_button", "General", func() -> void: pass, scene)
+	assert_bool(groups_label.visible).is_false()
 	panel.call(&"add_button", "+1 seat", func() -> void: pass, scene, "Stats")
 	panel.call(&"add_button", "-1 seat", func() -> void: pass, scene, "Stats")
 
-	# The main card has the general button and the group's toggle; the group's own card
-	# sits to its right, shut.
-	assert_int(buttons.get_child_count()).is_equal(2)
-	var toggle := buttons.get_child(1) as Button
+	# The main card has the general button, and the group's toggle under Sections below
+	# it; the group's own card sits to its right, shut.
+	assert_int(buttons.get_child_count()).is_equal(1)
+	assert_int(groups.get_child_count()).is_equal(1)
+	assert_bool(groups_label.visible).is_true()
+	var toggle := groups.get_child(0) as Button
 	assert_str(toggle.text).is_equal("Stats")
+	assert_str((toggle.get_child(0) as Label).text).is_equal("›")
+	# The general button and the toggle are as wide as each other, so the columns line up.
+	var general := buttons.get_child(0) as Button
+	assert_float(toggle.custom_minimum_size.x).is_equal(general.custom_minimum_size.x)
 	assert_int(cards.get_child_count()).is_equal(2)
 	var stats_card := cards.get_child(1) as Control
 	assert_bool(stats_card.visible).is_false()
@@ -77,6 +86,8 @@ func test_a_groups_buttons_go_on_their_own_card_that_its_toggle_opens() -> void:
 	scene.free()
 	await runner.simulate_frames(2)
 	assert_int(buttons.get_child_count()).is_equal(0)
+	assert_int(groups.get_child_count()).is_equal(0)
+	assert_bool(groups_label.visible).is_false()
 	assert_int(cards.get_child_count()).is_equal(1)
 
 
