@@ -132,12 +132,11 @@ const CARDS := {
 	},
 	"SPOT":
 	{
-		title = "Fly anywhere",
+		title = "Capsules",
 		text =
 		(
-			"There are no passengers waiting here. You can also fly to any point in space, "
-			+ "for example to steer clear of hazards. Right click {mouse_right} the marked spot "
-			+ "to fly there."
+			"Capsules sometimes drift in space, and they can hold all kinds of valuables. "
+			+ "Right click {mouse_right} this one to fly to it and pick it up."
 		),
 		side = GuideCard.Side.ABOVE,
 		got_it = false,

@@ -8,11 +8,11 @@ extends Node
 ## it says: the bus, trying the camera, the passenger waiting at home, their card in the On
 ## board panel they come into with its happiness bar, setting a course to the destination,
 ## charging the drive, serving the snack the passenger asks for halfway, the stars they rate
-## the ride, the fare they pay, refuelling, and the way home by way of a point in space
-## ([WayHome]), with a word at home on chaining stops. Then The Boss calls again, and once
-## the player answers, the HUD goes and it is over; once the map has zoomed out, The Boss's
-## first-shift call brings the HUD back ([FirstShiftCall]). Research comes later, with the
-## mechanic's first call ([MechanicCall], [ResearchGuide]).
+## the ride, the fare they pay, refuelling, and the way home by way of a capsule of credits
+## adrift in space ([WayHome]), with a word at home on chaining stops. Then The Boss calls
+## again, and once the player answers, the HUD goes and it is over; once the map has zoomed
+## out, The Boss's first-shift call brings the HUD back ([FirstShiftCall]). Research comes
+## later, with the mechanic's first call ([MechanicCall], [ResearchGuide]).
 ## Most steps wait for the player to do something in the game; one that only tells them
 ## something has a Got it button. The snack and the stars pause the game, and the
 ## portraits keep moving. The cards are [TutorialCards].
@@ -94,6 +94,8 @@ const RIDE_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE, Step.FL
 @export var hud: HudLayout
 ## The camera, which holds still through the call.
 @export var rig: CameraRig
+## Where the capsule on the way home drifts ([WayHome]).
+@export var capsules: CapsuleField
 ## Hidden throughout.
 @export var lab_badges: LabBadges
 ## Offers to skip it while it runs.
@@ -211,7 +213,7 @@ func is_running() -> bool:
 
 ## The stop to add for the player's click on [param stop], or null when they may not: only
 ## where the step heads, while it asks for the course, and on the way home only the route
-## it asks for, a waypoint snapped to its marked spot. Its courses go exactly where it asks,
+## it asks for, a waypoint snapped to the capsule's spot. Its courses go exactly where it asks,
 ## so a held right button doesn't steer them.
 func fit_course(stop: RouteStop) -> RouteStop:
 	if not _running:

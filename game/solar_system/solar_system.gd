@@ -345,6 +345,7 @@ func _start_passengers() -> void:
 	(%Goals as GoalTracker).ledger = _ledger
 	var progression := %Progression as Progression
 	progression.ledger = _ledger
+	(%CapsuleField as CapsuleField).ledger = _ledger
 	if not (%MapZoom as MapZoom).is_zoomed():
 		progression.start()
 	var lab := %ResearchLab as ResearchLab
