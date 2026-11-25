@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 ## Quests in the solar system: what ends one as the bus docks, what that costs the
-## passenger who asked, and that one under way comes back from a save.
+## passenger who asked, and that one of any kind under way comes back from a save.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -72,29 +72,43 @@ func test_docking_where_an_express_quest_sent_them_completes_it_before_they_rate
 	assert_float(passenger.happiness).is_equal_approx(before + giver.done_happiness, 0.01)
 
 
-func test_a_fly_past_and_an_errand_come_back_from_a_save() -> void:
+func test_every_kind_of_quest_under_way_comes_back_from_a_save() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
 	var bus := runner.find_child("Bus") as FrameshiftBus
+	var cabin := runner.find_child("Cabin") as Cabin
+	var giver := runner.find_child("QuestGiver") as QuestGiver
 	var passenger := await _board_someone(runner)
 	var planet := _other_planet(runner, passenger, bus)
 	var by_name: Dictionary[String, Planet] = {String(planet.name): planet}
-	var flyby := FlybyQuest.new()
-	flyby.passenger = passenger
-	flyby.planet = planet
-	flyby.accept()
-	var quests: Array[Quest] = [flyby, _errand(passenger, planet)]
-	for quest: Quest in quests:
-		var saved := quest.to_save()
-		var back: Quest = ErrandQuest.new()
-		if saved["kind"] == FlybyQuest.KIND:
-			back = FlybyQuest.new()
+	var on_board := cabin.get_passengers()
+	for script: GDScript in QuestKinds.ALL:
+		var quest := script.new() as Quest
+		quest.passenger = passenger
+		if quest is FlybyQuest:
+			(quest as FlybyQuest).planet = planet
+		elif quest is ErrandQuest:
+			(quest as ErrandQuest).planet = planet
+		elif quest is ExpressQuest:
+			(quest as ExpressQuest).planet = planet
+		quest.reward_credits = 100
+		quest.accept()
+		giver.take_on(quest)
+		var saved := giver.to_save(on_board)
+		cabin.fondness.forget(passenger)
 
-		assert_bool(back.restore(saved, passenger, by_name)).is_true()
+		giver.load_save(saved, on_board, by_name)
 
-		assert_object(back.get_planet()).is_same(planet)
+		var back := giver.get_quests().back() as Quest
+		assert_object(back).is_not_same(quest)
+		assert_object(back.get_script()).is_same(script)
+		assert_object(back.get_planet()).is_same(quest.get_planet())
 		assert_str(back.goal.get_text()).is_equal(quest.goal.get_text())
-		assert_int(back.reward_credits).is_equal(quest.reward_credits)
+		assert_int(back.reward_credits).is_equal(100)
+		var rocks := cabin.fondness.has(passenger, Fondness.Kind.ROCKS)
+		assert_bool(rocks).is_equal(quest is RockRideQuest)
+		var heat := cabin.fondness.has(passenger, Fondness.Kind.HEAT)
+		assert_bool(heat).is_equal(quest is SaunaQuest)
 
 
 # Someone waiting where the bus is docked, on board, with nobody calling meanwhile.
