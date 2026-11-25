@@ -74,6 +74,9 @@ const ROUGH_RIDE := "Rough ride!"
 @export_range(0.0, 5.0, 0.05) var open_spot := 1.3
 ## How far above or below the orbit plane the rocks reach, at the band's middle.
 @export_range(0.0, 2.0, 0.01) var height := 0.35
+## The rocks' colour, and the tint of their night side.
+@export var rock_color := Color(0.831, 0.925, 1.0)
+@export var shadow_color := Color(0.541, 0.651, 0.902)
 
 # The cap it puts on the bus's speed, easing down to rough_speed among the rocks.
 var _cap := INF
@@ -85,6 +88,12 @@ func _ready() -> void:
 	process_priority = 1
 	if not belt:
 		belt = AsteroidBelt.new()
+	# Its own copy of the scene's material, so each field has its own colours and star.
+	var material := (%Rocks as MultiMeshInstance3D).material_override.duplicate() as ShaderMaterial
+	material.set_shader_parameter(&"color", rock_color)
+	material.set_shader_parameter(&"shadow_color", shadow_color)
+	(%Rocks as MultiMeshInstance3D).material_override = material
+	(%Pebbles as MultiMeshInstance3D).material_override = material
 	var rng := RandomNumberGenerator.new()
 	rng.seed = rock_seed
 	(%Rocks as MultiMeshInstance3D).multimesh = RockScatter.scatter(

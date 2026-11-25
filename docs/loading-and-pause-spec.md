@@ -38,7 +38,7 @@ Two renders, 2304 × 1296, 16:9. Each is a level's loading image, and its card i
 
 | Level | Name in the design | Star system | Picture |
 |---|---|---|---|
-| 1 | Your first shift | Sol | The bus coming from the Moon towards Terra |
+| 1 | Your first shift | Vela | The bus coming from the Moon towards Terra |
 | 2 | Rough ride | Lyra | The bus in the asteroid field, Brume behind |
 | 3 | Return to home | not decided | None yet |
 
@@ -181,7 +181,7 @@ The main menu's layout from the spec (`D662E`), with "Paused" where the logo sit
 
 1. **Pause menu, new look.** The backdrop, the slanted layout, "Paused", and Skip tutorial's new place. The slanted plate doesn't exist yet: build it once in `ui/`, for the main menu to reuse later. Settings opens today's settings panel unchanged; its new look in the spec is separate work.
 2. **Level pictures into the repo,** with their crops.
-3. **Loading screen.** Needs to know which level is loading. Until the campaign screen exists, pick the picture by the star system the run starts or continues in: level 1's for Sol, level 2's for Lyra, the black card for any other.
+3. **Loading screen.** Needs to know which level is loading. Until the campaign screen exists, pick the picture by the star system the run starts or continues in: level 1's for Vela, level 2's for Lyra, the black card for any other.
 4. **Waiting on other work:** the Controls button needs the controls screen; Restart level needs levels and the confirm dialog; the card crops are used by the campaign screen. Leave each out until its screen exists; don't stub them.
 
 Each of 1 to 3 can be its own PR.

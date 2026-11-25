@@ -1,6 +1,6 @@
 extends Node
-## The solar system right after a promotion in Sol, jumping to Lyra, for capturing the jump.
-## With "join" after `--`, it goes on: promoted in Lyra, it jumps to Draco, and promoted
+## The solar system right after a promotion in Vela, jumping to Lyra, for capturing the jump.
+## With "join" after `--`, it goes on: promoted in Lyra, it jumps to Sol, and promoted
 ## there, it joins every system. With "loading", the jump stops where the player's does, on
 ## the next level's loading screen: `capture <this scene> --frames 400 -- loading`. Without,
 ## nothing waits for Start, so the jump plays through.
