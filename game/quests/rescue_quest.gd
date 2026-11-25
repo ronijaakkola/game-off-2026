@@ -1,25 +1,26 @@
 class_name RescueQuest
 extends Quest
-## A quest from a passenger the bus picked up from a capsule adrift ([CapsuleField]): get
-## them to where they are going before they expect to get there ([RescueGoal]). Accepting
-## changes nothing about their ride; it only puts a reward on getting them there in time.
+## A quest from the [Castaway], out of a capsule the bus collected ([CapsuleField]): take
+## them on board and get them to where they are going before they expect to get there
+## ([RescueGoal]). Accepting boards them ([QuestGiver]) and puts a reward on getting them
+## there in time; declined, they stay adrift.
 
 const KIND := "rescue"
 ## What it pays in each star system, in the order they open: credits and research points.
 const REWARD_CREDITS: Array[int] = [140, 320, 640]
 const REWARD_RESEARCH: Array[int] = [2, 4, 7]
 const LINES: Array[String] = [
-	"Thanks for picking me up! My air was nearly out. Can you get me to %s in good time?",
-	"I've been drifting for hours! My family on %s must be worried sick. Could you hurry?",
-	"You saved me! My ship broke down on the way to %s. Can you get me there quickly?",
-	"I thought nobody would ever come! Please, get me to %s before they give up on me.",
+	"Oh, hello. Lovely out here, isn't it? I'm due on %s, though. In good time, if you can?",
+	"Is it Tuesday already? I only meant to float a while. Could you drop me at %s soon?",
+	"Such a quiet little capsule. But %s is expecting me, I think. Could you hurry a bit?",
+	"Ground control stopped answering ages ago. Would you take me to %s? Quickly, ideally.",
 ]
 ## What the [Castaway] says once the player has rescued them before.
 const RETURNING_LINES: Array[String] = [
-	"You again! I swear the hatch opens by itself. Could you get me to %s in good time?",
-	"Adrift again, would you believe it? Thanks for coming back for me. To %s, quickly?",
-	"I knew you'd find me! My new capsule is worse than the last. Please hurry me to %s.",
-	"Me again, sorry! I only stepped out for some air. Can you rush me to %s?",
+	"Ah, it's you. I drifted off again, in every sense. %s once more, in good time?",
+	"We must stop meeting like this. It is peaceful, mind. Could you hurry me to %s?",
+	"I had a fresh capsule and everything. Never mind. To %s, quickly, if you would?",
+	"Back so soon? I was just getting comfortable. %s, please, and no dawdling.",
 ]
 
 var _line := ""
