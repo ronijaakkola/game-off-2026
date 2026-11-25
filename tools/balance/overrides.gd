@@ -18,8 +18,7 @@ extends RefCounted
 ## "after_tutorial" (true unless set false) starts where a new run starts once the
 ## tutorial is over: docked at its destination (the Moon) facing home, on a full tank, with
 ## nothing researched, the credits its ride and capsule paid and the research point the ride
-## paid. False starts
-## as the scene does on its own: docked at Ember, with nothing.
+## paid. False starts as the scene does on its own: docked at Ember, with nothing.
 
 const COMMUTER := "res://game/passengers/types/commuter.tres"
 const BUSINESS := "res://game/passengers/types/business.tres"
