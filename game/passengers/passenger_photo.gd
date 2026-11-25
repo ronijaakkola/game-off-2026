@@ -124,7 +124,12 @@ func _show() -> void:
 	_show_badges()
 	if not passenger:
 		return
-	_backdrop().set_shader_parameter(&"backdrop_color", Race.BACKDROP_COLORS[passenger.race])
+	var adrift := Castaway.is_castaway(passenger)
+	var color := (
+		Castaway.get_space_color(passenger) if adrift else Race.BACKDROP_COLORS[passenger.race]
+	)
+	_backdrop().set_shader_parameter(&"backdrop_color", color)
+	_backdrop().set_shader_parameter(&"space", adrift)
 	if studio and not _photo and is_inside_tree():
 		studio.lend(self, passenger.look, passenger.type, _on_lent)
 

@@ -141,7 +141,7 @@ The guide cards that show the player how to research, once, after the **mechanic
 _Avoid_: research tutorial
 
 **Zoomed map**:
-The map zoomed in on Terra and the Moon for the tutorial: the star and the planets scaled up together, so the Moon is as far out as a trip across the whole map, while the bus keeps its size and speed. The **zoom out** shrinks it back to the whole solar system. `MapZoom` in code; the node it scales is Sol's `StarSystem`.
+The map zoomed in on Terra and the Moon for the tutorial: the star and the planets scaled up together, so the Moon is as far out as a trip across the whole map, while the bus keeps its size and speed. The **zoom out** shrinks it back to the whole solar system. `MapZoom` in code; the node it scales is Vela's `StarSystem`.
 _Avoid_: mini map, small map
 
 **Passenger**:
@@ -191,11 +191,11 @@ What one passenger asks of the player mid-ride, in a transmission, for a reward.
 _Avoid_: task, mission, errand (for any quest: it is the one kind)
 
 **Capsule**:
-A small capsule drifting in space, holding credits, research points or the **castaway**, which the bus collects by flying into it. Not a stop: the route never follows one. `Capsule` in code; the `CapsuleField` makes them, drifts them and hands out what they hold.
+A small capsule drifting in space, holding credits, research points, fuel or the **castaway**, which the bus collects by flying into it. Not a stop: the route never follows one. `Capsule` in code; the `CapsuleField` makes them, drifts them and hands out what they hold.
 _Avoid_: pickup, loot, crate, pod
 
 **Castaway**:
-The one passenger a capsule ever holds, always the same person, who keeps drifting off in space. Rescued again in a run, they come back as a **returning passenger**, and never wait in a line. `Castaway` in code.
+The one passenger a capsule ever holds, always the same person, who keeps drifting off in space and turns up once in each star system. Rescued again in a run, they come back as a **returning passenger**, and never wait in a line. `Castaway` in code.
 _Avoid_: survivor, stranded passenger
 
 **Transmission**:
@@ -223,7 +223,7 @@ _Never_: tech tree, skill tree
 A band of rows across every research tree, opened one at a time: the first with research, each next one by the **mechanic's** call in the next star system. `Research.get_stage()` in code.
 
 **Mechanic**:
-The company's mechanic, who calls in a **transmission** to open research: every research tree at once in Sol, then the next **stage** of every tree in each star system after it. `MechanicCall` in code.
+The company's mechanic, who calls in a **transmission** to open research: every research tree at once in Vela, then the next **stage** of every tree in each star system after it. `MechanicCall` in code.
 
 **Lab**:
 What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
@@ -232,11 +232,11 @@ What lets a planet research: docked or charging there, the player opens the rese
 What the player earns by meeting every goal a star system gives at once, with The Boss's call: it opens the next star system and jumps there, or joins every system after the last one. `Progression.advance()` in code, which calls `promote()`.
 
 **Star system**:
-A star and the planets round it, one of several in the same space: Sol, Lyra and Draco. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
+A star and the planets round it, one of several in the same space: Vela, Lyra and Sol. The bus works in one at a time until a promotion in the last one **joins** them, and then flies between them. `StarSystem` in code, kept in order by the `StarMap`. The game's scene, which holds them all, is still `SolarSystem`.
 _Avoid_: level (the stage of the run played in one), galaxy, sector, stage (a band of research rows)
 
 **Level**:
-The stage of the run played in one star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in Draco. It is **done** once a promotion there opens the next system, and the next level is **open** once the one before is done. `Level` in code, a resource in `shared/level_art/` with its name and picture.
+The stage of the run played in one star system: Level 1 in Vela, Level 2 in Lyra, Level 3 in Sol. It is **done** once a promotion there opens the next system, and the next level is **open** once the one before is done. `Level` in code, a resource in `shared/level_art/` with its name and picture.
 _Avoid_: mission, stage (a band of research rows), chapter
 
 **Campaign**:

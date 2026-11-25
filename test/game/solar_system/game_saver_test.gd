@@ -70,7 +70,7 @@ func _upgrade_at(lab: ResearchLab, tree_title: String, tier: int, column: int) -
 
 func test_the_first_save_in_a_new_system_keeps_the_run_as_its_level_began() -> void:
 	SaveGame.delete()
-	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Sol")})
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Vela")})
 	SaveGame.continue_saved()
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
@@ -107,7 +107,7 @@ func test_starting_level_2_from_its_kept_start_docks_in_lyra() -> void:
 	var start := {SavedStarMap.KEY: SavedStarMap.make(2, false, "Lyra")}
 	start["bus_planet"] = "Hither"
 	SaveGame.write_campaign({"done": 1, "starts": {"2": start}})
-	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(1, false, "Sol")})
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(1, false, "Vela")})
 	Campaign._start(load("res://shared/level_art/level_2.tres"), false)
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)

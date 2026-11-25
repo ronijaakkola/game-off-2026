@@ -23,8 +23,9 @@ const HINTS_PATH := "user://feature_hints.cfg"
 ## Where the campaign's record is kept.
 const CAMPAIGN_PATH := "user://campaign.json"
 ## Bumped when what the game writes changes so that an older save can't be read: a save
-## of another version counts as none.
-const VERSION := 1
+## of another version counts as none. 2: Level 1's star system took a new name and Sol
+## became Level 3's, and the campaign finds a run's level by that name.
+const VERSION := 2
 
 ## Every file the save game keeps, each deleted by [method delete]. A new file's path
 ## goes here too, or deleting the save data leaves it behind (save_game_test checks).

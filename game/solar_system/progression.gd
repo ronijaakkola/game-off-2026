@@ -2,10 +2,12 @@ class_name Progression
 extends Node
 ## The player's way through the star systems ([StarMap]). Each system gives the goals a
 ## promotion takes there, and once they have all held at once for [constant CALL_DELAY]
-## seconds of play, The Boss calls with the promotion ([GoalsMetCall]). Answered, the goals
-## stay on show as they stand, the next system opens, and the [SystemJump] takes the bus
-## across at once, from wherever it is, after any stop under way; whoever is still on board
-## stays behind, paying and rating nothing. There the lines start at the new system's
+## seconds of play, The Boss calls with the promotion ([GoalsMetCall]). Answered with the
+## jump, the goals stay on show as they stand, the next system opens, and the [SystemJump]
+## takes the bus across at once, from wherever it is, after any stop under way; whoever is
+## still on board stays behind, paying and rating nothing. Answered with a stay, the next
+## system opens but the bus stays, and the goals give way to a button on the goal panel
+## that takes the jump whenever the player presses it. There the lines start at the new system's
 ## planets, its goals replace the old ones, and The Boss calls about the system
 ## ([FirstShiftCall]); a few deliveries later the mechanic calls with the next research
 ## stage ([MechanicCall]). The promotion in the last system joins every system instead:
@@ -47,6 +49,8 @@ const DEBUG_GROUP := "Star systems"
 @export var system_jump: SystemJump
 ## Saves nothing through a jump.
 @export var saver: GameSaver
+## Shows the jump in place of the goals while the player stays after a promotion.
+@export var goal_panel: GoalPanel
 
 ## The player's credits and ratings, for the quests. The parent sets it.
 var ledger: Ledger
@@ -60,7 +64,9 @@ var _met_seconds := 0.0
 
 
 func _ready() -> void:
-	boss_call.answered.connect(advance)
+	boss_call.answered.connect(_on_boss_answered)
+	if goal_panel:
+		goal_panel.jump_pressed.connect(advance)
 	system_jump.crossed.connect(_on_crossed)
 	system_jump.finished.connect(_on_jumped)
 	arrival_call.closed.connect(_on_arrival_call_closed)
@@ -72,6 +78,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# The jump card shows by the dock panel's rule: at a planet, and not jumping.
+	if goal_panel:
+		goal_panel.bus_docked = bus.is_at_planet() and not system_jump.is_jumping()
 	var counting := (
 		promotes
 		and _started
@@ -87,14 +96,14 @@ func _process(delta: float) -> void:
 
 
 ## Starts the run proper, once the tutorial is over: quests, and the goals of the system the
-## bus works in. A run saved after a promotion but before its jump has The Boss call again.
+## bus works in. A run saved after a promotion the player stayed for shows the jump again.
 func start() -> void:
 	_started = true
 	if star_map.is_joined():
 		waiting.max_total = star_map.joined_max_waiting
 	_start_quests(star_map.get_active_planets())
 	if star_map.get_jump_target():
-		_ring()
+		_offer_jump()
 	else:
 		_add_goals()
 
@@ -133,6 +142,39 @@ func advance() -> void:
 	arrival_call.cancel()
 	jump_started.emit()
 	system_jump.start(star_map.get_jump_target())
+
+
+## Takes the promotion but keeps the bus in the system it works in: the next system opens,
+## and the goals give way to the goal panel's button, which jumps there with [method advance]
+## when the player presses it. In the last system it joins every system, as [method advance]
+## does.
+func stay() -> void:
+	if star_map.is_joined() or system_jump.is_jumping():
+		return
+	if not star_map.get_jump_target():
+		promote()
+	_offer_jump()
+
+
+# [param jumps] takes the promotion's jump now, else the bus stays for now.
+func _on_boss_answered(jumps: bool) -> void:
+	if jumps:
+		advance()
+	else:
+		stay()
+
+
+# The goals go and the goal panel offers the jump to the system a promotion has opened,
+# until the jump takes the bus there. Nothing while there is none to jump to.
+func _offer_jump() -> void:
+	var target := star_map.get_jump_target()
+	if not target:
+		return
+	goals.frozen = true
+	for goal: Goal in goals.get_goals():
+		goals.remove(goal)
+	if goal_panel:
+		goal_panel.offer_jump(target)
 
 
 # Passengers call with quests about [param planets], and capsules drift, which pay by the
@@ -175,6 +217,8 @@ func _add_goals() -> void:
 # start empty, its planets start where its layout puts them, and the bus's tank is full.
 # Whoever was still on board is gone, out of sight, paying and rating nothing.
 func _on_crossed(system: StarSystem) -> void:
+	if goal_panel:
+		goal_panel.offer_jump(null)
 	for planet: Planet in system.get_planets():
 		planet.orbit_time = 0.0
 	for passenger: Passenger in cabin.get_passengers():

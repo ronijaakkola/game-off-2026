@@ -21,3 +21,4 @@ Icons used by more than one feature, from [Lucide](https://lucide.dev) (`lucide-
 | `route.svg` | `route` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `lock.svg` | `lock` | ISC (`LICENSE.txt`) |
 | `undo_2.svg` | `undo-2` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
+| `user.svg` | `user` | ISC (`LICENSE.txt`) |

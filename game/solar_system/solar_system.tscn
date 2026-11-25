@@ -44,13 +44,13 @@
 [ext_resource type="PackedScene" uid="uid://x7v2s61sg2lw" path="res://game/solar_system/lab_badges.tscn" id="113_lab_badges"]
 [ext_resource type="Script" uid="uid://dwyqyf3dug5pa" path="res://game/solar_system/heat_zone.gd" id="114_heat_zone"]
 [ext_resource type="PackedScene" uid="uid://bmppic1wfm6po" path="res://game/bus/bus_quick_text.tscn" id="114_quick_text"]
-[ext_resource type="PackedScene" uid="uid://dl00qj1joo6lh" path="res://game/solar_system/systems/sol.tscn" id="114_sol"]
+[ext_resource type="PackedScene" uid="uid://dl00qj1joo6lh" path="res://game/solar_system/systems/vela.tscn" id="114_vela"]
 [ext_resource type="Script" uid="uid://c4ehv650d8qwy" path="res://game/tutorial/tutorial_call.gd" id="115_call"]
 [ext_resource type="Shader" uid="uid://bfd4gbew06myw" path="res://game/solar_system/heat_zone.gdshader" id="115_heat_shader"]
 [ext_resource type="PackedScene" uid="uid://bnmgxp1mhbefp" path="res://game/solar_system/systems/lyra.tscn" id="115_lyra"]
-[ext_resource type="PackedScene" uid="uid://c27bke4n6kwiy" path="res://game/solar_system/systems/draco.tscn" id="116_draco"]
 [ext_resource type="PackedScene" uid="uid://cgcnqs8n4ol2e" path="res://ui/guide_card/guide_card.tscn" id="116_guide"]
 [ext_resource type="Script" uid="uid://bysbnt3b75wr3" path="res://game/solar_system/heat_warning.gd" id="116_heat_warning"]
+[ext_resource type="PackedScene" uid="uid://c27bke4n6kwiy" path="res://game/solar_system/systems/sol.tscn" id="116_sol"]
 [ext_resource type="Script" uid="uid://bungk47fldg1l" path="res://game/solar_system/star_map.gd" id="117_star_map"]
 [ext_resource type="Script" uid="uid://bxqoome8abxs1" path="res://game/solar_system/progression.gd" id="118_progression"]
 [ext_resource type="PackedScene" uid="uid://d2tkvslrbiqae" path="res://game/solar_system/system_jump.tscn" id="119_jump"]
@@ -72,6 +72,7 @@
 [ext_resource type="Script" uid="uid://hqwp05k18nlh" path="res://game/feature_hints/warp_hint.gd" id="154_warp_hint"]
 [ext_resource type="Script" uid="uid://bmn7hph2p0ba6" path="res://game/warp_gate/warp_gate_tooltip.gd" id="155_gate_tooltip"]
 [ext_resource type="Script" uid="uid://c3atn4ddkgf83" path="res://game/capsules/capsule_field.gd" id="156_capsules"]
+[ext_resource type="Script" uid="uid://dijks1t841h88" path="res://game/feature_hints/jump_hint.gd" id="157_jump_hint"]
 [ext_resource type="Script" uid="uid://dj6dl5timmqvq" path="res://game/solar_system/control_legend_prototype.gd" id="190_legend_prototype"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
@@ -94,6 +95,20 @@ shader_parameter/drift = 1.0
 script = ExtResource("151_asteroid_belt")
 inner_radius = 17.2
 outer_radius = 19.2
+
+[sub_resource type="Resource" id="Resource_sol_belt"]
+script = ExtResource("151_asteroid_belt")
+inner_radius = 12.4
+outer_radius = 13.4
+gap_angles = Array[float]([40.0, 130.0, 220.0, 310.0])
+gap_widths = Array[float]([])
+
+[sub_resource type="Resource" id="Resource_sol_outer_belt"]
+script = ExtResource("151_asteroid_belt")
+inner_radius = 19.0
+outer_radius = 19.8
+gap_angles = Array[float]([15.0, 87.0, 159.0, 231.0, 303.0])
+gap_widths = Array[float]([])
 
 [node name="SolarSystem" type="Node3D" unique_id=1939531791]
 script = ExtResource("11_system")
@@ -136,7 +151,7 @@ mesh = SubResource("PlaneMesh_heat_zone")
 [node name="FlybyZone" parent="World" unique_id=2079222 node_paths=PackedStringArray("quest_giver") instance=ExtResource("147_flyby_zone")]
 quest_giver = NodePath("../../QuestGiver")
 
-[node name="Sol" parent="World" unique_id=1865132520 instance=ExtResource("114_sol")]
+[node name="Vela" parent="World" unique_id=1865132520 instance=ExtResource("114_vela")]
 
 [node name="Lyra" parent="World" unique_id=616666113 instance=ExtResource("115_lyra")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 0, -8)
@@ -151,8 +166,34 @@ orbit_period = 680.0
 rock_count = 400
 pebble_count = 340
 
-[node name="Draco" parent="World" unique_id=1231504114 instance=ExtResource("116_draco")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -42)
+[node name="Sol" parent="World" unique_id=1231504114 instance=ExtResource("116_sol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, -47)
+
+[node name="AsteroidField" parent="World/Sol" unique_id=1687077984 node_paths=PackedStringArray("bus", "cabin", "quick_text", "orbit_clock") instance=ExtResource("150_asteroid_field")]
+belt = SubResource("Resource_sol_belt")
+bus = NodePath("../../../Bus")
+cabin = NodePath("../../../Cabin")
+quick_text = NodePath("../../../Hud/BusQuickText")
+orbit_clock = NodePath("../../../OrbitClock")
+orbit_period = 700.0
+rock_count = 130
+pebble_count = 160
+height = 0.2
+rock_color = Color(0.56, 0.5, 0.45, 1)
+shadow_color = Color(0.851, 0.639, 0.722, 1)
+
+[node name="OuterAsteroidField" parent="World/Sol" unique_id=1002926994 node_paths=PackedStringArray("bus", "cabin", "quick_text", "orbit_clock") instance=ExtResource("150_asteroid_field")]
+belt = SubResource("Resource_sol_outer_belt")
+bus = NodePath("../../../Bus")
+cabin = NodePath("../../../Cabin")
+quick_text = NodePath("../../../Hud/BusQuickText")
+orbit_clock = NodePath("../../../OrbitClock")
+orbit_period = 950.0
+rock_count = 170
+pebble_count = 220
+height = 0.2
+rock_color = Color(0.56, 0.5, 0.45, 1)
+shadow_color = Color(0.851, 0.639, 0.722, 1)
 
 [node name="StarMap" type="Node" parent="." unique_id=1875360574 node_paths=PackedStringArray("world", "rig", "sky")]
 unique_name_in_owner = true
@@ -163,7 +204,7 @@ sky = NodePath("../SpaceSky")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
 unique_name_in_owner = true
-start_planet = NodePath("../World/Sol/Ember")
+start_planet = NodePath("../World/Vela/Ember")
 
 [node name="OrbitClock" type="Node" parent="." unique_id=466363001 node_paths=PackedStringArray("bus", "map_zoom")]
 unique_name_in_owner = true
@@ -174,9 +215,9 @@ map_zoom = NodePath("../MapZoom")
 [node name="MapZoom" type="Node" parent="." unique_id=1364752133 node_paths=PackedStringArray("world", "bus", "pivot", "rig")]
 unique_name_in_owner = true
 script = ExtResource("110_map_zoom")
-world = NodePath("../World/Sol")
+world = NodePath("../World/Vela")
 bus = NodePath("../Bus")
-pivot = NodePath("../World/Sol/Terra")
+pivot = NodePath("../World/Vela/Terra")
 rig = NodePath("../CameraRig")
 
 [node name="TowDispatch" type="Node" parent="." unique_id=1140975013 node_paths=PackedStringArray("bus", "cabin", "notices")]
@@ -198,8 +239,8 @@ portrait_studio = NodePath("../PortraitStudio")
 bus_bars = NodePath("../Hud/BusStatusPanel")
 resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
 trip_arc = NodePath("../TripArc")
-home = NodePath("../World/Sol/Terra")
-destination = NodePath("../World/Sol/Terra/Moon")
+home = NodePath("../World/Vela/Terra")
+destination = NodePath("../World/Vela/Terra/Moon")
 hud = NodePath("../Hud")
 rig = NodePath("../CameraRig")
 lab_badges = NodePath("../Hud/LabBadges")
@@ -295,8 +336,8 @@ cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 transmission_panel = NodePath("../TransmissionPanel")
 quest_giver = NodePath("../QuestGiver")
-test_destination = NodePath("../World/Sol/Giant")
-test_flyby_planet = NodePath("../World/Sol/Frost")
+test_destination = NodePath("../World/Vela/Giant")
+test_flyby_planet = NodePath("../World/Vela/Frost")
 
 [node name="HeatZone" type="Node" parent="." unique_id=743044272 node_paths=PackedStringArray("bus", "star_map", "map_zoom", "zone")]
 script = ExtResource("114_heat_zone")
@@ -341,6 +382,11 @@ hints = NodePath("../FeatureHints")
 quest_giver = NodePath("../QuestGiver")
 goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
 
+[node name="JumpHint" type="Node" parent="." unique_id=153698451 node_paths=PackedStringArray("hints", "goal_panel")]
+script = ExtResource("157_jump_hint")
+hints = NodePath("../FeatureHints")
+goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
+
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")
 bus = NodePath("../Bus")
@@ -365,7 +411,7 @@ dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 unique_name_in_owner = true
 script = ExtResource("108_saver")
 bus = NodePath("../Bus")
-new_run_planet = NodePath("../World/Sol/Terra")
+new_run_planet = NodePath("../World/Vela/Terra")
 cabin = NodePath("../Cabin")
 goals = NodePath("../Goals")
 quest_giver = NodePath("../QuestGiver")
@@ -390,7 +436,7 @@ star_map = NodePath("../StarMap")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "capsules", "notices", "cabin", "bus", "boss_call", "arrival_call", "system_jump", "saver")]
+[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "capsules", "notices", "cabin", "bus", "boss_call", "arrival_call", "system_jump", "saver", "goal_panel")]
 unique_name_in_owner = true
 script = ExtResource("118_progression")
 star_map = NodePath("../StarMap")
@@ -405,6 +451,7 @@ boss_call = NodePath("../GoalsMetCall")
 arrival_call = NodePath("../FirstShiftCall")
 system_jump = NodePath("../SystemJump")
 saver = NodePath("../GameSaver")
+goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
 
 [node name="CapsuleField" type="Node3D" parent="." unique_id=668865033 node_paths=PackedStringArray("bus", "cabin", "star_map", "waiting", "quest_giver", "quick_text", "system_jump", "research_lab")]
 unique_name_in_owner = true
@@ -548,7 +595,7 @@ unique_name_in_owner = true
 anchors_preset = 7
 portrait_studio = NodePath("../../PortraitStudio")
 
-[node name="ControlLegendPrototype" type="PanelContainer" parent="Hud" unique_id=1455119600 node_paths=PackedStringArray("bus", "bars", "tutorial", "click_block", "star_map")]
+[node name="ControlLegendPrototype" type="PanelContainer" parent="Hud" unique_id=1726645279 node_paths=PackedStringArray("bus", "bars", "tutorial", "click_block", "star_map")]
 script = ExtResource("190_legend_prototype")
 bus = NodePath("../../Bus")
 bars = NodePath("../BusStatusPanel")

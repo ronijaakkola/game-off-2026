@@ -338,7 +338,6 @@ func create_adrift(at: Vector3) -> Passenger:
 		_rng
 	)
 	Castaway.dress(passenger, castaway_met)
-	castaway_met = true
 	return passenger
 
 

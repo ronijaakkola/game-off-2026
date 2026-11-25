@@ -20,6 +20,8 @@ enum Stinger { ANNOYED = 0, HAPPY = 1, SCARED = 2 }
 @export var stingers_annoyed: Array[AudioStream] = []
 @export var stingers_happy: Array[AudioStream] = []
 @export var stingers_scared: Array[AudioStream] = []
+## What a passenger of the race screams as they are kicked off the bus.
+@export var kicked: Array[AudioStream] = []
 
 @export_group("Delivery")
 ## How fast the text types out for this race, as a multiple of the usual pace: above 1 is
@@ -68,6 +70,12 @@ enum Stinger { ANNOYED = 0, HAPPY = 1, SCARED = 2 }
 @export_range(0.0, 1.0, 0.01) var pause_long_chance := 0.3
 ## The silence after a long clip or a stinger before blips resume, in seconds.
 @export_range(0.0, 1.0, 0.01) var long_pause := 0.15
+## The kicked scream's pitch as a multiple of the caller's, and how loud it is as a multiple
+## of the voice's volume. Above 1 for pitch is thinner, as if far away.
+@export_range(0.5, 2.0, 0.01) var kicked_pitch := 1.0
+@export_range(0.0, 2.0, 0.01) var kicked_volume := 1.0
+## The seconds the kicked scream takes to fade out, from its start.
+@export_range(0.1, 4.0, 0.05) var kicked_fade := 1.6
 
 
 ## The clips of [param stinger]'s mood.
