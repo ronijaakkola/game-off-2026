@@ -109,3 +109,25 @@ func test_a_second_hint_waits_its_turn_and_opens_after_the_gap() -> void:
 	assert_object(_guide.target).is_same(other)
 	await _press_got_it()
 	assert_bool(get_tree().paused).is_false()
+
+
+func test_the_debug_panel_shows_a_seen_hint_without_keeping_it_seen() -> void:
+	SaveGame.mark_hint_seen(&"business")
+	_hints.set_debug_target(&"heat_zone", func() -> Control: return _target)
+
+	_hints._debug_show(&"heat_zone")
+	assert_bool(_hints.is_showing()).is_true()
+	assert_object(_guide.target).is_same(_target)
+	await _press_got_it()
+	assert_bool(SaveGame.has_seen_hint(&"heat_zone")).is_false()
+
+	# Seen already, and with no target found, it shows on the spot in the middle.
+	await get_tree().create_timer(FeatureHints.GAP + 0.1).timeout
+	_hints._debug_show(&"business")
+	assert_bool(_hints.is_showing()).is_true()
+	var spot := _guide.target
+	assert_object(spot).is_not_same(_target)
+	assert_vector(spot.get_global_rect().get_center()).is_equal_approx(
+		Vector2(576, 324), Vector2.ONE
+	)
+	await _press_got_it()
