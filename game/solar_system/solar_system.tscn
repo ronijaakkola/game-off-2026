@@ -72,6 +72,7 @@
 [ext_resource type="Script" uid="uid://hqwp05k18nlh" path="res://game/feature_hints/warp_hint.gd" id="154_warp_hint"]
 [ext_resource type="Script" uid="uid://bmn7hph2p0ba6" path="res://game/warp_gate/warp_gate_tooltip.gd" id="155_gate_tooltip"]
 [ext_resource type="Script" uid="uid://c3atn4ddkgf83" path="res://game/capsules/capsule_field.gd" id="156_capsules"]
+[ext_resource type="Script" uid="uid://dijks1t841h88" path="res://game/feature_hints/jump_hint.gd" id="157_jump_hint"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -380,6 +381,11 @@ hints = NodePath("../FeatureHints")
 quest_giver = NodePath("../QuestGiver")
 goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
 
+[node name="JumpHint" type="Node" parent="." unique_id=153698451 node_paths=PackedStringArray("hints", "goal_panel")]
+script = ExtResource("157_jump_hint")
+hints = NodePath("../FeatureHints")
+goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
+
 [node name="LowFuelWarning" type="Node" parent="." unique_id=453644866 node_paths=PackedStringArray("bus", "notices")]
 script = ExtResource("107_low_fuel")
 bus = NodePath("../Bus")
@@ -429,7 +435,7 @@ star_map = NodePath("../StarMap")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "capsules", "notices", "cabin", "bus", "boss_call", "arrival_call", "system_jump", "saver")]
+[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "capsules", "notices", "cabin", "bus", "boss_call", "arrival_call", "system_jump", "saver", "goal_panel")]
 unique_name_in_owner = true
 script = ExtResource("118_progression")
 star_map = NodePath("../StarMap")
@@ -444,6 +450,7 @@ boss_call = NodePath("../GoalsMetCall")
 arrival_call = NodePath("../FirstShiftCall")
 system_jump = NodePath("../SystemJump")
 saver = NodePath("../GameSaver")
+goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
 
 [node name="CapsuleField" type="Node3D" parent="." unique_id=668865033 node_paths=PackedStringArray("bus", "cabin", "star_map", "waiting", "quest_giver", "quick_text", "system_jump", "research_lab")]
 unique_name_in_owner = true

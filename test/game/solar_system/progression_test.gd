@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 ## The end of a star system: once every goal has held for 5 s The Boss calls with the
-## promotion, and its one answer, "Jump to new system", jumps the bus to the next system
-## from wherever it is, leaving whoever is on board behind. The goals the promotion took
-## stay on the goal panel, ticked, until the next system's goals replace them.
+## promotion, and its answer "Jump to new system" jumps the bus to the next system from
+## wherever it is, leaving whoever is on board behind. The goals the promotion took stay on
+## the goal panel, ticked, until the next system's goals replace them.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -65,7 +65,9 @@ func test_the_boss_calls_once_the_goals_hold_and_answered_jumps_with_anyone_on_b
 	assert_bool(panel.is_open()).is_true()
 	var answer := panel.find_child("AcceptButton", true, false) as Button
 	assert_str(answer.text).is_equal(GoalsMetCall.JUMP_ANSWER)
-	assert_bool((panel.find_child("DeclineButton", true, false) as Control).visible).is_false()
+	var stay := panel.find_child("DeclineButton", true, false) as Button
+	assert_bool(stay.visible).is_true()
+	assert_str(stay.text).is_equal(GoalsMetCall.STAY_ANSWER)
 	var jump := runner.find_child("SystemJump") as SystemJump
 	monitor_signals(jump)
 

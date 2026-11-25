@@ -3,10 +3,18 @@ extends Node
 ## delivered, and a 4.2 average against a 4.0 rating goal, so one goal is short and one
 ## is met. With "Quest" after `--`, a Business passenger rides on an express quest, so the panel
 ## also shows "Quests" and their portrait wears the flag; with "Failed" as well, the bus
-## has stopped at another planet first.
+## has stopped at another planet first. With "Stay", the player has stayed after a promotion,
+## so the jump to the next system shows in place of the goals; with "Hint" as well, its
+## feature hint opens on the button, unless the player has closed it before.
 
 
 func _ready() -> void:
+	if "Stay" in OS.get_cmdline_user_args():
+		if "Hint" in OS.get_cmdline_user_args():
+			# Hints show only in a saved run, which a preview isn't.
+			($SolarSystem/FeatureHints as FeatureHints).saver = null
+		($SolarSystem/Progression as Progression).stay()
+		return
 	var tracker := $SolarSystem/Goals as GoalTracker
 	for goal: Goal in tracker.get_goals():
 		tracker.remove(goal)
