@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_level")
 title = "Your first shift"
-star_system = "Sol"
+star_system = "Vela"
 picture = "res://shared/level_art/level_1_loading.jpg"
 card_crop = Rect2(0.2643, 0.0247, 0.4514, 0.9498)
 from_planet_color = Color(0.95, 0.93, 1, 1)

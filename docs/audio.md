@@ -84,7 +84,7 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 ### Music and ambience
 
 - **Menu music.** `menu_music.ogg` is in the project and unused. The menus play the game's track.
-- **A track for each star system** (Sol, Lyra, Draco), and one for the tutorial and the joined systems at the end.
+- **A track for each star system** (Vela, Lyra, Sol), and one for the tutorial and the joined systems at the end.
 - **A level-complete jingle.**
 - **Space ambience** under the map, and the heat zone.
 

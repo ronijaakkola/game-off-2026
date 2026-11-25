@@ -35,6 +35,8 @@ func _show() -> void:
 	if not planet:
 		return
 	_material.set_shader_parameter(&"color", planet.icon_color)
+	_material.set_shader_parameter(&"land_color", planet.icon_land_color)
+	_material.set_shader_parameter(&"cap_color", planet.icon_cap_color)
 	_material.set_shader_parameter(&"has_rings", planet.has_rings())
 	_material.set_shader_parameter(&"ring_color", planet.icon_ring_color)
 	_material.set_shader_parameter(&"ring_tilt", deg_to_rad(planet.tilt))
@@ -46,6 +48,8 @@ func show_color(color: Color) -> void:
 	planet = null
 	visible = true
 	_material.set_shader_parameter(&"color", color)
+	_material.set_shader_parameter(&"land_color", Color.TRANSPARENT)
+	_material.set_shader_parameter(&"cap_color", Color.TRANSPARENT)
 	_material.set_shader_parameter(&"has_rings", false)
 
 

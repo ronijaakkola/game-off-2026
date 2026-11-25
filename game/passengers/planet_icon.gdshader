@@ -6,6 +6,10 @@ shader_type canvas_item;
 uniform vec4 color : source_color = vec4(1.0);
 // The night side's multiply: planet.gdshader's default shadow_color, so it matches.
 uniform vec4 night_tint : source_color = vec4(0.5, 0.45, 0.78, 1.0);
+// Land over the disc in a few patches, and an ice cap at its top, for a planet that needs
+// telling apart from the others. Fully transparent draws none.
+uniform vec4 land_color : source_color = vec4(0.0);
+uniform vec4 cap_color : source_color = vec4(0.0);
 uniform bool has_rings = false;
 uniform vec4 ring_color : source_color = vec4(1.0);
 // The rings' lean in radians, the planet's tilt.
@@ -58,7 +62,13 @@ void fragment() {
 	}
 	// Lit from the upper left: the night side is the disc outside a larger, offset circle.
 	float lit = cover(length(p + vec2(0.55, 0.45) * r) - 1.05 * r, aa);
-	vec3 surface = mix(color.rgb * night_tint.rgb, color.rgb, lit);
+	// In disc radii: one large patch with a bulge under it, and a small one opposite.
+	vec2 u = p / r;
+	float land = min(length(u - vec2(-0.28, -0.12)) - 0.44, length(u - vec2(-0.02, 0.36)) - 0.24);
+	land = min(land, length(u - vec2(0.52, 0.3)) - 0.24);
+	vec3 day = mix(color.rgb, land_color.rgb, land_color.a * cover(land * r, aa));
+	day = mix(day, cap_color.rgb, cap_color.a * cover((u.y + 0.7) * r, aa));
+	vec3 surface = mix(day * night_tint.rgb, day, lit);
 	acc = over(acc, surface, cover(length(p) - r, aa));
 	if (front) {
 		acc = over(acc, ring_color.rgb, ring);

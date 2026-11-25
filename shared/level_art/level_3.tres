@@ -5,5 +5,5 @@
 [resource]
 script = ExtResource("1_level")
 title = "Return to home"
-star_system = "Draco"
+star_system = "Sol"
 tips = PackedStringArray()
