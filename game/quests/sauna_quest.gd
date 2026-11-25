@@ -71,3 +71,7 @@ func get_transmission() -> Transmission:
 func accept() -> void:
 	passenger.ride.extend(detour_seconds, passenger.type.slack)
 	goal = SaunaGoal.new(passenger)
+
+
+func begin(cabin: Cabin) -> void:
+	cabin.fondness.add(passenger, Fondness.Kind.HEAT)

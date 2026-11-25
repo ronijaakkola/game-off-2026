@@ -233,24 +233,7 @@ func load_save(
 	var index := int(saved.get("passenger", -1))
 	if index < 0 or index >= on_board.size():
 		return
-	var quest: Quest
-	match saved.get("kind", ""):
-		ExpressQuest.KIND:
-			quest = ExpressQuest.new()
-		FlybyQuest.KIND:
-			quest = FlybyQuest.new()
-		ErrandQuest.KIND:
-			quest = ErrandQuest.new()
-		PhotoStopQuest.PHOTO_KIND:
-			quest = PhotoStopQuest.new()
-		WarpQuest.KIND:
-			quest = WarpQuest.new()
-		RockRideQuest.KIND:
-			quest = RockRideQuest.new()
-		SaunaQuest.KIND:
-			quest = SaunaQuest.new()
-		RescueQuest.KIND:
-			quest = RescueQuest.new()
+	var quest := QuestKinds.make(str(saved.get("kind", "")))
 	if quest and quest.restore(saved, on_board[index], planets):
 		take_on(quest)
 
@@ -260,10 +243,7 @@ func load_save(
 func take_on(quest: Quest) -> void:
 	_quest = quest
 	quest.passenger.quest_line = quest.goal.get_text()
-	if quest is RockRideQuest:
-		cabin.fondness.add(quest.passenger, Fondness.Kind.ROCKS)
-	elif quest is SaunaQuest:
-		cabin.fondness.add(quest.passenger, Fondness.Kind.HEAT)
+	quest.begin(cabin)
 	quests.add(quest.goal)
 	quest_added.emit(quest)
 
