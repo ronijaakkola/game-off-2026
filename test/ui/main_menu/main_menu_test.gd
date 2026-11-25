@@ -94,6 +94,27 @@ func test_keyboard_focus_follows_the_open_panel() -> void:
 	assert_object(_focused()).is_same(settings_button)
 
 
+func test_focus_ring_shows_only_when_opened_by_a_key() -> void:
+	var runner := scene_runner(MENU)
+	await runner.simulate_frames(1)
+	var settings_button := runner.find_child("SettingsButton") as Button
+	await _click(runner, settings_button)
+	var volume := runner.find_child("MasterVolume") as Control
+	assert_object(_focused()).is_same(volume)
+	assert_bool(volume.has_focus(true)).is_false()
+
+	var settings := runner.find_child("SettingsMenu")
+	(settings.find_child("BackButton") as Button).pressed.emit()
+	await assert_func(settings, "is_visible").wait_until(2000).is_false()
+	assert_object(_focused()).is_same(settings_button)
+	assert_bool(settings_button.has_focus(true)).is_false()
+
+	runner.simulate_key_pressed(KEY_ENTER)
+	await runner.await_input_processed()
+	assert_object(_focused()).is_same(volume)
+	assert_bool(volume.has_focus(true)).is_true()
+
+
 func test_start_overlay_click_starts_the_music() -> void:
 	# Outside the web build the menu starts the music itself, so stop it first.
 	var runner := scene_runner(MENU)
@@ -129,7 +150,7 @@ func _music_playing() -> bool:
 
 
 func test_a_level_in_progress_shows_continue_naming_it_and_levels() -> void:
-	SaveGame.write({"star_map": {"opened": 2, "joined": false, "system": "Lyra"}})
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Lyra")})
 	var runner := scene_runner(MENU)
 	await runner.simulate_frames(1)
 	assert_bool((runner.find_child("PlayButton") as Control).visible).is_false()

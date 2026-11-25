@@ -87,6 +87,9 @@ var quick_bonus := 0.0
 ## What the quests they had done add to the most they can reach, for the rest of their ride
 ## ([method admire]).
 var quest_bonus := 0.0
+## Whether they rode before, rated it five stars and came back ([ReturningPassengers]):
+## they pay more ([Payment]) and settle [constant ReturningPassengers.BONUS] higher.
+var returning := false
 ## Seconds left of the dance a quest done for them sets off ([method admire]), which
 ## their portrait shows.
 var dancing := 0.0
@@ -193,6 +196,7 @@ static func from_save(
 	passenger.lounge_bonus = float(saved.get("lounge_bonus", 0.0))
 	passenger.quick_bonus = float(saved.get("quick_bonus", 0.0))
 	passenger.quest_bonus = float(saved.get("quest_bonus", 0.0))
+	passenger.returning = bool(saved.get("returning", false))
 	passenger.activity = ""
 	passenger._activity_left = 0.0
 	passenger._departed = bool(saved.get("departed", false))
@@ -229,7 +233,7 @@ func get_mood() -> Mood:
 ## The credits they pay on getting off now: their fare, and more for a good ride
 ## ([Payment]). [param tip] is the Tip jar's.
 func get_payout(tip := 0.0) -> int:
-	return roundi(fare * Payment.multiple(get_rating(), tip))
+	return roundi(fare * Payment.multiple(get_rating(), tip, returning))
 
 
 ## Puts off the first request for each of their needs: what is left of each wait to the
@@ -440,6 +444,7 @@ func to_save() -> Dictionary:
 		"lounge_bonus": lounge_bonus,
 		"quick_bonus": quick_bonus,
 		"quest_bonus": quest_bonus,
+		"returning": returning,
 	}
 
 
@@ -497,6 +502,8 @@ func _complain(lines: Array[String], seconds: float) -> void:
 # The most the bus giving [param comfort] can give them now, before frustration, less discomfort.
 func _get_best(comfort: Comfort) -> float:
 	var bonus := comfort.bonus + lounge_bonus + quick_bonus + quest_bonus
+	if returning:
+		bonus += ReturningPassengers.BONUS
 	return maxf(minf(BASE_HAPPINESS + bonus, MAX_HAPPINESS) - comfort.discomfort, 0.0)
 
 

@@ -48,8 +48,8 @@ var _reveal: Tween
 ## ready, so the camera starts over that system.
 func restore(saved: Dictionary, bus_planet: Planet) -> void:
 	var systems := get_systems()
-	_opened = clampi(int(saved.get("opened", 1)), 1, systems.size())
-	_joined = bool(saved.get("joined", false))
+	_opened = clampi(SavedStarMap.get_opened(saved), 1, systems.size())
+	_joined = SavedStarMap.is_joined(saved)
 	_current = 0
 	for i: int in systems.size():
 		if bus_planet and systems[i].has_planet(bus_planet):
@@ -63,7 +63,7 @@ func restore(saved: Dictionary, bus_planet: Planet) -> void:
 ## system the bus works in, by name, for the main menu to show its level's loading screen.
 ## [method restore] finds that from the bus's planet instead.
 func to_save() -> Dictionary:
-	return {"opened": _opened, "joined": _joined, "system": String(get_current().name)}
+	return SavedStarMap.make(_opened, _joined, String(get_current().name))
 
 
 ## Every star system, in the order they open.
@@ -87,7 +87,7 @@ func is_joined() -> bool:
 ## How many systems the player has been promoted out of: each opened the next, and the
 ## last joined them.
 func count_done() -> int:
-	return get_systems().size() if _joined else _opened - 1
+	return SavedStarMap.count_done(SavedStarMap.make(_opened, _joined, ""), get_systems().size())
 
 
 ## The system the bus can jump to, now that a promotion has opened it, or null.

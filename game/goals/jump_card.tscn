@@ -1,0 +1,132 @@
+[gd_scene format=3 uid="uid://73wpdpb1csa2"]
+
+[ext_resource type="Script" uid="uid://c5a0vd75reoi0" path="res://game/goals/jump_card.gd" id="1_card"]
+[ext_resource type="Shader" uid="uid://dfogwe25vqch2" path="res://game/goals/jump_card.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://5e4u8rlx68t4" path="res://shared/icons/arrow_right.svg" id="3_arrow"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_card"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_focus"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.957, 0.945, 1, 1)
+corner_radius_top_left = 13
+corner_radius_top_right = 13
+corner_radius_bottom_right = 13
+corner_radius_bottom_left = 13
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_picture"]
+shader = ExtResource("2_shader")
+shader_parameter/has_picture = null
+shader_parameter/region = null
+shader_parameter/left_color = null
+shader_parameter/right_color = null
+shader_parameter/zoom = null
+shader_parameter/light = null
+shader_parameter/size = null
+shader_parameter/radius = null
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.957, 0.945, 1, 0.22)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="JumpCard" type="Button" unique_id=487377381]
+custom_minimum_size = Vector2(0, 62)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_card")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_card")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_card")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_card")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_card")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+script = ExtResource("1_card")
+
+[node name="Picture" type="ColorRect" parent="." unique_id=1809973205]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_picture")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Border" type="Panel" parent="." unique_id=279060476]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_border")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=770067327]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_right = 14
+
+[node name="Row" type="HBoxContainer" parent="Margin" unique_id=923623367]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Lines" type="VBoxContainer" parent="Margin/Row" unique_id=203055420]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Title" type="Label" parent="Margin/Row/Lines" unique_id=1939100978]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 1)
+text = "Jump to"
+
+[node name="Level" type="Label" parent="Margin/Row/Lines" unique_id=261478962]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"BodyTextLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.78)
+text = "Level"
+
+[node name="ArrowSlot" type="Control" parent="Margin/Row" unique_id=490133495]
+custom_minimum_size = Vector2(24, 18)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="Arrow" type="TextureRect" parent="Margin/Row/ArrowSlot" unique_id=230493602]
+unique_name_in_owner = true
+self_modulate = Color(0.957, 0.945, 1, 1)
+layout_mode = 0
+offset_right = 18.0
+offset_bottom = 18.0
+mouse_filter = 2
+texture = ExtResource("3_arrow")
+expand_mode = 1
+stretch_mode = 5

@@ -5,9 +5,14 @@ extends Node
 ## while the tank holds that much and the bus can go. Pressed, the fuel comes out of the tank
 ## and the bus warps through the gate as it jumps between star systems ([method SystemJump.warp]),
 ## coming out of the other gate and flying the short way in to dock at its planet. Its
-## course is gone; whoever is on board rides along.
+## course is gone; whoever is on board rides along. With Gate tuning it costs
+## [constant TUNED_SHARE] of what the gate asks.
+
+## The bus came out of the far gate, with whoever is on board.
+signal warped
 
 const TEXT := "Warp to %s (%d%% fuel)"
+const TUNED_SHARE := 0.5
 
 @export var bus: FrameshiftBus
 @export var dock_panel: DockPanel
@@ -19,6 +24,7 @@ const TEXT := "Warp to %s (%d%% fuel)"
 
 func _ready() -> void:
 	dock_panel.teleport_pressed.connect(_on_teleport_pressed)
+	system_jump.came_through.connect(_on_came_through)
 
 
 func _process(_delta: float) -> void:
@@ -26,7 +32,7 @@ func _process(_delta: float) -> void:
 	if not gate:
 		dock_panel.show_teleport("", false)
 		return
-	var text := TEXT % [gate.partner.planet.display_name, roundi(gate.fuel_share * 100.0)]
+	var text := TEXT % [gate.partner.planet.display_name, roundi(_fuel_share(gate) * 100.0)]
 	dock_panel.show_teleport(text, _can_go() and _can_pay(gate))
 
 
@@ -50,7 +56,7 @@ func _can_go() -> bool:
 # Whether the tank holds the fuel going through [param gate] takes.
 func _can_pay(gate: WarpGate) -> bool:
 	var tank := bus.get_fuel_tank()
-	return tank.fuel >= gate.fuel_share * tank.capacity
+	return tank.fuel >= _fuel_share(gate) * tank.capacity
 
 
 func _on_teleport_pressed() -> void:
@@ -58,5 +64,15 @@ func _on_teleport_pressed() -> void:
 	if not gate or not _can_go() or not _can_pay(gate):
 		return
 	var tank := bus.get_fuel_tank()
-	tank.fuel -= gate.fuel_share * tank.capacity
+	tank.fuel -= _fuel_share(gate) * tank.capacity
 	system_jump.warp(gate, gate.partner)
+
+
+# The share of a full tank going through [param gate] takes: less with Gate tuning.
+func _fuel_share(gate: WarpGate) -> float:
+	var tuned := bus.get_stats().get_traits().has(BusTraits.Type.GATE_TUNING)
+	return gate.fuel_share * (TUNED_SHARE if tuned else 1.0)
+
+
+func _on_came_through(_gate: WarpGate) -> void:
+	warped.emit()

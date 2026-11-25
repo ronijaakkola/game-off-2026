@@ -1,0 +1,460 @@
+[gd_scene format=3 uid="uid://cnkby7aoge78f"]
+
+[ext_resource type="Script" uid="uid://ro26gyrhyqhk" path="res://ui/credits/credits_screen.gd" id="1_screen"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
+[ext_resource type="Texture2D" uid="uid://c1ob2wrywiacn" path="res://ui/icons/arrow_left.svg" id="4_back"]
+[ext_resource type="Texture2D" uid="uid://cegpug3j7vho6" path="res://ui/icons/users.svg" id="5_team"]
+[ext_resource type="Texture2D" uid="uid://uxtvxa03ee8r" path="res://ui/icons/package.svg" id="6_made_with"]
+[ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="7_star"]
+
+[node name="CreditsScreen" type="Control" unique_id=1524422195]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_screen")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=1495931024]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 56
+
+[node name="Column" type="VBoxContainer" parent="Margin" unique_id=29237299]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Header" type="HBoxContainer" parent="Margin/Column" unique_id=991750902]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="Margin/Column/Header" unique_id=1058633927]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"SquareButton"
+icon = ExtResource("4_back")
+icon_alignment = 1
+
+[node name="Title" type="Label" parent="Margin/Column/Header" unique_id=2042696827]
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+theme_override_font_sizes/font_size = 44
+text = "Credits"
+
+[node name="Cards" type="VBoxContainer" parent="Margin/Column" unique_id=766714278]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="TeamCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=964269782]
+material = ExtResource("3_glass")
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"SheetPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/TeamCard" unique_id=1019351164]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows" unique_id=1572173931]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/Cards/TeamCard/Rows/Heading" unique_id=14807006]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("5_team")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Heading" unique_id=291048019]
+layout_mode = 2
+theme_type_variation = &"SectionHeadingLabel"
+text = "Team"
+
+[node name="Entries" type="VBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows" unique_id=981245106]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Roni" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries" unique_id=626783407]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Lines" type="VBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni" unique_id=130613162]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Name" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines" unique_id=1361352068]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+text = "Roni Jaakkola"
+
+[node name="Roles" type="HBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines" unique_id=445373486]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Concept" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles" unique_id=821100003]
+self_modulate = Color(1, 0.831, 0.361, 1)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Lead" type="HBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles/Concept" unique_id=1097779485]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles/Concept/Lead" unique_id=13519265]
+self_modulate = Color(1, 0.831, 0.361, 1)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("7_star")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles/Concept/Lead" unique_id=618488068]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(1, 0.831, 0.361, 1)
+text = "Original concept"
+
+[node name="GameDesign" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles" unique_id=268841958]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles/GameDesign" unique_id=1726349364]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Game design"
+
+[node name="Programming" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles" unique_id=399047053]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles/Programming" unique_id=896602561]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Programming"
+
+[node name="Art" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles" unique_id=1730889626]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles/Art" unique_id=1644522680]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Art"
+
+[node name="ToolsAndPipeline" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles" unique_id=1819861473]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles/ToolsAndPipeline" unique_id=1525526873]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Tools and pipeline"
+
+[node name="Testing" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles" unique_id=1176961922]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Roni/Lines/Roles/Testing" unique_id=549450721]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Testing"
+
+[node name="Marko" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries" unique_id=14809720]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Lines" type="VBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko" unique_id=1479248737]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Name" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko/Lines" unique_id=715758513]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+text = "Marko Tuominen"
+
+[node name="Roles" type="HBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko/Lines" unique_id=1515225199]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="GameDesign" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko/Lines/Roles" unique_id=103924382]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko/Lines/Roles/GameDesign" unique_id=310993658]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Game design"
+
+[node name="Programming" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko/Lines/Roles" unique_id=701390921]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko/Lines/Roles/Programming" unique_id=674752209]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Programming"
+
+[node name="Testing" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko/Lines/Roles" unique_id=1897735057]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Marko/Lines/Roles/Testing" unique_id=1308996287]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Testing"
+
+[node name="Sami" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries" unique_id=534851466]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Lines" type="VBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami" unique_id=466062396]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Name" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami/Lines" unique_id=1437595506]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+text = "Sami Mäkelä"
+
+[node name="Roles" type="HBoxContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami/Lines" unique_id=1167910834]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Audio" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami/Lines/Roles" unique_id=740111843]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami/Lines/Roles/Audio" unique_id=192180175]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Audio"
+
+[node name="GameDesign" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami/Lines/Roles" unique_id=1026961904]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami/Lines/Roles/GameDesign" unique_id=431435020]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Game design"
+
+[node name="Testing" type="PanelContainer" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami/Lines/Roles" unique_id=755450085]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TagPanel"
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/TeamCard/Rows/Entries/Sami/Lines/Roles/Testing" unique_id=827376874]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Testing"
+
+[node name="MadeWithCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=1702562979]
+material = ExtResource("3_glass")
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"SheetPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/MadeWithCard" unique_id=1459572833]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/MadeWithCard/Rows" unique_id=1851034805]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Margin/Column/Cards/MadeWithCard/Rows/Heading" unique_id=1522554773]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_made_with")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Heading" unique_id=1315183245]
+layout_mode = 2
+theme_type_variation = &"SectionHeadingLabel"
+text = "Made with"
+
+[node name="Entries" type="VBoxContainer" parent="Margin/Column/Cards/MadeWithCard/Rows" unique_id=317266565]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Engine" type="PanelContainer" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries" unique_id=1746251170]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Line" type="HBoxContainer" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Engine" unique_id=2080674813]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="EngineName" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Engine/Line" unique_id=108959028]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"RowLabel"
+theme_override_font_sizes/font_size = 14
+text = "Godot"
+
+[node name="Detail" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Engine/Line" unique_id=1610841313]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Engine · MIT License"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Fonts" type="PanelContainer" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries" unique_id=2035697093]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Line" type="HBoxContainer" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Fonts" unique_id=1890963953]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Name" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Fonts/Line" unique_id=167070269]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"RowLabel"
+theme_override_font_sizes/font_size = 14
+text = "Baloo 2 and Figtree"
+
+[node name="Detail" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Fonts/Line" unique_id=1250969372]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Fonts · SIL Open Font License"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Icons" type="PanelContainer" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries" unique_id=1793228473]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Line" type="HBoxContainer" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Icons" unique_id=110869092]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Name" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Icons/Line" unique_id=240573616]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"RowLabel"
+theme_override_font_sizes/font_size = 14
+text = "Lucide"
+
+[node name="Detail" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Icons/Line" unique_id=1466053745]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Icons · ISC License"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Plugins" type="PanelContainer" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries" unique_id=1689845093]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowTilePanel"
+
+[node name="Line" type="HBoxContainer" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Plugins" unique_id=1657411334]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Name" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Plugins/Line" unique_id=30131935]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"RowLabel"
+theme_override_font_sizes/font_size = 14
+text = "Phantom Camera and Talo"
+
+[node name="Detail" type="Label" parent="Margin/Column/Cards/MadeWithCard/Rows/Entries/Plugins/Line" unique_id=776311420]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.8)
+text = "Plugins · MIT License"
+horizontal_alignment = 2
+vertical_alignment = 1

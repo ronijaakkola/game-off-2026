@@ -33,13 +33,13 @@ func ask(level: Level, in_progress: Level) -> void:
 	(%Kept as Label).text = "Everything you earned in %s carries over." % earlier
 	_opener = get_viewport().gui_get_focus_owner()
 	show()
-	(%CancelButton as Button).grab_focus()
+	FocusRing.grab(%CancelButton as Control)
 
 
 func _close() -> void:
 	hide()
 	if is_instance_valid(_opener):
-		_opener.grab_focus()
+		FocusRing.grab(_opener)
 
 
 func _on_cancel_button_pressed() -> void:

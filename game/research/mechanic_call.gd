@@ -24,7 +24,8 @@ extends Node
 ## call closes, the badges popping in and the points growing into the bar.
 ## The debug panel's Mechanic calls rings the next call at once, and its Unlock research
 ## has the call that opens research ring the next time the bus is docked at a lab, however
-## few passengers are delivered.
+## few passengers are delivered. Its Unlock all opens research and every stage at once,
+## with no call, wherever the bus is.
 
 ## A call opened research, where nothing was open before: the player can research now.
 signal research_opened
@@ -53,6 +54,7 @@ const STAGE_TEXTS: Array[String] = [
 const ANSWERS: Array[String] = ["Thanks, Rusty!", "Will do!"]
 const DEBUG_TEXT := "Mechanic calls"
 const DEBUG_UNLOCK_TEXT := "Unlock research"
+const DEBUG_UNLOCK_ALL_TEXT := "Unlock all"
 
 ## Whether research and which stages are open.
 @export var research_lab: ResearchLab
@@ -99,8 +101,10 @@ var _debug_due := false
 
 
 func _ready() -> void:
-	DebugPanel.add_button(DEBUG_TEXT, _debug_ring, self)
-	DebugPanel.add_button(DEBUG_UNLOCK_TEXT, _debug_unlock, self)
+	var group := ResearchLab.DEBUG_GROUP
+	DebugPanel.add_button(DEBUG_TEXT, _debug_ring, self, group)
+	DebugPanel.add_button(DEBUG_UNLOCK_TEXT, _debug_unlock, self, group)
+	DebugPanel.add_button(DEBUG_UNLOCK_ALL_TEXT, _debug_unlock_all, self, group)
 
 
 func _process(delta: float) -> void:
@@ -265,3 +269,15 @@ func _debug_ring() -> void:
 # bus is docked at a lab.
 func _debug_unlock() -> void:
 	_debug_due = true
+
+
+# The debug panel's Unlock all: research and every stage open now, with no call.
+func _debug_unlock_all() -> void:
+	var had_none := not _research().is_opened()
+	_research().open()
+	while _research().get_open_stages() < Research.STAGES:
+		_research().open_next_stage()
+	if had_none:
+		_bring_in_research()
+		research_opened.emit()
+	research_added.emit()

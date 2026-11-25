@@ -1,7 +1,7 @@
 class_name Campaign
 ## The levels, played in order, and how far through them the player has got. A level is a
-## stage of the one run, in its own star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in
-## Draco. It is done once a promotion there opens the next system, and the next level is
+## stage of the one run, in its own star system: Level 1 in Vela, Level 2 in Lyra, Level 3 in
+## Sol. It is done once a promotion there opens the next system, and the next level is
 ## open once the one before is done. The run as each level began is kept, so a level can be
 ## restarted or played again with what was earned before it; starting one over replaces the
 ## run, and how far the player has got stays.
@@ -26,8 +26,8 @@ static func number(level: Level) -> int:
 static func get_in_progress() -> Level:
 	if not SaveGame.has_save():
 		return null
-	var star_map: Dictionary = SaveGame.get_saved_run().get("star_map", {})
-	return find(str(star_map.get("system", ""))) if star_map.has("system") else LEVELS[0]
+	var system := SavedStarMap.get_system(SavedStarMap.of(SaveGame.get_saved_run()))
+	return LEVELS[0] if system.is_empty() else find(system)
 
 
 ## Whether the player has been promoted out of [param level], in this run or an earlier one.
@@ -44,10 +44,8 @@ static func is_open(level: Level) -> bool:
 static func count_done() -> int:
 	var done := int(SaveGame.read_campaign().get("done", 0))
 	# A save from before the campaign's record knows only how far its run got.
-	var star_map: Dictionary = SaveGame.get_saved_run().get("star_map", {})
-	if bool(star_map.get("joined", false)):
-		return LEVELS.size()
-	return maxi(done, int(star_map.get("opened", 1)) - 1)
+	var star_map := SavedStarMap.of(SaveGame.get_saved_run())
+	return maxi(done, SavedStarMap.count_done(star_map, LEVELS.size()))
 
 
 ## Whether anything is kept that [method reset] would delete.

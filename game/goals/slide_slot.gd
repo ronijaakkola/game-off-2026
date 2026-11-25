@@ -6,6 +6,8 @@ extends Control
 ## child rises [constant RISE] pixels into place and fades in over
 ## [constant ENTER_SECONDS]. [method close] fades the child out, sinking, over
 ## [constant EXIT_SECONDS], then shrinks the slot away and says [signal closed].
+## [member sideways], the child slides in from past the slot's right edge and back out
+## instead, without fading, as the dock panel's rows do.
 ## Under Reduce motion the child only fades, and the slot changes height at once.
 ## Add the child before the slot enters the tree. The slot is as wide as its column makes
 ## it, and as tall as the child's minimum height times how far open it is.
@@ -16,17 +18,25 @@ signal closed
 ## Seconds for the child to rise in, and to fade out.
 const ENTER_SECONDS := 0.3
 const EXIT_SECONDS := 0.18
+## Seconds for the child to slide in sideways, and back out, as the dock panel's rows do.
+const SIDE_ENTER_SECONDS := 0.35
+const SIDE_EXIT_SECONDS := 0.25
 ## Seconds for the slot to grow to the child's height, and to shrink away.
 const GAP_SECONDS := 0.25
 ## How far under its place the child starts and ends, in pixels.
 const RISE := 8.0
 
+## Whether the child slides in from past the right edge and back out, rather than rising
+## in and fading.
+@export var sideways := false
+
 # From 0, closed, to 1, as tall as the child.
 var _open := 0.0
 # Whether it is open or opening, rather than closed or closing.
 var _wanted := false
-# How far under its place the child sits, in pixels.
+# How far under its place the child sits, in pixels, and how far right of it.
 var _sunk := 0.0
+var _shifted := 0.0
 var _motion: Tween
 var _gap: Tween
 
@@ -60,9 +70,18 @@ func open(animated := true) -> void:
 	if not animated or not content or not is_inside_tree():
 		_open = 1.0
 		_sunk = 0.0
+		_shifted = 0.0
 		if content:
 			content.modulate.a = 1.0
 		_fit()
+		return
+	if sideways and not still:
+		content.modulate.a = 1.0
+		_shifted = _width()
+		_gap = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+		_gap.tween_method(_set_open, _open, 1.0, GAP_SECONDS)
+		_motion = create_tween().set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+		_motion.tween_method(_set_shifted, _shifted, 0.0, SIDE_ENTER_SECONDS)
 		return
 	if still:
 		_set_open(1.0)
@@ -75,17 +94,23 @@ func open(animated := true) -> void:
 	_motion.tween_method(_set_sunk, _sunk, 0.0, ENTER_SECONDS)
 
 
-## Closes it, from wherever it is, then says [signal closed].
-func close() -> void:
+## Closes it, from wherever it is, then says [signal closed]. Without [param animated], it
+## is closed at once.
+func close(animated := true) -> void:
 	if not _wanted:
 		return
 	_wanted = false
 	var content := _content()
 	_kill_tweens()
-	if not content or not is_inside_tree():
+	if not animated or not content or not is_inside_tree():
 		_finish_closing()
 		return
 	var still := Settings.reduce_motion
+	if sideways and not still:
+		_motion = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		_motion.tween_method(_set_shifted, _shifted, _width(), SIDE_EXIT_SECONDS)
+		_motion.tween_callback(_close_gap.bind(false))
+		return
 	_motion = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_motion.tween_property(content, ^"modulate:a", 0.0, EXIT_SECONDS)
 	if not still:
@@ -125,6 +150,17 @@ func _set_sunk(pixels: float) -> void:
 	_fit()
 
 
+func _set_shifted(pixels: float) -> void:
+	_shifted = pixels
+	_fit()
+
+
+# Far enough right for the child to be past the slot's edge, which cuts it off.
+func _width() -> float:
+	var content := _content()
+	return maxf(size.x, content.get_combined_minimum_size().x if content else 0.0)
+
+
 func _content() -> Control:
 	return get_child(0) as Control if get_child_count() > 0 else null
 
@@ -137,5 +173,5 @@ func _fit() -> void:
 		return
 	var wanted := content.get_combined_minimum_size()
 	custom_minimum_size = Vector2(wanted.x, wanted.y * _open)
-	content.position = Vector2(0.0, _sunk)
+	content.position = Vector2(_shifted, _sunk)
 	content.size = Vector2(maxf(size.x, wanted.x), wanted.y)

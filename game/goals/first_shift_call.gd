@@ -21,6 +21,8 @@ const DELAY := 0.8
 ## Seconds of play the call notice shows, unanswered, before the transmission opens by itself.
 const ANSWER_SECONDS := 5.0
 const CALLER := "Your Boss"
+## The debug panel's group for the calls, transmissions, quests and notices.
+const DEBUG_GROUP := "Calls"
 ## What The Boss says on the first shift, after how they open: [constant OPENING] when the
 ## player answered, and [constant UNANSWERED_OPENING] when the call opened by itself, as
 ## every call of theirs here does.
@@ -57,7 +59,7 @@ var _asked := 0
 
 func _ready() -> void:
 	set_process(false)
-	DebugPanel.add_button("First shift call", _ring.bind(WELCOME, OPENING), self)
+	DebugPanel.add_button("First shift call", _ring.bind(WELCOME, OPENING), self, DEBUG_GROUP)
 
 
 func _process(delta: float) -> void:

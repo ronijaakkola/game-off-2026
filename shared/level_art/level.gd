@@ -6,7 +6,8 @@ extends Resource
 
 ## The level's name, as the loading screen shows it.
 @export var title := ""
-## The star system the level is played in, by its node name, such as Sol.
+## The star system the level is played in, by its node name, such as Vela. [member Campaign.LEVELS]
+## lists the levels in the order the solar system's systems open (campaign_test checks).
 @export var star_system := ""
 ## The level's picture, a 16:9 render, loaded only when shown.
 @export_file("*.jpg", "*.png") var picture := ""

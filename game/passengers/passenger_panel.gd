@@ -86,9 +86,10 @@ func _process(_delta: float) -> void:
 	if shown != _seats_shown:
 		_seats_shown = shown
 		(%SeatLabel as Label).text = "%d/%d" % [shown.x, shown.y]
-	for card: PassengerCard in _cards.values():
+	for passenger: Passenger in _cards:
+		var card: PassengerCard = _cards[passenger]
 		card.docked = cabin.docked and not cabin.parking
-		card.comfort = cabin.comfort
+		card.comfort = cabin.get_comfort(passenger)
 
 
 func _show_all() -> void:
@@ -128,7 +129,8 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	card.passenger = passenger
 	card.kickable = kicks_allowed
 	card.serve_held.connect(func(held: bool) -> void: cabin.hold_serve(passenger, held))
-	card.serve_fed.connect(func(amount: float) -> void: cabin.feed_by_hand(passenger, amount))
+	# PROTOTYPE: a serve minigame's move serves that much more of their open request.
+	card.serve_fed.connect(_on_serve_fed.bind(passenger))
 	card.kick_pressed.connect(func() -> void: cabin.kick(passenger))
 	var on_rerouted := _on_rerouted.bind(passenger)
 	if not passenger.rerouted.is_connected(on_rerouted):
@@ -232,3 +234,10 @@ func _forget(passenger: Passenger) -> void:
 	var on_rerouted := _on_rerouted.bind(passenger)
 	if passenger.rerouted.is_connected(on_rerouted):
 		passenger.rerouted.disconnect(on_rerouted)
+
+
+# PROTOTYPE: the player's move in a serve minigame served amount more of passenger's open
+# request, as a fraction of all of it.
+func _on_serve_fed(amount: float, passenger: Passenger) -> void:
+	if passenger in cabin.get_passengers():
+		passenger.feed(amount, cabin.portion)

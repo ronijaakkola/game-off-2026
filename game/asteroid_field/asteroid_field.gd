@@ -4,9 +4,11 @@ extends Node3D
 ## slowly about it as the planets do, with gaps the bus flies through freely. Flying among
 ## the rocks, the bus is slowed to [member rough_speed], braking into it rather than
 ## stopping dead, and every [member bump_seconds] a rock knocks it: everyone on board takes
-## a shock of [member bump_shock] and is thrown about in their seat, the bus rocks and the
-## camera shakes. Holding still among them, or towed, costs nothing. Put it at the star's
-## centre.
+## a shock of [member bump_shock] ([method Cabin.bump], which lifts a rock lover instead) and
+## is thrown about in their seat, the bus rocks and the camera shakes. Holding still among
+## them, or towed, costs nothing. With Shock absorbers the bus flies among them at
+## [member absorbed_speed] and each shock is [member absorbed_share] as big. Put it at the
+## star's centre.
 ##
 ## The rocks are two MultiMeshes, big rocks and pebbles, each one draw call, built at load
 ## from [RockMesh] shapes, so there is nothing to model and nothing to update per frame but
@@ -48,6 +50,10 @@ const ROUGH_RIDE := "Rough ride!"
 @export_range(0.1, 10.0, 0.05) var bump_seconds := 0.8
 ## How much happiness each bump takes from everyone on board.
 @export_range(-50.0, 0.0, 0.5) var bump_shock := -1.0
+## With Shock absorbers, the fastest the bus flies among the rocks, and the share of
+## [member bump_shock] each bump takes.
+@export_range(0.05, 5.0, 0.05) var absorbed_speed := 0.6
+@export_range(0.0, 1.0, 0.05) var absorbed_share := 0.5
 ## How hard the hardest bump throws the passengers about and rocks the bus, in units a
 ## second, each second, from one side or the other. Each bump is a third of that or more.
 @export_range(0.0, 3.5, 0.1) var bump_jolt := 3.0
@@ -68,6 +74,9 @@ const ROUGH_RIDE := "Rough ride!"
 @export_range(0.0, 5.0, 0.05) var open_spot := 1.3
 ## How far above or below the orbit plane the rocks reach, at the band's middle.
 @export_range(0.0, 2.0, 0.01) var height := 0.35
+## The rocks' colour, and the tint of their night side.
+@export var rock_color := Color(0.831, 0.925, 1.0)
+@export var shadow_color := Color(0.541, 0.651, 0.902)
 
 # The cap it puts on the bus's speed, easing down to rough_speed among the rocks.
 var _cap := INF
@@ -79,6 +88,12 @@ func _ready() -> void:
 	process_priority = 1
 	if not belt:
 		belt = AsteroidBelt.new()
+	# Its own copy of the scene's material, so each field has its own colours and star.
+	var material := (%Rocks as MultiMeshInstance3D).material_override.duplicate() as ShaderMaterial
+	material.set_shader_parameter(&"color", rock_color)
+	material.set_shader_parameter(&"shadow_color", shadow_color)
+	(%Rocks as MultiMeshInstance3D).material_override = material
+	(%Pebbles as MultiMeshInstance3D).material_override = material
 	var rng := RandomNumberGenerator.new()
 	rng.seed = rock_seed
 	(%Rocks as MultiMeshInstance3D).multimesh = RockScatter.scatter(
@@ -130,7 +145,7 @@ func _ride(delta: float) -> void:
 		if quick_text:
 			quick_text.show_text(ROUGH_RIDE, ALERT, BusQuickText.Kind.LOSS)
 		entered_rocks.emit()
-	_cap = move_toward(_cap, rough_speed, brake * delta)
+	_cap = move_toward(_cap, absorbed_speed if _absorbs() else rough_speed, brake * delta)
 	bus.speed_cap = minf(bus.speed_cap, _cap)
 	_until_bump -= delta
 	if _until_bump <= 0.0:
@@ -140,7 +155,7 @@ func _ride(delta: float) -> void:
 
 func _bump() -> void:
 	if cabin:
-		cabin.shock(bump_shock)
+		cabin.bump(bump_shock * (absorbed_share if _absorbs() else 1.0))
 	# From one side or the other, a light knock or a hard one.
 	var side := randf_range(0.35, 1.0) * (1.0 if randf() < 0.5 else -1.0)
 	bus.felt_push.jolt(Vector2(side, randf_range(-0.5, 0.5)) * bump_jolt)
@@ -148,3 +163,8 @@ func _bump() -> void:
 	var heading := bus.global_basis.z
 	Feedback.shake(bump_shake, Vector2(heading.x, heading.z))
 	bumped.emit()
+
+
+# Whether the bus has Shock absorbers.
+func _absorbs() -> bool:
+	return bus.get_stats().get_traits().has(BusTraits.Type.SHOCK_ABSORBERS)

@@ -2,7 +2,7 @@ extends Control
 ## The main scene: the logo over the menus' background, and under it the main menu's
 ## slanted buttons. With no level in progress Play opens the campaign screen; with one,
 ## Continue plays it straight away and names it, and Levels opens the campaign screen.
-## Settings and Controls open their screens over the background, the menu's rows
+## Settings, Controls and Credits open their screens over the background, the menu's rows
 ## staggering out as they come in ([MenuScreen]), and the campaign screen pans the
 ## background to its other half as it opens. On the web, a "Click to start" title
 ## card comes first, because Safari starts audio only after a click in the game.
@@ -16,13 +16,9 @@ const SERVE_LAB_SCENE := "res://game/passengers/serve_minigame_lab_prototype.tsc
 const VOICE_LAB_SCENE := "res://game/transmissions/voice_lab.tscn"
 const MIXER_SCENE := "res://ui/mixer/mixer.tscn"
 const MUSIC := preload("res://ui/audio/bg.ogg")
-## Seconds the background takes to pan to the campaign screen's half and back.
-const PAN_SECONDS := 0.6
 
 # Survives scene changes, so coming back to the menu doesn't ask for the click again.
 static var _music_started := false
-
-var _pan: Tween
 
 
 func _ready() -> void:
@@ -33,17 +29,15 @@ func _ready() -> void:
 	DebugPanel.add_button("Serve games lab", SceneFlow.go_to.bind(SERVE_LAB_SCENE), self)
 	DebugPanel.add_button("Voice lab", _debug_voice_lab, self)
 	DebugPanel.add_button("Mixer", _debug_mixer, self)
-	%Background.resized.connect(_on_background_resized)
-	_on_background_resized()
 	%CampaignScreen.visibility_changed.connect(_on_campaign_screen_visibility_changed)
 	# The cards come in once the pan has all but settled, and the menu's rows on the way back.
-	%CampaignScreen.enter_delay = PAN_SECONDS * 0.8
+	%CampaignScreen.enter_delay = MenuBackground.PAN_SECONDS * 0.8
 	if OS.has_feature("web") and not _music_started:
 		%StartOverlay.show()
 	else:
 		_start_music()
 		# Deferred, as the grab_focus docs advise for a call from _ready().
-		_first_button().grab_focus.call_deferred()
+		FocusRing.grab.call_deferred(_first_button())
 
 
 func _start_music() -> void:
@@ -56,7 +50,7 @@ func _on_start_overlay_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		%StartOverlay.hide()
 		_start_music()
-		_first_button().grab_focus()
+		FocusRing.grab(_first_button())
 
 
 # Continue, naming the level, and Levels while a level is in progress, else Play.
@@ -102,6 +96,10 @@ func _on_controls_button_pressed() -> void:
 	%ControlsScreen.open(%Home, _rows)
 
 
+func _on_credits_button_pressed() -> void:
+	%CreditsScreen.open(%Home, _rows)
+
+
 # Reset from the settings screen: the menu under it shows as on a first visit. Its
 # Settings button keeps focus for when the screen closes.
 func _on_settings_menu_campaign_reset() -> void:
@@ -109,23 +107,7 @@ func _on_settings_menu_campaign_reset() -> void:
 
 
 func _on_campaign_screen_visibility_changed() -> void:
-	var material := %Background.material as ShaderMaterial
-	var to := 1.0 if %CampaignScreen.is_open() else 0.0
-	if _pan:
-		_pan.kill()
-	if Settings.reduce_motion:
-		material.set_shader_parameter(&"pan", to)
-		return
-	_pan = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
-	_pan.tween_property(material, ^"shader_parameter/pan", to, PAN_SECONDS)
-
-
-func _on_background_resized() -> void:
-	var size: Vector2 = %Background.size
-	if size.y > 0.0:
-		(%Background.material as ShaderMaterial).set_shader_parameter(
-			&"screen_aspect", size.x / size.y
-		)
+	(%Background as MenuBackground).pan_to(%CampaignScreen.is_open())
 
 
 # The debug panel's Delete save: the menu shows as on a first visit, Play focused, and the
@@ -133,7 +115,7 @@ func _on_background_resized() -> void:
 func _debug_delete_save() -> void:
 	Campaign.reset()
 	_show_level_buttons()
-	_first_button().grab_focus()
+	FocusRing.grab(_first_button())
 
 
 # The debug panel's Voice lab: the scene for trying the alien voices.

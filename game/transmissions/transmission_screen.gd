@@ -72,6 +72,7 @@ func show_caller(transmission: Transmission) -> void:
 	dress(_portrait, transmission, dark)
 	var backdrop := (%Backdrop as ColorRect).material as ShaderMaterial
 	backdrop.set_shader_parameter(&"backdrop_color", get_backdrop_color(transmission, dark))
+	backdrop.set_shader_parameter(&"space", is_in_space(transmission, dark))
 	var border := (%Border as Panel).get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
 	border.border_color = get_frame_color(transmission, dark)
 	(%Border as Panel).add_theme_stylebox_override(&"panel", border)
@@ -98,6 +99,12 @@ static func dress(portrait: AlienPortrait, transmission: Transmission, dark: boo
 ## The backdrop behind [param transmission]'s caller: the dark room's with [param dark].
 static func get_backdrop_color(transmission: Transmission, dark: bool) -> Color:
 	return SHADOW_BACKDROP if dark else transmission.get_backdrop_color()
+
+
+## Whether the backdrop behind [param transmission]'s caller is space: never with
+## [param dark].
+static func is_in_space(transmission: Transmission, dark: bool) -> bool:
+	return transmission.in_space and not dark
 
 
 ## The frame round [param transmission]'s caller: their skin colour, or the dark room's

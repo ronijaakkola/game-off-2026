@@ -21,6 +21,7 @@ idle_lines = Array[String](["Checking the time", "Reading reports", "Answering m
 sleep_lines = Array[String](["Sleeping..."])
 watch_lines = Array[String](["Watching a show", "Watching cat videos"])
 stop_tolerance = 2
+business_class_stops = 1
 stop_lines = Array[String](["“Another stop?!”", "Billing this detour", "“I asked for direct”", "“I’m missing my meeting”"])
 late_lines = Array[String](["“I’m late for a meeting”", "Rescheduling everything", "Tapping their watch", "Drafting a complaint"])
 overheat_lines = Array[String](["Loosening their collar", "Fanning with a report", "Drafting a complaint", "Asking for a refund", "Checking their suit for soot"])

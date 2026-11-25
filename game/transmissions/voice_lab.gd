@@ -3,7 +3,8 @@ extends Node
 ## and some text, press Speak, and the real transmission modal talks it in that race's
 ## [Voice]. The sliders on the right change the voice's delivery as it plays, and Copy puts
 ## the values on the clipboard so they can be set in the voice's resource. The stinger
-## buttons play a race's call-opening sounds. Changes live only in this scene: the voice's
+## buttons play a race's call-opening sounds, and Kicked the scream of a passenger kicked
+## off the bus (the kick itself is off in the game). Changes live only in this scene: the voice's
 ## file isn't touched. The debug panel's Voice lab button opens it.
 
 const MAIN_MENU_SCENE := "res://ui/main_menu/main_menu.tscn"
@@ -187,6 +188,12 @@ func _on_happy_button_pressed() -> void:
 
 func _on_scared_button_pressed() -> void:
 	_play_stinger(Voice.Stinger.SCARED)
+
+
+func _on_kicked_button_pressed() -> void:
+	var speaker := (%TransmissionPanel as TransmissionPanel).get_voice()
+	speaker.begin(_race(), (%NameEdit as LineEdit).text)
+	speaker.play_kicked()
 
 
 func _play_stinger(stinger: Voice.Stinger) -> void:

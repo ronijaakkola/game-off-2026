@@ -5,9 +5,10 @@ extends GdUnitTestSuite
 func test_the_capacity_follows_its_stat_and_a_smaller_tank_spills_what_no_longer_fits() -> void:
 	var tank := auto_free(FuelTank.new()) as FuelTank
 	add_child(tank)
-	var stat := Stat.new()
+	var stats := BusStats.new()
+	var stat := stats.get_stat(BusStats.Type.FUEL_CAPACITY)
 
-	tank.follow(stat)
+	tank.follow(stats)
 	assert_float(stat.base).is_equal(100.0)
 
 	stat.add_modifier(_percent(50.0))

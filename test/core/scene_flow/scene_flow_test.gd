@@ -68,6 +68,35 @@ func test_a_level_waits_paused_under_its_loading_screen_until_start() -> void:
 	assert_bool(_curtain().visible).is_false()
 
 
+func test_a_jump_into_a_level_waits_paused_under_its_loading_screen_until_start() -> void:
+	var done := [false]
+	var show := func() -> void:
+		await _flow.show_loading_screen(load(LEVEL_1))
+		done[0] = true
+	show.call()
+	var start := _flow.find_child("StartButton", true, false) as Button
+	assert_bool(start.is_visible_in_tree()).override_failure_message("No Start").is_true()
+	var paused := await PauseProofWait.for_condition(func() -> bool: return get_tree().paused, 5000)
+	assert_bool(paused).override_failure_message("The game never paused").is_true()
+	if is_failure():
+		return
+	assert_bool(_flow.is_busy()).is_true()
+	assert_bool(done[0]).is_false()
+
+	start.pressed.emit()
+	assert_bool(get_tree().paused).is_false()
+	await assert_func(_flow, "is_busy").wait_until(2000).is_false()
+	assert_bool(done[0]).is_true()
+	assert_bool(_curtain().visible).is_false()
+
+
+func test_a_jump_into_a_level_without_a_picture_shows_nothing() -> void:
+	await _flow.show_loading_screen(load(LEVEL_3))
+	assert_bool(_curtain().visible).is_false()
+	assert_bool(_flow.is_busy()).is_false()
+	assert_bool(get_tree().paused).is_false()
+
+
 # The curtain's fade reaches each of its children apart, so "Loading…" under the level's
 # loading screen showed through the picture as it faded.
 func test_the_plain_loading_card_shows_only_for_a_level_without_a_picture() -> void:

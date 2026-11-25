@@ -29,6 +29,13 @@ enum Type {
 	## How many upgrades the bus has that do something: each makes it a better bus to ride,
 	## which lifts everyone's happiness ([Cabin]). [Research] adds one for each.
 	UPGRADES = 7,
+	## Seconds a cold charge of the frameshift drive takes ([FrameshiftDrive]).
+	CHARGE_TIME = 8,
+	## How fast the bus heats up near a star, as a multiple of its own rates
+	## ([BusTemperature]).
+	HEATING = 9,
+	## How much fuel flying burns, as a multiple of the tank's own rate ([FuelTank]).
+	FUEL_BURN = 10,
 }
 
 ## The base of each stat no node of the bus sets: a stat missing here starts at 0.
@@ -36,6 +43,8 @@ const BASES: Dictionary[Type, float] = {
 	Type.PORTION_SIZE: 1.0,
 	Type.PUMP_SPEED: 1.0,
 	Type.SERVING_SPEED: 1.0,
+	Type.HEATING: 1.0,
+	Type.FUEL_BURN: 1.0,
 }
 
 ## The lowest each stat goes: the lowest the export it comes from allows.
@@ -46,6 +55,9 @@ const MINIMUMS: Dictionary[Type, float] = {
 	Type.PORTION_SIZE: 0.1,
 	Type.PUMP_SPEED: 0.1,
 	Type.SERVING_SPEED: 0.1,
+	Type.CHARGE_TIME: 0.1,
+	Type.HEATING: 0.1,
+	Type.FUEL_BURN: 0.1,
 }
 
 var _stats: Dictionary[Type, Stat] = {}
@@ -65,7 +77,7 @@ func get_stat(type: Type) -> Stat:
 	return _stats[type]
 
 
-## The bus's traits, the features upgrades unlock, such as the fuel forecast.
+## The bus's traits, the features upgrades unlock, such as the waiting markers.
 func get_traits() -> BusTraits:
 	return _traits
 
