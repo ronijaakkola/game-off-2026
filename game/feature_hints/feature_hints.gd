@@ -83,6 +83,16 @@ const HINTS := {
 		text = "Your active quests show up here.",
 		side = GuideCard.Side.LEFT,
 	},
+	&"jump":
+	{
+		title = "Next star system",
+		text =
+		(
+			"Keep working this system as long as you like. When you're ready, jump to the "
+			+ "next one from here. Anyone still on your bus stays behind."
+		),
+		side = GuideCard.Side.LEFT,
+	},
 }
 
 ## The card the hints show on: its own, never the tutorial's.
