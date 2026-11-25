@@ -11,8 +11,9 @@ extends Node
 ## be the one. One
 ## call or quest at a time: nobody calls while a quest is under way, and the wait until
 ## the next call starts only once it has ended.
-## A passenger picked up from a capsule adrift calls with a [RescueQuest] as soon as nothing
-## else is in the way ([method rescue]).
+## A passenger picked up from a capsule adrift has their [RescueQuest]'s transmission open
+## by itself, with no notice, [constant RESCUE_SECONDS] after ([method rescue]). They board
+## only when the player accepts; declined, they stay adrift, at no cost.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
 ## passenger. A completed quest pays its reward and lifts the passenger by
 ## [member done_happiness] for the rest of their ride; a failed one costs the passenger
@@ -28,6 +29,9 @@ extends Node
 signal changed
 ## [param quest] was taken on.
 signal quest_added(quest: Quest)
+## The player answered [param passenger], picked up from a capsule adrift: on board now when
+## [param accepted], and otherwise left where they are.
+signal rescue_answered(passenger: Passenger, accepted: bool)
 ## [param quest], finished a while ago, is no longer shown.
 signal quest_removed(quest: Quest)
 
@@ -55,6 +59,8 @@ const BUSINESS_WEIGHTS: Dictionary[String, float] = {
 	RockRideQuest.KIND: 0.2,
 	SaunaQuest.KIND: 0.2,
 }
+## Seconds from picking a passenger up from a capsule to their transmission opening.
+const RESCUE_SECONDS := 1.5
 ## Seconds before trying again when nobody on board could call.
 const RETRY_SECONDS := 3.0
 ## Seconds the bus has flown before anyone calls, so a call never lands on leaving.
@@ -119,10 +125,9 @@ var _caller: Passenger
 # The quest on offer in the transmission panel, and the one under way.
 var _offer: Quest
 var _quest: Quest
-# Who was picked up from a capsule and has yet to call, and whether the call ringing is
-# theirs.
+# Who was picked up from a capsule and has yet to call, and the seconds until they do.
 var _rescued: Passenger
-var _rescue_call := false
+var _rescue_wait := 0.0
 # Seconds each finished quest still shows.
 var _shown: Dictionary[Quest, float] = {}
 
@@ -155,7 +160,7 @@ func _process(delta: float) -> void:
 	if _quest or not enabled:
 		return
 	if _rescued:
-		_ring_rescue()
+		_call_rescued(delta)
 	else:
 		_wait_for_call(delta)
 
@@ -182,9 +187,17 @@ func get_offer() -> Quest:
 	return _offer
 
 
-## Whether a passenger's call rings, before it is answered or goes.
+## Whether a passenger's call rings, before it is answered or goes, or one picked up from a
+## capsule is about to call.
 func is_calling() -> bool:
-	return _call != null
+	return _call != null or _rescued != null
+
+
+## Whether a passenger picked up from a capsule now could call at once: with calls on and
+## no call, offer, quest or transmission in the way.
+func can_rescue() -> bool:
+	var busy := _call != null or _offer != null or _quest != null or _rescued != null
+	return enabled and not busy and not transmission_panel.is_open()
 
 
 ## The quest under way, or null.
@@ -208,11 +221,14 @@ func call_soon() -> void:
 	_call_asked = true
 
 
-## [param passenger] was picked up from a capsule adrift: they call with a [RescueQuest] as
-## soon as no other call, offer or quest is in the way, however long since the last call
-## and however few passengers have been delivered. Nothing once they have left the bus.
+## [param passenger] was picked up from a capsule adrift: [constant RESCUE_SECONDS] later
+## the transmission of their [RescueQuest] opens, however long since the last call and
+## however few passengers have been delivered. Ask [method can_rescue] first. Nothing once
+## they have left the bus. They aren't on board yet: accepting boards them
+## ([signal rescue_answered]).
 func rescue(passenger: Passenger) -> void:
 	_rescued = passenger
+	_rescue_wait = RESCUE_SECONDS
 
 
 ## The quest under way, for a save game, with its passenger as their place among
@@ -385,24 +401,27 @@ func _ring() -> void:
 	_call.declined.connect(_on_call_declined)
 
 
-# The passenger picked up from a capsule calls, once nothing else shows.
-func _ring_rescue() -> void:
-	if _rescued not in cabin.get_passengers():
-		_rescued = null
-		return
-	if transmission_panel.is_open():
+# The passenger picked up from a capsule calls once their wait is over, outside a stop.
+func _call_rescued(delta: float) -> void:
+	_rescue_wait -= delta
+	if _rescue_wait > 0.0 or transmission_panel.is_open() or cabin.is_stopping():
 		return
 	_caller = _rescued
 	_rescued = null
-	_rescue_call = true
-	_ring()
+	_open_offer(_plan_rescue(_caller))
 
 
 func _on_call_answered() -> void:
 	if not _call:
 		return
 	_call = null
-	_offer = _plan_rescue(_caller) if _rescue_call else _plan(_caller)
+	_open_offer(_plan(_caller))
+
+
+# The transmission of [param quest] opens for the player to answer, or nobody calls for a
+# while when it is null.
+func _open_offer(quest: Quest) -> void:
+	_offer = quest
 	if not _offer:
 		_rest()
 		return
@@ -427,6 +446,8 @@ func _watch_offer() -> void:
 		return
 	if transmission_panel.answered.is_connected(_on_answered):
 		transmission_panel.answered.disconnect(_on_answered)
+	if _offer is RescueQuest:
+		rescue_answered.emit(_offer.passenger, false)
 	_offer = null
 	_rest()
 
@@ -434,6 +455,12 @@ func _watch_offer() -> void:
 func _on_answered(accepted: bool) -> void:
 	var quest := _offer
 	_offer = null
+	if quest is RescueQuest:
+		accepted = accepted and cabin.board(quest.passenger)
+		rescue_answered.emit(quest.passenger, accepted)
+		if not accepted:
+			_rest()
+			return
 	if not quest or quest.passenger not in cabin.get_passengers():
 		_rest()
 		return
@@ -484,7 +511,6 @@ func _finish() -> void:
 func _rest() -> void:
 	_caller = null
 	_call_asked = false
-	_rescue_call = false
 	if _ledger and _ledger.get_rating_count() < EARLY_DELIVERIES:
 		_until_call = _rng.randf_range(EARLY_CALL_MIN_SECONDS, EARLY_CALL_MAX_SECONDS)
 	else:

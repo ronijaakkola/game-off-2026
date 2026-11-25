@@ -25,6 +25,9 @@ var race := Race.Type.GREEN
 ## The screen's backdrop for a caller who isn't in front of their race's, or see-through
 ## for the race's deep shade.
 var backdrop_color := Color.TRANSPARENT
+## Whether the caller floats in space: the backdrop is stars and fog in
+## [member backdrop_color], with no sky or ground.
+var in_space := false
 ## The caller's passenger type, whose badges sit on the screen's corner with their tooltip,
 ## as on a passenger's portrait, or null for a caller who isn't a passenger.
 var type: PassengerType
@@ -58,7 +61,8 @@ var decline_text := ""
 var answers_alike := false
 
 
-## A transmission from [param passenger], in their look, mood and badges.
+## A transmission from [param passenger], in their look, mood and badges. The [Castaway]
+## calls from space.
 static func from_passenger(passenger: Passenger) -> Transmission:
 	var transmission := Transmission.new()
 	transmission.caller_name = passenger.name
@@ -67,6 +71,9 @@ static func from_passenger(passenger: Passenger) -> Transmission:
 	transmission.type = passenger.type
 	transmission.destination = passenger.destination
 	transmission.mood = passenger.get_mood()
+	if Castaway.is_castaway(passenger):
+		transmission.backdrop_color = Castaway.get_space_color(passenger)
+		transmission.in_space = true
 	return transmission
 
 
