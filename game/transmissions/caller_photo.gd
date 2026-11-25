@@ -39,6 +39,7 @@ func _show() -> void:
 	backdrop.set_shader_parameter(
 		&"backdrop_color", TransmissionScreen.get_backdrop_color(_caller, dark)
 	)
+	backdrop.set_shader_parameter(&"space", TransmissionScreen.is_in_space(_caller, dark))
 	var border := (%Border as Panel).get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
 	border.border_color = TransmissionScreen.get_frame_color(_caller, dark)
 	(%Border as Panel).add_theme_stylebox_override(&"panel", border)

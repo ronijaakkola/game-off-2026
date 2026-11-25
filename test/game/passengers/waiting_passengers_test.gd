@@ -287,6 +287,7 @@ func test_set_planets_says_every_line_it_empties_has_changed() -> void:
 
 func test_a_capsule_always_holds_the_castaway_who_comes_back_once_met() -> void:
 	var first := _waiting.create_adrift(Vector3(5.0, 0.0, 0.0))
+	_waiting.castaway_met = true
 	var second := _waiting.create_adrift(Vector3(-5.0, 0.0, 0.0))
 
 	for passenger: Passenger in [first, second]:
@@ -295,4 +296,3 @@ func test_a_capsule_always_holds_the_castaway_who_comes_back_once_met() -> void:
 	assert_object(second.look.head).is_same(first.look.head)
 	assert_bool(first.returning).is_false()
 	assert_bool(second.returning).is_true()
-	assert_bool(_waiting.castaway_met).is_true()

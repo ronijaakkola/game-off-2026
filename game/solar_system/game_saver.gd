@@ -222,6 +222,7 @@ func _write() -> void:
 		"first_business": waiting.first_business_dealt,
 		"castaway_met": waiting.castaway_met,
 		"castaway_misses": capsules.castaway_misses if capsules else 0,
+		"castaway_found": capsules.castaway_found if capsules else false,
 		"returning": waiting.get_returning().to_save(),
 		"goals": progress,
 		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
@@ -264,6 +265,7 @@ func _restore() -> void:
 	waiting.castaway_met = bool(_saved.get("castaway_met", false))
 	if capsules:
 		capsules.castaway_misses = int(_saved.get("castaway_misses", 0))
+		capsules.castaway_found = bool(_saved.get("castaway_found", false))
 	waiting.get_returning().load_save(_saved.get("returning", []), types)
 	var lines: Dictionary = _saved.get("lines", {})
 	for planet: Planet in _planets:
@@ -277,6 +279,8 @@ func _restore() -> void:
 	for saved: Variant in _saved.get("cabin", []):
 		var passenger := Passenger.from_save(saved as Dictionary, types, by_name)
 		if passenger:
+			if Castaway.is_castaway(passenger):
+				Castaway.dress(passenger, passenger.returning)
 			cabin.board(passenger)
 	var saved_goals: Array = _saved.get("goals", [])
 	var tracked := goals.get_goals()

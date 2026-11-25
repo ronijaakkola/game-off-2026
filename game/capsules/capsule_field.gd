@@ -7,13 +7,19 @@ extends Node3D
 ## for [member lifetime] seconds and is gone uncollected.
 ## Every capsule looks alike, and what it holds is rolled as the bus collects it: the
 ## [Castaway] by [method get_castaway_chance], which climbs with every capsule that held
-## someone else ([member castaway_misses]) until it is certain, else credits or research
-## points, as likely one as the other. The castaway needs a free seat and can't be on board
-## already; without one, the roll is between the other two, and counts as a miss. Credits
-## and research points go into the ledger at once, by the star system
-## ([constant REWARD_CREDITS], [constant REWARD_RESEARCH]). On board, the castaway calls
-## with a [RescueQuest] ([method QuestGiver.rescue]). The debug panel's capsules hold what
-## they say, the castaway only when they can board, and roll nothing.
+## someone else ([member castaway_misses]) until it is certain, else credits, research
+## points or fuel, as likely one as another. Research points need research open, and fuel a
+## tank neither full nor dry ([method _get_rewards]). The castaway turns up once in a star
+## system ([member castaway_found]), and only when they can board and call at once
+## ([method _can_rescue]): otherwise the roll is among the rest, and counts as a miss until
+## they are found.
+## Credits and research points go into the ledger at once, by the star system
+## ([constant REWARD_CREDITS], [constant REWARD_RESEARCH]), and fuel into the tank
+## ([constant REWARD_FUEL]). The castaway comes out of the capsule as a figure
+## ([CastawayFigure]) that trails after the bus, and their transmission opens by itself with a
+## [RescueQuest] ([method QuestGiver.rescue]): accepted, they board, and declined, they
+## drift off, with nothing lost. The debug panel's capsules hold what they
+## say, or credits when what they say can't be had, and roll nothing.
 ## Capsules aren't stops: a right click on one sets a point in space where it is, as on
 ## empty space. None appear while the bus jumps, and a new system starts with none.
 
@@ -21,6 +27,8 @@ extends Node3D
 ## order they open: about half of what a fly past pays.
 const REWARD_CREDITS: Array[int] = [50, 115, 230]
 const REWARD_RESEARCH: Array[int] = [1, 2, 3]
+## The share of a full tank a capsule of fuel holds.
+const REWARD_FUEL := 0.1
 ## Units clear of the heat zone's edge, and inside the edge the camera stops at, that a
 ## capsule appears.
 const ZONE_MARGIN := 1.5
@@ -35,7 +43,9 @@ const DEBUG_AHEAD := 2.5
 const DEBUG_GROUP := "Capsules"
 const DOLLAR_ICON := preload("res://shared/icons/dollar_sign.svg")
 const RESEARCH_ICON := preload("res://shared/icons/flask_conical.svg")
-const RESCUED_ICON := preload("res://shared/icons/circle_check.svg")
+const FUEL_ICON := preload("res://shared/icons/fuel.svg")
+const RESCUED_TEXT := "Someone was inside!"
+const RESCUED_ICON := preload("res://shared/icons/user.svg")
 
 ## Whether new capsules appear. Those adrift stay either way.
 @export var enabled := true
@@ -62,12 +72,15 @@ const RESCUED_ICON := preload("res://shared/icons/circle_check.svg")
 @export var quick_text: BusQuickText
 @export var system_jump: SystemJump
 ## Has the resource bars take a capsule's credits or research points in at once, rather than
-## at the next stop as a fare's.
+## at the next stop as a fare's, and knows whether research is open. Without one it is.
 @export var research_lab: ResearchLab
 
 ## Capsules collected since the castaway was last in one, which make the next likelier to
 ## hold them. Kept with the run.
 var castaway_misses := 0
+## Whether the castaway has turned up in the star system the bus works in: they do once in
+## each. Kept with the run.
+var castaway_found := false
 
 var _ledger: Ledger
 # Which star system the bus works in, counted from 0 in the order they open: capsules pay
@@ -76,6 +89,8 @@ var _level := 0
 var _started := false
 var _until_next := 0.0
 var _capsules: Array[Capsule] = []
+# The castaway out of their capsule, until the player answers them.
+var _figure: CastawayFigure
 # Made once it is in the tree: a scene stores every member of a node another node exports.
 var _rng: RandomNumberGenerator
 
@@ -83,11 +98,16 @@ var _rng: RandomNumberGenerator
 func _ready() -> void:
 	if not _rng:
 		_rng = RandomNumberGenerator.new()
+	if quest_giver:
+		quest_giver.rescue_answered.connect(_on_rescue_answered)
 	DebugPanel.add_button(
 		"Credits capsule", _debug_spawn.bind(Capsule.Contents.CREDITS), self, DEBUG_GROUP
 	)
 	DebugPanel.add_button(
 		"Research capsule", _debug_spawn.bind(Capsule.Contents.RESEARCH), self, DEBUG_GROUP
+	)
+	DebugPanel.add_button(
+		"Fuel capsule", _debug_spawn.bind(Capsule.Contents.FUEL), self, DEBUG_GROUP
 	)
 	DebugPanel.add_button(
 		"Passenger capsule", _debug_spawn.bind(Capsule.Contents.PASSENGER), self, DEBUG_GROUP
@@ -120,6 +140,7 @@ func _process(delta: float) -> void:
 func start(ledger: Ledger, level := 0) -> void:
 	_ledger = ledger
 	_level = level
+	castaway_found = false
 	clear()
 	_started = true
 	_until_next = _interval()
@@ -179,46 +200,105 @@ func _is_touching(capsule: Capsule) -> bool:
 func _collect(capsule: Capsule) -> void:
 	var at := capsule.get_flat_position()
 	var contents := _open(capsule)
-	_remove(capsule)
+	_capsules.erase(capsule)
+	var passenger: Passenger
+	if contents == Capsule.Contents.PASSENGER:
+		passenger = waiting.create_adrift(at)
+	if passenger:
+		_rescue(passenger, capsule)
+		return
+	capsule.pick_up()
 	match contents:
 		Capsule.Contents.PASSENGER:
-			var passenger := waiting.create_adrift(at)
-			if passenger and cabin.board(passenger):
-				castaway_misses = 0
-				if quest_giver:
-					quest_giver.rescue(passenger)
-				_stamp("Rescued %s!" % passenger.name, RESCUED_ICON, BusQuickText.Kind.GAIN)
-			else:
-				_pay_credits()
+			_pay_credits()
 		Capsule.Contents.RESEARCH:
 			var points := _reward(REWARD_RESEARCH)
 			if _ledger:
 				_ledger.earn_research(points)
 			_show_earnings()
 			_stamp("+%d research" % points, RESEARCH_ICON, BusQuickText.Kind.GAIN)
+		Capsule.Contents.FUEL:
+			var tank := bus.get_fuel_tank()
+			tank.refuel(tank.capacity * REWARD_FUEL)
+			_stamp("+%d%% fuel" % roundi(REWARD_FUEL * 100.0), FUEL_ICON, BusQuickText.Kind.GAIN)
 		_:
 			_pay_credits()
 
 
+# The castaway, [param passenger], was in [param capsule]: they come out of it as a figure
+# that trails after the bus, and their transmission opens. They board only once the player
+# accepts, or at once with nobody to ask.
+func _rescue(passenger: Passenger, capsule: Capsule) -> void:
+	castaway_misses = 0
+	castaway_found = true
+	capsule.release(QuestGiver.RESCUE_SECONDS)
+	_figure = CastawayFigure.new()
+	add_child(_figure)
+	_figure.emerge(capsule.global_position, passenger, capsule.light_source, bus)
+	_stamp(RESCUED_TEXT, RESCUED_ICON, BusQuickText.Kind.GAIN)
+	if quest_giver:
+		quest_giver.rescue(passenger)
+	else:
+		_on_rescue_answered(passenger, cabin.board(passenger))
+
+
+# The player answered the castaway: on board now when [param accepted], and met from here
+# on, or left adrift.
+func _on_rescue_answered(_passenger: Passenger, accepted: bool) -> void:
+	if accepted:
+		waiting.castaway_met = true
+	if not is_instance_valid(_figure):
+		return
+	if accepted:
+		_figure.board()
+	else:
+		_figure.leave()
+	_figure = null
+
+
+# Whether the castaway can turn up now: with a seat free, while they aren't on board, and
+# while their transmission could open at once, so with no call, quest or transmission in
+# the way.
+func _can_rescue() -> bool:
+	if not cabin.has_free_seat() or _is_castaway_aboard():
+		return false
+	return not quest_giver or quest_giver.can_rescue()
+
+
 # What [param capsule] turns out to hold: rolled now unless the debug panel set it, and never
-# the castaway when they can't board. A debug capsule of theirs then holds credits.
+# the castaway when they can't board, nor a reward that can't be had now. A debug capsule of
+# one of those then holds credits.
 func _open(capsule: Capsule) -> Capsule.Contents:
-	var can_rescue := cabin.has_free_seat() and not _is_castaway_aboard()
 	var contents := capsule.contents
 	if contents == Capsule.Contents.UNDECIDED:
-		return _roll(can_rescue)
-	if contents == Capsule.Contents.PASSENGER and not can_rescue:
-		return Capsule.Contents.CREDITS
-	return contents
+		return _roll(_can_rescue() and not castaway_found)
+	if contents == Capsule.Contents.PASSENGER:
+		return contents if _can_rescue() else Capsule.Contents.CREDITS
+	return contents if contents in _get_rewards() else Capsule.Contents.CREDITS
 
 
-# The castaway by [method get_castaway_chance] when [param can_rescue], else credits or
-# research points, which count as a miss.
+# The castaway by [method get_castaway_chance] when [param can_rescue], else one of
+# [method _get_rewards], which counts as a miss while they are still to be found here.
 func _roll(can_rescue: bool) -> Capsule.Contents:
 	if can_rescue and _rng.randf() < get_castaway_chance():
 		return Capsule.Contents.PASSENGER
-	castaway_misses += 1
-	return Capsule.Contents.CREDITS if _rng.randf() < 0.5 else Capsule.Contents.RESEARCH
+	if not castaway_found:
+		castaway_misses += 1
+	var rewards := _get_rewards()
+	return rewards[_rng.randi_range(0, rewards.size() - 1)]
+
+
+# What a capsule without the castaway can hold now: credits, research points once research
+# is open, so the player earns none before they can see them, and fuel while the tank is
+# neither full nor dry, so it is never wasted and a bus that ran dry stays that way.
+func _get_rewards() -> Array[Capsule.Contents]:
+	var rewards: Array[Capsule.Contents] = [Capsule.Contents.CREDITS]
+	if not research_lab or research_lab.get_research().is_opened():
+		rewards.append(Capsule.Contents.RESEARCH)
+	var tank := bus.get_fuel_tank()
+	if not tank.is_empty() and tank.get_fraction() < 1.0:
+		rewards.append(Capsule.Contents.FUEL)
+	return rewards
 
 
 func _pay_credits() -> void:

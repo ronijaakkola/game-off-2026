@@ -191,11 +191,11 @@ What one passenger asks of the player mid-ride, in a transmission, for a reward.
 _Avoid_: task, mission, errand (for any quest: it is the one kind)
 
 **Capsule**:
-A small capsule drifting in space, holding credits, research points or the **castaway**, which the bus collects by flying into it. Not a stop: the route never follows one. `Capsule` in code; the `CapsuleField` makes them, drifts them and hands out what they hold.
+A small capsule drifting in space, holding credits, research points, fuel or the **castaway**, which the bus collects by flying into it. Not a stop: the route never follows one. `Capsule` in code; the `CapsuleField` makes them, drifts them and hands out what they hold.
 _Avoid_: pickup, loot, crate, pod
 
 **Castaway**:
-The one passenger a capsule ever holds, always the same person, who keeps drifting off in space. Rescued again in a run, they come back as a **returning passenger**, and never wait in a line. `Castaway` in code.
+The one passenger a capsule ever holds, always the same person, who keeps drifting off in space and turns up once in each star system. Rescued again in a run, they come back as a **returning passenger**, and never wait in a line. `Castaway` in code.
 _Avoid_: survivor, stranded passenger
 
 **Transmission**:
