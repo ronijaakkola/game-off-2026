@@ -10,7 +10,8 @@ extends Node3D
 ## someone else ([member castaway_misses]) until it is certain, else credits, research
 ## points or fuel, as likely one as another. Research points need research open, and fuel a
 ## tank neither full nor dry ([method _get_rewards]). The castaway turns up once in a star
-## system ([member castaway_found]), and only when they can board and call at once
+## system ([member castaway_found]), not before the player has been taught quests (the
+## quests feature hint, [member hints]), and only when they can board and call at once
 ## ([method _can_rescue]): otherwise the roll is among the rest, and counts as a miss until
 ## they are found.
 ## Credits and research points go into the ledger at once, by the star system
@@ -74,6 +75,9 @@ const RESCUED_ICON := preload("res://shared/icons/user.svg")
 ## Has the resource bars take a capsule's credits or research points in at once, rather than
 ## at the next stop as a fare's, and knows whether research is open. Without one it is.
 @export var research_lab: ResearchLab
+## Has the castaway wait until the player has closed the quests hint, so their rescue quest
+## is never the first quest the player meets. Without one they don't wait.
+@export var hints: FeatureHints
 
 ## Capsules collected since the castaway was last in one, which make the next likelier to
 ## hold them. Kept with the run.
@@ -271,7 +275,7 @@ func _can_rescue() -> bool:
 func _open(capsule: Capsule) -> Capsule.Contents:
 	var contents := capsule.contents
 	if contents == Capsule.Contents.UNDECIDED:
-		return _roll(_can_rescue() and not castaway_found)
+		return _roll(_can_rescue() and not castaway_found and _has_taught_quests())
 	if contents == Capsule.Contents.PASSENGER:
 		return contents if _can_rescue() else Capsule.Contents.CREDITS
 	return contents if contents in _get_rewards() else Capsule.Contents.CREDITS
@@ -313,6 +317,10 @@ func _pay_credits() -> void:
 func _show_earnings() -> void:
 	if research_lab:
 		research_lab.commit()
+
+
+func _has_taught_quests() -> bool:
+	return not hints or hints.has_taught(&"quests")
 
 
 func _is_castaway_aboard() -> bool:
