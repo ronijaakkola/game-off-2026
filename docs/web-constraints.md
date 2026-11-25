@@ -80,7 +80,7 @@ The web runs only the **Compatibility** renderer (WebGL 2). There is no WebGPU, 
 
 ## Still unverified in a browser
 
-Check these before relying on them: the pause on leaving fullscreen in Firefox, Safari and on itch itself (checked in Chromium only), stencil outlines on WebGL 2 (the bus's hover border relies on them: hover the bus in the preview build), the frosted UI blur in Firefox and Safari, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI screens: Firefox on itch drops to about 40 FPS in fullscreen on a 144 Hz screen that holds 144 everywhere else. The debug panel's Rendering switches and Show FPS are there to find which cost does it.
+Check these before relying on them: the pause on leaving fullscreen in Firefox, Safari and on itch itself (checked in Chromium only), stencil outlines on WebGL 2 (the bus's hover border relies on them: hover the bus in the preview build), the frosted UI blur in Firefox and Safari, saves inside the itch iframe in Safari (they survive a reload in Windows browsers), and whether 3D at full resolution in fullscreen is too slow on HiDPI screens: Firefox on itch drops to about 40 FPS in fullscreen on a 144 Hz screen that holds 144 everywhere else. The debug panel's Rendering switches and the settings screen's Show FPS are there to find which cost does it.
 
 ## Sources
 

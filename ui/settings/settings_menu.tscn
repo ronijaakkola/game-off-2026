@@ -31,7 +31,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 80
-theme_override_constants/margin_top = 56
+theme_override_constants/margin_top = 40
 
 [node name="Column" type="VBoxContainer" parent="Margin" unique_id=891415624]
 custom_minimum_size = Vector2(460, 0)
@@ -39,7 +39,7 @@ layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 16
 
 [node name="Header" type="HBoxContainer" parent="Margin/Column" unique_id=574105286]
 unique_name_in_owner = true
@@ -75,7 +75,7 @@ theme_type_variation = &"SheetPanel"
 
 [node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/AudioCard" unique_id=2039444640]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/AudioCard/Rows" unique_id=1100019704]
 layout_mode = 2
@@ -156,7 +156,7 @@ theme_type_variation = &"SheetPanel"
 
 [node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/ComfortCard" unique_id=2017686615]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows" unique_id=1154552688]
 layout_mode = 2
@@ -174,7 +174,7 @@ stretch_mode = 5
 [node name="Label" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/Heading" unique_id=1555233095]
 layout_mode = 2
 theme_type_variation = &"SectionHeadingLabel"
-text = "Comfort and camera"
+text = "Display and camera"
 
 [node name="ReduceMotionRow" type="HBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows" unique_id=112097823]
 layout_mode = 2
@@ -224,6 +224,25 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 
+[node name="ShowFpsRow" type="HBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows" unique_id=1776265917]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Text" type="VBoxContainer" parent="Margin/Column/Cards/ComfortCard/Rows/ShowFpsRow" unique_id=1775388638]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="Label" type="Label" parent="Margin/Column/Cards/ComfortCard/Rows/ShowFpsRow/Text" unique_id=1067039927]
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+text = "Show FPS"
+
+[node name="ShowFps" type="CheckButton" parent="Margin/Column/Cards/ComfortCard/Rows/ShowFpsRow" unique_id=1366501193]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+
 [node name="CampaignCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=544534340]
 unique_name_in_owner = true
 material = ExtResource("3_glass")
@@ -232,7 +251,7 @@ theme_type_variation = &"SheetPanel"
 
 [node name="Rows" type="VBoxContainer" parent="Margin/Column/Cards/CampaignCard" unique_id=1525261646]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="Heading" type="HBoxContainer" parent="Margin/Column/Cards/CampaignCard/Rows" unique_id=1939159266]
 layout_mode = 2

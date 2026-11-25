@@ -60,6 +60,7 @@ var _asked := 0
 func _ready() -> void:
 	set_process(false)
 	DebugPanel.add_button("First shift call", _ring.bind(WELCOME, OPENING), self, DEBUG_GROUP)
+	hints.set_debug_target(&"goals", func() -> Control: return goal_panel)
 
 
 func _process(delta: float) -> void:

@@ -14,6 +14,10 @@ const SETTLE_SECONDS := 1.0
 var _shown_seconds := 0.0
 
 
+func _ready() -> void:
+	hints.set_debug_target(&"jump", goal_panel.get_jump_button)
+
+
 func _process(delta: float) -> void:
 	var button := goal_panel.get_jump_button()
 	if not goal_panel.is_offering_jump() or not button.is_visible_in_tree():
