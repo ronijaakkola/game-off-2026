@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c27bke4n6kwiy"]
 
 [ext_resource type="Script" uid="uid://b60byqdjkmg8f" path="res://game/solar_system/star_system.gd" id="1_system"]
+[ext_resource type="AudioStream" uid="uid://b2jmgmaf4lxpi" path="res://ui/audio/bgm1.ogg" id="90_music"]
 [ext_resource type="Script" uid="uid://bcxthsqtxqd30" path="res://game/solar_system/planet.gd" id="2_planet"]
 [ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
@@ -157,6 +158,7 @@ shader_parameter/terminator_softness = 0.0
 [node name="Sol" type="Node3D" unique_id=109947984 node_paths=PackedStringArray("home")]
 script = ExtResource("1_system")
 display_name = "Sol"
+music = ExtResource("90_music")
 home = NodePath("Mars")
 bounds_radius = 22.0
 max_distance = 62.0

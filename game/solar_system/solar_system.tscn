@@ -73,6 +73,7 @@
 [ext_resource type="Script" uid="uid://bmn7hph2p0ba6" path="res://game/warp_gate/warp_gate_tooltip.gd" id="155_gate_tooltip"]
 [ext_resource type="Script" uid="uid://c3atn4ddkgf83" path="res://game/capsules/capsule_field.gd" id="156_capsules"]
 [ext_resource type="Script" uid="uid://dijks1t841h88" path="res://game/feature_hints/jump_hint.gd" id="157_jump_hint"]
+[ext_resource type="Script" uid="uid://b1fajbmbhyo5" path="res://game/solar_system/system_music.gd" id="190_music"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -200,6 +201,10 @@ script = ExtResource("117_star_map")
 world = NodePath("../World")
 rig = NodePath("../CameraRig")
 sky = NodePath("../SpaceSky")
+
+[node name="SystemMusic" type="Node" parent="." unique_id=2090082079 node_paths=PackedStringArray("star_map")]
+script = ExtResource("190_music")
+star_map = NodePath("../StarMap")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
 unique_name_in_owner = true

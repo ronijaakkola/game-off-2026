@@ -22,6 +22,7 @@ var _demo: VoiceDemo
 func _ready() -> void:
 	_demo = VoiceDemo.new()
 	add_child(_demo)
+	_show_silenced()
 	var sections := %Sections as Container
 	var tracks: Array[MixerRow] = []
 	var effects: Array[MixerRow] = []
@@ -37,6 +38,18 @@ func _ready() -> void:
 	_rows.append_array(tracks)
 	_rows.append_array(effects)
 	_add_voices(sections)
+
+
+## The names of the volumes set to zero in Settings, which silence what they carry here too.
+static func silenced_volumes() -> PackedStringArray:
+	var names := PackedStringArray()
+	if Settings.master_volume <= 0.0:
+		names.append("Master")
+	if Settings.music_volume <= 0.0:
+		names.append("Music")
+	if Settings.sfx_volume <= 0.0:
+		names.append("Sound effects")
+	return names
 
 
 ## The text Copy puts on the clipboard: [member ClipLevels.LEVELS] as it should read, then
@@ -57,6 +70,20 @@ func table_text() -> String:
 static func level_text(level: float) -> String:
 	var text := String.num(level, 2)
 	return text if "." in text else text + ".0"
+
+
+# Warns, under the hint, when a volume in Settings is at zero: it still applies here.
+func _show_silenced() -> void:
+	var names := silenced_volumes()
+	var label := %Silenced as Label
+	label.visible = not names.is_empty()
+	label.text = (
+		(
+			"%s set to zero in Settings: raise it there to hear this. "
+			+ "The mixer plays through the same volumes as the game."
+		)
+		% " and ".join(names)
+	)
 
 
 func _add_section(parent: Container, title: String, rows: Array[MixerRow]) -> void:

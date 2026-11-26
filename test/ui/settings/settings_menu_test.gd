@@ -170,3 +170,26 @@ func _covered(runner: GdUnitSceneRunner) -> Control:
 	covered.add_child(Button.new())
 	runner.scene().add_sibling(covered)
 	return auto_free(covered)
+
+
+func test_a_drag_near_the_middle_of_a_volume_lands_on_it_and_the_keys_do_not() -> void:
+	var before := Settings.sfx_volume
+	var runner := scene_runner(SCENE)
+	runner.invoke("open", _covered(runner))
+	var slider := runner.find_child("SfxVolume") as MidpointSlider
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+
+	slider._gui_input(press)
+	slider.value = 0.52
+	assert_float(slider.value).is_equal_approx(0.5, 0.001)
+	assert_float(Settings.sfx_volume).is_equal_approx(0.5, 0.001)
+	slider.value = 0.6
+	assert_float(slider.value).is_equal_approx(0.6, 0.001)
+
+	press.pressed = false
+	slider._gui_input(press)
+	slider.value = 0.51
+	assert_float(Settings.sfx_volume).is_equal_approx(0.51, 0.001)
+	Settings.sfx_volume = before

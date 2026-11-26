@@ -90,6 +90,12 @@ theme_type_variation = &"FaintLabel"
 text = "1.00 is a clip as recorded. Changes last until the game closes and are heard in the game at once; Copy values puts them on the clipboard to set by hand."
 autowrap_mode = 3
 
+[node name="Silenced" type="Label" parent="Margin/Card/Rows" unique_id=1431294461]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+autowrap_mode = 3
+
 [node name="Scroll" type="ScrollContainer" parent="Margin/Card/Rows" unique_id=1846923554]
 layout_mode = 2
 size_flags_vertical = 3

@@ -2,7 +2,7 @@
 
 Last updated: 2026-11-25
 
-What plays, what is missing, and what each clip is. Levels are the mixer's table in `core/audio/clip_levels.gd` (1 is as recorded).
+What plays, what is missing, and what each clip is. Levels are the mixer's table in `core/audio/clip_levels.gd` (1 is as recorded). The mix, each alien voice's volume of 0.4 included, is set with the Master, Music and Sound effects sliders at their default, the middle (0.5).
 
 ## In the game
 
@@ -10,14 +10,15 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 
 | File | Plays when | Level | Status |
 |---|---|---|---|
-| `ui/audio/bg.ogg` | The music, from the main menu through the game. 88 bpm, 96 beats, loops from beat 32; everything that lands on the beat reads its grid | 1.0 | Done |
-| `ui/audio/menu_music.ogg` | Nothing: the menu plays `bg.ogg`. It still shows in the mixer | 1.0 | Unused |
+| `ui/audio/bgm1.ogg` | The main menu, Level 1 (Vela) and Level 3 (Sol). 88 bpm, 96 beats, loops from beat 32; everything that lands on the beat reads its grid | 0.7 | Done |
+| `ui/audio/bgm2.ogg` | Level 2 (Lyra). It fades in as the track before fades out, over 2 s, as the bus crosses into the system or the level starts. 88 bpm, 128 beats, loops from beat 64 (0:43.63 to 1:27.27) | 0.7 | Done |
+| `ui/audio/menu_music.ogg` | Nothing: the menu plays `bgm1.ogg`. It still shows in the mixer | 0.7 | Unused |
 
 ### Bus
 
 | File | Plays when | Level | Status |
 |---|---|---|---|
-| `game/bus/flying.ogg` | The bus flies: fades in over 0.5 s, loops in step with the music (4 beats long, starting where the music is in its 4 beats) and fades out over 0.5 s when the flight ends. No pitch or speed change | 0.4 | Done |
+| `game/bus/flying.ogg` | The bus flies: fades in over 0.5 s, loops in step with the music (4 beats long, starting where the music is in its 4 beats) and fades out over 0.5 s when the flight ends. No pitch or speed change | 0.7 | Done |
 | `game/bus/dock_bell.ogg` | The bus docks | 0.5 | Placeholder, "to be replaced with the final dock sound" |
 | `ui/audio/key_click.ogg` | A bus key goes down, Space working the Frameshift key included. Also the refused click on a research tile that can't be researched | 1.0 | Placeholder |
 
@@ -87,7 +88,7 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 ### Music and ambience
 
 - **Menu music.** `menu_music.ogg` is in the project and unused. The menus play the game's track.
-- **A track for each star system** (Vela, Lyra, Sol), and one for the tutorial and the joined systems at the end.
+- **A track for Level 3** (Sol), which plays Level 1's for now, and one for the tutorial and the joined systems at the end.
 - **A level-complete jingle.**
 - **Space ambience** under the map, and the heat zone.
 

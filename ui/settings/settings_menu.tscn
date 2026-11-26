@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://du1swv634nyif"]
 
+[ext_resource type="Texture2D" uid="uid://dbbhejvffjis7" path="res://ui/icons/slider_notch.svg" id="10_notch"]
 [ext_resource type="Script" uid="uid://dmlvqmysra4tp" path="res://ui/settings/settings_menu.gd" id="1_settings"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
@@ -8,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://bsidi4js3s4om" path="res://ui/icons/volume_2.svg" id="6_audio"]
 [ext_resource type="Texture2D" uid="uid://br1rxdwxet3gm" path="res://ui/icons/sliders_horizontal.svg" id="7_comfort"]
 [ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://shared/icons/flag.svg" id="8_flag"]
+[ext_resource type="Script" uid="uid://boygv63umxxni" path="res://ui/settings/midpoint_slider.gd" id="9_midpoint"]
 [ext_resource type="Texture2D" uid="uid://dxo3qfdhj8t17" path="res://ui/icons/rotate_ccw.svg" id="9_reset"]
 [ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="10_tooltip"]
 
@@ -112,6 +114,10 @@ layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
+theme_override_icons/tick = ExtResource("10_notch")
+tick_count = 3
+ticks_position = 3
+script = ExtResource("9_midpoint")
 
 [node name="MusicVolumeRow" type="HBoxContainer" parent="Margin/Column/Cards/AudioCard/Rows" unique_id=446962345]
 layout_mode = 2
@@ -130,6 +136,10 @@ layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
+theme_override_icons/tick = ExtResource("10_notch")
+tick_count = 3
+ticks_position = 3
+script = ExtResource("9_midpoint")
 
 [node name="SfxVolumeRow" type="HBoxContainer" parent="Margin/Column/Cards/AudioCard/Rows" unique_id=775764978]
 layout_mode = 2
@@ -148,6 +158,10 @@ layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
+theme_override_icons/tick = ExtResource("10_notch")
+tick_count = 3
+ticks_position = 3
+script = ExtResource("9_midpoint")
 
 [node name="ComfortCard" type="PanelContainer" parent="Margin/Column/Cards" unique_id=736465797]
 material = ExtResource("3_glass")
