@@ -10,7 +10,8 @@ extends Node3D
 ## someone else ([member castaway_misses]) until it is certain, else credits, research
 ## points or fuel, as likely one as another. Research points need research open, and fuel a
 ## tank neither full nor dry ([method _get_rewards]). The castaway turns up once in a star
-## system ([member castaway_found]), and only when they can board and call at once
+## system ([member castaway_found]), not before the player has been taught quests (the
+## quests feature hint, [member hints]), and only when they can board and call at once
 ## ([method _can_rescue]): otherwise the roll is among the rest, and counts as a miss until
 ## they are found.
 ## Credits and research points go into the ledger at once, by the star system
@@ -63,6 +64,10 @@ const RESCUED_ICON := preload("res://shared/icons/user.svg")
 ## held something else makes the next: certain by the seventh.
 @export_range(0.0, 1.0, 0.01) var passenger_chance := 0.1
 @export_range(0.0, 1.0, 0.01) var pity_step := 0.15
+## How likely at least a capsule is to hold the castaway in the first star system: certain,
+## since quests are taught late there and leave the castaway little time before the
+## promotion.
+@export_range(0.0, 1.0, 0.01) var first_system_chance := 1.0
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
 @export var star_map: StarMap
@@ -76,6 +81,9 @@ const RESCUED_ICON := preload("res://shared/icons/user.svg")
 ## Has the resource bars take a capsule's credits or research points in at once, rather than
 ## at the next stop as a fare's, and knows whether research is open. Without one it is.
 @export var research_lab: ResearchLab
+## Has the castaway wait until the player has closed the quests hint, so their rescue quest
+## is never the first quest the player meets. Without one they don't wait.
+@export var hints: FeatureHints
 
 ## Capsules collected since the castaway was last in one, which make the next likelier to
 ## hold them. Kept with the run.
@@ -166,9 +174,16 @@ func clear() -> void:
 		_remove(capsule)
 
 
-## How likely the next capsule collected is to hold the castaway, when they can board.
+## How likely the next capsule collected is to hold the castaway, when they can board: never
+## before a capsule has held something else since they were last in one, so the player
+## meets a capsule's other rewards first and the castaway feels like luck; then in the
+## first star system no less than [member first_system_chance].
 func get_castaway_chance() -> float:
+	if castaway_misses == 0:
+		return 0.0
 	var chance := passenger_chance + pity_step * castaway_misses
+	if _level == 0:
+		chance = maxf(chance, first_system_chance)
 	# Within a rounding error of certain is certain: 0.1 + 6 × 0.15 comes out under 1.
 	return 1.0 if chance > 0.999 else chance
 
@@ -285,7 +300,7 @@ func _can_rescue() -> bool:
 func _open(capsule: Capsule) -> Capsule.Contents:
 	var contents := capsule.contents
 	if contents == Capsule.Contents.UNDECIDED:
-		return _roll(_can_rescue() and not castaway_found)
+		return _roll(_can_rescue() and not castaway_found and _has_taught_quests())
 	if contents == Capsule.Contents.PASSENGER:
 		return contents if _can_rescue() else Capsule.Contents.CREDITS
 	return contents if contents in _get_rewards() else Capsule.Contents.CREDITS
@@ -327,6 +342,10 @@ func _pay_credits(capsule: Capsule) -> void:
 func _show_earnings() -> void:
 	if research_lab:
 		research_lab.commit()
+
+
+func _has_taught_quests() -> bool:
+	return not hints or hints.has_taught(&"quests")
 
 
 func _is_castaway_aboard() -> bool:
