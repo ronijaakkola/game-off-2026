@@ -75,6 +75,7 @@
 [ext_resource type="Script" uid="uid://dijks1t841h88" path="res://game/feature_hints/jump_hint.gd" id="157_jump_hint"]
 [ext_resource type="Script" uid="uid://cfpf5p04206an" path="res://game/capsules/capsule_tooltip.gd" id="158_capsule_tooltip"]
 [ext_resource type="PackedScene" uid="uid://82avi1c774bx" path="res://game/quests/pick_up_markers.tscn" id="159_pick_up_markers"]
+[ext_resource type="PackedScene" uid="uid://bvecr4vgey1sp" path="res://game/bus/bus_indicator.tscn" id="160_bus_indicator"]
 [ext_resource type="Script" uid="uid://dj6dl5timmqvq" path="res://game/solar_system/control_legend_prototype.gd" id="190_legend_prototype"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
@@ -530,6 +531,14 @@ camera = NodePath("../../Camera")
 bus = NodePath("../../Bus")
 panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
 
+[node name="BusIndicator" parent="Hud" unique_id=501257162 node_paths=PackedStringArray("camera", "bus", "panels", "avoid", "map_zoom", "system_jump") instance=ExtResource("160_bus_indicator")]
+camera = NodePath("../../Camera")
+bus = NodePath("../../Bus")
+panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
+avoid = [NodePath("../PassengerPanel"), NodePath("../TopRight/Stack/GoalPanel"), NodePath("../TopRight/Stack/DockPanel"), NodePath("../TopCentre/ResourceBar"), NodePath("../BusStatusPanel"), NodePath("../Notices"), NodePath("../PauseButton")]
+map_zoom = NodePath("../../MapZoom")
+system_jump = NodePath("../../SystemJump")
+
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
 
@@ -611,7 +620,7 @@ unique_name_in_owner = true
 anchors_preset = 7
 portrait_studio = NodePath("../../PortraitStudio")
 
-[node name="ControlLegendPrototype" type="PanelContainer" parent="Hud" unique_id=553345227 node_paths=PackedStringArray("bus", "bars", "tutorial", "click_block", "star_map")]
+[node name="ControlLegendPrototype" type="PanelContainer" parent="Hud" unique_id=1164786496 node_paths=PackedStringArray("bus", "bars", "tutorial", "click_block", "star_map")]
 script = ExtResource("190_legend_prototype")
 bus = NodePath("../../Bus")
 bars = NodePath("../BusStatusPanel")
