@@ -17,6 +17,10 @@ var _row: Control
 var _shown_for := 0.0
 
 
+func _ready() -> void:
+	hints.set_debug_target(&"business", _business_row)
+
+
 func _process(delta: float) -> void:
 	var row := _business_row()
 	if row != _row:

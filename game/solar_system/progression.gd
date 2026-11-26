@@ -12,8 +12,9 @@ extends Node
 ## ([FirstShiftCall]); a few deliveries later the mechanic calls with the next research
 ## stage ([MechanicCall]). The promotion in the last system joins every system instead:
 ## lines start at every planet, passengers go anywhere, and the last goals come.
-## The debug panel's Star systems card has The Boss call at once, or completes the system:
-## promoted, the bus jumps to the next one at once, as answering the call does.
+## The debug panel's Progress card has The Boss call at once, or completes the system:
+## promoted, the bus jumps to the next one at once, as answering the call does. The tutorial
+## puts its Skip tutorial there too.
 
 ## The bus has started a jump: the parent closes whatever is open.
 signal jump_started
@@ -28,8 +29,9 @@ const DEBUG_CALL_TEXT := "Promotion call"
 const DEBUG_COMPLETE_TEXT := "Complete system"
 ## A button for each system after the first, which jumps there.
 const DEBUG_JUMP_TEXT := "Jump to %s"
-## The debug panel's group for the star system buttons: its own card.
-const DEBUG_GROUP := "Star systems"
+## The debug panel's group for moving the run along: the star system buttons, and the
+## tutorial's Skip tutorial.
+const DEBUG_GROUP := "Progress"
 
 @export var star_map: StarMap
 ## The goals a promotion takes.
@@ -59,6 +61,9 @@ var ledger: Ledger
 var promotes := true
 
 var _started := false
+# The debug panel's Progress buttons, but the tutorial's: grey until the run proper starts.
+# Null each with the panel off.
+var _debug_buttons: Array[Button] = []
 # Seconds of play every goal has held at once.
 var _met_seconds := 0.0
 
@@ -70,11 +75,14 @@ func _ready() -> void:
 	system_jump.crossed.connect(_on_crossed)
 	system_jump.finished.connect(_on_jumped)
 	arrival_call.closed.connect(_on_arrival_call_closed)
-	DebugPanel.add_button(DEBUG_CALL_TEXT, _ring, self, DEBUG_GROUP)
-	DebugPanel.add_button(DEBUG_COMPLETE_TEXT, _debug_complete_system, self, DEBUG_GROUP)
+	_debug_buttons.append(DebugPanel.add_button(DEBUG_CALL_TEXT, _ring, self, DEBUG_GROUP))
+	var complete := _debug_complete_system
+	_debug_buttons.append(DebugPanel.add_button(DEBUG_COMPLETE_TEXT, complete, self, DEBUG_GROUP))
 	for system: StarSystem in star_map.get_systems().slice(1):
 		var text := DEBUG_JUMP_TEXT % system.display_name
-		DebugPanel.add_button(text, _debug_jump_to.bind(system), self, DEBUG_GROUP)
+		var jump := _debug_jump_to.bind(system)
+		_debug_buttons.append(DebugPanel.add_button(text, jump, self, DEBUG_GROUP))
+	_show_debug_ready()
 
 
 func _process(delta: float) -> void:
@@ -99,6 +107,7 @@ func _process(delta: float) -> void:
 ## bus works in. A run saved after a promotion the player stayed for shows the jump again.
 func start() -> void:
 	_started = true
+	_show_debug_ready()
 	if star_map.is_joined():
 		waiting.max_total = star_map.joined_max_waiting
 	_start_quests(star_map.get_active_planets())
@@ -257,6 +266,13 @@ func _ring() -> void:
 func _is_last() -> bool:
 	var systems := star_map.get_systems()
 	return systems.find(star_map.get_current()) == systems.size() - 1
+
+
+# The Progress buttons are grey until the run proper starts, as they would do nothing.
+func _show_debug_ready() -> void:
+	for button: Button in _debug_buttons:
+		if button:
+			button.disabled = not _started
 
 
 # Completes the system the bus works in at once, as answering The Boss's call does.

@@ -16,6 +16,10 @@ var _row: Control
 var _shown_for := 0.0
 
 
+func _ready() -> void:
+	hints.set_debug_target(&"returning", _returning_row)
+
+
 func _process(delta: float) -> void:
 	var row := _returning_row()
 	if row != _row:

@@ -93,14 +93,12 @@ func test_moving_a_slider_is_heard_at_once() -> void:
 	assert_float(Audio.get_volume(Audio.Bus.SFX)).is_equal_approx(0.3, 0.001)
 
 
-# Every setting but the debug panel's, so a control wired to the wrong setting, or a
-# setting with no control, fails here.
+# Every setting, so a control wired to the wrong setting, or a setting with no control,
+# fails here.
 func test_each_control_changes_only_its_own_setting() -> void:
 	var runner := scene_runner(SCENE)
 	runner.invoke("open", _covered(runner))
 	for setting: String in Settings.get_names():
-		if setting in SettingsMenu.DEBUG_SETTINGS:
-			continue
 		var before := _current_settings()
 		var control := runner.find_child(setting.to_pascal_case()) as Control
 		assert_object(control).override_failure_message("No control for %s" % setting).is_not_null()

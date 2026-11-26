@@ -18,6 +18,7 @@ var _until_hint := 0.0
 func _ready() -> void:
 	set_process(false)
 	quest_giver.quest_added.connect(_on_quest_added)
+	hints.set_debug_target(&"quests", goal_panel.get_quests_part)
 
 
 func _process(delta: float) -> void:
