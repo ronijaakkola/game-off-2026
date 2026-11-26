@@ -34,13 +34,13 @@ So two parts of this work lean on things that don't exist yet. See Order of work
 
 ## The level pictures
 
-Two renders, 2304 × 1296, 16:9. Each is a level's loading image, and its card in the campaign screen is a crop of the same image.
+Three renders, 2304 × 1296, 16:9. Each is a level's loading image, and its card in the campaign screen is a crop of the same image.
 
 | Level | Name in the design | Star system | Picture |
 |---|---|---|---|
 | 1 | Your first shift | Vela | The bus coming from the Moon towards Terra |
 | 2 | Rough ride | Lyra | The bus in the asteroid field, Brume behind |
-| 3 | Return to home | not decided | None yet |
+| 3 | Return to home | Sol | From behind the bus as it heads for Earth, the red sun beyond |
 
 The names are placeholders from the design.
 
@@ -48,6 +48,8 @@ The names are placeholders from the design.
 
 - `/Users/roni.helppi/.pencil/documents/07d420e1-2194-4c38-b4b2-bc023df7680c/images/level_1_loading.png`
 - `/Users/roni.helppi/.pencil/documents/07d420e1-2194-4c38-b4b2-bc023df7680c/images/level_2_loading.png`
+
+Level 3's original, `level_3_loading.png`, is only beside the script below.
 
 The script that renders them, `render_level_art.py`, is in `art/banner/level_art/` of the worktree `wonderful-robinson-e5cc0c`. `art/` is gitignored, so it is in no other checkout. It opens `art/banner/banner.blend`, one folder up from it, which is in that worktree only too. If the worktree is cleaned up, both are gone.
 
@@ -57,8 +59,9 @@ The script that renders them, `render_level_art.py`, is in `art/banner/level_art
 |---|---|---|---|---|
 | 1 | 0.2643 | 0.0247 | 0.4514 | 0.9498 |
 | 2 | 0.4258 | 0.0502 | 0.4089 | 0.8603 |
+| 3 | 0.2821 | 0.0201 | 0.4557 | 0.9599 |
 
-Both crops are 304:360, the card's shape. In pixels of the 2304 × 1296 originals they are 609, 32, 1040, 1231 and 981, 65, 942, 1115.
+All three crops are 304:360, the card's shape. In pixels of the 2304 × 1296 originals they are 609, 32, 1040, 1231; 981, 65, 942, 1115; and 650, 26, 1050, 1244.
 
 **Decided:**
 - They go in `shared/level_art/`, since two things use them: the loading card in `core/scene_flow/` and the campaign screen in `ui/` (`CODING_STANDARDS.md`, Layout). Keep each crop beside its picture's path, in whatever describes a level.
@@ -197,7 +200,6 @@ Each of 1 to 3 can be its own PR.
 
 - Whether the loading screen should ship before the campaign screen exists, picking its picture by star system (step 3), or wait for it.
 - The tips: the list above is a draft.
-- Level 3's picture and star system.
 
 ## Done when
 
