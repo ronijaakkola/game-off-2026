@@ -1651,6 +1651,12 @@ def verify_resave(order: list[str], before: list[str], originals: dict[str, byte
     if not summary or result.returncode != 0 or summary.group(2) != "0":
         print(result.stdout, end="")
         raise CheckFailed("Godot could not save the files above")
+    if SCRIPT_FAILED.search(result.stdout):
+        print(result.stdout, end="")
+        raise CheckFailed(
+            "a script failed to compile during the resave (above), so its exports would "
+            "save wrong. tools/resave.gd says when scripts compile there"
+        )
     changes = dump_changes(before, resource_dump(order))
     if changes:
         print("\n".join(changes))
@@ -1667,6 +1673,12 @@ def verify_resave(order: list[str], before: list[str], originals: dict[str, byte
             "scripts, so a value a script's _init() sets loads the same with or without "
             "the line. Set that value in _ready() instead, or put it in the scene"
         )
+
+
+# A script that failed to compile: the resave packs its node without its exports' values.
+SCRIPT_FAILED = re.compile(
+    r"^SCRIPT ERROR: (Parse|Compile) Error|^ERROR: Failed to load script", re.MULTILINE
+)
 
 
 # What a resave may change on a line: the ids it adds, the ids it renumbers, and counts.
