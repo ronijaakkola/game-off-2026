@@ -30,6 +30,13 @@ func pan_to(right: bool) -> void:
 	_pan.tween_property(_material, ^"shader_parameter/pan", to, PAN_SECONDS)
 
 
+## Shows the picture's right half ([param right]), or its left, at once.
+func show_half(right: bool) -> void:
+	if _pan:
+		_pan.kill()
+	_material.set_shader_parameter(&"pan", 1.0 if right else 0.0)
+
+
 func _process(delta: float) -> void:
 	if not Settings.reduce_motion:
 		_time += delta
