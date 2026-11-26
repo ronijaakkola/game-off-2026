@@ -73,6 +73,7 @@
 [ext_resource type="Script" uid="uid://bmn7hph2p0ba6" path="res://game/warp_gate/warp_gate_tooltip.gd" id="155_gate_tooltip"]
 [ext_resource type="Script" uid="uid://c3atn4ddkgf83" path="res://game/capsules/capsule_field.gd" id="156_capsules"]
 [ext_resource type="Script" uid="uid://dijks1t841h88" path="res://game/feature_hints/jump_hint.gd" id="157_jump_hint"]
+[ext_resource type="Script" uid="uid://cfpf5p04206an" path="res://game/capsules/capsule_tooltip.gd" id="158_capsule_tooltip"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -226,7 +227,7 @@ bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 notices = NodePath("../Hud/Notices")
 
-[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "lab_badges", "pause_menu", "guide")]
+[node name="Tutorial" type="Node" parent="." unique_id=2043270291 node_paths=PackedStringArray("bus", "cabin", "intro", "dock_panel", "passenger_panel", "portrait_studio", "bus_bars", "resource_bar", "trip_arc", "home", "destination", "hud", "rig", "capsules", "lab_badges", "pause_menu", "guide")]
 unique_name_in_owner = true
 script = ExtResource("112_tutorial")
 bus = NodePath("../Bus")
@@ -242,6 +243,7 @@ home = NodePath("../World/Vela/Terra")
 destination = NodePath("../World/Vela/Terra/Moon")
 hud = NodePath("../Hud")
 rig = NodePath("../CameraRig")
+capsules = NodePath("../CapsuleField")
 lab_badges = NodePath("../Hud/LabBadges")
 pause_menu = NodePath("../PauseMenu")
 guide = NodePath("../Hud/GuideCard")
@@ -452,7 +454,7 @@ system_jump = NodePath("../SystemJump")
 saver = NodePath("../GameSaver")
 goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
 
-[node name="CapsuleField" type="Node3D" parent="." unique_id=668865033 node_paths=PackedStringArray("bus", "cabin", "star_map", "waiting", "quest_giver", "quick_text", "system_jump", "research_lab")]
+[node name="CapsuleField" type="Node3D" parent="." unique_id=668865033 node_paths=PackedStringArray("bus", "cabin", "star_map", "waiting", "quest_giver", "quick_text", "system_jump", "research_lab", "hints")]
 unique_name_in_owner = true
 script = ExtResource("156_capsules")
 bus = NodePath("../Bus")
@@ -463,6 +465,7 @@ quest_giver = NodePath("../QuestGiver")
 quick_text = NodePath("../Hud/BusQuickText")
 system_jump = NodePath("../SystemJump")
 research_lab = NodePath("../ResearchLab")
+hints = NodePath("../FeatureHints")
 
 [node name="SystemJump" parent="." unique_id=380382441 node_paths=PackedStringArray("bus", "rig", "hud") instance=ExtResource("119_jump")]
 unique_name_in_owner = true
@@ -488,6 +491,11 @@ camera = NodePath("../../Camera")
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("155_gate_tooltip")
+
+[node name="CapsuleTooltip" type="Control" parent="Hud" unique_id=1707392897]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("158_capsule_tooltip")
 
 [node name="AsteroidHint" type="Control" parent="Hud" unique_id=246803975 node_paths=PackedStringArray("hints", "field", "bus")]
 layout_mode = 3

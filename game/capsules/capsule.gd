@@ -15,6 +15,10 @@ enum Contents { CREDITS = 0, RESEARCH = 1, PASSENGER = 2, UNDECIDED = 3, FUEL = 
 
 ## How near its centre the bus collects it.
 const RADIUS := 0.12
+## How near its centre on screen the pointer is on it, as round as its longest side.
+const PICK_RADIUS := 0.2
+## Every capsule in the tree, for what looks for one under the pointer.
+const GROUP := &"capsules"
 ## How high its model's centre is over the model's origin, which is at its bottom.
 const MODEL_CENTER := 0.17
 ## The model's node that is the beacon's lamp, and the lamp's colour lit and between blinks.
@@ -48,6 +52,8 @@ const TWO_TONE := preload("res://shared/two_tone.gdshader")
 
 ## What it holds.
 var contents := Contents.UNDECIDED
+## What it pays when it holds credits, or 0 for what the star system's capsules pay.
+var credits := 0
 ## Where it drifts, in units a second.
 var velocity := Vector3.ZERO
 ## Seconds until it is gone uncollected.
@@ -75,6 +81,7 @@ var _ping_material: StandardMaterial3D
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	_build()
 	scale = Vector3.ONE * 0.001
 
@@ -138,6 +145,11 @@ func release(seconds: float) -> void:
 	_released_for = 0.0
 	_open_seconds = seconds
 	_ping.visible = false
+
+
+## Whether it still drifts: neither picked up by the bus nor letting the castaway out.
+func is_adrift() -> bool:
+	return _picked_for < 0.0 and _released_for < 0.0
 
 
 ## Whether its time is up.
