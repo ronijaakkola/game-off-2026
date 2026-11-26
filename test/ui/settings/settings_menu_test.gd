@@ -170,3 +170,14 @@ func _covered(runner: GdUnitSceneRunner) -> Control:
 	covered.add_child(Button.new())
 	runner.scene().add_sibling(covered)
 	return auto_free(covered)
+
+
+# Show FPS has no description, so its row once came out shorter and its toggle sat closer.
+func test_the_display_toggles_are_evenly_spaced() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var centres: Array[float] = []
+	for toggle: String in ["ReduceMotion", "EdgeScroll", "ShowFps"]:
+		var rect := (runner.find_child(toggle) as Control).get_global_rect()
+		centres.append(rect.get_center().y)
+	assert_float(centres[2] - centres[1]).is_equal_approx(centres[1] - centres[0], 0.5)
