@@ -62,5 +62,6 @@ void fragment() {
 
 	COLOR.rgb = col;
 	vec2 edge = min(UV, 1.0 - UV) / max(fwidth(UV), vec2(1e-5));
-	COLOR.a = clamp(min(edge.x, edge.y) + 0.5, 0.0, 1.0);
+	// Times the alpha it comes in with, so it fades with what it sits in.
+	COLOR.a *= clamp(min(edge.x, edge.y) + 0.5, 0.0, 1.0);
 }

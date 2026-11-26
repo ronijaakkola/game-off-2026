@@ -3,7 +3,8 @@ extends Control
 ## On the upper right of the rim of each planet with a lab ([member Planet.has_lab]), a
 ## small dark disc with a flask ([PhotoBadge]), so the player sees where to research while
 ## planning a route. It grows with the zoomed map, slower than the planets do. The pointer
-## resting on such a planet opens a tooltip above its badge. It places itself after the
+## resting on such a planet opens a tooltip above its badge, or above the planet's
+## [PickUpMarker] where one shows, centred on the planet. It places itself after the
 ## planets and the camera have moved each frame, and hides with the planets the zoomed map
 ## hides. While [member only] lists planets, as in the tutorial, only theirs show, and
 ## [method pop_in] brings one in.
@@ -30,6 +31,8 @@ const FLASK := preload("res://shared/icons/flask_conical.svg")
 
 ## The camera the planets are seen through.
 @export var camera: Camera3D
+## The pick-up markers, which the tooltip opens above instead of the badge.
+@export var pick_up_markers: PickUpMarkers
 
 ## The planets whose badges show, or empty for every planet with a lab.
 var only: Array[Planet] = []
@@ -142,8 +145,9 @@ func is_tooltip_shown(planet: Planet) -> bool:
 	return planet != null and planet == hovered and _tooltip.visible
 
 
-# Opens the tooltip at the hovered planet's badge once the pointer has rested on it as
-# long as any tooltip waits, and closes it while the badges fade out.
+# Opens the tooltip at the hovered planet's badge, or its pick-up marker, once the pointer
+# has rested on the planet as long as any tooltip waits, and closes it while the badges
+# fade out.
 func _show_tooltip(delta: float) -> void:
 	var badge: PhotoBadge = _badges.get(hovered) if hovered else null
 	if not badge or not badge.visible or modulate.a < 1.0:
@@ -152,5 +156,6 @@ func _show_tooltip(delta: float) -> void:
 		return
 	_rested += delta
 	if _rested >= _tooltip.rest_seconds:
-		_tooltip.target = badge
+		var marker := pick_up_markers.get_marker(hovered) if pick_up_markers else null
+		_tooltip.target = marker if marker else badge
 		_tooltip.open()
