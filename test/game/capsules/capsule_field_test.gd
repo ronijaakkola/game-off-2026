@@ -10,6 +10,8 @@ func test_the_castaway_gets_likelier_with_every_miss_until_certain() -> void:
 	var field := auto_free(CapsuleField.new()) as CapsuleField
 	field.passenger_chance = 0.1
 	field.pity_step = 0.15
+	add_child(field)
+	field.start(null, 1)
 
 	assert_float(field.get_castaway_chance()).is_equal_approx(0.1, 0.001)
 	field.castaway_misses = 3
@@ -18,6 +20,18 @@ func test_the_castaway_gets_likelier_with_every_miss_until_certain() -> void:
 	assert_float(field.get_castaway_chance()).is_equal(1.0)
 	field.castaway_misses = 20
 	assert_float(field.get_castaway_chance()).is_equal(1.0)
+
+
+func test_the_castaway_is_certain_in_the_first_star_system() -> void:
+	var field := auto_free(CapsuleField.new()) as CapsuleField
+	field.passenger_chance = 0.1
+	field.first_system_chance = 1.0
+	add_child(field)
+
+	field.start(null, 0)
+	assert_float(field.get_castaway_chance()).is_equal(1.0)
+	field.start(null, 1)
+	assert_float(field.get_castaway_chance()).is_equal_approx(0.1, 0.001)
 
 
 func test_the_castaway_boards_only_once_their_quest_is_accepted() -> void:

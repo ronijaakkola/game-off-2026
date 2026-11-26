@@ -62,6 +62,10 @@ const RESCUED_ICON := preload("res://shared/icons/user.svg")
 ## held something else makes the next: certain by the seventh.
 @export_range(0.0, 1.0, 0.01) var passenger_chance := 0.1
 @export_range(0.0, 1.0, 0.01) var pity_step := 0.15
+## How likely at least a capsule is to hold the castaway in the first star system: certain,
+## since quests are taught late there and leave the castaway little time before the
+## promotion.
+@export_range(0.0, 1.0, 0.01) var first_system_chance := 1.0
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
 @export var star_map: StarMap
@@ -167,9 +171,12 @@ func clear() -> void:
 		_remove(capsule)
 
 
-## How likely the next capsule collected is to hold the castaway, when they can board.
+## How likely the next capsule collected is to hold the castaway, when they can board: in
+## the first star system no less than [member first_system_chance].
 func get_castaway_chance() -> float:
 	var chance := passenger_chance + pity_step * castaway_misses
+	if _level == 0:
+		chance = maxf(chance, first_system_chance)
 	# Within a rounding error of certain is certain: 0.1 + 6 × 0.15 comes out under 1.
 	return 1.0 if chance > 0.999 else chance
 
