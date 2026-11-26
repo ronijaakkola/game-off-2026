@@ -8,6 +8,8 @@ extends Node3D
 
 ## Its name as the player reads it, in notices and on the Jump button.
 @export var display_name := ""
+## The music while the bus works here, which [SystemMusic] plays.
+@export var music: AudioStream
 ## Where the bus docks when it jumps in, and where the first passengers wait.
 @export var home: Planet
 ## Where the bus comes to rest in space when it jumps in, from the star, on the orbit

@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 
 const MENU := "res://ui/main_menu/main_menu.tscn"
 const GAME := "res://game/solar_system/solar_system.tscn"
-const MUSIC := preload("res://ui/audio/bg.ogg")
+const MUSIC := preload("res://ui/audio/bgm1.ogg")
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 
 var _window_size: Vector2i
