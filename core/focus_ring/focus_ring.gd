@@ -29,7 +29,14 @@ func grab(control: Control) -> void:
 
 ## Takes the focus away if its ring is hidden. For keys that do something else too: the
 ## arrow keys also move the focus, which would show the ring of the button last clicked.
+## A button held down keeps it, since losing the focus would let it go.
 func drop_hidden() -> void:
 	var owner := get_viewport().gui_get_focus_owner()
-	if owner and not owner.has_focus(true):
+	if owner and not owner.has_focus(true) and not _is_held_down(owner):
 		owner.release_focus()
+
+
+# Drawn pressed and no toggle: a press in progress, not a toggle button left on.
+static func _is_held_down(control: Control) -> bool:
+	var button := control as BaseButton
+	return button and not button.toggle_mode and button.get_draw_mode() == BaseButton.DRAW_PRESSED
