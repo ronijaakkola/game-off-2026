@@ -72,6 +72,11 @@ func _process(_delta: float) -> void:
 		_place()
 
 
+## Whether the badge is up: no part of the bus is on screen and nothing hides it.
+func is_showing() -> bool:
+	return _shown
+
+
 func _draw() -> void:
 	if not bus:
 		return
@@ -131,21 +136,31 @@ func _place() -> void:
 	if toward.is_zero_approx():
 		return
 	_direction = toward.normalized()
-	var reach := _cross(centre, _direction, view.grow(-(EDGE_GAP + TIP))).y
+	var covered: Array[Rect2] = []
 	for control: Control in avoid:
-		if not control.is_visible_in_tree():
-			continue
-		# A panel is in the way only while the disc would touch it on its way out. One
-		# the disc clears is passed, so the badge is back at the edge as soon as it fits.
-		var covered := _covered(control)
-		var passing := _cross(centre, _direction, covered.grow(RADIUS + PASS_GAP))
+		if control.is_visible_in_tree():
+			covered.append(_covered(control))
+	position = place_on_line(view, _direction, covered)
+	queue_redraw()
+
+
+## Where the badge's centre goes on a screen of [param view]: on the line from its middle
+## along [param direction], a unit vector, as far out as the edge and the panels at
+## [param covered] let it go. Its point stays [constant EDGE_GAP] inside the edge and
+## [constant PANEL_GAP] off a panel in the way. A panel is in the way only while the disc
+## would touch it on its way out: one the disc clears is passed, so the badge is back at
+## the edge as soon as it fits.
+static func place_on_line(view: Rect2, direction: Vector2, covered: Array[Rect2]) -> Vector2:
+	var centre := view.get_center()
+	var reach := _cross(centre, direction, view.grow(-(EDGE_GAP + TIP))).y
+	for panel: Rect2 in covered:
+		var passing := _cross(centre, direction, panel.grow(RADIUS + PASS_GAP))
 		if passing.x > passing.y or passing.y <= 0.0:
 			continue
-		var span := _cross(centre, _direction, covered.grow(PANEL_GAP + TIP))
+		var span := _cross(centre, direction, panel.grow(PANEL_GAP + TIP))
 		if span.x > 0.0:
 			reach = minf(reach, span.x)
-	position = centre + _direction * reach
-	queue_redraw()
+	return centre + direction * reach
 
 
 # What a panel covers on screen: its own rect and its children's, since the dock panel's

@@ -1,8 +1,9 @@
 extends Node
 ## The game with the camera moved off the bus, so the off-screen bus indicator shows, to
 ## capture it. After `--`, `left`, `right`, `up` and `down` say which way the bus is from
-## the screen, and two make a corner: `capture <this scene> -- up left`. With `fuel` the
-## tank is empty, and with `far` the camera stands farther back.
+## the screen, and two make a corner: `capture <this scene> -- up left`; with none it is
+## off to the left. With `fuel` the tank is empty, and with `far` the camera stands
+## farther back.
 
 ## How far the camera stands from the map.
 const DISTANCE := 12.0
@@ -24,6 +25,8 @@ func _ready() -> void:
 	var offset := Vector3.ZERO
 	for arg: String in args:
 		offset += OFFSETS.get(arg, Vector3.ZERO) as Vector3
+	if offset == Vector3.ZERO:
+		offset = OFFSETS["left"]
 	if "fuel" in args:
 		bus.get_fuel_tank().drain()
 	rig.set_distance(FAR_DISTANCE if "far" in args else DISTANCE)
