@@ -212,7 +212,7 @@ _Avoid_: HUD (the whole overlay), top bar
 _Never_: wallet
 
 **Credits screen**:
-The main menu's screen naming the team and what the game is made with, opened by its Credits button. Not the player's credits, the money the resource bar shows. In `ui/credits/`.
+The main menu's screen naming the people who made the game, opened by its Credits button. Not the player's credits, the money the resource bar shows. In `ui/credits/`.
 _Avoid_: about screen
 
 **Research tree**:

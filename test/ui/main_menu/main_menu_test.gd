@@ -82,6 +82,39 @@ func test_level_1_offers_the_tutorial_box_only_once_the_tutorial_is_done() -> vo
 	assert_bool((chip.find_child("PlayTutorial") as CheckBox).button_pressed).is_false()
 
 
+func test_the_level_pictures_are_read_as_the_menu_loads_and_kept() -> void:
+	# Read as the campaign screen opened, they made its first frame long enough for the
+	# transition to skip ahead, on every open, since the cards dropped them as it closed.
+	var picture := Campaign.LEVELS[0].picture
+	var runner := scene_runner(MENU)
+	await runner.simulate_frames(2)
+	(
+		assert_bool(ResourceLoader.has_cached(picture))
+		. override_failure_message("Not read until the campaign screen opens")
+		. is_true()
+	)
+	await _click(runner, runner.find_child("PlayButton"))
+	var campaign := runner.find_child("CampaignScreen") as MenuScreen
+	campaign.close()
+	await assert_func(campaign, "is_visible").wait_until(2000).is_false()
+	(
+		assert_bool(ResourceLoader.has_cached(picture))
+		. override_failure_message("Dropped as the campaign screen closed")
+		. is_true()
+	)
+
+
+func test_credits_pans_the_background_to_its_other_half_and_back() -> void:
+	var runner := scene_runner(MENU)
+	await _click(runner, runner.find_child("CreditsButton"))
+	var credits := runner.find_child("CreditsScreen") as MenuScreen
+	assert_bool(credits.visible).is_true()
+	await assert_func(self, "_pan", [runner]).wait_until(2000).is_equal(1.0)
+	credits.close()
+	await assert_func(credits, "is_visible").wait_until(2000).is_false()
+	await assert_func(self, "_pan", [runner]).wait_until(2000).is_equal(0.0)
+
+
 func test_settings_button_opens_the_settings_panel() -> void:
 	var runner := scene_runner(MENU)
 	await _click(runner, runner.find_child("SettingsButton"))
@@ -151,6 +184,12 @@ func _click(runner: GdUnitSceneRunner, control: Control) -> void:
 	runner.set_mouse_position(control.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	await runner.await_input_processed()
+
+
+# How far the menus' background has panned to its right half, from 0 to 1.
+func _pan(runner: GdUnitSceneRunner) -> float:
+	var background := runner.find_child("Background") as MenuBackground
+	return (background.material as ShaderMaterial).get_shader_parameter(&"pan")
 
 
 func _focused() -> Control:
