@@ -90,6 +90,8 @@ static var _sphere: SphereMesh
 @export_range(0.0, 10.0, 0.01, "or_greater") var fuel_price := 0.1
 ## Whether it has a lab, where the player can research upgrades from every research tree.
 @export var has_lab := false
+## Whether nobody lives here any more: nobody ever waits at its station.
+@export var abandoned := false
 ## A line under its name in its planet panel: what it is known for. Empty shows none.
 @export var tagline := ""
 ## A few sentences about it at the foot of its planet panel. Empty shows none.
@@ -134,6 +136,8 @@ var border := Border.NONE:
 	set(value):
 		border = value
 		_show_border()
+## Whether the player has found it [member abandoned], by seeing its empty line.
+var found_abandoned := false
 ## How opaque the border is, from 0 (hidden) to 1, for fading it.
 var border_opacity := 1.0:
 	set(value):
