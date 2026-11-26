@@ -10,7 +10,6 @@ The menus' icons are from [Lucide](https://lucide.dev) (`lucide-static` 1.52.0),
 | `house.svg` | `house` | ISC (`LICENSE.txt`) |
 | `keyboard.svg` | `keyboard` | ISC (`LICENSE.txt`) |
 | `layout_grid.svg` | `layout-grid` | ISC (`LICENSE.txt`) |
-| `package.svg` | `package` | ISC (`LICENSE.txt`) |
 | `play.svg` | `play` | ISC (`LICENSE.txt`) |
 | `rotate_ccw.svg` | `rotate-ccw` | ISC (`LICENSE.txt`) |
 | `settings.svg` | `settings` | ISC (`LICENSE.txt`) |
