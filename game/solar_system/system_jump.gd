@@ -17,9 +17,12 @@ extends Node
 ## [method warp] plays only the bus's part of it through a [WarpGate] within the system:
 ## the bus turns to face the gate beside it, winds up and shifts out toward it, and after
 ## [constant WARP_GAP_SECONDS] shifts in out of the far gate, heading for its planet, and
-## flies in to dock there. The camera stays where the player has it, with no iris, and the
-## HUD stays up but takes no clicks until the bus is out. It sends only
-## [signal came_through], as the bus comes out.
+## flies in to dock there, with no iris. While the far gate and its planet are in view,
+## clear of the screen's edges, the camera stays where the player has it. Otherwise it
+## glides there as the bus shifts out, as far as from the one planet to the other, so the
+## bus comes out where on screen it left, and pan and zoom wait until it is out; under
+## Reduce motion it cuts there as the bus comes out. The HUD stays up but takes no clicks
+## until the bus is out. It sends only [signal came_through], as the bus comes out.
 
 ## The screen is black: the bus is about to come out at [param system].
 signal crossed(system: StarSystem)
@@ -49,6 +52,12 @@ const ARRIVE_GAP := 2.0
 const ARRIVE_SPEED := 0.6
 ## Seconds between the bus shifting out of one gate and into the other on a warp.
 const WARP_GAP_SECONDS := 0.3
+## Seconds the camera takes to glide to the far gate on a warp, easing in and out; the bus
+## shifts in no sooner than it ends.
+const WARP_GLIDE_SECONDS := 0.7
+## How much of the screen's width and height, at each edge, doesn't count as in view when a
+## warp checks whether the far gate is: the HUD's panels are there.
+const WARP_VIEW_MARGIN := 0.15
 ## How far the camera's look-at point may go during the jump: anywhere.
 const CROSS_BOUNDS := 10000.0
 
@@ -63,6 +72,14 @@ var _phase := Phase.NONE
 var _target: StarSystem
 # The gate the bus comes out of on a warp, or null on a jump to another system.
 var _exit: WarpGate
+# The gate it goes in through on a warp.
+var _entry: WarpGate
+# Whether the camera goes to the far gate on this warp, and whether it is gliding there now
+# from _glide_from, _glide_time seconds in.
+var _camera_follows := false
+var _gliding := false
+var _glide_from := Vector3.ZERO
+var _glide_time := 0.0
 var _direction := Vector3.BACK
 var _time := 0.0
 # The bus's heading as the turn starts.
@@ -76,6 +93,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	(%Shift as FrameshiftShift).advance(delta)
 	_time += delta
+	if _gliding:
+		_glide(delta)
 	match _phase:
 		Phase.CLOSING_IN:
 			if _time >= _close_in_seconds():
@@ -112,6 +131,7 @@ func warp(from: WarpGate, to: WarpGate) -> void:
 		return
 	_target = null
 	_exit = to
+	_entry = from
 	_face(from.global_position)
 	hud.cover()
 	_time = 0.0
@@ -201,7 +221,19 @@ func _leave() -> void:
 
 # Out of the far gate, heading for its planet, with the camera left where it is.
 func _warp_out() -> void:
-	await get_tree().create_timer(FrameshiftShift.SECONDS + WARP_GAP_SECONDS, false).timeout
+	var wait := FrameshiftShift.SECONDS + WARP_GAP_SECONDS
+	_camera_follows = not _is_exit_in_view()
+	if _camera_follows:
+		rig.locked = true
+		_glide_from = rig.position
+		_glide_time = 0.0
+		_gliding = not Settings.reduce_motion
+		if _gliding:
+			wait = maxf(wait, WARP_GLIDE_SECONDS)
+	await get_tree().create_timer(wait, false).timeout
+	if _camera_follows:
+		_gliding = false
+		rig.move_to(_glide_from + _warp_shift())
 	var toward := _flat(_exit.planet.get_body_global_position() - _exit.get_exit_point())
 	_direction = toward.normalized() if toward.length_squared() > 1e-6 else _direction
 	bus.rotation.y = atan2(_direction.x, _direction.z)
@@ -242,12 +274,45 @@ func _arrive() -> void:
 	# Coming out where it rests, it is there at once, with nothing to fly.
 	bus.fly_in(_destination(), bus.max_speed * ARRIVE_SPEED)
 	if _exit:
+		if _camera_follows:
+			rig.locked = false
 		hud.uncover()
 		came_through.emit(_exit)
 		return
 	rig.release_focus()
 	rig.locked = false
 	finished.emit(_target)
+
+
+# Moves the camera on toward the far gate, easing in and out.
+func _glide(delta: float) -> void:
+	_glide_time += delta
+	var done := clampf(_glide_time / WARP_GLIDE_SECONDS, 0.0, 1.0)
+	rig.move_to(_glide_from + _warp_shift() * smoothstep(0.0, 1.0, done))
+
+
+# From the planet the bus warps from to the one it warps to, as they are now.
+func _warp_shift() -> Vector3:
+	var from := _entry.planet.get_body_global_position()
+	return _flat(_exit.planet.get_body_global_position() - from)
+
+
+# Whether the far gate and its planet are on screen, clear of its edges, with the camera
+# the player's to leave where it is: when something else holds it, it stays too.
+func _is_exit_in_view() -> bool:
+	var camera := get_viewport().get_camera_3d()
+	if not camera or rig.locked or rig.is_focused():
+		return true
+	var view := get_viewport().get_visible_rect()
+	var margin := view.size * WARP_VIEW_MARGIN
+	var clear := view.grow_individual(-margin.x, -margin.y, -margin.x, -margin.y)
+	for point: Vector3 in [_exit.get_exit_point(), _exit.planet.get_body_global_position()]:
+		if (
+			camera.is_position_behind(point)
+			or not clear.has_point(camera.unproject_position(point))
+		):
+			return false
+	return true
 
 
 # Seconds the camera takes to close in on the bus: none under Reduce motion, where it cuts.
