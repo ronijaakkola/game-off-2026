@@ -13,7 +13,7 @@ extends Control
 
 const VOICE_LAB_SCENE := "res://game/transmissions/voice_lab.tscn"
 const MIXER_SCENE := "res://ui/mixer/mixer.tscn"
-const MUSIC := preload("res://ui/audio/bg.ogg")
+const MUSIC := preload("res://ui/audio/bgm1.ogg")
 
 # Survives scene changes, so coming back to the menu doesn't ask for the click again.
 static var _music_started := false
