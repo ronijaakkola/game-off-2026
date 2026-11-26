@@ -30,15 +30,24 @@ func test_materials_on_one_shader_share_a_speck() -> void:
 
 func test_a_panel_and_a_rectangle_on_one_shader_each_get_a_speck() -> void:
 	_add(ColorRect.new(), _material())
-	_add(PanelContainer.new(), _material())
+	var panel := _add(PanelContainer.new(), _material())
+	panel.add_theme_stylebox_override(&"panel", StyleBoxFlat.new())
 	_specks.fill(_scene)
 	assert_int(_specks.count()).is_equal(2)
 	assert_object(_specks.get_child(0)).is_instanceof(ColorRect)
 	assert_object(_specks.get_child(1)).is_instanceof(Panel)
 
 
+func test_a_button_with_a_flat_style_gets_a_speck_drawn_as_a_panel() -> void:
+	var button := _add(Button.new(), _material())
+	button.add_theme_stylebox_override(&"normal", StyleBoxFlat.new())
+	_specks.fill(_scene)
+	assert_object(_specks.get_child(0)).is_instanceof(Panel)
+
+
 func test_a_control_that_clips_its_children_gets_a_speck_that_clips_one() -> void:
 	var mask := _add(Panel.new(), null)
+	mask.add_theme_stylebox_override(&"panel", StyleBoxFlat.new())
 	mask.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 	_specks.fill(_scene)
 	assert_int(_specks.count()).is_equal(1)

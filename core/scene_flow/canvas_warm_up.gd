@@ -8,10 +8,15 @@ extends Control
 ## as it opens, which on the web stalls the game for a frame or more each.
 ##
 ## A shader compiles once for each way it is drawn, so a speck is drawn as the control it
-## stands for is: a panel's style is triangles, anything else here a rectangle.
+## stands for is: one that draws a flat style from its theme (a panel, a button, a bar) is
+## triangles, anything else here a rectangle. A control that draws a [StyleBoxTexture] is a
+## nine-patch, which no speck covers: its shader still compiles as it first shows.
 
 ## A speck's size, in pixels.
 const SPECK := Vector2(8.0, 8.0)
+## The theme styles a control draws itself with: any of them a [StyleBoxFlat] makes it
+## triangles.
+const STYLES: Array[StringName] = [&"panel", &"normal", &"background", &"fill"]
 
 
 ## Adds the specks for [param scene]. They draw with the next frame; call [method clear]
@@ -24,7 +29,7 @@ func fill(scene: Node) -> void:
 		var item := node as CanvasItem
 		if item == null:
 			continue
-		var styled := item is Panel or item is PanelContainer
+		var styled := _is_styled(item)
 		if item.material and _is_new(drawn, [_shader_of(item.material), styled]):
 			_add_speck(styled).material = item.material
 		if (
@@ -55,6 +60,17 @@ func _is_new(drawn: Dictionary, key: Array) -> bool:
 		return false
 	drawn[key] = true
 	return true
+
+
+# Whether [param item] draws a flat style from its theme, which is triangles.
+func _is_styled(item: CanvasItem) -> bool:
+	var control := item as Control
+	if control == null:
+		return false
+	for style: StringName in STYLES:
+		if control.has_theme_stylebox(style) and control.get_theme_stylebox(style) is StyleBoxFlat:
+			return true
+	return false
 
 
 # What compiles for [param material]: materials on one shader share its programs.
