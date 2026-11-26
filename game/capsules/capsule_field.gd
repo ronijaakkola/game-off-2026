@@ -171,9 +171,13 @@ func clear() -> void:
 		_remove(capsule)
 
 
-## How likely the next capsule collected is to hold the castaway, when they can board: in
-## the first star system no less than [member first_system_chance].
+## How likely the next capsule collected is to hold the castaway, when they can board: never
+## before a capsule has held something else since they were last in one, so the player
+## meets a capsule's other rewards first and the castaway feels like luck; then in the
+## first star system no less than [member first_system_chance].
 func get_castaway_chance() -> float:
+	if castaway_misses == 0:
+		return 0.0
 	var chance := passenger_chance + pity_step * castaway_misses
 	if _level == 0:
 		chance = maxf(chance, first_system_chance)
