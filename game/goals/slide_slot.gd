@@ -9,6 +9,8 @@ extends Control
 ## [member sideways], the child slides in from past the slot's right edge and back out
 ## instead, without fading, as the dock panel's rows do.
 ## Under Reduce motion the child only fades, and the slot changes height at once.
+## It cuts the child off at its edges only while it moves, so at rest what sticks out of
+## the child, such as a rating goal's target mark, still shows.
 ## Add the child before the slot enters the tree. The slot is as wide as its column makes
 ## it, and as tall as the child's minimum height times how far open it is.
 
@@ -42,7 +44,6 @@ var _gap: Tween
 
 
 func _ready() -> void:
-	clip_contents = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(_fit)
 	var content := _content()
@@ -174,4 +175,5 @@ func _fit() -> void:
 	var wanted := content.get_combined_minimum_size()
 	custom_minimum_size = Vector2(wanted.x, wanted.y * _open)
 	content.position = Vector2(_shifted, _sunk)
+	clip_contents = _open < 1.0 or _sunk != 0.0 or _shifted != 0.0
 	content.size = Vector2(maxf(size.x, wanted.x), wanted.y)
