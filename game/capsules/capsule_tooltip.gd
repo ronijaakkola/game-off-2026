@@ -3,7 +3,7 @@ extends WorldTooltip
 ## Names the capsule under the pointer, as a [WorldTooltip], while it drifts: not once the
 ## bus has it. No physics: the pod counts as round on screen ([ScreenPick]).
 
-const TEXT := "Floating capsule"
+const TEXT := "Drifting capsule"
 
 
 func _get_text() -> String:
