@@ -74,6 +74,7 @@
 [ext_resource type="Script" uid="uid://c3atn4ddkgf83" path="res://game/capsules/capsule_field.gd" id="156_capsules"]
 [ext_resource type="Script" uid="uid://dijks1t841h88" path="res://game/feature_hints/jump_hint.gd" id="157_jump_hint"]
 [ext_resource type="Script" uid="uid://cfpf5p04206an" path="res://game/capsules/capsule_tooltip.gd" id="158_capsule_tooltip"]
+[ext_resource type="PackedScene" uid="uid://bvecr4vgey1sp" path="res://game/bus/bus_indicator.tscn" id="160_bus_indicator"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -520,6 +521,14 @@ unique_name_in_owner = true
 camera = NodePath("../../Camera")
 bus = NodePath("../../Bus")
 panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
+
+[node name="BusIndicator" parent="Hud" unique_id=1085506930 node_paths=PackedStringArray("camera", "bus", "panels", "avoid", "map_zoom", "system_jump") instance=ExtResource("160_bus_indicator")]
+camera = NodePath("../../Camera")
+bus = NodePath("../../Bus")
+panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
+avoid = [NodePath("../PassengerPanel"), NodePath("../TopRight/Stack/GoalPanel"), NodePath("../TopRight/Stack/DockPanel"), NodePath("../TopCentre/ResourceBar"), NodePath("../BusStatusPanel"), NodePath("../Notices"), NodePath("../PauseButton")]
+map_zoom = NodePath("../../MapZoom")
+system_jump = NodePath("../../SystemJump")
 
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
