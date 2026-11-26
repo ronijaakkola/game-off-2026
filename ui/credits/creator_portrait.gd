@@ -81,9 +81,9 @@ static func dress(portrait: AlienPortrait, creator: Creator) -> void:
 
 # A node that moves with the head, whose space is the portrait's own as it stands now. It
 # hangs from an eye, the one part of the head a portrait shares.
-static func _on_head(portrait: AlienPortrait) -> Node3D:
+static func _on_head(portrait: AlienPortrait, named: String) -> Node3D:
 	var holder := Node3D.new()
-	holder.name = "Worn"
+	holder.name = named
 	portrait.eyes[0].add_child(holder)
 	holder.global_transform = portrait.global_transform
 	return holder
@@ -104,7 +104,7 @@ static func _eye_radius(portrait: AlienPortrait) -> float:
 
 # A round rim in front of each eye and a bridge between them.
 static func _add_glasses(portrait: AlienPortrait) -> void:
-	var worn := _on_head(portrait)
+	var worn := _on_head(portrait, "Glasses")
 	var radius := _eye_radius(portrait)
 	var centres := _eye_centres(portrait)
 	var front := centres[0].z
@@ -182,7 +182,7 @@ static func _add_laptop(portrait: AlienPortrait) -> void:
 # Headphones on the head: at each side a cushion pressed against the head with a cup
 # outside it, and a round band over the head between them.
 static func _add_headphones(portrait: AlienPortrait) -> void:
-	var worn := _on_head(portrait)
+	var worn := _on_head(portrait, "Headphones")
 	var head := _head_shape(portrait)
 	var half := head.size.x / 2.0
 	var centre := Vector3(head.get_center().x, _eye_centres(portrait)[0].y, head.get_center().z)
