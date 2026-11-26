@@ -2,8 +2,8 @@ extends Node
 ## The game with the camera moved off the bus, so the off-screen bus indicator shows, to
 ## capture it. After `--`, `left`, `right`, `up` and `down` say which way the bus is from
 ## the screen, and two make a corner: `capture <this scene> -- up left`; with none it is
-## off to the left. With `fuel` the tank is empty, and with `far` the camera stands
-## farther back.
+## off to the left. With `under` it is on screen but under the station panel. With `fuel`
+## the tank is empty, and with `far` the camera stands farther back.
 
 ## How far the camera stands from the map.
 const DISTANCE := 12.0
@@ -14,6 +14,7 @@ const OFFSETS: Dictionary[String, Vector3] = {
 	"right": Vector3(-14.0, 0.0, 0.0),
 	"up": Vector3(0.0, 0.0, 10.0),
 	"down": Vector3(0.0, 0.0, -10.0),
+	"under": Vector3(-10.5, 0.0, 3.5),
 }
 
 

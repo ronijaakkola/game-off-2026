@@ -63,6 +63,44 @@ func test_a_panel_behind_it_or_off_its_line_changes_nothing() -> void:
 	assert_float(at.x).is_equal_approx(VIEW.end.x - FROM_EDGE, 0.01)
 
 
+func test_a_bus_past_the_edge_is_out_of_sight_and_one_touching_it_is_not() -> void:
+	var past := Vector2(VIEW.end.x + 21.0, 324.0)
+	var touching := Vector2(VIEW.end.x + 19.0, 324.0)
+
+	assert_bool(BusIndicator.is_out_of_sight(VIEW, past, 20.0, [])).is_true()
+	assert_bool(BusIndicator.is_out_of_sight(VIEW, touching, 20.0, [])).is_false()
+
+
+func test_a_bus_wholly_under_a_panel_is_out_of_sight() -> void:
+	var panel := Rect2(12.0, 12.0, 240.0, 388.0)
+
+	var under := BusIndicator.is_out_of_sight(VIEW, Vector2(130.0, 200.0), 20.0, [panel])
+	var peeking := BusIndicator.is_out_of_sight(VIEW, Vector2(240.0, 200.0), 20.0, [panel])
+	var beside := BusIndicator.is_out_of_sight(VIEW, Vector2(400.0, 200.0), 20.0, [panel])
+
+	assert_bool(under).is_true()
+	# Part of it shows past the panel's edge, so the player can still find it.
+	assert_bool(peeking).is_false()
+	assert_bool(beside).is_false()
+
+
+func test_a_bus_under_a_panel_at_the_middle_of_the_screen_gets_no_badge() -> void:
+	# There is no way to point from the middle of the screen at the middle of the screen.
+	var panel := Rect2(376.0, 250.0, 400.0, 150.0)
+
+	var under := BusIndicator.is_out_of_sight(VIEW, VIEW.get_center(), 20.0, [panel])
+
+	assert_bool(under).is_false()
+
+
+func test_the_badge_for_a_bus_under_a_panel_stops_beside_that_panel() -> void:
+	var panel := Rect2(12.0, 250.0, 240.0, 150.0)
+
+	var at := BusIndicator.place_on_line(VIEW, Vector2.LEFT, [panel])
+
+	assert_float(at.x).is_equal_approx(panel.end.x + FROM_PANEL, 0.01)
+
+
 func test_it_stays_down_while_the_bus_is_on_screen() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(5)

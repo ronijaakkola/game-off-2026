@@ -1,12 +1,13 @@
 class_name BusIndicator
 extends Control
-## A teardrop badge at the screen's edge that points at the bus while no part of it is on
-## screen: a disc in the bus's yellow with the bus on it, drawn out to a point toward the
-## bus, in the quick text's make ([BusQuickText]). It sits on the line from the middle of
-## the screen to the bus, its point [constant EDGE_GAP] inside the edge, or
-## [constant PANEL_GAP] off a HUD panel in the way, and keeps its size at any zoom. Out of
-## fuel or cooling down after overheating, it turns the loss's red and shows why. It hides
-## while a side panel is open, on the zoomed map and through a jump.
+## A teardrop badge that points at the bus while the player can see no part of it, past
+## the screen's edge or wholly under a HUD panel: a disc in the bus's yellow with the bus
+## on it, drawn out to a point toward the bus, in the quick text's make ([BusQuickText]).
+## It sits on the line from the middle of the screen to the bus, its point
+## [constant EDGE_GAP] inside the edge, or [constant PANEL_GAP] off a HUD panel in the way,
+## and keeps its size at any zoom. Out of fuel or cooling down after overheating, it turns
+## the loss's red and shows why. It hides while a side panel is open, on the zoomed map
+## and through a jump.
 
 ## The disc's radius and how far its point reaches from its centre, in pixels.
 const RADIUS := 14.0
@@ -72,7 +73,7 @@ func _process(_delta: float) -> void:
 		_place()
 
 
-## Whether the badge is up: no part of the bus is on screen and nothing hides it.
+## Whether the badge is up: the player can see no part of the bus and nothing hides it.
 func is_showing() -> bool:
 	return _shown
 
@@ -110,7 +111,7 @@ func _draw() -> void:
 	)
 
 
-# Whether no part of the bus is on screen, and nothing hides the indicator.
+# Whether the player can see no part of the bus, and nothing hides the indicator.
 func _is_wanted() -> bool:
 	if panels.any(func(panel: SidePanel) -> bool: return panel.visible):
 		return false
@@ -121,7 +122,22 @@ func _is_wanted() -> bool:
 		return true
 	var middle := camera.unproject_position(at)
 	var top := camera.unproject_position(at + camera.global_basis.y * FrameshiftBus.RADIUS)
-	return not get_viewport_rect().grow(middle.distance_to(top)).has_point(middle)
+	return is_out_of_sight(get_viewport_rect(), middle, middle.distance_to(top), _get_covered())
+
+
+## Whether the player can see no part of a bus drawn at [param at] on a screen of
+## [param view], as a circle of [param radius]: it is past the screen's edge, or wholly
+## under one of the panels at [param covered]. A panel over the middle of the screen
+## doesn't count, since the badge would have no way to point.
+static func is_out_of_sight(view: Rect2, at: Vector2, radius: float, covered: Array[Rect2]) -> bool:
+	if not view.grow(radius).has_point(at):
+		return true
+	var bounds := Rect2(at - Vector2.ONE * radius, Vector2.ONE * radius * 2.0)
+	var centre := view.get_center()
+	for panel: Rect2 in covered:
+		if panel.encloses(bounds) and not panel.grow(PANEL_GAP + TIP).has_point(centre):
+			return true
+	return false
 
 
 # Puts the badge on the line from the middle of the screen to the bus, as far out as the
@@ -136,12 +152,17 @@ func _place() -> void:
 	if toward.is_zero_approx():
 		return
 	_direction = toward.normalized()
+	position = place_on_line(view, _direction, _get_covered())
+	queue_redraw()
+
+
+# What each HUD panel that shows covers on screen.
+func _get_covered() -> Array[Rect2]:
 	var covered: Array[Rect2] = []
 	for control: Control in avoid:
 		if control.is_visible_in_tree():
 			covered.append(_covered(control))
-	position = place_on_line(view, _direction, covered)
-	queue_redraw()
+	return covered
 
 
 ## Where the badge's centre goes on a screen of [param view]: on the line from its middle
