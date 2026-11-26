@@ -145,7 +145,11 @@ const CARDS := {
 	"HOME":
 	{
 		title = "Home",
-		text = "Now right click {mouse_right} {home} to fly home.",
+		text =
+		(
+			"The capsule contained some credits, nice! Now right click {mouse_right} {home} to "
+			+ "fly home."
+		),
 		side = GuideCard.Side.LEFT,
 		got_it = false,
 		ring = true,
