@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://lk2puraavc4h"]
+
+[ext_resource type="Script" uid="uid://b3f52hypm2ej4" path="res://test/previews/creator_portraits_preview.gd" id="1_preview"]
+
+[sub_resource type="Environment" id="Environment_preview"]
+background_mode = 1
+background_color = Color(0.11, 0.1, 0.24, 1)
+
+[node name="CreatorPortraitsPreview" type="Node3D" unique_id=473437423]
+script = ExtResource("1_preview")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1210966938]
+environment = SubResource("Environment_preview")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=716193595]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+projection = 1
+size = 2.0

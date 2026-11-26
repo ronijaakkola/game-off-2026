@@ -29,7 +29,6 @@ shader_parameter/region = null
 shader_parameter/left_color = null
 shader_parameter/right_color = null
 shader_parameter/zoom = null
-shader_parameter/light = null
 shader_parameter/size = null
 shader_parameter/radius = null
 
@@ -39,7 +38,7 @@ border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.957, 0.945, 1, 0.22)
+border_color = Color(0.957, 0.945, 1, 0.55)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -67,6 +66,8 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Border" type="Panel" parent="." unique_id=279060476]
+unique_name_in_owner = true
+self_modulate = Color(1, 1, 1, 0.4)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -85,7 +86,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 14
-theme_override_constants/margin_right = 14
+theme_override_constants/margin_right = 10
 
 [node name="Row" type="HBoxContainer" parent="Margin" unique_id=923623367]
 layout_mode = 2
@@ -97,15 +98,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 0
-
-[node name="Title" type="Label" parent="Margin/Row/Lines" unique_id=1939100978]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"SlantTitleLabel"
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.957, 0.945, 1, 1)
-text = "Jump to"
+theme_override_constants/separation = 7
 
 [node name="Level" type="Label" parent="Margin/Row/Lines" unique_id=261478962]
 unique_name_in_owner = true
@@ -114,18 +107,20 @@ theme_type_variation = &"BodyTextLabel"
 theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.78)
 text = "Level"
 
-[node name="ArrowSlot" type="Control" parent="Margin/Row" unique_id=490133495]
-custom_minimum_size = Vector2(24, 18)
+[node name="Title" type="Label" parent="Margin/Row/Lines" unique_id=1939100978]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+theme_type_variation = &"SlantTitleLabel"
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 1)
+text = "Name"
+
+[node name="Arrow" type="TextureRect" parent="Margin/Row" unique_id=230493602]
+self_modulate = Color(0.957, 0.945, 1, 1)
+custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 size_flags_vertical = 4
-mouse_filter = 2
-
-[node name="Arrow" type="TextureRect" parent="Margin/Row/ArrowSlot" unique_id=230493602]
-unique_name_in_owner = true
-self_modulate = Color(0.957, 0.945, 1, 1)
-layout_mode = 0
-offset_right = 18.0
-offset_bottom = 18.0
 mouse_filter = 2
 texture = ExtResource("3_arrow")
 expand_mode = 1

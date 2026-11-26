@@ -5,8 +5,6 @@ extends Control
 ## riding it from one of the level's planets to another. [SceneFlow] shows it while a level
 ## loads. Nothing on it moves but the marker. Once loaded, [method wait_for_start] swaps the
 ## bar for a Start button under the name, so the player can read the tip and start when ready.
-## As the bus jumps into a level nothing loads, so it shows with the button from the start
-## ([method show_start]).
 
 ## Tips any level's loading screen shows, as well as the level's own.
 const TIPS: Array[String] = [
@@ -49,8 +47,7 @@ func set_progress(progress: float) -> void:
 	(%Left as Control).size_flags_stretch_ratio = 1.0 - progress
 
 
-## Swaps the bar for the Start button, and "Loading…" for the level's number, at once: for
-## a level with nothing to load, shown as the bus jumps into it.
+## Swaps the bar for the Start button, and "Loading…" for the level's number, at once.
 func show_start() -> void:
 	(%LoadingLabel as Label).text = "Level %d" % Campaign.number(_level)
 	(%Bar as Control).hide()

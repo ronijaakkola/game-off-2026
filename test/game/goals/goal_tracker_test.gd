@@ -43,6 +43,22 @@ func test_a_milestone_counts_deliveries_from_when_it_is_added_but_not_kicks() ->
 	assert_float(goal.get_progress()).is_equal(1.0)
 
 
+func test_a_milestone_of_one_type_counts_only_those_passengers() -> void:
+	var business := PassengerType.new()
+	var goal := DeliveryCountGoal.new(2, business)
+	_tracker.add(goal)
+
+	await _deliver(_passenger())
+	await _deliver(_passenger(business))
+
+	assert_float(goal.get_progress()).is_equal(0.5)
+	assert_bool(goal.is_met()).is_false()
+
+	await _deliver(_passenger(business))
+
+	assert_bool(goal.is_met()).is_true()
+
+
 func test_a_quest_completes_when_its_passenger_is_delivered() -> void:
 	var passenger := _passenger()
 	var goal := PassengerDeliveryGoal.new(passenger)
@@ -143,8 +159,8 @@ func test_frozen_goals_stay_as_they_stand() -> void:
 	assert_float(rating.get_progress()).is_equal(1.0)
 
 
-func _passenger() -> Passenger:
-	return Passenger.new(PassengerType.new(), _away, 100.0, 40.0)
+func _passenger(type: PassengerType = PassengerType.new()) -> Passenger:
+	return Passenger.new(type, _away, 100.0, 40.0)
 
 
 func _board(passenger: Passenger) -> Passenger:
