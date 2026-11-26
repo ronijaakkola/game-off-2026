@@ -29,6 +29,9 @@ func _ready() -> void:
 	for setting: String in Settings.get_names():
 		_bind(setting)
 	_read_settings()
+	# Show FPS has no description, yet stands as tall as a row with one, label centred, so the
+	# toggles sit evenly spaced.
+	%ShowFpsRow.custom_minimum_size.y = %EdgeScrollRow.get_combined_minimum_size().y
 
 
 func _opening() -> void:
