@@ -6,8 +6,6 @@ extends Node3D
 ## it is still thrown, but doesn't tumble. It screams as it goes, in its race's voice, and
 ## the scream fades out fast, as if it flew away from the bus.
 
-const SHADER := preload("res://shared/two_tone.gdshader")
-
 ## How fast it leaves the door, out of it and upward, in units per second.
 @export_range(0.0, 5.0, 0.05) var throw_speed := 0.5
 @export_range(0.0, 5.0, 0.05) var lift_speed := 0.45
@@ -32,12 +30,7 @@ var _vanish: Tween
 ## way out of it, in [param color]. It screams as [param passenger] would.
 func throw(from: Vector3, out: Vector3, color: Color, passenger: Passenger) -> void:
 	global_position = from
-	var material := ShaderMaterial.new()
-	material.shader = SHADER
-	material.set_shader_parameter(&"color", color)
-	material.set_shader_parameter(&"light_source", light_source)
-	for node: Node in find_children("*", "MeshInstance3D", true, false):
-		(node as MeshInstance3D).material_override = material
+	(%Figure as PassengerFigure).paint(color, light_source)
 	var side := out.cross(Vector3.UP).normalized()
 	_velocity = out * throw_speed + Vector3.UP * lift_speed + side * randf_range(-0.15, 0.15)
 	var axis := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), randf_range(-1.0, 1.0))
