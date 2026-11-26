@@ -4,39 +4,31 @@ extends SceneTree
 ## passes the files in dependency order and runs this with --editor: without it, saving
 ## drops every uid in the file.
 ##
-## It reads every file in _init() and saves in _initialize(), because neither works in the
-## other. By _initialize() the editor has turned scripting off, so a script that isn't
-## @tool runs as a placeholder, and a placeholder only keeps a value that compares unequal
-## to the export's default. A default written as a literal of another type, like
-## `var names: PackedStringArray = ["Passenger"]` (an Array), compares as neither equal nor
-## unequal to the file's PackedStringArray, so the value was dropped without an error.
-## In _init() scripting is still on and every script runs as itself, as in the game, but
-## the editor can't assign uids yet. The cache mode makes no difference.
-## check.py ids compares tools/resource_dump.gd's dumps from before and after the resave,
-## and puts the files back if anything but an id changed.
+## It reads and saves every file in _initialize(), as the editor does once it has started:
+## a script that isn't @tool runs as a placeholder, which keeps the scene's values and
+## leaves out one equal to its export's default. Not in _init(): there the autoloads aren't
+## globals yet, so every script that names one fails to compile, and packing writes its
+## exports as null. A placeholder drops a value whose export default is a literal of
+## another type, like `var names: PackedStringArray = ["Passenger"]` (an Array), as the
+## editor's own save would. check.py ids compares tools/resource_dump.gd's dumps from
+## before and after the resave, and puts the files back if anything but an id changed, or
+## if a script failed to compile here.
 
-var _loaded: Array[Resource] = []
 var _failures := 0
-
-
-func _init() -> void:
-	for path: String in OS.get_cmdline_user_args():
-		var resource := _read(path)
-		if resource == null:
-			_failures += 1
-			printerr("FAILED: ", path, " (could not load or pack it)")
-		_loaded.append(resource)
 
 
 func _initialize() -> void:
 	var paths := OS.get_cmdline_user_args()
-	for index: int in paths.size():
-		if _loaded[index] == null:
+	for path: String in paths:
+		var resource := _read(path)
+		if resource == null:
+			_failures += 1
+			printerr("FAILED: ", path, " (could not load or pack it)")
 			continue
-		var error := ResourceSaver.save(_loaded[index], paths[index])
+		var error := ResourceSaver.save(resource, path)
 		if error != OK:
 			_failures += 1
-			printerr("FAILED: ", paths[index], " (", error_string(error), ")")
+			printerr("FAILED: ", path, " (", error_string(error), ")")
 	print("saved %d, failures: %d" % [paths.size() - _failures, _failures])
 	quit(1 if _failures > 0 else 0)
 
