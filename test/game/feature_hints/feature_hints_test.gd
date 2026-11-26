@@ -82,6 +82,16 @@ func test_a_hidden_target_waits_for_the_next_time() -> void:
 	assert_bool(_hints.is_showing()).is_true()
 
 
+func test_a_hint_is_taught_once_closed_not_once_shown() -> void:
+	assert_bool(_hints.has_taught(&"quests")).is_false()
+	_hints.offer(&"quests", _target)
+	await await_idle_frame()
+	assert_bool(_hints.has_taught(&"quests")).is_false()
+
+	await _press_got_it()
+	assert_bool(_hints.has_taught(&"quests")).is_true()
+
+
 func _press_got_it() -> void:
 	# Opening takes a moment; Got it counts only once it is open. gdUnit's own waits stall
 	# while the tree is paused, and a scene tree timer doesn't.
