@@ -27,6 +27,10 @@ func _ready() -> void:
 		card.focus_entered.connect(_pick.bind(card))
 		_cards.append(card)
 	visibility_changed.connect(_on_shown_or_hidden)
+	# The cards show their levels as the menu loads, so the pictures are read and first
+	# drawn then ([method MenuScreen._warm_up]): read as the screen opens, they made its
+	# first frame long enough for the transition to skip ahead.
+	_opening()
 
 
 func _opening() -> void:
@@ -122,6 +126,3 @@ func _on_shown_or_hidden() -> void:
 	if visible and _picked:
 		await get_tree().process_frame
 		(%Actions as Control).position.x = MenuScreen.rest_position(_picked).x
-	elif not visible:
-		for card: LevelCard in _cards:
-			card.clear()
