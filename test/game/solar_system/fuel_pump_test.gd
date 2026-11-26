@@ -124,6 +124,20 @@ func test_fuel_keeps_flowing_while_a_pan_key_moves_the_camera() -> void:
 	key = key.duplicate() as InputEventKey
 	key.pressed = false
 	Input.parse_input_event(key)
+
+	# An arrow key pans too: the button keeps the focus it would move on, not the key.
+	await runner.simulate_frames(30, 30)
+	from = rig.position
+	var arrow := InputEventKey.new()
+	arrow.keycode = KEY_LEFT
+	arrow.pressed = true
+	Input.parse_input_event(arrow)
+	await runner.simulate_frames(30, 30)
+	assert_bool(button.is_held()).is_true()
+	assert_float(rig.position.distance_to(from)).is_greater(0.1)
+	arrow = arrow.duplicate() as InputEventKey
+	arrow.pressed = false
+	Input.parse_input_event(arrow)
 	_send_release(MOUSE_BUTTON_LEFT, at)
 	await runner.simulate_frames(2)
 
