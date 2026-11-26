@@ -8,7 +8,9 @@ extends Node3D
 ## starts only on the map: one that starts on a panel, which takes the press, doesn't.
 ## This node sits at the point the camera looks at, and its rotation is the viewing angle;
 ## its shot, %Shot, sits [member distance] back along that angle, and the scene's
-## PhantomCameraHost moves the camera to it.
+## PhantomCameraHost moves the camera to it. In a window narrower than the project's base
+## aspect it sits farther back by [method get_view_scale], so the map keeps the base's
+## width across and its size beside the HUD, and shows more top to bottom.
 ## The look-at point stays within [member bounds_radius] of [member bounds_center], and the
 ## zoom between [member min_distance] and [member max_distance]. A zoom eases the look-at
 ## point and the distance to their target; a pan eases its speed and moves the look-at point
@@ -254,6 +256,21 @@ func get_focus_fill(radius: float) -> float:
 	return lerpf(focus_fill_min, focus_fill_max, clampf(weight, 0.0, 1.0))
 
 
+## How much farther back than [member distance] %Shot sits: 1 at the project's base
+## aspect or wider, where the field of view's height is what the base sees and the extra
+## width shows more of the map, and more in a narrower window, as the base's width across
+## would otherwise be cut off at the sides. [member distance] and its limits stay the base's.
+func get_view_scale() -> float:
+	var screen := get_viewport().get_visible_rect().size
+	if screen.y <= 0.0:
+		return 1.0
+	var base_aspect := (
+		float(ProjectSettings.get_setting(&"display/window/size/viewport_width"))
+		/ float(ProjectSettings.get_setting(&"display/window/size/viewport_height"))
+	)
+	return maxf(1.0, base_aspect * screen.y / screen.x)
+
+
 ## Seconds the camera takes to blend in to a focused target.
 func get_focus_seconds() -> float:
 	return _focus_seconds
@@ -393,10 +410,10 @@ func _plane_offset(screen_point: Vector2) -> Variant:
 	var ray := basis * camera_ray
 	if ray.y > -0.001:
 		return null
-	# The camera sits at basis.z per unit of distance above the look-at point; walk the ray
-	# down from there to the plane.
+	# The camera sits at basis.z per unit of distance, times the view scale, above the
+	# look-at point; walk the ray down from there to the plane.
 	var back := basis.z
-	return back - ray * (back.y / ray.y)
+	return (back - ray * (back.y / ray.y)) * get_view_scale()
 
 
 func _on_pointer_lost() -> void:
@@ -416,4 +433,4 @@ func _clamp_to_bounds(point: Vector3) -> Vector3:
 
 
 func _place_shot() -> void:
-	%Shot.position = Vector3(0.0, 0.0, distance)
+	%Shot.position = Vector3(0.0, 0.0, distance * get_view_scale())

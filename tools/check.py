@@ -476,6 +476,8 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
             rules += feature_asset_problems(path)
         if path.endswith(MEDIA):
             rules += duplicate_asset_problems(path)
+        if path.endswith(".svg"):
+            rules += raster_svg_problems(path)
         # The hook leaves this out: a scene is missing its ids for as long as it is being
         # written, and check.py ids fills them in once. The commit hook and CI catch it.
         if path.endswith((".tscn", ".tres")) and not hook:
@@ -577,6 +579,27 @@ def duplicate_asset_problems(path: str) -> list[str]:
         )
         problems.append(problem(path, None, "duplicate-asset", message, LAYOUT))
     return problems
+
+
+# The SVGs that must be pixels: a custom mouse cursor takes an image, not a DPITexture.
+RASTER_SVG_FOLDERS = ("core/cursor/",)
+
+
+def raster_svg_problems(path: str) -> list[str]:
+    """An SVG imported as a texture is pixels at one size, which the canvas_items stretch
+    blurs in any window bigger than the base 1152x648, and more on a HiDPI screen. As a
+    DPITexture it is drawn again at the size it shows at."""
+    imported = Path(f"{path}.import")
+    if path.startswith(RASTER_SVG_FOLDERS) or not imported.is_file():
+        return []
+    if 'importer="texture"' not in imported.read_text(encoding="utf-8", errors="replace"):
+        return []
+    message = (
+        "it imports as pixels at one size, which blur once the window scales the game up. "
+        "Pick DPITexture under Import As in the Import dock and reimport, keeping its "
+        "svg/scale as base_scale."
+    )
+    return [problem(path, None, "raster-svg", message, ASSETS)]
 
 
 # What an SVG shows leaves out its comments, such as the license line whose version
