@@ -5,7 +5,8 @@ extends Node
 ## capsule, stamping what it held over the bus: `-- fly`. With `rescue`, it flies into the
 ## castaway's capsule instead, and they call. With `open`, the castaway's capsule is on the bus
 ## from the start, so they come out of it at once; with `accept` or `decline` too, the
-## transmission they open is answered that way 1.75 s in.
+## transmission they open is answered that way 1.75 s in. With `hover`, the pointer rests on
+## the credits capsule, so its tooltip shows.
 
 ## How far the camera stands from the bus.
 const NEAR_DISTANCE := 10.0
@@ -43,6 +44,9 @@ func _ready() -> void:
 			else:
 				panel.close()
 		return
+	if "hover" in args:
+		_hover(targets[Capsule.Contents.CREDITS])
+		return
 	var target := Vector3.ZERO
 	if "fly" in args:
 		target = targets[Capsule.Contents.CREDITS]
@@ -52,3 +56,12 @@ func _ready() -> void:
 		return
 	bus.plot_course(RouteStop.at_point(target))
 	bus.frameshift_held = true
+
+
+# Moves the pointer onto the capsule at [param at].
+func _hover(at: Vector3) -> void:
+	await get_tree().create_timer(0.2).timeout
+	var motion := InputEventMouseMotion.new()
+	motion.position = get_viewport().get_camera_3d().unproject_position(at)
+	motion.global_position = motion.position
+	Input.parse_input_event(motion)

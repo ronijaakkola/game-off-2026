@@ -34,10 +34,8 @@ static func dress(passenger: Passenger, met: bool) -> void:
 ## The space behind [param passenger]'s portrait: the sky's fog colour in the star system
 ## they are bound for.
 static func get_space_color(passenger: Passenger) -> Color:
-	var node: Node = passenger.destination
-	while node and not node is StarSystem:
-		node = node.get_parent()
-	return (node as StarSystem).fog_color if node else SPACE
+	var system: StarSystem = passenger.destination.star_system if passenger.destination else null
+	return system.fog_color if system else SPACE
 
 
 ## Whether [param passenger] is the castaway.

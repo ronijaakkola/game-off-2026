@@ -191,6 +191,9 @@ var orbit_speed := 1.0
 ## the orbit comes from it alone, however the speed changed on the way, so a save game keeps
 ## it to put the planet back. Set before the planet is ready, it starts there.
 var orbit_time := 0.0
+## The star system it is in, moons included, or null outside one. Its [StarSystem] sets it
+## as the system is ready, so ask the planet rather than climb the tree to find it.
+var star_system: StarSystem
 ## Where the star that lights its surface is, in global space. Its [StarSystem] sets it.
 var light_source := Vector3.ZERO:
 	set(value):

@@ -195,6 +195,16 @@ func _has_seen(hint: StringName) -> bool:
 	return _seen[hint]
 
 
+## Whether the player has been taught the feature of the hint [param hint]: they have
+## closed it, or this run shows no hints, as one the main menu didn't start, so what waits
+## on the hint doesn't wait forever.
+func has_taught(hint: StringName) -> bool:
+	assert(HINTS.has(hint), "No feature hint named %s" % hint)
+	if saver and not saver.is_saved_run():
+		return true
+	return _has_seen(hint)
+
+
 ## Whether a hint is showing.
 func is_showing() -> bool:
 	return not _showing.is_empty()

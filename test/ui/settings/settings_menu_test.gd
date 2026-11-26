@@ -193,3 +193,14 @@ func test_a_drag_near_the_middle_of_a_volume_lands_on_it_and_the_keys_do_not() -
 	slider.value = 0.51
 	assert_float(Settings.sfx_volume).is_equal_approx(0.51, 0.001)
 	Settings.sfx_volume = before
+
+
+# Show FPS has no description, so its row once came out shorter and its toggle sat closer.
+func test_the_display_toggles_are_evenly_spaced() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var centres: Array[float] = []
+	for toggle: String in ["ReduceMotion", "EdgeScroll", "ShowFps"]:
+		var rect := (runner.find_child(toggle) as Control).get_global_rect()
+		centres.append(rect.get_center().y)
+	assert_float(centres[2] - centres[1]).is_equal_approx(centres[1] - centres[0], 0.5)

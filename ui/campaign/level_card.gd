@@ -2,7 +2,7 @@ class_name LevelCard
 extends Button
 ## A level's card in the campaign screen: its slice of the level's picture, its number and
 ## name, and how far the player has got with it, a Completed! stamp, an In progress badge
-## or, locked, a lock and what opens it. Level 1's card has the Play tutorial checkbox.
+## or, locked, a lock and what opens it. Level 1's card can offer the Play tutorial checkbox.
 ## Picked, its border is the light one and its picture zooms in a little, easing out (at
 ## once under Reduce motion). A locked card can't be pressed.
 
@@ -57,7 +57,7 @@ func show_level(shown: Level, number: int, card_state: State) -> void:
 	(%InProgress as Control).visible = state == State.IN_PROGRESS
 	(%Locked as Control).visible = locked
 	(%LockedReason as Label).text = "Complete Level %d first" % (number - 1)
-	(%TutorialChip as Control).visible = number == 1
+	(%TutorialChip as Control).hide()
 
 
 ## Whether the Play tutorial box is ticked.
@@ -65,9 +65,10 @@ func wants_tutorial() -> bool:
 	return (%PlayTutorial as CheckBox).button_pressed
 
 
-## Ticks the Play tutorial box, or clears it.
-func set_tutorial(on: bool) -> void:
-	(%PlayTutorial as CheckBox).button_pressed = on
+## Shows the Play tutorial box, cleared, if [param offered], or hides it.
+func offer_tutorial(offered: bool) -> void:
+	(%TutorialChip as Control).visible = offered
+	(%PlayTutorial as CheckBox).button_pressed = false
 
 
 ## Lets go of the picture, so it isn't kept in memory while the game plays.

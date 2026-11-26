@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://gkp6mmkr0062"]
 
+[ext_resource type="Script" uid="uid://bl10d78uivi5t" path="res://game/passengers/passenger_figure.gd" id="1_figure"]
+
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_torso"]
 radius = 0.026
 height = 0.078
@@ -25,6 +27,7 @@ radial_segments = 8
 rings = 2
 
 [node name="PassengerFigure" type="Node3D" unique_id=1810083383]
+script = ExtResource("1_figure")
 
 [node name="Torso" type="MeshInstance3D" parent="." unique_id=1719673416]
 mesh = SubResource("CapsuleMesh_torso")

@@ -67,6 +67,21 @@ func test_play_opens_the_campaign_whose_play_goes_to_the_game_and_back() -> void
 	await assert_func(get_tree().root, "is_input_disabled").wait_until(2000).is_false()
 
 
+func test_level_1_offers_the_tutorial_box_only_once_the_tutorial_is_done() -> void:
+	var runner := scene_runner(MENU)
+	await _click(runner, runner.find_child("PlayButton"))
+	var chip := runner.find_child("TutorialChip") as Control
+	assert_bool(chip.visible).override_failure_message("Offered on a first run").is_false()
+
+	SaveGame.mark_tutorial_done()
+	var campaign := runner.find_child("CampaignScreen") as MenuScreen
+	await _click(runner, campaign.find_child("BackButton") as Control)
+	await assert_func(campaign, "is_visible").wait_until(2000).is_false()
+	await _click(runner, runner.find_child("PlayButton"))
+	assert_bool(chip.visible).is_true()
+	assert_bool((chip.find_child("PlayTutorial") as CheckBox).button_pressed).is_false()
+
+
 func test_settings_button_opens_the_settings_panel() -> void:
 	var runner := scene_runner(MENU)
 	await _click(runner, runner.find_child("SettingsButton"))

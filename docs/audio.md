@@ -1,6 +1,6 @@
 # Audio master list
 
-Last updated: 2026-11-25
+Last updated: 2026-11-26
 
 What plays, what is missing, and what each clip is. Levels are the mixer's table in `core/audio/clip_levels.gd` (1 is as recorded). The mix, each alien voice's volume of 0.4 included, is set with the Master, Music and Sound effects sliders at their default, the middle (0.5).
 
@@ -41,7 +41,7 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 |---|---|---|---|
 | `game/transmissions/voice/blue/` | 53: blips 23, long 8, question 4, exclaim 4, annoyed 4, happy 4, scared 3, kicked 3 | A transmission's text types out: a blip per word of three letters or more, the question and exclaim clips before `?` and `!`, a long clip at the start of a line, a stinger as it opens (the caller's mood). A passenger card opening a request for food or a drink plays the passenger's race's annoyed stinger, at their pitch. Each caller of a race has a pitch of their own. Each race's loudness is its voice's volume, set in the mixer | Done |
 | `game/transmissions/voice/orange/` | 61: blips 18, long 8, question 9, exclaim 7, annoyed 3, happy 5, scared 9, kicked 2 | The same | Done |
-| `game/transmissions/voice/green/` | 61: blips 19, long 8, question 4, exclaim 7, annoyed 6, happy 8, scared 7, kicked 2 | The same | Done |
+| `game/transmissions/voice/green/` | 61: blips 19, long 8, question 4, exclaim 7, annoyed 6, happy 8, scared 7, kicked 2 | The same. Major Tim, the castaway, talks in it too | Done |
 
 A kicked passenger screams one of their race's kicked clips (`k`), at their pitch times the voice's `kicked_pitch`, fading out over `kicked_fade`, at the voice's volume times `kicked_volume`. The kick is off in the game: hear it in the voice lab's Kicked button or the mixer's Kicked line.
 
@@ -62,15 +62,15 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 
 ### Moments
 
-- **Goals.** A milestone done, a standing goal met, The Boss's call that every goal holds, a promotion.
+- **Goals.** A milestone done, a standing goal met, The Boss's call that every goal holds, a promotion, and, as the player stays, the goals giving way to the jump card.
 - **The jump to the next star system.** The wind-up rumble, the frameshift out, the screen going black, the frameshift in, and the bell.
 - **Warp gates.** The ring's hum, the warp drive row pressed, the jump.
 - **Quests.** A call answered, accepted, declined, done (and the caller's dance), failed. The ride quests' own moments: a fly past or a photo stop done, a warp through a gate with the caller on board, a rock ride among the asteroids.
-- **Capsules.** One appearing and emerging from nothing, its beacon blinking, and drifting off; the bus collecting one (credits, research points, or the castaway: "Rescued Driff!"); one shrinking away uncollected. Every capsule looks alike, so the collecting sound is what tells the player what was inside.
+- **Capsules.** One appearing and emerging from nothing, its beacon blinking, and drifting off; the bus collecting one (credits, research points, fuel, or the castaway); Major Tim coming out of their capsule, and boarding once their quest is accepted; one shrinking away uncollected. Every capsule looks alike, so the collecting sound is what tells the player what was inside.
 - **A returning passenger.** Someone who rated a five-star ride boarding again, and the castaway coming back.
 - **Research.** The screen opening, a research completing, the badge nudging for a new upgrade.
 - **Hints and the tutorial.** A feature hint's card appearing, Got it, a tutorial step finishing, the way-home waypoint being set.
-- **Levels.** A level's loading screen, the Start button, a level completed, a scene fade.
+- **Levels.** A level's loading screen, its bar filling, the Start button dropping in and being pressed, a level completed, a scene fade.
 
 ### Trouble
 
@@ -94,8 +94,8 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 
 ### Voices and the rest
 
-- **The Boss needs a voice.** He sits in the dark, a shadowy figure, and every call of his is in Orange's voice (`BOSS_RACE` in `transmission.gd`), so he sounds like any Orange passenger. A voice set of his own would set him apart and make his calls (the first shift, the promotion, the trial, the end) land. It is a full set like a race's: blips, long, question, exclaim, annoyed, happy and scared stingers (no kicked), and a stern, slower, lower delivery. It needs a letter of its own in the voice README's table, a `boss.tres`, and a way for a transmission to name a voice other than a race's.
-- **The mechanic** (Rusty) speaks in Blue's voice (`MECHANIC_RACE`) and may want a voice of his own too.
+- **The Boss needs a voice.** The Boss is a shadowy figure in the dark, and every one of their calls is in Orange's voice (`BOSS_RACE` in `transmission.gd`), so they sound like any Orange passenger. A voice set of their own would set them apart and make their calls (the first shift, the promotion, the trial, the end) land. It is a full set like a race's: blips, long, question, exclaim, annoyed, happy and scared stingers (no kicked), and a stern, slower, lower delivery. It needs a letter of its own in the voice README's table, a `boss.tres`, and a way for a transmission to name a voice other than a race's.
+- **The mechanic** (Rusty) speaks in Blue's voice (`MECHANIC_RACE`) and may want a voice of their own too.
 
 ### Placeholders to replace before release
 
