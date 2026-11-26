@@ -23,6 +23,8 @@ extends Node
 ## Business one, so their badge shows alone and after the briefcase.
 ## `-- Breakdown` opens the panel the pointer on a happiness bar opens, for the third
 ## seat, on a bus with Movies, after a stop too many and a quest failed.
+## `-- Castaway` makes the last seat the castaway on a hop quest, going nowhere, so their
+## group shows under the planets'.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
@@ -90,6 +92,10 @@ func _ready() -> void:
 			passenger.frustration = FRUSTRATION[seat]
 			if not passenger.request and not type.stop_lines.is_empty():
 				passenger.activity = type.stop_lines[seat % type.stop_lines.size()]
+		if seat == HAPPINESS.size() - 1 and "Castaway" in args:
+			Castaway.dress(passenger, false)
+			passenger.destination = null
+			passenger.quest_line = HopGoal.new(passenger, Vector3.ZERO).get_text()
 		cabin.board(passenger)
 		# After they take their seat, which puts them at what the bus can give.
 		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]

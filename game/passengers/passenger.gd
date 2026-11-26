@@ -179,7 +179,7 @@ static func from_save(
 ) -> Passenger:
 	var kind: PassengerType = types.get(saved.get("type", ""))
 	var to: Planet = planets.get(saved.get("destination", ""))
-	if not kind or not to:
+	if not kind or (not to and saved.get("destination", "") != ""):
 		return null
 	var passenger := Passenger.new(kind, to, float(saved.get("trip_seconds", 0.0)), 0.0)
 	passenger.origin = planets.get(saved.get("origin", ""))
@@ -322,14 +322,14 @@ func reroute(to: Planet, seconds: float, base_fare: float) -> void:
 
 
 ## The bus docked at [param planet] on their ride, which isn't where they are going. A stop
-## past their type's tolerance frustrates them, and they say so unless busy. The planet
+## past their type's tolerance frustrates them, unless they are going nowhere. The planet
 ## they boarded at doesn't count before the bus has left it, and nor does their
 ## [member errand], once: a later stop there counts as any other.
 func pass_stop(planet: Planet) -> void:
 	if planet == errand:
 		errand = null
 		return
-	if _departed and ride.pass_stop(planet, origin, destination):
+	if _departed and destination and ride.pass_stop(planet, origin, destination):
 		_complain(type.stop_lines, COMPLAINT_SECONDS)
 
 
@@ -426,7 +426,7 @@ func to_save() -> Dictionary:
 		"type": type.resource_path,
 		"name": name,
 		"origin": String(origin.name) if origin else "",
-		"destination": String(destination.name),
+		"destination": String(destination.name) if destination else "",
 		"fare": fare,
 		"trip_seconds": ride.trip_seconds,
 		"expected_seconds": ride.expected_seconds,

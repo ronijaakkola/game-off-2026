@@ -187,7 +187,7 @@ Something the player is asked to do and the game tracks, several at a time: a **
 _Avoid_: objective, mission, achievement (a one-off reward, not something asked)
 
 **Quest**:
-What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); a **photo stop** has it come to rest in that zone; an **errand** has it stop at a planet before their own stop; a **warp** has it go through a warp gate with them on board; a **rock ride** has it fly among the asteroid field's rocks for a while, whose knocks lift them; a **sauna** has it run hot, past the gauge's green band, which lifts them; a **rescue** has the bus get a passenger picked up from a **capsule** to their destination in time; an **express** quest, no longer given, has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `PhotoStopQuest`, `ErrandQuest`, `WarpQuest`, `RockRideQuest`, `SaunaQuest`, `RescueQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
+What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); a **photo stop** has it come to rest in that zone; an **errand** has it stop at a planet before their own stop; a **warp** has it go through a warp gate with them on board; a **rock ride** has it fly among the asteroid field's rocks for a while, whose knocks lift them; a **sauna** has it run hot, past the gauge's green band, which lifts them; a **rescue** has the bus get a passenger picked up from a **capsule** to their destination in time; a **hop** has it come to rest at a spot in open space, the **hop location**, where the **castaway** hops out of the bus; an **express** quest, no longer given, has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `PhotoStopQuest`, `ErrandQuest`, `WarpQuest`, `RockRideQuest`, `SaunaQuest`, `RescueQuest`, `HopQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
 _Avoid_: task, mission, errand (for any quest: it is the one kind)
 
 **Capsule**:
@@ -195,7 +195,7 @@ A small capsule drifting in space, holding credits, research points, fuel or the
 _Avoid_: pickup, loot, crate, pod
 
 **Castaway**:
-The one passenger a capsule ever holds, always the same person, who keeps drifting off in space and turns up once in each star system. Rescued again in a run, they come back as a **returning passenger**, and never wait in a line. `Castaway` in code.
+The one passenger a capsule ever holds, always the same person, who keeps drifting off in space and turns up once in each star system. Rescued again in a run, they come back as a **returning passenger**, and never wait in a line. In the first star system they go nowhere and **hop** out in open space. `Castaway` in code.
 _Avoid_: survivor, stranded passenger
 
 **Transmission**:
