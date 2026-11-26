@@ -17,8 +17,8 @@ extends RefCounted
 ## which it does; otherwise research is open from the start.
 ## "after_tutorial" (true unless set false) starts where a new run starts once the
 ## tutorial is over: docked at its destination (the Moon) facing home, on a full tank, with
-## nothing researched and the credits and research point its one ride paid. False starts
-## as the scene does on its own: docked at Ember, with nothing.
+## nothing researched, the credits its ride and capsule paid and the research point the ride
+## paid. False starts as the scene does on its own: docked at Ember, with nothing.
 
 const COMMUTER := "res://game/passengers/types/commuter.tres"
 const BUSINESS := "res://game/passengers/types/business.tres"
@@ -97,7 +97,7 @@ func apply_to_scene(system: SolarSystem, planets: Array[Planet]) -> void:
 			_set_cost(upgrade)
 	tank.fill()
 	if _after_tutorial():
-		system.get_ledger().earn(roundi(TutorialRules.FARE))
+		system.get_ledger().earn(roundi(TutorialRules.FARE) + TutorialRules.CAPSULE_CREDITS)
 		system.get_ledger().earn_research()
 
 

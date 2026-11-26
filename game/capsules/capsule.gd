@@ -52,6 +52,8 @@ const TWO_TONE := preload("res://shared/two_tone.gdshader")
 
 ## What it holds.
 var contents := Contents.UNDECIDED
+## What it pays when it holds credits, or 0 for what the star system's capsules pay.
+var credits := 0
 ## Where it drifts, in units a second.
 var velocity := Vector3.ZERO
 ## Seconds until it is gone uncollected.

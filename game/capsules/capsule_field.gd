@@ -20,6 +20,8 @@ extends Node3D
 ## [RescueQuest] ([method QuestGiver.rescue]): accepted, they board, and declined, they
 ## drift off, with nothing lost. The debug panel's capsules hold what they
 ## say, or credits when what they say can't be had, and roll nothing.
+## A capsule [method place]d holds still, stays, and pays what it was given, collected even
+## before the capsules start, as the [Tutorial]'s.
 ## Capsules aren't stops: a right click on one sets a point in space where it is, as on
 ## empty space. None appear while the bus jumps, and a new system starts with none.
 
@@ -82,7 +84,8 @@ var castaway_misses := 0
 ## each. Kept with the run.
 var castaway_found := false
 
-var _ledger: Ledger
+## Where credits and research points go. [method start] sets it too.
+var ledger: Ledger
 # Which star system the bus works in, counted from 0 in the order they open: capsules pay
 # by it.
 var _level := 0
@@ -115,7 +118,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not _started or not bus or (system_jump and system_jump.is_jumping()):
+	if not bus or (system_jump and system_jump.is_jumping()):
 		return
 	var star := _get_system().global_position
 	for capsule: Capsule in _capsules.duplicate():
@@ -124,7 +127,7 @@ func _process(delta: float) -> void:
 			_remove(capsule)
 		elif _is_touching(capsule):
 			_collect(capsule)
-	if not enabled or _capsules.size() >= max_capsules:
+	if not _started or not enabled or _capsules.size() >= max_capsules:
 		return
 	_until_next -= delta
 	if _until_next > 0.0:
@@ -135,10 +138,10 @@ func _process(delta: float) -> void:
 		spawn(at, Capsule.Contents.UNDECIDED)
 
 
-## Starts capsules in the star system the bus works in, paying into [param ledger] by
+## Starts capsules in the star system the bus works in, paying into [param into] by
 ## [param level], counted from 0 in the order the systems open. Those adrift go.
-func start(ledger: Ledger, level := 0) -> void:
-	_ledger = ledger
+func start(into: Ledger, level := 0) -> void:
+	ledger = into
 	_level = level
 	castaway_found = false
 	clear()
@@ -186,6 +189,17 @@ func spawn(at: Vector3, contents: Capsule.Contents) -> Capsule:
 	return capsule
 
 
+## Puts a capsule of [param credits] credits at [param at] on the orbit plane that holds
+## still and stays until collected, as the [Tutorial]'s does. It can be collected before
+## [method start].
+func place(at: Vector3, credits: int) -> Capsule:
+	var capsule := spawn(at, Capsule.Contents.CREDITS)
+	capsule.velocity = Vector3.ZERO
+	capsule.seconds_left = INF
+	capsule.credits = credits
+	return capsule
+
+
 func _remove(capsule: Capsule) -> void:
 	_capsules.erase(capsule)
 	capsule.queue_free()
@@ -210,11 +224,11 @@ func _collect(capsule: Capsule) -> void:
 	capsule.pick_up()
 	match contents:
 		Capsule.Contents.PASSENGER:
-			_pay_credits()
+			_pay_credits(capsule)
 		Capsule.Contents.RESEARCH:
 			var points := _reward(REWARD_RESEARCH)
-			if _ledger:
-				_ledger.earn_research(points)
+			if ledger:
+				ledger.earn_research(points)
 			_show_earnings()
 			_stamp("+%d research" % points, RESEARCH_ICON, BusQuickText.Kind.GAIN)
 		Capsule.Contents.FUEL:
@@ -222,7 +236,7 @@ func _collect(capsule: Capsule) -> void:
 			tank.refuel(tank.capacity * REWARD_FUEL)
 			_stamp("+%d%% fuel" % roundi(REWARD_FUEL * 100.0), FUEL_ICON, BusQuickText.Kind.GAIN)
 		_:
-			_pay_credits()
+			_pay_credits(capsule)
 
 
 # The castaway, [param passenger], was in [param capsule]: they come out of it as a figure
@@ -301,10 +315,10 @@ func _get_rewards() -> Array[Capsule.Contents]:
 	return rewards
 
 
-func _pay_credits() -> void:
-	var credits := _reward(REWARD_CREDITS)
-	if _ledger:
-		_ledger.earn(credits)
+func _pay_credits(capsule: Capsule) -> void:
+	var credits := capsule.credits if capsule.credits > 0 else _reward(REWARD_CREDITS)
+	if ledger:
+		ledger.earn(credits)
 	_show_earnings()
 	_stamp("+%d" % credits, DOLLAR_ICON, BusQuickText.Kind.GAIN)
 
