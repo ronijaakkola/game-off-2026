@@ -3,8 +3,8 @@ extends Control
 ## slanted buttons. With no level in progress Play opens the campaign screen; with one,
 ## Continue plays it straight away and names it, and Levels opens the campaign screen.
 ## Settings, Controls and Credits open their screens over the background, the menu's rows
-## staggering out as they come in ([MenuScreen]), and the campaign screen pans the
-## background to its other half as it opens. On the web, a "Click to start" title
+## staggering out as they come in ([MenuScreen]), and the campaign and credits screens pan
+## the background to its other half as they open. On the web, a "Click to start" title
 ## card comes first, because Safari starts audio only after a click in the game.
 ## The debug panel's Delete save resets the campaign and forgets the tutorial, so the game
 ## starts as on a first visit, its Reset settings puts every setting back to its default,
@@ -26,9 +26,10 @@ func _ready() -> void:
 	DebugPanel.add_button("Reset settings", Settings.reset, self)
 	DebugPanel.add_button("Voice lab", _debug_voice_lab, self)
 	DebugPanel.add_button("Mixer", _debug_mixer, self)
-	%CampaignScreen.visibility_changed.connect(_on_campaign_screen_visibility_changed)
 	# The cards come in once the pan has all but settled, and the menu's rows on the way back.
-	%CampaignScreen.enter_delay = MenuBackground.PAN_SECONDS * 0.8
+	for screen: MenuScreen in [%CampaignScreen, %CreditsScreen]:
+		screen.visibility_changed.connect(_on_panned_screen_visibility_changed)
+		screen.enter_delay = MenuBackground.PAN_SECONDS * 0.8
 	if OS.has_feature("web") and not _music_started:
 		%StartOverlay.show()
 	else:
@@ -103,8 +104,9 @@ func _on_settings_menu_campaign_reset() -> void:
 	_show_level_buttons()
 
 
-func _on_campaign_screen_visibility_changed() -> void:
-	(%Background as MenuBackground).pan_to(%CampaignScreen.is_open())
+func _on_panned_screen_visibility_changed() -> void:
+	var panned: bool = %CampaignScreen.is_open() or %CreditsScreen.is_open()
+	(%Background as MenuBackground).pan_to(panned)
 
 
 # The debug panel's Delete save: the menu shows as on a first visit, Play focused, and the

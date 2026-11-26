@@ -109,7 +109,7 @@ func get_reward(by_level: Array[int]) -> int:
 
 ## The planets among [param planets] going to which is a detour for [param who] and for
 ## [param bus]: not where they are going, where they boarded, where the bus is docked, or
-## on its route.
+## on its route. Never an abandoned one, where nobody has an errand.
 static func get_detours(
 	who: Passenger, bus: FrameshiftBus, planets: Array[Planet]
 ) -> Array[Planet]:
@@ -117,7 +117,7 @@ static func get_detours(
 	var others: Array[Planet] = []
 	for other: Planet in planets:
 		var known := other in [who.destination, who.origin, bus.get_docked_planet()]
-		if not known and other not in on_route:
+		if not known and not other.abandoned and other not in on_route:
 			others.append(other)
 	return others
 

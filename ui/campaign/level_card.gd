@@ -71,11 +71,6 @@ func offer_tutorial(offered: bool) -> void:
 	(%PlayTutorial as CheckBox).button_pressed = false
 
 
-## Lets go of the picture, so it isn't kept in memory while the game plays.
-func clear() -> void:
-	_material.set_shader_parameter(&"picture", null)
-
-
 # At once while the card isn't on screen, so the screen opens with it already zoomed.
 func _zoom_to(zoom: float) -> void:
 	if _zoom:
