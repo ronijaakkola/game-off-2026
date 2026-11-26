@@ -4,7 +4,8 @@ extends Node
 ## notices, an incoming transmission whose Answer opens a test quest, a passenger calling
 ## with a real quest as soon as one can, completing the quest under way, a card of quick
 ## stop windows and warm charges to try, and a card of buttons that turn the bus's traits
-## on or off, as upgrades would.
+## on or off, as upgrades would, and a card that puts a pick-up marker over a planet or
+## takes it away.
 
 ## The debug panel's group for the fuel, heat and scare buttons.
 const BUS_GROUP := "Bus"
@@ -18,6 +19,10 @@ const SERVE_GROUP := "Serve game"
 ## PROTOTYPE: the lab for trying the serve minigames, also on the main menu's panel.
 const SERVE_LAB_SCENE := "res://game/passengers/serve_minigame_lab_prototype.tscn"
 const QUICK_GROUP := "Quick stop"
+const PICK_UP_GROUP := "Pick-up marker"
+## The made-up person a pick-up marker shows, and the line under their name.
+const PICK_UP_TYPE := preload("res://game/passengers/types/commuter.tres")
+const PICK_UP_LINE := "Waiting for a pick-up"
 ## The quick stop windows the Quick stop card offers, in seconds.
 const QUICK_TIMES: Array[float] = [5.0, 6.0, 7.0, 8.0, 10.0]
 ## The warm charges it offers, in seconds of holding.
@@ -33,6 +38,7 @@ const TEST_TYPE := preload("res://game/passengers/types/business.tres")
 ## Where the test quest's caller is going, and the planet their quest names.
 @export var test_destination: Planet
 @export var test_flyby_planet: Planet
+@export var pick_up_markers: PickUpMarkers
 
 
 func _ready() -> void:
@@ -63,6 +69,12 @@ func _ready() -> void:
 	DebugPanel.add_button(
 		"Serve games lab", SceneFlow.go_to.bind(SERVE_LAB_SCENE), self, SERVE_GROUP
 	)
+	var on_frost := _debug_toggle_pick_up.bind(test_flyby_planet)
+	DebugPanel.add_button("Toggle on Frost", on_frost, self, PICK_UP_GROUP)
+	var on_giant := _debug_toggle_pick_up.bind(test_destination)
+	DebugPanel.add_button("Toggle on Giant", on_giant, self, PICK_UP_GROUP)
+	var docked := func() -> void: _debug_toggle_pick_up(bus.get_docked_planet())
+	DebugPanel.add_button("Toggle where docked", docked, self, PICK_UP_GROUP)
 
 
 # How long a quick stop lasts, said in a notice.
@@ -186,3 +198,15 @@ func _debug_everyone_asks() -> void:
 		passenger.request = passenger.type.needs.pick_random()
 		passenger.serving = 0.0
 		passenger.activity = passenger.request.request_line
+
+
+# The pick-up marker buttons: a made-up person's marker over [param planet], or none if
+# one shows there already.
+func _debug_toggle_pick_up(planet: Planet) -> void:
+	if not planet:
+		return
+	if pick_up_markers.has_marker(planet):
+		pick_up_markers.remove_marker(planet)
+		return
+	var passenger := Passenger.new(PICK_UP_TYPE, test_destination, 60.0, 40.0)
+	pick_up_markers.show_marker(planet, passenger, PICK_UP_LINE)

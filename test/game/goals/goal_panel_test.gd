@@ -20,6 +20,27 @@ func test_the_preview_shows_the_designed_goals() -> void:
 	assert_bool(_is_ticked(rows[1])).is_true()
 
 
+# The target mark sticks out over and under the bar, and the bar sits at the bottom of the
+# goals: nothing the panel clips to may cut it off.
+func test_the_rating_goals_target_mark_shows_whole() -> void:
+	var runner := scene_runner("res://test/previews/goal_panel_preview.tscn")
+	await runner.simulate_frames(5)
+	var panel := runner.find_child("GoalPanel") as Control
+	var marker := _rows(panel)[1].find_child("Marker") as Control
+	assert_bool(marker.visible).is_true()
+
+	var mark := marker.get_global_rect()
+	var parent := marker.get_parent_control()
+	while parent:
+		if parent.clip_contents:
+			(
+				assert_bool(parent.get_global_rect().encloses(mark))
+				. override_failure_message("%s cuts off the mark at %s" % [parent.name, mark])
+				. is_true()
+			)
+		parent = parent.get_parent_control()
+
+
 func test_shows_a_row_for_each_goal_added_and_hides_with_none() -> void:
 	var runner := scene_runner(PANEL)
 	var tracker := _tracker(runner)

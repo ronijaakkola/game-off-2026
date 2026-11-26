@@ -34,11 +34,13 @@ func _ready() -> void:
 	get_tree().node_added.connect(_on_node_added)
 
 
-## What the switches have changed from the game's own look, such as "MSAA 4x · no glass".
+## What the switches have changed from the game's own look, such as "MSAA off · no glass",
+## or empty while they have changed nothing.
 func describe() -> String:
 	var msaa := get_tree().root.msaa_3d
 	var parts: Array[String] = []
-	parts.append("MSAA off" if msaa == Viewport.MSAA_DISABLED else "MSAA %dx" % (1 << msaa))
+	if msaa != ProjectSettings.get_setting("rendering/anti_aliasing/quality/msaa_3d"):
+		parts.append("MSAA off" if msaa == Viewport.MSAA_DISABLED else "MSAA %dx" % (1 << msaa))
 	if not _glass:
 		parts.append("no glass")
 	if not _stencil:

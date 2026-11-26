@@ -6,7 +6,8 @@ extends Node
 ## the name, the bus flies there from Hither instead, across the asteroid field, with the
 ## camera on the bus: `-- fly Janus`. With `warp`, the whole system shows and a second in
 ## the bus warps through Hither's gate to Yon: `-- warp`. With `gate`, the pointer rests on
-## the station's Teleport button, showing the way through the gate: `-- gate`.
+## the station's Teleport button, showing the way through the gate: `-- gate`. With `stay`,
+## the player has stayed after Lyra's promotion, so the goal panel offers the jump to Sol.
 
 ## How far the camera pulls back to show the whole system.
 const WIDE_DISTANCE := 68.0
@@ -37,6 +38,8 @@ func _ready() -> void:
 			rig.set_distance(NEAR_DISTANCE)
 			rig.move_to(planet.get_body_global_position())
 			return
+	if "stay" in args:
+		(find_child("Progression") as Progression).stay()
 	if "wide" in args or "warp" in args:
 		rig.set_distance(WIDE_DISTANCE)
 		rig.move_to(star_map.get_current().global_position)

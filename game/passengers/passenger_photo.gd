@@ -35,8 +35,8 @@ const BADGE_PHOTO_SIZE := 32.0
 const BADGE_GROWTH := 0.5
 ## The framed photo's size as laid out in its scene, in pixels.
 const FRAME_SIZE := 50.0
-## The flat photo's corner radius, in pixels, and at most this share of its width, so a
-## small one stays a rounded square.
+## The flat photo's corner radius by default, in pixels, and at most this share of its
+## width, so a small one stays a rounded square.
 const FLAT_RADIUS := 8
 const FLAT_RADIUS_SHARE := 0.25
 ## The photo's tilt, in degrees either way.
@@ -51,6 +51,9 @@ const MOOD_ANGER: Dictionary[Passenger.Mood, float] = {
 ## Whether the photo is a flat rounded square rather than a tilted, framed print. Set it
 ## in the scene that uses the photo; it applies once, when the photo is ready.
 @export var flat := false
+## The flat photo's corner radius, in pixels, at most [constant FLAT_RADIUS_SHARE] of its
+## width. Set it in the scene that uses the photo, as [member flat].
+@export var flat_radius := FLAT_RADIUS
 ## Whether it wears badges. A photo too small for them, as in a quest's row, turns it off.
 @export var badged := true
 ## Whether the passenger rides the bus, so their portrait leans with its pushes. Their
@@ -59,6 +62,15 @@ var riding := false:
 	set(value):
 		riding = value
 		set_process(value)
+
+## How opaque the photo's parents make it, for a parent that fades it to set. The
+## portrait's colours are premultiplied by its alpha, so they fade along with it; without
+## that a see-through portrait shows white.
+var opacity := 1.0:
+	set(value):
+		opacity = value
+		var shade := Color(value, value, value)
+		(%Photo as TextureRect).self_modulate = shade
 
 ## Where the portrait is rendered.
 var studio: PortraitStudio:
@@ -199,7 +211,7 @@ func _give_back() -> void:
 func _flatten() -> void:
 	var frame := %Frame as Control
 	var mask := StyleBoxFlat.new()
-	mask.set_corner_radius_all(mini(FLAT_RADIUS, roundi(custom_minimum_size.x * FLAT_RADIUS_SHARE)))
+	mask.set_corner_radius_all(mini(flat_radius, roundi(custom_minimum_size.x * FLAT_RADIUS_SHARE)))
 	frame.add_theme_stylebox_override(&"panel", mask)
 	frame.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 	frame.position = Vector2.ZERO

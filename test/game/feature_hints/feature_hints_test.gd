@@ -82,6 +82,16 @@ func test_a_hidden_target_waits_for_the_next_time() -> void:
 	assert_bool(_hints.is_showing()).is_true()
 
 
+func test_a_hint_is_taught_once_closed_not_once_shown() -> void:
+	assert_bool(_hints.has_taught(&"quests")).is_false()
+	_hints.offer(&"quests", _target)
+	await await_idle_frame()
+	assert_bool(_hints.has_taught(&"quests")).is_false()
+
+	await _press_got_it()
+	assert_bool(_hints.has_taught(&"quests")).is_true()
+
+
 func _press_got_it() -> void:
 	# Opening takes a moment; Got it counts only once it is open. gdUnit's own waits stall
 	# while the tree is paused, and a scene tree timer doesn't.
@@ -109,3 +119,25 @@ func test_a_second_hint_waits_its_turn_and_opens_after_the_gap() -> void:
 	assert_object(_guide.target).is_same(other)
 	await _press_got_it()
 	assert_bool(get_tree().paused).is_false()
+
+
+func test_the_debug_panel_shows_a_seen_hint_without_keeping_it_seen() -> void:
+	SaveGame.mark_hint_seen(&"business")
+	_hints.set_debug_target(&"heat_zone", func() -> Control: return _target)
+
+	_hints._debug_show(&"heat_zone")
+	assert_bool(_hints.is_showing()).is_true()
+	assert_object(_guide.target).is_same(_target)
+	await _press_got_it()
+	assert_bool(SaveGame.has_seen_hint(&"heat_zone")).is_false()
+
+	# Seen already, and with no target found, it shows on the spot in the middle.
+	await get_tree().create_timer(FeatureHints.GAP + 0.1).timeout
+	_hints._debug_show(&"business")
+	assert_bool(_hints.is_showing()).is_true()
+	var spot := _guide.target
+	assert_object(spot).is_not_same(_target)
+	assert_vector(spot.get_global_rect().get_center()).is_equal_approx(
+		Vector2(576, 324), Vector2.ONE
+	)
+	await _press_got_it()

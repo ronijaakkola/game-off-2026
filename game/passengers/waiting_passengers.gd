@@ -202,10 +202,10 @@ func add_starting_passengers(bus_planet: Planet) -> void:
 			add(planet)
 
 
-## Puts someone new in line at [param planet], not yet decided, unless
+## Puts someone new in line at [param planet], not yet decided, unless it is abandoned,
 ## [member max_per_planet] already wait there or [member max_total] wait in all.
 func add(planet: Planet) -> void:
-	if not _waiting.has(planet) or count_at(planet) >= max_per_planet:
+	if not _waiting.has(planet) or planet.abandoned or count_at(planet) >= max_per_planet:
 		return
 	if count_all() >= max_total:
 		return
@@ -228,8 +228,11 @@ func count_all() -> int:
 
 
 ## Who waits at [param planet], longest waiting first. Asking is the player seeing the
-## line: it decides everyone in it who wasn't yet, as the bus and the line are now.
+## line: it decides everyone in it who wasn't yet, as the bus and the line are now, and at
+## an abandoned planet the player finds that out ([member Planet.found_abandoned]).
 func get_waiting(planet: Planet) -> Array[Passenger]:
+	if planet and planet.abandoned:
+		planet.found_abandoned = true
 	while _undecided.get(planet, 0) > 0:
 		_undecided[planet] -= 1
 		var passenger := create(planet)
@@ -253,7 +256,7 @@ func get_seen(planet: Planet) -> Array[Passenger]:
 ## Puts the line at [param planet] back as a save game had it: [param seen] first, then
 ## [param unseen] more not yet decided. The line's clocks start afresh.
 func restore(planet: Planet, seen: Array[Passenger], unseen: int) -> void:
-	if not _waiting.has(planet):
+	if not _waiting.has(planet) or planet.abandoned:
 		return
 	_waiting[planet] = seen.slice(0, max_per_planet)
 	_undecided[planet] = clampi(unseen, 0, max_per_planet - _waiting[planet].size())
@@ -359,14 +362,16 @@ func _take_returning(line: Array) -> ReturningPassengers.Person:
 	)
 
 
-# A roll among the other planets, but never the one [param origin]'s warp gate leads to:
+# A roll among the other planets, but never an abandoned one or the one [param origin]'s
+# warp gate leads to:
 # with Timetables likelier where someone in [param line] is going, with the Destination sign
 # likelier where someone on board is going, and never where MAX_SAME_DESTINATION of the
 # line already go, unless that leaves nowhere.
 func _pick_destination(origin: Planet, line: Array) -> Planet:
 	var twin := WarpGate.twin_of(origin)
 	var others := _planets.filter(
-		func(planet: Planet) -> bool: return planet != origin and planet != twin
+		func(planet: Planet) -> bool:
+			return planet != origin and planet != twin and not planet.abandoned
 	)
 	if others.is_empty():
 		return null

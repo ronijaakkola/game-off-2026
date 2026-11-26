@@ -1,0 +1,105 @@
+[gd_scene format=3 uid="uid://bpsihuf3fuyn8"]
+
+[ext_resource type="Script" uid="uid://bskxvwiqu4nho" path="res://ui/credits/creator_card.gd" id="1_card"]
+[ext_resource type="Shader" uid="uid://jsmh20iu8g0q" path="res://shared/photo_backdrop.gdshader" id="2_backdrop"]
+[ext_resource type="Shader" uid="uid://cwnp137jgu3rr" path="res://ui/credits/straight_alpha.gdshader" id="3_straight"]
+[ext_resource type="FontFile" uid="uid://4ou2vyn8hi48" path="res://ui/fonts/figtree.ttf" id="4_figtree"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_frame"]
+bg_color = Color(0.97, 0.96, 0.93, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0.043, 0.035, 0.125, 0.6)
+shadow_size = 1
+shadow_offset = Vector2(8, 8)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
+resource_local_to_scene = true
+shader = ExtResource("2_backdrop")
+shader_parameter/backdrop_color = null
+shader_parameter/shadow_color = null
+shader_parameter/seed = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_photo"]
+shader = ExtResource("3_straight")
+
+[sub_resource type="FontVariation" id="FontVariation_roles"]
+base_font = ExtResource("4_figtree")
+variation_opentype = {
+2003265652: 500
+}
+
+[node name="CreatorCard" type="MarginContainer" unique_id=1283981459]
+mouse_filter = 2
+script = ExtResource("1_card")
+
+[node name="Column" type="VBoxContainer" parent="." unique_id=1167345225]
+custom_minimum_size = Vector2(264, 0)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="PhotoSpace" type="Control" parent="Column" unique_id=1051559265]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+
+[node name="Frame" type="Panel" parent="Column/PhotoSpace" unique_id=1664529506]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 200.0
+pivot_offset = Vector2(100, 100)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_frame")
+
+[node name="Backdrop" type="ColorRect" parent="Column/PhotoSpace/Frame" unique_id=420381029]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_backdrop")
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 188.0
+offset_bottom = 188.0
+mouse_filter = 2
+
+[node name="Photo" type="TextureRect" parent="Column/PhotoSpace/Frame" unique_id=1131496415]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_photo")
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 188.0
+offset_bottom = 188.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Text" type="VBoxContainer" parent="Column" unique_id=831060148]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Name" type="Label" parent="Column/Text" unique_id=977807616]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_shadow_color = Color(0.043, 0.035, 0.125, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 3
+horizontal_alignment = 1
+
+[node name="Roles" type="Label" parent="Column/Text" unique_id=516594124]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(264, 0)
+layout_mode = 2
+theme_override_fonts/font = SubResource("FontVariation_roles")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+horizontal_alignment = 1
+autowrap_mode = 3

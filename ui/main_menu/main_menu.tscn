@@ -123,14 +123,16 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 1
+theme_override_constants/separation = 3
 
 [node name="Label" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=476412501]
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 theme_type_variation = &"SlantTitleLabel"
 theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 1)
 text = "Continue"
+vertical_alignment = 2
 
 [node name="Where" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=1351472788]
 unique_name_in_owner = true

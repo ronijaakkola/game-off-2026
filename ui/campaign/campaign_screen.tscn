@@ -8,22 +8,6 @@
 [ext_resource type="PackedScene" uid="uid://pri7ypbh8mxk" path="res://ui/campaign/restart_dialog.tscn" id="7_dialog"]
 [ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="8_tooltip"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_restart"]
-content_margin_left = 14.0
-content_margin_top = 14.0
-content_margin_right = 14.0
-content_margin_bottom = 14.0
-bg_color = Color(1, 1, 1, 0.1412)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 1, 1, 0.1216)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-
 [node name="CampaignScreen" type="Control" unique_id=1574605049]
 layout_mode = 3
 anchors_preset = 15
@@ -112,7 +96,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 theme_type_variation = &"SquareButton"
-theme_override_styles/normal = SubResource("StyleBoxFlat_restart")
 icon = ExtResource("6_restart")
 icon_alignment = 1
 

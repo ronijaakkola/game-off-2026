@@ -11,7 +11,6 @@ extends Node3D
 enum State { OUT, BOARDING, LEAVING }
 
 const FIGURE := preload("res://game/passengers/passenger_figure.tscn")
-const TWO_TONE := preload("res://shared/two_tone.gdshader")
 ## How many times a kicked passenger's size it is, so it reads from the camera.
 const SIZE := 1.8
 ## How far over the capsule and the bus it floats, and the seconds it takes to pop out.
@@ -72,13 +71,8 @@ func emerge(from: Vector3, passenger: Passenger, light_source: Vector3, bus: Nod
 	_bus = bus
 	global_position = from
 	scale = Vector3.ONE * 0.001
-	var material := ShaderMaterial.new()
-	material.shader = TWO_TONE
-	material.set_shader_parameter(&"color", passenger.look.skin_color)
-	material.set_shader_parameter(&"light_source", light_source)
-	var figure := FIGURE.instantiate() as Node3D
-	for node: Node in figure.find_children("*", "MeshInstance3D", true, false):
-		(node as MeshInstance3D).material_override = material
+	var figure := FIGURE.instantiate() as PassengerFigure
+	figure.paint(passenger.look.skin_color, light_source)
 	add_child(figure)
 	_speaker = VoiceSpeaker.new()
 	add_child(_speaker)

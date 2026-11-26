@@ -93,14 +93,12 @@ func test_moving_a_slider_is_heard_at_once() -> void:
 	assert_float(Audio.get_volume(Audio.Bus.SFX)).is_equal_approx(0.3, 0.001)
 
 
-# Every setting but the debug panel's, so a control wired to the wrong setting, or a
-# setting with no control, fails here.
+# Every setting, so a control wired to the wrong setting, or a setting with no control,
+# fails here.
 func test_each_control_changes_only_its_own_setting() -> void:
 	var runner := scene_runner(SCENE)
 	runner.invoke("open", _covered(runner))
 	for setting: String in Settings.get_names():
-		if setting in SettingsMenu.DEBUG_SETTINGS:
-			continue
 		var before := _current_settings()
 		var control := runner.find_child(setting.to_pascal_case()) as Control
 		assert_object(control).override_failure_message("No control for %s" % setting).is_not_null()
@@ -172,3 +170,14 @@ func _covered(runner: GdUnitSceneRunner) -> Control:
 	covered.add_child(Button.new())
 	runner.scene().add_sibling(covered)
 	return auto_free(covered)
+
+
+# Show FPS has no description, so its row once came out shorter and its toggle sat closer.
+func test_the_display_toggles_are_evenly_spaced() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var centres: Array[float] = []
+	for toggle: String in ["ReduceMotion", "EdgeScroll", "ShowFps"]:
+		var rect := (runner.find_child(toggle) as Control).get_global_rect()
+		centres.append(rect.get_center().y)
+	assert_float(centres[2] - centres[1]).is_equal_approx(centres[1] - centres[0], 0.5)

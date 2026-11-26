@@ -5,7 +5,9 @@ extends Node
 ## also shows "Quests" and their portrait wears the flag; with "Failed" as well, the bus
 ## has stopped at another planet first. With "Stay", the player has stayed after a promotion,
 ## so the jump to the next system shows in place of the goals; with "Hint" as well, its
-## feature hint opens on the button, unless the player has closed it before.
+## feature hint opens on the button, unless the player has closed it before, and with "Quest"
+## as well, the card takes the goals' place over the quest, and with "Hover" as well, the
+## pointer comes onto the card 2 s in.
 
 
 func _ready() -> void:
@@ -13,7 +15,17 @@ func _ready() -> void:
 		if "Hint" in OS.get_cmdline_user_args():
 			# Hints show only in a saved run, which a preview isn't.
 			($SolarSystem/FeatureHints as FeatureHints).saver = null
+		if "Quest" in OS.get_cmdline_user_args():
+			_show_quest()
 		($SolarSystem/Progression as Progression).stay()
+		if "Hover" in OS.get_cmdline_user_args():
+			await get_tree().create_timer(2.0).timeout
+			(
+				(find_child("GoalPanel", true, false) as GoalPanel)
+				. get_jump_button()
+				. mouse_entered
+				. emit()
+			)
 		return
 	var tracker := $SolarSystem/Goals as GoalTracker
 	for goal: Goal in tracker.get_goals():

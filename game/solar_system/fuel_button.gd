@@ -84,6 +84,17 @@ func show_fuel(fraction: float, cost: int, can_fuel: bool, reason: String) -> vo
 		label.morph_to(wanted)
 
 
+# The arrow keys pan the camera, and would move the focus on too, which lets go of the
+# button: held, it keeps the focus, so fuel flows while they pan.
+func _gui_input(event: InputEvent) -> void:
+	if not _held:
+		return
+	for action: StringName in [&"ui_left", &"ui_right", &"ui_up", &"ui_down"]:
+		if event.is_action(action):
+			accept_event()
+			return
+
+
 # Over the button's own drawing and under the label, which is a child.
 func _draw() -> void:
 	RoundedFill.draw(self, Rect2(Vector2.ZERO, size), _corner_radius, _fraction, _fill_color)

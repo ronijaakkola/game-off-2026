@@ -2,28 +2,28 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uxtvxa03ee8r"
-path="res://.godot/imported/package.svg-acfd78f8b1c638f6b4df2d9051c9992f.ctex"
+uid="uid://cy1u25ka2ky4x"
+path="res://.godot/imported/level_3_loading.jpg-b3278ae93c28ba611461290b5cdb4ba5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ui/icons/package.svg"
-dest_files=["res://.godot/imported/package.svg-acfd78f8b1c638f6b4df2d9051c9992f.ctex"]
+source_file="res://shared/level_art/level_3_loading.jpg"
+dest_files=["res://.godot/imported/level_3_loading.jpg-b3278ae93c28ba611461290b5cdb4ba5.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.8
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false
