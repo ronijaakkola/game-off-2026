@@ -11,7 +11,7 @@ extends PanelContainer
 ## takes it out. What is already there when the panel is first shown doesn't move.
 ## It tells the [member quest_giver] which quest's row the pointer is on, so the map can
 ## show where that quest sends the bus.
-## After a promotion the player chose to stay for, "Promoted" and a card that jumps to the
+## After a promotion the player chose to stay for, "Promoted!" and a card that jumps to the
 ## next system show in place of the goals ([method offer_jump]), while the bus is at a
 ## planet ([member bus_docked]). Alone in the panel, the card leaves and comes back with
 ## the whole panel, past the right edge as the dock panel does; over quests, it slides out
@@ -25,11 +25,22 @@ const QUEST_ROW := preload("res://game/goals/quest_row.tscn")
 ## Pixels between the promotion goals and the quests' part.
 const PART_GAP := 8
 const HEADER := "To get promoted"
-const PROMOTED_HEADER := "Promoted"
+const PROMOTED_HEADER := "Promoted!"
 ## Seconds to slide in from past the right edge, or back out, and how far past the edge it
 ## goes, in pixels, as the dock panel does.
 const SLIDE_SECONDS := 0.35
 const OFF_RIGHT := 32.0
+## The goals giving way to the jump card. Seconds after The Boss's call has closed before
+## it starts; seconds the goals take to fade out, and how far they sink, in pixels; seconds
+## into that the card starts to come, the seconds it takes and how far under its place it
+## starts; and the seconds the panel takes to fit the card. The quests come and go so.
+const SWAP_BEAT := 0.3
+const SWAP_OUT_SECONDS := 0.18
+const SWAP_SINK := 6.0
+const SWAP_IN_AFTER := 0.12
+const SWAP_IN_SECONDS := 0.3
+const SWAP_RISE := 8.0
+const SWAP_FIT_SECONDS := 0.25
 
 ## The goals a promotion takes.
 @export var tracker: GoalTracker:
@@ -80,31 +91,119 @@ var _left_slots: Array[SlideSlot] = []
 # tween that slides it.
 var _slid_in := true
 var _slide_tween: Tween
+# Whether the jump card is offered, in place of the goals.
+var _jump_offered := false
+# The goals' rows still fading out as the jump card takes their place, freed once gone.
+var _left_rows: Array[GoalRow] = []
+var _swap: Tween
 
 
 func _ready() -> void:
 	(%QuestSlot as SlideSlot).closed.connect(_on_quest_part_closed)
 	(%GoalSlot as SlideSlot).closed.connect(_show_parts)
+	(%GoalRows as Control).minimum_size_changed.connect(_fit_body)
 	(%JumpButton as Button).pressed.connect(_on_jump_pressed)
 	_sync_rows()
 
 
-## Shows a card that jumps to [param system], under "Promoted", in place of the goals; null
-## takes it away.
-func offer_jump(system: StarSystem) -> void:
+## Shows a card that jumps to [param system], under "Promoted!", in place of the goals; null
+## takes it away. [param animated], while the bus is at a planet, the goals give way to it
+## as the player watches ([method _swap_to_card]). Offer it before taking the goals away,
+## so their rows are there to fade.
+func offer_jump(system: StarSystem, animated := false) -> void:
 	var card := %JumpButton as JumpCard
-	card.visible = system != null
+	_jump_offered = system != null
 	if system:
 		card.show_system(system)
 	else:
 		card.clear()
-	(%Header as Label).text = PROMOTED_HEADER if system else HEADER
+	if _swap:
+		_swap.kill()
+	if animated and _jump_offered and bus_docked and is_visible_in_tree():
+		_swap_to_card()
+	else:
+		(%Header as Label).text = PROMOTED_HEADER if system else HEADER
+		_show_body()
 	_show_parts()
+
+
+# The goals' rows or the jump card, whichever is offered, at once and in place.
+func _show_body() -> void:
+	var rows := %GoalRows as Control
+	var card := %JumpButton as Control
+	_free_left_rows()
+	for part: Control in [rows, card]:
+		part.modulate.a = 1.0
+	rows.position.y = 0.0
+	card.position.y = 0.0
+	rows.visible = not _jump_offered
+	card.visible = _jump_offered
+	# It cuts its parts off only while they swap, so at rest what sticks out of them, such
+	# as a rating goal's target mark, still shows.
+	(%Body as Control).clip_contents = false
+	_fit_body()
+
+
+# The heading morphs into "Promoted!" while the goals fade out, sinking; as they go, the
+# card rises into their place and fades in, and the panel eases to the card's height.
+# Under Reduce motion nothing moves: the two fade, and the panel fits the card at once.
+func _swap_to_card() -> void:
+	var rows := %GoalRows as Control
+	var card := %JumpButton as Control
+	var still := Settings.reduce_motion
+	var from := rows.get_combined_minimum_size().y
+	var height := card.get_combined_minimum_size().y
+	_set_body_height(from)
+	_swap = create_tween()
+	_swap.tween_interval(SWAP_BEAT)
+	_swap.tween_callback((%Header as MorphLabel).morph_to.bind(PROMOTED_HEADER))
+	_swap.tween_callback((%Body as Control).set_clip_contents.bind(true))
+	_swap.set_parallel()
+	_swap.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_swap.tween_property(rows, ^"modulate:a", 0.0, SWAP_OUT_SECONDS)
+	_swap.tween_callback(_show_card_under.bind(0.0 if still else SWAP_RISE)).set_delay(
+		SWAP_IN_AFTER
+	)
+	var come := _swap.tween_property(card, ^"modulate:a", 1.0, SWAP_IN_SECONDS)
+	come.set_trans(Tween.TRANS_QUART).set_delay(SWAP_IN_AFTER)
+	if still:
+		_swap.tween_callback(_set_body_height.bind(height)).set_delay(SWAP_IN_AFTER)
+	else:
+		_swap.tween_property(rows, ^"position:y", SWAP_SINK, SWAP_OUT_SECONDS)
+		var rise := _swap.tween_property(card, ^"position:y", 0.0, SWAP_IN_SECONDS)
+		rise.set_trans(Tween.TRANS_QUART).set_delay(SWAP_IN_AFTER)
+		var fit := _swap.tween_method(_set_body_height, from, height, SWAP_FIT_SECONDS)
+		# Growing, the room is there before the card shows; shrinking, it closes round it.
+		if height < from:
+			fit.set_ease(Tween.EASE_IN_OUT).set_delay(SWAP_IN_AFTER)
+	_swap.chain().tween_callback(_show_body)
+
+
+# The card, unseen, [param sunk] pixels under its place, to come in from there.
+func _show_card_under(sunk: float) -> void:
+	var card := %JumpButton as Control
+	card.modulate.a = 0.0
+	card.position.y = sunk
+	card.visible = true
+
+
+func _set_body_height(height: float) -> void:
+	(%Body as Control).custom_minimum_size.y = height
+
+
+# The body is as tall as what it shows, unless the goals are giving way to the card.
+func _fit_body() -> void:
+	if _swap and _swap.is_running():
+		return
+	if _jump_offered:
+		_set_body_height((%JumpButton as Control).get_combined_minimum_size().y)
+	else:
+		_set_body_height((%GoalRows as Control).get_combined_minimum_size().y)
 
 
 ## Whether the jump button shows.
 func is_offering_jump() -> bool:
-	return (%JumpButton as Control).visible
+	return _jump_offered
 
 
 ## The button that jumps to the next system, for a hint to point at.
@@ -149,8 +248,12 @@ func _on_goal_added(goal: Goal) -> void:
 func _on_goal_removed(goal: Goal) -> void:
 	var row: GoalRow = _rows.get(goal)
 	if row:
-		row.queue_free()
 		_rows.erase(goal)
+		# Giving way to the jump card, it stays to fade out with the others.
+		if _swap and _swap.is_running():
+			_left_rows.append(row)
+		else:
+			row.queue_free()
 	_show_parts()
 
 
@@ -212,6 +315,12 @@ func _on_quest_pointed(quest: Quest, on: bool) -> void:
 func _on_quest_part_closed() -> void:
 	_free_left_slots()
 	_show_parts()
+
+
+func _free_left_rows() -> void:
+	for row: GoalRow in _left_rows:
+		row.queue_free()
+	_left_rows.clear()
 
 
 func _free_left_slots() -> void:
