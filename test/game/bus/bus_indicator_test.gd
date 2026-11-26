@@ -84,6 +84,18 @@ func test_a_bus_wholly_under_a_panel_is_out_of_sight() -> void:
 	assert_bool(beside).is_false()
 
 
+func test_a_bus_under_a_panel_stays_out_of_sight_as_it_crosses_the_edge_there() -> void:
+	# The bus bars reach the bottom edge: a bus half past that edge is still wholly hidden,
+	# what is left of it on screen being under the bars.
+	var bars := Rect2(357.0, 560.0, 438.0, 88.0)
+	var under := Vector2(576.0, 610.0)
+	var crossing := Vector2(576.0, 650.0)
+	var past := Vector2(576.0, 680.0)
+
+	for at: Vector2 in [under, crossing, past]:
+		assert_bool(BusIndicator.is_out_of_sight(VIEW, at, 20.0, [bars])).is_true()
+
+
 func test_a_bus_under_a_panel_at_the_middle_of_the_screen_gets_no_badge() -> void:
 	# There is no way to point from the middle of the screen at the middle of the screen.
 	var panel := Rect2(376.0, 250.0, 400.0, 150.0)

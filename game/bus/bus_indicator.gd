@@ -132,7 +132,9 @@ func _is_wanted() -> bool:
 static func is_out_of_sight(view: Rect2, at: Vector2, radius: float, covered: Array[Rect2]) -> bool:
 	if not view.grow(radius).has_point(at):
 		return true
-	var bounds := Rect2(at - Vector2.ONE * radius, Vector2.ONE * radius * 2.0)
+	# Only the part of it on screen has to be covered: a bus half past the edge under the
+	# bus bars, which reach the edge, is as hidden as one wholly under them.
+	var bounds := Rect2(at - Vector2.ONE * radius, Vector2.ONE * radius * 2.0).intersection(view)
 	var centre := view.get_center()
 	for panel: Rect2 in covered:
 		if panel.encloses(bounds) and not panel.grow(PANEL_GAP + TIP).has_point(centre):
