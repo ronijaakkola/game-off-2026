@@ -34,6 +34,7 @@ func test_a_key_let_go_keeps_the_last_press() -> void:
 func test_drop_hidden_takes_only_a_hidden_focus() -> void:
 	var button := auto_free(Button.new()) as Button
 	add_child(button)
+	_set_mouse_down(false)
 	button.grab_focus(true)
 	FocusRing.drop_hidden()
 	assert_bool(button.has_focus()).is_false()
@@ -41,6 +42,29 @@ func test_drop_hidden_takes_only_a_hidden_focus() -> void:
 	button.grab_focus()
 	FocusRing.drop_hidden()
 	assert_bool(button.has_focus(true)).is_true()
+
+
+# The click that gave the focus may still hold its button down.
+func test_drop_hidden_keeps_the_focus_while_the_left_mouse_button_is_down() -> void:
+	var button := auto_free(Button.new()) as Button
+	add_child(button)
+	_set_mouse_down(true)
+	button.grab_focus(true)
+	FocusRing.drop_hidden()
+	assert_bool(button.has_focus()).is_true()
+
+	_set_mouse_down(false)
+	FocusRing.drop_hidden()
+	assert_bool(button.has_focus()).is_false()
+
+
+# Through Input, which holds whether the left button is down; an earlier suite may leave it.
+func _set_mouse_down(down: bool) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = down
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
 
 
 # Straight to the autoload, as the viewport would pass it on, so the event moves no focus.

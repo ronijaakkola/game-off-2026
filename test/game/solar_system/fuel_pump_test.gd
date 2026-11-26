@@ -94,6 +94,40 @@ func test_holding_fuel_in_the_dock_panel_buys_fuel_until_let_go() -> void:
 	assert_str(label.text).is_equal("Tank full")
 
 
+func test_fuel_keeps_flowing_while_a_pan_key_moves_the_camera() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var tank := bus.get_fuel_tank()
+	tank.fuel = tank.capacity * 0.2
+	((runner.scene() as SolarSystem).get_ledger()).credits = 1000
+	await await_millis(500)
+	var button := runner.find_child("FuelButton") as FuelButton
+	var camera := runner.find_child("Camera") as Camera3D
+	var rig := runner.find_child("CameraRig") as CameraRig
+	var at := _to_window(camera, button.get_global_rect().get_center())
+
+	_send_click(MOUSE_BUTTON_LEFT, at)
+	await runner.simulate_frames(10, 30)
+	var from := rig.position
+	var key := InputEventKey.new()
+	key.physical_keycode = KEY_D
+	key.pressed = true
+	Input.parse_input_event(key)
+	await runner.simulate_frames(30, 30)
+	var fuel_at := tank.fuel
+	await runner.simulate_frames(10, 30)
+
+	assert_bool(button.is_held()).is_true()
+	assert_float(tank.fuel).is_greater(fuel_at)
+	assert_float(rig.position.distance_to(from)).is_greater(0.1)
+	key = key.duplicate() as InputEventKey
+	key.pressed = false
+	Input.parse_input_event(key)
+	_send_release(MOUSE_BUTTON_LEFT, at)
+	await runner.simulate_frames(2)
+
+
 func test_the_dock_panel_has_no_fuel_button_where_no_fuel_is_sold() -> void:
 	var runner := scene_runner(SCENE)
 	var bus := runner.find_child("Bus") as FrameshiftBus
