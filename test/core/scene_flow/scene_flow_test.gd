@@ -73,7 +73,8 @@ func test_a_jump_into_a_level_waits_paused_under_its_loading_screen_until_start(
 		done[0] = true
 	show.call()
 	var start := _flow.find_child("StartButton", true, false) as Button
-	assert_bool(start.is_visible_in_tree()).override_failure_message("No Start").is_true()
+	var shown := await PauseProofWait.for_condition(start.is_visible_in_tree, 5000)
+	assert_bool(shown).override_failure_message("No Start").is_true()
 	var paused := await PauseProofWait.for_condition(func() -> bool: return get_tree().paused, 5000)
 	assert_bool(paused).override_failure_message("The game never paused").is_true()
 	if is_failure():
@@ -86,6 +87,51 @@ func test_a_jump_into_a_level_waits_paused_under_its_loading_screen_until_start(
 	await assert_func(_flow, "is_busy").wait_until(2000).is_false()
 	assert_bool(done[0]).is_true()
 	assert_bool(_curtain().visible).is_false()
+
+
+# With nothing left to load, Start showed at once and the screen never read as loading.
+func test_a_level_fills_its_bar_for_a_while_before_start_shows() -> void:
+	_flow.go_to(SOLAR_SYSTEM, load(LEVEL_1))
+	var start := _flow.find_child("StartButton", true, false) as Button
+	var marker_way := _flow.find_child("Loaded", true, false) as Control
+	var shares: Array[float] = []
+	var record := func() -> void:
+		if not start.is_visible_in_tree():
+			shares.append(marker_way.size_flags_stretch_ratio)
+	get_tree().process_frame.connect(record)
+	var shown := await PauseProofWait.for_condition(start.is_visible_in_tree, 10000)
+	get_tree().process_frame.disconnect(record)
+	assert_bool(shown).override_failure_message("Start never showed").is_true()
+	if is_failure():
+		return
+	assert_float(shares.size() * get_process_delta_time()).is_greater(_flow.min_loading_seconds)
+	var sorted := shares.duplicate()
+	sorted.sort()
+	assert_array(shares).override_failure_message("The marker went back").is_equal(sorted)
+	assert_float(shares.back()).is_greater(0.9)
+	start.pressed.emit()
+	await assert_func(_flow, "is_busy").wait_until(2000).is_false()
+
+
+func test_a_jump_fills_its_bar_paused_for_a_while_before_start_shows() -> void:
+	_flow.show_loading_screen(load(LEVEL_1))
+	var start := _flow.find_child("StartButton", true, false) as Button
+	var frames := [0]
+	var count := func() -> void:
+		if not start.is_visible_in_tree():
+			frames[0] += 1
+	get_tree().process_frame.connect(count)
+	var paused := await PauseProofWait.for_condition(func() -> bool: return get_tree().paused, 5000)
+	assert_bool(paused).override_failure_message("The game never paused").is_true()
+	assert_bool(start.is_visible_in_tree()).override_failure_message("Start too soon").is_false()
+	var shown := await PauseProofWait.for_condition(start.is_visible_in_tree, 10000)
+	get_tree().process_frame.disconnect(count)
+	assert_bool(shown).override_failure_message("Start never showed").is_true()
+	if is_failure():
+		return
+	assert_float(frames[0] * get_process_delta_time()).is_greater(_flow.min_loading_seconds)
+	start.pressed.emit()
+	await assert_func(_flow, "is_busy").wait_until(2000).is_false()
 
 
 func test_a_jump_into_a_level_without_a_picture_shows_nothing() -> void:
