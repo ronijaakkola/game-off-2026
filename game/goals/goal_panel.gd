@@ -136,6 +136,7 @@ func _show_body() -> void:
 		part.modulate.a = 1.0
 	rows.position.y = 0.0
 	card.position.y = 0.0
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
 	rows.visible = not _jump_offered
 	card.visible = _jump_offered
 	# It cuts its parts off only while they swap, so at rest what sticks out of them, such
@@ -179,9 +180,11 @@ func _swap_to_card() -> void:
 	_swap.chain().tween_callback(_show_body)
 
 
-# The card, unseen, [param sunk] pixels under its place, to come in from there.
+# The card, unseen, [param sunk] pixels under its place, to come in from there. It takes no
+# press until it is in, so the dim a press gives it isn't faded over.
 func _show_card_under(sunk: float) -> void:
 	var card := %JumpButton as Control
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.modulate.a = 0.0
 	card.position.y = sunk
 	card.visible = true
