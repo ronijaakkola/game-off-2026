@@ -38,6 +38,7 @@ var _hint_taken := false
 func _ready() -> void:
 	_last = bus.temperature.temperature
 	bus.temperature.overheated.connect(_on_overheated)
+	hints.set_debug_target(&"heat_zone", bus_bars.get_temperature_gauge)
 
 
 func _process(_delta: float) -> void:

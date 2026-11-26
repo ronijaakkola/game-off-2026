@@ -44,7 +44,7 @@ func test_the_levels_are_the_solar_systems_star_systems_in_the_order_they_open()
 
 
 func test_a_saved_run_counts_the_levels_its_star_map_did() -> void:
-	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(3, true, "Draco")})
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(3, true, "Sol")})
 	assert_int(Campaign.count_done()).is_equal(Campaign.LEVELS.size())
 
 
@@ -57,8 +57,8 @@ func test_the_saved_run_is_in_its_star_systems_level() -> void:
 
 func test_levels_done_stay_done_when_an_earlier_level_starts_over() -> void:
 	Campaign.record({SavedStarMap.KEY: SavedStarMap.make(2, false, "Lyra")}, "Lyra", 2, true)
-	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(1, false, "Sol")})
-	Campaign.record({SavedStarMap.KEY: SavedStarMap.make(1, false, "Sol")}, "Sol", 0, false)
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(1, false, "Vela")})
+	Campaign.record({SavedStarMap.KEY: SavedStarMap.make(1, false, "Vela")}, "Vela", 0, false)
 	assert_int(Campaign.count_done()).is_equal(2)
 	assert_bool(Campaign.is_open(LEVEL_3)).is_true()
 
@@ -86,7 +86,7 @@ func test_restarting_level_2_starts_the_run_as_level_2_began_and_saves_it() -> v
 
 func test_only_a_level_that_would_replace_the_run_in_progress_asks_first() -> void:
 	assert_bool(Campaign.replaces_run(LEVEL_1)).override_failure_message("No run").is_false()
-	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(1, false, "Sol")})
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(1, false, "Vela")})
 	assert_bool(Campaign.replaces_run(LEVEL_1)).override_failure_message("Continues").is_false()
 	# Level 2 reached once, then Level 1 replayed: Level 2 starts from its kept start.
 	Campaign.record({SavedStarMap.KEY: SavedStarMap.make(2, false, "Lyra")}, "Lyra", 1, true)

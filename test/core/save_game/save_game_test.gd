@@ -53,3 +53,17 @@ func test_a_test_reads_only_its_own_files() -> void:
 	assert_bool(SaveGame.is_tutorial_done()).is_false()
 	SaveGame.use_test_files("save_game")
 	assert_bool(SaveGame.has_save()).is_true()
+
+
+func test_a_run_and_a_record_saved_by_an_older_version_count_as_none() -> void:
+	# Version 1 named Level 1's star system "Sol", which is now Level 3's: read as it
+	# stands, a first-level save would open the last level.
+	for path: String in [SaveGame.PATH, SaveGame.CAMPAIGN_PATH]:
+		var file := FileAccess.open(
+			path.replace("user://", "user://test_save_game_"), FileAccess.WRITE
+		)
+		file.store_string(JSON.stringify({"version": 1, "done": 1, "star_map": {"system": "Sol"}}))
+		file.close()
+
+	assert_bool(SaveGame.has_save()).is_false()
+	assert_dict(SaveGame.read_campaign()).is_empty()

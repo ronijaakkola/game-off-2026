@@ -8,11 +8,11 @@ extends Node
 ## it says: the bus, trying the camera, the passenger waiting at home, their card in the On
 ## board panel they come into with its happiness bar, setting a course to the destination,
 ## charging the drive, serving the snack the passenger asks for halfway, the stars they rate
-## the ride, the fare they pay, refuelling, and the way home by way of a point in space
-## ([WayHome]), with a word at home on chaining stops. Then The Boss calls again, and once
-## the player answers, the HUD goes and it is over; once the map has zoomed out, The Boss's
-## first-shift call brings the HUD back ([FirstShiftCall]). Research comes later, with the
-## mechanic's first call ([MechanicCall], [ResearchGuide]).
+## the ride, the fare they pay, refuelling, and the way home by way of a capsule of credits
+## adrift in space ([WayHome]), with a word at home on chaining stops. Then The Boss calls
+## again, and once the player answers, the HUD goes and it is over; once the map has zoomed
+## out, The Boss's first-shift call brings the HUD back ([FirstShiftCall]). Research comes
+## later, with the mechanic's first call ([MechanicCall], [ResearchGuide]).
 ## Most steps wait for the player to do something in the game; one that only tells them
 ## something has a Got it button. The snack and the stars pause the game, and the
 ## portraits keep moving. The cards are [TutorialCards].
@@ -28,7 +28,7 @@ extends Node
 ## [TutorialRules]'.
 ## Through it, only home and the destination have lines, with the one passenger at home,
 ## and nobody joins or leaves a line. The passenger asks for nothing but the snack. The
-## debug panel's Skip tutorial finishes it at once.
+## debug panel's Skip tutorial, on its Progress card, finishes it at once.
 
 ## The tutorial is over, done or skipped. The lines run again.
 signal finished
@@ -94,6 +94,8 @@ const RIDE_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE, Step.FL
 @export var hud: HudLayout
 ## The camera, which holds still through the call.
 @export var rig: CameraRig
+## Where the capsule on the way home drifts ([WayHome]).
+@export var capsules: CapsuleField
 ## Hidden throughout.
 @export var lab_badges: LabBadges
 ## Offers to skip it while it runs.
@@ -106,6 +108,8 @@ var waiting: WaitingPassengers
 
 var _step := Step.DONE
 var _running := false
+# The debug panel's Skip tutorial, null with the panel off.
+var _skip_button: Button
 # The passenger the tutorial is about, on their ride, and their card once they get off.
 var _ride: TutorialRide
 var _card: PassengerCard
@@ -128,7 +132,9 @@ var _camera: CameraWatch
 
 func _ready() -> void:
 	set_process(false)
-	DebugPanel.add_button("Skip tutorial", _debug_skip_tutorial, self)
+	var group := Progression.DEBUG_GROUP
+	_skip_button = DebugPanel.add_button("Skip tutorial", _debug_skip_tutorial, self, group)
+	_show_skippable()
 
 
 func _process(_delta: float) -> void:
@@ -189,6 +195,7 @@ func _process(_delta: float) -> void:
 ## passenger at home.
 func start() -> void:
 	_running = true
+	_show_skippable()
 	_goal = destination
 	rig.locked = true
 	_cards = TutorialCards.new(guide)
@@ -211,7 +218,7 @@ func is_running() -> bool:
 
 ## The stop to add for the player's click on [param stop], or null when they may not: only
 ## where the step heads, while it asks for the course, and on the way home only the route
-## it asks for, a waypoint snapped to its marked spot. Its courses go exactly where it asks,
+## it asks for, a waypoint snapped to the capsule's spot. Its courses go exactly where it asks,
 ## so a held right button doesn't steer them.
 func fit_course(stop: RouteStop) -> RouteStop:
 	if not _running:
@@ -451,6 +458,7 @@ func _finish() -> void:
 	if not _running:
 		return
 	_running = false
+	_show_skippable()
 	hud.cover()
 	_empty_home_line()
 	lab_badges.hide()
@@ -481,3 +489,9 @@ func _empty_home_line() -> void:
 # Skip tutorial: finishes it, and the map zooms out.
 func _debug_skip_tutorial() -> void:
 	skip()
+
+
+# Skip tutorial is grey unless the tutorial runs, as there is nothing to skip.
+func _show_skippable() -> void:
+	if _skip_button:
+		_skip_button.disabled = not _running

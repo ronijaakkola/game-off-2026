@@ -74,6 +74,8 @@ const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
 @export var research_lab: ResearchLab
 ## Which star systems are open and joined. The bus's planet says which one it works in.
 @export var star_map: StarMap
+## How close the next capsule is to holding the castaway.
+@export var capsules: CapsuleField
 
 ## Who waits at each planet. The parent sets it before [method start].
 var waiting: WaitingPassengers
@@ -195,6 +197,7 @@ func _write() -> void:
 		lines[planet.name] = {
 			"seen": seen.map(func(p: Passenger) -> Dictionary: return p.to_save()),
 			"unseen": waiting.count_at(planet) - seen.size(),
+			"found_abandoned": planet.found_abandoned,
 		}
 	var researched: Array[String] = []
 	var research := research_lab.get_research()
@@ -218,6 +221,9 @@ func _write() -> void:
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,
+		"castaway_met": waiting.castaway_met,
+		"castaway_misses": capsules.castaway_misses if capsules else 0,
+		"castaway_found": capsules.castaway_found if capsules else false,
 		"returning": waiting.get_returning().to_save(),
 		"goals": progress,
 		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
@@ -257,6 +263,10 @@ func _restore() -> void:
 	var by_name := _get_planets_by_name()
 	var types := _get_types_by_path()
 	waiting.first_business_dealt = bool(_saved.get("first_business", false))
+	waiting.castaway_met = bool(_saved.get("castaway_met", false))
+	if capsules:
+		capsules.castaway_misses = int(_saved.get("castaway_misses", 0))
+		capsules.castaway_found = bool(_saved.get("castaway_found", false))
 	waiting.get_returning().load_save(_saved.get("returning", []), types)
 	var lines: Dictionary = _saved.get("lines", {})
 	for planet: Planet in _planets:
@@ -267,9 +277,12 @@ func _restore() -> void:
 			if passenger:
 				seen.append(passenger)
 		waiting.restore(planet, seen, int(line.get("unseen", 0)))
+		planet.found_abandoned = bool(line.get("found_abandoned", false))
 	for saved: Variant in _saved.get("cabin", []):
 		var passenger := Passenger.from_save(saved as Dictionary, types, by_name)
 		if passenger:
+			if Castaway.is_castaway(passenger):
+				Castaway.dress(passenger, passenger.returning)
 			cabin.board(passenger)
 	var saved_goals: Array = _saved.get("goals", [])
 	var tracked := goals.get_goals()

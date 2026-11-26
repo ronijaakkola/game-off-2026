@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dh4pg5hem25kd" path="res://game/passengers/happiness_cap.gd" id="9_cap"]
 [ext_resource type="Script" uid="uid://biw4sh15df5o1" path="res://game/passengers/docked_mark.gd" id="10_docked"]
 [ext_resource type="Script" uid="uid://dxxvanlqc245l" path="res://game/passengers/happiness_breakdown.gd" id="11_cause"]
+[ext_resource type="Script" uid="uid://b0qfu6wawycw7" path="res://game/transmissions/voice/voice_speaker.gd" id="12_speaker"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_trail_track"]
 
@@ -189,6 +190,10 @@ custom_minimum_size = Vector2(62, 11)
 anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("5_stars")
+
+[node name="Speaker" type="Node" parent="." unique_id=1073665640]
+unique_name_in_owner = true
+script = ExtResource("12_speaker")
 
 [connection signal="pressed" from="Options/OptionButtons/KickButton" to="." method="_on_kick_button_pressed"]
 [connection signal="hold_changed" from="Clip/Panel/Layout/Rows/Activity/ServeButton" to="." method="_on_serve_button_hold_changed"]

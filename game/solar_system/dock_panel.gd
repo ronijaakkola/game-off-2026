@@ -17,13 +17,14 @@ extends Control
 ## shrinks as smoothly as the row closes. The root is a slot of no height that marks the
 ## panel's place in the corner, and the card hangs down from it. So the card's top edge
 ## stays put however its height changes, with no container to re-sort a frame later and
-## round the height to whole pixels. "Nobody waiting." sits under the rows, so a row going
-## out uncovers it and the card only shrinks. The pointer over a row shows that passenger's
-## trip, and a click on a row pins it, so it stays shown once the pointer leaves, until the
-## row is clicked again, the passenger boards or the bus leaves. The row whose trip shows is
-## highlighted. While [member beckon_boarding], the card's border glows and every row
-## calls for its button to be pressed ([member BoardingRow.beckoning]), in one pulse: they
-## brighten quickly and fade slowly, again and again, and hold bright under Reduce motion.
+## round the height to whole pixels. "Nobody waiting." ([EmptyLineLabel]) sits under the
+## rows. At an abandoned planet a message says so in place of the line. The pointer over
+## a row shows that passenger's trip, and a click on a row pins it, so it stays shown once
+## the pointer leaves, until the row is clicked again, the passenger boards or the bus
+## leaves. The row whose trip shows is highlighted. While [member beckon_boarding], the
+## card's border glows and every row calls for its button to be pressed
+## ([member BoardingRow.beckoning]), in one pulse: they brighten quickly and fade slowly,
+## again and again, and hold bright under Reduce motion.
 ## Board all steps back to a plain button meanwhile, so there is one thing to press.
 ## While the player can pay for an upgrade they couldn't when they last closed the research
 ## screen ([method ResearchLab.has_unseen_upgrade]), the Research button has a thin outline
@@ -132,7 +133,7 @@ var board_all_hidden := false:
 	set(value):
 		board_all_hidden = value
 		if is_node_ready():
-			(%BoardAllButton as Control).visible = not value
+			_show_line()
 
 # The planet whose line the panel lists. It stays while the panel slides out.
 var _shown: Planet
@@ -147,9 +148,6 @@ var _gate_previewed: Planet
 # The passenger whose trip shows, as last sent in trip_previewed.
 var _previewed: Passenger
 var _beckon: Tween
-# Whether "Nobody waiting." shows, or is on its way in, and its fade.
-var _empty := true
-var _empty_fade: Tween
 # What the Teleport button reads, or empty while its row hides.
 var _teleport_text := ""
 # How much of its height the Research row has, from 0 to 1, and the tween growing it in.
@@ -264,6 +262,7 @@ func _rebuild() -> void:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
 		_show_services()
+	_show_line()
 	_sync_rows(false)
 
 
@@ -284,6 +283,15 @@ func _show_services() -> void:
 	)
 	(%TeleportSlot as Control).add_theme_constant_override(&"margin_top", gap)
 	_fit_research()
+
+
+# The line's heading, Board all and rows, or at an abandoned planet the message instead.
+func _show_line() -> void:
+	var abandoned := _shown != null and _shown.abandoned
+	(%WaitingLabel as Control).visible = not abandoned
+	(%BoardAllButton as Control).visible = not abandoned and not board_all_hidden
+	(%List as Control).visible = not abandoned
+	(%AbandonedMessage as Control).visible = abandoned
 
 
 # The Research row in its slot, under the fuel row's gap when that shows, with the slot as
@@ -357,34 +365,7 @@ func _sync_rows(animated := true) -> void:
 		_rows[passenger] = row
 		if animated and visible:
 			row.enter()
-	_show_empty(line.is_empty(), animated and visible)
-
-
-# Shows "Nobody waiting." while [param empty]. When [param animated], it fades in once the
-# last row has faded out, and fades out under the first row to come, staying in the layout
-# until that row's place has opened past it, so the card never snaps shorter.
-func _show_empty(empty: bool, animated: bool) -> void:
-	var label := %EmptyLabel as Control
-	if animated and empty == _empty:
-		return
-	_empty = empty
-	if _empty_fade:
-		_empty_fade.kill()
-	if not animated or Settings.reduce_motion:
-		label.visible = empty
-		label.modulate.a = 1.0
-		return
-	_empty_fade = create_tween()
-	if empty:
-		if not label.visible:
-			label.modulate.a = 0.0
-			label.visible = true
-		_empty_fade.tween_interval(BoardingRow.EXIT_SECONDS)
-		_empty_fade.tween_property(label, ^"modulate:a", 1.0, BoardingRow.EXIT_SECONDS)
-	else:
-		_empty_fade.tween_property(label, ^"modulate:a", 0.0, BoardingRow.EXIT_SECONDS)
-		_empty_fade.tween_interval(BoardingRow.GAP_SECONDS - BoardingRow.EXIT_SECONDS)
-		_empty_fade.tween_callback(label.hide)
+	(%EmptyLabel as EmptyLineLabel).show_empty(line.is_empty(), animated and visible)
 
 
 # Pulses the card's border and the rows while beckoning, or puts the card back.

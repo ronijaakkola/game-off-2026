@@ -3,7 +3,8 @@ extends RefCounted
 ## What a passenger asks of the player in a transmission, for a reward: the [member goal]
 ## that tracks it, what it pays once that is completed, and the transmission that offers
 ## it. The [QuestGiver] offers it, and tracks and pays it once the player accepts. Each
-## kind of quest extends this with what it asks.
+## kind of quest extends this with what it asks, and is listed in [QuestKinds] so a save
+## can put it back.
 
 ## Seconds the bus takes to park, on top of a flight.
 const PARK_SECONDS := 2.0
@@ -72,6 +73,13 @@ func accept() -> void:
 	pass
 
 
+## It is under way, its passenger in [param _cabin], as taken on or put back from a save:
+## makes any change it leaves on the cabin for the rest of their ride, as a rock ride's love
+## of the rocks. A kind with one overrides this.
+func begin(_cabin: Cabin) -> void:
+	pass
+
+
 ## The quest under way, for a save game. The passenger is kept by whoever saves it.
 func to_save() -> Dictionary:
 	return {
@@ -101,7 +109,7 @@ func get_reward(by_level: Array[int]) -> int:
 
 ## The planets among [param planets] going to which is a detour for [param who] and for
 ## [param bus]: not where they are going, where they boarded, where the bus is docked, or
-## on its route.
+## on its route. Never an abandoned one, where nobody has an errand.
 static func get_detours(
 	who: Passenger, bus: FrameshiftBus, planets: Array[Planet]
 ) -> Array[Planet]:
@@ -109,7 +117,7 @@ static func get_detours(
 	var others: Array[Planet] = []
 	for other: Planet in planets:
 		var known := other in [who.destination, who.origin, bus.get_docked_planet()]
-		if not known and other not in on_route:
+		if not known and not other.abandoned and other not in on_route:
 			others.append(other)
 	return others
 

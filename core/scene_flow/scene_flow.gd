@@ -5,7 +5,10 @@ extends CanvasLayer
 ## Input is blocked while fading. It processes always, so a paused scene can leave too, and
 ## the next scene starts unpaused. A level, once loaded, waits
 ## paused under its loading screen until the player presses Start (a click, Enter or Space),
-## so they can read the tip first; meanwhile no other key reaches the game.
+## so they can read the tip first; meanwhile no other key reaches the game. The jump into the
+## next level within the game scene shows the same screen, with nothing to load
+## ([method show_loading_screen]). Either way the level's loading screen fills its bar for at
+## least [member min_loading_seconds] before Start shows, however little there was to load.
 ##
 ## The bar counts the two kinds of work the wait is made of, each in steps it can draw
 ## between, because the web build has one thread: a threaded load blocks it and can't
@@ -27,6 +30,11 @@ const LOAD_SHARE := 0.1
 ## How long one load step may take before the bar is drawn again, in milliseconds. Each
 ## redraw costs a frame. 0 draws after every file.
 var step_msec := 33
+## The least time a level's loading screen fills its bar for before the Start button shows,
+## in seconds, counted from when the screen has faded in. A level whose files are cached,
+## and a jump, which loads nothing, would otherwise show Start at once, and the screen would
+## read as a menu, not as arriving somewhere.
+var min_loading_seconds := 2.0
 
 ## The black card with the bar on it. Its alpha is the fade.
 var _curtain: Control
@@ -40,6 +48,8 @@ var _busy := false
 var _fade: Tween
 # Whether the loaded level waits for Start.
 var _waiting := false
+# How long the level's loading screen has shown for since it faded in, in seconds.
+var _shown_seconds := 0.0
 
 
 func _ready() -> void:
@@ -103,6 +113,7 @@ func go_to(path: String, level: Level = null) -> void:
 	# Draw the whole card first: each load step blocks, and the web build freezes on the
 	# last frame drawn.
 	await get_tree().process_frame
+	_shown_seconds = 0.0
 	await _load_dependencies(path)
 	get_tree().paused = false
 	var error := get_tree().change_scene_to_packed(load(path))
@@ -117,6 +128,32 @@ func go_to(path: String, level: Level = null) -> void:
 			await _wait_for_start()
 	else:
 		push_error("SceneFlow can't change to %s: %s" % [path, error_string(error)])
+	await _lift()
+
+
+## Shows [param level]'s loading screen over a scene that is already black, as the bus jumps
+## into the level within the game scene: nothing loads, so its bar fills over
+## [member min_loading_seconds], then it holds the game paused until the player presses Start,
+## and fades back to the scene's black. It returns then. A level with no picture yet shows
+## nothing, and neither does a call made during a transition.
+func show_loading_screen(level: Level) -> void:
+	if _busy or level == null or level.picture.is_empty():
+		return
+	_busy = true
+	get_tree().root.set_disable_input(true)
+	_level_card.show_level(level)
+	_level_card.show()
+	_plain.hide()
+	_set_progress(0.0)
+	_curtain.show()
+	await _fade_to(1.0)
+	_shown_seconds = 0.0
+	await _wait_for_start()
+	await _lift()
+
+
+# Fades the curtain away and takes input again: the transition is over.
+func _lift() -> void:
 	await _fade_to(0.0)
 	_curtain.hide()
 	_level_card.hide()
@@ -125,10 +162,14 @@ func go_to(path: String, level: Level = null) -> void:
 	_busy = false
 
 
-## Holds the loaded level paused under its loading screen, the Start button showing, until
-## the player presses it. The card takes the clicks meant for the game under it.
+## Holds the loaded level paused under its loading screen until the player presses Start,
+## which shows once the bar has filled. The card takes the clicks meant for the game under it.
 func _wait_for_start() -> void:
 	get_tree().paused = true
+	while _time_share() < 1.0:
+		_set_progress(1.0)
+		await get_tree().process_frame
+	_set_progress(1.0)
 	_curtain.mouse_filter = Control.MOUSE_FILTER_STOP
 	_waiting = true
 	get_tree().root.set_disable_input(false)
@@ -146,6 +187,12 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey or event is InputEventJoypadButton:
 		get_viewport().set_input_as_handled()
+
+
+# A load step that blocks makes one long frame, whose delta counts whole. The game scene
+# runs at its own time scale, which the wait is not part of.
+func _process(delta: float) -> void:
+	_shown_seconds += delta / maxf(Engine.time_scale, 0.001)
 
 
 ## Whether a scene change is under way, until the new scene has faded in.
@@ -291,10 +338,20 @@ func _collect_dependencies(path: String, files: Array[String], seen: Dictionary)
 		files.append(file)
 
 
-## Fills the bar, and moves the level card's bus marker, to [param progress], 0 to 1.
+## Fills the bar, and moves the level card's bus marker, to [param progress], 0 to 1. A
+## level's loading screen never shows more than its share of [member min_loading_seconds].
 func _set_progress(progress: float) -> void:
+	if _level_card.visible:
+		progress = minf(progress, _time_share())
 	_bar.value = progress
 	_level_card.set_progress(progress)
+
+
+## How much of [member min_loading_seconds] the level's loading screen has shown for, 0 to 1.
+func _time_share() -> float:
+	if min_loading_seconds <= 0.0:
+		return 1.0
+	return minf(_shown_seconds / min_loading_seconds, 1.0)
 
 
 func _fade_to(alpha: float) -> void:

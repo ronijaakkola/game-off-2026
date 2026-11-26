@@ -29,6 +29,7 @@ func _ready() -> void:
 		var opening := GoalsMetCall.UNANSWERED_TEXT if unanswered else GoalsMetCall.TEXT
 		transmission.text = opening + GoalsMetCall.OFFER
 		transmission.accept_text = GoalsMetCall.JUMP_ANSWER
+		transmission.decline_text = GoalsMetCall.STAY_ANSWER
 	elif "mechanic" in args:
 		transmission = Transmission.from_mechanic()
 		transmission.text = MechanicCall.RESEARCH_TEXT

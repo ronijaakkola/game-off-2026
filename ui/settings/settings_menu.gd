@@ -15,8 +15,6 @@ extends MenuScreen
 signal campaign_reset
 
 const DEMO_SFX := preload("res://ui/audio/ui_click.ogg")
-## Settings set from the debug panel rather than here.
-const DEBUG_SETTINGS: Array[String] = ["show_fps"]
 
 ## Whether the screen offers to reset the campaign. The main menu's does; the pause menu's
 ## doesn't, since the run under it would save over the reset at the next planet.
@@ -29,9 +27,11 @@ var _controls: Dictionary[String, Control] = {}
 func _ready() -> void:
 	super._ready()
 	for setting: String in Settings.get_names():
-		if setting not in DEBUG_SETTINGS:
-			_bind(setting)
+		_bind(setting)
 	_read_settings()
+	# Show FPS has no description, yet stands as tall as a row with one, label centred, so the
+	# toggles sit evenly spaced.
+	%ShowFpsRow.custom_minimum_size.y = %EdgeScrollRow.get_combined_minimum_size().y
 
 
 func _opening() -> void:

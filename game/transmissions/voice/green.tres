@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="Voice" format=3 uid="uid://cihur565qcxbk"]
+
+[ext_resource type="AudioStream" uid="uid://djc7a6hgij4bm" path="res://game/transmissions/voice/green/g_a01.ogg" id="a01"]
+[ext_resource type="AudioStream" uid="uid://csptwhsk08pcm" path="res://game/transmissions/voice/green/g_a02.ogg" id="a02"]
+[ext_resource type="AudioStream" uid="uid://kdad3vywrnyh" path="res://game/transmissions/voice/green/g_a03.ogg" id="a03"]
+[ext_resource type="AudioStream" uid="uid://b7pwc3lrc2vdc" path="res://game/transmissions/voice/green/g_a04.ogg" id="a04"]
+[ext_resource type="AudioStream" uid="uid://cjsb0erbx7x5f" path="res://game/transmissions/voice/green/g_a05.ogg" id="a05"]
+[ext_resource type="AudioStream" uid="uid://4jl083vl8ai1" path="res://game/transmissions/voice/green/g_a06.ogg" id="a06"]
+[ext_resource type="AudioStream" uid="uid://btribl0v6rln2" path="res://game/transmissions/voice/green/g_b01.ogg" id="b01"]
+[ext_resource type="AudioStream" uid="uid://87sw1pa5f4ja" path="res://game/transmissions/voice/green/g_b02.ogg" id="b02"]
+[ext_resource type="AudioStream" uid="uid://bex0r60tbvklh" path="res://game/transmissions/voice/green/g_b03.ogg" id="b03"]
+[ext_resource type="AudioStream" uid="uid://xq7arllmjyal" path="res://game/transmissions/voice/green/g_b04.ogg" id="b04"]
+[ext_resource type="AudioStream" uid="uid://bvvlkdyx0uw4k" path="res://game/transmissions/voice/green/g_b05.ogg" id="b05"]
+[ext_resource type="AudioStream" uid="uid://dap60am2yti46" path="res://game/transmissions/voice/green/g_b06.ogg" id="b06"]
+[ext_resource type="AudioStream" uid="uid://bcnlqnbhelcck" path="res://game/transmissions/voice/green/g_b07.ogg" id="b07"]
+[ext_resource type="AudioStream" uid="uid://fru4cue63rsl" path="res://game/transmissions/voice/green/g_b08.ogg" id="b08"]
+[ext_resource type="AudioStream" uid="uid://cctdc4kbdnhuv" path="res://game/transmissions/voice/green/g_b09.ogg" id="b09"]
+[ext_resource type="AudioStream" uid="uid://ba6b6wc57e00x" path="res://game/transmissions/voice/green/g_b10.ogg" id="b10"]
+[ext_resource type="AudioStream" uid="uid://d1ns0i042p6nt" path="res://game/transmissions/voice/green/g_b11.ogg" id="b11"]
+[ext_resource type="AudioStream" uid="uid://c8kki5wygjjci" path="res://game/transmissions/voice/green/g_b12.ogg" id="b12"]
+[ext_resource type="AudioStream" uid="uid://cyixlbuewqgk6" path="res://game/transmissions/voice/green/g_b13.ogg" id="b13"]
+[ext_resource type="AudioStream" uid="uid://bi5esolykxu2r" path="res://game/transmissions/voice/green/g_b14.ogg" id="b14"]
+[ext_resource type="AudioStream" uid="uid://c4dikbl81adgr" path="res://game/transmissions/voice/green/g_b15.ogg" id="b15"]
+[ext_resource type="AudioStream" uid="uid://1i8y1boxut45" path="res://game/transmissions/voice/green/g_b16.ogg" id="b16"]
+[ext_resource type="AudioStream" uid="uid://vf1jeidfkdd1" path="res://game/transmissions/voice/green/g_b17.ogg" id="b17"]
+[ext_resource type="AudioStream" uid="uid://b4j8ligwtknpe" path="res://game/transmissions/voice/green/g_b18.ogg" id="b18"]
+[ext_resource type="AudioStream" uid="uid://ch7wmhh7l8gsl" path="res://game/transmissions/voice/green/g_b19.ogg" id="b19"]
+[ext_resource type="AudioStream" uid="uid://bejnk2da7cp08" path="res://game/transmissions/voice/green/g_e01.ogg" id="e01"]
+[ext_resource type="AudioStream" uid="uid://myufe0mwoujn" path="res://game/transmissions/voice/green/g_e02.ogg" id="e02"]
+[ext_resource type="AudioStream" uid="uid://2flw2h6s4c7q" path="res://game/transmissions/voice/green/g_e03.ogg" id="e03"]
+[ext_resource type="AudioStream" uid="uid://udcfu0jcag07" path="res://game/transmissions/voice/green/g_e04.ogg" id="e04"]
+[ext_resource type="AudioStream" uid="uid://bf3v5a0k2mhk1" path="res://game/transmissions/voice/green/g_e05.ogg" id="e05"]
+[ext_resource type="AudioStream" uid="uid://0ncn7atlngfi" path="res://game/transmissions/voice/green/g_e06.ogg" id="e06"]
+[ext_resource type="AudioStream" uid="uid://dqd5jwumvb2ub" path="res://game/transmissions/voice/green/g_e07.ogg" id="e07"]
+[ext_resource type="AudioStream" uid="uid://7cms4p7cpq72" path="res://game/transmissions/voice/green/g_h01.ogg" id="h01"]
+[ext_resource type="AudioStream" uid="uid://dxcnw1b74w360" path="res://game/transmissions/voice/green/g_h02.ogg" id="h02"]
+[ext_resource type="AudioStream" uid="uid://jakhgiwy2i3f" path="res://game/transmissions/voice/green/g_h03.ogg" id="h03"]
+[ext_resource type="AudioStream" uid="uid://blfqclm3ohmjg" path="res://game/transmissions/voice/green/g_h04.ogg" id="h04"]
+[ext_resource type="AudioStream" uid="uid://cv1y8ptuc2v4" path="res://game/transmissions/voice/green/g_h05.ogg" id="h05"]
+[ext_resource type="AudioStream" uid="uid://dp8xnld3s2x80" path="res://game/transmissions/voice/green/g_h06.ogg" id="h06"]
+[ext_resource type="AudioStream" uid="uid://7e0g4g5nn26q" path="res://game/transmissions/voice/green/g_h07.ogg" id="h07"]
+[ext_resource type="AudioStream" uid="uid://dypee7nnmqiu4" path="res://game/transmissions/voice/green/g_h08.ogg" id="h08"]
+[ext_resource type="AudioStream" uid="uid://sfkpsn4enwj8" path="res://game/transmissions/voice/green/g_l01.ogg" id="l01"]
+[ext_resource type="AudioStream" uid="uid://cnwhyvmh5a2p6" path="res://game/transmissions/voice/green/g_l02.ogg" id="l02"]
+[ext_resource type="AudioStream" uid="uid://cs2tne6w7dtgt" path="res://game/transmissions/voice/green/g_l03.ogg" id="l03"]
+[ext_resource type="AudioStream" uid="uid://ccgak6rwii7fl" path="res://game/transmissions/voice/green/g_l04.ogg" id="l04"]
+[ext_resource type="AudioStream" uid="uid://bep3bka2ipxpy" path="res://game/transmissions/voice/green/g_l05.ogg" id="l05"]
+[ext_resource type="AudioStream" uid="uid://8g6va31tna7x" path="res://game/transmissions/voice/green/g_l06.ogg" id="l06"]
+[ext_resource type="AudioStream" uid="uid://b5es6nhtlxhxp" path="res://game/transmissions/voice/green/g_l07.ogg" id="l07"]
+[ext_resource type="AudioStream" uid="uid://f7bbymiq4ug3" path="res://game/transmissions/voice/green/g_l08.ogg" id="l08"]
+[ext_resource type="AudioStream" uid="uid://q35nobx8iisi" path="res://game/transmissions/voice/green/g_q01.ogg" id="q01"]
+[ext_resource type="AudioStream" uid="uid://330owt5ectub" path="res://game/transmissions/voice/green/g_q02.ogg" id="q02"]
+[ext_resource type="AudioStream" uid="uid://bvjfm08s5jpg1" path="res://game/transmissions/voice/green/g_q03.ogg" id="q03"]
+[ext_resource type="AudioStream" uid="uid://b7mg3xy47i08u" path="res://game/transmissions/voice/green/g_q04.ogg" id="q04"]
+[ext_resource type="AudioStream" uid="uid://c850157j7sqh4" path="res://game/transmissions/voice/green/g_s01.ogg" id="s01"]
+[ext_resource type="AudioStream" uid="uid://brq2hyk6k5k0l" path="res://game/transmissions/voice/green/g_s02.ogg" id="s02"]
+[ext_resource type="AudioStream" uid="uid://dkm8uxqev8hcm" path="res://game/transmissions/voice/green/g_s03.ogg" id="s03"]
+[ext_resource type="AudioStream" uid="uid://btexncbrcol0v" path="res://game/transmissions/voice/green/g_s04.ogg" id="s04"]
+[ext_resource type="AudioStream" uid="uid://dkgg22icwe2ic" path="res://game/transmissions/voice/green/g_s05.ogg" id="s05"]
+[ext_resource type="AudioStream" uid="uid://bt0dhgvkfkejm" path="res://game/transmissions/voice/green/g_s06.ogg" id="s06"]
+[ext_resource type="AudioStream" uid="uid://diqsd4jnfklhq" path="res://game/transmissions/voice/green/g_s07.ogg" id="s07"]
+[ext_resource type="AudioStream" uid="uid://c4xwmsofe3mqv" path="res://game/transmissions/voice/green/g_k01.ogg" id="k01"]
+[ext_resource type="AudioStream" uid="uid://b2nq7mi6py8aw" path="res://game/transmissions/voice/green/g_k02.ogg" id="k02"]
+[ext_resource type="Script" uid="uid://jvrxrmesvlbt" path="res://game/transmissions/voice/voice.gd" id="voice_script"]
+
+[resource]
+script = ExtResource("voice_script")
+blips = Array[AudioStream]([ExtResource("b01"), ExtResource("b02"), ExtResource("b03"), ExtResource("b04"), ExtResource("b05"), ExtResource("b06"), ExtResource("b07"), ExtResource("b08"), ExtResource("b09"), ExtResource("b10"), ExtResource("b11"), ExtResource("b12"), ExtResource("b13"), ExtResource("b14"), ExtResource("b15"), ExtResource("b16"), ExtResource("b17"), ExtResource("b18"), ExtResource("b19")])
+questions = Array[AudioStream]([ExtResource("q01"), ExtResource("q02"), ExtResource("q03"), ExtResource("q04")])
+exclaims = Array[AudioStream]([ExtResource("e01"), ExtResource("e02"), ExtResource("e03"), ExtResource("e04"), ExtResource("e05"), ExtResource("e06"), ExtResource("e07")])
+longs = Array[AudioStream]([ExtResource("l01"), ExtResource("l02"), ExtResource("l03"), ExtResource("l04"), ExtResource("l05"), ExtResource("l06"), ExtResource("l07"), ExtResource("l08")])
+stingers_annoyed = Array[AudioStream]([ExtResource("a01"), ExtResource("a02"), ExtResource("a03"), ExtResource("a04"), ExtResource("a05"), ExtResource("a06")])
+stingers_happy = Array[AudioStream]([ExtResource("h01"), ExtResource("h02"), ExtResource("h03"), ExtResource("h04"), ExtResource("h05"), ExtResource("h06"), ExtResource("h07"), ExtResource("h08")])
+stingers_scared = Array[AudioStream]([ExtResource("s01"), ExtResource("s02"), ExtResource("s03"), ExtResource("s04"), ExtResource("s05"), ExtResource("s06"), ExtResource("s07")])
+kicked = Array[AudioStream]([ExtResource("k01"), ExtResource("k02")])
+volume = 0.4
+pitch_max = 1.2
+voice_count = 8
+pitch_jitter = 0.0
+max_overlap = 0.145
+fade_out = 0.027
+kicked_pitch = 1.2

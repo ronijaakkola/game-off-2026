@@ -1,6 +1,6 @@
 # Audio master list
 
-Last updated: 2026-11-23
+Last updated: 2026-11-25
 
 What plays, what is missing, and what each clip is. Levels are the mixer's table in `core/audio/clip_levels.gd` (1 is as recorded).
 
@@ -27,8 +27,6 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 |---|---|---|---|
 | `game/solar_system/fuel.ogg` | The fuel pump, for as long as fuel flows | 0.35 | Done |
 | `game/solar_system/ringtone.ogg` | A call notice shows: 2 beats at 88 bpm, looped from the music's next beat, fading out in 0.15 s as the call is answered or goes. Silent while the notices are hidden or the game is paused | 0.15 | Done |
-| `game/passengers/psst_1.ogg`, `psst_2.ogg`, `psst_3.ogg` | A passenger card opens a request for food or a drink: one at random, never the same twice running, pitch varied up to 6 % | 0.3 each | Done |
-| `game/passengers/wilhelm_scream.ogg` | A kicked passenger flies out of the bus, fading fastest at first | 0.23 | Placeholder |
 
 ### Menus and research
 
@@ -40,9 +38,11 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 
 | Folder | Clips | Plays when | Status |
 |---|---|---|---|
-| `game/transmissions/voice/blue/` | 48: blips 23, long 8, question 4, exclaim 4, annoyed 4, happy 2, scared 3 | A transmission's text types out: a blip per word of three letters or more, the question and exclaim clips before `?` and `!`, a long clip at the start of a line, a stinger as it opens (the caller's mood). Each caller of a race has a pitch of their own. Each race's loudness is its voice's volume, set in the mixer | Done |
-| `game/transmissions/voice/orange/` | 59: blips 18, long 8, question 9, exclaim 7, annoyed 3, happy 5, scared 9 | The same | Done |
-| `game/transmissions/voice/green/` | None | Green callers are silent | Missing |
+| `game/transmissions/voice/blue/` | 53: blips 23, long 8, question 4, exclaim 4, annoyed 4, happy 4, scared 3, kicked 3 | A transmission's text types out: a blip per word of three letters or more, the question and exclaim clips before `?` and `!`, a long clip at the start of a line, a stinger as it opens (the caller's mood). A passenger card opening a request for food or a drink plays the passenger's race's annoyed stinger, at their pitch. Each caller of a race has a pitch of their own. Each race's loudness is its voice's volume, set in the mixer | Done |
+| `game/transmissions/voice/orange/` | 61: blips 18, long 8, question 9, exclaim 7, annoyed 3, happy 5, scared 9, kicked 2 | The same | Done |
+| `game/transmissions/voice/green/` | 61: blips 19, long 8, question 4, exclaim 7, annoyed 6, happy 8, scared 7, kicked 2 | The same | Done |
+
+A kicked passenger screams one of their race's kicked clips (`k`), at their pitch times the voice's `kicked_pitch`, fading out over `kicked_fade`, at the voice's volume times `kicked_volume`. The kick is off in the game: hear it in the voice lab's Kicked button or the mixer's Kicked line.
 
 ## What is still silent
 
@@ -55,7 +55,7 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 - **Serving.** The hold that serves a food or drink request (1.2 s, like the fuel pump), and the request done.
 - **Setting a course.** A stop added to the route, a stop removed, the route cleared, the route set.
 - **The drive.** Holding the Frameshift key charges the drive (the charge builds over 1.5 s), letting go drains it, and the bus leaves. Warm drive. The quick stop's window.
-- **Every menu button.** Hover and press on the main menu, the pause menu, Settings, Controls and the campaign screen, the Back buttons, the toggles and the Hold to reset button as it fills. Only the SFX slider clicks today.
+- **Every menu button.** Hover and press on the main menu, the pause menu, Settings, Controls, Credits and the campaign screen, the Back buttons, the toggles and the Hold to reset button as it fills. Only the SFX slider clicks today.
 - **Notices.** An info notice showing ("The bus is already full!"), a warning, a goal done. A decline button hanging up a call.
 - **The transmission.** The modal opening and closing, the tube turning on.
 
@@ -64,7 +64,9 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 - **Goals.** A milestone done, a standing goal met, The Boss's call that every goal holds, a promotion.
 - **The jump to the next star system.** The wind-up rumble, the frameshift out, the screen going black, the frameshift in, and the bell.
 - **Warp gates.** The ring's hum, the warp drive row pressed, the jump.
-- **Quests.** A call answered, accepted, declined, done (and the caller's dance), failed.
+- **Quests.** A call answered, accepted, declined, done (and the caller's dance), failed. The ride quests' own moments: a fly past or a photo stop done, a warp through a gate with the caller on board, a rock ride among the asteroids.
+- **Capsules.** One appearing and emerging from nothing, its beacon blinking, and drifting off; the bus collecting one (credits, research points, or the castaway: "Rescued Driff!"); one shrinking away uncollected. Every capsule looks alike, so the collecting sound is what tells the player what was inside.
+- **A returning passenger.** Someone who rated a five-star ride boarding again, and the castaway coming back.
 - **Research.** The screen opening, a research completing, the badge nudging for a new upgrade.
 - **Hints and the tutorial.** A feature hint's card appearing, Got it, a tutorial step finishing, the way-home waypoint being set.
 - **Levels.** A level's loading screen, the Start button, a level completed, a scene fade.
@@ -79,20 +81,21 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 
 ### Passenger life
 
-- **Amenities.** The Food Dispenser, Waiter Droids, In-Flight Movies, the Honk and the Door chime upgrades, Pillows, a passenger dozing off.
+- **Amenities.** The Food Dispenser, Waiter Droids, In-Flight Movies, Karaoke, Space Invaders, Pillows and Sleeping pods, a passenger dozing off. The Honk and the Door chime are sounds by their own name, which the player buys.
+- **Drive upgrades.** Quick charge and the Warm drive (a faster charge), a Slingshot, the Reserve tank starting up, Solar fuel, Faster pumps and Pit crew (a faster, bigger pump), the Warp gate opening.
 
 ### Music and ambience
 
 - **Menu music.** `menu_music.ogg` is in the project and unused. The menus play the game's track.
-- **A track for each star system** (Sol, Lyra, Draco), and one for the tutorial and the joined systems at the end.
+- **A track for each star system** (Vela, Lyra, Sol), and one for the tutorial and the joined systems at the end.
 - **A level-complete jingle.**
 - **Space ambience** under the map, and the heat zone.
 
 ### Voices and the rest
 
-- **Green's voice.** One folder of clips in the same kinds as Blue and Orange, `g_<kind><number>.ogg` (see `game/transmissions/voice/README.md`), and a `green.tres` added to `VOICES` in `voice_speaker.gd`.
-- **The Boss.** His calls use a race's voice; a voice of his own would set him apart.
+- **The Boss needs a voice.** He sits in the dark, a shadowy figure, and every call of his is in Orange's voice (`BOSS_RACE` in `transmission.gd`), so he sounds like any Orange passenger. A voice set of his own would set him apart and make his calls (the first shift, the promotion, the trial, the end) land. It is a full set like a race's: blips, long, question, exclaim, annoyed, happy and scared stingers (no kicked), and a stern, slower, lower delivery. It needs a letter of its own in the voice README's table, a `boss.tres`, and a way for a transmission to name a voice other than a race's.
+- **The mechanic** (Rusty) speaks in Blue's voice (`MECHANIC_RACE`) and may want a voice of his own too.
 
 ### Placeholders to replace before release
 
-`dock_bell.ogg`, `key_click.ogg`, `ui_click.ogg` and `wilhelm_scream.ogg`.
+`dock_bell.ogg`, `key_click.ogg` and `ui_click.ogg`.

@@ -14,12 +14,21 @@ extends Node
 ## no [member saver], as in a test of the hints themselves, they always do. The debug
 ## panel's Forget hints shows them all again. Which the player has seen is read from the
 ## save game once per hint and kept for the scene: deleting the save data is the main menu's.
+## The debug panel's Hints card shows any hint at once, seen or not, tutorial or not, and
+## doesn't keep it as seen: on its target, as the hint's owner finds it
+## ([method set_debug_target]), or, when that isn't on screen, on a spot in the middle of
+## the screen.
 ## [constant HINTS] has each hint's title, what it says, and the side of its target it
 ## sits on.
 
 ## Seconds from one hint starting to close to the next one opening: once it has gone, and
 ## a beat, as the tutorial's cards.
 const GAP := Tooltip.CLOSE_SECONDS + 0.25
+## The debug panel's group for the buttons that show each hint at once.
+const DEBUG_GROUP := "Hints"
+## The size of the spot in the middle of the screen a hint shown from the debug panel
+## points at when its target isn't on screen, in pixels.
+const DEBUG_SPOT := Vector2(64.0, 64.0)
 const HINTS := {
 	&"heat_zone":
 	{
@@ -83,6 +92,16 @@ const HINTS := {
 		text = "Your active quests show up here.",
 		side = GuideCard.Side.LEFT,
 	},
+	&"jump":
+	{
+		title = "Next star system",
+		text =
+		(
+			"Keep working this system as long as you like. When you're ready, jump to the "
+			+ "next one from here. Anyone still on your bus stays behind."
+		),
+		side = GuideCard.Side.LEFT,
+	},
 }
 
 ## The card the hints show on: its own, never the tutorial's.
@@ -104,6 +123,12 @@ var _between := false
 var _seen: Dictionary[StringName, bool] = {}
 # The dim over the rest of the screen, beside the card, made when the first hint shows.
 var _dim: HintDim
+# What finds each hint's target for the debug panel, by hint, and the hints it is showing
+# or has waiting, which aren't kept as seen.
+var _debug_targets: Dictionary[StringName, Callable] = {}
+var _forced: Dictionary[StringName, bool] = {}
+# The spot in the middle of the screen, made the first time the debug panel needs it.
+var _debug_spot: Control
 
 
 func _ready() -> void:
@@ -111,6 +136,8 @@ func _ready() -> void:
 	guide.ring = true
 	guide.acknowledged.connect(_on_acknowledged)
 	DebugPanel.add_button("Forget hints", _debug_forget_hints, self)
+	for hint: StringName in HINTS:
+		DebugPanel.add_button(HINTS[hint].title, _debug_show.bind(hint), self, DEBUG_GROUP)
 
 
 # The pause and the muffled music are the hints', so they go with the scene.
@@ -124,17 +151,41 @@ func _exit_tree() -> void:
 ## every frame can stop; one that wasn't taken may be offered again.
 func offer(hint: StringName, target: Control) -> bool:
 	assert(HINTS.has(hint), "No feature hint named %s" % hint)
-	if hint == _showing or _waiting.any(func(entry: Dictionary) -> bool: return entry.hint == hint):
+	if _is_taken(hint):
 		return true
 	if (saver and not saver.is_saved_run()) or (tutorial and tutorial.is_running()):
 		return false
-	if _has_seen(hint) or not is_instance_valid(target) or not target.is_visible_in_tree():
+	if _has_seen(hint) or not _is_on_screen(target):
 		return false
+	_take(hint, target)
+	return true
+
+
+## Tells the debug panel's button for [param hint] where the hint's target is:
+## [param finder] takes nothing and returns the [Control] the hint would point at now, or
+## null when there is none.
+func set_debug_target(hint: StringName, finder: Callable) -> void:
+	assert(HINTS.has(hint), "No feature hint named %s" % hint)
+	_debug_targets[hint] = finder
+
+
+# Whether the hint [param hint] is showing or waiting its turn.
+func _is_taken(hint: StringName) -> bool:
+	return (
+		hint == _showing or _waiting.any(func(entry: Dictionary) -> bool: return entry.hint == hint)
+	)
+
+
+func _is_on_screen(target: Control) -> bool:
+	return is_instance_valid(target) and target.is_visible_in_tree()
+
+
+# Shows the hint [param hint] on [param target], or has it wait its turn.
+func _take(hint: StringName, target: Control) -> void:
 	if not _showing.is_empty() or _between:
 		_waiting.append({hint = hint, target = target})
-		return true
-	_show(hint, target)
-	return true
+	else:
+		_show(hint, target)
 
 
 # Whether the player has closed the hint [param hint].
@@ -144,13 +195,24 @@ func _has_seen(hint: StringName) -> bool:
 	return _seen[hint]
 
 
+## Whether the player has been taught the feature of the hint [param hint]: they have
+## closed it, or this run shows no hints, as one the main menu didn't start, so what waits
+## on the hint doesn't wait forever.
+func has_taught(hint: StringName) -> bool:
+	assert(HINTS.has(hint), "No feature hint named %s" % hint)
+	if saver and not saver.is_saved_run():
+		return true
+	return _has_seen(hint)
+
+
 ## Whether a hint is showing.
 func is_showing() -> bool:
 	return not _showing.is_empty()
 
 
 func _show(hint: StringName, target: Control) -> void:
-	if not is_instance_valid(target) or not target.is_visible_in_tree():
+	if not _is_on_screen(target):
+		_forced.erase(hint)
 		_show_next()
 		return
 	var card: Dictionary = HINTS[hint]
@@ -173,8 +235,9 @@ func _show(hint: StringName, target: Control) -> void:
 
 # Kept as seen only once closed, so a run left with a hint showing shows it again.
 func _on_acknowledged() -> void:
-	SaveGame.mark_hint_seen(_showing)
-	_seen[_showing] = true
+	if not _forced.erase(_showing):
+		SaveGame.mark_hint_seen(_showing)
+		_seen[_showing] = true
 	_showing = &""
 	guide.close()
 	if _waiting.is_empty():
@@ -204,6 +267,34 @@ func _let_go() -> void:
 	Audio.muffle_music(false)
 	if is_instance_valid(_dim):
 		_dim.fade_out()
+
+
+# The debug panel's Hints buttons, one per hint by its title: the hint at once, on its
+# target or on the spot in the middle of the screen.
+func _debug_show(hint: StringName) -> void:
+	if _is_taken(hint):
+		return
+	var target: Control = null
+	if _debug_targets.has(hint):
+		target = _debug_targets[hint].call()
+	if not _is_on_screen(target):
+		target = _get_debug_spot()
+	_forced[hint] = true
+	_take(hint, target)
+
+
+func _get_debug_spot() -> Control:
+	if not is_instance_valid(_debug_spot):
+		_debug_spot = Control.new()
+		_debug_spot.name = "DebugHintSpot"
+		_debug_spot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		guide.add_sibling(_debug_spot)
+		_debug_spot.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		_debug_spot.offset_left = -DEBUG_SPOT.x / 2.0
+		_debug_spot.offset_top = -DEBUG_SPOT.y / 2.0
+		_debug_spot.offset_right = DEBUG_SPOT.x / 2.0
+		_debug_spot.offset_bottom = DEBUG_SPOT.y / 2.0
+	return _debug_spot
 
 
 # The debug panel's Forget hints: every hint shows again the next time it is offered.

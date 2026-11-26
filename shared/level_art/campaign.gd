@@ -1,7 +1,7 @@
 class_name Campaign
 ## The levels, played in order, and how far through them the player has got. A level is a
-## stage of the one run, in its own star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in
-## Draco. It is done once a promotion there opens the next system, and the next level is
+## stage of the one run, in its own star system: Level 1 in Vela, Level 2 in Lyra, Level 3 in
+## Sol. It is done once a promotion there opens the next system, and the next level is
 ## open once the one before is done. The run as each level began is kept, so a level can be
 ## restarted or played again with what was earned before it; starting one over replaces the
 ## run, and how far the player has got stays.

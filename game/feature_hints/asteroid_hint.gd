@@ -18,6 +18,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size = SPOT
 	field.entered_rocks.connect(_on_entered_rocks)
+	hints.set_debug_target(&"asteroid_field", _debug_target)
 
 
 func _process(_delta: float) -> void:
@@ -29,6 +30,12 @@ func _on_entered_rocks() -> void:
 	if hints.offer(&"asteroid_field", self):
 		field.entered_rocks.disconnect(_on_entered_rocks)
 		set_process(false)
+
+
+# The debug panel's asteroid field hint: on the bus where it is now.
+func _debug_target() -> Control:
+	_follow()
+	return self
 
 
 # Centres the spot on the bus on screen.

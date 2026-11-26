@@ -345,6 +345,7 @@ func _start_passengers() -> void:
 	(%Goals as GoalTracker).ledger = _ledger
 	var progression := %Progression as Progression
 	progression.ledger = _ledger
+	(%CapsuleField as CapsuleField).ledger = _ledger
 	if not (%MapZoom as MapZoom).is_zoomed():
 		progression.start()
 	var lab := %ResearchLab as ResearchLab
@@ -430,7 +431,7 @@ func _on_kicked(passenger: Passenger) -> void:
 	figure.light_source = bus.get_model().light_source
 	add_child(figure)
 	var door := bus.global_transform * FrameshiftBus.DOOR
-	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color)
+	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color, passenger)
 
 
 # The bus jumps to the next star system: whatever is open closes.

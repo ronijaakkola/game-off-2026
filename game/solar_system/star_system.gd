@@ -59,6 +59,10 @@ extends Node3D
 var _planets: Array[Planet] = []
 
 
+func _ready() -> void:
+	_get_planets()
+
+
 func _process(_delta: float) -> void:
 	for planet: Planet in _get_planets():
 		planet.light_source = global_position
@@ -83,5 +87,6 @@ func _get_planets() -> Array[Planet]:
 func _collect(node: Node) -> void:
 	for child: Node in node.get_children():
 		if child is Planet:
+			(child as Planet).star_system = self
 			_planets.append(child as Planet)
 		_collect(child)

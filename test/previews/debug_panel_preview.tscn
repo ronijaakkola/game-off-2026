@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://caaq38r3r3sba"]
+
+[ext_resource type="Script" uid="uid://rynqwrw4t1s8" path="res://test/previews/debug_panel_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="2_system"]
+
+[node name="DebugPanelPreview" type="Node" unique_id=628089098]
+script = ExtResource("1_preview")
+
+[node name="SolarSystem" parent="." unique_id=74510117 instance=ExtResource("2_system")]
