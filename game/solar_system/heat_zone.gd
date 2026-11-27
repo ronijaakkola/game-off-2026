@@ -40,6 +40,8 @@ const FADE_SECONDS := 0.8
 @export var zone: MeshInstance3D
 
 var _time := 0.0
+# Seconds of play the smoke has drifted for, which stops while the game is paused.
+var _smoke_time := 0.0
 # The system whose star heats the bus now.
 var _system: StarSystem
 # How strong the pulse is now, easing toward what where the bus is calls for.
@@ -154,3 +156,5 @@ func _pulse(delta: float, target: float) -> void:
 	var material := zone.material_override as ShaderMaterial
 	ShaderValues.show(material, &"flash", _flash * pulse)
 	ShaderValues.show(material, &"drift", 0.0 if Settings.reduce_motion else 1.0)
+	_smoke_time += delta
+	ShaderValues.show(material, &"smoke_time", _smoke_time)

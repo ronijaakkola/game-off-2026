@@ -80,6 +80,7 @@
 [ext_resource type="Script" uid="uid://o5kmnues1lus" path="res://game/quests/vip_calls.gd" id="170_vip_calls"]
 [ext_resource type="Script" uid="uid://b1fajbmbhyo5" path="res://game/solar_system/system_music.gd" id="190_music"]
 [ext_resource type="Script" uid="uid://j5l1q4r68cgx" path="res://game/solar_system/star_chart.gd" id="200_star_chart"]
+[ext_resource type="Script" uid="uid://vt32sfu7gpqh" path="res://game/solar_system/fast_forward.gd" id="ff_fast_forward"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -448,7 +449,7 @@ sound = ExtResource("106_fuel_sound")
 bus = NodePath("../Bus")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 
-[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "new_run_planet", "cabin", "goals", "quest_giver", "vips", "research_lab", "star_map", "capsules")]
+[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "new_run_planet", "cabin", "goals", "quest_giver", "vips", "research_lab", "star_map", "capsules", "fast_forward")]
 unique_name_in_owner = true
 script = ExtResource("108_saver")
 bus = NodePath("../Bus")
@@ -460,6 +461,14 @@ vips = NodePath("../VipCalls")
 research_lab = NodePath("../ResearchLab")
 star_map = NodePath("../StarMap")
 capsules = NodePath("../CapsuleField")
+fast_forward = NodePath("../FastForward")
+
+[node name="FastForward" type="Node" parent="." unique_id=921399770 node_paths=PackedStringArray("star_map", "research_lab", "waiting", "progression")]
+script = ExtResource("ff_fast_forward")
+star_map = NodePath("../StarMap")
+research_lab = NodePath("../ResearchLab")
+waiting = NodePath("../WaitingPassengers")
+progression = NodePath("../Progression")
 
 [node name="ResearchLab" type="Node" parent="." unique_id=307829380 node_paths=PackedStringArray("bus", "resource_bar", "research_screen")]
 unique_name_in_owner = true
