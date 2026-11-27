@@ -66,7 +66,7 @@ const CARDS := {
 		title = "Set a course",
 		text =
 		"Your passenger wants to go to {destination}. Right click {mouse_right} it to set a course.",
-		side = GuideCard.Side.LEFT,
+		side = GuideCard.Side.ABOVE,
 		got_it = false,
 		ring = true,
 	},

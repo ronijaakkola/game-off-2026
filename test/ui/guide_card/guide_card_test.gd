@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## A tutorial step's guide card has a Got it button only when the step asks for one, and
 ## pressing it says the card was read. A card given shorter text shrinks to fit it, as the
-## one card the tutorial reuses for every step does.
+## one card the tutorial reuses for every step does. A card with no room on its side of
+## the target, or that would cover the spot it keeps off, sits on the opposite one.
 
 const SCENE := "res://ui/guide_card/guide_card.tscn"
 
@@ -57,3 +58,41 @@ func test_a_card_given_shorter_text_shrinks_to_fit_it() -> void:
 	card.text = "Fresh."
 	await runner.simulate_frames(5)
 	assert_float(card.size.y).is_equal_approx(short_height, 0.5)
+
+
+func test_a_card_with_no_room_on_its_side_sits_on_the_opposite_one() -> void:
+	var runner := scene_runner(SCENE)
+	var card := runner.scene() as GuideCard
+	card.text = "Your passenger wants to go to the Moon."
+	card.side = GuideCard.Side.ABOVE
+	# Too near the top for the card above it.
+	var target := Rect2(500, 40, 40, 40)
+	card.target_rect = target
+	card.open()
+	await runner.simulate_frames(30)
+	assert_float(card.position.y).is_greater_equal(target.end.y)
+
+	# With room above again, it goes back there.
+	target = Rect2(500, 400, 40, 40)
+	card.target_rect = target
+	await runner.simulate_frames(5)
+	assert_float(card.get_rect().end.y).is_less_equal(target.position.y)
+
+
+func test_a_card_that_would_cover_its_avoided_spot_sits_on_the_opposite_side() -> void:
+	var runner := scene_runner(SCENE)
+	var card := runner.scene() as GuideCard
+	card.text = "Your passenger wants to go to the Moon."
+	card.side = GuideCard.Side.ABOVE
+	var target := Rect2(500, 300, 40, 40)
+	card.target_rect = target
+	# The bus, up and to the left of the Moon, under where the card would sit above it.
+	card.avoid_rect = Rect2(420, 230, 20, 20)
+	card.open()
+	await runner.simulate_frames(30)
+	assert_float(card.position.y).is_greater_equal(target.end.y)
+
+	# Once the bus is clear of it, it goes back above.
+	card.avoid_rect = Rect2(100, 230, 20, 20)
+	await runner.simulate_frames(5)
+	assert_float(card.get_rect().end.y).is_less_equal(target.position.y)

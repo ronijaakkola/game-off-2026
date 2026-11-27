@@ -10,10 +10,11 @@ extends PanelContainer
 ## shows a "Game paused" tag and a Got it button, which emits [signal acknowledged]; its
 ## owner pauses and resumes the game. A tutorial step with [member got_it] has the Got it
 ## button too, beside its step dots. It works while the game is paused.
-## It sits on the [member side] of its target that its owner gives, follows the target as
-## it moves, stays [constant SCREEN_MARGIN] pixels inside the screen, and slides its notch
-## along its edge to stay on the target. It is top-level, so a Container holding it gives
-## it no room. Only the Got it button takes the pointer.
+## It sits on the [member side] of its target that its owner gives, or on the opposite
+## side while only that one has room on screen and keeps off [member avoid_rect], follows
+## the target as it moves, stays [constant SCREEN_MARGIN] pixels inside the screen, and
+## slides its notch along its edge to stay on the target. It is top-level, so a Container
+## holding it gives it no room. Only the Got it button takes the pointer.
 ## It opens and closes as a [Tooltip] does, with the tooltip's own timings: opening, it
 ## slides out from the target into place while fading in and growing out of its notch;
 ## closing, it only fades and shrinks back. Either turns round from where it is. Just
@@ -29,6 +30,13 @@ signal acknowledged
 enum Kind { TUTORIAL_STEP = 0, FEATURE_HINT = 1 }
 ## Which side of the target the card sits on. The notch is on the edge facing it.
 enum Side { BELOW = 0, ABOVE = 1, LEFT = 2, RIGHT = 3 }
+## Each side's opposite.
+const OPPOSITE := {
+	Side.BELOW: Side.ABOVE,
+	Side.ABOVE: Side.BELOW,
+	Side.LEFT: Side.RIGHT,
+	Side.RIGHT: Side.LEFT,
+}
 
 ## The card's width, in pixels. It grows downward to fit its text.
 const WIDTH := 256.0
@@ -98,9 +106,16 @@ const DOT_TO_COME := Color(1, 1, 1, 0.141)
 ## The target on screen, in the viewport's pixels, when [member target] is null, such as a
 ## planet's outline. Its owner updates it as the target moves.
 var target_rect := Rect2()
+## Something on screen the card keeps off, in the viewport's pixels, such as the bus: while
+## the card would cover it on its [member side] and not on the opposite side, it sits on
+## that one. Its owner updates it as it moves; an empty rect keeps off nothing.
+var avoid_rect := Rect2()
 
 # Where along the facing edge the notch's middle sits, from the edge's start, in pixels.
 var _notch_at := WIDTH * 0.5
+# The side it sits on now: [member side], or its opposite while only that one has room
+# and keeps off avoid_rect.
+var _facing: GuideCard.Side = Side.BELOW
 var _open := false
 # How far toward the target it still is: 1 before it opens, 0 in place.
 var _slide := 1.0
@@ -265,29 +280,24 @@ func _draw_step_dots() -> void:
 		x += diameter + DOT_GAP
 
 
-# Beside the target on its side, the notch's tip TIP_GAP from it and centred on it, or as
-# near as the screen's edges let it; then the notch slides to stay on the target.
+# Beside the target on its side, or the opposite one while only that suits it, the
+# notch's tip TIP_GAP from it and centred on it, or as near as the screen's edges let it;
+# then the notch slides to stay on the target.
 func _place() -> void:
 	var rect := target.get_global_rect() if target else target_rect
 	_ring.target_rect = rect
 	_ring.circle = target == null
 	var screen := get_viewport_rect().size
-	var centre := rect.get_center()
-	var away := TIP_GAP + NOTCH_LENGTH
-	var at := Vector2.ZERO
-	match side:
-		Side.BELOW:
-			at = Vector2(centre.x - size.x * 0.5, rect.end.y + away)
-		Side.ABOVE:
-			at = Vector2(centre.x - size.x * 0.5, rect.position.y - away - size.y)
-		Side.LEFT:
-			at = Vector2(rect.position.x - away - size.x, centre.y - size.y * 0.5)
-		Side.RIGHT:
-			at = Vector2(rect.end.x + away, centre.y - size.y * 0.5)
+	_facing = side
+	var opposite: GuideCard.Side = OPPOSITE[side]
+	if not _suits(rect, side, screen) and _suits(rect, opposite, screen):
+		_facing = opposite
+	var at := _spot(rect, _facing)
 	var most := screen - size - Vector2.ONE * SCREEN_MARGIN
 	at = at.clamp(Vector2.ONE * SCREEN_MARGIN, most.max(Vector2.ONE * SCREEN_MARGIN))
 	position = at.round()
-	var vertical := side in [Side.BELOW, Side.ABOVE]
+	var centre := rect.get_center()
+	var vertical := _facing in [Side.BELOW, Side.ABOVE]
 	var along := centre.x - position.x if vertical else centre.y - position.y
 	var length := size.x if vertical else size.y
 	_notch_at = clampf(along, NOTCH_CORNER_MARGIN, length - NOTCH_CORNER_MARGIN)
@@ -297,9 +307,35 @@ func _place() -> void:
 	queue_redraw()
 
 
+# Its top left corner on [param on] of [param rect], centred on it, before the screen's
+# edges move it.
+func _spot(rect: Rect2, on: GuideCard.Side) -> Vector2:
+	var centre := rect.get_center()
+	var away := TIP_GAP + NOTCH_LENGTH
+	match on:
+		Side.BELOW:
+			return Vector2(centre.x - size.x * 0.5, rect.end.y + away)
+		Side.ABOVE:
+			return Vector2(centre.x - size.x * 0.5, rect.position.y - away - size.y)
+		Side.LEFT:
+			return Vector2(rect.position.x - away - size.x, centre.y - size.y * 0.5)
+	return Vector2(rect.end.x + away, centre.y - size.y * 0.5)
+
+
+# Whether the card on [param on] of [param rect] keeps off avoid_rect and is SCREEN_MARGIN
+# inside the screen across its facing edge: sliding along that edge keeps the notch on the
+# target, but moving across it would cover the target.
+func _suits(rect: Rect2, on: GuideCard.Side, screen: Vector2) -> bool:
+	var at := _spot(rect, on)
+	if avoid_rect.has_area() and Rect2(at, size).intersects(avoid_rect):
+		return false
+	var axis := 1 if on in [Side.BELOW, Side.ABOVE] else 0
+	return at[axis] >= SCREEN_MARGIN and at[axis] + size[axis] <= screen[axis] - SCREEN_MARGIN
+
+
 # A point given along the facing edge and out from it, in the card's own pixels.
 func _edge_point(along: float, out: float) -> Vector2:
-	match side:
+	match _facing:
 		Side.BELOW:
 			return Vector2(along, -out)
 		Side.ABOVE:
