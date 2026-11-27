@@ -91,8 +91,12 @@ func test_every_kind_of_quest_under_way_comes_back_from_a_save() -> void:
 			(quest as ErrandQuest).planet = planet
 		elif quest is ExpressQuest:
 			(quest as ExpressQuest).planet = planet
+		passenger.tour = Tour.new([passenger.destination]) if quest is VipTourQuest else null
 		quest.reward_credits = 100
 		quest.accept()
+		if quest is VipTourQuest:
+			# A save keeps a tour only once they are on board.
+			(quest.goal as VipTourGoal).boarded = true
 		giver.take_on(quest)
 		var saved := giver.to_save(on_board)
 		cabin.fondness.forget(passenger)

@@ -16,6 +16,8 @@ extends Resource
 @export_range(0.0, 5.0, 0.05) var fare_multiplier := 1.0
 ## The research points they earn when delivered.
 @export_range(0, 10, 1) var research_points := 1
+## How many seats on the bus they take.
+@export_range(1, 4, 1) var seats := 1
 ## How long they expect the ride to take, as a multiple of the direct trip time. Their
 ## timing only starts to cost happiness past it.
 @export_range(1.0, 5.0, 0.05) var slack := 1.5
@@ -61,6 +63,9 @@ extends Resource
 @export var quest_done_lines: Array[String] = []
 ## The names a passenger of this type picks from.
 @export var names: Array[String] = ["Passenger"]
+## The titles one of this type goes by, one of them picked to go before their name
+## ("Baron Vontti"), or none for a plain name.
+@export var titles: Array[String] = []
 
 
 ## The idle lines a passenger of this type picks from, a copy: while [param docked], the

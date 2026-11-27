@@ -51,6 +51,13 @@ func refresh() -> void:
 		return
 	var goal := quest.goal
 	var failed := goal.state == Goal.State.FAILED
+	(%AskLabel as Label).text = quest.get_ask()
+	var planet := quest.get_planet()
+	(%PlanetIcon as PlanetIcon).planet = planet
+	(%PlanetLabel as Label).visible = planet != null
+	if planet:
+		var named := planet.display_name if planet.display_name else String(planet.name)
+		(%PlanetLabel as Label).text = named
 	var icon := %Icon as TextureRect
 	icon.texture = CIRCLE
 	icon.self_modulate = UNDER_WAY_COLOR
@@ -66,17 +73,10 @@ func refresh() -> void:
 	(%Reward as Control).visible = not failed
 
 
-# What never changes while the quest shows: what it asks, who asked and the reward.
+# What never changes while the quest shows: who asked and the reward.
 func _fill() -> void:
 	if not quest:
 		return
-	(%AskLabel as Label).text = quest.get_ask()
-	var planet := quest.get_planet()
-	(%PlanetIcon as PlanetIcon).planet = planet
-	(%PlanetLabel as Label).visible = planet != null
-	if planet:
-		var named := planet.display_name if planet.display_name else String(planet.name)
-		(%PlanetLabel as Label).text = named
 	(%Photo as PassengerPhoto).passenger = quest.passenger
 	var reward := %Reward as Control
 	for part: Node in reward.get_children():

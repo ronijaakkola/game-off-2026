@@ -1,7 +1,9 @@
 class_name DestinationGroup
 extends VBoxContainer
 ## The On board panel's passengers going to one planet: a header with the planet's icon,
-## its name, a rule and how many on board are going there, then their cards. The header
+## its name, a rule and how many on board are going there, then their cards. With no planet
+## it is the VIP group: a gold star and "VIP", and under a VIP's card the stops of their
+## tour ([TourStrip]). The header
 ## holds the gap above the group, and each card the gap above itself, so the header opens
 ## with the group's first card ([method fade_in]) and, as the last card's place folds,
 ## [method fold_away] folds it with it, gap and all, and the groups below move up smoothly.
@@ -11,13 +13,19 @@ signal emptied
 ## The group has folded away after [method fold_away]. It can be freed.
 signal folded
 
-## The planet its passengers are going to.
+## What the VIP group's header says, and its star.
+const VIP_TEXT := "VIP"
+const STAR := preload("res://shared/icons/star.svg")
+const STAR_SIZE := 10.0
+
+## The planet its passengers are going to. None makes it the VIP group.
 var planet: Planet:
 	set(value):
 		planet = value
 		if is_node_ready():
 			_show_planet()
 
+var _star: TextureRect
 var _fold := 1.0
 # How many of its cards have slid out and are folding away.
 var _folding := 0
@@ -40,6 +48,12 @@ func add_card(card: PassengerCard) -> void:
 	card.slid_out.connect(_on_card_slid_out)
 	card.left.connect(_on_card_left.bind(card))
 	%GroupCards.add_child(card)
+	if card.passenger and card.passenger.tour:
+		var strip := TourStrip.new()
+		strip.passenger = card.passenger
+		card.slid_out.connect(strip.queue_free)
+		add_child(strip)
+		strip.fade_in()
 
 
 ## Shows [param count] passengers on board going to [member planet].
@@ -95,7 +109,18 @@ func _show_planet() -> void:
 	(%DestinationPlanetIcon as PlanetIcon).planet = planet
 	var label := %PlanetLabel as Label
 	if not planet:
-		label.text = "?"
+		label.text = VIP_TEXT
+		label.add_theme_color_override(&"font_color", Vip.GOLD)
+		(%CountLabel as Control).hide()
+		if not _star:
+			_star = TextureRect.new()
+			_star.texture = STAR
+			_star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			_star.custom_minimum_size = Vector2.ONE * STAR_SIZE
+			_star.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			_star.self_modulate = Vip.GOLD
+			_star.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			(%DestinationPlanetIcon as Control).add_sibling(_star)
 	elif planet.display_name:
 		label.text = planet.display_name
 	else:

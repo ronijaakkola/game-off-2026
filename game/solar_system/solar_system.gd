@@ -403,12 +403,12 @@ func _on_board_pressed(passenger: Passenger) -> void:
 	var bus := %Bus as FrameshiftBus
 	var cabin := %Cabin as Cabin
 	var planet := bus.get_docked_planet()
-	if not planet or not bus.is_at_planet() or cabin.get_free_seats() <= 0:
+	if not planet or not bus.is_at_planet() or not Seating.can_pick_up(cabin, passenger):
 		return
 	if not (%WaitingPassengers as WaitingPassengers).take(planet, passenger):
 		return
 	bus.boarding = true
-	cabin.pick_up(passenger)
+	Seating.pick_up(cabin, passenger)
 
 
 # The dock panel's Research button: opens the research screen on every tree.

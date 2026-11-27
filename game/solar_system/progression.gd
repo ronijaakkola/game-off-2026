@@ -10,8 +10,10 @@ extends Node
 ## that takes the jump whenever the player presses it. There the lines start at the new system's
 ## planets, its goals replace the old ones, and The Boss calls about the system
 ## ([FirstShiftCall]); a few deliveries later the mechanic calls with the next research
-## stage ([MechanicCall]). The promotion in the last system joins every system instead:
-## lines start at every planet, passengers go anywhere, and the last goals come.
+## stage ([MechanicCall]). Where VIPs call, a goal for VIPs delivered on time joins them
+## once VIPs start calling ([VipCalls]). The promotion in the last system joins every
+## system instead: lines start at every planet, passengers go anywhere, and the last goals
+## come.
 ## The debug panel's Progress card has The Boss call at once, or completes the system:
 ## promoted, the bus jumps to the next one at once, as answering the call does. The tutorial
 ## puts its Skip tutorial there too.
@@ -38,6 +40,8 @@ const DEBUG_GROUP := "Progress"
 @export var goals: GoalTracker
 @export var waiting: WaitingPassengers
 @export var quest_giver: QuestGiver
+## Has VIPs call in the star system they live in.
+@export var vips: VipCalls
 ## Its capsules start afresh in each system, paying by it.
 @export var capsules: CapsuleField
 @export var notices: NoticeStack
@@ -75,6 +79,8 @@ func _ready() -> void:
 	system_jump.crossed.connect(_on_crossed)
 	system_jump.finished.connect(_on_jumped)
 	arrival_call.closed.connect(_on_arrival_call_closed)
+	if vips:
+		vips.unlocked.connect(_add_vip_goal)
 	_debug_buttons.append(DebugPanel.add_button(DEBUG_CALL_TEXT, _ring, self, DEBUG_GROUP))
 	var complete := _debug_complete_system
 	_debug_buttons.append(DebugPanel.add_button(DEBUG_COMPLETE_TEXT, complete, self, DEBUG_GROUP))
@@ -97,6 +103,8 @@ func _process(delta: float) -> void:
 		and not system_jump.is_jumping()
 		and not goals.frozen
 		and goals.are_all_met()
+		# What meeting the last system's goals does isn't decided yet: nothing, for now.
+		and not _is_last()
 	)
 	_met_seconds = _met_seconds + delta if counting else 0.0
 	if _met_seconds >= CALL_DELAY and not quest_giver.is_calling():
@@ -196,6 +204,11 @@ func _start_quests(planets: Array[Planet]) -> void:
 	if star_map.is_joined():
 		level = systems.size() - 1
 	quest_giver.start(planets, ledger, waiting, level)
+	if vips:
+		# Once the systems are joined nobody calls, a VIP neither.
+		var vip_level := -1 if star_map.is_joined() else level
+		vips.start(planets, ledger, waiting, vip_level)
+		quest_giver.vips_call = vip_level == VipCalls.LEVEL
 	if capsules:
 		capsules.start(ledger, level)
 
@@ -221,7 +234,20 @@ func _add_goals() -> void:
 	if not star_map.is_joined() and star_map.get_current().business_deliveries > 0:
 		var business := star_map.get_current().business_deliveries
 		goals.add(DeliveryCountGoal.new(business, waiting.business))
-	goals.add(RatingGoal.new(rating))
+	if not star_map.is_joined() and star_map.get_current().credits > 0:
+		goals.add(EarnCreditsGoal.new(star_map.get_current().credits))
+	if rating > 0.0:
+		goals.add(RatingGoal.new(rating))
+	if vips and vips.is_unlocked():
+		_add_vip_goal()
+
+
+# Once VIPs call in the system the bus works in, its goals ask for some of them delivered on
+# time, when it has such a goal.
+func _add_vip_goal() -> void:
+	if star_map.is_joined() or goals.frozen or star_map.get_current().vip_deliveries <= 0:
+		return
+	goals.add(DeliveryCountGoal.new(star_map.get_current().vip_deliveries, Vip.TYPE, true))
 
 
 # The camera is over the new system: it becomes the one the bus works in, and its lines

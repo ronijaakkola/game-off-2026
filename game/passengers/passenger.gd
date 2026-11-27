@@ -124,6 +124,8 @@ var quest_line := ""
 ## there is no stop on the way to them, and ends the errand ([method pass_stop]). Whoever
 ## gives the quest sets it.
 var errand: Planet
+## The stops they want in order, for a VIP, or null for a ride to one place.
+var tour: Tour
 
 var _rng: RandomNumberGenerator
 # Seconds left of the current activity line.
@@ -160,7 +162,7 @@ func _init(
 	type = kind
 	destination = to
 	_rng = rng if rng else RandomNumberGenerator.new()
-	name = _pick(type.names)
+	name = " ".join([_pick(type.titles), _pick(type.names)]).strip_edges()
 	fare = base_fare * type.fare_multiplier
 	ride = RideProgress.new(trip_seconds, trip_seconds * type.slack, type.stop_tolerance)
 	_appetite = Appetite.new(type.needs, type.need_interval_scale, _rng)
@@ -197,6 +199,7 @@ static func from_save(
 	passenger.quick_bonus = float(saved.get("quick_bonus", 0.0))
 	passenger.quest_bonus = float(saved.get("quest_bonus", 0.0))
 	passenger.returning = bool(saved.get("returning", false))
+	passenger.tour = Tour.from_save(saved.get("tour", {}), planets)
 	passenger.activity = ""
 	passenger._activity_left = 0.0
 	passenger._departed = bool(saved.get("departed", false))
@@ -346,8 +349,9 @@ func arrive() -> void:
 ## Runs [param delta] seconds of the ride, on a bus giving [param comfort]. A need that
 ## comes up opens a request only while [param can_ask]. Happiness, the ride clock and the
 ## needs' timers hold until [method depart] and while the bus is [param docked], and the
-## first two while [param holds] too (the bus parks). The clock runs as the comfort says
-## while asleep or watching a show. Needs wait while they sleep, so a sleep runs its
+## first two while [param holds] too (the bus parks). A VIP on a [Tour] doesn't want to
+## wait: their clock runs on through both. The clock runs as the comfort says while asleep
+## or watching a show. Needs wait while they sleep, so a sleep runs its
 ## length, but not while they watch: a request stops the show. While a request is being
 ## fed, happiness holds. While the bus is docked or parks, no request opens, but one
 ## already open stays open and can be served. A request saved on hold opens again.
@@ -366,7 +370,7 @@ func tick(
 	var fed := being_fed and request != null
 	being_fed = false
 	trend = 0.0
-	if _departed and not stopped:
+	if _departed and (not stopped or tour):
 		var rate := 1.0
 		if asleep:
 			rate = giving.sleep_clock
@@ -376,6 +380,7 @@ func tick(
 		ride.run(delta * rate, happiness)
 		if not was_late and ride.get_late_seconds() > 0.0:
 			_complain(type.late_lines, COMPLAINT_SECONDS)
+	if _departed and not stopped:
 		# A request on its way holds them where they are: they can see it coming.
 		var target := happiness if fed else get_target(giving)
 		var speed := CLIMB_RATE if target >= happiness else FALL_RATE
@@ -445,6 +450,7 @@ func to_save() -> Dictionary:
 		"quick_bonus": quick_bonus,
 		"quest_bonus": quest_bonus,
 		"returning": returning,
+		"tour": tour.to_save() if tour else {},
 	}
 
 

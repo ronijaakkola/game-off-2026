@@ -60,6 +60,14 @@ func refresh() -> void:
 		var count := goal as DeliveryCountGoal
 		value.text = "%d/%d" % [mini(count.delivered, count.target), count.target]
 		bar.value = goal.get_progress()
+	elif goal is EarnCreditsGoal:
+		var credits := goal as EarnCreditsGoal
+		var earned := mini(credits.earned, credits.target)
+		value.text = (
+			"%s/%s"
+			% [CreditsCounter.format_credits(earned), CreditsCounter.format_credits(credits.target)]
+		)
+		bar.value = goal.get_progress()
 	elif goal is RatingGoal:
 		var rating := goal as RatingGoal
 		value.text = "%.1f" % rating.rating if rating.rides > 0 else NO_RATING

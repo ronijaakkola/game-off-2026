@@ -1,7 +1,8 @@
 class_name PassengerPanel
 extends MarginContainer
 ## The On board panel in the top left corner: how many seats are taken, then a card for each
-## passenger in [member cabin], grouped by where they are going ([DestinationGroup]). The
+## passenger in [member cabin], grouped by where they are going ([DestinationGroup]), a VIP
+## on a tour in a group of their own on top. The
 ## groups run in the order their planet first came up among those on board, and each
 ## group's cards in the order they boarded. A passenger who boards slides in from the left
 ## at the bottom of their group, or of a new group at the bottom. When the bus stops at
@@ -82,7 +83,7 @@ func _process(_delta: float) -> void:
 	(%Cards as Control).visible = (%Cards as Control).get_child_count() > 0
 	if not cabin:
 		return
-	var shown := Vector2i(cabin.get_passengers().size(), cabin.seats)
+	var shown := Vector2i(Seating.count(cabin.get_passengers()), cabin.seats)
 	if shown != _seats_shown:
 		_seats_shown = shown
 		(%SeatLabel as Label).text = "%d/%d" % [shown.x, shown.y]
@@ -114,10 +115,10 @@ func _on_boarded(passenger: Passenger) -> void:
 	if arrivals_held:
 		_held.append(passenger)
 		return
-	var new_group := not _groups.has(passenger.destination)
+	var new_group := not _groups.has(_get_key(passenger))
 	_add_card(passenger).slide_in()
 	if new_group:
-		_groups[passenger.destination].fade_in()
+		_groups[_get_key(passenger)].fade_in()
 	_show_counts()
 
 
@@ -134,11 +135,18 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	if not passenger.rerouted.is_connected(on_rerouted):
 		passenger.rerouted.connect(on_rerouted)
 	_cards[passenger] = card
-	_group_for(passenger.destination).add_card(card)
+	_group_for(_get_key(passenger)).add_card(card)
 	return card
 
 
-# The group for those going to [param planet], made at the bottom if there is none yet.
+# Which group [param passenger]'s card is in: their destination's, or for a VIP on a tour
+# the VIP group, which has no planet.
+func _get_key(passenger: Passenger) -> Planet:
+	return null if passenger.tour else passenger.destination
+
+
+# The group for those going to [param planet], made at the bottom if there is none yet. The
+# VIP group, with no planet, goes on top.
 func _group_for(planet: Planet) -> DestinationGroup:
 	var group: DestinationGroup = _groups.get(planet)
 	if group:
@@ -149,6 +157,8 @@ func _group_for(planet: Planet) -> DestinationGroup:
 	group.folded.connect(group.queue_free)
 	_groups[planet] = group
 	%Cards.add_child(group)
+	if not planet:
+		%Cards.move_child(group, 0)
 	return group
 
 
@@ -164,7 +174,7 @@ func _show_counts(keep_emptied := false) -> void:
 	for planet: Planet in _groups:
 		var count := 0
 		for passenger: Passenger in _cards:
-			if passenger.destination == planet:
+			if _get_key(passenger) == planet:
 				count += 1
 		if count > 0 or not keep_emptied:
 			_groups[planet].show_count(count)
@@ -205,7 +215,8 @@ func _on_gone(passenger: Passenger) -> void:
 # place opens as the old one folds.
 func _on_rerouted(passenger: Passenger) -> void:
 	var old: PassengerCard = _cards.get(passenger)
-	if not old:
+	# A VIP stays in their own group from one stop of their tour to the next.
+	if not old or passenger.tour:
 		return
 	_cards.erase(passenger)
 	var new_group := not _groups.has(passenger.destination)

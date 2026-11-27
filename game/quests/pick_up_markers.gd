@@ -2,8 +2,9 @@ class_name PickUpMarkers
 extends Control
 ## Over each planet where the player has to pick up one particular person, their
 ## [PickUpMarker]: the notch's tip [constant GAP_PIXELS] above the top of the planet's
-## whole shape on screen, rings included, at the same size at any zoom. Nothing in the game
-## shows one yet; the debug panel's Pick-up marker card does ([DebugButtons]).
+## whole shape on screen, rings included, at the same size at any zoom. A VIP the player
+## agreed to pick up has one ([VipCalls]), and the debug panel's Pick-up marker card shows
+## one ([DebugButtons]).
 ## The pointer on the planet, or on the closed card, opens it; once open, the whole open
 ## card keeps it open. It fades with the planet's name, and closes at once when that starts
 ## to fade, as when a planet's or the bus's panel opens. It places itself after the planets
@@ -70,6 +71,13 @@ func remove_marker(planet: Planet) -> void:
 		return
 	_markers.erase(planet)
 	marker.leave()
+
+
+## Shows on the marker over [param planet] how much of their wait is left, from 1 to 0.
+func set_time_left(planet: Planet, left: float) -> void:
+	var marker: PickUpMarker = _markers.get(planet)
+	if marker:
+		marker.time_left = left
 
 
 ## The marker over [param planet], or null, for a tooltip to open above.

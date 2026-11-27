@@ -156,6 +156,10 @@ _Never_: customer, rider, NPC
 A passenger who rated a ride five stars and turns up in a line again later, the same in name, race, look and type, with a badge on their portrait. They pay more, ride a little happier and are likelier to call with a quest. `Passenger.returning` in code; `ReturningPassengers` remembers who may come back.
 _Avoid_: regular, loyal passenger, repeat passenger
 
+**VIP**:
+A gold passenger with a star badge who calls the bus to pick them up at a planet and take them on a **tour**: several stops in order, the last where they get off. They never wait in a line. `Vip` and `Tour` in code; `VipCalls` has them call, and their quest is a `VipTourQuest`. A hand-written one, with a set title, name and call text, is a `CustomVip`.
+_Avoid_: celebrity, special passenger, itinerary (the tour)
+
 **Happiness**:
 How content a passenger is, from 0 to 100, starting the ride at, and then sliding toward, a **target** set by the bus's comfort and their open request, and holding while the bus is docked. A **shock** changes it at once, such as a kick scaring the rest, and so does their **timing** as they get off (how their ride compares with the trip time: arriving early adds to it). It sets the mood and the rating. `Passenger.happiness` in code.
 _Avoid_: satisfaction
@@ -191,7 +195,7 @@ Something the player is asked to do and the game tracks, several at a time: a **
 _Avoid_: objective, mission, achievement (a one-off reward, not something asked)
 
 **Quest**:
-What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); a **photo stop** has it come to rest in that zone; an **errand** has it stop at a planet before their own stop; a **warp** has it go through a warp gate with them on board; a **rock ride** has it fly among the asteroid field's rocks for a while, whose knocks lift them; a **sauna** has it run hot, past the gauge's green band, which lifts them; a **rescue** has the bus get a passenger picked up from a **capsule** to their destination in time; an **express** quest, no longer given, has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `PhotoStopQuest`, `ErrandQuest`, `WarpQuest`, `RockRideQuest`, `SaunaQuest`, `RescueQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
+What one passenger asks of the player mid-ride, in a transmission, for a reward. A **fly past** has the bus fly past a planet they want to see, through the zone shown round it (`FlybyZone`); a **photo stop** has it come to rest in that zone; an **errand** has it stop at a planet before their own stop; a **warp** has it go through a warp gate with them on board; a **rock ride** has it fly among the asteroid field's rocks for a while, whose knocks lift them; a **sauna** has it run hot, past the gauge's green band, which lifts them; a **rescue** has the bus get a passenger picked up from a **capsule** to their destination in time; a **VIP**'s tour has it pick them up at a planet and take them to every stop in order (`VipTourQuest`, offered by `VipCalls` from a planet, not by someone on board); an **express** quest, no longer given, has them change their destination and want it to be the bus's next stop. The player accepts or declines it; accepted, a goal tracks it, apart from the goals a promotion takes, and it is done or fails. `Quest` in code, with a kind each: `FlybyQuest`, `PhotoStopQuest`, `ErrandQuest`, `WarpQuest`, `RockRideQuest`, `SaunaQuest`, `RescueQuest`, `ExpressQuest`; the `QuestGiver` has passengers call, and tracks and pays the quest under way.
 _Avoid_: task, mission, errand (for any quest: it is the one kind)
 
 **Capsule**:

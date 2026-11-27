@@ -1,7 +1,8 @@
 class_name Goal
 extends RefCounted
 ## One thing the player is asked to do, tracked by the [GoalTracker], which tells every goal
-## what happens in the game: a passenger delivered or kicked, a rating counted, the bus
+## what happens in the game: a passenger delivered or kicked, a rating counted, credits
+## earned, the bus
 ## moving, docking, holding still, warping, flying among rocks or running hot. Each kind of
 ## goal overrides the facts it cares about.
 ## A [b]milestone[/b], such as delivering 50 passengers, is met once it is completed, and
@@ -80,6 +81,12 @@ func bus_docked(planet: Planet) -> void:
 		_on_bus_docked(planet)
 
 
+## The player earned [param amount] credits.
+func credits_earned(amount: int) -> void:
+	if is_active():
+		_on_credits_earned(amount)
+
+
 ## Every frame the bus holds still in space, at [param position] with [param on_board]
 ## riding.
 func bus_held(position: Vector3, on_board: Array[Passenger]) -> void:
@@ -134,6 +141,10 @@ func _on_bus_moved(_position: Vector3, _on_board: Array[Passenger], _in_flight: 
 
 
 func _on_bus_docked(_planet: Planet) -> void:
+	pass
+
+
+func _on_credits_earned(_amount: int) -> void:
 	pass
 
 

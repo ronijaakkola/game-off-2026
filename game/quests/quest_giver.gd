@@ -3,14 +3,11 @@ extends Node
 ## Gives the player quests. Every so often while the bus flies, once the player has
 ## delivered [constant FIRST_CALL_DELIVERIES] passengers, a passenger on board calls:
 ## an incoming transmission notice, whose Answer opens their [Quest]'s transmission. They
-## ask to fly past a planet ([FlybyQuest]) or to stop at one ([ErrandQuest]), as likely one
-## as the other. Past the first star system a Business passenger asks for an errand, a photo
-## stop ([PhotoStopQuest]) or a warp ([WarpQuest]) instead, and now and then for a ride
-## through the rocks ([RockRideQuest]) or a sauna ([SaunaQuest]); in the second, only
-## Business passengers call. Of those who can call, a returning passenger is likelier to
-## be the one. One
-## call or quest at a time: nobody calls while a quest is under way, and the wait until
-## the next call starts only once it has ended.
+## ask for whatever [QuestPicks] says suits them. Of those who can call, a returning
+## passenger is likelier to be the one. One call or quest at a time: nobody calls while a
+## quest is under way, and the wait until the next call starts only once it has ended. A
+## VIP's tour ([VipCalls]) is tracked apart from that one, so a passenger's quest and a tour
+## can be under way at once.
 ## A passenger picked up from a capsule adrift has their [RescueQuest]'s transmission open
 ## by itself, with no notice, [constant RESCUE_SECONDS] after ([method rescue]). They board
 ## only when the player accepts; declined, they stay adrift, at no cost.
@@ -40,6 +37,9 @@ signal quest_removed(quest: Quest)
 const FIRST_CALL_SECONDS := 30.0
 const CALL_MIN_SECONDS := 75.0
 const CALL_MAX_SECONDS := 120.0
+## How many times as long that wait is while [member vips_call], so passengers call less
+## often there.
+const VIP_LEVEL_WAIT := 1.5
 ## How many passengers the player has delivered before anyone calls.
 const FIRST_CALL_DELIVERIES := 13
 ## Until the player has delivered this many passengers, the wait from one call or quest
@@ -48,17 +48,6 @@ const FIRST_CALL_DELIVERIES := 13
 const EARLY_DELIVERIES := 20
 const EARLY_CALL_MIN_SECONDS := 35.0
 const EARLY_CALL_MAX_SECONDS := 50.0
-## The star system, counted from 0, where only Business passengers call.
-const BUSINESS_ONLY_LEVEL := 1
-## How likely a Business passenger past the first system is to ask for each kind of quest,
-## against the others that suit: a ride through the rocks and a sauna are the rare ones.
-const BUSINESS_WEIGHTS: Dictionary[String, float] = {
-	ErrandQuest.KIND: 1.0,
-	PhotoStopQuest.PHOTO_KIND: 1.0,
-	WarpQuest.KIND: 1.0,
-	RockRideQuest.KIND: 0.2,
-	SaunaQuest.KIND: 0.2,
-}
 ## Seconds from picking a passenger up from a capsule to their transmission opening.
 const RESCUE_SECONDS := 1.5
 ## Seconds before trying again when nobody on board could call.
@@ -101,6 +90,10 @@ const FAILED_ICON := preload("res://shared/icons/circle_x.svg")
 ## Stamps how a quest ended over the bus.
 @export var quick_text: BusQuickText
 
+## Whether VIPs call in the star system the bus works in ([VipCalls]), and so passengers
+## call less often. The [Progression] sets it.
+var vips_call := false
+
 ## The quest the pointer is on in the goal panel, or null. The panel sets it.
 var pointed: Quest
 
@@ -122,9 +115,11 @@ var _flight_seconds := 0.0
 # The call ringing, and who calls.
 var _call: Notice
 var _caller: Passenger
-# The quest on offer in the transmission panel, and the one under way.
+# The quest on offer in the transmission panel, the one under way, and a VIP's tour under
+# way.
 var _offer: Quest
 var _quest: Quest
+var _tour: VipTourQuest
 # Who was picked up from a capsule and has yet to call, and the seconds until they do.
 var _rescued: Passenger
 var _rescue_wait := 0.0
@@ -194,23 +189,35 @@ func is_calling() -> bool:
 
 
 ## Whether a passenger picked up from a capsule now could call at once: with calls on and
-## no call, offer, quest or transmission in the way.
+## no call, offer, quest or transmission in the way. A VIP's tour isn't in the way.
 func can_rescue() -> bool:
-	var busy := _call != null or _offer != null or _quest != null or _rescued != null
+	return is_line_free() and _quest == null
+
+
+## Whether nobody is on the line: calls are on, and no call, offer or transmission is in
+## the way, whatever quests are under way.
+func is_line_free() -> bool:
+	var busy := _call != null or _offer != null or _rescued != null
 	return enabled and not busy and not transmission_panel.is_open()
 
 
-## The quest under way, or null.
+## The quest a passenger asked for under way, or null.
 func get_quest() -> Quest:
 	return _quest
 
 
-## The quest under way, if any, after those just finished, oldest first.
+## The VIP's tour under way, or null.
+func get_tour() -> VipTourQuest:
+	return _tour
+
+
+## The quests under way, if any, after those just finished, oldest first.
 func get_quests() -> Array[Quest]:
 	var shown: Array[Quest] = []
 	shown.assign(_shown.keys())
-	if _quest:
-		shown.append(_quest)
+	for quest: Quest in [_quest, _tour]:
+		if quest:
+			shown.append(quest)
 	return shown
 
 
@@ -231,33 +238,39 @@ func rescue(passenger: Passenger) -> void:
 	_rescue_wait = RESCUE_SECONDS
 
 
-## The quest under way, for a save game, with its passenger as their place among
+## The quests under way, for a save game, each with its passenger as their place among
 ## [param on_board]. Empty with none.
-func to_save(on_board: Array[Passenger]) -> Dictionary:
-	if not _quest or _quest.passenger not in on_board:
-		return {}
-	var saved := _quest.to_save()
-	saved["passenger"] = on_board.find(_quest.passenger)
+func to_save(on_board: Array[Passenger]) -> Array[Dictionary]:
+	var saved: Array[Dictionary] = []
+	for quest: Quest in [_quest, _tour]:
+		if quest and quest.passenger in on_board:
+			var one := quest.to_save()
+			one["passenger"] = on_board.find(quest.passenger)
+			saved.append(one)
 	return saved
 
 
-## Puts back the quest [method to_save] gave, about the passenger at its place among
+## Puts back the quests [method to_save] gave, each about the passenger at its place among
 ## [param on_board], with its planet found by name in [param planets].
 func load_save(
-	saved: Dictionary, on_board: Array[Passenger], planets: Dictionary[String, Planet]
+	saved: Array, on_board: Array[Passenger], planets: Dictionary[String, Planet]
 ) -> void:
-	var index := int(saved.get("passenger", -1))
-	if index < 0 or index >= on_board.size():
-		return
-	var quest := QuestKinds.make(str(saved.get("kind", "")))
-	if quest and quest.restore(saved, on_board[index], planets):
-		take_on(quest)
+	for one: Dictionary in saved:
+		var index := int(one.get("passenger", -1))
+		if index < 0 or index >= on_board.size():
+			continue
+		var quest := QuestKinds.make(str(one.get("kind", "")))
+		if quest and quest.restore(one, on_board[index], planets):
+			take_on(quest)
 
 
-## Makes [param quest], whose goal is built, the quest under way: tracks its goal and
-## flags its passenger.
+## Makes [param quest], whose goal is built, a quest under way, a VIP's tour apart from the
+## rest: tracks its goal and flags its passenger.
 func take_on(quest: Quest) -> void:
-	_quest = quest
+	if quest is VipTourQuest:
+		_tour = quest
+	else:
+		_quest = quest
 	quest.passenger.quest_line = quest.goal.get_text()
 	quest.begin(cabin)
 	quests.add(quest.goal)
@@ -279,7 +292,8 @@ func _pick_caller() -> Passenger:
 	var able: Array[Passenger] = []
 	var weights := PackedFloat32Array()
 	for passenger: Passenger in cabin.get_passengers():
-		if passenger.asleep or _is_arriving(passenger):
+		var touring := _tour and passenger == _tour.passenger
+		if passenger.asleep or touring or _is_arriving(passenger):
 			continue
 		if _plan(passenger):
 			able.append(passenger)
@@ -292,20 +306,13 @@ func _pick_caller() -> Passenger:
 	return able[_rng.rand_weighted(weights)]
 
 
-# The quest [param passenger] would offer as things stand, or null when none suits: past the
-# first star system a Business passenger one of theirs, picked by [constant BUSINESS_WEIGHTS],
-# anyone else a fly past or an errand, whichever the dice pick first that suits. In the
-# system where only Business passengers call, anyone else offers none.
+# The quest [param passenger] would offer as things stand, or null when none suits: the
+# first of [QuestPicks]'s that does.
 func _plan(passenger: Passenger) -> Quest:
-	var business := passenger.type == _waiting.business
-	if _level == BUSINESS_ONLY_LEVEL and not business:
-		return null
-	var kinds: Array[Quest] = [FlybyQuest.new(), ErrandQuest.new()]
-	if _rng.randf() < 0.5:
-		kinds.reverse()
-	if _level > 0 and business:
-		kinds = _business_kinds()
-	for quest: Quest in kinds:
+	var picks := QuestPicks.for_passenger(
+		passenger, _waiting.business, _level, asteroid_field, _rng
+	)
+	for quest: Quest in picks:
 		quest.level = _level
 		if quest.plan(passenger, bus, _planets, _waiting, _rng):
 			return quest
@@ -316,31 +323,6 @@ func _plan_rescue(passenger: Passenger) -> Quest:
 	var quest := RescueQuest.new()
 	quest.level = _level
 	return quest if quest.plan(passenger, bus, _planets, _waiting, _rng) else null
-
-
-# The quests a Business passenger past the first system can ask for, in the order the dice
-# try them: each drawn by its weight among those left.
-func _business_kinds() -> Array[Quest]:
-	var rocks := RockRideQuest.new()
-	rocks.field = asteroid_field
-	var left: Array[Quest] = [
-		ErrandQuest.new(), PhotoStopQuest.new(), WarpQuest.new(), rocks, SaunaQuest.new()
-	]
-	var order: Array[Quest] = []
-	while not left.is_empty():
-		var total := 0.0
-		for quest: Quest in left:
-			total += BUSINESS_WEIGHTS[quest.get_kind()]
-		var roll := _rng.randf() * total
-		var pick := left.size() - 1
-		for i: int in left.size():
-			roll -= BUSINESS_WEIGHTS[left[i].get_kind()]
-			if roll < 0.0:
-				pick = i
-				break
-		order.append(left[pick])
-		left.remove_at(pick)
-	return order
 
 
 func _is_arriving(passenger: Passenger) -> bool:
@@ -454,36 +436,50 @@ func _on_answered(accepted: bool) -> void:
 
 
 func _on_goal_completed(goal: Goal) -> void:
-	if not _quest or goal != _quest.goal:
+	var quest := _under_way(goal)
+	if not quest:
 		return
 	if _ledger:
-		_ledger.earn(_quest.reward_credits)
-		if _quest.reward_research > 0:
-			_ledger.earn_research(_quest.reward_research)
-	if _quest.passenger in cabin.get_passengers():
-		_quest.passenger.admire(done_happiness, true)
+		_ledger.earn(quest.reward_credits)
+		if quest.reward_research > 0:
+			_ledger.earn_research(quest.reward_research)
+	if quest.passenger in cabin.get_passengers():
+		quest.passenger.admire(done_happiness, true)
 	notices.push("Quest done: %s" % goal.get_text(), Notice.Kind.INFO, false, NOTICE_SECONDS)
 	if quick_text:
 		quick_text.show_text(COMPLETED_TEXT, COMPLETED_ICON, BusQuickText.Kind.GAIN)
-	_finish()
+	_finish(quest)
 
 
 func _on_goal_failed(goal: Goal) -> void:
-	if not _quest or goal != _quest.goal:
+	var quest := _under_way(goal)
+	if not quest:
 		return
-	if _quest.passenger in cabin.get_passengers():
-		_quest.passenger.shock(FAIL_SHOCK, HappinessCause.Type.QUEST_FAILED)
+	if quest.passenger in cabin.get_passengers():
+		quest.passenger.shock(FAIL_SHOCK, HappinessCause.Type.QUEST_FAILED)
 	notices.push("Quest failed: %s" % goal.get_text(), Notice.Kind.WARNING, false, NOTICE_SECONDS)
 	if quick_text:
 		quick_text.show_text(FAILED_TEXT, FAILED_ICON, BusQuickText.Kind.LOSS)
-	_finish()
+	_finish(quest)
 
 
-func _finish() -> void:
-	_quest.passenger.quest_line = ""
-	_shown[_quest] = SHOWN_SECONDS
-	_quest = null
-	_rest()
+# The quest under way whose goal is [param goal], or null.
+func _under_way(goal: Goal) -> Quest:
+	for quest: Quest in [_quest, _tour]:
+		if quest and quest.goal == goal:
+			return quest
+	return null
+
+
+# A tour ending leaves the wait for the next passenger's call as it is.
+func _finish(quest: Quest) -> void:
+	quest.passenger.quest_line = ""
+	_shown[quest] = SHOWN_SECONDS
+	if quest == _tour:
+		_tour = null
+	else:
+		_quest = null
+		_rest()
 	changed.emit()
 
 
@@ -495,3 +491,5 @@ func _rest() -> void:
 		_until_call = _rng.randf_range(EARLY_CALL_MIN_SECONDS, EARLY_CALL_MAX_SECONDS)
 	else:
 		_until_call = _rng.randf_range(CALL_MIN_SECONDS, CALL_MAX_SECONDS)
+	if vips_call:
+		_until_call *= VIP_LEVEL_WAIT

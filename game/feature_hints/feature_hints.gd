@@ -60,6 +60,17 @@ const HINTS := {
 		),
 		side = GuideCard.Side.LEFT,
 	},
+	&"vip":
+	{
+		title = "VIP passengers",
+		text =
+		(
+			"They want you to visit multiple planets, and do not stand waiting even when "
+			+ "docked to a planet. They always want the next seat empty, so they take 2 seats "
+			+ "from your bus."
+		),
+		side = GuideCard.Side.LEFT,
+	},
 	&"asteroid_field":
 	{
 		title = "Asteroid field",
