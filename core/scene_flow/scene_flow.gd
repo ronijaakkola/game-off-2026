@@ -243,7 +243,7 @@ func _load_dependencies(path: String) -> void:
 func _warm_up(scene: Node) -> void:
 	var drawn := {}
 	var steps := _warm_up_steps(scene, drawn)
-	for stand_in: MeshInstance3D in _stand_ins.fill(scene, drawn):
+	for stand_in: GeometryInstance3D in _stand_ins.fill(scene, drawn):
 		steps.append([stand_in])
 	for step: Array in steps:
 		for geometry: GeometryInstance3D in step:
@@ -279,6 +279,15 @@ func _draw_step(step: Array, forced: bool) -> void:
 			continue
 		RenderingServer.instance_set_ignore_culling(instance, forced)
 		RenderingServer.instance_set_visible(instance, forced or geometry.is_visible_in_tree())
+		# One in a viewport that isn't drawing, as the portraits' is until it holds one,
+		# would wait for its first draw until that viewport's first use, in play.
+		var viewport := geometry.get_viewport() as SubViewport
+		if (
+			forced
+			and viewport
+			and viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED
+		):
+			viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
 ## [param scene]'s 3D objects in the steps to draw them in: each step starts with an object
@@ -301,10 +310,12 @@ func _warm_up_steps(scene: Node, drawn := {}) -> Array[Array]:
 	return steps
 
 
-## Whether [param geometry] has something to draw when its step comes. Only a mesh can be
-## seen to be empty, and one a script builds ([ImmediateMesh]) can be empty again by then:
-## the bus's trail draws for one frame as it starts.
+## Whether [param geometry] has something to draw when its step comes. A mesh can be seen
+## to be empty, and one a script builds ([ImmediateMesh]) can be empty again by then: the
+## bus's trail draws for one frame as it starts. Particles draw only once some have risen.
 func _has_surfaces(geometry: GeometryInstance3D) -> bool:
+	if geometry is CPUParticles3D or geometry is GPUParticles3D:
+		return false
 	var mesh_instance := geometry as MeshInstance3D
 	if mesh_instance == null:
 		return true
@@ -313,9 +324,10 @@ func _has_surfaces(geometry: GeometryInstance3D) -> bool:
 
 
 ## What decides which shaders drawing [param geometry] compiles: its kind of node, and each
-## material it draws with. Materials on one shader share it.
+## material it draws with, in the viewport it draws in. Materials on one shader share it.
 func _material_keys(geometry: GeometryInstance3D) -> Array[Variant]:
-	var keys: Array[Variant] = [geometry.get_class()]
+	var viewport := geometry.get_viewport()
+	var keys: Array[Variant] = [[viewport, geometry.get_class()]]
 	var materials: Array[Material] = []
 	if geometry.material_override:
 		materials.append(geometry.material_override)
@@ -327,7 +339,7 @@ func _material_keys(geometry: GeometryInstance3D) -> Array[Variant]:
 				materials.append(material)
 	while not materials.is_empty():
 		var material: Material = materials.pop_back()
-		keys.append(MaterialWarmUp.shader_of(material))
+		keys.append(MaterialWarmUp.key(material, viewport, MaterialWarmUp.draws_many(geometry)))
 		if material.next_pass:
 			materials.append(material.next_pass)
 	return keys

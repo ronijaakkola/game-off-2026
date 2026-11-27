@@ -317,9 +317,10 @@ func test_a_mesh_built_in_code_counts_as_not_drawn_yet() -> void:
 
 	_flow._warm_up_steps(scene, drawn)
 
-	assert_bool(drawn.has(star.material_override)).is_true()
-	assert_bool(drawn.has(trail.material_override)).is_false()
-	assert_bool(drawn.has(empty.material_override)).is_false()
+	var viewport := scene.get_viewport()
+	assert_bool(drawn.has(MaterialWarmUp.key(star.material_override, viewport))).is_true()
+	assert_bool(drawn.has(MaterialWarmUp.key(trail.material_override, viewport))).is_false()
+	assert_bool(drawn.has(MaterialWarmUp.key(empty.material_override, viewport))).is_false()
 
 
 func _record_shown_alpha() -> void:

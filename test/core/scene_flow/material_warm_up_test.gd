@@ -53,7 +53,7 @@ func test_materials_a_script_keeps_in_its_variables_get_stand_ins() -> void:
 func test_a_material_already_drawn_gets_no_stand_in() -> void:
 	var keeper := _keeper()
 	var several: Array = keeper.get("several")
-	var drawn := {keeper.get("kept"): true, several[0]: true}
+	var drawn := {_key(keeper.get("kept")): true, _key(several[0]): true}
 
 	assert_array(_stand_ins.fill(_scene, drawn)).is_empty()
 
@@ -79,10 +79,46 @@ func test_a_material_drawn_after_another_gets_its_stand_in() -> void:
 	mesh.material_override = body
 	_scene.add_child(mesh)
 
-	var stand_ins := _stand_ins.fill(_scene, {body: true})
+	var stand_ins := _stand_ins.fill(_scene, {_key(body): true})
 
 	assert_int(stand_ins.size()).is_equal(1)
 	assert_object(stand_ins[0].material_override).is_same(body)
+
+
+func test_a_material_in_a_viewport_of_its_own_gets_a_stand_in_there() -> void:
+	# It compiles again for a world with other surroundings, so one drawn in the main
+	# viewport still needs its first draw in the studio's.
+	var material := StandardMaterial3D.new()
+	var studio := SubViewport.new()
+	studio.own_world_3d = true
+	_scene.add_child(studio)
+	for parent: Node in [_scene, studio]:
+		var mesh := MeshInstance3D.new()
+		mesh.material_override = material
+		parent.add_child(mesh)
+
+	var stand_ins := _stand_ins.fill(_scene, {_key(material): true})
+
+	assert_int(stand_ins.size()).is_equal(1)
+	assert_object(stand_ins[0].get_viewport()).is_same(studio)
+	_stand_ins.clear()
+
+
+func test_smoke_that_isn_t_rising_gets_a_stand_in_drawn_as_many_copies() -> void:
+	# Particles draw their mesh as many copies, which compiles apart from a single one.
+	# An internal child, as a script adds what it builds.
+	var puff := SphereMesh.new()
+	puff.material = StandardMaterial3D.new()
+	var smoke := CPUParticles3D.new()
+	smoke.mesh = puff
+	smoke.emitting = false
+	_scene.add_child(smoke, false, Node.INTERNAL_MODE_FRONT)
+
+	var stand_ins := _stand_ins.fill(_scene, {_key(puff.material): true})
+
+	assert_int(stand_ins.size()).is_equal(1)
+	assert_object(stand_ins[0]).is_instanceof(MultiMeshInstance3D)
+	assert_object(stand_ins[0].material_override).is_same(puff.material)
 
 
 func test_a_2d_material_gets_no_stand_in() -> void:
@@ -99,6 +135,10 @@ func test_clear_takes_the_stand_ins_away() -> void:
 	_stand_ins.clear()
 	await get_tree().process_frame
 	assert_int(_stand_ins.get_child_count()).is_equal(0)
+
+
+func _key(material: Material) -> Array:
+	return MaterialWarmUp.key(material, _scene.get_viewport())
 
 
 func _keeper() -> Node3D:
