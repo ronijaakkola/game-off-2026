@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 ## The heat zone keeping the bus out of the star: a bus sent straight at it brakes to a stop
 ## short of its surface and overheats there, its route kept. The route waits there for a
-## charge until it has cooled. Driven frame by frame with a fixed
-## step.
+## charge until it has cooled. A swelling star's heat reaches a bus docked past its resting
+## zone only while swollen. Driven frame by frame with a fixed step.
 
 const BUS := "res://game/bus/bus.tscn"
 const HEAT_SHADER := "res://game/solar_system/heat_zone.gdshader"
@@ -145,6 +145,28 @@ func test_overheated_on_the_way_in_beside_the_star_the_same_course_gets_out() ->
 	assert_bool(docked).is_true()
 	assert_int(overheats[0]).is_equal(1)
 	assert_float(nearest).is_greater(temperature.star_radius + FrameshiftBus.RADIUS)
+
+
+func test_a_swollen_star_heats_a_bus_docked_past_its_resting_zone() -> void:
+	var temperature := _bus.temperature
+	_star.swell_zone_radius = 14.9
+	var at_rest := temperature.temperature
+	for i: int in roundi(60.0 / STEP):
+		_step_swelling()
+	assert_float(temperature.temperature).is_equal(at_rest)
+
+	_star.start_swell()
+	for i: int in MAX_STEPS:
+		_step_swelling()
+		if _star.get_swell() == 1.0:
+			break
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_float(temperature.temperature).is_greater(at_rest)
+
+
+func _step_swelling() -> void:
+	_star._process(STEP)
+	_step()
 
 
 # The bus runs first each frame, as it does in the game, so it flies by last frame's cap.

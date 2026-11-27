@@ -225,13 +225,15 @@ func _add_goals() -> void:
 
 
 # The camera is over the new system: it becomes the one the bus works in, and its lines
-# start empty, its planets start where its layout puts them, and the bus's tank is full.
+# start empty, its planets start where its layout puts them, its star's swell holds at
+# rest until the mechanic calls there, and the bus's tank is full.
 # Whoever was still on board is gone, out of sight, paying and rating nothing.
 func _on_crossed(system: StarSystem) -> void:
 	if goal_panel:
 		goal_panel.offer_jump(null)
 	for planet: Planet in system.get_planets():
 		planet.orbit_time = 0.0
+	system.hold_swell()
 	for passenger: Passenger in cabin.get_passengers():
 		cabin.leave_behind(passenger)
 	bus.get_fuel_tank().fill()

@@ -9,7 +9,10 @@ extends Node
 ## wherever the bus is, and the next stage opens in every tree. Research is open there from
 ## the start: a player promoted before the first call has it open, on its first stage, with
 ## no call, as the bus works past the first system. Once the systems are joined,
-## nobody calls: every stage is open.
+## nobody calls: every stage is open. A system's call that opens its own stage says its
+## [member StarSystem.mechanic_call], when it has one, and once it closes, an unstable
+## star's swell starts ([method StarSystem.start_swell]); in a run continued after it, the
+## swell starts with the run.
 ## The call notice shows the mechanic as an unknown caller until the run has had a call
 ## from them, so on their first; its Answer opens the mechanic's transmission; left
 ## unanswered for
@@ -134,6 +137,7 @@ func start() -> void:
 	lab_badges.visible = open
 	dock_panel.research_hidden = not open
 	resource_bar.research_hidden = not open
+	_start_swell()
 
 
 ## Whether the mechanic's call rings or talks.
@@ -209,7 +213,10 @@ func _open() -> void:
 	var stage := _opens_stage()
 	var call := Transmission.from_mechanic()
 	var answers := ANSWERS
-	if stage:
+	var system := star_map.get_current()
+	if stage and _research().get_open_stages() == _system_index() and system.mechanic_call:
+		call.text = system.mechanic_call
+	elif stage:
 		call.text = STAGE_TEXTS[mini(_research().get_open_stages() - 1, STAGE_TEXTS.size() - 1)]
 	else:
 		call.text = RESEARCH_TEXT
@@ -231,6 +238,14 @@ func _open() -> void:
 		_bring_in_research()
 		research_opened.emit()
 	research_added.emit()
+	_start_swell()
+
+
+# An unstable star starts to swell once the mechanic has called in its system, opening its
+# stage.
+func _start_swell() -> void:
+	if star_map.is_joined() or _research().get_open_stages() > _system_index():
+		star_map.get_current().start_swell()
 
 
 # Research opens on its first stage with no call, as the bus works past the first system
@@ -281,3 +296,4 @@ func _debug_unlock_all() -> void:
 		_bring_in_research()
 		research_opened.emit()
 	research_added.emit()
+	_start_swell()
