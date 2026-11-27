@@ -6,8 +6,8 @@ extends MenuScreen
 ## any other open one plays. Starting a level over, or any level that would replace the
 ## run in play, asks first ([RestartDialog]). A locked card can't be picked. Until the
 ## player has been through the tutorial, Level 1 always opens on it; after, Level 1's card
-## has a Play tutorial box, cleared, to play it again. A menu opens it over itself
-## ([MenuScreen]).
+## has a Play tutorial box, cleared, to play it again, and ticking it picks that card. A
+## menu opens it over itself ([MenuScreen]).
 
 ## Seconds the actions take to appear under a newly picked card.
 const APPEAR_SECONDS := 0.2
@@ -26,6 +26,7 @@ func _ready() -> void:
 		var card: LevelCard = CARD.instantiate()
 		(%Cards as Control).add_child(card)
 		card.focus_entered.connect(_pick.bind(card))
+		card.tutorial_ticked.connect(FocusRing.grab.bind(card))
 		_cards.append(card)
 	visibility_changed.connect(_on_shown_or_hidden)
 	# The cards show their levels as the menu loads, so the pictures are read and first

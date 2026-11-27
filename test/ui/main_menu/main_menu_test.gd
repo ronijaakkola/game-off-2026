@@ -82,6 +82,31 @@ func test_level_1_offers_the_tutorial_box_only_once_the_tutorial_is_done() -> vo
 	assert_bool((chip.find_child("PlayTutorial") as CheckBox).button_pressed).is_false()
 
 
+func test_ticking_the_tutorial_box_picks_level_1_s_card() -> void:
+	SaveGame.mark_tutorial_done()
+	# Level 2 in progress, so it is the picked card as the screen opens.
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Lyra")})
+	var runner := scene_runner(MENU)
+	await _click(runner, runner.find_child("LevelsButton"))
+	var cards := (runner.find_child("Cards") as Control).get_children()
+	var level_1 := cards[0] as LevelCard
+	var level_2 := cards[1] as LevelCard
+	assert_bool(level_2.picked).override_failure_message("Level 2 starts picked").is_true()
+
+	var box := level_1.find_child("PlayTutorial") as CheckBox
+	await _click(runner, box)
+	assert_bool(box.button_pressed).is_true()
+	assert_bool(level_1.picked).override_failure_message("Level 1's card not picked").is_true()
+	assert_bool(level_2.picked).is_false()
+
+	# Clearing the box leaves the pick where it is.
+	await _click(runner, level_2)
+	assert_bool(level_2.picked).is_true()
+	await _click(runner, box)
+	assert_bool(box.button_pressed).is_false()
+	assert_bool(level_2.picked).is_true()
+
+
 func test_the_level_pictures_are_read_as_the_menu_loads_and_kept() -> void:
 	# Read as the campaign screen opened, they made its first frame long enough for the
 	# transition to skip ahead, on every open, since the cards dropped them as it closed.
