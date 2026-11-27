@@ -4,7 +4,8 @@ extends RescueQuest
 ## are going nowhere, and want to hop out at a nice spot in open space ([HopGoal]). The spot
 ## is across the star from where they were found, just inside the outermost orbit
 ## ([method find_spot]). Asking it makes them a passenger with no destination, no fare and
-## no time they expect, so the reward is all they pay; accepting boards them ([QuestGiver]).
+## no time they expect, so the reward is all they pay, and such a passenger is as happy as
+## can be all ride and asks for nothing ([Passenger]); accepting boards them ([QuestGiver]).
 ## Once the bus has come to rest at the spot they hop out of it ([CapsuleField]), rating
 ## nothing.
 
