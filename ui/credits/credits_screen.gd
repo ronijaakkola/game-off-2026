@@ -10,6 +10,8 @@ const TILE := 352
 ## Pixels between tiles, so what reaches past one never shows in its neighbour.
 const GUTTER := 96
 
+var _guest: CreatorGuest
+
 
 func _ready() -> void:
 	super._ready()
@@ -31,8 +33,25 @@ func _ready() -> void:
 		photo.atlas = studio.get_texture()
 		photo.region = Rect2(i * pitch + GUTTER / 2.0, GUTTER / 2.0, TILE, TILE)
 		card.show_photo(photo)
+		if card.creator == CreatorPortrait.Creator.SAMI:
+			_add_guest(portrait, card)
 	visibility_changed.connect(_render_while_shown)
 	_render_while_shown()
+
+
+# Henna, who squeezes into [param host]'s photo now and then, her name showing on
+# [param card] while she does. She stands with the portraits, so she waits while the screen
+# is hidden.
+func _add_guest(host: AlienPortrait, card: CreatorCard) -> void:
+	var portrait := CreatorPortrait.new_portrait(CreatorPortrait.Creator.SAMI)
+	%Portraits.add_child(portrait)
+	CreatorPortrait.frame(portrait, CreatorPortrait.Creator.SAMI)
+	CreatorPortrait.dress_guest(portrait)
+	_guest = CreatorGuest.new()
+	_guest.name = "Guest"
+	%Portraits.add_child(_guest)
+	_guest.moved.connect(card.show_guest)
+	_guest.setup(host, portrait)
 
 
 # The portraits move and render only while the screen shows. Hiding, they render once
@@ -41,6 +60,9 @@ func _ready() -> void:
 # compile, and not in the first frame the screen opens, which stalled the transition.
 func _render_while_shown() -> void:
 	var shown := is_visible_in_tree()
+	# Each opening starts with Sami alone.
+	if not shown and _guest:
+		_guest.leave()
 	var studio := %Studio as SubViewport
 	studio.render_target_update_mode = (
 		SubViewport.UPDATE_ALWAYS if shown else SubViewport.UPDATE_ONCE

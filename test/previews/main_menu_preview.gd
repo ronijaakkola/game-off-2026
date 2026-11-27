@@ -2,9 +2,10 @@ extends Node
 ## The main menu with made-up campaign progress, for capturing its screens. `uv run
 ## tools/check.py capture res://test/previews/main_menu_preview.tscn`, with any of these
 ## after `--`: `progress` (Level 1 done, Level 2 in progress), `campaign`, `settings`,
-## `controls`, `credits`, and with `campaign`, `restart` or `level1` (Level 1 picked). With
-## `back`, the screen goes back to the menu 1.5 s in, and with `settings progress reset
-## back` the campaign is reset first, as its hold-to-reset button does.
+## `controls`, `credits`, and with `campaign`, `restart` or `level1` (Level 1 picked), or
+## with `credits`, `guest` (Henna squeezes into Sami's photo at once). With `back`, the
+## screen goes back to the menu 1.5 s in, and with `settings progress reset back` the
+## campaign is reset first, as its hold-to-reset button does.
 ## It uses a test's own save files, so the player's stay as they are.
 
 
@@ -37,6 +38,8 @@ func _ready() -> void:
 		($MainMenu.find_child("ControlsButton") as Button).pressed.emit()
 	elif "credits" in args:
 		($MainMenu.find_child("CreditsButton") as Button).pressed.emit()
+		if "guest" in args:
+			($MainMenu.find_child("Guest", true, false) as CreatorGuest).visit()
 	if "reset" in args:
 		await get_tree().create_timer(1.0).timeout
 		($MainMenu.find_child("ResetCampaignButton") as HoldButton).confirmed.emit()
