@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## How likely a capsule is to hold the castaway, through CapsuleField's public calls, and in
-## the game, that the castaway boards only once the player accepts their quest.
+## the game, that the castaway boards only once the player accepts their quest, and in the
+## first star system hops out, paying only the reward, where the bus comes to rest.
 
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 const PREVIEW := "res://test/previews/capsules_preview.tscn"
@@ -67,6 +68,36 @@ func test_a_declined_castaway_stays_adrift_and_is_found_for_the_system() -> void
 	assert_array(cabin.get_passengers()).is_empty()
 	assert_object((runner.find_child("QuestGiver") as QuestGiver).get_quest()).is_null()
 	assert_bool((runner.find_child("CapsuleField") as CapsuleField).castaway_found).is_true()
+
+
+func test_in_the_first_star_system_the_castaway_hops_out_where_the_bus_comes_to_rest() -> void:
+	var runner := scene_runner(PREVIEW)
+	var cabin := await _collect_castaway_capsule(runner)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var giver := runner.find_child("QuestGiver") as QuestGiver
+	var ledger := (runner.find_child("SolarSystem") as SolarSystem).get_ledger()
+	(runner.find_child("TransmissionPanel") as TransmissionPanel).accept()
+	await PauseProofWait.for_condition(func() -> bool: return not get_tree().paused, 5000)
+	await runner.simulate_frames(2)
+	var quest := giver.get_quest() as HopQuest
+	assert_object(quest).is_not_null()
+	if is_failure():
+		return
+	var goal := quest.goal as HopGoal
+	# Across the star is a long flight: the hop location moves to just off the bus.
+	goal.spot = bus.global_position + Vector3(-1.5, 0.0, 1.5)
+	var credits := ledger.credits
+	var rated := ledger.get_rating_count()
+
+	bus.plot_course(RouteStop.at_point(goal.spot))
+	bus.frameshift_held = true
+	await PauseProofWait.for_condition(func() -> bool: return not goal.is_active(), 8000)
+	await runner.simulate_frames(2)
+
+	assert_int(goal.state).is_equal(Goal.State.COMPLETED)
+	assert_array(cabin.get_passengers()).is_empty()
+	assert_int(ledger.credits).is_equal(credits + HopQuest.HOP_REWARD_CREDITS[0])
+	assert_int(ledger.get_rating_count()).is_equal(rated)
 
 
 func after_test() -> void:

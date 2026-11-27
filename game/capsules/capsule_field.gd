@@ -19,7 +19,9 @@ extends Node3D
 ## ([constant REWARD_FUEL]). The castaway comes out of the capsule as a figure
 ## ([CastawayFigure]) that trails after the bus, and their transmission opens by itself with a
 ## [RescueQuest] ([method QuestGiver.rescue]): accepted, they board, and declined, they
-## drift off, with nothing lost. The debug panel's capsules hold what they
+## drift off, with nothing lost. In the first star system it is a [HopQuest]: once the bus
+## rests at its spot they hop out of the door as a figure that floats off, with
+## [constant HOPPED_TEXT] over the bus. The debug panel's capsules hold what they
 ## say, or credits when what they say can't be had, and roll nothing.
 ## A capsule [method place]d holds still, stays, and pays what it was given, collected even
 ## before the capsules start, as the [Tutorial]'s.
@@ -49,6 +51,8 @@ const RESEARCH_ICON := preload("res://shared/icons/flask_conical.svg")
 const FUEL_ICON := preload("res://shared/icons/fuel.svg")
 const RESCUED_TEXT := "Someone was inside!"
 const RESCUED_ICON := preload("res://shared/icons/user.svg")
+const HOPPED_TEXT := "%s jumped out!"
+const HOPPED_ICON := preload("res://game/capsules/icons/log_out.svg")
 
 ## Whether new capsules appear. Those adrift stay either way.
 @export var enabled := true
@@ -111,6 +115,7 @@ func _ready() -> void:
 		_rng = RandomNumberGenerator.new()
 	if quest_giver:
 		quest_giver.rescue_answered.connect(_on_rescue_answered)
+		quest_giver.quest_added.connect(_on_quest_added)
 	DebugPanel.add_button(
 		"Credits capsule", _debug_spawn.bind(Capsule.Contents.CREDITS), self, DEBUG_GROUP
 	)
@@ -283,6 +288,25 @@ func _on_rescue_answered(_passenger: Passenger, accepted: bool) -> void:
 	else:
 		_figure.leave()
 	_figure = null
+
+
+# A hop quest under way ends with the castaway hopping out.
+func _on_quest_added(quest: Quest) -> void:
+	if quest is HopQuest:
+		quest.goal.completed.connect(_on_hopped.bind(quest.passenger), CONNECT_ONE_SHOT)
+
+
+# The bus came to rest at the hop location: the castaway, [param passenger], leaves their
+# seat, paying and rating nothing, and hops out of the door as a figure that floats off.
+func _on_hopped(passenger: Passenger) -> void:
+	if not cabin.leave_behind(passenger):
+		return
+	var figure := CastawayFigure.new()
+	add_child(figure)
+	var door := bus.global_transform * FrameshiftBus.DOOR
+	var out := -bus.global_basis.x.normalized()
+	figure.hop_out(door, out, passenger, _get_system().global_position)
+	_stamp(HOPPED_TEXT % passenger.name, HOPPED_ICON, BusQuickText.Kind.GAIN)
 
 
 # Whether the castaway can turn up now: with a seat free, while they aren't on board, and
