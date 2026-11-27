@@ -6,6 +6,9 @@ extends Button
 ## Picked, its border is the light one and its picture zooms in a little, easing out (at
 ## once under Reduce motion). A locked card can't be pressed.
 
+## The player ticked the Play tutorial box.
+signal tutorial_ticked
+
 enum State { OPEN = 0, IN_PROGRESS = 1, DONE = 2, LOCKED = 3 }
 
 const SHADER := preload("res://ui/campaign/level_card.gdshader")
@@ -32,6 +35,7 @@ func _ready() -> void:
 	_material.set_shader_parameter(&"zoom", 1.0)
 	(%Picture as Control).material = _material
 	(%Picture as Control).resized.connect(_on_picture_resized)
+	(%PlayTutorial as CheckBox).toggled.connect(_on_play_tutorial_toggled)
 	_on_picture_resized()
 
 
@@ -80,6 +84,11 @@ func _zoom_to(zoom: float) -> void:
 		return
 	_zoom = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUART)
 	_zoom.tween_property(_material, ^"shader_parameter/zoom", zoom, ZOOM_SECONDS)
+
+
+func _on_play_tutorial_toggled(on: bool) -> void:
+	if on:
+		tutorial_ticked.emit()
 
 
 func _on_picture_resized() -> void:
