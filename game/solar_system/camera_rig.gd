@@ -262,7 +262,7 @@ func get_focus_fill(radius: float) -> float:
 ## would otherwise be cut off at the sides. [member distance] and its limits stay the base's.
 func get_view_scale() -> float:
 	var screen := get_viewport().get_visible_rect().size
-	if screen.y <= 0.0:
+	if screen.x <= 0.0 or screen.y <= 0.0:
 		return 1.0
 	var base_aspect := (
 		float(ProjectSettings.get_setting(&"display/window/size/viewport_width"))
