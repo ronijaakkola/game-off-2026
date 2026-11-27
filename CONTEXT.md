@@ -102,6 +102,10 @@ _Avoid_: warm and cold (those are the frameshift drive's), cabin temperature, he
 The area round the star where flying raises the temperature. Its inner part, nearest the star, is the **hot zone**, where it rises much faster.
 _Avoid_: core (that is core systems'), danger zone
 
+**Swell**:
+An unstable star's heat zone growing out and back, over and over, as Sol's does: it rests, swells, holds at its widest and shrinks back, heating faster the wider it is. `StarSystem.get_swell()` in code.
+_Avoid_: flare, pulse (the star's own, which warns of it)
+
 **Overheated**:
 The bus at the top of its temperature: it coasts to a stop, keeping its route. Through the **cooldown** that follows, the route can be changed but the drive can't charge.
 _Avoid_: burnt out, meltdown
@@ -252,7 +256,7 @@ The bus's frameshift from one star system to the next, once a promotion opens it
 _Avoid_: warp, hyperspace, travel (a trip between planets)
 
 **Warp gate**:
-A hexagonal ring floating beside a planet that the bus, docked there, spends half a tank of fuel to go through and come out of its twin's gate beside another planet: Hither's and Yon's in Lyra. Called a **warp drive** in the game's text, and the dock panel's button reads "Warp to <planet>". `WarpGate` in code, sold by the `GateService`.
+A hexagonal ring floating beside a planet that the bus, docked there, spends half a tank of fuel to go through and come out of its twin's gate beside another planet: Hither's and Yon's in Lyra, Venus's and Pluto's in Sol. Called a **warp drive** in the game's text, and the dock panel's button reads "Warp to <planet>". `WarpGate` in code, sold by the `GateService`.
 _Avoid_: portal, wormhole
 
 **Upgrade**:

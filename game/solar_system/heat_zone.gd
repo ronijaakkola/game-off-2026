@@ -14,7 +14,8 @@ extends Node
 ## zone, with the hot zone's edge on it; a system with no heat zone shows none. While the
 ## bus is inside, the disc pulses brighter, more in the hot zone, easing in and out; under
 ## Reduce motion it brightens without pulsing, and its smoke holds still. The disc is the
-## world's, not the star's, so the map zoom leaves its size alone.
+## world's, not the star's, so the map zoom leaves its size alone. An unstable star's swell
+## widens the zone, the disc and how fast it heats, frame by frame.
 ## While the map is zoomed for the tutorial it doesn't show, and it fades in over
 ## [constant FADE_SECONDS] once the zoom out is over and the rest of the run starts.
 
@@ -77,6 +78,8 @@ func _fade_in() -> void:
 
 func _process(delta: float) -> void:
 	_follow(star_map.get_nearest_system(bus.global_position))
+	if _system.swells():
+		_size()
 	var offset := bus.global_position - _system.global_position
 	offset.y = 0.0
 	var flying := bus.state == FrameshiftBus.State.FLYING
@@ -89,6 +92,7 @@ func _process(delta: float) -> void:
 	var closing := forward.normalized().dot(-offset.normalized())
 	var to_star := _distance_to_star(distance, closing)
 	var heating := bus.get_stats().get_stat(BusStats.Type.HEATING).get_value()
+	heating *= _system.get_swell_heating(flying)
 	temperature.advance(delta, distance, flying, to_star < INF, exempt, heating)
 	bus.speed_cap = INF if exempt else sqrt(2.0 * bus.acceleration * maxf(to_star, 0.0))
 	var target := 0.0
@@ -103,20 +107,30 @@ func _follow(system: StarSystem) -> void:
 	if system == _system:
 		return
 	_system = system
-	var temperature := bus.temperature
-	temperature.zone_radius = system.zone_radius
-	temperature.hot_zone_radius = system.hot_zone_radius
-	temperature.star_radius = system.star_radius
+	bus.temperature.star_radius = system.star_radius
 	zone.global_position = system.global_position
 	zone.visible = system.zone_radius > 0.0 and not map_zoom.is_zoomed()
+	_size()
 	if system.zone_radius <= 0.0:
 		return
-	zone.scale = Vector3.ONE * system.zone_radius
 	var material := zone.material_override as ShaderMaterial
-	material.set_shader_parameter(&"hot_share", system.hot_zone_radius / system.zone_radius)
 	material.set_shader_parameter(&"zone_color", system.zone_color)
 	material.set_shader_parameter(&"hot_color", system.hot_color)
 	material.set_shader_parameter(&"smoke_color", system.smoke_color)
+
+
+# Gives the temperature and the disc the zone's radii as they are now.
+func _size() -> void:
+	var temperature := bus.temperature
+	temperature.zone_radius = _system.get_zone_radius()
+	temperature.hot_zone_radius = _system.get_hot_zone_radius()
+	if _system.zone_radius <= 0.0:
+		return
+	zone.scale = Vector3.ONE * temperature.zone_radius
+	var material := zone.material_override as ShaderMaterial
+	material.set_shader_parameter(
+		&"hot_share", temperature.hot_zone_radius / temperature.zone_radius
+	)
 
 
 # How far the bus can fly along its heading, distance from the star, before it is
