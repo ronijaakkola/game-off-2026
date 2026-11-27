@@ -307,6 +307,28 @@ func test_a_left_drag_that_starts_on_a_panel_does_not_pan() -> void:
 	assert_vector(rig.position).is_equal_approx(start, Vector3.ONE * 0.001)
 
 
+func test_a_window_narrower_than_the_base_sees_as_wide_and_drags_true() -> void:
+	# 5:4 at the base's width: the stretch leaves the width at 1152 and the height at 922.
+	get_tree().root.size = Vector2i(1152, 922)
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	var camera := runner.find_child("Camera") as Camera3D
+	var shot := runner.find_child("Shot") as Node3D
+	await runner.simulate_frames(2, FRAME_MS)
+
+	assert_float(rig.get_view_scale()).is_equal_approx(922.0 / 648.0, 0.001)
+	var back := rig.global_position.distance_to(shot.global_position)
+	assert_float(back).is_equal_approx(rig.distance * rig.get_view_scale(), 0.01)
+
+	var grabbed := _plane_point(camera, Vector2(300, 600))
+	_send_button(MOUSE_BUTTON_MIDDLE, true, Vector2(300, 600))
+	_send_motion(Vector2(500, 500))
+	await runner.simulate_frames(3, FRAME_MS)
+	_send_button(MOUSE_BUTTON_MIDDLE, false, Vector2(500, 500))
+	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(500, 500))).is_less(1.0)
+	get_tree().root.size = Vector2i(1152, 648)
+
+
 func test_pan_and_zoom_do_nothing_while_focused() -> void:
 	var runner := scene_runner(SOLAR_SYSTEM)
 	var rig := runner.find_child("CameraRig") as CameraRig

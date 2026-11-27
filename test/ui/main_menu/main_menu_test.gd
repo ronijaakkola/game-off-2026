@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 
 const MENU := "res://ui/main_menu/main_menu.tscn"
 const GAME := "res://game/solar_system/solar_system.tscn"
-const MUSIC := preload("res://ui/audio/bg.ogg")
+const MUSIC := preload("res://ui/audio/bgm1.ogg")
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 
 var _window_size: Vector2i
@@ -82,6 +82,39 @@ func test_level_1_offers_the_tutorial_box_only_once_the_tutorial_is_done() -> vo
 	assert_bool((chip.find_child("PlayTutorial") as CheckBox).button_pressed).is_false()
 
 
+func test_the_level_pictures_are_read_as_the_menu_loads_and_kept() -> void:
+	# Read as the campaign screen opened, they made its first frame long enough for the
+	# transition to skip ahead, on every open, since the cards dropped them as it closed.
+	var picture := Campaign.LEVELS[0].picture
+	var runner := scene_runner(MENU)
+	await runner.simulate_frames(2)
+	(
+		assert_bool(ResourceLoader.has_cached(picture))
+		. override_failure_message("Not read until the campaign screen opens")
+		. is_true()
+	)
+	await _click(runner, runner.find_child("PlayButton"))
+	var campaign := runner.find_child("CampaignScreen") as MenuScreen
+	campaign.close()
+	await assert_func(campaign, "is_visible").wait_until(2000).is_false()
+	(
+		assert_bool(ResourceLoader.has_cached(picture))
+		. override_failure_message("Dropped as the campaign screen closed")
+		. is_true()
+	)
+
+
+func test_credits_pans_the_background_to_its_other_half_and_back() -> void:
+	var runner := scene_runner(MENU)
+	await _click(runner, runner.find_child("CreditsButton"))
+	var credits := runner.find_child("CreditsScreen") as MenuScreen
+	assert_bool(credits.visible).is_true()
+	await assert_func(self, "_pan", [runner]).wait_until(2000).is_equal(1.0)
+	credits.close()
+	await assert_func(credits, "is_visible").wait_until(2000).is_false()
+	await assert_func(self, "_pan", [runner]).wait_until(2000).is_equal(0.0)
+
+
 func test_settings_button_opens_the_settings_panel() -> void:
 	var runner := scene_runner(MENU)
 	await _click(runner, runner.find_child("SettingsButton"))
@@ -130,19 +163,37 @@ func test_focus_ring_shows_only_when_opened_by_a_key() -> void:
 	assert_bool(volume.has_focus(true)).is_true()
 
 
-func test_start_overlay_click_starts_the_music() -> void:
+func test_title_card_click_starts_the_music_and_the_menu() -> void:
 	# Outside the web build the menu starts the music itself, so stop it first.
 	var runner := scene_runner(MENU)
 	Audio.stop_music(0.0)
 	await runner.simulate_frames(2)
 	assert_bool(_music_playing()).is_false()
 
-	var overlay := runner.find_child("StartOverlay") as Control
-	overlay.show()
-	await _click(runner, overlay)
-	assert_bool(overlay.visible).is_false()
+	var title_card := runner.find_child("TitleCard") as TitleCard
+	title_card.open()
+	(runner.find_child("Background") as MenuBackground).show_half(true)
+	await _click(runner, title_card)
 	assert_bool(_music_playing()).is_true()
-	assert_object(_focused()).is_same(runner.find_child("PlayButton"))
+	await assert_func(title_card, "is_visible").wait_until(2000).is_false()
+	await assert_func(self, "_play_focused", [runner]).wait_until(2000).is_true()
+	await assert_func(self, "_pan", [runner]).wait_until(2000).is_equal(0.0)
+
+
+func test_title_card_esc_does_not_start_it() -> void:
+	var runner := scene_runner(MENU)
+	Audio.stop_music(0.0)
+	await runner.simulate_frames(2)
+	var title_card := runner.find_child("TitleCard") as TitleCard
+	title_card.open()
+
+	runner.simulate_key_pressed(KEY_ESCAPE)
+	await runner.await_input_processed()
+	assert_bool(_music_playing()).is_false()
+
+	runner.simulate_key_pressed(KEY_SPACE)
+	await runner.await_input_processed()
+	assert_bool(_music_playing()).is_true()
 
 
 func _click(runner: GdUnitSceneRunner, control: Control) -> void:
@@ -151,6 +202,16 @@ func _click(runner: GdUnitSceneRunner, control: Control) -> void:
 	runner.set_mouse_position(control.get_global_rect().get_center())
 	runner.simulate_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	await runner.await_input_processed()
+
+
+# How far the menus' background has panned to its right half, from 0 to 1.
+func _pan(runner: GdUnitSceneRunner) -> float:
+	var background := runner.find_child("Background") as MenuBackground
+	return (background.material as ShaderMaterial).get_shader_parameter(&"pan")
+
+
+func _play_focused(runner: GdUnitSceneRunner) -> bool:
+	return _focused() == runner.find_child("PlayButton")
 
 
 func _focused() -> Control:

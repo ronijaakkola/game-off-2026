@@ -88,7 +88,7 @@ Without `node_paths`, Godot leaves the export null at runtime with no error, so 
 
 ## Generating many nodes
 
-For bulk generation (dozens of nodes, a grid of tiles), write a `-s` SceneTree script that builds the nodes, sets each one's `owner` to the root, and saves with `PackedScene.pack()` + `ResourceSaver.save()`. Run it with `--editor` (`godot --headless --editor --path . -s <script>`): outside editor mode the saver writes no uids, and `check.py ids` would then have to restore them. Build and pack the nodes in the script's `_init()` and save in `_initialize()`, as `tools/resave.gd` does: by `_initialize()` editor mode has turned scripting off, and an export of a script that isn't `@tool` can drop the value it's set to, while uids need the editor that `_initialize()` waits for. This rewrites every `id` and adds `unique_id`s, so the diff touches the whole file. Use text edits for everything smaller.
+For bulk generation (dozens of nodes, a grid of tiles), write a `-s` SceneTree script that builds the nodes, sets each one's `owner` to the root, and saves with `PackedScene.pack()` + `ResourceSaver.save()`. Run it with `--editor` (`godot --headless --editor --path . -s <script>`): outside editor mode the saver writes no uids, and `check.py ids` would then have to restore them. Build, pack and save in `_initialize()`, as `tools/resave.gd` does, not in `_init()`: there the autoloads aren't globals yet, so every script that names one fails to compile and its exports save as `null`, and uids need the editor that `_initialize()` waits for. This rewrites every `id` and adds `unique_id`s, so the diff touches the whole file. Use text edits for everything smaller.
 
 ## Merge conflicts
 

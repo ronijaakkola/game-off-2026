@@ -162,7 +162,7 @@ func stay() -> void:
 		return
 	if not star_map.get_jump_target():
 		promote()
-	_offer_jump()
+	_offer_jump(true)
 
 
 # [param jumps] takes the promotion's jump now, else the bus stays for now.
@@ -174,16 +174,18 @@ func _on_boss_answered(jumps: bool) -> void:
 
 
 # The goals go and the goal panel offers the jump to the system a promotion has opened,
-# until the jump takes the bus there. Nothing while there is none to jump to.
-func _offer_jump() -> void:
+# until the jump takes the bus there: [param animated], giving way to it as the player
+# watches. Nothing while there is none to jump to.
+func _offer_jump(animated := false) -> void:
 	var target := star_map.get_jump_target()
 	if not target:
 		return
 	goals.frozen = true
+	# Offered first, so the panel still has the goals' rows to take away.
+	if goal_panel:
+		goal_panel.offer_jump(target, animated)
 	for goal: Goal in goals.get_goals():
 		goals.remove(goal)
-	if goal_panel:
-		goal_panel.offer_jump(target)
 
 
 # Passengers call with quests about [param planets], and capsules drift, which pay by the
@@ -223,13 +225,15 @@ func _add_goals() -> void:
 
 
 # The camera is over the new system: it becomes the one the bus works in, and its lines
-# start empty, its planets start where its layout puts them, and the bus's tank is full.
+# start empty, its planets start where its layout puts them, its star's swell holds at
+# rest until the mechanic calls there, and the bus's tank is full.
 # Whoever was still on board is gone, out of sight, paying and rating nothing.
 func _on_crossed(system: StarSystem) -> void:
 	if goal_panel:
 		goal_panel.offer_jump(null)
 	for planet: Planet in system.get_planets():
 		planet.orbit_time = 0.0
+	system.hold_swell()
 	for passenger: Passenger in cabin.get_passengers():
 		cabin.leave_behind(passenger)
 	bus.get_fuel_tank().fill()

@@ -1,0 +1,98 @@
+[gd_scene format=3 uid="uid://d2bhus7i44w0t"]
+
+[ext_resource type="Script" uid="uid://bdo6tvuntyvc2" path="res://game/quests/pick_up_marker.gd" id="1_marker"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" uid="uid://c4ts4i4v8a1kd" path="res://game/passengers/passenger_photo.tscn" id="3_photo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.85)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 1.0
+expand_margin_top = 1.0
+expand_margin_right = 1.0
+expand_margin_bottom = 1.0
+
+[node name="PickUpMarker" type="Control" unique_id=1428939651]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 38.0
+offset_bottom = 44.0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_marker")
+
+[node name="Body" type="Control" parent="." unique_id=389835395]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_right = 38.0
+offset_bottom = 44.0
+mouse_filter = 2
+
+[node name="Framed" type="Control" parent="Body" unique_id=123876538]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 33.0
+offset_bottom = 33.0
+pivot_offset = Vector2(14, 14)
+mouse_filter = 2
+
+[node name="Photo" parent="Body/Framed" unique_id=590929769 instance=ExtResource("3_photo")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 0
+offset_right = 28.0
+offset_bottom = 28.0
+flat = true
+flat_radius = 4
+badged = false
+
+[node name="Border" type="Panel" parent="Body/Framed" unique_id=875371264]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_border")
+
+[node name="Text" type="Control" parent="Body" unique_id=1879924729]
+unique_name_in_owner = true
+clip_contents = true
+anchors_preset = 0
+offset_left = 42.0
+offset_bottom = 38.0
+mouse_filter = 2
+
+[node name="TextBox" type="Control" parent="Body/Text" unique_id=249565374]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 3
+anchors_preset = 0
+offset_bottom = 38.0
+mouse_filter = 2
+
+[node name="Name" type="Label" parent="Body/Text/TextBox" unique_id=915830213]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 2.5
+theme_type_variation = &"TinyLabel"
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 1)
+
+[node name="Line" type="Label" parent="Body/Text/TextBox" unique_id=1315367099]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 19.25
+theme_type_variation = &"TooltipSentenceLabel"
+theme_override_font_sizes/font_size = 11

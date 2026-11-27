@@ -296,3 +296,55 @@ func test_a_capsule_always_holds_the_castaway_who_comes_back_once_met() -> void:
 	assert_object(second.look.head).is_same(first.look.head)
 	assert_bool(first.returning).is_false()
 	assert_bool(second.returning).is_true()
+
+
+func test_nobody_waits_at_an_abandoned_planet_or_travels_there() -> void:
+	_quiet()
+	var third := _planet()
+	third.abandoned = true
+	_waiting.max_per_planet = 3
+	_waiting.set_planets([_home, _away, third])
+
+	_waiting.add_starting_passengers(third)
+	for i: int in 3:
+		_waiting.add(third)
+	_waiting.restore(third, [_waiting.create(_home)], 2)
+
+	assert_int(_waiting.count_at(third)).is_equal(0)
+	assert_bool(third.found_abandoned).is_false()
+	assert_array(_waiting.get_waiting(third)).is_empty()
+	# Looking at its empty line is how the player finds out.
+	assert_bool(third.found_abandoned).is_true()
+	for i: int in 30:
+		assert_object(_waiting.create(_home).destination).is_same(_away)
+
+
+func test_nobody_rides_the_bus_to_the_planet_a_warp_gate_leads_to() -> void:
+	var third := _planet()
+	_waiting.set_planets([_home, _away, third])
+	var here := WarpGate.new()
+	var there := WarpGate.new()
+	here.planet = _home
+	there.planet = _away
+	here.partner = there
+	there.partner = here
+	_home.add_child(here)
+	_away.add_child(there)
+
+	for i: int in 30:
+		assert_object(_waiting.create(_home).destination).is_same(third)
+		assert_object(_waiting.create(_away).destination).is_same(third)
+
+
+func test_fares_follow_the_fare_multiplier_of_the_star_system_the_bus_works_in() -> void:
+	_away.start_angle = 180.0
+	var ordinary := _waiting.create(_home).fare
+	var map := auto_free(StarMap.new()) as StarMap
+	map.world = auto_free(Node3D.new()) as Node3D
+	var system := StarSystem.new()
+	system.fare_multiplier = 1.5
+	map.world.add_child(system)
+	_waiting.star_map = map
+
+	assert_float(ordinary).is_greater(0.0)
+	assert_float(_waiting.create(_home).fare).is_equal_approx(ordinary * 1.5, 0.001)

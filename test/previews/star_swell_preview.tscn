@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://fq533ypfbtl0"]
+
+[ext_resource type="Script" uid="uid://ll15atn1mamc" path="res://test/previews/star_swell_preview.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="2_system"]
+
+[node name="StarSwellPreview" type="Node" unique_id=175203252]
+script = ExtResource("1_script")
+
+[node name="SolarSystem" parent="." unique_id=1072264528 instance=ExtResource("2_system")]

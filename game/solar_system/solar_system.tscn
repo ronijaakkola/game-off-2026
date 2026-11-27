@@ -74,6 +74,9 @@
 [ext_resource type="Script" uid="uid://c3atn4ddkgf83" path="res://game/capsules/capsule_field.gd" id="156_capsules"]
 [ext_resource type="Script" uid="uid://dijks1t841h88" path="res://game/feature_hints/jump_hint.gd" id="157_jump_hint"]
 [ext_resource type="Script" uid="uid://cfpf5p04206an" path="res://game/capsules/capsule_tooltip.gd" id="158_capsule_tooltip"]
+[ext_resource type="PackedScene" uid="uid://82avi1c774bx" path="res://game/quests/pick_up_markers.tscn" id="159_pick_up_markers"]
+[ext_resource type="PackedScene" uid="uid://bvecr4vgey1sp" path="res://game/bus/bus_indicator.tscn" id="160_bus_indicator"]
+[ext_resource type="Script" uid="uid://b1fajbmbhyo5" path="res://game/solar_system/system_music.gd" id="190_music"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
 render_priority = -2
@@ -201,6 +204,10 @@ script = ExtResource("117_star_map")
 world = NodePath("../World")
 rig = NodePath("../CameraRig")
 sky = NodePath("../SpaceSky")
+
+[node name="SystemMusic" type="Node" parent="." unique_id=2090082079 node_paths=PackedStringArray("star_map")]
+script = ExtResource("190_music")
+star_map = NodePath("../StarMap")
 
 [node name="Bus" parent="." unique_id=805807659 node_paths=PackedStringArray("start_planet") instance=ExtResource("12_bus")]
 unique_name_in_owner = true
@@ -330,7 +337,7 @@ resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
 guide = NodePath("../Hud/GuideCard")
 saver = NodePath("../GameSaver")
 
-[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quest_giver", "test_destination", "test_flyby_planet")]
+[node name="DebugButtons" type="Node" parent="." unique_id=511151935 node_paths=PackedStringArray("bus", "cabin", "notices", "transmission_panel", "quest_giver", "test_destination", "test_flyby_planet", "pick_up_markers")]
 script = ExtResource("103_debug")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
@@ -339,6 +346,7 @@ transmission_panel = NodePath("../TransmissionPanel")
 quest_giver = NodePath("../QuestGiver")
 test_destination = NodePath("../World/Vela/Giant")
 test_flyby_planet = NodePath("../World/Vela/Frost")
+pick_up_markers = NodePath("../Hud/PickUpMarkers")
 
 [node name="HeatZone" type="Node" parent="." unique_id=743044272 node_paths=PackedStringArray("bus", "star_map", "map_zoom", "zone")]
 script = ExtResource("114_heat_zone")
@@ -483,9 +491,10 @@ camera = NodePath("../Camera")
 [node name="Hud" type="CanvasLayer" parent="." unique_id=468736522]
 script = ExtResource("102_hud")
 
-[node name="LabBadges" parent="Hud" unique_id=26987481 node_paths=PackedStringArray("camera") instance=ExtResource("113_lab_badges")]
+[node name="LabBadges" parent="Hud" unique_id=26987481 node_paths=PackedStringArray("camera", "pick_up_markers") instance=ExtResource("113_lab_badges")]
 unique_name_in_owner = true
 camera = NodePath("../../Camera")
+pick_up_markers = NodePath("../PickUpMarkers")
 
 [node name="WarpGateTooltip" type="Control" parent="Hud" unique_id=464056308]
 layout_mode = 3
@@ -515,11 +524,24 @@ unique_name_in_owner = true
 bus = NodePath("../../Bus")
 camera = NodePath("../../Camera")
 
+[node name="PickUpMarkers" parent="Hud" unique_id=181748957 node_paths=PackedStringArray("camera", "portrait_studio") instance=ExtResource("159_pick_up_markers")]
+unique_name_in_owner = true
+camera = NodePath("../../Camera")
+portrait_studio = NodePath("../../PortraitStudio")
+
 [node name="BusQuickText" parent="Hud" unique_id=1403942728 node_paths=PackedStringArray("camera", "bus", "panels") instance=ExtResource("114_quick_text")]
 unique_name_in_owner = true
 camera = NodePath("../../Camera")
 bus = NodePath("../../Bus")
 panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
+
+[node name="BusIndicator" parent="Hud" unique_id=501257162 node_paths=PackedStringArray("camera", "bus", "panels", "avoid", "map_zoom", "system_jump") instance=ExtResource("160_bus_indicator")]
+camera = NodePath("../../Camera")
+bus = NodePath("../../Bus")
+panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
+avoid = [NodePath("../PassengerPanel"), NodePath("../TopRight/Stack/GoalPanel"), NodePath("../TopRight/Stack/DockPanel"), NodePath("../TopCentre/ResourceBar"), NodePath("../BusStatusPanel"), NodePath("../Notices"), NodePath("../PauseButton")]
+map_zoom = NodePath("../../MapZoom")
+system_jump = NodePath("../../SystemJump")
 
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true

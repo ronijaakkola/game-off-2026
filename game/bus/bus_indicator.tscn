@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bvecr4vgey1sp"]
+
+[ext_resource type="Script" uid="uid://cfl4xqx8wm1j" path="res://game/bus/bus_indicator.gd" id="1_indicator"]
+
+[node name="BusIndicator" type="Control" unique_id=1484126456]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("1_indicator")

@@ -48,9 +48,6 @@ const LABEL_PIXELS := 13.0
 const LABEL_GAP_PIXELS := 0.0
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
-## The process priority Phantom Camera's host sets on itself to move the camera, after
-## everything it follows.
-const CAMERA_HOST_PRIORITY := 300
 ## How fast the game runs, as a share of real time: the bus, the planets and the
 ## passengers alike, so nothing about a ride changes but how long it takes to play.
 const PACE := 0.9
@@ -101,8 +98,8 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	# After the planets, the bus and the camera have moved this frame, so the names and
 	# the waiting markers follow where they are now, not where they were a frame
-	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
-	process_priority = CAMERA_HOST_PRIORITY + 1
+	# ago. The camera moves last of those, at FrameOrder.CAMERA_HOST.
+	process_priority = FrameOrder.AFTER_CAMERA
 	Engine.time_scale = PACE
 	(%OrbitClock as OrbitClock).start(_planets)
 	_course_drag = CourseDrag.new(%Bus as FrameshiftBus, %Camera as Camera3D)

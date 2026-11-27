@@ -8,13 +8,14 @@ extends Control
 ## player seeing it ([method WaitingPassengers.get_waiting]). Without the cameras, the
 ## pointer resting on a planet opens a tooltip under its dots saying how many wait. It
 ## places itself after the planets and the camera have moved each frame, and hides with
-## the planets the zoomed map hides.
+## the planets the zoomed map hides. Under an abandoned planet the player has found
+## ([member Planet.found_abandoned]), "(deserted)" takes the dots' place for good, with or
+## without the trait: no place in its line can ever fill.
 
 ## Pixels between a planet's name and its dots.
 const GAP_PIXELS := 7.0
-## After the solar system, which moves the planets after Phantom Camera's host (300) has
-## moved the camera; placed any earlier, the dots trail the planets by a frame.
-const PROCESS_PRIORITY := 302
+## Pixels between a planet's name and the top of "(deserted)", a second line of the name.
+const DESERTED_GAP_PIXELS := 1.0
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 
 ## Who waits at each planet.
@@ -46,6 +47,8 @@ var hovered: Planet:
 			_tooltip.close()
 
 var _pips: Dictionary[Planet, WaitingPips] = {}
+# "(deserted)" for each abandoned planet, shown once the player has found it so.
+var _deserted: Dictionary[Planet, Label] = {}
 # Each planet's dots' fade, while one runs.
 var _pip_fades: Dictionary[Planet, Tween] = {}
 # Made in _ready(), so a scene freed before it enters the tree leaks none.
@@ -61,7 +64,7 @@ var _rested := 0.0
 
 
 func _ready() -> void:
-	process_priority = PROCESS_PRIORITY
+	process_priority = FrameOrder.SCREEN_MARKERS
 	_card = WaitingCard.new()
 	add_child(_card)
 	_tooltip = TOOLTIP.instantiate() as Tooltip
@@ -69,7 +72,7 @@ func _ready() -> void:
 	# It follows the dots as the planet moves: placed after them each frame, and not on
 	# whole pixels, which would step behind them.
 	_tooltip.snap_to_pixels = false
-	_tooltip.process_priority = PROCESS_PRIORITY + 1
+	_tooltip.process_priority = FrameOrder.MARKER_TOOLTIPS
 	add_child(_tooltip)
 
 
@@ -81,9 +84,16 @@ func _process(delta: float) -> void:
 	if card_at != _card_planet:
 		_switch_card(card_at)
 	for planet: Planet in _pips:
-		var at := _under_name(planet) if unlocked and modulate.a > 0.0 else Vector2.INF
+		var found := planet.found_abandoned
+		var at := _under_name(planet) if (unlocked or found) and modulate.a > 0.0 else Vector2.INF
 		var pips := _pips[planet]
-		pips.visible = at != Vector2.INF
+		pips.visible = at != Vector2.INF and not found
+		var deserted: Label = _deserted.get(planet)
+		if deserted:
+			deserted.visible = at != Vector2.INF and found
+			if deserted.visible:
+				var lift := GAP_PIXELS - DESERTED_GAP_PIXELS
+				deserted.position = at - Vector2(deserted.size.x * 0.5, lift)
 		if pips.visible:
 			pips.position = at - Vector2(pips.size.x * 0.5, 0.0)
 		if planet == _card_trail and pips.visible:
@@ -102,6 +112,9 @@ func set_planets(planets: Array[Planet]) -> void:
 		pips.queue_free()
 	_pips.clear()
 	_pip_fades.clear()
+	for label: Label in _deserted.values():
+		label.queue_free()
+	_deserted.clear()
 	_card_planet = null
 	_card_trail = null
 	_card.close()
@@ -110,6 +123,8 @@ func set_planets(planets: Array[Planet]) -> void:
 		add_child(pips)
 		_pips[planet] = pips
 		_show_waiting(planet)
+		if planet.abandoned:
+			_deserted[planet] = _make_deserted()
 	move_child(_card, -1)
 
 
@@ -125,9 +140,27 @@ func is_shown(planet: Planet) -> bool:
 	return pips != null and pips.visible and pips.modulate.a > 0.0
 
 
+## Whether "(deserted)" shows under [param planet].
+func is_deserted_shown(planet: Planet) -> bool:
+	var label: Label = _deserted.get(planet)
+	return label != null and label.visible
+
+
 ## Whether [param planet]'s line shows as photos, or is opening to.
 func is_card_shown(planet: Planet) -> bool:
 	return planet != null and planet == _card_planet and _card.is_open()
+
+
+func _make_deserted() -> Label:
+	var label := Label.new()
+	label.text = "(deserted)"
+	label.theme_type_variation = &"DimLabel"
+	label.add_theme_color_override(&"font_outline_color", Planet.LABEL_OUTLINE_COLOR)
+	label.add_theme_constant_override(&"outline_size", 3)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.visible = false
+	add_child(label)
+	return label
 
 
 # Just under [param planet]'s name on screen, or Vector2.INF where it can't be seen: behind

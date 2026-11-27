@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dl00qj1joo6lh"]
 
 [ext_resource type="Script" uid="uid://b60byqdjkmg8f" path="res://game/solar_system/star_system.gd" id="1_system"]
+[ext_resource type="AudioStream" uid="uid://b2jmgmaf4lxpi" path="res://ui/audio/bgm1.ogg" id="90_music"]
 [ext_resource type="Script" uid="uid://bcxthsqtxqd30" path="res://game/solar_system/planet.gd" id="2_planet"]
 [ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
@@ -137,6 +138,7 @@ shader_parameter/terminator_softness = 0.0
 [node name="Vela" type="Node3D" unique_id=500631542 node_paths=PackedStringArray("home")]
 script = ExtResource("1_system")
 display_name = "Vela"
+music = ExtResource("90_music")
 home = NodePath("Ember")
 deliveries = 20
 

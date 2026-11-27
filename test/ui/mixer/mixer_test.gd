@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 
 const DOCK_BELL := "game/bus/dock_bell.ogg"
-const BG := preload("res://ui/audio/bg.ogg")
+const BG := preload("res://ui/audio/bgm1.ogg")
 const RINGTONE := preload("res://game/solar_system/ringtone.ogg")
 const BELL := preload("res://game/bus/dock_bell.ogg")
 
@@ -24,7 +24,7 @@ func test_the_mixer_lists_every_clip_but_the_voices() -> void:
 	var runner := scene_runner("res://ui/mixer/mixer.tscn")
 	var rows: Array[Node] = runner.scene().find_children("*", "MixerRow", true, false)
 	assert_int(rows.size()).is_equal(ClipFinder.find().size())
-	assert_array(ClipFinder.find()).contains([DOCK_BELL, "ui/audio/bg.ogg"])
+	assert_array(ClipFinder.find()).contains([DOCK_BELL, "ui/audio/bgm1.ogg"])
 	for path: String in ClipFinder.find():
 		(
 			assert_bool(path.begins_with("game/transmissions/voice/"))
@@ -57,6 +57,17 @@ func test_setting_a_level_changes_how_loud_the_clip_plays_and_what_copy_gives() 
 	assert_bool(row.is_edited()).is_false()
 
 
+func test_copy_keeps_a_clip_in_the_table_that_the_build_left_out() -> void:
+	var runner := scene_runner("res://ui/mixer/mixer.tscn")
+	var mixer := runner.scene() as Mixer
+	# As in a pack without the clip: the mixer found no row for it.
+	for row: MixerRow in mixer._rows.duplicate():
+		if row.path == DOCK_BELL:
+			mixer._rows.erase(row)
+	var level := Mixer.level_text(ClipLevels.LEVELS[DOCK_BELL])
+	assert_str(mixer.table_text()).contains('\t"%s": %s,' % [DOCK_BELL, level])
+
+
 func test_a_voice_level_goes_to_its_voice_and_into_copy() -> void:
 	var runner := scene_runner("res://ui/mixer/mixer.tscn")
 	var mixer := runner.scene() as Mixer
@@ -74,3 +85,15 @@ func test_a_level_is_written_with_a_point_and_two_places_at_most() -> void:
 	assert_str(Mixer.level_text(0.8)).is_equal("0.8")
 	assert_str(Mixer.level_text(0.333)).is_equal("0.33")
 	assert_str(Mixer.level_text(2.0)).is_equal("2.0")
+
+
+func test_a_volume_set_to_zero_in_settings_is_warned_of() -> void:
+	var music := Settings.music_volume
+	Settings.music_volume = 0.0
+	var runner := scene_runner("res://ui/mixer/mixer.tscn")
+	var warning := runner.find_child("Silenced") as Label
+	assert_bool(warning.visible).is_true()
+	assert_str(warning.text).contains("Music")
+	Settings.music_volume = 0.6
+	assert_array(Mixer.silenced_volumes()).is_empty()
+	Settings.music_volume = music

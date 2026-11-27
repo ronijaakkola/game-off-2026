@@ -197,6 +197,7 @@ func _write() -> void:
 		lines[planet.name] = {
 			"seen": seen.map(func(p: Passenger) -> Dictionary: return p.to_save()),
 			"unseen": waiting.count_at(planet) - seen.size(),
+			"found_abandoned": planet.found_abandoned,
 		}
 	var researched: Array[String] = []
 	var research := research_lab.get_research()
@@ -276,6 +277,7 @@ func _restore() -> void:
 			if passenger:
 				seen.append(passenger)
 		waiting.restore(planet, seen, int(line.get("unseen", 0)))
+		planet.found_abandoned = bool(line.get("found_abandoned", false))
 	for saved: Variant in _saved.get("cabin", []):
 		var passenger := Passenger.from_save(saved as Dictionary, types, by_name)
 		if passenger:
