@@ -145,6 +145,8 @@ func _process(_delta: float) -> void:
 		trip_arc.show_passenger(_ride.passenger)
 	if _step in RIDE_STEPS and _goal == destination:
 		_rules.hold_fare(_ride.passenger)
+	var bus_rect := _screen_rect(bus.global_position, FrameshiftBus.RADIUS)
+	guide.avoid_rect = bus_rect if _step == Step.ROUTE else Rect2()
 	match _step:
 		Step.BUS, Step.LOOK:
 			guide.target_rect = _screen_rect(bus.global_position, FrameshiftBus.RADIUS)
