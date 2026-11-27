@@ -10,6 +10,8 @@ extends Node3D
 @export var display_name := ""
 ## The music while the bus works here, which [SystemMusic] plays.
 @export var music: AudioStream
+## Its star's body and halo: what is left of it on the [StarChart].
+@export var star: Node3D
 ## Where the bus docks when it jumps in, and where the first passengers wait.
 @export var home: Planet
 ## Where the bus comes to rest in space when it jumps in, from the star, on the orbit
@@ -78,6 +80,16 @@ func get_planets() -> Array[Planet]:
 ## Whether [param planet] is in it.
 func has_planet(planet: Planet) -> bool:
 	return planet in _get_planets()
+
+
+## What orbits its star: every child but [member star], such as its planets, an asteroid
+## field or a warp gate.
+func get_contents() -> Array[Node3D]:
+	var contents: Array[Node3D] = []
+	for child: Node in get_children():
+		if child is Node3D and child != star:
+			contents.append(child as Node3D)
+	return contents
 
 
 func _get_planets() -> Array[Planet]:

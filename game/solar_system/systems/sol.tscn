@@ -155,7 +155,8 @@ shader_parameter/cap_size = 0.0
 shader_parameter/seed = 83.0
 shader_parameter/terminator_softness = 0.0
 
-[node name="Sol" type="Node3D" unique_id=109947984 node_paths=PackedStringArray("home")]
+[node name="Sol" type="Node3D" unique_id=109947984 node_paths=PackedStringArray("star", "home")]
+star = NodePath("Star")
 script = ExtResource("1_system")
 display_name = "Sol"
 music = ExtResource("90_music")

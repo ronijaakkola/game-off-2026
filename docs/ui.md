@@ -175,6 +175,17 @@ A stamp of a few words with an icon that lands over the bus when something about
 - **The zoom out** starts once the HUD has gone: every panel, the bus bars, the notices and the pause button fade out one after another, 0.08 s apart over 0.35 s each, easing in, the top panels rising 12 px and the bus bars sinking 12 px; the lab badges go with them. It takes 7 s, easing in and out. The world shrinks by the same factor in every equal step, so it reads as a steady pull back, while the camera glides to frame the whole map: out to its outermost orbit it takes 94 % of the screen's height, centred top to bottom, so the star sits a little above the middle; the zoom eases with the rest. The camera is locked from the tutorial's call until The Boss's first-shift call closes: no pan, edge scrolling, drag or zoom. The star and the other planets keep their whole-map size as the world shrinks around them, so they glide in from past the screen's edges, and the other orbit lines fade in. The planets start orbiting with it, their speed rising from nothing as the square of how far it has got. Then it holds for 4 s before the bus bars, the notices and the pause button come back, the bars rising 12 px as they fade in, for The Boss's first-shift call; the other panels and the camera wait for it to end. Under Reduce motion it cuts, still holds, and the HUD only fades.
 - Under Reduce motion it cuts to the whole map.
 
+### The star chart
+
+- **Opening,** the open planet's or the bus's panel closes and the camera draws back over 2 s, easing in and out, from where it is to 150 units back over the middle of the stars the bus has been to, zooming out by the same factor in every equal step. The planets' names go first, with the markers over them, and the orbit lines fade out over the first 40 %. From 20 % to 75 % the planets shrink where they are until they are gone, as do the asteroid fields' rocks, the warp gates and Earth's smoke, and the heat zone's glow fades with them. The sky goes from the system's colours to plain space, near black with a faint blue fog and white stars, from 25 % to the end.
+- **The other stars** show from the start, with no planets, and come into view as the camera rises. Each keeps its own colour, body and halo, at its true size and place.
+- **The bus** glides from where it is to 6.5 units from its star's centre, on the side it was on, from 20 % to the end, growing as the camera rises, so it ends at 90 % of the size it has on screen in play from 45 units back, whichever star it is beside. Only its model moves: the bus itself stays docked, and closing glides the model back onto it.
+- **The planets slow to a stop** as the orbit lines fade, and stay still until the chart has closed that far again.
+- **The HUD stays** over the chart: the On board panel, the resource bar, the goal panel, the bus bars, the notices and the pause button. Only the notices and the pause button take clicks until it has closed.
+- **The dock panel** slides out as the chart starts to open, and back in once it has closed.
+- **Closing** plays the same back over 1.5 s. Pan and zoom wait from the opening until it has closed.
+- Under Reduce motion it cuts both ways.
+
 ## The HUD
 
 | Where | What |

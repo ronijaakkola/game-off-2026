@@ -243,6 +243,10 @@ _Avoid_: mission, stage (a band of research rows), chapter
 The levels in order and how far the player has got through them, which outlives the run: replaying a level starts the run over from where that level began and keeps what is done. Reset campaign forgets it with the save. `Campaign` in code; the campaign screen shows it.
 _Avoid_: progress (the goals' own), level select
 
+**Star chart**:
+The map pulled back until the star systems the bus has been to show as stars alone, in plain space, with the bus beside the one it is in. `StarChart` in code.
+_Avoid_: galaxy map, star map (the `StarMap` keeps the systems and how far the player has got)
+
 **Jump**:
 The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
 _Avoid_: warp, hyperspace, travel (a trip between planets)
