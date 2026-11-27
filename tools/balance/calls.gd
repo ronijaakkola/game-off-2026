@@ -45,8 +45,9 @@ var _answer_in := 0.0
 var _time := 0.0
 var _call_times: Array[float] = []
 var _quest: Quest
-# The last offer answered, which stays on offer while its transmission closes.
-var _answered: Quest
+# Whether the transmission showing was answered: it stays open, and the game paused, while
+# it closes.
+var _responded := false
 
 
 func _init(
@@ -57,6 +58,7 @@ func _init(
 	_detour = detour
 	_giver = system.get_node(^"%QuestGiver") as QuestGiver
 	_panel = system.get_node(^"TransmissionPanel") as TransmissionPanel
+	_panel.answered.connect(func(_accepted: bool) -> void: _responded = false)
 	_notices = system.get_node(^"%Notices") as NoticeStack
 	_bus = system.get_node(^"%Bus") as FrameshiftBus
 	_cabin = system.get_node(^"%Cabin") as Cabin
@@ -112,21 +114,20 @@ func _answer() -> void:
 		_respond(_giver.get_offer())
 
 
-## While the game is paused: answers an offer whose transmission opened with no call
-## notice, as the castaway's rescue does.
+## While the game is paused: answers a transmission that opened with no call notice, as
+## the castaway's rescue does.
 func answer_open() -> void:
-	var offer := _giver.get_offer()
-	if offer and offer != _answered and _panel.is_open():
-		_respond(offer)
+	if _panel.is_open() and not _responded:
+		_respond(_giver.get_offer())
 
 
 func _respond(offer: Quest) -> void:
+	_responded = true
 	# A call that only says something, as the mechanic's: read, and closed.
 	if not offer:
 		_panel.skip()
 		_panel.accept()
 		return
-	_answered = offer
 	answered += 1
 	_panel.skip()
 	if str(_policy.get("quests", "accept")) == "accept" and _is_worth(offer):
