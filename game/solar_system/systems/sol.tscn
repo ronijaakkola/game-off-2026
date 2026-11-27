@@ -176,6 +176,7 @@ smoke_color = Color(1, 0.416, 0.227, 0.07)
 swell_zone_radius = 14.9
 swell_hot_zone_radius = 9.0
 swell_heating = 1.5
+swell_standing_heating = 4.0
 star = NodePath("Star")
 background_color = Color(0.165, 0.063, 0.125, 1)
 fog_color = Color(0.239, 0.082, 0.149, 1)

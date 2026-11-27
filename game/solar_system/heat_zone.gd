@@ -87,7 +87,7 @@ func _process(delta: float) -> void:
 	var closing := forward.normalized().dot(-offset.normalized())
 	var to_star := _distance_to_star(distance, closing)
 	var heating := bus.get_stats().get_stat(BusStats.Type.HEATING).get_value()
-	heating *= _system.get_swell_heating()
+	heating *= _system.get_swell_heating(flying)
 	temperature.advance(delta, distance, flying, to_star < INF, exempt, heating)
 	bus.speed_cap = INF if exempt else sqrt(2.0 * bus.acceleration * maxf(to_star, 0.0))
 	var target := 0.0

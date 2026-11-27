@@ -74,9 +74,11 @@ const UNREST_PULSE := 0.035
 @export_range(0.1, 600.0, 0.5) var swell_grow_seconds := 20.0
 @export_range(0.0, 600.0, 0.5) var swell_hold_seconds := 15.0
 @export_range(0.1, 600.0, 0.5) var swell_shrink_seconds := 15.0
-## How many times as fast the zone heats the bus at its widest, easing up from 1 at rest,
-## so its far reaches still matter.
+## How many times as fast the zone heats the bus at its widest, flying and standing still,
+## easing up from 1 at rest: flying, so its far reaches still matter; standing still, so
+## waiting a swell out costs more than flying out ahead of it.
 @export_range(1.0, 10.0, 0.05) var swell_heating := 2.0
+@export_range(1.0, 10.0, 0.05) var swell_standing_heating := 1.0
 ## Seconds before a swell that the star's pulse starts to quicken.
 @export_range(0.0, 60.0, 0.5) var swell_warning_seconds := 6.0
 ## The star's body and halo, which pulse slowly while it swells and faster as it is about
@@ -152,10 +154,10 @@ func get_hot_zone_radius() -> float:
 	return lerpf(hot_zone_radius, maxf(swell_hot_zone_radius, hot_zone_radius), get_swell())
 
 
-## How many times as fast the heat zone heats the bus now: 1 at rest, [member swell_heating]
-## at its widest.
-func get_swell_heating() -> float:
-	return lerpf(1.0, swell_heating, get_swell())
+## How many times as fast the heat zone heats the bus now, [param flying] or standing still:
+## 1 at rest, [member swell_heating] or [member swell_standing_heating] at its widest.
+func get_swell_heating(flying: bool) -> float:
+	return lerpf(1.0, swell_heating if flying else swell_standing_heating, get_swell())
 
 
 ## How swollen the heat zone is now, from 0 at rest to 1 at its widest, easing in and out.
