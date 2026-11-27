@@ -59,6 +59,20 @@ Only whoever makes 3D models needs Blender. Everyone else, and CI, uses the comm
 
 Save in Blender before `preview` or `export`: both read the file on disk.
 
+## Text desk
+
+`tools/text_desk/text_desk.tscn` is where the game's writing is read through and edited. Open it in the editor and press F6. It runs the real game HUD with a panel on the right:
+
+- **The list** has every text the player reads, in the order a run meets them: menus, the tutorial, the first shift, hints, quests, research, promotion and the later star systems. Text with no fixed moment (what a passenger is doing, tooltips, menus) has its own sections, and `Everything else` holds any text the order doesn't name yet, so nothing is left out. The box above it filters by what a text says.
+- **Picking a text** shows it in the game with the widget it has there: a transmission opens the real modal with its caller, a guide card and a tooltip are the game's own, a notice joins the notice stack, a stamp lands over the bus. Anything else shows as a plain label or button in the game's theme. Names the game fills in (`{home}`, `%s`) show as samples.
+- **Editing** a part changes the game as you type, and the line under the parts says how the text fits: letters, lines, and a warning in red when a transmission's modal grows or a guide card runs past the three lines it is drawn for.
+- **Effects**: for a transmission, the buttons wrap the selection in the game's `[money]` and `[shout]` or one of Godot's BBCode effects; for a guide card they put in a control's icon (`{mouse_right}`). Godot's own effects keep moving under Reduce motion, which the game's two respect.
+- **Save** (Ctrl+S) writes every changed text into the script, scene or resource it came from and runs `gdformat` on the scripts. Nothing else in a file changes, and the result is an ordinary diff to commit. **Copy all** puts the whole running order on the clipboard as Markdown, for a spell-check or a read away from the game.
+
+Alt+Down and Alt+Up step through the texts, F1 hides the panel, and Side moves it to the other edge when it covers what you are looking at.
+
+The text stays where the game reads it; the desk only knows where each one is. `tools/text_desk/running_order.gd` is that list: a file and a key per text (`CARDS/BUS/title`, `node:Tooltip/sentence`), never the words. A new text shows under `Everything else` until it gets a line there, and `uv run tools/check.py test test/tools/text_desk/` fails when a line names a text that has been renamed or removed. `tools/` is left out of every export, so none of this reaches a build.
+
 ## Pinned versions
 
 | Tool | Version |
