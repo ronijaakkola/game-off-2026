@@ -8,7 +8,8 @@ extends RefCounted
 ## way to the nearest planet someone else on board is going to, and the player declines one
 ## whose planet is too far for the fuel left, as a dock decision would refuel for
 ## ([constant Player.FUEL_MARGIN]). "call_think" is the
-## seconds from the call ringing to the answer. An accepted quest sets the course to its
+## seconds from the call ringing to the answer. A transmission that opens by itself, as the
+## castaway's rescue, is answered at once in the same way. An accepted quest sets the course to its
 ## planet at once: docking there is an express quest's stop and an errand's, and flying in
 ## is a flyby.
 
@@ -44,6 +45,8 @@ var _answer_in := 0.0
 var _time := 0.0
 var _call_times: Array[float] = []
 var _quest: Quest
+# The last offer answered, which stays on offer while its transmission closes.
+var _answered: Quest
 
 
 func _init(
@@ -105,14 +108,25 @@ func _answer() -> void:
 	# As the notice's own button does: it answers, then leaves, so it is never seen again.
 	call.action_pressed.emit()
 	call.dismiss()
+	if _panel.is_open():
+		_respond(_giver.get_offer())
+
+
+## While the game is paused: answers an offer whose transmission opened with no call
+## notice, as the castaway's rescue does.
+func answer_open() -> void:
 	var offer := _giver.get_offer()
-	if not _panel.is_open():
-		return
+	if offer and offer != _answered and _panel.is_open():
+		_respond(offer)
+
+
+func _respond(offer: Quest) -> void:
 	# A call that only says something, as the mechanic's: read, and closed.
 	if not offer:
 		_panel.skip()
 		_panel.accept()
 		return
+	_answered = offer
 	answered += 1
 	_panel.skip()
 	if str(_policy.get("quests", "accept")) == "accept" and _is_worth(offer):
