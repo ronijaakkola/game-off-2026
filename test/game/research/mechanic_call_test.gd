@@ -3,7 +3,8 @@ extends GdUnitTestSuite
 ## it open at once on its first stage, with no call, and the mechanic calls once they have
 ## delivered 3 passengers there, the answer opening the next stage. In Sol, whose star
 ## swells, the swell holds at rest until that call, which warns of it in Sol's own words,
-## and starts as it closes; a run continued there after the call has it swelling.
+## and starts as it closes; a run continued there after the call has it swelling, and so
+## does a jump there with Sol's stage already open.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -90,6 +91,29 @@ func test_continued_in_sol_after_the_call_the_star_swells() -> void:
 	var runner := _continue_in_sol(3)
 	await runner.simulate_frames(5)
 	var sol := (runner.find_child("StarMap") as StarMap).get_current()
+	await _play(runner, sol.swell_warning_seconds + 1.0)
+	assert_float(sol.get_swell()).is_greater(0.0)
+
+
+func test_jumping_to_sol_with_its_stage_open_the_star_swells() -> void:
+	SaveGame.mark_tutorial_done()
+	var run := {
+		SavedStarMap.KEY: SavedStarMap.make(3, false, "Lyra"),
+		"bus_planet": "Hither",
+		"research_open": true,
+		"research_stages": 3,
+	}
+	SaveGame.write(run)
+	SaveGame.continue_saved()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(5)
+	var jump := runner.find_child("SystemJump") as SystemJump
+	var sol := runner.find_child("Sol") as StarSystem
+	jump.shows_loading_screen = false
+	monitor_signals(jump)
+	(runner.find_child("Progression") as Progression).advance()
+	await assert_signal(jump).wait_until(20000).is_emitted("finished", [sol])
+
 	await _play(runner, sol.swell_warning_seconds + 1.0)
 	assert_float(sol.get_swell()).is_greater(0.0)
 

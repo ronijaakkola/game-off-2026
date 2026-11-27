@@ -123,7 +123,9 @@ func _size() -> void:
 		return
 	zone.scale = Vector3.ONE * temperature.zone_radius
 	var material := zone.material_override as ShaderMaterial
-	material.set_shader_parameter(&"hot_share", _system.hot_zone_radius / _system.zone_radius)
+	material.set_shader_parameter(
+		&"hot_share", temperature.hot_zone_radius / temperature.zone_radius
+	)
 
 
 # How far the bus can fly along its heading, distance from the star, before it is
