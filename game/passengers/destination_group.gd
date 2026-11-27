@@ -11,10 +11,9 @@ signal emptied
 ## The group has folded away after [method fold_away]. It can be freed.
 signal folded
 
-## What the header says, and its dot's colour, for passengers going to no planet: the
-## castaway on a hop quest ([HopQuest]), in the aqua of the zone at the hop location.
+## What the header says for passengers going to no planet: the castaway on a hop quest
+## ([HopQuest]). Its icon is then the [HopIcon].
 const NOWHERE_TEXT := "Hop location"
-const NOWHERE_COLOR := Color(0.62, 1.0, 0.93)
 
 ## The planet its passengers are going to, or null for those going to none.
 var planet: Planet:
@@ -98,10 +97,10 @@ func _kill_motion() -> void:
 
 func _show_planet() -> void:
 	(%DestinationPlanetIcon as PlanetIcon).planet = planet
+	(%HopIcon as Control).visible = planet == null
 	var label := %PlanetLabel as Label
 	if not planet:
 		label.text = NOWHERE_TEXT
-		(%DestinationPlanetIcon as PlanetIcon).show_color(NOWHERE_COLOR)
 	elif planet.display_name:
 		label.text = planet.display_name
 	else:
