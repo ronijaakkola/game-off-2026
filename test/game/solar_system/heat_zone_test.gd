@@ -208,3 +208,24 @@ func _planet(parent: Node3D, at: Vector3) -> Planet:
 	planet.position = at
 	parent.add_child(planet)
 	return planet
+
+
+# The smoke drifted on the shader's TIME, which keeps counting while the game is paused, so
+# it went on churning under the pause menu.
+func test_the_smoke_holds_still_while_the_game_is_paused() -> void:
+	var material := _zone.zone.material_override as ShaderMaterial
+	_zone.set_process(true)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var drifted := material.get_shader_parameter(&"smoke_time") as float
+	assert_float(drifted).is_greater(0.0)
+
+	get_tree().paused = true
+	for i: int in 5:
+		await get_tree().process_frame
+	get_tree().paused = false
+
+	assert_float(material.get_shader_parameter(&"smoke_time") as float).is_equal(drifted)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_float(material.get_shader_parameter(&"smoke_time") as float).is_greater(drifted)
