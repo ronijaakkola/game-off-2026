@@ -95,6 +95,8 @@ func test_every_kind_of_quest_under_way_comes_back_from_a_save() -> void:
 			(quest as ErrandQuest).planet = planet
 		elif quest is ExpressQuest:
 			(quest as ExpressQuest).planet = planet
+		elif quest is WindowHopQuest:
+			(quest as WindowHopQuest).planet = planet
 		passenger.tour = Tour.new([passenger.destination]) if quest is VipTourQuest else null
 		quest.reward_credits = 100
 		quest.accept()
