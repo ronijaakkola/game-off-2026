@@ -17,7 +17,9 @@ extends CanvasLayer
 ## before the file, and redraws the bar every [member step_msec]. Each [code]load()[/code]
 ## then only builds its own file, because what it uses is already cached.
 ## [br]- Drawing the scene for the first time, which compiles a shader for each material.
-## The card shows the scene's 3D objects one new material at a time under it, a frame each.
+## The card shows the scene's 3D objects one new material at a time under it, a frame each,
+## and with the first of those frames the materials of its UI, hidden panels' too
+## ([CanvasWarmUp]).
 
 const FADE := 0.25
 const THEME := preload("res://ui/theme.tres")
@@ -42,6 +44,8 @@ var _curtain: Control
 ## children apart, so it would show through the level's loading screen as that fades.
 var _plain: Control
 var _bar: ProgressBar
+## Draws a new scene's 2D materials for the first time, under the black.
+var _specks: CanvasWarmUp
 ## The level's loading screen, over the black card while a level loads.
 var _level_card: LoadingCard
 var _busy := false
@@ -62,6 +66,10 @@ func _ready() -> void:
 	_curtain.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_curtain.hide()
 	add_child(_curtain)
+	# Under the black, so its specks draw unseen.
+	_specks = CanvasWarmUp.new()
+	_specks.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_curtain.add_child(_specks)
 	var black := ColorRect.new()
 	black.color = Color.BLACK
 	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -234,9 +242,12 @@ func _warm_up(scene: Node) -> void:
 				RenderingServer.instance_set_visible(geometry.get_instance(), false)
 	# The bar is set before each frame, so the frame that does a step shows it done.
 	var parts := steps.size() + 1
-	# The first frame draws the sky, the environment and the UI, with no 3D objects.
+	# The first frame draws the sky, the environment and the UI, with no 3D objects, and
+	# the materials of the UI that starts hidden.
+	_specks.fill(scene)
 	_set_progress(lerpf(LOAD_SHARE, 1.0, 1.0 / parts))
 	await get_tree().process_frame
+	_specks.clear()
 	for i: int in steps.size():
 		_draw_step(steps[i], true)
 		_set_progress(lerpf(LOAD_SHARE, 1.0, float(i + 2) / parts))

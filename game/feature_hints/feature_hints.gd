@@ -94,11 +94,11 @@ const HINTS := {
 	},
 	&"jump":
 	{
-		title = "Next star system",
+		title = "Next level",
 		text =
 		(
-			"Keep working this system as long as you like. When you're ready, jump to the "
-			+ "next one from here. Anyone still on your bus stays behind."
+			"You can keep working in this system as long as you like. When you are ready, "
+			+ "click here to move to the next level."
 		),
 		side = GuideCard.Side.LEFT,
 	},

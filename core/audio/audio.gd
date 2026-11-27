@@ -65,6 +65,18 @@ func play_music(stream: AudioStream, fade := 1.0) -> void:
 	_fade(_current, get_clip_volume(stream), fade)
 
 
+## Decodes [param stream] now, so its first play doesn't stall. The web build plays a clip
+## as a sample, and the first play of one decodes all of it in a single step on the one
+## thread: about a third of a second for a minute of music, which a moving screen shows as
+## a hitch. Call it where a stall doesn't show, as a scene loads. It does nothing for a clip
+## already decoded, nor off the web, where clips decode as they play.
+func warm_up(stream: AudioStream) -> void:
+	if stream == null or not OS.has_feature("web"):
+		return
+	if not AudioServer.is_stream_registered_as_sample(stream):
+		AudioServer.register_stream_as_sample(stream)
+
+
 ## Seconds until the music's next beat, or the next [param beats]th beat of it (0.5 for every
 ## half beat, 2 for every other). 0 when no music is playing, so a sound meant to land on
 ## the beat plays at once. The music is on a grid from the start of its file, which its

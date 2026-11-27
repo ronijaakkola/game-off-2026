@@ -16,8 +16,6 @@ extends MeshInstance3D
 ## frame. It draws in global space.
 
 const SHADER := preload("res://game/solar_system/trip_arc.gdshader")
-## The process priority Phantom Camera's host sets on itself to move the camera.
-const CAMERA_HOST_PRIORITY := 300
 ## Straight pieces in the arc, and in each ring.
 const ARC_SEGMENTS := 64
 const RING_SEGMENTS := 48
@@ -77,7 +75,7 @@ var _ring_material := _make_material(false)
 
 
 func _ready() -> void:
-	process_priority = CAMERA_HOST_PRIORITY + 1
+	process_priority = FrameOrder.AFTER_CAMERA
 	top_level = true
 	global_transform = Transform3D.IDENTITY
 	mesh = _mesh

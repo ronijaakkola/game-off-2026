@@ -6,6 +6,8 @@
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
 [ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
 [ext_resource type="Script" uid="uid://dajf73oqy6see" path="res://game/solar_system/planet_smoke.gd" id="6_smoke"]
+[ext_resource type="Script" uid="uid://b3wlb2uewmlfq" path="res://game/warp_gate/warp_gate.gd" id="7_gate"]
+[ext_resource type="AudioStream" uid="uid://b2jmgmaf4lxpi" path="res://ui/audio/bgm1.ogg" id="90_music"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.6
@@ -154,13 +156,15 @@ shader_parameter/cap_size = 0.0
 shader_parameter/seed = 83.0
 shader_parameter/terminator_softness = 0.0
 
-[node name="Sol" type="Node3D" unique_id=109947984 node_paths=PackedStringArray("home")]
+[node name="Sol" type="Node3D" unique_id=109947984 node_paths=PackedStringArray("home", "star")]
 script = ExtResource("1_system")
 display_name = "Sol"
+music = ExtResource("90_music")
 home = NodePath("Mars")
 bounds_radius = 22.0
 max_distance = 62.0
 arrival_call = "Welcome to Sol. The sun here is dying, and Earth was abandoned long ago. The planets that are left still need a bus. Get to work."
+mechanic_call = "Last shipment, and the best I've got. The lab has the final upgrades in every tree. And kid, watch the sun: it's old and restless. When it starts throbbing, its heat swells right out to Jupiter. Look, it's starting now!"
 deliveries = 50
 rating = 4.0
 zone_radius = 6.6
@@ -169,6 +173,11 @@ star_radius = 2.6
 zone_color = Color(1, 0.478, 0.29, 0.07)
 hot_color = Color(1, 0.227, 0.165, 0.12)
 smoke_color = Color(1, 0.416, 0.227, 0.07)
+swell_zone_radius = 14.9
+swell_hot_zone_radius = 9.0
+swell_heating = 1.5
+swell_standing_heating = 4.0
+star = NodePath("Star")
 background_color = Color(0.165, 0.063, 0.125, 1)
 fog_color = Color(0.239, 0.082, 0.149, 1)
 fog_accent_color = Color(0.29, 0.122, 0.102, 1)
@@ -289,3 +298,13 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 [node name="EarthSmoke" type="Node3D" parent="." unique_id=1998303546 node_paths=PackedStringArray("planet")]
 script = ExtResource("6_smoke")
 planet = NodePath("../Earth")
+
+[node name="VenusGate" type="Node3D" parent="." unique_id=1539740272 node_paths=PackedStringArray("planet", "partner")]
+script = ExtResource("7_gate")
+planet = NodePath("../Venus")
+partner = NodePath("../PlutoGate")
+
+[node name="PlutoGate" type="Node3D" parent="." unique_id=503562901 node_paths=PackedStringArray("planet", "partner")]
+script = ExtResource("7_gate")
+planet = NodePath("../Pluto")
+partner = NodePath("../VenusGate")

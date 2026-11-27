@@ -179,7 +179,7 @@ static func from_save(
 ) -> Passenger:
 	var kind: PassengerType = types.get(saved.get("type", ""))
 	var to: Planet = planets.get(saved.get("destination", ""))
-	if not kind or not to:
+	if not kind or (not to and saved.get("destination", "") != ""):
 		return null
 	var passenger := Passenger.new(kind, to, float(saved.get("trip_seconds", 0.0)), 0.0)
 	passenger.origin = planets.get(saved.get("origin", ""))
@@ -253,8 +253,10 @@ func get_rating() -> float:
 ## can give them, less what frustration takes off, or 0 once a request has been open for
 ## [constant REQUEST_LEEWAY], though
 ## [method tick] holds them where they are while it is being served. Comfort lifts it no
-## higher than [constant MAX_HAPPINESS].
+## higher than [constant MAX_HAPPINESS]. Someone going nowhere is as happy as can be.
 func get_target(comfort: Comfort = null) -> float:
+	if not destination:
+		return MAX_HAPPINESS
 	if request and _request_age >= REQUEST_LEEWAY:
 		return 0.0
 	var best := _get_best(comfort if comfort else _no_comfort)
@@ -264,8 +266,10 @@ func get_target(comfort: Comfort = null) -> float:
 ## Changes their happiness by [param amount] at once, as a scare does, leaving the target
 ## alone, so it slides back from there. It wakes them if they sleep, which costs
 ## [constant WAKE_SHOCK] more. With [param why] it is listed as what cost them, and they say
-## one of their type's lines about it unless busy.
+## one of their type's lines about it unless busy. Nothing shocks someone going nowhere.
 func shock(amount: float, why := HappinessCause.Type.NONE) -> void:
+	if not destination:
+		return
 	cause.mark(why)
 	if asleep:
 		amount += WAKE_SHOCK
@@ -322,14 +326,14 @@ func reroute(to: Planet, seconds: float, base_fare: float) -> void:
 
 
 ## The bus docked at [param planet] on their ride, which isn't where they are going. A stop
-## past their type's tolerance frustrates them, and they say so unless busy. The planet
+## past their type's tolerance frustrates them, unless they are going nowhere. The planet
 ## they boarded at doesn't count before the bus has left it, and nor does their
 ## [member errand], once: a later stop there counts as any other.
 func pass_stop(planet: Planet) -> void:
 	if planet == errand:
 		errand = null
 		return
-	if _departed and ride.pass_stop(planet, origin, destination):
+	if _departed and destination and ride.pass_stop(planet, origin, destination):
 		_complain(type.stop_lines, COMPLAINT_SECONDS)
 
 
@@ -351,6 +355,7 @@ func arrive() -> void:
 ## length, but not while they watch: a request stops the show. While a request is being
 ## fed, happiness holds. While the bus is docked or parks, no request opens, but one
 ## already open stays open and can be served. A request saved on hold opens again.
+## Someone going nowhere asks for nothing.
 func tick(
 	delta: float, docked: bool, holds := false, comfort: Comfort = null, can_ask := true
 ) -> void:
@@ -411,7 +416,7 @@ func tick(
 		watching = false
 		action = Need.Action.NONE
 	var due := _appetite.get_due()
-	if due and not stopped and not _held_request and can_ask:
+	if due and destination and not stopped and not _held_request and can_ask:
 		_open(due)
 		return
 	if _activity_left <= 0.0:
@@ -426,7 +431,7 @@ func to_save() -> Dictionary:
 		"type": type.resource_path,
 		"name": name,
 		"origin": String(origin.name) if origin else "",
-		"destination": String(destination.name),
+		"destination": String(destination.name) if destination else "",
 		"fare": fare,
 		"trip_seconds": ride.trip_seconds,
 		"expected_seconds": ride.expected_seconds,

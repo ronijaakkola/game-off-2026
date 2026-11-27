@@ -5,7 +5,9 @@ extends Node
 ## looks at that planet: `capture <this scene> -- Cinder`. With `fly` before
 ## the name, the bus flies there from Hither instead, across the asteroid field, with the
 ## camera on the bus: `-- fly Janus`. With `warp`, the whole system shows and a second in
-## the bus warps through Hither's gate to Yon: `-- warp`. With `gate`, the pointer rests on
+## the bus warps through Hither's gate to Yon: `-- warp`. With `warp` and a planet's name,
+## the camera looks at that planet instead, so Yon is out of view and the camera glides
+## there with the bus: `-- warp Hither`. With `gate`, the pointer rests on
 ## the station's Teleport button, showing the way through the gate: `-- gate`. With `stay`,
 ## the player has stayed after Lyra's promotion, so the goal panel offers the jump to Sol.
 
@@ -37,6 +39,8 @@ func _ready() -> void:
 		if planet:
 			rig.set_distance(NEAR_DISTANCE)
 			rig.move_to(planet.get_body_global_position())
+			if "warp" in args:
+				_warp()
 			return
 	if "stay" in args:
 		(find_child("Progression") as Progression).stay()
@@ -51,6 +55,10 @@ func _ready() -> void:
 		motion.global_position = motion.position
 		get_viewport().push_input(motion)
 	if "warp" in args:
-		await get_tree().create_timer(1.0).timeout
-		var gate := WarpGate.of(find_child("Hither") as Planet)
-		(find_child("SystemJump") as SystemJump).warp(gate, gate.partner)
+		_warp()
+
+
+func _warp() -> void:
+	await get_tree().create_timer(1.0).timeout
+	var gate := WarpGate.of(find_child("Hither") as Planet)
+	(find_child("SystemJump") as SystemJump).warp(gate, gate.partner)

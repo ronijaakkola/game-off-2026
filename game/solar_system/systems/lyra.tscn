@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bnmgxp1mhbefp"]
 
 [ext_resource type="Script" uid="uid://b60byqdjkmg8f" path="res://game/solar_system/star_system.gd" id="1_system"]
+[ext_resource type="AudioStream" uid="uid://bxki2d1flchda" path="res://ui/audio/bgm2.ogg" id="90_music"]
 [ext_resource type="Script" uid="uid://bcxthsqtxqd30" path="res://game/solar_system/planet.gd" id="2_planet"]
 [ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
@@ -135,9 +136,11 @@ shader_parameter/band_count = 2.0
 shader_parameter/gap = 0.16
 shader_parameter/opacity = 1.0
 
-[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("home")]
+[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("star", "home")]
+star = NodePath("Star")
 script = ExtResource("1_system")
 display_name = "Lyra"
+music = ExtResource("90_music")
 home = NodePath("Hither")
 jump_arrival = Vector3(0, 0, 12)
 bounds_radius = 22.5

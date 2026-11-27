@@ -21,8 +21,6 @@ const LEG_FONT_SIZE := 11
 ## How far the route line's diamond at a point in space reaches, in world units, so the
 ## forecast sits clear of it.
 const MARKER_REACH := 0.22
-## The process priority Phantom Camera's host sets on itself to move the camera.
-const CAMERA_HOST_PRIORITY := 300
 
 ## The bus whose course it forecasts.
 @export var bus: FrameshiftBus
@@ -66,7 +64,7 @@ static func _leg_ends(from_bus: FrameshiftBus) -> PackedVector3Array:
 
 
 func _ready() -> void:
-	process_priority = CAMERA_HOST_PRIORITY + 1
+	process_priority = FrameOrder.AFTER_CAMERA
 
 
 func _process(_delta: float) -> void:

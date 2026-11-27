@@ -22,6 +22,7 @@ var _demo: VoiceDemo
 func _ready() -> void:
 	_demo = VoiceDemo.new()
 	add_child(_demo)
+	_show_silenced()
 	var sections := %Sections as Container
 	var tracks: Array[MixerRow] = []
 	var effects: Array[MixerRow] = []
@@ -39,12 +40,31 @@ func _ready() -> void:
 	_add_voices(sections)
 
 
-## The text Copy puts on the clipboard: [member ClipLevels.LEVELS] as it should read, then
-## each voice's volume.
+## The names of the volumes set to zero in Settings, which silence what they carry here too.
+static func silenced_volumes() -> PackedStringArray:
+	var names := PackedStringArray()
+	if Settings.master_volume <= 0.0:
+		names.append("Master")
+	if Settings.music_volume <= 0.0:
+		names.append("Music")
+	if Settings.sfx_volume <= 0.0:
+		names.append("Sound effects")
+	return names
+
+
+## The text Copy puts on the clipboard: [member ClipLevels.LEVELS] as it should read, in
+## path order, then each voice's volume. A clip in the table with no row here keeps its
+## line: a build may leave a clip out of its pack, as the itch.io build does an unused one,
+## and a table copied there must not drop it.
 func table_text() -> String:
 	var lines := PackedStringArray(["# core/audio/clip_levels.gd, LEVELS"])
+	var levels: Dictionary[String, float] = ClipLevels.LEVELS.duplicate()
 	for row: MixerRow in _rows:
-		lines.append('\t"%s": %s,' % [row.path, level_text(row.get_level())])
+		levels[row.path] = row.get_level()
+	var paths := levels.keys()
+	paths.sort()
+	for path: String in paths:
+		lines.append('\t"%s": %s,' % [path, level_text(levels[path])])
 	lines.append("")
 	lines.append("# the voices' .tres files")
 	for voice: MixerVoice in _voices:
@@ -57,6 +77,20 @@ func table_text() -> String:
 static func level_text(level: float) -> String:
 	var text := String.num(level, 2)
 	return text if "." in text else text + ".0"
+
+
+# Warns, under the hint, when a volume in Settings is at zero: it still applies here.
+func _show_silenced() -> void:
+	var names := silenced_volumes()
+	var label := %Silenced as Label
+	label.visible = not names.is_empty()
+	label.text = (
+		(
+			"%s set to zero in Settings: raise it there to hear this. "
+			+ "The mixer plays through the same volumes as the game."
+		)
+		% " and ".join(names)
+	)
 
 
 func _add_section(parent: Container, title: String, rows: Array[MixerRow]) -> void:

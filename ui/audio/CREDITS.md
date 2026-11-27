@@ -1,6 +1,6 @@
 # Audio credits
 
-The background music (`bg.ogg`) is the team's own, so it needs no credit. The rest are CC0 (public domain) placeholders, so credit is optional.
+The background music (`bgm1.ogg`, `bgm2.ogg`) is the team's own, so it needs no credit. The rest are CC0 (public domain) placeholders, so credit is optional.
 
 | File | Source | Author | License |
 |---|---|---|---|

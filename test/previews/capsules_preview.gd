@@ -5,13 +5,17 @@ extends Node
 ## capsule, stamping what it held over the bus: `-- fly`. With `rescue`, it flies into the
 ## castaway's capsule instead, and they call. With `open`, the castaway's capsule is on the bus
 ## from the start, so they come out of it at once; with `accept` or `decline` too, the
-## transmission they open is answered that way 1.75 s in. With `hover`, the pointer rests on
-## the credits capsule, so its tooltip shows.
+## transmission they open is answered that way 1.75 s in. With `hop` after `accept`, their
+## hop location is moved to just off the bus, which flies there and stops, so the zone
+## shows and they hop out. With `hover`, the pointer rests on the credits capsule, so its
+## tooltip shows.
 
 ## How far the camera stands from the bus.
 const NEAR_DISTANCE := 10.0
 ## Seconds in that `accept` or `decline` answers the castaway's transmission.
 const ANSWER_SECONDS := 1.75
+## Where `hop` puts the hop location, from the bus.
+const HOP_OFFSET := Vector3(2.5, 0.0, 1.5)
 ## Where each capsule floats, from the bus.
 const OFFSETS: Dictionary[Capsule.Contents, Vector3] = {
 	Capsule.Contents.CREDITS: Vector3(1.0, 0.0, 2.0),
@@ -43,6 +47,8 @@ func _ready() -> void:
 				panel.accept()
 			else:
 				panel.close()
+		if "hop" in args:
+			_hop(bus)
 		return
 	if "hover" in args:
 		_hover(targets[Capsule.Contents.CREDITS])
@@ -55,6 +61,18 @@ func _ready() -> void:
 	else:
 		return
 	bus.plot_course(RouteStop.at_point(target))
+	bus.frameshift_held = true
+
+
+# Once the castaway's hop quest is under way, moves its hop location to just off
+# [param bus] and flies there.
+func _hop(bus: FrameshiftBus) -> void:
+	var giver := find_child("QuestGiver") as QuestGiver
+	while not giver.get_quest():
+		await get_tree().process_frame
+	var goal := giver.get_quest().goal as HopGoal
+	goal.spot = bus.global_position + HOP_OFFSET
+	bus.plot_course(RouteStop.at_point(goal.spot))
 	bus.frameshift_held = true
 
 
