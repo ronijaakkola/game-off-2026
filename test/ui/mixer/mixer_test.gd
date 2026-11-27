@@ -57,6 +57,17 @@ func test_setting_a_level_changes_how_loud_the_clip_plays_and_what_copy_gives() 
 	assert_bool(row.is_edited()).is_false()
 
 
+func test_copy_keeps_a_clip_in_the_table_that_the_build_left_out() -> void:
+	var runner := scene_runner("res://ui/mixer/mixer.tscn")
+	var mixer := runner.scene() as Mixer
+	# As in a pack without the clip: the mixer found no row for it.
+	for row: MixerRow in mixer._rows.duplicate():
+		if row.path == DOCK_BELL:
+			mixer._rows.erase(row)
+	var level := Mixer.level_text(ClipLevels.LEVELS[DOCK_BELL])
+	assert_str(mixer.table_text()).contains('\t"%s": %s,' % [DOCK_BELL, level])
+
+
 func test_a_voice_level_goes_to_its_voice_and_into_copy() -> void:
 	var runner := scene_runner("res://ui/mixer/mixer.tscn")
 	var mixer := runner.scene() as Mixer

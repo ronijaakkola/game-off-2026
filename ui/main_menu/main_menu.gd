@@ -33,6 +33,9 @@ func _ready() -> void:
 		screen.visibility_changed.connect(_on_panned_screen_visibility_changed)
 		screen.enter_delay = MenuBackground.PAN_SECONDS * 0.8
 	if OS.has_feature("web") and not _music_started:
+		# While the page still shows the game loading, not as the player's click starts
+		# the music and the background's pan.
+		Audio.warm_up(MUSIC)
 		for row: Control in _rows():
 			row.modulate.a = 0.0
 		(%Background as MenuBackground).show_half(true)
