@@ -348,3 +348,33 @@ func test_fares_follow_the_fare_multiplier_of_the_star_system_the_bus_works_in()
 
 	assert_float(ordinary).is_greater(0.0)
 	assert_float(_waiting.create(_home).fare).is_equal_approx(ordinary * 1.5, 0.001)
+
+
+func test_a_vip_takes_a_place_in_the_line_so_nobody_new_turns_up_past_the_limit() -> void:
+	_waiting.add(_home)
+	_waiting.reserved = _vip_at(_home)
+
+	_waiting.add(_home)
+	_waiting.add(_home)
+
+	var line := _waiting.get_waiting(_home)
+	assert_int(line.size()).is_equal(_waiting.max_per_planet)
+	assert_bool(Vip.is_vip(line[0])).is_true()
+
+
+func test_a_vip_at_a_full_line_waits_first_and_the_newest_leaves() -> void:
+	_waiting.add(_home)
+	_waiting.add(_home)
+	var oldest: Passenger = _waiting.get_waiting(_home)[0]
+	var vip := _vip_at(_home)
+
+	_waiting.reserved = vip
+
+	var line := _waiting.get_waiting(_home)
+	assert_array(line).contains_exactly([vip, oldest])
+
+
+func _vip_at(planet: Planet) -> Passenger:
+	var vip := Passenger.new(Vip.TYPE, _away, 10.0, 10.0)
+	vip.origin = planet
+	return vip
