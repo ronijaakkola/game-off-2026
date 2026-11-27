@@ -19,7 +19,8 @@ extends CanvasLayer
 ## [br]- Drawing the scene for the first time, which compiles a shader for each material.
 ## The card shows the scene's 3D objects one new material at a time under it, a frame each,
 ## and with the first of those frames the materials of its UI, hidden panels' too
-## ([CanvasWarmUp]).
+## ([CanvasWarmUp]). A material the scene holds but has nothing to draw with yet, such as a
+## line built in code later, shows on a stand-in ([MaterialWarmUp]).
 
 const FADE := 0.25
 const THEME := preload("res://ui/theme.tres")
@@ -46,6 +47,8 @@ var _plain: Control
 var _bar: ProgressBar
 ## Draws a new scene's 2D materials for the first time, under the black.
 var _specks: CanvasWarmUp
+## Draws the 3D materials a new scene has nothing to draw with yet, under the black.
+var _stand_ins: MaterialWarmUp
 ## The level's loading screen, over the black card while a level loads.
 var _level_card: LoadingCard
 var _busy := false
@@ -70,6 +73,8 @@ func _ready() -> void:
 	_specks = CanvasWarmUp.new()
 	_specks.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_curtain.add_child(_specks)
+	_stand_ins = MaterialWarmUp.new()
+	add_child(_stand_ins)
 	var black := ColorRect.new()
 	black.color = Color.BLACK
 	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -234,8 +239,12 @@ func _load_dependencies(path: String) -> void:
 ## An object the scene starts hidden or off screen draws for its step too, so its shader
 ## doesn't compile, and the game hitch, when it first shows. Both are set in the
 ## RenderingServer only, so [member Node3D.visible] stays as the scene set it.
+## A material no object draws yet, as its mesh is still empty, gets a step on a stand-in.
 func _warm_up(scene: Node) -> void:
-	var steps := _warm_up_steps(scene)
+	var drawn := {}
+	var steps := _warm_up_steps(scene, drawn)
+	for stand_in: MeshInstance3D in _stand_ins.fill(scene, drawn):
+		steps.append([stand_in])
 	for step: Array in steps:
 		for geometry: GeometryInstance3D in step:
 			if geometry.get_instance().is_valid():
@@ -253,6 +262,7 @@ func _warm_up(scene: Node) -> void:
 		_set_progress(lerpf(LOAD_SHARE, 1.0, float(i + 2) / parts))
 		await get_tree().process_frame
 		_draw_step(steps[i], false)
+	_stand_ins.clear()
 
 
 ## Draws the objects of one warm-up [param step] wherever they are, hidden and off screen
@@ -273,15 +283,15 @@ func _draw_step(step: Array, forced: bool) -> void:
 
 ## [param scene]'s 3D objects in the steps to draw them in: each step starts with an object
 ## that has a material no earlier step has. A hidden object is in a step only when it
-## starts one.
-func _warm_up_steps(scene: Node) -> Array[Array]:
+## starts one. [param drawn] gets what compiles for each material the steps draw. An object
+## with nothing to draw for sure ([method _has_surfaces]) adds none.
+func _warm_up_steps(scene: Node, drawn := {}) -> Array[Array]:
 	var steps: Array[Array] = []
-	var drawn := {}
 	for node: Node in scene.find_children("*", "GeometryInstance3D", true, false):
 		var geometry := node as GeometryInstance3D
 		var new_material := false
 		for key: Variant in _material_keys(geometry):
-			if not drawn.has(key):
+			if _has_surfaces(geometry) and not drawn.has(key):
 				drawn[key] = true
 				new_material = true
 		if new_material or steps.is_empty():
@@ -289,6 +299,17 @@ func _warm_up_steps(scene: Node) -> Array[Array]:
 		elif geometry.is_visible_in_tree():
 			steps.back().append(geometry)
 	return steps
+
+
+## Whether [param geometry] has something to draw when its step comes. Only a mesh can be
+## seen to be empty, and one a script builds ([ImmediateMesh]) can be empty again by then:
+## the bus's trail draws for one frame as it starts.
+func _has_surfaces(geometry: GeometryInstance3D) -> bool:
+	var mesh_instance := geometry as MeshInstance3D
+	if mesh_instance == null:
+		return true
+	var mesh := mesh_instance.mesh
+	return mesh != null and not mesh is ImmediateMesh and mesh.get_surface_count() > 0
 
 
 ## What decides which shaders drawing [param geometry] compiles: its kind of node, and each
@@ -306,8 +327,7 @@ func _material_keys(geometry: GeometryInstance3D) -> Array[Variant]:
 				materials.append(material)
 	while not materials.is_empty():
 		var material: Material = materials.pop_back()
-		var shader_material := material as ShaderMaterial
-		keys.append(shader_material.shader if shader_material else material)
+		keys.append(MaterialWarmUp.shader_of(material))
 		if material.next_pass:
 			materials.append(material.next_pass)
 	return keys
