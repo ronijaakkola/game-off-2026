@@ -14,6 +14,9 @@ const LEVELS: Array[Level] = [
 	preload("res://shared/level_art/level_3.tres"),
 ]
 const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
+## The key of a started run that holds only the level it fast-forwards to
+## ([method fast_forward]); never saved.
+const FAST_FORWARD_KEY := "fast_forward"
 
 
 ## [param level]'s number, from 1.
@@ -82,6 +85,21 @@ static func play(level: Level, tutorial := false) -> void:
 static func restart(level: Level, tutorial := false) -> void:
 	_start(level, tutorial)
 	SceneFlow.go_to(GAME_SCENE, level)
+
+
+## The debug panel's Fast-forward: forgets everything, as [method reset] does, and starts a
+## run that the game scene takes to [param level] as a player would come to it ([FastForward]):
+## promoted out of the level before it with what such a player has, and then the jump.
+static func fast_forward(level: Level) -> void:
+	reset()
+	SaveGame.start_run({FAST_FORWARD_KEY: number(level)})
+	SceneFlow.go_to(GAME_SCENE)
+
+
+## The level number [param run], as the game scene claimed it, fast-forwards to, or 0 when it
+## is a run to play as it is ([method fast_forward]).
+static func get_fast_forward(run: Dictionary) -> int:
+	return int(run.get(FAST_FORWARD_KEY, 0))
 
 
 ## Adds a save of the [param run] to the record: [param done] levels finished, and, when
