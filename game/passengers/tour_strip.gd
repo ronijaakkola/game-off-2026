@@ -160,6 +160,9 @@ func _make_icon(planet: Planet, current: bool) -> PlanetIcon:
 	var icon := PlanetIcon.new()
 	icon.custom_minimum_size = Vector2.ONE * ICON_SIZE
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	# It takes the pointer for its tooltip and passes it on, so a click or a scroll on it
+	# still reaches the map.
+	icon.mouse_filter = Control.MOUSE_FILTER_PASS
 	icon.planet = planet
 	# Its own fade, not its children's, so the tooltip it holds stays solid.
 	icon.self_modulate.a = 1.0 if current else LATER_OPACITY
