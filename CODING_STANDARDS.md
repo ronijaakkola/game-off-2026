@@ -80,7 +80,7 @@ The first run builds the reference into `build/api/` in a few seconds. A name th
 | `Online` | `core/online/` | The online services through Talo: `track(event, props)`, `add_stat(stat)`, `submit_score(board, score)`, `get_scores(board)`, `flush()`. On only in web builds with an access key. `core/online/tracking.gd` turns bus events into analytics. |
 | `LimboConsole` | `addons/limbo_console/` | The dev console (plugin). Editor and desktop only; see Dev console. |
 | `DevConsole` | `core/dev_console/` | Loads `dev_commands.gd` when `LimboConsole` is running. See Dev console. |
-| `DebugPanel` | `core/debug_panel/` | The **debug panel**: testing buttons that scenes add with `add_button(text, action, scene)`, opened with F2. In every build until release. See Debug panel. |
+| `DebugPanel` | `core/debug_panel/` | The **debug panel**: testing buttons and sliders that scenes add with `add_button(text, action, scene)` and `add_slider(...)`, opened with F2. In every build until release. See Debug panel. |
 | `FpsCounter` | `core/fps_counter/` | The frame rate in the top right corner over every scene, while `Settings.show_fps` is on (the settings screen's Show FPS). Its `RenderDiagnostics` child adds the debug panel's Rendering switches. |
 | `PhantomCameraManager` | `addons/phantom_camera/` | The Phantom Camera plugin's autoload. Game code never calls it; see `docs/cameras.md`. |
 
@@ -237,6 +237,7 @@ The web build logs one `Failed to instantiate an autoload` error at startup, for
 `DebugPanel` (`core/debug_panel/`) is a side panel of testing buttons, opened and closed with F2, for anything quicker to test with a click than a console command. It works while paused, and starts closed.
 
 - A scene adds its buttons in `_ready()`: `DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)`. Each button goes when the scene that added it leaves the tree, so the panel never knows which scene runs. Name the scene's handler `_debug_<what it does>`, next to the scene's other handlers. `add_button` returns the button (null with the panel off), so a scene can set `disabled` while it would do nothing, as the tutorial's Skip tutorial does.
+- A setting with a range takes a slider instead: `DebugPanel.add_slider("UI scale", 0.5, 1.5, 0.05, value, _debug_set_ui_scale, self, "Rendering")`. Its action gets the value as a drag lets go, or at once for a click. It goes with its scene as a button does.
 - Related buttons that would crowd the main card, such as the capsule buttons, go in a group: `DebugPanel.add_button("Fuel capsule", action, self, "Capsules")`. Each group gets its own card to the right of the main one, opened and closed by a button of the group's name in the main card, one group's card at a time. The card and its button go with the group's last button.
 - Unlike the dev console, it ships in every build, web and release builds included, so testers can use it on itch.io. Release builds are made before the game is out, so being a release build doesn't turn it off.
 - **Before the game is released**, set `ENABLED` to `false` in `core/debug_panel/debug_panel.gd`. F2 then does nothing, and `add_button` adds nothing, so the scenes' calls can stay.

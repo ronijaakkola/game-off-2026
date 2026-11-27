@@ -91,6 +91,55 @@ func test_a_groups_buttons_go_on_their_own_card_that_its_toggle_opens() -> void:
 	assert_int(cards.get_child_count()).is_equal(1)
 
 
+func test_a_slider_shows_its_value_and_acts_once_it_settles() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene()
+	var groups := runner.find_child("Groups") as Container
+	var scene := Node.new()
+	add_child(scene)
+	var got: Array[float] = []
+
+	var slider := (
+		panel.call(
+			&"add_slider",
+			"Scale",
+			0.5,
+			1.5,
+			0.05,
+			1.0,
+			func(value: float) -> void: got.append(value),
+			scene,
+			"View"
+		)
+		as HSlider
+	)
+
+	# It goes on its group's card, with its name and its value over it.
+	assert_int(groups.get_child_count()).is_equal(1)
+	var heading := slider.get_parent().get_child(0)
+	assert_str((heading.get_child(0) as Label).text).is_equal("Scale")
+	var value_label := heading.get_child(1) as Label
+	assert_str(value_label.text).is_equal("1.00")
+
+	# A click or the wheel acts at once.
+	slider.value = 0.8
+	assert_array(got).is_equal([0.8])
+	assert_str(value_label.text).is_equal("0.80")
+
+	# A drag shows each value but acts only as it lets go.
+	slider.drag_started.emit()
+	slider.value = 0.7
+	slider.value = 0.6
+	assert_array(got).is_equal([0.8])
+	assert_str(value_label.text).is_equal("0.60")
+	slider.drag_ended.emit(true)
+	assert_array(got).is_equal([0.8, 0.6])
+
+	scene.free()
+	await runner.simulate_frames(2)
+	assert_int(groups.get_child_count()).is_equal(0)
+
+
 # Through Input alone: the runner's own key calls deliver each event twice.
 func _press_f2() -> void:
 	var event := InputEventKey.new()
