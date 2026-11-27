@@ -16,7 +16,8 @@ from mathutils import Vector
 
 ARGS = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
 # 256 by default: the web build decodes the icon at boot and encodes it again as the page's
-# icon, a third of a second at 1024, and nothing shows it larger than a browser tab does.
+# icon, a quarter of a second longer at 1024 (docs/web-constraints.md, Export), and nothing
+# shows it larger than a browser tab does.
 SIZE = int(ARGS[0]) if ARGS else 256
 SAMPLES = int(ARGS[1]) if len(ARGS) > 1 else 128
 OUT = Path(__file__).resolve().parents[2] / "icon.png"
