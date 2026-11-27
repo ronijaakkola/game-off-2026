@@ -312,7 +312,7 @@ func test_runs_after_the_camera_host_so_labels_follow_this_frame() -> void:
 	await runner.simulate_frames(2)
 	# Phantom Camera's host sets its own priority; this fails if an upgrade changes it.
 	var host := runner.find_child("PhantomCameraHost") as Node
-	assert_int(host.process_priority).is_equal(SolarSystem.CAMERA_HOST_PRIORITY)
+	assert_int(host.process_priority).is_equal(FrameOrder.CAMERA_HOST)
 	var system := runner.scene() as SolarSystem
 	assert_int(system.process_priority).is_greater(host.process_priority)
 

@@ -16,9 +16,6 @@ extends Control
 const GAP_PIXELS := 7.0
 ## Pixels between a planet's name and the top of "(deserted)", a second line of the name.
 const DESERTED_GAP_PIXELS := 1.0
-## After the solar system, which moves the planets after Phantom Camera's host (300) has
-## moved the camera; placed any earlier, the dots trail the planets by a frame.
-const PROCESS_PRIORITY := 302
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 
 ## Who waits at each planet.
@@ -67,7 +64,7 @@ var _rested := 0.0
 
 
 func _ready() -> void:
-	process_priority = PROCESS_PRIORITY
+	process_priority = FrameOrder.SCREEN_MARKERS
 	_card = WaitingCard.new()
 	add_child(_card)
 	_tooltip = TOOLTIP.instantiate() as Tooltip
@@ -75,7 +72,7 @@ func _ready() -> void:
 	# It follows the dots as the planet moves: placed after them each frame, and not on
 	# whole pixels, which would step behind them.
 	_tooltip.snap_to_pixels = false
-	_tooltip.process_priority = PROCESS_PRIORITY + 1
+	_tooltip.process_priority = FrameOrder.MARKER_TOOLTIPS
 	add_child(_tooltip)
 
 
