@@ -12,7 +12,8 @@ extends Node3D
 ##
 ## The rocks are two MultiMeshes, big rocks and pebbles, each one draw call, built at load
 ## from [RockMesh] shapes, so there is nothing to model and nothing to update per frame but
-## the belt's turn. They tumble in their shader.
+## the belt's turn and the tumble's clock. They tumble in their shader, by that clock, so
+## they stop with the game.
 ##
 ## It lowers [member FrameshiftBus.speed_cap] after the [HeatZone] has set it for the frame
 ## ([constant FrameOrder.AFTER_HEAT_ZONE]), so the lower of the two holds, and lifts it
@@ -82,6 +83,8 @@ const ROUGH_RIDE := "Rough ride!"
 var _cap := INF
 var _in_rocks := false
 var _until_bump := 0.0
+# Seconds of play the rocks have tumbled for, which stops while the game is paused.
+var _tumble_time := 0.0
 
 
 func _ready() -> void:
@@ -117,6 +120,7 @@ func is_bus_in_rocks() -> bool:
 
 
 func _process(delta: float) -> void:
+	_tumble_time += delta
 	var pace := orbit_clock.get_speed() if orbit_clock else 1.0
 	if orbit_period != 0.0:
 		rotation.y = wrapf(rotation.y + TAU / orbit_period * pace * delta, 0.0, TAU)
@@ -125,6 +129,7 @@ func _process(delta: float) -> void:
 	for node: Node in [%Rocks, %Pebbles]:
 		var material := (node as MultiMeshInstance3D).material_override as ShaderMaterial
 		ShaderValues.show(material, &"tumble", 0.0 if Settings.reduce_motion else 1.0)
+		ShaderValues.show(material, &"tumble_time", _tumble_time)
 		ShaderValues.show(material, &"light_source", global_position)
 	if bus:
 		_ride(delta)

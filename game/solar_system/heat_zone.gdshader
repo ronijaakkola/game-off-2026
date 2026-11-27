@@ -23,6 +23,9 @@ uniform float opacity : hint_range(0.0, 1.0) = 1.0;
 uniform vec4 smoke_color : source_color = vec4(1.0, 0.6, 0.3, 0.07);
 uniform float smoke_scale = 5.0;
 uniform float drift = 1.0;
+// Seconds the smoke has run for, which the heat zone counts itself, so it holds still while
+// the game is paused: the shader's own TIME keeps running then.
+uniform float smoke_time = 0.0;
 
 float dither(vec2 pixel) {
 	return fract(52.9829189 * fract(dot(pixel, vec2(0.06711056, 0.00583715)))) - 0.5;
@@ -63,7 +66,7 @@ void fragment() {
 	float rim = 1.0 - smoothstep(1.0 - softness, 1.0, d);
 	float hot = 1.0 - smoothstep(hot_share - softness, hot_share + softness * 0.5, d);
 	vec4 glow = mix(zone_color, hot_color, hot);
-	float wisps = smoke(p, TIME * drift) * smoke_color.a;
+	float wisps = smoke(p, smoke_time * drift) * smoke_color.a;
 	vec3 color = mix(glow.rgb, smoke_color.rgb, wisps / max(glow.a + wisps, 1e-4));
 	ALBEDO = color;
 	float shade = (glow.a + wisps) * rim * (1.0 + flash * flash_gain) + dither(FRAGCOORD.xy) / 255.0;
