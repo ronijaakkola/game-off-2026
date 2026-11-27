@@ -22,7 +22,7 @@ Folders are by feature:
 | `art/` | The **model library**, `art/models.blend`. Ignored by git and Godot. |
 | `docs/` | Docs for people and agents, and their figures in `docs/figures/`. Ignored by Godot. |
 
-A file lives in the folder of the only feature that uses it. Move it to `shared/` when a second feature needs it, rather than naming it in the other feature's folder or copying it: the owner renames or redraws its own file and breaks the other feature without either seeing why. `check.py lint` fails on a script, scene or resource that names an icon, sound, font, model or shader in another `game/<feature>/` (`feature-asset`), and on one of those files that is a copy of another feature's (`duplicate-asset`): the same bytes, an SVG's apart from its comments and layout, with the same import settings. The same picture imported another way, such as an SVG at another `svg/scale`, is a second asset, since one file imports one way. Scripts, scenes and resources are how features compose, so any feature may name them.
+A file lives in the folder of the only feature that uses it. Move it to `shared/` when a second feature needs it, rather than naming it in the other feature's folder or copying it: the owner renames or redraws its own file and breaks the other feature without either seeing why. `check.py lint` fails on a script, scene or resource that names an icon, sound, font, model or shader in another `game/<feature>/` (`feature-asset`), and on one of those files that is a copy of another feature's (`duplicate-asset`): the same bytes, an SVG's apart from its comments and layout, with the same import settings. The same picture imported another way, such as an SVG at another `base_scale`, is a second asset, since one file imports one way. Scripts, scenes and resources are how features compose, so any feature may name them.
 
 ## Naming
 
@@ -208,6 +208,7 @@ A file in `user://` belongs to one script, which writes its path once, as a `con
 - No Git LFS. Question or compress any single asset over about 10 MB.
 - Commit every `*.uid` and `*.import` file Godot creates next to your files, and delete a `.uid` with its file (`lint` fails on one left behind).
 - Name a scratch file, such as a probe script or a throwaway scene, `tmp_*`, or put it in a `tmp/` folder. Git ignores both, so it can't reach a commit.
+- An SVG imports as a `DPITexture` (Import As in the Import dock), which Godot draws again at whatever size the window scales it to; Godot's default, a texture, is pixels at one size and blurs in a big window or on a HiDPI screen. `base_scale` sets its size, as `svg/scale` did. Only the mouse cursor's, in `core/cursor/`, stay textures, since a cursor takes an image. `lint` fails on any other (`raster-svg`).
 - To change how an asset imports, edit the value under `[params]` in its `.import` file, then run `uv run tools/check.py load`, which reimports it. Write the edit at least a second after the last import: Godot notices it by the file's modification time.
 
 ## Models
