@@ -8,8 +8,10 @@ extends MarginContainer
 ## When they make a stop, the row is laid out anew at once and what changed comes in: the
 ## new tick grows into place, the link after it turns gold, the next stop's icon brightens
 ## and its name fades in a beat later. Under Reduce motion the tick only fades.
+## The pointer resting on a stop's icon opens a [Tooltip] above it with the planet's name.
 
 const CHECK := preload("res://shared/icons/circle_check.svg")
+const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 ## Pixels from the card's left edge to its text, and from the card down to the row.
 const INDENT := 56
 const GAP_ABOVE := 6
@@ -91,8 +93,8 @@ func _fill(moved := false) -> void:
 		var stop := _make_label(tour.stops[i].display_name, Color.WHITE)
 		_row.add_child(stop)
 		if fresh:
-			icon.modulate.a = LATER_OPACITY
-			create_tween().tween_property(icon, ^"modulate:a", 1.0, NEXT_SECONDS)
+			icon.self_modulate.a = LATER_OPACITY
+			create_tween().tween_property(icon, ^"self_modulate:a", 1.0, NEXT_SECONDS)
 			stop.modulate.a = 0.0
 			var fade := create_tween().tween_property(stop, ^"modulate:a", 1.0, NEXT_SECONDS)
 			fade.set_delay(NAME_DELAY)
@@ -158,9 +160,14 @@ func _make_icon(planet: Planet, current: bool) -> PlanetIcon:
 	var icon := PlanetIcon.new()
 	icon.custom_minimum_size = Vector2.ONE * ICON_SIZE
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.planet = planet
-	icon.modulate.a = 1.0 if current else LATER_OPACITY
+	# Its own fade, not its children's, so the tooltip it holds stays solid.
+	icon.self_modulate.a = 1.0 if current else LATER_OPACITY
+	var tooltip := TOOLTIP.instantiate() as Tooltip
+	tooltip.target = icon
+	tooltip.title = planet.display_name
+	tooltip.side = Tooltip.Side.ABOVE
+	icon.add_child(tooltip)
 	return icon
 
 
