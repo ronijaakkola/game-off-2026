@@ -84,12 +84,14 @@ var first_business_dealt := false
 ## returning passenger.
 var castaway_met := false
 ## Who the player agreed to pick up, as a VIP, or null: they wait at their
-## [member Passenger.origin], first in its line and outside its rules, taking no place in
-## it and never leaving.
+## [member Passenger.origin], first in its line and never leaving, and take one of its
+## [member max_per_planet] places. A line already full loses its newest to make room.
 var reserved: Passenger:
 	set(value):
 		var planet := value.origin if value else reserved.origin if reserved else null
 		reserved = value
+		if value and _waiting.has(planet) and count_at(planet) >= max_per_planet:
+			_drop_newest(planet)
 		changed.emit(planet)
 
 var _rng := RandomNumberGenerator.new()
@@ -212,9 +214,12 @@ func add_starting_passengers(bus_planet: Planet) -> void:
 
 
 ## Puts someone new in line at [param planet], not yet decided, unless it is abandoned,
-## [member max_per_planet] already wait there or [member max_total] wait in all.
+## [member max_per_planet] already wait there, a [member reserved] VIP among them, or
+## [member max_total] wait in all.
 func add(planet: Planet) -> void:
-	if not _waiting.has(planet) or planet.abandoned or count_at(planet) >= max_per_planet:
+	if not _waiting.has(planet) or planet.abandoned:
+		return
+	if count_at(planet) + (1 if reserved and reserved.origin == planet else 0) >= max_per_planet:
 		return
 	if count_all() >= max_total:
 		return
@@ -223,7 +228,19 @@ func add(planet: Planet) -> void:
 	changed.emit(planet)
 
 
-## How many wait at [param planet], seen or not.
+# Takes whoever joined the line at [param planet] last out of it: someone not yet seen if
+# there is one, as they joined after everyone seen.
+func _drop_newest(planet: Planet) -> void:
+	if _undecided[planet] > 0:
+		_undecided[planet] -= 1
+	elif not _waiting[planet].is_empty():
+		_waiting[planet].pop_back()
+	else:
+		return
+	_waited[planet].pop_back()
+
+
+## How many wait at [param planet], seen or not, besides the [member reserved] VIP.
 func count_at(planet: Planet) -> int:
 	return _waiting.get(planet, []).size() + _undecided.get(planet, 0)
 
