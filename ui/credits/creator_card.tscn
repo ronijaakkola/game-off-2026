@@ -21,6 +21,7 @@ shader = ExtResource("2_backdrop")
 shader_parameter/backdrop_color = null
 shader_parameter/shadow_color = null
 shader_parameter/seed = null
+shader_parameter/space = null
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_photo"]
 shader = ExtResource("3_straight")
@@ -103,3 +104,35 @@ theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
 horizontal_alignment = 1
 autowrap_mode = 3
+
+[node name="Guest" type="VBoxContainer" parent="Column/Text/Roles" unique_id=892373002]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 18.0
+offset_bottom = 18.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="GuestName" type="Label" parent="Column/Text/Roles/Guest" unique_id=160721511]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_shadow_color = Color(0.043, 0.035, 0.125, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 3
+horizontal_alignment = 1
+
+[node name="GuestRoles" type="Label" parent="Column/Text/Roles/Guest" unique_id=1025702722]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = SubResource("FontVariation_roles")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+horizontal_alignment = 1
