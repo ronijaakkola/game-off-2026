@@ -11,7 +11,8 @@ extends Node
 ## research and which stages are open, the passengers on board and in every line, those
 ## who may come back, the goals'
 ## progress, the quest under way and how far through the star systems the player has got.
-## The course, the charge and what passengers were doing start afresh.
+## The course, the charge and what passengers were doing start afresh. A run the debug panel
+## fast-forwards is neither: its [FastForward] builds it.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
@@ -78,6 +79,9 @@ const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
 @export var star_map: StarMap
 ## How close the next capsule is to holding the castaway.
 @export var capsules: CapsuleField
+## Takes a run the debug panel fast-forwards to a later level ([method Campaign.fast_forward])
+## there, in place of a new run or a continued one.
+@export var fast_forward: FastForward
 
 ## Who waits at each planet. The parent sets it before [method start].
 var waiting: WaitingPassengers
@@ -86,6 +90,7 @@ var holding := false
 
 var _recording := false
 var _continued := false
+var _fast_forwarding := false
 var _tutorial := false
 # The star system the run last saved in, so the first save in another is where its level
 # began ([Campaign]).
@@ -112,6 +117,13 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	_recording = SaveGame.has_started_run()
 	_tutorial = SaveGame.wants_tutorial()
 	_saved = SaveGame.claim_run()
+	var skip_to := Campaign.get_fast_forward(_saved)
+	if skip_to > 1 and fast_forward:
+		_fast_forwarding = true
+		_saved = {SavedStarMap.KEY: fast_forward.place(skip_to, bus, ledger)}
+		# Its first save in the next system is where that level began.
+		_saved_system = SavedStarMap.get_system(SavedStarMap.of(_saved))
+		return
 	_continued = not _saved.is_empty()
 	_saved_system = SavedStarMap.get_system(SavedStarMap.of(_saved))
 	if not _continued:
@@ -155,7 +167,7 @@ func is_saved_run() -> bool:
 ## Whether the main menu started this run afresh, rather than continuing a save or the
 ## scene being run on its own.
 func is_new_run() -> bool:
-	return _recording and not _continued
+	return _recording and not _continued and not _fast_forwarding
 
 
 ## Once the scene has built its run: continuing one, puts back the upgrades, the fuel, the
@@ -183,6 +195,8 @@ func start() -> void:
 	_ledger.research_spent.connect(_on_changed.unbind(1))
 	# A new run takes over the save at once, so Continue never brings back an older one.
 	_dirty = not _continued
+	if _fast_forwarding:
+		fast_forward.apply()
 
 
 func _on_changed() -> void:
