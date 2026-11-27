@@ -2,7 +2,8 @@ extends Node
 ## The solar system's buttons on the debug panel: emptying or lowering the fuel, heating
 ## the bus to where it warns or until it overheats, scaring the passengers, showing
 ## notices, an incoming transmission whose Answer opens a test quest, a passenger calling
-## with a real quest as soon as one can, completing the quest under way, a card of quick
+## with a real quest as soon as one can, a VIP calling and each hand-written VIP calling,
+## completing the quest under way, a card of quick
 ## stop windows and warm charges to try, and a card of buttons that turn the bus's traits
 ## on or off, as upgrades would, and a card that puts a pick-up marker over a planet or
 ## takes it away.
@@ -31,6 +32,7 @@ const TEST_TYPE := preload("res://game/passengers/types/business.tres")
 @export var notices: NoticeStack
 @export var transmission_panel: TransmissionPanel
 @export var quest_giver: QuestGiver
+@export var vips: VipCalls
 ## Where the test quest's caller is going, and the planet their quest names.
 @export var test_destination: Planet
 @export var test_flyby_planet: Planet
@@ -46,6 +48,10 @@ func _ready() -> void:
 	var transmission := _debug_incoming_transmission
 	DebugPanel.add_button("Incoming transmission", transmission, self, CALLS_GROUP)
 	DebugPanel.add_button("Offer quest", _debug_offer_quest, self, CALLS_GROUP)
+	DebugPanel.add_button("VIP call", _debug_vip_call, self, CALLS_GROUP)
+	for custom: CustomVip in vips.custom_vips:
+		var named := "VIP call: %s %s" % [custom.title, custom.name]
+		DebugPanel.add_button(named, vips.call_soon.bind(custom), self, CALLS_GROUP)
 	DebugPanel.add_button("Complete quest", _debug_complete_quest, self, CALLS_GROUP)
 	DebugPanel.add_button("Test notices", _debug_test_notices, self, CALLS_GROUP)
 	for seconds: float in QUICK_TIMES:
@@ -114,6 +120,11 @@ func _debug_incoming_transmission() -> void:
 # Offer quest: a passenger on board calls with a quest as soon as one can, in flight.
 func _debug_offer_quest() -> void:
 	quest_giver.call_soon()
+
+
+# VIP call: a VIP calls from a planet as soon as nothing else has the line, in any system.
+func _debug_vip_call() -> void:
+	vips.call_soon()
 
 
 # Complete quest: the quest under way is done, as if the bus had flown past or docked at

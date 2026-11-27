@@ -21,6 +21,9 @@ extends Node
 ## `Frustrated`), so whichever tooltip belongs there opens.
 ## `-- Returning` makes the first two seats returning passengers, a Commuter and a
 ## Business one, so their badge shows alone and after the briefcase.
+## `-- Vip` makes the first seat a VIP on a tour of three stops, the first made, so their
+## gold group sits on top with their stops under their card; with `VipLate` too, their
+## tour's time is gone, and with `VipNext` they make their next stop a second in.
 ## `-- Breakdown` opens the panel the pointer on a happiness bar opens, for the third
 ## seat, on a bus with Movies, after a stop too many and a quest failed.
 ## `-- Castaway` makes the last seat the castaway on a hop quest, going nowhere and as happy
@@ -92,6 +95,13 @@ func _ready() -> void:
 			passenger.frustration = FRUSTRATION[seat]
 			if not passenger.request and not type.stop_lines.is_empty():
 				passenger.activity = type.stop_lines[seat % type.stop_lines.size()]
+		if seat == 0 and "Vip" in args:
+			passenger = Passenger.new(Vip.TYPE, planets[1], 60.0, 40.0, rng)
+			passenger.tour = Tour.new([planets[3], planets[1], planets[4]], 1)
+			passenger.tick(Passenger.BOARDING_SECONDS, cabin.docked)
+			Vip.dress(passenger)
+			if "VipLate" in args:
+				passenger.ride.clock = 200.0
 		if seat == HAPPINESS.size() - 1 and "Castaway" in args:
 			Castaway.dress(passenger, false)
 			passenger.destination = null
@@ -105,6 +115,11 @@ func _ready() -> void:
 	panel.portrait_studio = %PortraitStudio as PortraitStudio
 	panel.cabin = cabin
 	panel.kicks_allowed = "Kick" in args
+	if "VipNext" in OS.get_cmdline_user_args():
+		await get_tree().create_timer(1.2).timeout
+		for passenger: Passenger in cabin.get_passengers():
+			if passenger.tour:
+				passenger.tour.advance()
 	if "Scare" in OS.get_cmdline_user_args():
 		await get_tree().process_frame
 		await get_tree().process_frame

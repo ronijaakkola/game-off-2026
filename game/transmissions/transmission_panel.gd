@@ -55,6 +55,9 @@ var _fade: Tween
 var _typing: Tween
 var _cascade: Tween
 
+# The stops a quest asks for after its planet, while it has some.
+var _stops: HBoxContainer
+
 
 func _ready() -> void:
 	hide()
@@ -257,6 +260,7 @@ func _fill(transmission: Transmission) -> void:
 	(%QuestPlanetIcon as PlanetIcon).planet = transmission.quest_planet
 	(%QuestPlanetLabel as Label).text = _planet_name(transmission.quest_planet)
 	(%QuestPlanet as Control).visible = transmission.quest_planet != null
+	_fill_stops(transmission.quest_stops)
 	_fill_reward(transmission)
 	(%AcceptButton as Button).text = transmission.accept_text
 	(%DeclineButton as Button).text = transmission.decline_text
@@ -266,6 +270,43 @@ func _fill(transmission: Transmission) -> void:
 	var alike := transmission.answers_alike
 	decline.theme_type_variation = &"PrimaryButton" if alike else &""
 	decline.size_flags_horizontal = (Control.SIZE_EXPAND_FILL if alike else Control.SIZE_FILL)
+
+
+# After the quest's planet, "then" and the icon of each of [param stops] in order, as a
+# VIP's tour, each nudged down onto the text's line as the quest's planet's is, the first
+# twice as far from "then" as they are from each other. Nothing with none.
+func _fill_stops(stops: Array[Planet]) -> void:
+	if _stops:
+		_stops.queue_free()
+		_stops = null
+	if stops.is_empty():
+		return
+	_stops = HBoxContainer.new()
+	_stops.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stops.add_theme_constant_override(&"separation", 4)
+	var then := Label.new()
+	then.theme_type_variation = &"TinyLabel"
+	then.add_theme_color_override(
+		&"font_color", (%QuestLabel as Label).get_theme_color(&"font_color")
+	)
+	then.text = "then"
+	_stops.add_child(then)
+	var first := %QuestPlanetIconNudge as MarginContainer
+	for stop: Planet in stops:
+		var nudge := MarginContainer.new()
+		nudge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		nudge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		nudge.add_theme_constant_override(&"margin_top", first.get_theme_constant(&"margin_top"))
+		if _stops.get_child_count() == 1:
+			nudge.add_theme_constant_override(&"margin_left", 4)
+		var icon := PlanetIcon.new()
+		icon.custom_minimum_size = (%QuestPlanetIcon as Control).custom_minimum_size
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.planet = stop
+		nudge.add_child(icon)
+		_stops.add_child(nudge)
+	(%QuestPlanet as Control).add_sibling(_stops)
 
 
 func _fill_reward(transmission: Transmission) -> void:

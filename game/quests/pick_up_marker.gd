@@ -30,6 +30,11 @@ const TEXT_LEFT := PHOTO_INSET + PHOTO_SIZE + TEXT_GAP
 const PHOTO_TILT := 2.0
 const FILL_COLOR := Color(0.0431, 0.0353, 0.1255)
 const BORDER_COLOR := Color(1.0, 1.0, 1.0, 0.2)
+## The part of the edge that shows a wait running out: its width, and the colour it turns
+## when this little of the wait is left.
+const TIME_WIDTH := 2.0
+const TIME_LOW := 0.25
+const TIME_LOW_COLOR := Color(0.949, 0.302, 0.4)
 ## Appearing: from this scale past full size and back, fading in over the first part.
 const APPEAR_FROM := 0.85
 const APPEAR_PEAK := 1.06
@@ -51,6 +56,14 @@ const TEXT_OUT_SECONDS := 0.08
 
 ## Where the portrait is rendered. Set it before [method show_passenger].
 var portrait_studio: PortraitStudio
+## How much of their wait is left, from 1 to 0, drawn as that much of the card's edge in
+## gold from the notch's tip clockwise. Under 0, they wait for as long as it takes and the
+## edge shows nothing.
+var time_left := -1.0:
+	set(value):
+		time_left = value
+		if is_node_ready():
+			(%Body as Control).queue_redraw()
 
 # How open the card is, from 0 (the portrait alone) to 1 (the whole text uncovered).
 var _openness := 0.0
@@ -223,6 +236,34 @@ func _draw_card() -> void:
 	body.draw_colored_polygon(_outline(size.x, 0.0), FILL_COLOR)
 	outline.append(outline[0])
 	body.draw_polyline(outline, BORDER_COLOR, 1.0, true)
+	if time_left > 0.0:
+		var color := TIME_LOW_COLOR if time_left <= TIME_LOW else Vip.GOLD
+		body.draw_polyline(_part_from_tip(outline, time_left), color, TIME_WIDTH, true)
+
+
+# The first [param part], from 0 to 1, of the closed [param outline]'s length, starting at
+# the notch's tip and going clockwise.
+func _part_from_tip(outline: PackedVector2Array, part: float) -> PackedVector2Array:
+	var count := outline.size() - 1
+	var tip := 0
+	for i: int in count:
+		if outline[i].y > outline[tip].y:
+			tip = i
+	var total := 0.0
+	for i: int in count:
+		total += outline[i].distance_to(outline[i + 1])
+	var left := total * clampf(part, 0.0, 1.0)
+	var points := PackedVector2Array([outline[tip]])
+	for step: int in count:
+		var from := outline[(tip + step) % count]
+		var to := outline[(tip + step + 1) % count]
+		var length := from.distance_to(to)
+		if length >= left:
+			points.append(from.lerp(to, left / length))
+			break
+		points.append(to)
+		left -= length
+	return points
 
 
 # The card's edge, [param inset] pixels inside it, clockwise from the top left corner, the

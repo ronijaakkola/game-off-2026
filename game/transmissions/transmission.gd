@@ -19,6 +19,9 @@ const MECHANIC_RACE := Race.Type.BLUE
 
 ## Who calls, and how their portrait looks.
 var caller_name := ""
+## What a call notice names them while the player doesn't know them yet, or empty for the
+## notice's own "Unknown caller".
+var unknown_name := ""
 var look: AlienLook
 ## The caller's race: they talk in its voice, and the screen's backdrop is its deep shade.
 var race := Race.Type.GREEN
@@ -48,6 +51,8 @@ var text := ""
 ## set, follows it with its icon and name.
 var quest := ""
 var quest_planet: Planet
+## The planets a quest asks for after that one, in order, shown under it, as a VIP's tour.
+var quest_stops: Array[Planet] = []
 ## What a quest pays when it is done. Nothing shows when both are empty.
 var reward_credits := 0
 var reward_research := 0
@@ -71,6 +76,8 @@ static func from_passenger(passenger: Passenger) -> Transmission:
 	transmission.type = passenger.type
 	transmission.destination = passenger.destination
 	transmission.mood = passenger.get_mood()
+	if Vip.is_vip(passenger):
+		transmission.backdrop_color = Vip.BACKDROP
 	if Castaway.is_castaway(passenger):
 		transmission.backdrop_color = Castaway.get_space_color(passenger)
 		transmission.in_space = true

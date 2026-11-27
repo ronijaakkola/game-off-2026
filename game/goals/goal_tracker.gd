@@ -49,9 +49,11 @@ var ledger: Ledger:
 	set(value):
 		if ledger:
 			ledger.rated.disconnect(_on_rated)
+			ledger.credits_earned.disconnect(_on_credits_earned)
 		ledger = value
 		if ledger:
 			ledger.rated.connect(_on_rated)
+			ledger.credits_earned.connect(_on_credits_earned)
 			_on_rated(0.0)
 
 ## While true, the goals are told nothing more, so each stays as it stands: a promotion
@@ -166,6 +168,13 @@ func _on_rated(_stars: float) -> void:
 	var count := ledger.get_rating_count()
 	for goal: Goal in _goals.duplicate():
 		goal.rating_changed(recent, count)
+
+
+func _on_credits_earned(amount: int) -> void:
+	if frozen:
+		return
+	for goal: Goal in _goals.duplicate():
+		goal.credits_earned(amount)
 
 
 func _on_goal_changed(goal: Goal) -> void:

@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 ## passenger who asked, and that one of any kind under way comes back from a save.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
+const VIP_TOUR := preload("res://game/quests/vip_tour_quest.gd")
 
 
 func test_docking_at_their_destination_first_fails_an_errand_before_they_rate() -> void:
@@ -82,7 +83,10 @@ func test_every_kind_of_quest_under_way_comes_back_from_a_save() -> void:
 	var planet := _other_planet(runner, passenger, bus)
 	var by_name: Dictionary[String, Planet] = {String(planet.name): planet}
 	var on_board := cabin.get_passengers()
-	for script: GDScript in QuestKinds.ALL:
+	# A tour last: it stays under way in a slot of its own, beside the others.
+	var kinds := QuestKinds.ALL.filter(func(kind: GDScript) -> bool: return kind != VIP_TOUR)
+	kinds.append(VIP_TOUR)
+	for script: GDScript in kinds:
 		var quest := script.new() as Quest
 		quest.passenger = passenger
 		if quest is FlybyQuest:
@@ -91,15 +95,19 @@ func test_every_kind_of_quest_under_way_comes_back_from_a_save() -> void:
 			(quest as ErrandQuest).planet = planet
 		elif quest is ExpressQuest:
 			(quest as ExpressQuest).planet = planet
+		passenger.tour = Tour.new([passenger.destination]) if quest is VipTourQuest else null
 		quest.reward_credits = 100
 		quest.accept()
+		if quest is VipTourQuest:
+			# A save keeps a tour only once they are on board.
+			(quest.goal as VipTourGoal).boarded = true
 		giver.take_on(quest)
 		var saved := giver.to_save(on_board)
 		cabin.fondness.forget(passenger)
 
 		giver.load_save(saved, on_board, by_name)
 
-		var back := giver.get_quests().back() as Quest
+		var back := giver.get_tour() if quest is VipTourQuest else giver.get_quest()
 		assert_object(back).is_not_same(quest)
 		assert_object(back.get_script()).is_same(script)
 		assert_object(back.get_planet()).is_same(quest.get_planet())

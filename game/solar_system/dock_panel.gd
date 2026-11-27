@@ -427,7 +427,7 @@ func _preview() -> void:
 func _show_buttons() -> void:
 	var free := cabin.get_free_seats() > 0 if cabin else true
 	for row: BoardingRow in _rows.values():
-		row.can_board = free
+		row.can_board = Seating.can_pick_up(cabin, row.passenger) if cabin else true
 		row.along = cabin.count_going_to(row.passenger.destination) if cabin else 0
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
@@ -531,7 +531,8 @@ func _on_teleport_button_pressed() -> void:
 
 
 func _on_board_all_button_pressed() -> void:
-	for passenger: Passenger in _rows.keys():
+	# Only a VIP's own button kicks passengers off to make room for them.
+	for passenger: Passenger in _rows.keys().filter(Seating.fits.bind(cabin)):
 		board_pressed.emit(passenger)
 
 

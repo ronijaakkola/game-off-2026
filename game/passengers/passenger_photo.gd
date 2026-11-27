@@ -14,7 +14,7 @@ extends Control
 ## pointer over one shows a tooltip with the type's name and description. A returning
 ## passenger ([member Passenger.returning]) wears a badge for it after those, and a flag
 ## badge joins them while a quest is about the passenger, its tooltip saying what the quest
-## asks. With
+## asks. A VIP's photo shines ([PhotoShine]) over a backdrop of its own. With
 ## [member flat] on, it is a flat square with rounded corners instead, as big as the minimum
 ## size, with no frame and no tilt.
 
@@ -140,6 +140,10 @@ func _show() -> void:
 	var color := (
 		Castaway.get_space_color(passenger) if adrift else Race.BACKDROP_COLORS[passenger.race]
 	)
+	if Vip.is_vip(passenger):
+		color = Vip.BACKDROP
+		if (%Photo as Control).get_child_count() == 0:
+			(%Photo as Control).add_child(PhotoShine.new())
 	_backdrop().set_shader_parameter(&"backdrop_color", color)
 	_backdrop().set_shader_parameter(&"space", adrift)
 	if studio and not _photo and is_inside_tree():

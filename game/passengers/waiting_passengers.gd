@@ -83,6 +83,14 @@ var first_business_dealt := false
 ## Whether the player has rescued the [Castaway] in this run, so they come back as a
 ## returning passenger.
 var castaway_met := false
+## Who the player agreed to pick up, as a VIP, or null: they wait at their
+## [member Passenger.origin], first in its line and outside its rules, taking no place in
+## it and never leaving.
+var reserved: Passenger:
+	set(value):
+		var planet := value.origin if value else reserved.origin if reserved else null
+		reserved = value
+		changed.emit(planet)
 
 var _rng := RandomNumberGenerator.new()
 var _planets: Array[Planet] = []
@@ -138,9 +146,10 @@ func get_returning() -> ReturningPassengers:
 
 
 ## [param passenger] got off at their destination: after a five-star ride they may come
-## back later, by [member return_chance]. Never the [Castaway], who only ever drifts.
+## back later, by [member return_chance]. Never the [Castaway], who only ever drifts, nor a
+## [Vip], who never waits in a line.
 func remember(passenger: Passenger) -> void:
-	if not Castaway.is_castaway(passenger):
+	if not Castaway.is_castaway(passenger) and not Vip.is_vip(passenger):
 		_returning.remember(passenger, return_chance)
 
 
@@ -242,6 +251,8 @@ func get_waiting(planet: Planet) -> Array[Passenger]:
 			_waited[planet].remove_at(_waiting[planet].size())
 	var line: Array[Passenger] = []
 	line.assign(_waiting.get(planet, []))
+	if reserved and reserved.origin == planet:
+		line.push_front(reserved)
 	return line
 
 
@@ -270,6 +281,9 @@ func restore(planet: Planet, seen: Array[Passenger], unseen: int) -> void:
 ## Takes [param passenger] out of the line at [param planet], as they are picked up. False
 ## when they don't wait there.
 func take(planet: Planet, passenger: Passenger) -> bool:
+	if passenger == reserved:
+		reserved = null
+		return true
 	var queue: Array = _waiting.get(planet, [])
 	if passenger not in queue:
 		return false

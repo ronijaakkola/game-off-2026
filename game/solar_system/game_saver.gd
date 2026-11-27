@@ -67,8 +67,10 @@ const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
 ## Who is on board.
 @export var cabin: Cabin
 @export var goals: GoalTracker
-## Whose quest under way is kept.
+## Whose quests under way are kept.
 @export var quest_giver: QuestGiver
+## How close VIPs are to calling, so a VIP goal comes back before the goals' progress.
+@export var vips: VipCalls
 ## Which upgrades are researched, whether research and which stages are open, and every
 ## research tree.
 @export var research_lab: ResearchLab
@@ -226,7 +228,8 @@ func _write() -> void:
 		"castaway_found": capsules.castaway_found if capsules else false,
 		"returning": waiting.get_returning().to_save(),
 		"goals": progress,
-		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
+		"quests": quest_giver.to_save(cabin.get_passengers()) if quest_giver else [],
+		"vips": vips.to_save() if vips else {},
 	}
 	SaveGame.write(run)
 	if star_map:
@@ -283,13 +286,19 @@ func _restore() -> void:
 		if passenger:
 			if Castaway.is_castaway(passenger):
 				Castaway.dress(passenger, passenger.returning)
+			if Vip.is_vip(passenger):
+				Vip.dress(passenger)
 			cabin.board(passenger)
+	if vips:
+		vips.load_save(_saved.get("vips", {}))
 	var saved_goals: Array = _saved.get("goals", [])
 	var tracked := goals.get_goals()
 	for i: int in mini(saved_goals.size(), tracked.size()):
 		tracked[i].load_save(saved_goals[i] as Dictionary)
 	if quest_giver:
-		quest_giver.load_save(_saved.get("quest", {}), cabin.get_passengers(), by_name)
+		# A save from before tours were kept apart has one quest.
+		var quests: Array = _saved.get("quests", [_saved.get("quest", {})])
+		quest_giver.load_save(quests, cabin.get_passengers(), by_name)
 
 
 func _get_planets_by_name() -> Dictionary[String, Planet]:
@@ -302,7 +311,7 @@ func _get_planets_by_name() -> Dictionary[String, Planet]:
 # Every passenger type that turns up, by its resource path.
 func _get_types_by_path() -> Dictionary[String, PassengerType]:
 	var types: Dictionary[String, PassengerType] = {}
-	for type: PassengerType in waiting.types + [waiting.business]:
+	for type: PassengerType in waiting.types + [waiting.business, Vip.TYPE]:
 		if type:
 			types[type.resource_path] = type
 	return types

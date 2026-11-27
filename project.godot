@@ -14,9 +14,9 @@ config/name="Redshift Transit"
 config/version="0.1.0"
 run/main_scene="res://ui/main_menu/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/icon="res://icon.png"
 boot_splash/bg_color=Color(0.0902, 0.0745, 0.2078, 1)
 boot_splash/image="res://ui/main_menu/boot_splash.png"
+config/icon="res://icon.png"
 
 [audio]
 
