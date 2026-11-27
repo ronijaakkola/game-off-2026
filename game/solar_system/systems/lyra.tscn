@@ -136,7 +136,8 @@ shader_parameter/band_count = 2.0
 shader_parameter/gap = 0.16
 shader_parameter/opacity = 1.0
 
-[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("home")]
+[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("star", "home")]
+star = NodePath("Star")
 script = ExtResource("1_system")
 display_name = "Lyra"
 music = ExtResource("90_music")

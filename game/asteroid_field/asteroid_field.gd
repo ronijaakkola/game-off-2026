@@ -104,6 +104,13 @@ func _ready() -> void:
 	)
 
 
+## Draws every rock at [param value] of its size where it sits, from 0 (gone) to 1, as the
+## [StarChart] does to take the field out. The rocks the bus rides through stay.
+func set_rock_size(value: float) -> void:
+	var material := (%Rocks as MultiMeshInstance3D).material_override as ShaderMaterial
+	material.set_shader_parameter(&"size", value)
+
+
 ## Whether the bus is among the rocks now, flying.
 func is_bus_in_rocks() -> bool:
 	return _in_rocks

@@ -5,7 +5,8 @@ extends Node
 ## in space, or starts coasting to a stop because its course was cleared or its tank ran
 ## dry, and speed up again once it heads off: a trip takes far longer than it looks, and the
 ## time spent stopped is partly wound back. While the map is zoomed ([MapZoom]), each
-## planet runs at the share of that speed the zoom gives it.
+## planet runs at the share of that speed the zoom gives it, and the [StarChart] slows them
+## all to a stop as it opens.
 
 ## How fast the planets' speed changes once the bus stops frameshifting, and once it heads
 ## off: the seconds it would take to go all the way between full speed and still. Linear
@@ -17,6 +18,8 @@ const START_SECONDS := 0.6
 ## Holds planets still, or slows them, while the map is zoomed. None leaves every planet at
 ## the speed.
 @export var map_zoom: MapZoom
+## Holds every planet still while it is open. None leaves them at the speed.
+@export var star_chart: StarChart
 ## How fast the planets orbit while the bus isn't frameshifting, from 0 (still) to 1 (full
 ## speed).
 @export_range(0.0, 1.0, 0.01) var idle_orbit_speed := 0.5
@@ -49,6 +52,8 @@ func run(delta: float) -> void:
 	_speed = move_toward(_speed, target, delta / seconds)
 	for planet: Planet in _planets:
 		var share := map_zoom.get_orbit_share(planet) if map_zoom else 1.0
+		if star_chart:
+			share *= star_chart.get_orbit_share()
 		planet.orbit_speed = _speed * share
 
 

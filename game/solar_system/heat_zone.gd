@@ -54,6 +54,11 @@ func _ready() -> void:
 		map_zoom.zoomed_out.connect(_fade_in)
 
 
+## Shows the glow at [param value] of its strength, from 0 (hidden) to 1, for fading it.
+func set_opacity(value: float) -> void:
+	(zone.material_override as ShaderMaterial).set_shader_parameter(&"opacity", value)
+
+
 func _fade_in() -> void:
 	# Placed while the world was scaled for the tutorial, the disc came out off the star.
 	zone.global_position = _system.global_position

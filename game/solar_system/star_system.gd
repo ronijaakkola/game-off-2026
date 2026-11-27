@@ -82,7 +82,7 @@ const UNREST_PULSE := 0.035
 ## Seconds before a swell that the star's pulse starts to quicken.
 @export_range(0.0, 60.0, 0.5) var swell_warning_seconds := 6.0
 ## The star's body and halo, which pulse slowly while it swells and faster as it is about
-## to, through the swell.
+## to, through the swell. They are what is left of the system on the [StarChart].
 @export var star: Node3D
 
 @export_group("Sky")
@@ -222,6 +222,16 @@ func get_planets() -> Array[Planet]:
 ## Whether [param planet] is in it.
 func has_planet(planet: Planet) -> bool:
 	return planet in _get_planets()
+
+
+## What orbits its star: every child but [member star], such as its planets, an asteroid
+## field or a warp gate.
+func get_contents() -> Array[Node3D]:
+	var contents: Array[Node3D] = []
+	for child: Node in get_children():
+		if child is Node3D and child != star:
+			contents.append(child as Node3D)
+	return contents
 
 
 func _get_planets() -> Array[Planet]:
