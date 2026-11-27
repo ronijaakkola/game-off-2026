@@ -154,6 +154,10 @@ func fade_in() -> void:
 - A bound tween runs whenever its node can process ([TweenPauseMode](https://docs.godotengine.org/en/4.7/classes/class_tween.html#enum-tween-tweenpausemode)). The game pauses with `get_tree().paused`, so motion that plays while paused belongs to a node with `process_mode = PROCESS_MODE_ALWAYS`, like the pause menu and `SceneFlow`.
 - Start a tween from the event that begins the motion: a signal, an input, a setter. When it must start from `_process`, guard it so it starts once, not every frame.
 
+## Process order
+
+A node that places itself from where others are this frame, such as a label over a planet after the camera has moved, has to run after them. `FrameOrder` (`game/solar_system/frame_order.gd`) lists those places in the order they run, from `BEFORE_HUD` to `MARKER_TOOLTIPS`, with Phantom Camera's own `CAMERA_HOST` among them. A node sets `process_priority = FrameOrder.SCREEN_MARKERS` in `_ready()`, never a number or a constant of its own: a copied number falls out of step without an error, and the node only trails by a frame. A new place in the order is a new stage in `FrameOrder`. `check.py lint` fails on a process priority set any other way in a game script (`frame-order`).
+
 ## Physics
 
 - The project runs Jolt Physics (`physics/3d/physics_engine` in `project.godot`). It works in the single-threaded web build.

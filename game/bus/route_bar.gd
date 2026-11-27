@@ -66,7 +66,7 @@ var _resize_seconds := 0.0
 
 func _ready() -> void:
 	# Before the bus status panel and the HUD, which place themselves by its height.
-	process_priority = -1
+	process_priority = FrameOrder.BEFORE_HUD
 	var style := get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
 	style.content_margin_top = PADDING
 	style.content_margin_bottom = PADDING

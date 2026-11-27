@@ -233,6 +233,7 @@ LAYOUT = "CODING_STANDARDS.md, Layout"
 NAMING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
 SCRIPT_SIZE = "CODING_STANDARDS.md, Script size"
+PROCESS_ORDER = "CODING_STANDARDS.md, Process order"
 GLOSSARY = "CONTEXT.md"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
@@ -273,6 +274,13 @@ PRIVATE_MEMBER = re.compile(r"(?:(?<!\w)(?!(?:self|super)\b)\w+|[)\]])\s*\.\s*(_
 # A member this script declares, so `other._name` is another instance of this same class.
 OWN_MEMBER = re.compile(r"^[ \t]*(?:static[ \t]+)?(?:var|const|func|signal)[ \t]+(_\w+)", re.MULTILINE)
 DYNAMIC_MEMBER = re.compile(r"\.\s*(set|set_deferred|get)\s*\(")
+# A process priority set from anything but one FrameOrder stage: process_priority = 302,
+# = SOME_CONST + 1, or set_process_priority(...).
+PROCESS_PRIORITY = re.compile(
+    r"\b(?:(process(?:_physics)?_priority)\s*=(?!=)[ \t]*([^\n]*)|(set_process(?:_physics)?_priority)\s*\()"
+)
+FRAME_ORDER_STAGE = re.compile(r"FrameOrder\.[A-Z][A-Z0-9_]*")
+FRAME_ORDER_SCRIPT = "game/solar_system/frame_order.gd"
 # A func or signal declaration up to the bracket that opens its parameters, the
 # parameters in one, and a [param name] in a ## comment.
 DOC_DECLARATION = re.compile(
@@ -726,6 +734,7 @@ def script_problems(path: str, hook: bool) -> list[str]:
     problems += user_path_problems(path, strings, outside)
     if not outside:
         problems += saved_enum_problems(path, code)
+        problems += process_priority_problems(path, code)
     # The hook leaves this out: a script may name a scene before it is written.
     if not (outside or hook):
         problems += missing_path_problems(path, strings)
@@ -1058,6 +1067,26 @@ def missing_ext_resource_problems(path: str) -> list[str]:
                 "so this file fails to load. Fix the path, or write the file first."
             )
         problems.append(problem(path, number, "path-exists", message, SCENE_COMPOSITION))
+    return problems
+
+
+def process_priority_problems(path: str, code: str) -> list[str]:
+    """Nodes that place themselves from what others moved this frame run in a fixed order,
+    and a number typed out in one script falls out of step with the rest without an error:
+    the node just trails by a frame. So a game script sets a process priority only to one
+    FrameOrder stage, and a new place in the order is a new stage there."""
+    problems = []
+    for m in PROCESS_PRIORITY.finditer(code):
+        if m.group(1) and FRAME_ORDER_STAGE.fullmatch(m.group(2).strip()):
+            continue
+        name = m.group(1) or f"{m.group(3)}()"
+        message = (
+            f"{name} takes something other than one FrameOrder stage, so it can fall "
+            "out of step with the nodes it must run before or after, with no error. Write "
+            f"{m.group(1) or 'process_priority'} = FrameOrder.<STAGE>, and add a stage to "
+            f"{FRAME_ORDER_SCRIPT} for a new place in the order."
+        )
+        problems.append(problem(path, line_at(code, m.start()), "frame-order", message, PROCESS_ORDER))
     return problems
 
 

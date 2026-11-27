@@ -22,9 +22,6 @@ const ZOOM_GROWTH := 0.25
 const POP_FROM := 0.4
 const POP_SECONDS := 0.35
 const TOOLTIP_TEXT := "Research planet"
-## After the solar system, which moves the planets after Phantom Camera's host (300) has
-## moved the camera; placed any earlier, the badges trail the planets by a frame.
-const PROCESS_PRIORITY := 302
 const BADGE := preload("res://game/passengers/photo_badge.tscn")
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 const FLASK := preload("res://shared/icons/flask_conical.svg")
@@ -55,7 +52,7 @@ var _rested := 0.0
 
 
 func _ready() -> void:
-	process_priority = PROCESS_PRIORITY
+	process_priority = FrameOrder.SCREEN_MARKERS
 	_tooltip = TOOLTIP.instantiate() as Tooltip
 	# Running text, not a name: the planet's name is already under it.
 	_tooltip.title = ""
@@ -64,7 +61,7 @@ func _ready() -> void:
 	# It follows the badge as the planet moves: placed after the badge each frame, and not
 	# on whole pixels, which would step behind it.
 	_tooltip.snap_to_pixels = false
-	_tooltip.process_priority = PROCESS_PRIORITY + 1
+	_tooltip.process_priority = FrameOrder.MARKER_TOOLTIPS
 	add_child(_tooltip)
 
 

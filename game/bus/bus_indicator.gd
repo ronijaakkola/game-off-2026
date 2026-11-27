@@ -26,8 +26,6 @@ const FADE_IN_SECONDS := 0.15
 const FADE_OUT_SECONDS := 0.1
 ## The size it grows from as it fades in.
 const GROW_FROM := 0.8
-## After the camera and the bus have moved each frame, as the map's other labels.
-const PROCESS_PRIORITY := 302
 const BUS_ICON := preload("res://shared/icons/bus.svg")
 const FUEL_ICON := preload("res://shared/icons/fuel.svg")
 const HEAT_ICON := preload("res://game/bus/icons/thermometer.svg")
@@ -57,7 +55,7 @@ var _fade: Tween
 
 
 func _ready() -> void:
-	process_priority = PROCESS_PRIORITY
+	process_priority = FrameOrder.SCREEN_MARKERS
 	modulate.a = 0.0
 
 

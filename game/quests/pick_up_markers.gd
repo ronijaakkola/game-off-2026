@@ -15,9 +15,6 @@ extends Control
 const GAP_PIXELS := 8.0
 ## How many points round a planet's rings are measured to find their top on screen.
 const RING_SAMPLES := 32
-## After the solar system, which moves the planets after Phantom Camera's host (300) has
-## moved the camera; placed any earlier, the markers trail the planets by a frame.
-const PROCESS_PRIORITY := 302
 const MARKER := preload("res://game/quests/pick_up_marker.tscn")
 
 ## The camera the planets are seen through.
@@ -31,7 +28,7 @@ var _planets: Dictionary[PickUpMarker, Planet] = {}
 
 
 func _ready() -> void:
-	process_priority = PROCESS_PRIORITY
+	process_priority = FrameOrder.SCREEN_MARKERS
 
 
 func _process(_delta: float) -> void:
