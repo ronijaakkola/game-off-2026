@@ -4,6 +4,7 @@
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
 [ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_icon"]
 [ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
+[ext_resource type="Script" uid="uid://b2vvtg7ommfwf" path="res://game/passengers/hop_icon.gd" id="91_hop_icon"]
 
 [node name="DestinationGroup" type="VBoxContainer" unique_id=865620529]
 custom_minimum_size = Vector2(216, 0)
@@ -38,6 +39,15 @@ layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("3_icon")
+
+[node name="HopIcon" type="Control" parent="HeaderSlot/Header/Row" unique_id=563596246]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("91_hop_icon")
 
 [node name="PlanetLabel" type="Label" parent="HeaderSlot/Header/Row" unique_id=1367067895]
 unique_name_in_owner = true

@@ -135,7 +135,7 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	if not passenger.rerouted.is_connected(on_rerouted):
 		passenger.rerouted.connect(on_rerouted)
 	_cards[passenger] = card
-	_group_for(_get_key(passenger)).add_card(card)
+	_group_for(_get_key(passenger), passenger.tour != null).add_card(card)
 	return card
 
 
@@ -145,19 +145,21 @@ func _get_key(passenger: Passenger) -> Planet:
 	return null if passenger.tour else passenger.destination
 
 
-# The group for those going to [param planet], made at the bottom if there is none yet. The
-# VIP group, with no planet, goes on top.
-func _group_for(planet: Planet) -> DestinationGroup:
+# The group for those going to [param planet], made at the bottom if there is none yet, or
+# the [param vip] group, with no planet, on top. The castaway on a hop, also going to no
+# planet, rides only in the first star system, where no VIP does, so the two never meet.
+func _group_for(planet: Planet, vip := false) -> DestinationGroup:
 	var group: DestinationGroup = _groups.get(planet)
 	if group:
 		return group
 	group = GROUP.instantiate() as DestinationGroup
 	group.planet = planet
+	group.vip = vip
 	group.emptied.connect(_on_group_emptied.bind(group))
 	group.folded.connect(group.queue_free)
 	_groups[planet] = group
 	%Cards.add_child(group)
-	if not planet:
+	if vip:
 		%Cards.move_child(group, 0)
 	return group
 

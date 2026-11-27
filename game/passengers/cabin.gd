@@ -28,8 +28,8 @@ signal delivered(passenger: Passenger, payout: int)
 ## The player kicked [param passenger] off the bus mid-ride ([method kick]). They pay
 ## nothing and rate nothing, and the rest take a [constant KICK_SHOCK].
 signal kicked(passenger: Passenger)
-## [param passenger] stayed behind as the bus jumped to the next star system
-## ([method leave_behind]). They pay nothing and rate nothing.
+## [param passenger] stayed behind in space, as the bus jumped to the next star system or
+## as they hopped out ([method leave_behind]). They pay nothing and rate nothing.
 signal left_behind(passenger: Passenger)
 ## Everyone getting off at the stop [method stop_at] started has got off, one step after
 ## the last of them. Emitted even when nobody got off.
@@ -251,9 +251,9 @@ func kick(passenger: Passenger, shocks := true) -> bool:
 	return true
 
 
-## [param passenger] stays behind as the bus jumps to the next star system: they leave their
-## seat at once, out of sight, paying and rating nothing, and nobody takes a shock. False,
-## and nothing happens, when they aren't on board.
+## [param passenger] stays behind in space, as the bus jumps to the next star system or as
+## the [Castaway] hops out: they leave their seat at once, paying and rating nothing, and
+## nobody takes a shock. False, and nothing happens, when they aren't on board.
 func leave_behind(passenger: Passenger) -> bool:
 	if passenger not in _passengers:
 		return false

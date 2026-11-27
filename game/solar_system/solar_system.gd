@@ -319,7 +319,7 @@ func _update_fade(delta: float) -> void:
 	var open := get_open_planet()
 	if open:
 		_faded_planet = open
-	var target := 0.0 if open or is_bus_open() else 1.0
+	var target := 0.0 if open or is_bus_open() or (%StarChart as StarChart).is_open() else 1.0
 	_fade = move_toward(_fade, target, delta / FADE_SECONDS)
 	if _fade >= 1.0:
 		_faded_planet = null
@@ -475,7 +475,8 @@ func _planet_at(screen_point: Vector2) -> Planet:
 # badges and the fuel forecast fade with the names.
 func _place_waiting(under: Planet) -> void:
 	var bus := %Bus as FrameshiftBus
-	var docked := bus.is_at_planet() and not (%SystemJump as SystemJump).is_jumping()
+	var away := (%SystemJump as SystemJump).is_jumping() or (%StarChart as StarChart).is_open()
+	var docked := bus.is_at_planet() and not away
 	(%DockPanel as DockPanel).planet = bus.get_docked_planet() if docked else null
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.modulate.a = _fade

@@ -10,6 +10,8 @@ render_mode unshaded;
 uniform vec3 color : source_color = vec3(0.7, 0.58, 0.55);
 // How fast the rocks tumble, from 0 (still, as under Reduce motion) to 1.
 uniform float tumble : hint_range(0.0, 1.0) = 1.0;
+// How big each rock is drawn where it sits, from 0 (gone) to 1.
+uniform float size : hint_range(0.0, 1.0) = 1.0;
 // The fastest a rock tumbles, in radians a second.
 const float MAX_TUMBLE = 0.8;
 
@@ -26,7 +28,7 @@ void vertex() {
 	// The axis comes in 0 to 1 per channel, so it is moved back to -1 to 1.
 	vec3 axis = normalize(INSTANCE_CUSTOM.xyz * 2.0 - 1.0 + vec3(1e-4));
 	float angle = TIME * tumble * MAX_TUMBLE * (INSTANCE_CUSTOM.w - 0.5) * 2.0;
-	VERTEX = turn(VERTEX, axis, angle);
+	VERTEX = turn(VERTEX, axis, angle) * size;
 	NORMAL = turn(NORMAL, axis, angle);
 	shade = COLOR.rgb;
 }
