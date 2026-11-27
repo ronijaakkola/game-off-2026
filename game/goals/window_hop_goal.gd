@@ -43,8 +43,9 @@ func get_window_text() -> String:
 	return ("Hot enough for %s" if is_open() else "Hot enough in %s") % time
 
 
-## Seconds until the window closes, while it is open, or opens: as long as it takes with
-## the bus in flight, and twice that with it stopped, as the orbits slow then.
+## Seconds until the window closes, while it is open, or opens, at the pace the orbits run
+## at now ([member Planet.orbit_speed]): they slow while the bus is stopped, so it is
+## longer then than in flight.
 func get_window_seconds() -> float:
 	var orbits := planet.get_parent() as Planet
 	if not orbits or planet.orbit_period == 0.0 or orbits.orbit_period == 0.0:
@@ -57,7 +58,8 @@ func get_window_seconds() -> float:
 	var center := orbits.get_body_global_position()
 	var angle := wrapf(_get_angle(get_spot() - center) - _get_angle(_get_star() - center), -PI, PI)
 	var left := half - angle if is_open() else wrapf(-half - angle, 0.0, TAU)
-	return maxf(left, 0.0) / rate
+	var pace := planet.orbit_speed if planet.orbit_speed > 0.0 else 1.0
+	return maxf(left, 0.0) / (rate * pace)
 
 
 ## Half the angle of the moon's orbit that lies inside the hot zone, in radians, to either

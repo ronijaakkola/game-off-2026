@@ -56,6 +56,15 @@ func test_the_window_opens_and_closes_when_it_says_it_will() -> void:
 	assert_float(closes).is_between(18.0, 24.0)
 
 
+func test_the_time_to_the_window_is_longer_while_the_orbits_run_slow() -> void:
+	_turn_moon(0.0)
+	var in_flight := _goal.get_window_seconds()
+
+	_janus.orbit_speed = 0.5
+
+	assert_float(_goal.get_window_seconds()).is_equal_approx(in_flight * 2.0, 0.01)
+
+
 func test_coming_to_rest_in_the_zone_counts_only_while_the_window_is_open() -> void:
 	_turn_moon(0.0)
 	_goal.bus_held(_goal.get_spot() + Vector3.RIGHT, [_passenger])
