@@ -96,3 +96,18 @@ func test_a_card_that_would_cover_its_avoided_spot_sits_on_the_opposite_side() -
 	card.avoid_rect = Rect2(100, 230, 20, 20)
 	await runner.simulate_frames(5)
 	assert_float(card.get_rect().end.y).is_less_equal(target.position.y)
+
+
+func test_a_card_the_screen_edge_slides_onto_its_avoided_spot_sits_on_the_opposite_side() -> void:
+	var runner := scene_runner(SCENE)
+	var card := runner.scene() as GuideCard
+	card.text = "Your passenger wants to go to the Moon."
+	card.side = GuideCard.Side.ABOVE
+	# Near the right edge: above it, the card slides left over the bus, though centred on
+	# the Moon it would clear it.
+	var target := Rect2(1100, 300, 40, 40)
+	card.target_rect = target
+	card.avoid_rect = Rect2(880, 230, 20, 20)
+	card.open()
+	await runner.simulate_frames(30)
+	assert_float(card.position.y).is_greater_equal(target.end.y)

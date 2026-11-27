@@ -292,10 +292,7 @@ func _place() -> void:
 	var opposite: GuideCard.Side = OPPOSITE[side]
 	if not _suits(rect, side, screen) and _suits(rect, opposite, screen):
 		_facing = opposite
-	var at := _spot(rect, _facing)
-	var most := screen - size - Vector2.ONE * SCREEN_MARGIN
-	at = at.clamp(Vector2.ONE * SCREEN_MARGIN, most.max(Vector2.ONE * SCREEN_MARGIN))
-	position = at.round()
+	position = _on_screen(_spot(rect, _facing), screen).round()
 	var centre := rect.get_center()
 	var vertical := _facing in [Side.BELOW, Side.ABOVE]
 	var along := centre.x - position.x if vertical else centre.y - position.y
@@ -322,12 +319,19 @@ func _spot(rect: Rect2, on: GuideCard.Side) -> Vector2:
 	return Vector2(rect.end.x + away, centre.y - size.y * 0.5)
 
 
-# Whether the card on [param on] of [param rect] keeps off avoid_rect and is SCREEN_MARGIN
-# inside the screen across its facing edge: sliding along that edge keeps the notch on the
-# target, but moving across it would cover the target.
+# [param at] moved as little as it takes to be SCREEN_MARGIN inside the screen.
+func _on_screen(at: Vector2, screen: Vector2) -> Vector2:
+	var most := screen - size - Vector2.ONE * SCREEN_MARGIN
+	return at.clamp(Vector2.ONE * SCREEN_MARGIN, most.max(Vector2.ONE * SCREEN_MARGIN))
+
+
+# Whether the card on [param on] of [param rect], where the screen's edges move it, keeps
+# off avoid_rect, and is SCREEN_MARGIN inside the screen across its facing edge before
+# they move it: sliding along that edge keeps the notch on the target, but moving across
+# it would cover the target.
 func _suits(rect: Rect2, on: GuideCard.Side, screen: Vector2) -> bool:
 	var at := _spot(rect, on)
-	if avoid_rect.has_area() and Rect2(at, size).intersects(avoid_rect):
+	if avoid_rect.has_area() and Rect2(_on_screen(at, screen), size).intersects(avoid_rect):
 		return false
 	var axis := 1 if on in [Side.BELOW, Side.ABOVE] else 0
 	return at[axis] >= SCREEN_MARGIN and at[axis] + size[axis] <= screen[axis] - SCREEN_MARGIN
