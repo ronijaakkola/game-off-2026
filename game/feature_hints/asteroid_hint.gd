@@ -5,8 +5,6 @@ extends Control
 
 ## The spot's size on screen, in pixels: about the bus at the map's usual zoom.
 const SPOT := Vector2(64.0, 64.0)
-## After the camera and the bus have moved each frame, as the map's other labels.
-const PROCESS_PRIORITY := 302
 
 @export var hints: FeatureHints
 @export var field: AsteroidField
@@ -14,7 +12,7 @@ const PROCESS_PRIORITY := 302
 
 
 func _ready() -> void:
-	process_priority = PROCESS_PRIORITY
+	process_priority = FrameOrder.SCREEN_MARKERS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size = SPOT
 	field.entered_rocks.connect(_on_entered_rocks)

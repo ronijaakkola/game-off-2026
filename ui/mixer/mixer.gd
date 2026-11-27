@@ -52,12 +52,19 @@ static func silenced_volumes() -> PackedStringArray:
 	return names
 
 
-## The text Copy puts on the clipboard: [member ClipLevels.LEVELS] as it should read, then
-## each voice's volume.
+## The text Copy puts on the clipboard: [member ClipLevels.LEVELS] as it should read, in
+## path order, then each voice's volume. A clip in the table with no row here keeps its
+## line: a build may leave a clip out of its pack, as the itch.io build does an unused one,
+## and a table copied there must not drop it.
 func table_text() -> String:
 	var lines := PackedStringArray(["# core/audio/clip_levels.gd, LEVELS"])
+	var levels: Dictionary[String, float] = ClipLevels.LEVELS.duplicate()
 	for row: MixerRow in _rows:
-		lines.append('\t"%s": %s,' % [row.path, level_text(row.get_level())])
+		levels[row.path] = row.get_level()
+	var paths := levels.keys()
+	paths.sort()
+	for path: String in paths:
+		lines.append('\t"%s": %s,' % [path, level_text(levels[path])])
 	lines.append("")
 	lines.append("# the voices' .tres files")
 	for voice: MixerVoice in _voices:

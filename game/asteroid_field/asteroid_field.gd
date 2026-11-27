@@ -15,8 +15,8 @@ extends Node3D
 ## the belt's turn. They tumble in their shader.
 ##
 ## It lowers [member FrameshiftBus.speed_cap] after the [HeatZone] has set it for the frame
-## ([member Node.process_priority] 1), so the lower of the two holds, and lifts it again as
-## the bus leaves the rocks, so it works with no HeatZone too.
+## ([constant FrameOrder.AFTER_HEAT_ZONE]), so the lower of the two holds, and lifts it
+## again as the bus leaves the rocks, so it works with no HeatZone too.
 
 ## The bus flew into the rocks.
 signal entered_rocks
@@ -85,7 +85,7 @@ var _until_bump := 0.0
 
 
 func _ready() -> void:
-	process_priority = 1
+	process_priority = FrameOrder.AFTER_HEAT_ZONE
 	if not belt:
 		belt = AsteroidBelt.new()
 	# Its own copy of the scene's material, so each field has its own colours and star.
@@ -102,6 +102,13 @@ func _ready() -> void:
 	(%Pebbles as MultiMeshInstance3D).multimesh = RockScatter.scatter(
 		belt, RockMesh.build(rock_seed + 1, 0, 0.4), pebble_count, 0.03, 0.09, height, rng
 	)
+
+
+## Draws every rock at [param value] of its size where it sits, from 0 (gone) to 1, as the
+## [StarChart] does to take the field out. The rocks the bus rides through stay.
+func set_rock_size(value: float) -> void:
+	var material := (%Rocks as MultiMeshInstance3D).material_override as ShaderMaterial
+	material.set_shader_parameter(&"size", value)
 
 
 ## Whether the bus is among the rocks now, flying.

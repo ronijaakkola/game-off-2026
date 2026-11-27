@@ -8,10 +8,10 @@ extends Node
 ## stop ([PhotoStopQuest]) or a warp ([WarpQuest]) instead, and now and then for a ride
 ## through the rocks ([RockRideQuest]) or a sauna ([SaunaQuest]); in the second, only
 ## Business passengers call. Of those who can call, a returning passenger is likelier to
-## be the one. One
-## call or quest at a time: nobody calls while a quest is under way, and the wait until
-## the next call starts only once it has ended.
-## A passenger picked up from a capsule adrift has their [RescueQuest]'s transmission open
+## be the one. One call or quest at a time: nobody calls while a quest is under way, and
+## the wait until the next call starts only once it has ended.
+## A passenger picked up from a capsule adrift has the transmission of their [RescueQuest],
+## or in the first star system their [HopQuest], open
 ## by itself, with no notice, [constant RESCUE_SECONDS] after ([method rescue]). They board
 ## only when the player accepts; declined, they stay adrift, at no cost.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
@@ -313,7 +313,7 @@ func _plan(passenger: Passenger) -> Quest:
 
 
 func _plan_rescue(passenger: Passenger) -> Quest:
-	var quest := RescueQuest.new()
+	var quest: Quest = HopQuest.new() if _level == 0 else RescueQuest.new()
 	quest.level = _level
 	return quest if quest.plan(passenger, bus, _planets, _waiting, _rng) else null
 

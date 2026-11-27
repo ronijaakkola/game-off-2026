@@ -77,6 +77,7 @@
 [ext_resource type="PackedScene" uid="uid://82avi1c774bx" path="res://game/quests/pick_up_markers.tscn" id="159_pick_up_markers"]
 [ext_resource type="PackedScene" uid="uid://bvecr4vgey1sp" path="res://game/bus/bus_indicator.tscn" id="160_bus_indicator"]
 [ext_resource type="Script" uid="uid://b1fajbmbhyo5" path="res://game/solar_system/system_music.gd" id="190_music"]
+[ext_resource type="Script" uid="uid://j5l1q4r68cgx" path="res://game/solar_system/star_chart.gd" id="200_star_chart"]
 [ext_resource type="Script" uid="uid://dj6dl5timmqvq" path="res://game/solar_system/control_legend_prototype.gd" id="999_legend_prototype"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
@@ -206,6 +207,19 @@ world = NodePath("../World")
 rig = NodePath("../CameraRig")
 sky = NodePath("../SpaceSky")
 
+[node name="StarChart" type="Node" parent="." unique_id=1969944639 node_paths=PackedStringArray("star_map", "rig", "sky", "hud", "planet_panel", "bus_panel", "heat_zone", "bus", "capsules")]
+unique_name_in_owner = true
+script = ExtResource("200_star_chart")
+star_map = NodePath("../StarMap")
+rig = NodePath("../CameraRig")
+sky = NodePath("../SpaceSky")
+hud = NodePath("../Hud")
+planet_panel = NodePath("../Hud/PlanetPanel")
+bus_panel = NodePath("../Hud/BusPanel")
+heat_zone = NodePath("../HeatZone")
+bus = NodePath("../Bus")
+capsules = NodePath("../CapsuleField")
+
 [node name="SystemMusic" type="Node" parent="." unique_id=2090082079 node_paths=PackedStringArray("star_map")]
 script = ExtResource("190_music")
 star_map = NodePath("../StarMap")
@@ -214,11 +228,12 @@ star_map = NodePath("../StarMap")
 unique_name_in_owner = true
 start_planet = NodePath("../World/Vela/Ember")
 
-[node name="OrbitClock" type="Node" parent="." unique_id=466363001 node_paths=PackedStringArray("bus", "map_zoom")]
+[node name="OrbitClock" type="Node" parent="." unique_id=466363001 node_paths=PackedStringArray("bus", "map_zoom", "star_chart")]
 unique_name_in_owner = true
 script = ExtResource("109_orbit_clock")
 bus = NodePath("../Bus")
 map_zoom = NodePath("../MapZoom")
+star_chart = NodePath("../StarChart")
 
 [node name="MapZoom" type="Node" parent="." unique_id=1364752133 node_paths=PackedStringArray("world", "bus", "pivot", "rig")]
 unique_name_in_owner = true
@@ -625,7 +640,7 @@ unique_name_in_owner = true
 anchors_preset = 7
 portrait_studio = NodePath("../../PortraitStudio")
 
-[node name="ControlLegendPrototype" type="PanelContainer" parent="Hud" unique_id=1402795120 node_paths=PackedStringArray("bus", "bars", "tutorial", "click_block", "star_map")]
+[node name="ControlLegendPrototype" type="PanelContainer" parent="Hud" unique_id=1142918750 node_paths=PackedStringArray("bus", "bars", "tutorial", "click_block", "star_map")]
 script = ExtResource("999_legend_prototype")
 bus = NodePath("../../Bus")
 bars = NodePath("../BusStatusPanel")

@@ -66,11 +66,16 @@ func get_planet() -> Planet:
 
 func get_transmission() -> Transmission:
 	var transmission := super()
-	transmission.text = _line % passenger.destination.display_name
+	transmission.text = _say()
 	transmission.quest = get_ask()
-	transmission.quest_planet = passenger.destination
+	transmission.quest_planet = get_planet()
 	return transmission
 
 
 func accept() -> void:
 	goal = RescueGoal.new(passenger)
+
+
+# What they say in the transmission.
+func _say() -> String:
+	return _line % passenger.destination.display_name

@@ -12,7 +12,7 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 |---|---|---|---|
 | `ui/audio/bgm1.ogg` | The main menu, Level 1 (Vela) and Level 3 (Sol). 88 bpm, 96 beats, loops from beat 32; everything that lands on the beat reads its grid | 0.7 | Done |
 | `ui/audio/bgm2.ogg` | Level 2 (Lyra). It fades in as the track before fades out, over 2 s, as the bus crosses into the system or the level starts. 88 bpm, 128 beats, loops from beat 64 (0:43.63 to 1:27.27) | 0.7 | Done |
-| `ui/audio/menu_music.ogg` | Nothing: the menu plays `bgm1.ogg`. It still shows in the mixer | 0.7 | Unused |
+| `ui/audio/menu_music.ogg` | Nothing: the menu plays `bgm1.ogg`. The itch.io build leaves it out (the Web preset in `export_presets.cfg`), so it shows in the mixer only in the editor and the preview build | 0.7 | Unused |
 
 ### Bus
 
@@ -87,7 +87,7 @@ Nothing in the specs asks for these, so none is a bug. Every event below makes n
 
 ### Music and ambience
 
-- **Menu music.** `menu_music.ogg` is in the project and unused. The menus play the game's track.
+- **Menu music.** `menu_music.ogg` is in the project and unused, and left out of the itch.io build. The menus play the game's track. Take it off the Web preset's `exclude_filter` when something plays it.
 - **A track for Level 3** (Sol), which plays Level 1's for now, and one for the tutorial and the joined systems at the end.
 - **A level-complete jingle.**
 - **Space ambience** under the map, and the heat zone.

@@ -81,6 +81,14 @@ var light_source := Vector3.ZERO:
 		for flat: ShaderMaterial in _flats:
 			ShaderValues.show(flat, &"light_source", value)
 
+## Where the model is drawn instead of on the bus, in global space, as the [StarChart]
+## does to show it beside a star. [constant Vector3.INF] for on the bus.
+var shown_at := Vector3.INF:
+	set(value):
+		shown_at = value
+		if value.is_finite():
+			global_position = value
+
 var _time := 0.0
 # How much of the float shows: 1 while still, 0 in flight.
 var _float := 1.0
@@ -154,6 +162,8 @@ func animate(delta: float, still: bool, charge: float, turn_rate: float, burn: f
 	var follow := lerpf(8.0, 30.0, _jolt)
 	rotation.z = lerp_angle(rotation.z, lean, 1.0 - exp(-follow * delta))
 	thrust = move_toward(thrust, burn, delta * THRUST_FADE)
+	if shown_at.is_finite():
+		global_position = shown_at
 
 
 func _flat(color: Color) -> ShaderMaterial:

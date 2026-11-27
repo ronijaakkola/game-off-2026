@@ -84,6 +84,13 @@ func is_joined() -> bool:
 	return _joined
 
 
+## The systems the bus has been to, in the order they open: up to the one it works in, or
+## every one once they are joined.
+func get_visited() -> Array[StarSystem]:
+	var systems := get_systems()
+	return systems if _joined else systems.slice(0, _current + 1)
+
+
 ## How many systems the player has been promoted out of: each opened the next, and the
 ## last joined them.
 func count_done() -> int:
