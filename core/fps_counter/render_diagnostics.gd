@@ -2,7 +2,9 @@ class_name RenderDiagnostics
 extends Node
 ## Debug panel switches, in the "Rendering" group, that each turn off one cost growing with
 ## the pixels on screen, so a slow frame can be traced where it is slow: in a browser in
-## fullscreen. [method describe] names what is off for the FPS readout.
+## fullscreen. [method describe] names what is off for the FPS readout. Its UI scale slider
+## sizes the whole UI, the panel included, against the window, to see how it would look
+## smaller or larger.
 ## Glass and stencil rewrite the code of every shader in the scene tree that reads the
 ## screen or uses the stencil, found by what the code declares, so this names no game file.
 ## Each material using a shader shares the one cached [Shader], held here once seen, so the
@@ -31,6 +33,10 @@ func _ready() -> void:
 	DebugPanel.add_button("MSAA 4x", msaa.bind(Viewport.MSAA_4X), self, GROUP)
 	DebugPanel.add_button("Toggle glass blur", _debug_toggle_glass, self, GROUP)
 	DebugPanel.add_button("Toggle stencil", _debug_toggle_stencil, self, GROUP)
+	# From half to one and a half times the game's own size, in steps of 5 %.
+	var ui_scale := get_window().content_scale_factor
+	var set_ui_scale := _debug_set_ui_scale
+	DebugPanel.add_slider("UI scale", 0.5, 1.5, 0.05, ui_scale, set_ui_scale, self, GROUP)
 	get_tree().node_added.connect(_on_node_added)
 
 
@@ -45,11 +51,18 @@ func describe() -> String:
 		parts.append("no glass")
 	if not _stencil:
 		parts.append("no stencil")
+	var ui_scale := get_window().content_scale_factor
+	if not is_equal_approx(ui_scale, 1.0):
+		parts.append("UI %s×" % String.num(ui_scale, 2))
 	return " · ".join(parts)
 
 
 func _debug_set_msaa(msaa: Viewport.MSAA) -> void:
 	get_tree().root.msaa_3d = msaa
+
+
+func _debug_set_ui_scale(ui_scale: float) -> void:
+	get_window().content_scale_factor = ui_scale
 
 
 # With the glass off, nothing reads the screen, so Godot stops copying and blurring it.

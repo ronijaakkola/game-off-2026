@@ -1,18 +1,18 @@
 extends CanvasLayer
 ## The debug panel: buttons for testing, in the bottom left corner, opened and closed
 ## with F2. It starts closed and works while the game is paused. A scene adds its own
-## buttons with [method add_button], and they go when the scene does, so the panel never
-## needs to know which scene is running. The main card lays them out in two columns, in the
-## order added, row by row, every button as wide as the widest. Buttons given a group go on
-## that group's own card to the right of the main one, which a button of the group's name in
-## the main card opens and closes, its name on the left and a faint › at its right edge.
-## Those buttons sit together under Sections, below the ones that act at once. One group's
-## card shows at a time.
+## buttons with [method add_button] and sliders with [method add_slider], and they go when
+## the scene does, so the panel never needs to know which scene is running. The main card
+## lays them out in two columns, in the order added, row by row, every button as wide as the
+## widest. Buttons given a group go on that group's own card to the right of the main one,
+## which a button of the group's name in the main card opens and closes, its name on the left
+## and a faint › at its right edge. Those buttons sit together under Sections, below the ones
+## that act at once. One group's card shows at a time.
 ## It ships in every build, release builds included, until [constant ENABLED] is set to
 ## false before the game is released.
 
 ## Whether the panel exists. Set to false before the game is released: F2 then does
-## nothing and [method add_button] adds nothing.
+## nothing and [method add_button] and [method add_slider] add nothing.
 const ENABLED := true
 ## Opens and closes the panel. A physical key, so it is the same on every keyboard layout.
 const TOGGLE_KEY := KEY_F2
@@ -73,6 +73,68 @@ func add_button(text: String, action: Callable, scene: Node, group := "") -> But
 	_buttons_for(group).add_child(button)
 	_tidy()
 	return button
+
+
+## Adds a slider labelled [param text] from [param from] to [param to] in steps of
+## [param step], starting at [param value], with the value shown at the right of its name.
+## [param action] gets the value when it settles: as a drag lets go, or at once for a click
+## or the wheel, so a slider that rescales the panel never moves under the pointer mid-drag.
+## It stays and goes as a button does ([method add_button]). Returns the slider, or null
+## with the panel off.
+func add_slider(
+	text: String,
+	from: float,
+	to: float,
+	step: float,
+	value: float,
+	action: Callable,
+	scene: Node,
+	group := "",
+) -> HSlider:
+	if not ENABLED:
+		return null
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 2)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var heading := HBoxContainer.new()
+	row.add_child(heading)
+	var name_label := Label.new()
+	name_label.text = text
+	name_label.theme_type_variation = &"SmallLabel"
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.add_child(name_label)
+	var value_label := Label.new()
+	value_label.theme_type_variation = &"SmallLabel"
+	heading.add_child(value_label)
+	var slider := HSlider.new()
+	slider.min_value = from
+	slider.max_value = to
+	slider.step = step
+	slider.value = value
+	slider.focus_mode = Control.FOCUS_NONE
+	row.add_child(slider)
+	# As many decimals as the step has, kept even when they are zeros: 1.00, 0.95.
+	var format := "%%.%df" % maxi(step_decimals(step), 0)
+	value_label.text = format % slider.value
+	var dragging: Array[bool] = [false]
+	slider.drag_started.connect(func() -> void: dragging[0] = true)
+	slider.drag_ended.connect(
+		func(changed: bool) -> void:
+			dragging[0] = false
+			if changed:
+				action.call(slider.value)
+	)
+	slider.value_changed.connect(
+		func(new_value: float) -> void:
+			value_label.text = format % new_value
+			if not dragging[0]:
+				action.call(new_value)
+	)
+	row.tree_exited.connect(_tidy, CONNECT_DEFERRED)
+	scene.tree_exiting.connect(row.queue_free)
+	_buttons_for(group).add_child(row)
+	_tidy()
+	return slider
 
 
 ## Whether [param group]'s card shows.
@@ -152,7 +214,10 @@ func _add_mark(toggle: Button) -> void:
 # Every button in the main card as wide as the widest, a toggle's mark counted, so the
 # columns of the buttons and of Sections line up.
 func _even_widths() -> void:
-	var all: Array[Node] = (%Buttons as Node).get_children() + (%Groups as Node).get_children()
+	var all: Array[Button] = []
+	for node: Node in (%Buttons as Node).get_children() + (%Groups as Node).get_children():
+		if node is Button:  # A slider's row keeps its own width.
+			all.append(node as Button)
 	var widest := 0.0
 	for button: Button in all:
 		button.custom_minimum_size.x = 0.0
