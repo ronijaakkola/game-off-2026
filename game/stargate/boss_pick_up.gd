@@ -18,7 +18,8 @@ extends Node
 ## the place of the system's ([FetchGoal]). The chart is then open for the player to go to
 ## another star or close it ([StarTravel]), with the route and the bus held until it
 ## closes. From then on nobody calls, a passenger or a VIP, and the row opens the star
-## chart the same way, wherever a stargate is. As The Boss's briefcase and bowtie are
+## chart the same way, wherever a stargate is, as does a right click on the stargate beside
+## the planet the bus is docked at, as on a stop. As The Boss's briefcase and bowtie are
 ## fetched their portrait has them ([method BossPassenger.dress_up]).
 ## A save keeps how far it has got ([signal changed]); nothing saves through the meeting,
 ## so a run continued from the middle of it has it again.
@@ -151,6 +152,22 @@ func _process(_delta: float) -> void:
 	var free := quest_giver.is_line_free() and not cabin.is_stopping()
 	if _stage == Stage.CALLED and not _busy and here and free:
 		_meet()
+
+
+# Before the solar system sees the press, so a right click on the stargate the row stands
+# for presses the row and sets no course.
+func _unhandled_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if not click or not click.pressed or click.button_index != MOUSE_BUTTON_RIGHT:
+		return
+	if not dock_panel.get_stargate_row().is_open() or not bus.is_at_planet():
+		return
+	var camera := get_viewport().get_camera_3d()
+	var gate := Stargate.under(camera, click.position) if camera else null
+	if not gate or gate.planet != bus.get_docked_planet():
+		return
+	get_viewport().set_input_as_handled()
+	_on_row_pressed()
 
 
 ## Whether The Boss has called with it, so they don't again.

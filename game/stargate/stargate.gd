@@ -36,6 +36,8 @@ const FLICKER: Array[float] = [0.05, 0.16, 0.07, 0.1, 0.04, 0.22]
 const LIGHT_SECONDS := 0.9
 ## How much brighter than at rest the opening flashes as it lights.
 const FLASH := 2.2
+## How far past the ring's edge the pointer still counts as on it, in units.
+const PICK_SLACK := 0.1
 
 ## The planet it floats beside.
 @export var planet: Planet
@@ -57,6 +59,18 @@ static func find(tree: SceneTree, system: StarSystem) -> Stargate:
 	for node: Node in tree.get_nodes_in_group(GROUP):
 		var gate := node as Stargate
 		if gate.planet and system.has_planet(gate.planet):
+			return gate
+	return null
+
+
+## The built stargate under [param pointer], seen through [param camera], or null. No
+## physics: the ring counts as round on screen, as a planet does ([ScreenPick]).
+static func under(camera: Camera3D, pointer: Vector2) -> Stargate:
+	for gate: Stargate in camera.get_tree().get_nodes_in_group(GROUP):
+		if (
+			gate.is_visible_in_tree()
+			and ScreenPick.covers(camera, gate.global_position, RADIUS + PICK_SLACK, pointer)
+		):
 			return gate
 	return null
 

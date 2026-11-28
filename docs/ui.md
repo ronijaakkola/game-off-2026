@@ -197,7 +197,7 @@ A stamp of a few words with an icon that lands over the bus when something about
 
 ### The stargate
 
-- A ring of dark blue hull, 1.1 units across, with nine pale clamps round it, each with an amber lamp, a thin amber ring inside, and an opening that glows pale blue under a soft round glow. It floats 1.7 units from its planet's centre on the side away from the star, leaning back 35° from upright so the camera sees it open, and turns as a wheel does, once in 30 s. Its hull is lit as the planets are.
+- A ring of dark blue hull, 1.1 units across, with nine pale clamps round it, each with an amber lamp, a thin amber ring inside, and an opening that glows pale blue under a soft round glow. It floats 1.7 units from its planet's centre on the side away from the star, leaning back 35° from upright so the camera sees it open, and turns as a wheel does, once in 30 s. Its hull is lit as the planets are. The one beside the planet the bus is docked at stands in for the station's Travel between stars: a right click on it, as on a stop, presses the row, and sets no course.
 - **Appearing,** the camera closes in on the place beside Earth, with Earth in view, as when a planet opens but in the middle of the screen. The ring grows out of nothing over 1.6 s, overshooting a little, spinning down from one and a half turns; then its opening, dark until then, flickers on in place (lit for 0.05 s, dark 0.16, lit 0.07, dark 0.1, lit 0.04, dark 0.22) and flashes to more than twice its brightness, settling over 0.9 s. The camera holds 1.4 s and draws back. Under Reduce motion the camera cuts and the stargate is there at once.
 
 ## The HUD
