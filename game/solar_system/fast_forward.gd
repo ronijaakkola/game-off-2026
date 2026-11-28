@@ -8,11 +8,15 @@ extends Node
 ## feature hint they would have met before the level seen. Then the bus takes the jump, as
 ## answering The Boss's promotion call does, so the level begins with its loading screen,
 ## its arrival call and its starting passengers. Earlier levels keep no start of their own.
+## Fast-forwarded to the ending, numbered one past the last level, the run starts in the last
+## system instead, docked at [member ending_planet] with every goal there met and The Boss's
+## call answered ([BossPickUp]), so the meeting plays as soon as the screen has faded in.
 
 ## What a player has, as balance runs (`tools/balance.py`, promote_to Lyra and Sol) measured
-## it as the bus arrives, by the number of the level it arrives in: credits and research
-## points left after researching, the rides rated, the average and recent rating, and how
-## many upgrades are researched. Each is rolled between the two ends.
+## it as the bus arrives, by the number of the level it arrives in, and for the ending (4) as
+## the last system's goals are met: credits and research points left after researching, the
+## rides rated, the average and recent rating, and how many upgrades are researched. Each is
+## rolled between the two ends.
 const ARRIVALS := {
 	2:
 	{
@@ -31,6 +35,15 @@ const ARRIVALS := {
 		average = Vector2(3.95, 4.35),
 		recent = Vector2(4.1, 4.6),
 		upgrades = Vector2i(12, 19),
+	},
+	4:
+	{
+		credits = Vector2i(500, 4400),
+		points = Vector2i(45, 109),
+		rides = Vector2i(83, 114),
+		average = Vector2(4.2, 4.42),
+		recent = Vector2(4.0, 5.0),
+		upgrades = Vector2i(33, 35),
 	},
 }
 ## The level each feature hint is first met in, by its name in [constant FeatureHints.HINTS],
@@ -53,31 +66,44 @@ const HINT_LEVELS := {
 @export var waiting: WaitingPassengers
 ## Takes the jump.
 @export var progression: Progression
+## Where The Boss waits in the last system, where a run fast-forwarded to the ending docks.
+@export var ending_planet: Planet
+## The goals met for the ending, the VIPs' among them.
+@export var goals: GoalTracker
+@export var vips: VipCalls
+## Has The Boss wait at [member ending_planet] for the ending.
+@export var boss_pick_up: BossPickUp
 
-# The level number the run fast-forwards to, from 2, or 0.
+# The level number the run fast-forwards to, from 2, one past the last for the ending, or 0.
 var _level := 0
 var _rng := RandomNumberGenerator.new()
 
 
 ## Starts the run in the level before the one numbered [param level]: [param bus] docked at its
-## home planet and [param ledger] holding what a player has there. Call it before the scene is
-## ready, as [method GameSaver.place_world] does. Gives what the [StarMap] keeps, for
-## [method StarMap.restore].
+## home planet and [param ledger] holding what a player has there. One past the last level is
+## the ending: the run starts in the last system, docked at [member ending_planet]. Call it
+## before the scene is ready, as [method GameSaver.place_world] does. Gives what the
+## [StarMap] keeps, for [method StarMap.restore].
 func place(level: int, bus: FrameshiftBus, ledger: Ledger) -> Dictionary:
 	_rng.randomize()
-	_level = clampi(level, 2, star_map.get_systems().size())
-	var system := star_map.get_systems()[_level - 2]
+	var systems := star_map.get_systems()
+	_level = clampi(level, 2, systems.size() + 1)
+	var system := systems[mini(_level, systems.size()) - 2]
 	bus.start_planet = system.home
+	if _is_ending():
+		system = systems.back()
+		bus.start_planet = ending_planet
 	var arrival: Dictionary = ARRIVALS.get(_level, ARRIVALS[ARRIVALS.keys().max()])
 	ledger.credits = _roll_int(arrival.credits)
 	ledger.earn_research(_roll_int(arrival.points))
 	_rate(ledger, _roll_int(arrival.rides), _roll(arrival.average), _roll(arrival.recent))
-	return SavedStarMap.make(_level - 1, false, String(system.name))
+	return SavedStarMap.make(mini(_level - 1, systems.size()), false, String(system.name))
 
 
 ## Once the scene has built the run: opens research on the stages the player would have,
 ## researches the rolled upgrades, keeps the hints met before the level as seen, and, once the
-## screen has faded in, takes the jump.
+## screen has faded in, takes the jump, or for the ending meets every goal and has The Boss
+## wait where the bus is docked.
 func apply() -> void:
 	var research := research_lab.get_research()
 	research.open()
@@ -98,7 +124,32 @@ func apply() -> void:
 	waiting.first_business_dealt = _level > 2
 	while SceneFlow.is_busy():
 		await get_tree().process_frame
-	progression.advance()
+	if _is_ending():
+		_meet_goals()
+		boss_pick_up.begin()
+	else:
+		progression.advance()
+
+
+# Whether the run fast-forwards to the ending, past the last level.
+func _is_ending() -> bool:
+	return _level > star_map.get_systems().size()
+
+
+# Every goal of the last system met, as when The Boss calls: VIPs have started calling there,
+# which adds their goal, and each milestone is completed with its count reached. A standing
+# goal holds by the rolled rating.
+func _meet_goals() -> void:
+	vips.load_save({"delivered": VipCalls.FIRST_DELIVERIES})
+	for goal: Goal in goals.get_goals():
+		if goal.is_standing():
+			continue
+		var done := {"state": Goal.State.COMPLETED}
+		if goal is DeliveryCountGoal:
+			done["delivered"] = (goal as DeliveryCountGoal).target
+		elif goal is EarnCreditsGoal:
+			done["earned"] = (goal as EarnCreditsGoal).target
+		goal.load_save(done)
 
 
 # Every upgrade the player could research now, the cost aside.
