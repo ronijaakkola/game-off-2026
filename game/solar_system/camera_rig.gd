@@ -2,7 +2,8 @@ class_name CameraRig
 extends Node3D
 ## An RTS camera. WASD, the arrow keys or the pointer at a window edge (unless
 ## [code]Settings.edge_scroll[/code] is off) pan it across the orbit plane, holding the
-## middle mouse button drags it (the point under the pointer stays under it), as does the
+## middle mouse button drags it (the camera eases after the pointer at
+## [member drag_smoothing] and settles with the point it grabbed under it), as does the
 ## left button once the pointer has moved [constant DRAG_START_PIXELS], so a left click
 ## still clicks, and the mouse wheel zooms it toward the point under the pointer. A drag
 ## starts only on the map: one that starts on a panel, which takes the press, doesn't.
@@ -56,6 +57,8 @@ const DRAG_START_PIXELS := 4.0
 @export_range(0.0, 0.5, 0.01) var zoom_step := 0.12
 ## How fast pan and zoom catch up with their target. Higher is snappier.
 @export_range(0.1, 100.0, 0.1, "or_greater") var smoothing := 5.0
+## How fast the camera catches up with a drag, and settles after one. Higher is snappier.
+@export_range(0.1, 100.0, 0.1, "or_greater") var drag_smoothing := 40.0
 @export_group("Focus")
 ## How much of [member focus_rect]'s height a focused body fills, edge to edge, at
 ## [member focus_radius_min] and smaller.
@@ -81,6 +84,9 @@ var locked := false:
 
 var _target_position := Vector3.ZERO
 var _target_distance := 0.0
+# How fast the look-at point eases to its target: drag_smoothing after a drag, smoothing
+# after a zoom, which eases the look-at point and the distance together.
+var _position_smoothing := 0.0
 # How fast the pan moves the look-at point, in the parent's space, per second.
 var _pan_velocity := Vector3.ZERO
 # Edge scrolling waits for the pointer to move inside the window: before that its position is
@@ -114,6 +120,7 @@ func _ready() -> void:
 	_target_position = _clamp_to_bounds(position)
 	_target_distance = clampf(distance, min_distance, max_distance)
 	distance = _target_distance
+	_position_smoothing = smoothing
 	_place_shot()
 	var focus_shot := %FocusShot as PhantomCamera3D
 	# The rig's own copy, since the scene's is shared by every rig made from it.
@@ -186,7 +193,8 @@ func _process(delta: float) -> void:
 	_pan_velocity = _pan_velocity.lerp(pan_target, weight)
 	var step := _pan_velocity * delta
 	_target_position = _clamp_to_bounds(_target_position + step)
-	position = _clamp_to_bounds(position + step).lerp(_target_position, weight)
+	var follow := 1.0 - exp(-_position_smoothing * delta)
+	position = _clamp_to_bounds(position + step).lerp(_target_position, follow)
 	distance = lerpf(distance, _target_distance, weight)
 	_place_shot()
 
@@ -371,18 +379,17 @@ static func _is_pan(event: InputEvent) -> bool:
 	return false
 
 
-# Moves the look-at point, and its target with it, so the grabbed point is under
-# screen_point again. Against the bounds, the grab holds still: coming back into range
-# picks the drag up where the pointer is.
+# Moves the look-at point's target so the grabbed point is under screen_point once the
+# camera settles; _process eases the look-at point after it. Against the bounds, the grab
+# holds still: coming back into range picks the drag up where the pointer is.
 func _drag_to(screen_point: Vector2) -> void:
 	var offset: Variant = _plane_offset(screen_point)
 	if is_focused() or offset == null:
 		_dragging = false
 		return
 	var per_distance: Vector3 = offset
-	var shift := _grab_point - per_distance * distance - position
-	position = _clamp_to_bounds(position + shift)
-	_target_position = _clamp_to_bounds(_target_position + shift)
+	_target_position = _clamp_to_bounds(_grab_point - per_distance * _target_distance)
+	_position_smoothing = drag_smoothing
 
 
 # Keeps what the player sees under screen_point under it once the zoom settles. Seen from
@@ -391,6 +398,7 @@ func _drag_to(screen_point: Vector2) -> void:
 # from where the camera is, mid-ease or not; the new target puts it back under it.
 func _zoom(factor: float, screen_point: Vector2) -> void:
 	_target_distance = clampf(_target_distance * factor, min_distance, max_distance)
+	_position_smoothing = smoothing
 	var offset: Variant = _plane_offset(screen_point)
 	if offset == null:
 		return
