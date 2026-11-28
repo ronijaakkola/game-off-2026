@@ -24,6 +24,9 @@ const FOG_SCALE := 2.2
 const FOG_VIEW_GROWTH := 1.04
 ## The part of the fog layer the map holds before a camera says what is in view.
 const FOG_START_VIEW := Rect2(-2.0, -1.0, 4.0, 2.0)
+## The shaders' MAX_STAR_COVERS (space_sky.gdshaderinc): how many [member star_covers] the
+## sky hides its stars behind.
+const MAX_STAR_COVERS := 4
 
 ## The empty space between the fog.
 @export var background_color := Color(0.004, 0.005, 0.011):
@@ -70,11 +73,23 @@ const FOG_START_VIEW := Rect2(-2.0, -1.0, 4.0, 2.0)
 	set(value):
 		parallax_depth = value
 		_set_param(&"parallax_depth", value)
+## Degrees a second the near star layer drifts to the screen's right, as the main menu's
+## stars do; the far layer drifts at 0.375 of it. Only with [member parallax] on, and held
+## still under Reduce motion. 0 keeps them put.
+@export_range(-5.0, 5.0, 0.01) var star_drift := 0.0:
+	set(value):
+		star_drift = value
+		_set_param(&"star_drift", value)
 ## The light on 3D objects. The sky doesn't light them, so changing the fog is cheap.
 @export var ambient_color := Color(0.35, 0.37, 0.45):
 	set(value):
 		ambient_color = value
 		environment.ambient_light_color = value
+
+## Billboards the sky's stars hide behind, such as a star's see-through halo, which would
+## otherwise let them shine through it. The first [constant MAX_STAR_COVERS] count; hidden
+## ones hide nothing. Each covers the disc its mesh's width spans, facing the camera.
+var star_covers: Array[MeshInstance3D] = []
 
 var _material := ShaderMaterial.new()
 # The fog layer as a texture, while LAYERS_SHADER draws the sky.
@@ -84,6 +99,8 @@ var _fade: Tween
 var _held_back := Vector3.ZERO
 var _last_camera_position := Vector3.ZERO
 var _has_last_camera_position := false
+# Seconds the stars have drifted for: the time in play outside Reduce motion.
+var _drift_seconds := 0.0
 
 
 func _init() -> void:
@@ -110,11 +127,15 @@ func _ready() -> void:
 	set_process(parallax)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if star_drift != 0.0 and not _motion_reduced():
+		_drift_seconds += delta
+		ShaderValues.show(_material, &"star_drift_seconds", _drift_seconds)
 	var camera := get_viewport().get_camera_3d()
 	if not camera:
 		return
 	var camera_position := camera.global_position
+	ShaderValues.show(_material, &"star_covers", _get_star_covers(camera_position))
 	# Under Reduce motion the layers move with the camera, so they hold still on screen.
 	# Keeping the camera's movement since then, rather than freezing its position, stops
 	# the layers jumping when the setting changes.
@@ -142,6 +163,27 @@ func fade_to(new_fog_color: Color, new_accent_color: Color, duration := 1.0) -> 
 	_fade = create_tween().set_parallel().set_trans(Tween.TRANS_SINE)
 	_fade.tween_property(self, ^"fog_color", new_fog_color, duration)
 	_fade.tween_property(self, ^"fog_accent_color", new_accent_color, duration)
+
+
+# Each of the star covers as the shader takes it: the way to it from [param at], and the
+# angle in radians its disc spans from there to its edge. Hidden ones and empty slots span
+# none.
+func _get_star_covers(at: Vector3) -> PackedVector4Array:
+	var covers := PackedVector4Array()
+	covers.resize(MAX_STAR_COVERS)
+	covers.fill(Vector4.ZERO)
+	for i: int in mini(star_covers.size(), MAX_STAR_COVERS):
+		var cover := star_covers[i]
+		if not is_instance_valid(cover) or not cover.is_visible_in_tree() or not cover.mesh:
+			continue
+		var to := cover.global_position - at
+		var distance := to.length()
+		if distance <= 0.0:
+			continue
+		var radius := cover.mesh.get_aabb().size.x * 0.5 * cover.global_basis.x.length()
+		var way := to / distance
+		covers[i] = Vector4(way.x, way.y, way.z, atan(radius / distance))
+	return covers
 
 
 # The game's parallax sky reads its fog from a map; any other sky works it out per pixel.

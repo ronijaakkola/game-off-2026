@@ -157,7 +157,7 @@ shader_parameter/cap_size = 0.0
 shader_parameter/seed = 83.0
 shader_parameter/terminator_softness = 0.0
 
-[node name="Sol" type="Node3D" unique_id=109947984 node_paths=PackedStringArray("home", "star")]
+[node name="Sol" type="Node3D" unique_id=109947984 node_paths=PackedStringArray("home", "star", "halo")]
 script = ExtResource("1_system")
 display_name = "Sol"
 music = ExtResource("90_music")
@@ -181,6 +181,7 @@ swell_hot_zone_radius = 9.0
 swell_heating = 1.5
 swell_standing_heating = 4.0
 star = NodePath("Star")
+halo = NodePath("Star/Halo")
 background_color = Color(0.165, 0.063, 0.125, 1)
 fog_color = Color(0.239, 0.082, 0.149, 1)
 fog_accent_color = Color(0.29, 0.122, 0.102, 1)

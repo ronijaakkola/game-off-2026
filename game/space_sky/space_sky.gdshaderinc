@@ -18,6 +18,16 @@ uniform float parallax_depth;
 // Set every frame by SpaceSky while parallax is on.
 uniform vec3 camera_position;
 uniform mat3 camera_basis = mat3(1.0);
+// Degrees a second the near stars drift to the screen's right; the far ones drift
+// FAR_STAR_DRIFT of it.
+uniform float star_drift;
+// Seconds the stars have drifted for. Set every frame by SpaceSky while parallax is on.
+uniform float star_drift_seconds;
+// Discs the stars hide behind, such as a star's see-through halo: in each, the way to its
+// middle from the camera, and the angle in radians to its edge, 0 for none. Set every
+// frame by SpaceSky while parallax is on.
+const int MAX_STAR_COVERS = 4;
+uniform vec4 star_covers[MAX_STAR_COVERS];
 
 // The fog layer sits this many parallax depths away and the far stars this many, and
 // the fog spans this many of its noise's cells across one depth. SpaceSky lays the fog
@@ -25,6 +35,8 @@ uniform mat3 camera_basis = mat3(1.0);
 const float FOG_DEPTH = 4.0;
 const float FAR_STAR_DEPTH = 2.0;
 const float FOG_SCALE = 2.2;
+// The far stars' drift over the near ones', as the main menu's far layer drifts.
+const float FAR_STAR_DRIFT = 0.375;
 
 vec3 hash33(vec3 p) {
 	p = fract(p * vec3(0.1031, 0.1030, 0.0973));
@@ -66,13 +78,38 @@ vec2 fog_layer_point(vec3 dir) {
 	return on_layer(dir, fog_depth) * (FOG_SCALE / fog_depth);
 }
 
+// How far the near stars have drifted, as an angle in radians. At a layer's depth that
+// angle is about the drift's width in world units over the depth.
+float star_drift_angle() {
+	return radians(star_drift) * star_drift_seconds;
+}
+
 vec3 far_star_layer_point(vec3 dir) {
 	float far_depth = parallax_depth * FAR_STAR_DEPTH;
-	return vec3(on_layer(dir, far_depth) * (star_density * 2.3 / far_depth), 41.5);
+	vec2 drifted = vec2(star_drift_angle() * FAR_STAR_DRIFT * far_depth, 0.0);
+	return vec3((on_layer(dir, far_depth) - drifted) * (star_density * 2.3 / far_depth), 41.5);
 }
 
 vec3 near_star_layer_point(vec3 dir) {
-	return vec3(on_layer(dir, parallax_depth) * (star_density / parallax_depth), 0.5);
+	vec2 drifted = vec2(star_drift_angle() * parallax_depth, 0.0);
+	return vec3((on_layer(dir, parallax_depth) - drifted) * (star_density / parallax_depth), 0.5);
+}
+
+// Radians past a cover's edge over which a star fades back in, a few pixels at the game's
+// camera, so a drifting star dims as it slips behind a halo rather than being cut.
+const float STAR_COVER_EDGE = 0.004;
+
+// How much of the stars shows along [param dir]: none behind a cover, all clear of them.
+float star_uncovered(vec3 dir) {
+	float shown = 1.0;
+	for (int i = 0; i < MAX_STAR_COVERS; i++) {
+		vec4 cover = star_covers[i];
+		if (cover.w > 0.0) {
+			float angle = acos(clamp(dot(dir, cover.xyz), -1.0, 1.0));
+			shown *= smoothstep(cover.w, cover.w + STAR_COVER_EDGE, angle);
+		}
+	}
+	return shown;
 }
 
 // The sky's colour from the fog tints' amounts and the two star layers' brightness.
