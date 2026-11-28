@@ -17,11 +17,11 @@ const UNREST_PULSE := 0.035
 @export var display_name := ""
 ## The music while the bus works here, which [SystemMusic] plays.
 @export var music: AudioStream
-## Where the bus docks when it jumps in, and where the first passengers wait.
+## Where the first passengers wait, and where the bus docks when it jumps in unless
+## [member jump_planet] says otherwise.
 @export var home: Planet
-## Where the bus comes to rest in space when it jumps in, from the star, on the orbit
-## plane. At the star itself, the default, it docks at [member home] instead.
-@export var jump_arrival := Vector3.ZERO
+## Where the bus docks when it jumps in, if not at [member home].
+@export var jump_planet: Planet
 ## How far the camera's look-at point may go from the star while the bus works here, on
 ## the orbit plane.
 @export_range(1.0, 200.0, 0.1, "or_greater") var bounds_radius := 18.0

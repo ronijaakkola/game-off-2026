@@ -2,16 +2,16 @@ class_name SystemJump
 extends Node
 ## The bus's jump from one star system to the next, which [method start] begins. It plays
 ## as a scene change, so the player never sees two systems at once: the HUD goes and takes
-## no clicks, and the camera closes in on the bus. The bus turns smoothly to face the next
-## system's home planet, its thrusters lighting, then winds up: it draws back a little as a
-## rumble builds, and frameshifts out as the tow ship does ([FrameshiftShift]) while the
-## [JumpIris] closes on where it was. In the black
+## no clicks, and the camera closes in on the bus. The bus turns smoothly to face the planet
+## it docks at in the next system ([member StarSystem.jump_planet]), its thrusters lighting,
+## then winds up: it draws back a little as a rumble builds, and frameshifts out as the tow
+## ship does ([FrameshiftShift]) while the [JumpIris] closes on where it was. In the black
 ## the next level's loading screen shows until the player presses Start ([SceneFlow]), then
-## the old system hides and the camera cuts to the new one, a little way off its home
-## planet, or at the point in space where that system has the bus come to rest. The iris
-## opens there, the bus frameshifts in, and as it flies in to dock, or stops there at rest
-## on a full tank, the camera eases back out to the map; bringing the HUD back is the
-## [Progression]'s, with The Boss's call ([FirstShiftCall]). The bus does nothing of its
+## the old system hides and the camera cuts to the new one, beside that planet, on its side
+## away from the star, 1 unit off its surface, about where a [Stargate] floats. The iris
+## opens there, the bus frameshifts in, and as it flies in to dock, burning no fuel, the
+## camera eases back out to the map; bringing the HUD back is the [Progression]'s, with
+## The Boss's call ([FirstShiftCall]) once the bus has docked. The bus does nothing of its
 ## own through it. Under Reduce motion the camera cuts, the bus doesn't turn or shift, and the
 ## screen only fades to black and back.
 ## [method warp] plays only the bus's part of it through a [WarpGate] within the system:
@@ -46,9 +46,10 @@ const RUMBLE_RATES: Array[float] = [17.0, 23.0, 29.0]
 const DARK_SECONDS := 0.4
 ## Seconds after the iris starts to open that the bus shifts in.
 const SHIFT_IN_DELAY := 0.35
-## How far off its home planet's surface the bus comes out of the jump, and how fast it
-## flies in from there, as a share of its top speed.
-const ARRIVE_GAP := 2.0
+## How far off its planet's surface the bus comes out of the jump, and how fast it flies
+## in from there, as a share of its top speed: about as far out as a [Stargate] floats,
+## just outside where the bus starts gliding into its dock.
+const ARRIVE_GAP := 1.0
 const ARRIVE_SPEED := 0.6
 ## Seconds between the bus shifting out of one gate and into the other on a warp.
 const WARP_GAP_SECONDS := 0.3
@@ -114,8 +115,7 @@ func is_jumping() -> bool:
 	return _phase != Phase.NONE
 
 
-## Jumps the bus to [param target], to dock at its home planet or come to rest where that
-## system says.
+## Jumps the bus to [param target], to dock at the planet that system says.
 func start(target: StarSystem) -> void:
 	if is_jumping() or not target.home:
 		return
@@ -208,11 +208,14 @@ func _leave() -> void:
 	await (%Iris as JumpIris).close(_on_screen(anchor.global_position))
 	if shows_loading_screen:
 		await SceneFlow.show_loading_screen(Campaign.find(String(_target.name)))
-	# Halfway to where the bus comes to rest in space, so it shows with the star.
-	rig.move_to(_target.position + _target.jump_arrival * 0.5)
 	crossed.emit(_target)
-	bus.rotation.y = atan2(_direction.x, _direction.z)
 	var arrival := _arrival_point()
+	# Heading in to the planet, from its side away from the star.
+	var toward := _flat(_arrival_planet().get_body_global_position() - arrival)
+	_direction = toward.normalized() if toward.length_squared() > 1e-6 else _direction
+	bus.rotation.y = atan2(_direction.x, _direction.z)
+	# Halfway from the star to where the bus comes out, so it shows with the star.
+	rig.move_to(_flat(_target.global_position).lerp(arrival, 0.5))
 	bus.global_position = arrival
 	anchor.global_position = arrival
 	await get_tree().create_timer(DARK_SECONDS, false).timeout
@@ -271,8 +274,8 @@ func _arrive() -> void:
 	_phase = Phase.NONE
 	bus.get_model().show()
 	bus.process_mode = Node.PROCESS_MODE_INHERIT
-	# Coming out where it rests, it is there at once, with nothing to fly.
-	bus.fly_in(_destination(), bus.max_speed * ARRIVE_SPEED)
+	# The way in from a jump costs no fuel, as from the stargate: it docks on a full tank.
+	bus.fly_in(_destination(), bus.max_speed * ARRIVE_SPEED, _exit == null)
 	if _exit:
 		if _camera_follows:
 			rig.locked = false
@@ -320,23 +323,25 @@ func _close_in_seconds() -> float:
 	return 0.0 if Settings.reduce_motion or _exit else rig.get_focus_seconds()
 
 
-# Where the bus comes out of the jump: off the home planet's side it came from, or where it
-# comes to rest, or at the far gate on a warp.
+# Where the bus comes out of the jump: off its planet's side away from the star, as from
+# the stargate, or at the far gate on a warp.
 func _arrival_point() -> Vector3:
 	if _exit:
 		return _exit.get_exit_point()
-	if _target.jump_arrival == Vector3.ZERO:
-		return RouteStop.approach_point(_target.home, -_direction, ARRIVE_GAP)
-	return _flat(_target.global_position + _target.jump_arrival)
+	var planet := _arrival_planet()
+	var out := _flat(planet.get_body_global_position() - _target.global_position)
+	out = out.normalized() if out.length_squared() > 1e-6 else Vector3.RIGHT
+	return RouteStop.approach_point(planet, out, ARRIVE_GAP)
 
 
-# Where the bus flies in to after the jump: its home planet, or a point in space.
+# Where the bus flies in to dock after the jump or the warp.
 func _destination() -> RouteStop:
-	if _exit:
-		return RouteStop.at_planet(_exit.planet)
-	if _target.jump_arrival == Vector3.ZERO:
-		return RouteStop.at_planet(_target.home)
-	return RouteStop.at_point(_flat(_target.global_position + _target.jump_arrival))
+	return RouteStop.at_planet(_exit.planet if _exit else _arrival_planet())
+
+
+# The planet the bus docks at in the system it jumps to.
+func _arrival_planet() -> Planet:
+	return _target.jump_planet if _target.jump_planet else _target.home
 
 
 func _on_screen(point: Vector3) -> Vector2:

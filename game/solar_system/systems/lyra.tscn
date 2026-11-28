@@ -137,12 +137,12 @@ shader_parameter/band_count = 2.0
 shader_parameter/gap = 0.16
 shader_parameter/opacity = 1.0
 
-[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("home", "star", "halo")]
+[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("home", "jump_planet", "star", "halo")]
 script = ExtResource("1_system")
 display_name = "Lyra"
 music = ExtResource("90_music")
 home = NodePath("Hither")
-jump_arrival = Vector3(0, 0, 12)
+jump_planet = NodePath("Cinder")
 bounds_radius = 22.5
 max_distance = 63.0
 arrival_call = "This is your second shift. The planets in this system are full of business passengers. They are a bit picky, but they have [money]money[/money]. [shout]I want that money.[/shout] Again, we track everything you do. Do. Not. Fail."

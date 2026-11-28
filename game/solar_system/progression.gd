@@ -75,6 +75,9 @@ var _debug_buttons: Array[Button] = []
 var _met_seconds := 0.0
 # Whether The Boss's call that rings is the one that starts their pick-up.
 var _picking_up := false
+# The system the bus has jumped into, while it flies in to dock there before The Boss's
+# call about it, or null.
+var _arriving: StarSystem
 
 
 func _ready() -> void:
@@ -83,6 +86,7 @@ func _ready() -> void:
 		goal_panel.jump_pressed.connect(advance)
 	system_jump.crossed.connect(_on_crossed)
 	system_jump.finished.connect(_on_jumped)
+	bus.docked.connect(_on_bus_docked)
 	arrival_call.closed.connect(_on_arrival_call_closed)
 	if vips:
 		vips.unlocked.connect(_add_vip_goal)
@@ -163,6 +167,7 @@ func advance() -> void:
 		await cabin.stop_finished
 		if system_jump.is_jumping():
 			return
+	_stop_arriving()
 	arrival_call.cancel()
 	jump_started.emit()
 	system_jump.start(star_map.get_jump_target())
@@ -263,13 +268,14 @@ func _add_vip_goal() -> void:
 
 # The camera is over the new system: it becomes the one the bus works in, and its lines
 # start empty, its planets start where its layout puts them, its star's swell holds at
-# rest until the mechanic calls there, and the bus's tank is full.
+# rest until the mechanic calls there, and the bus's tank is full. The planets are there at
+# once, so the bus comes out beside the one it docks at.
 # Whoever was still on board is gone, out of sight, paying and rating nothing.
 func _on_crossed(system: StarSystem) -> void:
 	if goal_panel:
 		goal_panel.offer_jump(null)
 	for planet: Planet in system.get_planets():
-		planet.orbit_time = 0.0
+		planet.restart_orbit()
 	system.hold_swell()
 	for passenger: Passenger in cabin.get_passengers():
 		cabin.leave_behind(passenger)
@@ -279,12 +285,29 @@ func _on_crossed(system: StarSystem) -> void:
 	_start_quests(system.get_planets())
 
 
+# The bus is out of the jump, flying in to dock, its route its own until it has.
 func _on_jumped(system: StarSystem) -> void:
 	waiting.add_starting_passengers(system.home)
 	_add_goals()
-	# Nothing saves until The Boss's call is over, so a run continued from before it starts
-	# from before the jump, and gets the jump again.
+	_arriving = system
+	bus.route_locked = true
+
+
+# Docked after the jump, The Boss calls about the system. Nothing saves until that call is
+# over, so a run continued from before it starts from before the jump, and gets the jump
+# again.
+func _on_bus_docked(_planet: Planet) -> void:
+	var system := _arriving
+	if not system:
+		return
+	_stop_arriving()
 	arrival_call.arrive(system)
+
+
+func _stop_arriving() -> void:
+	if _arriving:
+		_arriving = null
+		bus.route_locked = false
 
 
 func _on_arrival_call_closed() -> void:
