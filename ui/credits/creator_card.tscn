@@ -55,7 +55,7 @@ layout_mode = 0
 offset_right = 200.0
 offset_bottom = 200.0
 pivot_offset = Vector2(100, 100)
-mouse_filter = 2
+mouse_default_cursor_shape = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_frame")
 
 [node name="Backdrop" type="ColorRect" parent="Column/PhotoSpace/Frame" unique_id=420381029]

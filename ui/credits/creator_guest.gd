@@ -7,11 +7,15 @@ extends Node
 
 ## How far in she is now, from 0 out of sight to 1 beside Sami.
 signal moved(here: float)
+## How joyful both look from now: beaming while she is there.
+signal mood_changed(joy: float)
 
 ## Seconds before her first visit and between visits, from and to.
 const FIRST_WAIT := Vector2(3.0, 6.0)
 const WAIT := Vector2(9.0, 18.0)
 const STAY_SECONDS := 4.0
+## The least she stays after a tap on the photo, in seconds.
+const TAPPED_STAY_SECONDS := 2.5
 const SLIDE_IN_SECONDS := 0.5
 const SLIDE_OUT_SECONDS := 0.35
 ## Where they end up, in photo widths from where Sami sits alone: Sami to the left, and her
@@ -62,6 +66,18 @@ func visit() -> void:
 		_wait = 0.0
 
 
+## Has her stay a moment longer if she is there, as after a tap on the photo.
+func linger() -> void:
+	if _inside:
+		_wait = maxf(_wait, TAPPED_STAY_SECONDS)
+
+
+## Whether a tap [param across] the photo, from 0 at its left edge to 1 at its right, is on
+## her: she has the right half once she is mostly in.
+func is_guest_at(across: float) -> bool:
+	return _here > 0.5 and across > 0.5
+
+
 func _process(delta: float) -> void:
 	if not _host:
 		return
@@ -82,8 +98,7 @@ func _process(delta: float) -> void:
 
 # Both beam while she is there.
 func _set_mood() -> void:
-	_host.joy = 1.0 if _inside else 0.0
-	_guest.joy = 1.0 if _inside else 0.0
+	mood_changed.emit(1.0 if _inside else 0.0)
 
 
 func _place() -> void:

@@ -81,10 +81,9 @@ const DEBUG_UNLOCK_ALL_TEXT := "Unlock all"
 ## How many passengers the run has delivered before the first call opens research.
 @export var research_deliveries := 10
 ## How many passengers the player has delivered in a system after the first before the
-## call that opens its stage.
+## call that opens its stage. Counted from the rides rated since the bus came into the
+## system, as a system's goals may ask for no deliveries; the save keeps the count.
 @export var stage_deliveries := 3
-## Counts the deliveries in the system the bus works in, through its delivery goal.
-@export var goals: GoalTracker
 
 ## The player's credits, research points and deliveries. The parent sets it.
 var ledger: Ledger
@@ -101,6 +100,10 @@ var _talking := false
 var _quests_were_enabled := false
 # Whether the debug panel asked for the call that opens research, whatever is delivered.
 var _debug_due := false
+# How many rides the run had rated as the bus came into the system it works in.
+var _rated_at_arrival := 0
+# How many passengers a continued run had delivered in that system, until [method start].
+var _saved_delivered := 0
 
 
 func _ready() -> void:
@@ -134,6 +137,7 @@ func _process(delta: float) -> void:
 ## research points show only if research is open.
 func start() -> void:
 	_started = true
+	_rated_at_arrival = _rating_count() - _saved_delivered
 	var open := _research().is_opened()
 	lab_badges.visible = open
 	dock_panel.research_hidden = not open
@@ -144,6 +148,16 @@ func start() -> void:
 ## Whether the mechanic's call rings or talks.
 func is_calling() -> bool:
 	return _notice != null or _talking
+
+
+## How many passengers have been delivered in the system the bus works in, for a save game.
+func to_save() -> Dictionary:
+	return {"delivered": _delivered_here()}
+
+
+## Puts back what [method to_save] gave, before [method start].
+func load_save(saved: Dictionary) -> void:
+	_saved_delivered = int(saved.get("delivered", 0))
 
 
 ## The mechanic calls now, about whatever opens next. Nothing happens with a call under way
@@ -175,14 +189,13 @@ func _is_due() -> bool:
 	return _debug_due or (ledger and ledger.get_rating_count() >= research_deliveries)
 
 
-# How many passengers the player has delivered in the system the bus works in: what its
-# goal of delivering anyone counts, which the save keeps.
+# How many passengers the player has delivered in the system the bus works in.
 func _delivered_here() -> int:
-	var delivered := 0
-	for goal: Goal in goals.get_goals():
-		if goal is DeliveryCountGoal and not (goal as DeliveryCountGoal).type:
-			delivered = maxi(delivered, (goal as DeliveryCountGoal).delivered)
-	return delivered
+	return _rating_count() - _rated_at_arrival
+
+
+func _rating_count() -> int:
+	return ledger.get_rating_count() if ledger else 0
 
 
 # Whether the bus is docked at a planet with a lab.
@@ -243,8 +256,9 @@ func _open() -> void:
 
 
 # The bus is in a new system, whose swell the jump held: it starts at once if that system's
-# stage is open already.
+# stage is open already. Its deliveries count from here.
 func _on_jumped(_system: StarSystem) -> void:
+	_rated_at_arrival = _rating_count()
 	_start_swell()
 
 

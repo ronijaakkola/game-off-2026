@@ -3,9 +3,10 @@ extends Node
 ## tools/check.py capture res://test/previews/main_menu_preview.tscn`, with any of these
 ## after `--`: `progress` (Level 1 done, Level 2 in progress), `campaign`, `settings`,
 ## `controls`, `credits`, and with `campaign`, `restart` or `level1` (Level 1 picked), or
-## with `credits`, `guest` (Henna squeezes into Sami's photo at once). With `back`, the
-## screen goes back to the menu 1.5 s in, and with `settings progress reset back` the
-## campaign is reset first, as its hold-to-reset button does.
+## with `credits`, `guest` (Henna squeezes into Sami's photo at once) or `poke` (Roni and
+## Sami are tapped until annoyed, Marko once). With `back`, the screen goes back to the
+## menu 1.5 s in, and with `settings progress reset back` the campaign is reset first, as
+## its hold-to-reset button does.
 ## It uses a test's own save files, so the player's stay as they are.
 
 
@@ -40,6 +41,8 @@ func _ready() -> void:
 		($MainMenu.find_child("CreditsButton") as Button).pressed.emit()
 		if "guest" in args:
 			($MainMenu.find_child("Guest", true, false) as CreatorGuest).visit()
+		if "poke" in args:
+			_poke()
 	if "reset" in args:
 		await get_tree().create_timer(1.0).timeout
 		($MainMenu.find_child("ResetCampaignButton") as HoldButton).confirmed.emit()
@@ -48,6 +51,18 @@ func _ready() -> void:
 		for screen: MenuScreen in $MainMenu.find_children("*", "MenuScreen", true, false):
 			if screen.visible:
 				screen.close()
+
+
+func _poke() -> void:
+	var screen := $MainMenu.find_child("CreditsScreen")
+	var cards := screen.find_child("Cards").get_children()
+	for i: int in cards.size():
+		var card := cards[i] as CreatorCard
+		var taps := (
+			1 if card.creator == CreatorPortrait.Creator.MARKO else CreatorReply.ANNOYED_FROM
+		)
+		for tap: int in taps:
+			card.photo_tapped.emit(0.25)
 
 
 func _exit_tree() -> void:

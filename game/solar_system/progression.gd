@@ -240,7 +240,8 @@ func _add_goals() -> void:
 	if not star_map.is_joined():
 		deliveries = star_map.get_furthest().deliveries
 		rating = star_map.get_furthest().rating
-	goals.add(DeliveryCountGoal.new(deliveries))
+	if deliveries > 0:
+		goals.add(DeliveryCountGoal.new(deliveries))
 	if not star_map.is_joined() and star_map.get_furthest().business_deliveries > 0:
 		var business := star_map.get_furthest().business_deliveries
 		goals.add(DeliveryCountGoal.new(business, waiting.business))

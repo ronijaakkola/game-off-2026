@@ -341,7 +341,7 @@ rig = NodePath("../CameraRig")
 hints = NodePath("../FeatureHints")
 goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
 
-[node name="MechanicCall" type="Node" parent="." unique_id=475023092 node_paths=PackedStringArray("research_lab", "star_map", "notices", "transmission_panel", "quest_giver", "cabin", "system_jump", "bus", "lab_badges", "dock_panel", "resource_bar", "goals")]
+[node name="MechanicCall" type="Node" parent="." unique_id=475023092 node_paths=PackedStringArray("research_lab", "star_map", "notices", "transmission_panel", "quest_giver", "cabin", "system_jump", "bus", "lab_badges", "dock_panel", "resource_bar")]
 unique_name_in_owner = true
 script = ExtResource("144_mechanic_call")
 research_lab = NodePath("../ResearchLab")
@@ -355,7 +355,6 @@ bus = NodePath("../Bus")
 lab_badges = NodePath("../Hud/LabBadges")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 resource_bar = NodePath("../Hud/TopCentre/ResourceBar")
-goals = NodePath("../Goals")
 
 [node name="ResearchGuide" type="Node" parent="." unique_id=1846885118 node_paths=PackedStringArray("mechanic", "bus", "star_map", "dock_panel", "lab_badges", "research_lab", "research_screen", "resource_bar", "guide", "saver")]
 script = ExtResource("145_research_guide")
@@ -455,7 +454,7 @@ sound = ExtResource("106_fuel_sound")
 bus = NodePath("../Bus")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 
-[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "new_run_planet", "cabin", "goals", "quest_giver", "vips", "research_lab", "star_map", "capsules", "fast_forward", "boss_pick_up")]
+[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "new_run_planet", "cabin", "goals", "quest_giver", "vips", "mechanic", "research_lab", "star_map", "capsules", "fast_forward", "boss_pick_up")]
 unique_name_in_owner = true
 script = ExtResource("108_saver")
 bus = NodePath("../Bus")
@@ -464,6 +463,7 @@ cabin = NodePath("../Cabin")
 goals = NodePath("../Goals")
 quest_giver = NodePath("../QuestGiver")
 vips = NodePath("../VipCalls")
+mechanic = NodePath("../MechanicCall")
 research_lab = NodePath("../ResearchLab")
 star_map = NodePath("../StarMap")
 capsules = NodePath("../CapsuleField")
