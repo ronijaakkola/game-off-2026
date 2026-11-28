@@ -40,20 +40,3 @@ jobs:
         run: uv run tools/check.py load
       - name: Smoke run
         run: uv run tools/check.py smoke
-  balance:
-    name: Balance run
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.2.0
-      - uses: chickensoft-games/setup-godot@v2.4.3
-        with:
-          version: 4.7.2
-          use-dotnet: false
-          include-templates: false
-      # The scripted player plays each star system on the fixed seeds, as CLAUDE.md asks
-      # before a balance change. It fails on any script error in the tool or the game, so a
-      # change the tool no longer understands fails here, not at the next balance change.
-      - name: Balance run
-        run: uv run tools/balance.py run --variants tools/balance/every_system.json

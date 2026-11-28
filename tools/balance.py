@@ -15,7 +15,7 @@
       naming a star system ("Lyra") is promoted as in play until it works there, and the
       table adds rows for that system from the bus's arrival ("next: ..."); give it
       "overrides": {"mechanic": true} so research opens as in play. Without a file it
-      plays the game as it is.
+      plays the game as it is. tools/balance/every_system.json plays every star system.
   uv run tools/balance.py play DIR [DECISION] [--seed N] [--minutes M] [--policy JSON]
       A game played turn by turn, one dock at a time, for a person or an agent. With no
       DECISION it starts the game in DIR (or shows where it stands). A DECISION is JSON:

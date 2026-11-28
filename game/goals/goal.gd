@@ -30,6 +30,17 @@ func get_text() -> String:
 	return ""
 
 
+## How it stands now, as a short line shown in place of who asked while it is under way,
+## such as when a hop location opens, or empty.
+func get_status() -> String:
+	return ""
+
+
+## Whether it can be done now, as [method get_status] tells the player.
+func is_ready() -> bool:
+	return false
+
+
 ## How far along it is, from 0 to 1. 1 once met.
 func get_progress() -> float:
 	return 1.0 if is_met() else 0.0
@@ -55,9 +66,15 @@ func passenger_delivered(passenger: Passenger) -> void:
 		_on_delivered(passenger)
 
 
-## [param passenger] was kicked off the bus.
-func passenger_kicked(passenger: Passenger) -> void:
-	if is_active():
+## [param passenger] was kicked off the bus, or with [param left_behind] stayed behind as
+## they left it, as when the bus jumped to the next star system: as good as kicked, unless
+## a kind of goal tells the two apart.
+func passenger_kicked(passenger: Passenger, left_behind := false) -> void:
+	if not is_active():
+		return
+	if left_behind:
+		_on_left_behind(passenger)
+	else:
 		_on_kicked(passenger)
 
 
@@ -137,6 +154,10 @@ func _on_delivered(_passenger: Passenger) -> void:
 
 func _on_kicked(_passenger: Passenger) -> void:
 	pass
+
+
+func _on_left_behind(passenger: Passenger) -> void:
+	_on_kicked(passenger)
 
 
 func _on_rating_changed(_recent: float, _count: int) -> void:
