@@ -4,7 +4,8 @@ extends RefCounted
 ## them. Past the first star system a Business passenger asks for an errand, a photo stop
 ## or a warp, and now and then for a ride through the rocks or a sauna, by
 ## [constant BUSINESS_WEIGHTS]; anyone else asks for a fly past or an errand, as likely one
-## as the other. In [constant BUSINESS_ONLY_LEVEL] only Business passengers ask.
+## as the other. In [constant BUSINESS_ONLY_LEVEL] only Business passengers ask. And which
+## quest the castaway asks for out of their capsule ([method for_castaway]).
 
 ## The star system, counted from 0, where only Business passengers call.
 const BUSINESS_ONLY_LEVEL := 1
@@ -63,3 +64,13 @@ static func _business_kinds(field: AsteroidField, rng: RandomNumberGenerator) ->
 		order.append(left[pick])
 		left.remove_at(pick)
 	return order
+
+
+## The quest the castaway asks for in star system [param level], counted from 0: a hop in
+## the first, a hop with a window in the second, and a rescue after.
+static func for_castaway(level: int) -> Quest:
+	if level == 0:
+		return HopQuest.new()
+	if level == 1:
+		return WindowHopQuest.new()
+	return RescueQuest.new()

@@ -51,6 +51,8 @@ var text := ""
 ## set, follows it with its icon and name.
 var quest := ""
 var quest_planet: Planet
+## What follows the planet's name there, such as "when hot enough", or empty.
+var quest_condition := ""
 ## The planets a quest asks for after that one, in order, shown under it, as a VIP's tour.
 var quest_stops: Array[Planet] = []
 ## What a quest pays when it is done. Nothing shows when both are empty.

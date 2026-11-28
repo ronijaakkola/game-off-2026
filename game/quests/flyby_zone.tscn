@@ -2,9 +2,11 @@
 
 [ext_resource type="Script" uid="uid://benyvmvbg1pn1" path="res://game/quests/flyby_zone.gd" id="1_zone"]
 [ext_resource type="Shader" uid="uid://cvomg3kodfh37" path="res://game/quests/flyby_zone.gdshader" id="2_shader"]
+[ext_resource type="Script" uid="uid://d04muij43v2wq" path="res://game/quests/hop_window_arc.gd" id="3_arc"]
+[ext_resource type="Shader" uid="uid://chwroe0ds1nfl" path="res://game/quests/hop_window_arc.gdshader" id="4_arc_shader"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_zone"]
-render_priority = -1
+render_priority = 0
 shader = ExtResource("2_shader")
 shader_parameter/fill_color = null
 shader_parameter/ring_color = null
@@ -12,12 +14,30 @@ shader_parameter/ring_width = null
 shader_parameter/dashes = null
 shader_parameter/dash_share = null
 shader_parameter/turn = null
+shader_parameter/flash = null
+shader_parameter/flash_gain = null
+shader_parameter/open = null
+shader_parameter/closed_ring = null
 shader_parameter/opacity = null
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_zone"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_arc"]
+render_priority = 0
+shader = ExtResource("4_arc_shader")
+shader_parameter/color = null
+shader_parameter/lengths = null
+shader_parameter/opacity = null
 
 [node name="FlybyZone" type="MeshInstance3D" unique_id=794781706]
 material_override = SubResource("ShaderMaterial_zone")
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_zone")
 script = ExtResource("1_zone")
+
+[node name="WindowArc" type="MeshInstance3D" parent="." unique_id=671047372]
+unique_name_in_owner = true
+top_level = true
+material_override = SubResource("ShaderMaterial_arc")
+cast_shadow = 0
+script = ExtResource("3_arc")
