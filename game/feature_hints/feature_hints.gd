@@ -40,6 +40,16 @@ const HINTS := {
 		),
 		side = GuideCard.Side.ABOVE,
 	},
+	&"requests":
+	{
+		title = "Heard that sound?",
+		text =
+		(
+			"To keep your passengers happy, you need to serve them during their trip. This "
+			+ "one wants something. Press and hold this button to hand it to them!"
+		),
+		side = GuideCard.Side.RIGHT,
+	},
 	&"business":
 	{
 		title = "This means business",
