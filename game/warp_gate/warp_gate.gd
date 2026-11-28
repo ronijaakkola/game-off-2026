@@ -22,6 +22,8 @@ const CORE_COLOR := Color(0.75, 1.0, 1.0)
 const GLOW_COLOR := Color(0.35, 0.85, 1.0, 0.55)
 const CORE_RADIUS := 0.11
 const GLOW_SIZE := 0.9
+## How far past the ring's frame the pointer still counts as on it, in units.
+const PICK_SLACK := 0.1
 
 ## The planet it floats beside.
 @export var planet: Planet
@@ -39,6 +41,19 @@ static func of(at: Planet) -> WarpGate:
 		return null
 	for gate: WarpGate in at.get_tree().get_nodes_in_group(GROUP):
 		if gate.planet == at:
+			return gate
+	return null
+
+
+## The shown gate under [param pointer], seen through [param camera], or null. No physics:
+## the ring counts as round on screen, as a planet does ([ScreenPick]).
+static func under(camera: Camera3D, pointer: Vector2) -> WarpGate:
+	var radius := RING_RADIUS + FRAME + PICK_SLACK
+	for gate: WarpGate in camera.get_tree().get_nodes_in_group(GROUP):
+		if (
+			gate.is_visible_in_tree()
+			and ScreenPick.covers(camera, gate.global_position, radius, pointer)
+		):
 			return gate
 	return null
 
