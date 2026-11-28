@@ -17,10 +17,6 @@ func get_text() -> String:
 	return "Get the %s from" % thing
 
 
-func get_planet() -> Planet:
-	return planet
-
-
 func _on_bus_docked(at: Planet) -> void:
 	if at == planet:
 		_complete()

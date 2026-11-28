@@ -5,7 +5,7 @@ extends VBoxContainer
 ## turns green with it. A delivery goal shows its count ("12/50") and fills with it. A
 ## rating goal shows the recent rating ("4.2", or a dash before the first rating) on a bar of
 ## five stars, with a mark at the target. Any other goal shows only its text and icon.
-## A failed goal's icon is a red cross. A goal about a planet ([method Goal.get_planet])
+## A failed goal's icon is a red cross. A goal to fetch something from a planet ([FetchGoal])
 ## ends its text on the planet's icon and name.
 
 const MET_COLOR := Color(0.549, 0.851, 0.4)
@@ -49,7 +49,7 @@ func refresh() -> void:
 		icon.self_modulate = FAILED_COLOR
 	var text := %TextLabel as Label
 	text.text = goal.get_text()
-	var planet := goal.get_planet()
+	var planet := (goal as FetchGoal).planet if goal is FetchGoal else null
 	(%PlanetIcon as PlanetIcon).planet = planet
 	var named := %PlanetLabel as Label
 	named.visible = planet != null

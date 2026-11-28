@@ -18,10 +18,11 @@ extends Node3D
 ## ([constant REWARD_CREDITS], [constant REWARD_RESEARCH]), and fuel into the tank
 ## ([constant REWARD_FUEL]). The castaway comes out of the capsule as a figure
 ## ([CastawayFigure]) that trails after the bus, and their transmission opens by itself with a
-## [RescueQuest] ([method QuestGiver.rescue]): accepted, they board, and declined, they
-## drift off, with nothing lost. In the first star system it is a [HopQuest]: once the bus
-## rests at its spot they hop out of the door as a figure that floats off, with
-## [constant HOPPED_TEXT] over the bus. The debug panel's capsules hold what they
+## quest ([method QuestGiver.rescue]): accepted, they board, and declined, they drift off,
+## with nothing lost. On a [HopQuest], once the bus rests at its spot they hop out of the
+## door as a figure that floats off, with [constant HOPPED_TEXT] over the bus; on a
+## [BumpQuest], once a VIP kicks them off, [constant BUMPED_TEXT]. In the star system VIPs
+## call in they wait until VIPs do ([member vips]). The debug panel's capsules hold what they
 ## say, or credits when what they say can't be had, and roll nothing.
 ## A capsule [method place]d holds still, stays, and pays what it was given, collected even
 ## before the capsules start, as the [Tutorial]'s.
@@ -53,6 +54,7 @@ const RESCUED_TEXT := "Someone was inside!"
 const RESCUED_ICON := preload("res://shared/icons/user.svg")
 const HOPPED_TEXT := "%s jumped out!"
 const HOPPED_ICON := preload("res://game/capsules/icons/log_out.svg")
+const BUMPED_TEXT := "%s got bumped!"
 
 ## Whether new capsules appear. Those adrift stay either way.
 @export var enabled := true
@@ -88,6 +90,9 @@ const HOPPED_ICON := preload("res://game/capsules/icons/log_out.svg")
 ## Has the castaway wait until the player has closed the quests hint, so their rescue quest
 ## is never the first quest the player meets. Without one they don't wait.
 @export var hints: FeatureHints
+## Has the castaway wait, in the star system VIPs call in, until they do, since their quest
+## there takes a VIP ([BumpQuest]). Without one they don't wait.
+@export var vips: VipCalls
 
 ## Capsules collected since the castaway was last in one, which make the next likelier to
 ## hold them. Kept with the run.
@@ -295,9 +300,15 @@ func _on_rescue_answered(_passenger: Passenger, accepted: bool) -> void:
 	_figure = null
 
 
-# A hop quest under way ends with the castaway hopping out.
+# A hop quest under way ends with the castaway hopping out, and a bump with a VIP kicking
+# them off, which throws them out of the door as it does anyone kicked.
 func _on_quest_added(quest: Quest) -> void:
-	if quest is HopQuest:
+	if quest is BumpQuest:
+		quest.goal.completed.connect(
+			_stamp.bind(BUMPED_TEXT % quest.passenger.name, HOPPED_ICON, BusQuickText.Kind.GAIN),
+			CONNECT_ONE_SHOT
+		)
+	elif quest is HopQuest:
 		quest.goal.completed.connect(_on_hopped.bind(quest.passenger), CONNECT_ONE_SHOT)
 
 
@@ -329,7 +340,8 @@ func _can_rescue() -> bool:
 func _open(capsule: Capsule) -> Capsule.Contents:
 	var contents := capsule.contents
 	if contents == Capsule.Contents.UNDECIDED:
-		return _roll(_can_rescue() and not castaway_found and _has_taught_quests())
+		var can_rescue := _can_rescue() and not castaway_found and _has_taught_quests()
+		return _roll(can_rescue and _can_be_bumped())
 	if contents == Capsule.Contents.PASSENGER:
 		return contents if _can_rescue() else Capsule.Contents.CREDITS
 	return contents if contents in _get_rewards() else Capsule.Contents.CREDITS
@@ -371,6 +383,12 @@ func _pay_credits(capsule: Capsule) -> void:
 func _show_earnings() -> void:
 	if research_lab:
 		research_lab.commit()
+
+
+# Whether a VIP can come to bump the castaway, in the star system where that is their quest:
+# once VIPs call there. Not once the systems are joined, where none does.
+func _can_be_bumped() -> bool:
+	return _level != VipCalls.LEVEL or not vips or vips.is_unlocked()
 
 
 func _has_taught_quests() -> bool:

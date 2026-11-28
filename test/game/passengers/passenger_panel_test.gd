@@ -301,7 +301,10 @@ func test_a_group_that_empties_after_it_is_dropped_leaves_the_hop_group_alone() 
 	var hops := 0
 	for group: Node in cards.get_children():
 		var live := not group.is_queued_for_deletion()
-		if live and (group.find_child("PlanetLabel") as Label).text == "Hop location":
+		if (
+			live
+			and (group.find_child("PlanetLabel") as Label).text == DestinationGroup.NOWHERE_TEXT
+		):
 			hops += 1
 	assert_int(hops).is_equal(1)
 

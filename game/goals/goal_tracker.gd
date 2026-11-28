@@ -26,12 +26,12 @@ signal goal_failed(goal: Goal)
 		if cabin:
 			cabin.delivered.disconnect(_on_delivered)
 			cabin.kicked.disconnect(_on_kicked)
-			cabin.left_behind.disconnect(_on_kicked)
+			cabin.left_behind.disconnect(_on_left_behind)
 		cabin = value
 		if cabin:
 			cabin.delivered.connect(_on_delivered)
 			cabin.kicked.connect(_on_kicked)
-			cabin.left_behind.connect(_on_kicked)
+			cabin.left_behind.connect(_on_left_behind)
 
 ## Tells the goals when the bus warps. None, and no goal hears of a warp.
 @export var gate_service: GateService:
@@ -142,12 +142,19 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 		goal.passenger_delivered(passenger)
 
 
-# Left behind at a jump counts as kicked: the quest about them can no longer be done.
 func _on_kicked(passenger: Passenger) -> void:
 	if frozen:
 		return
 	for goal: Goal in _goals.duplicate():
 		goal.passenger_kicked(passenger)
+
+
+# Left behind at a jump, or hopping out: most quests about them can no longer be done.
+func _on_left_behind(passenger: Passenger) -> void:
+	if frozen:
+		return
+	for goal: Goal in _goals.duplicate():
+		goal.passenger_kicked(passenger, true)
 
 
 func _on_bus_docked(planet: Planet) -> void:

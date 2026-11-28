@@ -43,6 +43,14 @@ func get_window_text() -> String:
 	return ""
 
 
+func get_status() -> String:
+	return get_window_text()
+
+
+func is_ready() -> bool:
+	return is_open()
+
+
 func _on_kicked(who: Passenger) -> void:
 	if who == passenger:
 		_fail("%s left the bus" % passenger.name)

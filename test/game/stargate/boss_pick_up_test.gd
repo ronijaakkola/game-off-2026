@@ -120,7 +120,7 @@ func test_docked_at_earth_the_meeting_plays_to_its_end() -> void:
 	var goals := (runner.find_child("Goals") as GoalTracker).get_goals()
 	var fetched: Array[String] = []
 	for goal: Goal in goals:
-		fetched.append("%s %s" % [goal.get_text(), goal.get_planet().display_name])
+		fetched.append("%s %s" % [goal.get_text(), (goal as FetchGoal).planet.display_name])
 	assert_array(fetched).contains_exactly(
 		["Get the briefcase from Brume", "Get the bowtie from Giant"]
 	)
@@ -156,7 +156,7 @@ func test_a_save_brings_back_the_quest_or_the_stargate() -> void:
 	pick_up.load_save(saved)
 	var goals := tracker.get_goals()
 	assert_int(goals.size()).is_equal(2)
-	assert_object(goals[0].get_planet()).is_same(brume)
+	assert_object((goals[0] as FetchGoal).planet).is_same(brume)
 	assert_bool(goals[0].is_met()).is_true()
 	assert_bool(goals[1].is_met()).is_false()
 
