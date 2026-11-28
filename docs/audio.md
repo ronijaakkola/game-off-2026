@@ -1,6 +1,6 @@
 # Audio master list
 
-Last updated: 2026-11-26
+Last updated: 2026-11-27
 
 What plays, what is missing, and what each clip is. Levels are the mixer's table in `core/audio/clip_levels.gd` (1 is as recorded). The mix, each alien voice's volume of 0.4 included, is set with the Master, Music and Sound effects sliders at their default, the middle (0.5).
 
@@ -11,7 +11,7 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 | File | Plays when | Level | Status |
 |---|---|---|---|
 | `ui/audio/bgm1.ogg` | The main menu, Level 1 (Vela) and Level 3 (Sol). 88 bpm, 96 beats, loops from beat 32; everything that lands on the beat reads its grid | 0.7 | Done |
-| `ui/audio/bgm2.ogg` | Level 2 (Lyra). It fades in as the track before fades out, over 2 s, as the bus crosses into the system or the level starts. 88 bpm, 128 beats, loops from beat 64 (0:43.63 to 1:27.27) | 0.7 | Done |
+| `ui/audio/bgm2.ogg` | Level 2 (Lyra). It fades in as the track before fades out, over 2 s, as the bus crosses into the system or the level starts. 88 bpm, 192 beats, loops from beat 64 (0:43.63 to 2:10.90) | 0.7 | Done |
 | `ui/audio/menu_music.ogg` | Nothing: the menu plays `bgm1.ogg`. The itch.io build leaves it out (the Web preset in `export_presets.cfg`), so it shows in the mixer only in the editor and the preview build | 0.7 | Unused |
 
 ### Bus

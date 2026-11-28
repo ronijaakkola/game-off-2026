@@ -296,6 +296,33 @@ func test_warms_up_one_new_shader_or_material_a_step() -> void:
 	assert_array(steps[2]).contains_exactly([hidden])
 
 
+func test_a_mesh_built_in_code_counts_as_not_drawn_yet() -> void:
+	# The bus's trail holds a surface for a frame as it starts, and is empty again by the
+	# frame that would draw it, so its material compiled on the first flight.
+	var scene: Node3D = auto_free(Node3D.new())
+	var built := ImmediateMesh.new()
+	built.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for corner: Vector3 in [Vector3.ZERO, Vector3.RIGHT, Vector3.UP]:
+		built.surface_add_vertex(corner)
+	built.surface_end()
+	var trail := MeshInstance3D.new()
+	trail.mesh = built
+	trail.material_override = StandardMaterial3D.new()
+	var empty := MeshInstance3D.new()
+	empty.material_override = StandardMaterial3D.new()
+	var star := _mesh_with(StandardMaterial3D.new())
+	for mesh: MeshInstance3D in [trail, empty, star]:
+		scene.add_child(mesh)
+	var drawn := {}
+
+	_flow._warm_up_steps(scene, drawn)
+
+	var viewport := scene.get_viewport()
+	assert_bool(drawn.has(MaterialWarmUp.key(star.material_override, viewport))).is_true()
+	assert_bool(drawn.has(MaterialWarmUp.key(trail.material_override, viewport))).is_false()
+	assert_bool(drawn.has(MaterialWarmUp.key(empty.material_override, viewport))).is_false()
+
+
 func _record_shown_alpha() -> void:
 	_shown_alphas.append(_curtain().modulate.a)
 

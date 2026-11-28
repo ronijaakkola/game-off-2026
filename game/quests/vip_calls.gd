@@ -6,7 +6,7 @@ extends Node
 ## their [VipTourQuest]'s transmission, with where to pick them up and the stops they want
 ## in order. Declining, or letting it ring out, costs nothing: they aren't a passenger yet.
 ## Accepted, they wait at their planet under a pick-up marker ([PickUpMarkers]), first in
-## its line and outside its rules ([member WaitingPassengers.reserved]), for a time set as
+## its line, taking one of its places ([member WaitingPassengers.reserved]), for a time set as
 ## the transmission opens and shown in it, which the marker's edge counts down. Not picked
 ## up by then, they give up and the tour fails. The [QuestGiver] tracks and pays the quest
 ## apart from a passenger's, so one of those can be under way at the same time; only one

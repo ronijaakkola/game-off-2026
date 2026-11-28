@@ -23,7 +23,8 @@ extends Node
 ## Business one, so their badge shows alone and after the briefcase.
 ## `-- Vip` makes the first seat a VIP on a tour of three stops, the first made, so their
 ## gold group sits on top with their stops under their card; with `VipLate` too, their
-## tour's time is gone, and with `VipNext` they make their next stop a second in.
+## tour's time is gone, and with `VipNext` they make their next stop a second in. With
+## `PointStop` too, the pointer rests on their last stop's icon, so its name's tooltip opens.
 ## `-- Breakdown` opens the panel the pointer on a happiness bar opens, for the third
 ## seat, on a bus with Movies, after a stop too many and a quest failed.
 ## `-- Castaway` makes the last seat the castaway on a hop quest, going nowhere and as happy
@@ -167,6 +168,17 @@ func _ready() -> void:
 			move.position = at
 			move.global_position = at
 			get_viewport().push_input(move)
+	if "PointStop" in args:
+		# The groups take a moment to open to their cards' height, moving the row.
+		await get_tree().create_timer(1.0).timeout
+		var strip := panel.find_children("*", "TourStrip", true, false)[0]
+		var icons := strip.find_children("*", "PlanetIcon", true, false)
+		var last := icons[icons.size() - 1] as Control
+		var hover := InputEventMouseMotion.new()
+		hover.position = last.get_global_rect().get_center()
+		hover.global_position = hover.position
+		# In the canvas's own pixels, so it lands at any window size.
+		get_viewport().push_input(hover, true)
 	if "Kick" in OS.get_cmdline_user_args():
 		# The cards lay out a frame in.
 		await get_tree().process_frame

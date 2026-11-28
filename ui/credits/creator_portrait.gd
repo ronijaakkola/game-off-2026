@@ -14,7 +14,14 @@ const RACES: Dictionary[Creator, Race.Type] = {
 	Creator.MARKO: Race.Type.GREEN,
 	Creator.SAMI: Race.Type.ORANGE,
 }
+## The glasses' frames: dark ones, Sami's white ones and Henna's rose gold ones
+## ([CreatorGuest]).
 const GLASSES_COLOR := Color(0.12, 0.1, 0.24)
+const WHITE_GLASSES_COLOR := Color(0.97, 0.97, 1.0)
+const ROSE_GOLD_COLOR := Color(0.981, 0.672, 0.407, 1.0)
+## Sami's shirt and Henna's, in place of the passengers' purple.
+const BLUE_SHIRT_COLOR := Color("002046ff")
+const GREEN_SHIRT_COLOR := Color("1e5740ff")
 const PENCIL_COLOR := Color(0.98, 0.78, 0.25)
 const WOOD_COLOR := Color(0.93, 0.76, 0.56)
 const LEAD_COLOR := Color(0.15, 0.13, 0.25)
@@ -75,8 +82,16 @@ static func dress(portrait: AlienPortrait, creator: Creator) -> void:
 		Creator.MARKO:
 			_add_laptop(portrait)
 		Creator.SAMI:
-			_add_glasses(portrait)
+			portrait.outfit_color = BLUE_SHIRT_COLOR
+			_add_glasses(portrait, WHITE_GLASSES_COLOR)
 			_add_headphones(portrait)
+
+
+## Dresses [param portrait], already in the tree and framed as Sami's, as Henna: the same
+## head, with a green shirt, rose gold frames and no headphones.
+static func dress_guest(portrait: AlienPortrait) -> void:
+	portrait.outfit_color = GREEN_SHIRT_COLOR
+	_add_glasses(portrait, ROSE_GOLD_COLOR)
 
 
 # A node that moves with the head, whose space is the portrait's own as it stands now. It
@@ -103,7 +118,7 @@ static func _eye_radius(portrait: AlienPortrait) -> float:
 
 
 # A round rim in front of each eye and a bridge between them.
-static func _add_glasses(portrait: AlienPortrait) -> void:
+static func _add_glasses(portrait: AlienPortrait, color := GLASSES_COLOR) -> void:
 	var worn := _on_head(portrait, "Glasses")
 	var radius := _eye_radius(portrait)
 	var centres := _eye_centres(portrait)
@@ -121,7 +136,7 @@ static func _add_glasses(portrait: AlienPortrait) -> void:
 	rim.rings = 32
 	rim.ring_segments = 8
 	for centre: Vector3 in centres:
-		var lens := _part(rim, GLASSES_COLOR)
+		var lens := _part(rim, color)
 		lens.rotation.x = PI / 2.0
 		lens.position = Vector3(centre.x, centre.y, front)
 		worn.add_child(lens)
@@ -130,7 +145,7 @@ static func _add_glasses(portrait: AlienPortrait) -> void:
 	var gap := absf(centres[0].x - centres[1].x) - rim.inner_radius * 2.0
 	var bridge := BoxMesh.new()
 	bridge.size = Vector3(maxf(gap, 0.0), radius * 0.2, radius * 0.2)
-	var between := _part(bridge, GLASSES_COLOR)
+	var between := _part(bridge, color)
 	between.position = (centres[0] + centres[1]) / 2.0
 	between.position.z = front
 	worn.add_child(between)

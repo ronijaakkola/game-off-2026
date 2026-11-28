@@ -51,7 +51,7 @@ func setup(meshes: Array[MeshInstance3D], model := "") -> void:
 	for spot: int in _rest.size():
 		var drop := MeshInstance3D.new()
 		drop.mesh = layout.quad
-		drop.material_override = _get_material()
+		drop.material_override = get_material()
 		drop.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		drop.visible = false
 		add_child(drop)
@@ -84,7 +84,9 @@ func _lay_out(meshes: Array[MeshInstance3D]) -> Layout:
 
 
 # Every drop of every portrait draws with the one material: nothing about it differs.
-static func _get_material() -> ShaderMaterial:
+## The one material every drop draws with. [PortraitStudio] keeps it from the start, so
+## its shader is compiled before the first passenger sweats.
+static func get_material() -> ShaderMaterial:
 	if not _material:
 		_material = ShaderMaterial.new()
 		_material.shader = SHADER
