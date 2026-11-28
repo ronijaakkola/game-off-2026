@@ -8,6 +8,8 @@ extends Control
 ## and keeps its size at any zoom. Out of fuel or cooling down after overheating, it turns
 ## the loss's red and shows why. It hides while a side panel is open, on the zoomed map
 ## and through a jump.
+## While it shows, a right click on its disc glides the camera over the bus and sets no
+## course; every other click, the wheel and a drag go through it to the map.
 
 ## The disc's radius and how far its point reaches from its centre, in pixels.
 const RADIUS := 14.0
@@ -26,6 +28,8 @@ const FADE_IN_SECONDS := 0.15
 const FADE_OUT_SECONDS := 0.1
 ## The size it grows from as it fades in.
 const GROW_FROM := 0.8
+## Pixels past the disc's edge a click still counts as on it.
+const CLICK_SLACK := 2.0
 const BUS_ICON := preload("res://shared/icons/bus.svg")
 const FUEL_ICON := preload("res://shared/icons/fuel.svg")
 const HEAT_ICON := preload("res://game/bus/icons/thermometer.svg")
@@ -41,6 +45,8 @@ const HEAT_ICON := preload("res://game/bus/icons/thermometer.svg")
 @export var map_zoom: MapZoom
 ## Through a jump the bus leaves the screen on purpose, so it hides.
 @export var system_jump: SystemJump
+## What a right click on it glides over the bus. Locked, it stays put.
+@export var rig: CameraRig
 
 ## How big the badge draws, about its centre. The fade in animates it.
 var badge_scale := 1.0:
@@ -65,6 +71,8 @@ func _process(_delta: float) -> void:
 	var wanted := _is_wanted()
 	if wanted != _shown:
 		_shown = wanted
+		# PASS, not STOP: what it doesn't take goes on to the map.
+		mouse_filter = Control.MOUSE_FILTER_PASS if _shown else Control.MOUSE_FILTER_IGNORE
 		_play()
 	# While it fades out it stays where it was.
 	if _shown:
@@ -74,6 +82,20 @@ func _process(_delta: float) -> void:
 ## Whether the badge is up: the player can see no part of the bus and nothing hides it.
 func is_showing() -> bool:
 	return _shown
+
+
+# The root has no size: the disc round its origin is what takes clicks.
+func _has_point(point: Vector2) -> bool:
+	return point.length() <= (RADIUS + CLICK_SLACK) * badge_scale
+
+
+func _gui_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if not click or click.button_index != MOUSE_BUTTON_RIGHT:
+		return
+	accept_event()
+	if click.pressed and rig and not rig.locked:
+		rig.glide_to(bus)
 
 
 func _draw() -> void:

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="PassengerType" format=3 uid="uid://lh5aiof17ede"]
+[gd_resource type="Resource" script_class="PassengerType" format=3 uid="uid://bytoi3cmaqcdj"]
 
 [ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="1_type"]
 [ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="2_need"]

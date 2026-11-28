@@ -96,8 +96,10 @@ func test_docked_at_earth_the_meeting_plays_to_its_end() -> void:
 	var charted := [false]
 	chart.opened.connect(func() -> void: charted[0] = true)
 
+	var tracker := runner.find_child("Goals") as GoalTracker
 	var built := func() -> bool:
-		return pick_up.to_save()["stage"] == BossPickUp.Stage.BUILT and not bus.route_locked
+		var given := tracker.get_goals().size() == 2 and tracker.get_goals()[1] is FetchGoal
+		return pick_up.to_save()["stage"] == BossPickUp.Stage.BUILT and given
 	var done := await PauseProofWait.for_condition(built, 90000)
 	assert_bool(done).override_failure_message("The meeting never ended").is_true()
 	if is_failure():
@@ -110,13 +112,27 @@ func test_docked_at_earth_the_meeting_plays_to_its_end() -> void:
 	assert_int(cabin.get_free_seats()).is_equal(0)
 	assert_bool((runner.find_child("EarthStargate") as Stargate).built).is_true()
 	assert_bool(charted[0]).override_failure_message("The star chart never showed").is_true()
-	assert_bool(chart.is_open()).is_false()
+	# It ends on the star chart, the bus held until the chart closes.
+	assert_bool(chart.is_open()).is_true()
+	assert_bool(bus.grounded).is_true()
+	assert_bool(bus.route_locked).is_true()
+	assert_bool((runner.find_child("QuestGiver") as QuestGiver).is_line_free()).is_false()
+	var goals := tracker.get_goals()
+	var fetched: Array[String] = []
+	for goal: Goal in goals:
+		fetched.append("%s %s" % [goal.get_text(), (goal as FetchGoal).planet.display_name])
+	assert_array(fetched).contains_exactly(
+		["Get the briefcase from Brume", "Get the bowtie from Giant"]
+	)
+
+	chart.close()
+	await await_signal_on(chart, "closed", [], 4000)
 	assert_bool(bus.grounded).is_false()
+	assert_bool(bus.route_locked).is_false()
 	assert_bool((runner.find_child("CameraRig") as CameraRig).locked).is_false()
 	await runner.simulate_frames(5)
 	var dock := runner.find_child("DockPanel") as DockPanel
 	assert_bool(dock.get_stargate_row().is_open()).is_true()
-	assert_bool((runner.find_child("QuestGiver") as QuestGiver).is_line_free()).is_false()
 
 
 func test_a_save_brings_back_the_quest_or_the_stargate() -> void:
@@ -140,6 +156,18 @@ func test_a_save_brings_back_the_quest_or_the_stargate() -> void:
 
 	assert_bool(gate.built).is_true()
 	assert_bool((runner.find_child("QuestGiver") as QuestGiver).is_line_free()).is_false()
+
+	# The Boss's goals come back, each as far as it had got.
+	var tracker := runner.find_child("Goals") as GoalTracker
+	var brume := runner.find_child("Brume") as Planet
+	tracker.get_goals()[0].bus_docked(brume)
+	var saved := pick_up.to_save()
+	pick_up.load_save(saved)
+	var goals := tracker.get_goals()
+	assert_int(goals.size()).is_equal(2)
+	assert_object((goals[0] as FetchGoal).planet).is_same(brume)
+	assert_bool(goals[0].is_met()).is_true()
+	assert_bool(goals[1].is_met()).is_false()
 
 
 func test_the_star_chart_leaves_a_stargate_not_yet_built_hidden() -> void:

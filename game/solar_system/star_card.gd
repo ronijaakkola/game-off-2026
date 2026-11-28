@@ -1,8 +1,8 @@
 class_name StarCard
 extends Control
 ## What the [StarChart] says about one star while the pointer is on it: its name over how
-## many planets it has, a quest that is under way there as a transmission shows one (a
-## flag, what it asks and its planet), and a button to jump there. The button is off for a
+## many planets it has, what the player has to fetch there as a transmission shows a quest
+## (a flag, what it asks and its planet), and a button to jump there. The button is off for a
 ## star more than one link away, and the star the bus is beside has "You are here" in its
 ## place. A solid dark card with a notch pointing down at the star ([method place]). It
 ## grows out of the notch's tip as it comes ([method appear]) and shrinks back into it as
@@ -15,7 +15,7 @@ signal jump_pressed
 ## Where the star is from the bus: the one it is beside, one link away, or further.
 enum Reach { HERE, NEAR, FAR }
 
-const WIDTH := 208.0
+const WIDTH := 240.0
 const PADDING := 12.0
 const CORNER_RADIUS := 8.0
 const NOTCH_WIDTH := 12.0
@@ -36,9 +36,9 @@ func _ready() -> void:
 	hide()
 
 
-## Fills the card for [param system], [param reach] from the bus, with [param quest] under
-## way there, or null.
-func show_star(system: StarSystem, reach: Reach, quest: Quest) -> void:
+## Fills the card for [param system], [param reach] from the bus, with [param fetch] still
+## to do there, or null.
+func show_star(system: StarSystem, reach: Reach, fetch: FetchGoal) -> void:
 	(%NameLabel as Label).text = system.display_name
 	var planets := system.get_planets().filter(
 		func(planet: Planet) -> bool: return planet.get_parent() == system
@@ -46,11 +46,11 @@ func show_star(system: StarSystem, reach: Reach, quest: Quest) -> void:
 	(%PlanetsLabel as Label).text = "%d planets" % planets.size()
 	(%Dot as Panel).self_modulate = get_star_color(system)
 	(%Here as Control).visible = reach == Reach.HERE
-	(%Quest as Control).visible = quest != null
-	if quest:
-		(%QuestLabel as Label).text = quest.get_ask()
-		(%QuestPlanetIcon as PlanetIcon).planet = quest.get_planet()
-		(%QuestPlanetLabel as Label).text = quest.get_planet().display_name
+	(%Quest as Control).visible = fetch != null
+	if fetch:
+		(%QuestLabel as Label).text = fetch.get_text()
+		(%QuestPlanetIcon as PlanetIcon).planet = fetch.planet
+		(%QuestPlanetLabel as Label).text = fetch.planet.display_name
 	var button := %JumpButton as Button
 	button.visible = reach != Reach.HERE
 	button.disabled = reach == Reach.FAR

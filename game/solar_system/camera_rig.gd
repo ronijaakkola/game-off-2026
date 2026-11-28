@@ -33,6 +33,9 @@ const FOCUSED_PRIORITY := 2
 ## How far the pointer moves with the left button down before it drags the camera, in
 ## pixels: less is a click.
 const DRAG_START_PIXELS := 4.0
+## Seconds [method glide_to] takes, easing in and out, as the camera's glide on a warp does
+## ([SystemJump]).
+const GLIDE_SECONDS := 0.7
 
 ## How far from [member bounds_center] the look-at point may go, on the orbit plane.
 @export_range(0.0, 200.0, 0.1, "or_greater") var bounds_radius := 20.0
@@ -114,6 +117,11 @@ var _focus_reach := 0.0
 # The blend both shots use, and the seconds it takes as the scene sets it.
 var _blend: PhantomCameraTween
 var _focus_seconds := 0.0
+# What the look-at point glides onto, null while it isn't gliding, where it set out from,
+# and the seconds since.
+var _glide_target: Node3D
+var _glide_from := Vector3.ZERO
+var _glide_time := 0.0
 
 
 func _ready() -> void:
@@ -185,6 +193,12 @@ func _process(delta: float) -> void:
 	if is_focused():
 		input = Vector2.ZERO
 		_place_focus_shot()
+	# The keys take over from a glide; the pointer at the edge, where the bus's badge is
+	# clicked, waits for it.
+	if _glide_target:
+		_glide(delta, keys)
+	if _glide_target:
+		input = Vector2.ZERO
 	# Screen right and screen down, laid flat on the orbit plane.
 	var right := Vector3(basis.x.x, 0.0, basis.x.z).normalized()
 	var back := Vector3(basis.z.x, 0.0, basis.z.z).normalized()
@@ -249,12 +263,49 @@ func zoom_to(to: float) -> void:
 	_target_distance = clampf(to, min_distance, max_distance)
 
 
-## Puts the look-at point at [param point] at once, within the bounds, and stops any pan.
+## Puts the look-at point at [param point] at once, within the bounds, and stops any pan
+## or glide.
 func move_to(point: Vector3) -> void:
+	_glide_target = null
 	_pan_velocity = Vector3.ZERO
 	_target_position = _clamp_to_bounds(point)
 	position = _target_position
 	_place_shot()
+
+
+## Glides the look-at point onto [param target] over [constant GLIDE_SECONDS], easing in
+## and out, following it as it moves, and stops any pan. The pan keys, a drag or a zoom
+## take over from it; edge scrolling waits until it ends. Under Reduce motion it cuts
+## there, as [method move_to] does.
+func glide_to(target: Node3D) -> void:
+	if Settings.reduce_motion:
+		move_to(_on_plane(target))
+		return
+	_pan_velocity = Vector3.ZERO
+	_glide_target = target
+	_glide_from = position
+	_glide_time = 0.0
+
+
+# One frame of glide_to(): the look-at point from where it set out toward where the target
+# is now, eased in and out, unless a pan, a focus or the target leaving ends it first.
+func _glide(delta: float, pan: Vector2) -> void:
+	if pan != Vector2.ZERO or is_focused() or not is_instance_valid(_glide_target):
+		_glide_target = null
+		return
+	_glide_time += delta
+	var done := clampf(_glide_time / GLIDE_SECONDS, 0.0, 1.0)
+	var point := _glide_from.lerp(_on_plane(_glide_target), smoothstep(0.0, 1.0, done))
+	_target_position = _clamp_to_bounds(point)
+	position = _target_position
+	if done >= 1.0:
+		_glide_target = null
+
+
+# Where [param target] is, at the look-at point's height.
+func _on_plane(target: Node3D) -> Vector3:
+	var at := target.global_position
+	return Vector3(at.x, position.y, at.z)
 
 
 ## How much of [member focus_rect]'s height a body of [param radius] fills when focused,
@@ -383,6 +434,7 @@ static func _is_pan(event: InputEvent) -> bool:
 # camera settles; _process eases the look-at point after it. Against the bounds, the grab
 # holds still: coming back into range picks the drag up where the pointer is.
 func _drag_to(screen_point: Vector2) -> void:
+	_glide_target = null
 	var offset: Variant = _plane_offset(screen_point)
 	if is_focused() or offset == null:
 		_dragging = false
@@ -397,6 +449,7 @@ func _drag_to(screen_point: Vector2) -> void:
 # distance × an offset that depends only on the screen point. The point under it now comes
 # from where the camera is, mid-ease or not; the new target puts it back under it.
 func _zoom(factor: float, screen_point: Vector2) -> void:
+	_glide_target = null
 	_target_distance = clampf(_target_distance * factor, min_distance, max_distance)
 	_position_smoothing = smoothing
 	var offset: Variant = _plane_offset(screen_point)

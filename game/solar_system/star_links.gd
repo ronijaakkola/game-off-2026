@@ -1,6 +1,6 @@
 class_name StarLinks
 extends Control
-## The dashed lines between the stars on the [StarChart]: one from each star system the
+## The lines between the stars on the [StarChart]: one from each star system the
 ## bus has been to to the next, in the order they open, so the stars read as one line. Each
 ## stops short of both stars. They fade in over the last part of the pull back and out
 ## again as it closes. The links from the star the bus is beside are brighter: the bus
@@ -11,7 +11,6 @@ const GAP := 10.0
 ## How far through the pull back the links start to show.
 const SHOWS_FROM := 0.75
 const WIDTH := 2.0
-const DASH := 8.0
 const COLOR := Color(1.0, 1.0, 1.0, 0.25)
 const NEAR_COLOR := Color(1.0, 1.0, 1.0, 0.55)
 
@@ -39,12 +38,10 @@ func _draw() -> void:
 		var along := (to - from).normalized()
 		var near := systems[i] == current or systems[i + 1] == current
 		var color := NEAR_COLOR if near else COLOR
-		draw_dashed_line(
+		draw_line(
 			camera.unproject_position(from + along * GAP),
 			camera.unproject_position(to - along * GAP),
 			Color(color, color.a * strength),
 			WIDTH,
-			DASH,
-			true,
 			true
 		)

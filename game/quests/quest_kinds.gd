@@ -18,7 +18,6 @@ const ALL: Array[GDScript] = [
 	preload("res://game/quests/window_hop_quest.gd"),
 	preload("res://game/quests/bump_quest.gd"),
 	preload("res://game/stargate/boss_pick_up_quest.gd"),
-	preload("res://game/stargate/boss_errand_quest.gd"),
 ]
 
 

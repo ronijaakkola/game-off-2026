@@ -3,7 +3,7 @@ extends Node
 ## Going from one star to another through the [Stargate], from the station's Travel
 ## between stars ([BossPickUp]). The [StarChart] opens and stays open. The pointer on a
 ## star, or on its card once that is open, shows the [StarCard] above it: the star's name
-## and planets, a quest under way there ([BossErrand]) and a button to jump there, which
+## and planets, what The Boss has the player fetch there and a button to jump there, which
 ## works for a star one link away ([method StarMap.can_travel]). Pressed, that star's
 ## system becomes the one the bus works in, its lines start empty, and the bus's model
 ## flies there over the chart; the chart then closes into that system, where the bus
@@ -25,7 +25,6 @@ const CARD_GAP := 8.0
 const FADE_SECONDS := 0.2
 
 @export var boss_pick_up: BossPickUp
-@export var errand: BossErrand
 @export var star_chart: StarChart
 @export var star_map: StarMap
 @export var bus: FrameshiftBus
@@ -58,7 +57,7 @@ func _process(_delta: float) -> void:
 	if star != _star:
 		_star = star
 		if star:
-			card.show_star(star, _get_reach(star), _get_quest(star))
+			card.show_star(star, _get_reach(star), boss_pick_up.get_fetch(star))
 			card.appear()
 		else:
 			card.leave()
@@ -66,12 +65,13 @@ func _process(_delta: float) -> void:
 		card.place(_get_card_tip(_star))
 
 
-## Opens the star chart for the player to pick a star.
+## Opens the star chart for the player to pick a star, or lets them pick on the open one.
 func open() -> void:
-	if _picking or star_chart.is_open():
+	if _picking:
 		return
 	_picking = true
-	await star_chart.open()
+	if not star_chart.is_open():
+		await star_chart.open()
 	close_button.modulate.a = 0.0
 	close_button.show()
 	create_tween().tween_property(close_button, ^"modulate:a", 1.0, FADE_SECONDS)
@@ -132,12 +132,6 @@ func _get_reach(system: StarSystem) -> StarCard.Reach:
 	if system == star_map.get_current():
 		return StarCard.Reach.HERE
 	return StarCard.Reach.NEAR if star_map.can_travel(system) else StarCard.Reach.FAR
-
-
-# The quest under way at one of [param system]'s planets, or null.
-func _get_quest(system: StarSystem) -> Quest:
-	var quest := errand.get_quest() if errand else null
-	return quest if quest and system.has_planet(quest.get_planet()) else null
 
 
 # The star the pointer is on, or the one whose card it is on or on its way to.

@@ -13,18 +13,23 @@ extends Node
 ## off as for a VIP ([method Seating.clear]) and The Boss boards; the dock panel grows a row
 ## to go through the stargate ([StargateRow]), which a guide card has the player press, the
 ## game paused; and the HUD goes while the map draws back, slowly, to the star chart
-## ([StarChart]), holds, and comes back. From then on nobody calls, a passenger or a VIP,
-## and the row opens the star chart to go to another star ([StarTravel]), wherever a
-## stargate is. The Boss then has an errand to run ([BossErrand]).
+## ([StarChart]), where it stays. There The Boss's transmission opens by itself about the
+## things they left behind, the HUD comes back over the chart, and The Boss's goals take
+## the place of the system's ([FetchGoal]). The chart is then open for the player to go to
+## another star or close it ([StarTravel]), with the route and the bus held until it
+## closes. From then on nobody calls, a passenger or a VIP, and the row opens the star
+## chart the same way, wherever a stargate is. As The Boss's briefcase and bowtie are
+## fetched they wear them ([method BossPassenger.dress_up]).
 ## A save keeps how far it has got ([signal changed]); nothing saves through the meeting,
 ## so a run continued from the middle of it has it again.
 
 ## How far it has got changed, for a save game.
 signal changed
-## The player pressed the stargate's row, once the stargate is built.
+## The star chart is to open for the player to go to another star, or is open for it: they
+## pressed the stargate's row, or The Boss has given their goals over the chart.
 signal travel_pressed
 
-enum Stage { WAITING, CALLED, BUILT, ERRAND_DONE }
+enum Stage { WAITING, CALLED, BUILT }
 
 ## What The Boss says as they call, after the telling off when the call opened by itself.
 const CALL_TEXT := (
@@ -48,6 +53,17 @@ const STARGATE_TEXT := (
 	+ "first."
 )
 const STARGATE_ANSWERS: Array[String] = ["Sure, boss!", "Ok, I guess"]
+## What The Boss says once the star chart has closed, and the goals they give then, over
+## their heading: what to fetch, from [member briefcase_planet] and [member bowtie_planet].
+const ERRANDS_TEXT := (
+	"As I said, I need a few things before I'm ready to receive my [money]promotion[/money]. "
+	+ "I forgot my briefcase at my side office on Brume, and my bowtie at my mansion on "
+	+ "Giant. [shout]WHY AREN'T YOU DRIVING ALREADY, RESOURCE? MY PROMOTION AWAITS![/shout]"
+)
+const ERRANDS_ANSWER := "Right away, boss!"
+const ERRANDS_HEADER := "To get The Boss promoted"
+const BRIEFCASE := "briefcase"
+const BOWTIE := "bowtie"
 ## The guide card on the stargate's row, as [constant TutorialCards.CARDS] has them.
 const CARDS := {
 	"ROW":
@@ -68,9 +84,9 @@ const GATE_HOLD_SECONDS := 1.4
 ## Seconds the row has been in before its guide card opens.
 const CARD_SECONDS := 0.5
 ## Seconds the map takes to draw back to the star chart the first time, and that the chart
-## holds before the map comes back.
+## holds before The Boss's transmission opens.
 const REVEAL_SECONDS := 9.0
-const REVEAL_HOLD_SECONDS := 5.0
+const REVEAL_HOLD_SECONDS := 1.0
 const DEBUG_BEGIN_TEXT := "Boss pick-up quest"
 
 @export var bus: FrameshiftBus
@@ -80,8 +96,13 @@ const DEBUG_BEGIN_TEXT := "Boss pick-up quest"
 @export var quest_giver: QuestGiver
 @export var transmission_panel: TransmissionPanel
 @export var pick_up_markers: PickUpMarkers
-## Shows the quest.
+## Shows the quest, and The Boss's goals under their heading.
 @export var goal_panel: GoalPanel
+## The goals a promotion takes, which The Boss's own replace.
+@export var goals: GoalTracker
+## Where The Boss left their briefcase, and their bowtie.
+@export var briefcase_planet: Planet
+@export var bowtie_planet: Planet
 ## Where the stargate's row is.
 @export var dock_panel: DockPanel
 @export var hud: HudLayout
@@ -108,6 +129,7 @@ func _ready() -> void:
 	_gate = Stargate.find(get_tree(), star_map.get_systems().back())
 	_cards = TutorialCards.new(guide, CARDS)
 	dock_panel.get_stargate_row().pressed.connect(_on_row_pressed)
+	goals.goal_completed.connect(_dress.unbind(1))
 	DebugPanel.add_button(DEBUG_BEGIN_TEXT, begin, self, Progression.DEBUG_GROUP)
 
 
@@ -138,19 +160,16 @@ func is_under_way() -> bool:
 
 ## Whether the stargate is built, with The Boss on board.
 func is_built() -> bool:
-	return _stage >= Stage.BUILT
+	return _stage == Stage.BUILT
 
 
-## Whether The Boss's errand is run ([BossErrand]).
-func is_errand_done() -> bool:
-	return _stage >= Stage.ERRAND_DONE
-
-
-## The Boss's errand is run.
-func finish_errand() -> void:
-	if _stage == Stage.BUILT:
-		_stage = Stage.ERRAND_DONE
-		changed.emit()
+## What The Boss still has the player fetch from one of [param system]'s planets, or null.
+func get_fetch(system: StarSystem) -> FetchGoal:
+	for goal: Goal in goals.get_goals():
+		var fetch := goal as FetchGoal
+		if fetch and is_built() and not fetch.is_met() and system.has_planet(fetch.planet):
+			return fetch
+	return null
 
 
 ## The Boss has called: whoever they sent the player for waits at the stargate's planet,
@@ -164,9 +183,12 @@ func begin() -> void:
 	changed.emit()
 
 
-## How far it has got, for a save game.
+## How far it has got, for a save game, with The Boss's goals once they are given.
 func to_save() -> Dictionary:
-	return {"stage": _stage}
+	var saved := {"stage": _stage}
+	if _stage == Stage.BUILT:
+		saved["goals"] = goals.get_goals().map(func(g: Goal) -> Dictionary: return g.to_save())
+	return saved
 
 
 ## Puts back what [method to_save] gave: the quest, or the stargate built.
@@ -178,6 +200,12 @@ func load_save(saved: Dictionary) -> void:
 		_wait(false)
 	elif is_built():
 		Stargate.build_all(get_tree())
+		_give_goals(false)
+		var saved_goals: Array = saved.get("goals", [])
+		var given := goals.get_goals()
+		for i: int in mini(saved_goals.size(), given.size()):
+			given[i].load_save(saved_goals[i] as Dictionary)
+		_dress()
 
 
 # They wait at the stargate's planet under their marker, and the quest shows.
@@ -233,12 +261,13 @@ func _meet() -> void:
 	await _pause(BEAT_SECONDS)
 	await _teach_row()
 	await hud.hide_all()
-	await _show_chart(REVEAL_SECONDS, REVEAL_HOLD_SECONDS)
-	hud.reveal_all()
-	_hold(false)
+	await _send_on_errands(REVEAL_SECONDS)
 	saver.holding = false
 	_busy = false
 	changed.emit()
+	# The chart closing, with a jump to another star or without, hands the bus back.
+	star_chart.closed.connect(_hold.bind(false), CONNECT_ONE_SHOT)
+	travel_pressed.emit()
 
 
 # The Boss's transmission at the meeting: two parts on one screen, the lights coming on
@@ -254,6 +283,53 @@ func _get_meeting() -> Transmission:
 	meeting.then.text = STARGATE_TEXT
 	_set_answers(meeting.then, STARGATE_ANSWERS)
 	return meeting
+
+
+# The map draws back to the star chart over [param seconds], and holds there: The Boss's
+# transmission opens by itself, about the things they left behind; then the HUD comes back
+# over the chart, taking no clicks while it is open, and their goals come in.
+func _send_on_errands(seconds: float) -> void:
+	await star_chart.open(seconds)
+	await _pause(REVEAL_HOLD_SECONDS)
+	transmission_panel.open(_get_errands())
+	await transmission_panel.answered
+	hud.reveal_bars()
+	await hud.reveal([HudLayout.Part.RESOURCE_BAR, HudLayout.Part.ON_BOARD, HudLayout.Part.STATION])
+	_give_goals(true)
+
+
+# The Boss's transmission over the star chart: the things they left behind.
+func _get_errands() -> Transmission:
+	var errands := Transmission.from_boss(true)
+	errands.caller_name = GoalsMetCall.CALLER
+	errands.text = ERRANDS_TEXT
+	errands.accept_text = ERRANDS_ANSWER
+	return errands
+
+
+# The Boss's goals replace the system's under their own heading: [param animated], as the
+# goal panel swaps goals ([method GoalPanel.swap_goals]).
+func _give_goals(animated: bool) -> void:
+	goal_panel.swap_goals(ERRANDS_HEADER, _set_goals, animated)
+
+
+# The Boss wears what has been fetched.
+func _dress() -> void:
+	var fetched: Array[String] = []
+	for goal: Goal in goals.get_goals():
+		if goal is FetchGoal and goal.is_met():
+			fetched.append((goal as FetchGoal).thing)
+	for passenger: Passenger in cabin.get_passengers():
+		if BossPassenger.is_boss(passenger):
+			BossPassenger.dress_up(passenger, BRIEFCASE in fetched, BOWTIE in fetched)
+
+
+func _set_goals() -> void:
+	for goal: Goal in goals.get_goals():
+		goals.remove(goal)
+	goals.frozen = false
+	goals.add(FetchGoal.new(BRIEFCASE, briefcase_planet))
+	goals.add(FetchGoal.new(BOWTIE, bowtie_planet))
 
 
 func _set_answers(transmission: Transmission, answers: Array[String]) -> void:
@@ -292,14 +368,6 @@ func _teach_row() -> void:
 	hud.cover()
 	PauseMenu.release(self)
 	row.process_mode = Node.PROCESS_MODE_INHERIT
-
-
-# The map draws back to the star chart over [param seconds], or as fast as it usually does
-# with none, holds for [param hold] seconds and comes back.
-func _show_chart(seconds: float, hold: float) -> void:
-	await star_chart.open(seconds)
-	await _pause(hold)
-	await star_chart.close()
 
 
 # Holds the route, the bus and the camera through the meeting, or lets them go.

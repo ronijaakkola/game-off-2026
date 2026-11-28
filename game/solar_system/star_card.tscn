@@ -27,7 +27,7 @@ corner_radius_bottom_left = 8
 [node name="StarCard" type="Control" unique_id=1363833381]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 208.0
+offset_right = 240.0
 offset_bottom = 100.0
 mouse_filter = 2
 theme = ExtResource("2_theme")
@@ -36,7 +36,7 @@ script = ExtResource("1_card")
 [node name="Body" type="Control" parent="." unique_id=2063054673]
 unique_name_in_owner = true
 anchors_preset = 0
-offset_right = 208.0
+offset_right = 240.0
 offset_bottom = 100.0
 mouse_filter = 2
 
@@ -45,7 +45,7 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 196.0
+offset_right = 228.0
 offset_bottom = 88.0
 mouse_filter = 2
 theme_override_constants/separation = 10
