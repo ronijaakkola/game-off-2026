@@ -100,7 +100,8 @@ func _ready() -> void:
 	_list()
 	# Once the HUD is in, so the first text has something to show on.
 	await get_tree().create_timer(0.5).timeout
-	var first := int(arguments[arguments.find("entry") + 1]) if "entry" in arguments else 0
+	var number := arguments.find("entry") + 1
+	var first := int(arguments[number]) if number > 0 and number < arguments.size() else 0
 	if first < _listed.size():
 		_open(_listed[first])
 

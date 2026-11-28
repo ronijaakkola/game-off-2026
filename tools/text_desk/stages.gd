@@ -53,10 +53,11 @@ var _quick: BusQuickText
 var _planets: Array[Planet] = []
 var _looks: Dictionary[String, AlienLook] = {}
 var _guide: GuideCard
-var _guide_open := false
 var _tooltip: Tooltip
 var _target: Control
 var _notice: Notice
+# The entry the notice showing was pushed for.
+var _notice_entry: Entry
 var _card: PanelContainer
 var _title: Label
 var _body: Label
@@ -195,9 +196,8 @@ func _show_guide(entry: Entry, values: Dictionary[String, String]) -> void:
 	_guide.title = fill(values.get("title", ""))
 	_guide.text = fill(values.get("text", ""))
 	_guide.target_rect = SPOT
-	if not _guide_open:
-		_guide_open = true
-		_guide.open()
+	# Nothing happens while it is open.
+	_guide.open()
 
 
 func _show_tooltip(values: Dictionary[String, String]) -> void:
@@ -210,13 +210,15 @@ func _show_notice(entry: Entry, values: Dictionary[String, String], replay: bool
 	var text := fill(values.get("text", ""))
 	var action := fill(values.get("action", ""))
 	var showing := is_instance_valid(_notice) and not _notice.is_leaving()
-	if showing and not replay:
+	# Only its own notice changes in place: another entry has its own kind and button.
+	if showing and entry == _notice_entry and not replay:
 		(_notice.get_node(^"%Label") as Label).text = text
 		if action != "":
 			(_notice.get_node(^"%ActionButton") as Button).text = action
 		return
 	if showing:
 		_notice.dismiss()
+	_notice_entry = entry
 	var kind: String = entry.options.get("kind", "info")
 	if kind == "call":
 		_notice = _notices.announce_transmission(_caller("boss"))
@@ -255,11 +257,11 @@ func _show_label(entry: Entry, values: Dictionary[String, String]) -> void:
 func _clear() -> void:
 	_panel.close()
 	_guide.close()
-	_guide_open = false
 	_tooltip.close()
 	if is_instance_valid(_notice) and not _notice.is_leaving():
 		_notice.dismiss()
 	_notice = null
+	_notice_entry = null
 	_card.hide()
 
 
