@@ -7,7 +7,8 @@ extends Control
 ## [PickUpMarker] where one shows, centred on the planet. It places itself after the
 ## planets and the camera have moved each frame, and hides with the planets the zoomed map
 ## hides. While [member only] lists planets, as in the tutorial, only theirs show, and
-## [method pop_in] brings one in.
+## [method pop_in] brings one in. Once the bus has the Remote terminal, which researches at
+## any planet, every badge fades out and stays out, the tooltip with it.
 
 ## The disc's size, and the gap between its rim and the flask, in pixels.
 const SIZE := 14.0
@@ -30,6 +31,8 @@ const FLASK := preload("res://shared/icons/flask_conical.svg")
 @export var camera: Camera3D
 ## The pick-up markers, which the tooltip opens above instead of the badge.
 @export var pick_up_markers: PickUpMarkers
+## The bus, whose Remote terminal takes the badges away.
+@export var bus: FrameshiftBus
 
 ## The planets whose badges show, or empty for every planet with a lab.
 var only: Array[Planet] = []
@@ -49,6 +52,10 @@ var _badges: Dictionary[Planet, PhotoBadge] = {}
 var _tooltip: Tooltip
 # Seconds the pointer has rested on the hovered planet.
 var _rested := 0.0
+# How much of each badge shows as the Remote terminal takes them away: 1 without it, 0 once
+# gone, and its fade out between.
+var _retire_shown := 1.0
+var _retire: Tween
 
 
 func _ready() -> void:
@@ -63,6 +70,9 @@ func _ready() -> void:
 	_tooltip.snap_to_pixels = false
 	_tooltip.process_priority = FrameOrder.MARKER_TOOLTIPS
 	add_child(_tooltip)
+	if bus:
+		bus.get_stats().get_traits().changed.connect(_on_trait_changed)
+		_on_trait_changed(BusTraits.Type.REMOTE_TERMINAL)
 
 
 func _process(delta: float) -> void:
@@ -72,6 +82,7 @@ func _process(delta: float) -> void:
 		var center := planet.get_body_global_position()
 		badge.visible = (
 			camera != null
+			and _retire_shown > 0.0
 			and modulate.a > 0.0
 			and planet.is_visible_in_tree()
 			and (only.is_empty() or planet in only)
@@ -79,6 +90,8 @@ func _process(delta: float) -> void:
 		)
 		if not badge.visible:
 			continue
+		if _retire_shown < 1.0:
+			badge.modulate.a = minf(badge.modulate.a, _retire_shown)
 		var side := roundf(SIZE * (1.0 + (planet.get_world_scale() - 1.0) * ZOOM_GROWTH))
 		if badge.size.x != side:
 			badge.show_icon(FLASK, side, roundf(PAD * side / SIZE))
@@ -126,6 +139,30 @@ func pop_in(planet: Planet) -> void:
 	await tween.finished
 
 
+# The Remote terminal came or went: with it, the badges fade out as fast as one pops in,
+# then hide; under Reduce motion, or while none shows, they hide at once. Without it they
+# show again. The fade is the node's own, not a badge's, so a badge made or popped in later
+# stays out too.
+func _on_trait_changed(type: BusTraits.Type) -> void:
+	if type != BusTraits.Type.REMOTE_TERMINAL:
+		return
+	var retired := bus.get_stats().get_traits().has(type)
+	if _retire:
+		_retire.kill()
+	_tooltip.close()
+	var showing := _badges.values().any(func(badge: PhotoBadge) -> bool: return badge.visible)
+	if not retired:
+		_retire_shown = 1.0
+		for badge: PhotoBadge in _badges.values():
+			badge.modulate.a = 1.0
+		return
+	if Settings.reduce_motion or not showing:
+		_retire_shown = 0.0
+		return
+	_retire = create_tween()
+	_retire.tween_property(self, ^"_retire_shown", 0.0, POP_SECONDS)
+
+
 ## [param planet]'s badge, or null, for a guide card to point at.
 func get_badge(planet: Planet) -> Control:
 	return _badges.get(planet)
@@ -147,7 +184,7 @@ func is_tooltip_shown(planet: Planet) -> bool:
 # fade out.
 func _show_tooltip(delta: float) -> void:
 	var badge: PhotoBadge = _badges.get(hovered) if hovered else null
-	if not badge or not badge.visible or modulate.a < 1.0:
+	if _retire_shown < 1.0 or not badge or not badge.visible or modulate.a < 1.0:
 		_rested = 0.0
 		_tooltip.close()
 		return

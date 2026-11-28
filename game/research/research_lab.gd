@@ -5,8 +5,9 @@ extends Node
 ## player holds there when the player can pay for it, taking its credits and research points off
 ## first. Which planets open the screen is the dock panel's to ask ([method can_research_at]):
 ## those with a lab ([member Planet.has_lab]), and with the Remote terminal every one. With the
-## Research grant the screen sells research points for credits ([method buy_point]), and with the
-## Bottomless complaints box the ledger counts no poor rating ([member Ledger.complaints_box]).
+## Research grant the screen trades research points and credits both ways ([method buy_point],
+## [method sell_point]), and with the Bottomless complaints box the ledger counts no poor
+## rating ([member Ledger.complaints_box]).
 ## It adds the debug panel's Resources card, whose buttons give credits and
 ## research points for testing, and Research, which opens the screen from anywhere. So the
 ## first visit always has something to research, the screen opening with nothing researched and
@@ -24,8 +25,8 @@ const DEBUG_GROUP := "Research"
 const DEBUG_RESOURCES_GROUP := "Resources"
 ## The debug panel's button that opens the screen from anywhere.
 const DEBUG_OPEN_TEXT := "Research"
-## The credits the Research grant asks for one research point.
-const GRANT_CREDITS := 200
+## The credits a research point trades for with the Research grant, buying or selling.
+const POINT_PRICE := 200
 
 ## The bus whose stats upgrades change.
 @export var bus: FrameshiftBus
@@ -55,8 +56,9 @@ func _ready() -> void:
 	research_screen.upgrade_held.connect(research)
 	research_screen.closed.connect(resource_bar.show)
 	research_screen.closed.connect(_remember_seen)
-	research_screen.grant_pressed.connect(buy_point)
-	research_screen.grant_credits = GRANT_CREDITS
+	research_screen.buy_point_pressed.connect(buy_point)
+	research_screen.sell_point_pressed.connect(sell_point)
+	research_screen.point_price = POINT_PRICE
 	bus.get_stats().get_traits().changed.connect(_on_trait_changed)
 	_fit_complaints_box()
 	DebugPanel.add_button(DEBUG_OPEN_TEXT, open_screen, self, DEBUG_GROUP)
@@ -160,13 +162,26 @@ func research(upgrade: Upgrade) -> void:
 	_research.research(upgrade)
 
 
-## Sells the player a research point for [constant GRANT_CREDITS] credits, with the Research
+## Sells the player a research point for [constant POINT_PRICE] credits, with the Research
 ## grant and the credits to pay. Otherwise it does nothing.
 func buy_point() -> void:
-	if not _has(BusTraits.Type.RESEARCH_GRANT) or get_credits() < GRANT_CREDITS:
+	if not _has(BusTraits.Type.RESEARCH_GRANT) or get_credits() < POINT_PRICE:
 		return
-	ledger.spend(GRANT_CREDITS)
+	ledger.spend(POINT_PRICE)
 	ledger.earn_research()
+	# A gain waits under its count for a commit, which nothing else makes while the screen
+	# is open.
+	commit()
+
+
+## Buys a research point off the player for [constant POINT_PRICE] credits, with the
+## Research grant and a point to sell. Otherwise it does nothing.
+func sell_point() -> void:
+	if not _has(BusTraits.Type.RESEARCH_GRANT) or get_points() < 1:
+		return
+	ledger.spend_research(1)
+	ledger.earn(POINT_PRICE)
+	commit()
 
 
 func _has(type: BusTraits.Type) -> bool:

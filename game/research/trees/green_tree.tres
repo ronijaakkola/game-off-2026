@@ -180,7 +180,7 @@ column = 4
 [sub_resource type="Resource" id="Resource_research_grant"]
 script = ExtResource("2_upgrade")
 title = "Research grant"
-description = "Buy research points with credits in the research screen, 200 credits each."
+description = "Trade credits and research points both ways in the research screen, 200 credits a point."
 icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14

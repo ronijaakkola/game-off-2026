@@ -3,7 +3,8 @@ extends Control
 ## The research screen: a modal over the whole screen, with the game paused under it while
 ## it is open. Its header holds its title, a "Game paused" tag, the player's credits,
 ## research points and rating in a resource bar of its own, and a Close button, with the
-## Research grant a button before it that buys a research point ([member grant_shown]). Under it,
+## Research grant two buttons before it, one that buys a research point with credits and one
+## that sells one for as many ([member grant_shown]). Under it,
 ## the research trees side by side, centred, each in a [ResearchColumn], with only their
 ## open stages' rows ([Research]): the rows line up across them, with a faint line
 ## across all of them between two stages, and the sheet is as tall as the rows that show.
@@ -23,8 +24,12 @@ extends Control
 
 ## [param upgrade]'s tile was held long enough to research it.
 signal upgrade_held(upgrade: Upgrade)
-## The player pressed the Research grant's button, to buy a research point; the parent sells it.
-signal grant_pressed
+## The player pressed the Research grant's buy button, to buy a research point with credits;
+## the parent makes the trade.
+signal buy_point_pressed
+## The player pressed the Research grant's sell button, to sell a research point for credits;
+## the parent makes the trade.
+signal sell_point_pressed
 ## It closed.
 signal closed
 
@@ -57,8 +62,9 @@ const REVEAL_STAGGER := 0.04
 const CARD_FADE_SECONDS := 0.2
 ## The close button's side margins, so it is a 32 px square round its 14 px icon.
 const CLOSE_MARGIN := 9.0
-## What the Research grant's button says, with the credits a research point costs.
-const GRANT_TEXT := "+1 for %d credits"
+## What the Research grant's buttons say, with the credits a research point trades for.
+const BUY_POINT_TEXT := "+1 point for %d credits"
+const SELL_POINT_TEXT := "+%d credits for 1 point"
 
 ## Which upgrades are researched, and whether research and which stages are open. The
 ## parent sets it.
@@ -69,17 +75,19 @@ var ledger: Ledger:
 	set(value):
 		ledger = value
 		(%ResourceBar as ResourceBar).ledger = value
-## Whether the header has the Research grant's button, left of Close. The parent sets it.
+## Whether the header has the Research grant's buttons, left of Close. The parent sets it.
 var grant_shown := false:
 	set(value):
 		grant_shown = value
-		(%GrantButton as Button).visible = value
-## The credits a research point costs there: the button says so, and is off while the player
-## has less. The parent sets it.
-var grant_credits := 0:
+		(%BuyPointButton as Button).visible = value
+		(%SellPointButton as Button).visible = value
+## The credits a research point trades for there, either way: the buttons say so. Buying is off
+## while the player has fewer credits, selling while they have no point. The parent sets it.
+var point_price := 0:
 	set(value):
-		grant_credits = value
-		(%GrantButton as Button).text = GRANT_TEXT % value
+		point_price = value
+		(%BuyPointButton as Button).text = BUY_POINT_TEXT % value
+		(%SellPointButton as Button).text = SELL_POINT_TEXT % value
 
 var _trees: Array[ResearchTree] = []
 var _columns: Array[ResearchColumn] = []
@@ -106,7 +114,8 @@ func _ready() -> void:
 		box.content_margin_left = CLOSE_MARGIN
 		box.content_margin_right = CLOSE_MARGIN
 		close.add_theme_stylebox_override(state, box)
-	(%GrantButton as Button).pressed.connect(grant_pressed.emit)
+	(%BuyPointButton as Button).pressed.connect(buy_point_pressed.emit)
+	(%SellPointButton as Button).pressed.connect(sell_point_pressed.emit)
 
 
 func _exit_tree() -> void:
@@ -296,7 +305,8 @@ func _refresh() -> void:
 	var first := _is_first_visit()
 	(%CloseButton as Button).disabled = first
 	(%CloseTooltip as Tooltip).muted = not first
-	(%GrantButton as Button).disabled = ledger.credits < grant_credits
+	(%BuyPointButton as Button).disabled = ledger.credits < point_price
+	(%SellPointButton as Button).disabled = points < 1
 	_reveal_opened()
 
 

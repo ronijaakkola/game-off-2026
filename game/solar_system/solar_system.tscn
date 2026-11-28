@@ -587,10 +587,11 @@ script = ExtResource("202_star_links")
 star_chart = NodePath("../../StarChart")
 star_map = NodePath("../../StarMap")
 
-[node name="LabBadges" parent="Hud" unique_id=26987481 node_paths=PackedStringArray("camera", "pick_up_markers") instance=ExtResource("113_lab_badges")]
+[node name="LabBadges" parent="Hud" unique_id=26987481 node_paths=PackedStringArray("camera", "pick_up_markers", "bus") instance=ExtResource("113_lab_badges")]
 unique_name_in_owner = true
 camera = NodePath("../../Camera")
 pick_up_markers = NodePath("../PickUpMarkers")
+bus = NodePath("../../Bus")
 
 [node name="WarpGateTooltip" type="Control" parent="Hud" unique_id=464056308 node_paths=PackedStringArray("gate_service")]
 layout_mode = 3

@@ -18,7 +18,8 @@ extends Node
 ## on every tree, with a few upgrades of each researched, credits and points to spend on
 ## some of the rest, and the pointer over one the player can research so its card shows.
 ## `-- Research promoted` opens the second stage too, `grant` gives the bus the Research
-## grant, with credits for two of its points, so its button shows, `plain` leaves out the tooltip,
+## grant, with credits for two of its points, so its buttons show, and `buy` or `sell` presses
+## one, `plain` leaves out the tooltip,
 ## `lacking` hovers one the player can't afford instead, `hold`
 ## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
 ## it part way), and
@@ -191,6 +192,10 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 	ledger.earn_research(19)
 	(system.find_child("ResourceBar") as ResourceBar).commit()
 	lab.open_screen()
+	if "buy" in args:
+		lab.buy_point()
+	if "sell" in args:
+		lab.sell_point()
 	if "plain" in args:
 		return
 	# Hover an upgrade the player can research once the screen has grown to full size. The

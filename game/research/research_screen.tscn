@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dup4e3a0nc0eg" path="res://shared/icons/pause.svg" id="7_pause"]
 [ext_resource type="Texture2D" uid="uid://3jp7s1n8j7ge" path="res://shared/icons/x.svg" id="8_x"]
 [ext_resource type="PackedScene" uid="uid://buwt7muuiolkm" path="res://ui/tooltip/tooltip.tscn" id="9_tooltip"]
+[ext_resource type="Texture2D" uid="uid://b2w4upsxpmhrb" path="res://shared/icons/dollar_sign.svg" id="11_dollar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tag"]
 content_margin_left = 8.0
@@ -144,7 +145,7 @@ size_flags_horizontal = 3
 mouse_filter = 2
 alignment = 2
 
-[node name="GrantButton" type="Button" parent="Margin/Sheet/Pad/Rows/Header/CloseGroup" unique_id=2017104422]
+[node name="BuyPointButton" type="Button" parent="Margin/Sheet/Pad/Rows/Header/CloseGroup" unique_id=2017104422]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 32)
@@ -153,6 +154,16 @@ size_flags_vertical = 4
 focus_mode = 0
 theme_override_constants/icon_max_width = 14
 icon = ExtResource("6_flask")
+
+[node name="SellPointButton" type="Button" parent="Margin/Sheet/Pad/Rows/Header/CloseGroup" unique_id=195764872]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_constants/icon_max_width = 14
+icon = ExtResource("11_dollar")
 
 [node name="CloseButton" type="Button" parent="Margin/Sheet/Pad/Rows/Header/CloseGroup" unique_id=61349379]
 unique_name_in_owner = true
