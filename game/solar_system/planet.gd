@@ -266,6 +266,13 @@ func _process(delta: float) -> void:
 		_surface.rotation.y = TAU * _time / spin_period
 
 
+## Puts the body back where its layout starts it, [member orbit_time] 0, there at once
+## rather than on the next frame, so where it is can be asked straight away.
+func restart_orbit() -> void:
+	orbit_time = 0.0
+	_place_body()
+
+
 ## Moves the centre of the orbit, relative to this node, and sets how fast it moves, in
 ## global space. A planet calls it on its moons.
 func set_orbit_center(center: Vector3, velocity := Vector3.ZERO) -> void:

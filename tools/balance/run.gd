@@ -59,8 +59,6 @@ var _progression: Progression
 var _mechanic: MechanicCall
 var _jump: SystemJump
 var _giver: QuestGiver
-# Whether the bus has come out of a jump and not yet set off from where it rests.
-var _arrived := false
 
 
 func _ready() -> void:
@@ -153,7 +151,6 @@ func _process(delta: float) -> void:
 	else:
 		_decided = false
 		_serve(delta)
-		_leave_space()
 		_detour.steer()
 
 
@@ -456,19 +453,8 @@ func _on_delivered(passenger: Passenger, payout: int) -> void:
 	_recorder.deliver(passenger, payout, _ledger)
 
 
-# The bus came out of a jump at rest in space: once The Boss's call lets it, it flies to
-# the system's home planet, where the starting passengers wait.
-func _leave_space() -> void:
-	if not _arrived or _bus.route_locked or _bus.state != FrameshiftBus.State.HOLDING:
-		return
-	_arrived = false
-	_detour.plot(_star_map.get_current().home)
-	_bus.frameshift_held = true
-
-
 func _on_jumped(system: StarSystem) -> void:
 	_planets = _star_map.get_active_planets()
-	_arrived = not _bus.is_at_planet()
 	_recorder.arrive(system.display_name)
 	# The mechanic opens the next stage a few deliveries in, as in play.
 	_mechanic.enabled = true

@@ -92,6 +92,44 @@ func test_the_boss_calls_once_the_goals_hold_and_answered_jumps_with_anyone_on_b
 	assert_bool(boss.is_ringing()).is_false()
 
 
+# The bus once came out of the jump beside where its planet had been before the system's
+# planets went back to their layout, far from where the planet then was.
+func test_a_jump_comes_out_beside_cinder_and_docks_there_before_the_boss_calls() -> void:
+	SaveGame.mark_tutorial_done()
+	SaveGame.write({})
+	SaveGame.continue_saved()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var jump := runner.find_child("SystemJump") as SystemJump
+	jump.shows_loading_screen = false
+	var notices := runner.find_child("Notices") as NoticeStack
+	var lyra := runner.find_child("Lyra") as StarSystem
+	var cinder := lyra.find_child("Cinder") as Planet
+	# Lyra's planets have orbited all through Vela: Cinder is round the far side.
+	cinder.orbit_time = cinder.orbit_period * 0.5
+	await runner.simulate_frames(1)
+	monitor_signals(jump)
+	monitor_signals(bus)
+
+	(runner.find_child("Progression") as Progression).advance()
+
+	await assert_signal(jump).wait_until(10000).is_emitted("finished", [lyra])
+	var gap := RouteStop.flat(cinder.get_body_global_position() - bus.global_position).length()
+	assert_float(gap).is_less_equal(cinder.get_body_radius() + SystemJump.ARRIVE_GAP + 0.5)
+	if is_failure():
+		return
+	var calls := func() -> bool:
+		return notices.get_notices().any(
+			func(n: Notice) -> bool: return n.get_text() == NoticeStack.CALL_TEXT
+		)
+	assert_bool(calls.call()).is_false()
+	await assert_signal(bus).wait_until(10000).is_emitted("docked", [cinder])
+	assert_float(bus.get_fuel_tank().fuel).is_equal(bus.get_fuel_tank().capacity)
+	var rang := await PauseProofWait.for_condition(calls, 5000)
+	assert_bool(rang).override_failure_message("The Boss never called after docking").is_true()
+
+
 func test_a_promotion_leaves_the_goals_on_the_panel_until_the_next_ones_come() -> void:
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
