@@ -80,6 +80,7 @@
 [ext_resource type="Script" uid="uid://o5kmnues1lus" path="res://game/quests/vip_calls.gd" id="170_vip_calls"]
 [ext_resource type="Script" uid="uid://b1fajbmbhyo5" path="res://game/solar_system/system_music.gd" id="190_music"]
 [ext_resource type="Script" uid="uid://j5l1q4r68cgx" path="res://game/solar_system/star_chart.gd" id="200_star_chart"]
+[ext_resource type="Script" uid="uid://bavvmu5g6on1r" path="res://game/stargate/boss_pick_up.gd" id="201_boss_pick_up"]
 [ext_resource type="Script" uid="uid://vt32sfu7gpqh" path="res://game/solar_system/fast_forward.gd" id="ff_fast_forward"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_heat_zone"]
@@ -95,6 +96,7 @@ shader_parameter/opacity = 1.0
 shader_parameter/smoke_color = Color(1, 0.6, 0.3, 0.07)
 shader_parameter/smoke_scale = 5.0
 shader_parameter/drift = 1.0
+shader_parameter/smoke_time = null
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_heat_zone"]
 
@@ -449,7 +451,7 @@ sound = ExtResource("106_fuel_sound")
 bus = NodePath("../Bus")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 
-[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "new_run_planet", "cabin", "goals", "quest_giver", "vips", "research_lab", "star_map", "capsules", "fast_forward")]
+[node name="GameSaver" type="Node" parent="." unique_id=2038057326 node_paths=PackedStringArray("bus", "new_run_planet", "cabin", "goals", "quest_giver", "vips", "research_lab", "star_map", "capsules", "fast_forward", "boss_pick_up")]
 unique_name_in_owner = true
 script = ExtResource("108_saver")
 bus = NodePath("../Bus")
@@ -462,6 +464,7 @@ research_lab = NodePath("../ResearchLab")
 star_map = NodePath("../StarMap")
 capsules = NodePath("../CapsuleField")
 fast_forward = NodePath("../FastForward")
+boss_pick_up = NodePath("../BossPickUp")
 
 [node name="FastForward" type="Node" parent="." unique_id=921399770 node_paths=PackedStringArray("star_map", "research_lab", "waiting", "progression")]
 script = ExtResource("ff_fast_forward")
@@ -487,7 +490,7 @@ star_map = NodePath("../StarMap")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
 
-[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "vips", "capsules", "notices", "cabin", "bus", "boss_call", "arrival_call", "system_jump", "saver", "goal_panel")]
+[node name="Progression" type="Node" parent="." unique_id=768882033 node_paths=PackedStringArray("star_map", "goals", "waiting", "quest_giver", "vips", "capsules", "notices", "cabin", "bus", "boss_call", "arrival_call", "system_jump", "saver", "goal_panel", "boss_pick_up")]
 unique_name_in_owner = true
 script = ExtResource("118_progression")
 star_map = NodePath("../StarMap")
@@ -504,6 +507,23 @@ arrival_call = NodePath("../FirstShiftCall")
 system_jump = NodePath("../SystemJump")
 saver = NodePath("../GameSaver")
 goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
+boss_pick_up = NodePath("../BossPickUp")
+
+[node name="BossPickUp" type="Node" parent="." unique_id=1814853010 node_paths=PackedStringArray("bus", "cabin", "waiting", "quest_giver", "transmission_panel", "pick_up_markers", "goal_panel", "dock_panel", "hud", "rig", "star_chart", "guide", "saver")]
+script = ExtResource("201_boss_pick_up")
+bus = NodePath("../Bus")
+cabin = NodePath("../Cabin")
+waiting = NodePath("../WaitingPassengers")
+quest_giver = NodePath("../QuestGiver")
+transmission_panel = NodePath("../TransmissionPanel")
+pick_up_markers = NodePath("../Hud/PickUpMarkers")
+goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
+dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+hud = NodePath("../Hud")
+rig = NodePath("../CameraRig")
+star_chart = NodePath("../StarChart")
+guide = NodePath("../Hud/GuideCard")
+saver = NodePath("../GameSaver")
 
 [node name="CapsuleField" type="Node3D" parent="." unique_id=668865033 node_paths=PackedStringArray("bus", "cabin", "star_map", "waiting", "quest_giver", "quick_text", "system_jump", "research_lab", "hints")]
 unique_name_in_owner = true

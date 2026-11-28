@@ -18,18 +18,19 @@ extends Control
 ## panel's place in the corner, and the card hangs down from it. So the card's top edge
 ## stays put however its height changes, with no container to re-sort a frame later and
 ## round the height to whole pixels. "Nobody waiting." ([EmptyLineLabel]) sits under the
-## rows. At an abandoned planet a message says so in place of the line. The pointer over
-## a row shows that passenger's trip, and a click on a row pins it, so it stays shown once
-## the pointer leaves, until the row is clicked again, the passenger boards or the bus
-## leaves. The row whose trip shows is highlighted. While [member beckon_boarding], the
-## card's border glows and every row calls for its button to be pressed
+## rows. At an abandoned planet where nobody waits, a message says so in place of the
+## line. The pointer over a row shows that passenger's trip, and a click on a row pins it,
+## so it stays shown once the pointer leaves, until the row is clicked again, the passenger
+## boards or the bus leaves. The row whose trip shows is highlighted. While
+## [member beckon_boarding], the card's border glows and every row calls for its button to
+## be pressed
 ## ([member BoardingRow.beckoning]), in one pulse: they brighten quickly and fade slowly,
 ## again and again, and hold bright under Reduce motion.
 ## Board all steps back to a plain button meanwhile, so there is one thing to press.
 ## While the player can pay for an upgrade they couldn't when they last closed the research
 ## screen ([method ResearchLab.has_unseen_upgrade]), the Research button has a thin outline
-## in the Frameshift key's yellow on its edge, fainter than the key's and pulsing in step
-## with it, and holding still under Reduce motion.
+## on its edge ([ResearchNudge]). Where the stargate is, once it is built, a row to go
+## through it joins the services ([StargateRow]).
 ## While [member research_hidden], as through the tutorial and until research is
 ## open ([MechanicCall]), there is no Research button,
 ## and while [member fuel_hidden] no fuel button, while [member fuel_locked] one that is
@@ -64,10 +65,6 @@ const BECKON_FADE_SECONDS := 1.0
 const BECKON_BORDER := 2
 const BECKON_COLOR := Color(1.0, 1.0, 1.0, 0.9)
 const BECKON_BORDER_LOW := 0.25
-# The Research button's outline is a nudge, fainter than the Frameshift key's: its opacity
-# swings between these.
-const NUDGE_DIM := 0.15
-const NUDGE_BRIGHT := 0.6
 
 ## Who waits at each planet.
 @export var waiting: WaitingPassengers:
@@ -160,6 +157,7 @@ func _ready() -> void:
 	# sorts at the end of the frame. Fitting the card again as the content's size changes
 	# keeps the card and Board all in step with it in that same frame, not a frame behind.
 	(%Content as Control).minimum_size_changed.connect(_on_content_resized)
+	get_stargate_row().visibility_changed.connect(_show_services)
 	_show_planet()
 
 
@@ -262,7 +260,6 @@ func _rebuild() -> void:
 		(%PlanetIcon as PlanetIcon).planet = _shown
 		(%NameLabel as Label).text = _planet_name(_shown)
 		_show_services()
-	_show_line()
 	_sync_rows(false)
 
 
@@ -275,8 +272,9 @@ func _show_services() -> void:
 	(%FuelRow as Control).visible = fuel
 	(%ResearchSlot as Control).visible = _shows_lab()
 	(%TeleportSlot as Control).visible = teleport
-	(%Services as Control).visible = fuel or _shows_lab() or teleport
-	(%FuelRule as Control).visible = fuel or _shows_lab() or teleport
+	var any := fuel or _shows_lab() or teleport or get_stargate_row().is_open()
+	(%Services as Control).visible = any
+	(%FuelRule as Control).visible = any
 	# Under the fuel or Research row's gap when either shows.
 	var gap := (
 		(%Content as Control).get_theme_constant(&"separation") if fuel or _shows_lab() else 0
@@ -285,9 +283,10 @@ func _show_services() -> void:
 	_fit_research()
 
 
-# The line's heading, Board all and rows, or at an abandoned planet the message instead.
+# The line's heading, Board all and rows, or at an abandoned planet with nobody waiting
+# the message instead.
 func _show_line() -> void:
-	var abandoned := _shown != null and _shown.abandoned
+	var abandoned := _shown != null and _shown.abandoned and _rows.is_empty()
 	(%WaitingLabel as Control).visible = not abandoned
 	(%BoardAllButton as Control).visible = not abandoned and not board_all_hidden
 	(%List as Control).visible = not abandoned
@@ -366,6 +365,7 @@ func _sync_rows(animated := true) -> void:
 		if animated and visible:
 			row.enter()
 	(%EmptyLabel as EmptyLineLabel).show_empty(line.is_empty(), animated and visible)
+	_show_line()
 
 
 # Pulses the card's border and the rows while beckoning, or puts the card back.
@@ -432,7 +432,8 @@ func _show_buttons() -> void:
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()
-	_nudge_research(_shows_lab() and research_lab != null and research_lab.has_unseen_upgrade())
+	var unseen := research_lab != null and research_lab.has_unseen_upgrade()
+	(%ResearchNudge as ResearchNudge).nudging = _shows_lab() and unseen
 
 
 ## The fuel button, for a guide card to point at.
@@ -450,6 +451,11 @@ func get_teleport_row() -> Control:
 	return %TeleportRow
 
 
+## The stargate's row, which whoever built the stargate opens and closes ([BossPickUp]).
+func get_stargate_row() -> StargateRow:
+	return %StargateRow
+
+
 ## The Research button's row, its icon included, for a guide card to point at.
 func get_research_row() -> Control:
 	return %ResearchRow
@@ -464,19 +470,6 @@ func get_row(passenger: Passenger) -> Control:
 ## for that the player hasn't seen on the research screen.
 func is_research_nudging() -> bool:
 	return (%ResearchNudge as CanvasItem).visible
-
-
-# Shows the pulsing outline on the Research button, or hides it.
-func _nudge_research(nudging: bool) -> void:
-	var outline := %ResearchNudge as CanvasItem
-	outline.visible = nudging
-	if not nudging:
-		return
-	var pulse := 1.0
-	if not Settings.reduce_motion:
-		var seconds := Time.get_ticks_msec() / 1000.0
-		pulse = 0.5 - 0.5 * cos(seconds * TAU / FrameshiftKey.PULSE_SECONDS)
-	outline.self_modulate.a = lerpf(NUDGE_DIM, NUDGE_BRIGHT, pulse)
 
 
 # Sizes the slot to the card's width, and hangs the card down from the slot, as tall as

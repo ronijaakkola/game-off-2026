@@ -184,7 +184,7 @@ func get_passengers() -> Array[Passenger]:
 
 
 func has_free_seat() -> bool:
-	return Seating.count(_passengers) < seats
+	return Seating.count(_passengers, seats) < seats
 
 
 ## How many requests can be open at once: [constant QUIET_SEATS] fewer than the seats, and
@@ -196,7 +196,7 @@ func get_request_limit() -> int:
 ## Seats no one has taken or been picked up for, each passenger taking as many as their type
 ## says ([Seating]).
 func get_free_seats() -> int:
-	return maxi(seats - Seating.count(_passengers + _getting_on), 0)
+	return maxi(seats - Seating.count(_passengers + _getting_on, seats), 0)
 
 
 ## How many on board or picked up are going to [param planet].
@@ -216,7 +216,7 @@ func is_stopping() -> bool:
 ## Takes [param passenger] on board at once. False, and nothing happens, when too few seats
 ## are free for them.
 func board(passenger: Passenger) -> bool:
-	if Seating.count(_passengers) + passenger.type.seats > seats or passenger in _passengers:
+	if passenger in _passengers or not Seating.has_room(self, passenger):
 		return false
 	_take_seat(passenger)
 	return true

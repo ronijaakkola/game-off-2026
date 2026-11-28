@@ -10,6 +10,11 @@ extends CanvasLayer
 ## talking as they do and falling quiet in the pauses, in their race's [Voice]. Only then do
 ## the quest, the reward and the buttons fade in one after another. A click on the modal
 ## before that shows it all at once.
+## A caller who sits in the dark and has an [member Transmission.opening] says that first;
+## then the text waits while the lights come on over them, and they go on with the rest.
+## A transmission with another to follow ([member Transmission.then]) doesn't close when it
+## is answered: its text and buttons fade out, and the caller says the next one on the same
+## screen.
 
 ## The player answered: [param accepted] is true for the primary button.
 signal answered(accepted: bool)
@@ -40,6 +45,12 @@ const CASCADE_RISE: Array[float] = [8.0, 6.0, 4.0]
 ## dark screen. And how small the modal ends.
 const CLOSE_DELAY := TransmissionScreen.OFF_SECONDS + 0.15
 const END_SCALE := 0.98
+## Seconds the text waits once the lights are on over the caller, before they go on.
+const LIT_BEAT := 0.6
+## Seconds an answered transmission's text and buttons take to fade out before the next
+## one the caller says, and the beat before they start on it.
+const NEXT_FADE_SECONDS := 0.25
+const NEXT_BEAT := 0.3
 ## A reward's colour, as a gain.
 const GAIN_COLOR := Color(0.549, 0.851, 0.4)
 ## How strongly a research reward's chip is tinted in the research points' colour.
@@ -47,6 +58,10 @@ const CHIP_TINT := 0.18
 
 var _transmission: Transmission
 var _revealed := false
+# How many letters of the text are the caller's opening, said in the dark, and whether the
+# lights are on over them.
+var _opening_letters := 0
+var _lit := true
 # Whether it is closing, after an answer.
 var _answering := false
 # The one tween for each thing that moves: the scrim and modal fading in and out, the text,
@@ -104,26 +119,46 @@ func open(transmission: Transmission) -> void:
 	_fade.tween_property(%Root, "modulate:a", 1.0, FADE_IN_SECONDS).set_trans(Tween.TRANS_CUBIC)
 	_fade.tween_property(modal, "scale", Vector2.ONE, FADE_IN_SECONDS).set_trans(Tween.TRANS_EXPO)
 	(%Screen as TransmissionScreen).turn_on()
+	_say_text(TALK_DELAY)
+
+
+# The caller says the text shown from its start, [param delay] seconds from now, with the
+# rest hidden until they have; under Reduce motion it all shows at once.
+func _say_text(delay: float) -> void:
 	_revealed = false
 	for part: Control in _cascaded():
 		part.modulate.a = 0.0
 	_set_buttons_live(false)
 	var message := %Message as RichTextLabel
+	message.modulate.a = 1.0
 	message.visible_characters = 0
 	if _typing:
 		_typing.kill()
-	if still:
+	if Settings.reduce_motion:
 		_reveal(true)
 		return
+	var voice := get_voice()
 	_typing = create_tween()
-	_typing.tween_interval(TALK_DELAY)
+	_typing.tween_interval(delay)
 	var text := message.get_parsed_text()
 	for i: int in text.length():
+		if i == _opening_letters and not _lit:
+			_typing.tween_callback(_light_up)
+			_typing.tween_interval(TransmissionScreen.LIGHT_SECONDS + LIT_BEAT)
 		var wait := TalkPace.wait_after(text[i])
 		_typing.tween_callback(_say.bind(i + 1, wait < QUIET_SECONDS))
 		var jitter := randf_range(1.0 - PACE_JITTER, 1.0 + PACE_JITTER)
 		_typing.tween_interval(wait * jitter / voice.get_typing_speed())
 	_typing.tween_callback(_reveal.bind(false))
+
+
+# The lights come on over a caller who sat in the dark, and they fall quiet meanwhile.
+func _light_up() -> void:
+	if _lit:
+		return
+	_lit = true
+	_set_talking(false)
+	(%Screen as TransmissionScreen).light_up(_transmission)
 
 
 # Shows the first [param letters] letters, talking unless a pause comes next.
@@ -171,6 +206,9 @@ func _on_decline_button_pressed() -> void:
 
 
 func _answer(accepted: bool) -> void:
+	if _transmission.then:
+		_say_next(_transmission.then)
+		return
 	_answering = true
 	# Closed while the caller still talks, as when what it belongs to is skipped, they stop.
 	if not _revealed:
@@ -198,6 +236,23 @@ func _answer(accepted: bool) -> void:
 	answered.emit(accepted)
 
 
+# The answered transmission's text and buttons fade out, and the caller says [param next]
+# on the same screen, in the same voice.
+func _say_next(next: Transmission) -> void:
+	_transmission = next
+	_set_buttons_live(false)
+	if _typing:
+		_typing.kill()
+	if _cascade:
+		_cascade.kill()
+	_cascade = create_tween().set_parallel()
+	for part: Control in _cascaded() + [%Message as Control]:
+		_cascade.tween_property(part, "modulate:a", 0.0, NEXT_FADE_SECONDS)
+	await _cascade.finished
+	_fill_words(next)
+	_say_text(NEXT_BEAT)
+
+
 # The text in full, then, after a beat to finish reading, the quest, the reward and the
 # buttons fade and rise in one after another. A skip has no beat and a tighter stagger.
 # Under Reduce motion they only fade.
@@ -205,6 +260,7 @@ func _reveal(skipped: bool) -> void:
 	_revealed = true
 	if _typing:
 		_typing.kill()
+	_light_up()
 	(%Message as RichTextLabel).visible_characters = -1
 	_set_talking(false)
 	if _cascade:
@@ -254,7 +310,19 @@ func _fill(transmission: Transmission) -> void:
 	(%Destination as Control).visible = transmission.destination != null
 	(%DestinationIcon as PlanetIcon).planet = transmission.destination
 	(%DestinationLabel as Label).text = _planet_name(transmission.destination)
-	(%Message as RichTextLabel).text = transmission.text
+	_fill_words(transmission)
+
+
+# What [param transmission] says and asks, and its buttons: all but who calls.
+func _fill_words(transmission: Transmission) -> void:
+	var message := %Message as RichTextLabel
+	_lit = not (transmission.shadowed and transmission.opening)
+	_opening_letters = 0
+	message.text = transmission.text
+	if not _lit:
+		message.text = transmission.opening
+		_opening_letters = message.get_parsed_text().length()
+		message.text = transmission.opening + " " + transmission.text
 	(%Quest as Control).visible = transmission.is_quest()
 	(%QuestLabel as Label).text = transmission.quest
 	(%QuestPlanetIcon as PlanetIcon).planet = transmission.quest_planet

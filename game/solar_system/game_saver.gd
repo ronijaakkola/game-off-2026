@@ -10,7 +10,8 @@ extends Node
 ## its orbit, the bus's planet, fuel and reserve, the [Ledger], the researched upgrades, whether
 ## research and which stages are open, the passengers on board and in every line, those
 ## who may come back, the goals'
-## progress, the quest under way and how far through the star systems the player has got.
+## progress, the quest under way, how far The Boss's pick-up has got and how far through
+## the star systems the player has got.
 ## The course, the charge and what passengers were doing start afresh. A run the debug panel
 ## fast-forwards is neither: its [FastForward] builds it.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
@@ -82,6 +83,8 @@ const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
 ## Takes a run the debug panel fast-forwards to a later level ([method Campaign.fast_forward])
 ## there, in place of a new run or a continued one.
 @export var fast_forward: FastForward
+## How far The Boss's pick-up has got.
+@export var boss_pick_up: BossPickUp
 
 ## Who waits at each planet. The parent sets it before [method start].
 var waiting: WaitingPassengers
@@ -185,6 +188,8 @@ func start() -> void:
 		quest_giver.changed.connect(_on_changed)
 	if star_map:
 		star_map.changed.connect(_on_changed)
+	if boss_pick_up:
+		boss_pick_up.changed.connect(_on_changed)
 	research_lab.get_research().researched.connect(_on_changed.unbind(1))
 	research_lab.get_research().stage_opened.connect(_on_changed.unbind(1))
 	research_lab.get_research().opened.connect(_on_changed)
@@ -244,6 +249,7 @@ func _write() -> void:
 		"goals": progress,
 		"quests": quest_giver.to_save(cabin.get_passengers()) if quest_giver else [],
 		"vips": vips.to_save() if vips else {},
+		"boss_pick_up": boss_pick_up.to_save() if boss_pick_up else {},
 	}
 	SaveGame.write(run)
 	if star_map:
@@ -302,6 +308,8 @@ func _restore() -> void:
 				Castaway.dress(passenger, passenger.returning)
 			if Vip.is_vip(passenger):
 				Vip.dress(passenger)
+			if BossPassenger.is_boss(passenger):
+				BossPassenger.dress(passenger)
 			cabin.board(passenger)
 	if vips:
 		vips.load_save(_saved.get("vips", {}))
@@ -313,6 +321,8 @@ func _restore() -> void:
 		# A save from before tours were kept apart has one quest.
 		var quests: Array = _saved.get("quests", [_saved.get("quest", {})])
 		quest_giver.load_save(quests, cabin.get_passengers(), by_name)
+	if boss_pick_up:
+		boss_pick_up.load_save(_saved.get("boss_pick_up", {}))
 
 
 func _get_planets_by_name() -> Dictionary[String, Planet]:
@@ -325,7 +335,7 @@ func _get_planets_by_name() -> Dictionary[String, Planet]:
 # Every passenger type that turns up, by its resource path.
 func _get_types_by_path() -> Dictionary[String, PassengerType]:
 	var types: Dictionary[String, PassengerType] = {}
-	for type: PassengerType in waiting.types + [waiting.business, Vip.TYPE]:
+	for type: PassengerType in waiting.types + [waiting.business, Vip.TYPE, BossPassenger.TYPE]:
 		if type:
 			types[type.resource_path] = type
 	return types

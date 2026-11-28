@@ -29,6 +29,9 @@ var planet: Planet:
 			_show_planet()
 ## Whether it is the VIP group, which has no planet. Set it before it is in the tree.
 var vip := false
+## What the header says in place of a planet's name, with no icon, as for The Boss, or
+## empty. Set it before it is in the tree.
+var title := ""
 
 var _star: TextureRect
 var _fold := 1.0
@@ -112,7 +115,7 @@ func _kill_motion() -> void:
 
 func _show_planet() -> void:
 	(%DestinationPlanetIcon as PlanetIcon).planet = planet
-	(%HopIcon as Control).visible = planet == null and not vip
+	(%HopIcon as Control).visible = planet == null and not vip and title.is_empty()
 	var label := %PlanetLabel as Label
 	if vip:
 		label.text = VIP_TEXT
@@ -127,6 +130,8 @@ func _show_planet() -> void:
 			_star.self_modulate = Vip.GOLD
 			_star.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			(%DestinationPlanetIcon as Control).add_sibling(_star)
+	elif not title.is_empty():
+		label.text = title
 	elif not planet:
 		label.text = NOWHERE_TEXT
 	elif planet.display_name:

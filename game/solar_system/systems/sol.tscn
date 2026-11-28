@@ -7,6 +7,7 @@
 [ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
 [ext_resource type="Script" uid="uid://dajf73oqy6see" path="res://game/solar_system/planet_smoke.gd" id="6_smoke"]
 [ext_resource type="Script" uid="uid://b3wlb2uewmlfq" path="res://game/warp_gate/warp_gate.gd" id="7_gate"]
+[ext_resource type="PackedScene" uid="uid://3uyf4jdy67ft" path="res://game/stargate/stargate.tscn" id="8_stargate"]
 [ext_resource type="AudioStream" uid="uid://b2jmgmaf4lxpi" path="res://ui/audio/bgm1.ogg" id="90_music"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
@@ -299,6 +300,9 @@ orbit_material = SubResource("StandardMaterial3D_orbit")
 
 [node name="EarthSmoke" type="Node3D" parent="." unique_id=1998303546 node_paths=PackedStringArray("planet")]
 script = ExtResource("6_smoke")
+planet = NodePath("../Earth")
+
+[node name="EarthStargate" parent="." unique_id=1319889343 node_paths=PackedStringArray("planet") instance=ExtResource("8_stargate")]
 planet = NodePath("../Earth")
 
 [node name="VenusGate" type="Node3D" parent="." unique_id=1539740272 node_paths=PackedStringArray("planet", "partner")]

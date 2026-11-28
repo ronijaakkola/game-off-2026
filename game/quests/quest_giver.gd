@@ -294,7 +294,8 @@ func _pick_caller() -> Passenger:
 	var weights := PackedFloat32Array()
 	for passenger: Passenger in cabin.get_passengers():
 		var touring := _tour and passenger == _tour.passenger
-		if passenger.asleep or touring or _is_arriving(passenger):
+		var riding_along := BossPassenger.is_boss(passenger)
+		if passenger.asleep or touring or riding_along or _is_arriving(passenger):
 			continue
 		if _plan(passenger):
 			able.append(passenger)

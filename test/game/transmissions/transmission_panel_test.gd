@@ -91,3 +91,66 @@ func test_close_while_talking_stops_the_voice() -> void:
 		"", "AudioStreamPlayer", true, false
 	):
 		assert_bool(player.playing).is_false()
+
+
+func test_a_transmission_with_more_to_come_stays_open_until_the_last_is_answered() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as TransmissionPanel
+	var call := Transmission.from_boss()
+	call.text = "First."
+	call.then = Transmission.from_boss()
+	call.then.text = "Second."
+	var answers: Array[bool] = []
+	panel.answered.connect(func(accepted: bool) -> void: answers.append(accepted))
+	panel.open(call)
+	panel.skip()
+
+	panel.accept()
+	var message := runner.find_child("Message") as RichTextLabel
+	var said := await PauseProofWait.for_condition(
+		func() -> bool: return message.get_parsed_text() == "Second.", 3000
+	)
+
+	assert_bool(said).override_failure_message("The second part never came").is_true()
+	if is_failure():
+		return
+	assert_bool(panel.is_open()).is_true()
+	assert_bool(get_tree().paused).is_true()
+	assert_array(answers).is_empty()
+	panel.skip()
+	panel.accept()
+	var answered := await PauseProofWait.for_signal(panel.answered, 3000)
+	assert_bool(answered).override_failure_message("The transmission never closed").is_true()
+	if is_failure():
+		return
+	assert_array(answers).contains_exactly([true])
+	assert_bool(get_tree().paused).is_false()
+
+
+func test_a_caller_in_the_dark_says_their_opening_first_and_ends_in_the_light() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene() as TransmissionPanel
+	var call := Transmission.from_boss()
+	call.opening = "Well."
+	call.text = "Hello."
+	panel.open(call)
+	var eyes := func() -> Array:
+		var shown: Array[Node] = []
+		for portrait: Node in runner.find_child("Talk").get_children():
+			if (portrait as Node3D).visible and not portrait.is_queued_for_deletion():
+				shown.append_array((portrait as AlienPortrait).eyes.filter(_is_shown))
+		return shown
+	assert_array(eyes.call()).is_empty()
+
+	panel.skip()
+	var lit := await PauseProofWait.for_condition(
+		func() -> bool: return not (eyes.call() as Array).is_empty(), 3000
+	)
+
+	assert_bool(lit).override_failure_message("The lights never came on").is_true()
+	var message := runner.find_child("Message") as RichTextLabel
+	assert_str(message.get_parsed_text()).is_equal("Well. Hello.")
+
+
+func _is_shown(eye: MeshInstance3D) -> bool:
+	return eye.visible

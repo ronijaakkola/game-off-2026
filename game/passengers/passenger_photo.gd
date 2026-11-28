@@ -14,7 +14,9 @@ extends Control
 ## pointer over one shows a tooltip with the type's name and description. A returning
 ## passenger ([member Passenger.returning]) wears a badge for it after those, and a flag
 ## badge joins them while a quest is about the passenger, its tooltip saying what the quest
-## asks. A VIP's photo shines ([PhotoShine]) over a backdrop of its own. With
+## asks. A VIP's photo shines ([PhotoShine]) over a backdrop of its own, and someone the
+## player doesn't know yet ([BossPassenger]) is their outline in the dark under a question
+## mark ([PhotoMark]). With
 ## [member flat] on, it is a flat square with rounded corners instead, as big as the minimum
 ## size, with no frame and no tilt.
 
@@ -144,6 +146,10 @@ func _show() -> void:
 		color = Vip.BACKDROP
 		if (%Photo as Control).get_child_count() == 0:
 			(%Photo as Control).add_child(PhotoShine.new())
+	if BossPassenger.is_unknown(passenger):
+		color = TransmissionScreen.SHADOW_BACKDROP
+		if (%Photo as Control).get_child_count() == 0:
+			(%Photo as Control).add_child(PhotoMark.new())
 	_backdrop().set_shader_parameter(&"backdrop_color", color)
 	_backdrop().set_shader_parameter(&"space", adrift)
 	if studio and not _photo and is_inside_tree():
@@ -154,6 +160,9 @@ func _show() -> void:
 func _on_lent(photo: AtlasTexture) -> void:
 	_photo = photo
 	(%Photo as TextureRect).texture = photo
+	# Someone the player doesn't know yet is only their outline in the dark.
+	if photo and BossPassenger.is_unknown(passenger):
+		TransmissionScreen.dress(get_portrait(), null, true)
 
 
 # One badge for each of the passenger's type's, one for coming back, then a flag while a
@@ -164,7 +173,8 @@ func _show_badges() -> void:
 		badges.remove_child(badge)
 		badge.queue_free()
 	_quest_line = passenger.quest_line if passenger else ""
-	if not passenger or not badged:
+	# A badge would say who someone the player doesn't know yet is.
+	if not passenger or not badged or BossPassenger.is_unknown(passenger):
 		return
 	var type := passenger.type
 	for texture: Texture2D in type.badges:

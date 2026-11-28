@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## Seats in the solar system: a VIP takes two, and picking one up on a bus with too few
-## free kicks passengers off to make room, one at a time, with no shock to the rest.
+## free kicks passengers off to make room, one at a time, with no shock to the rest. The
+## Boss takes every seat, and clearing the bus kicks everyone off the same way.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -67,6 +68,50 @@ func test_anyone_else_on_a_full_bus_cannot_be_picked_up() -> void:
 	var someone := waiting.create(bus.get_docked_planet())
 
 	assert_bool(Seating.can_pick_up(cabin, someone)).is_false()
+
+
+func test_the_boss_takes_every_seat_and_nobody_else_boards() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var cabin := runner.find_child("Cabin") as Cabin
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	var waiting := runner.find_child("WaitingPassengers") as WaitingPassengers
+	(runner.find_child("QuestGiver") as QuestGiver).enabled = false
+	var boss := BossPassenger.create(bus.get_docked_planet())
+
+	assert_bool(cabin.board(boss)).is_true()
+
+	assert_int(cabin.get_free_seats()).is_equal(0)
+	assert_bool(cabin.board(waiting.create(bus.get_docked_planet()))).is_false()
+	# Nor a VIP: The Boss is never kicked off to make room.
+	assert_bool(Seating.can_pick_up(cabin, _vip(runner))).is_false()
+
+
+func test_the_boss_does_not_fit_beside_anyone() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var cabin := _fill(runner, 3)
+	var bus := runner.find_child("Bus") as FrameshiftBus
+
+	var boss := BossPassenger.create(bus.get_docked_planet())
+
+	assert_bool(Seating.fits(boss, cabin)).is_false()
+	assert_bool(cabin.board(boss)).is_false()
+
+
+func test_clearing_the_bus_kicks_everyone_one_after_the_other() -> void:
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var cabin := _fill(runner, 2)
+	var kicked: Array[Passenger] = []
+	cabin.kicked.connect(func(passenger: Passenger) -> void: kicked.append(passenger))
+
+	Seating.clear(cabin)
+
+	assert_int(kicked.size()).override_failure_message("the first goes at once").is_equal(1)
+	await runner.simulate_frames(40, 50)
+	assert_int(kicked.size()).is_equal(2)
+	assert_array(cabin.get_passengers()).is_empty()
 
 
 # The cabin, its seats taken by ordinary passengers until [param free] are left, with nobody

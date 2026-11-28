@@ -11,9 +11,10 @@ extends Node
 ## planets, its goals replace the old ones, and The Boss calls about the system
 ## ([FirstShiftCall]); a few deliveries later the mechanic calls with the next research
 ## stage ([MechanicCall]). Where VIPs call, a goal for VIPs delivered on time joins them
-## once VIPs start calling ([VipCalls]). The promotion in the last system joins every
-## system instead: lines start at every planet, passengers go anywhere, and the last goals
-## come.
+## once VIPs start calling ([VipCalls]). In the last system The Boss calls with someone to
+## pick up instead, once ([BossPickUp]). A promotion there joins every system: lines start
+## at every planet, passengers go anywhere, and the last goals come; nothing in play takes
+## it yet.
 ## The debug panel's Progress card has The Boss call at once, or completes the system:
 ## promoted, the bus jumps to the next one at once, as answering the call does. The tutorial
 ## puts its Skip tutorial there too.
@@ -57,6 +58,8 @@ const DEBUG_GROUP := "Progress"
 @export var saver: GameSaver
 ## Shows the jump in place of the goals while the player stays after a promotion.
 @export var goal_panel: GoalPanel
+## What The Boss's call in the last system starts.
+@export var boss_pick_up: BossPickUp
 
 ## The player's credits and ratings, for the quests. The parent sets it.
 var ledger: Ledger
@@ -70,6 +73,8 @@ var _started := false
 var _debug_buttons: Array[Button] = []
 # Seconds of play every goal has held at once.
 var _met_seconds := 0.0
+# Whether The Boss's call that rings is the one that starts their pick-up.
+var _picking_up := false
 
 
 func _ready() -> void:
@@ -103,8 +108,8 @@ func _process(delta: float) -> void:
 		and not system_jump.is_jumping()
 		and not goals.frozen
 		and goals.are_all_met()
-		# What meeting the last system's goals does isn't decided yet: nothing, for now.
-		and not _is_last()
+		# In the last system The Boss calls once, with someone to pick up.
+		and not (_is_last() and (not boss_pick_up or boss_pick_up.is_under_way()))
 	)
 	_met_seconds = _met_seconds + delta if counting else 0.0
 	if _met_seconds >= CALL_DELAY and not quest_giver.is_calling():
@@ -175,7 +180,10 @@ func stay() -> void:
 
 # [param jumps] takes the promotion's jump now, else the bus stays for now.
 func _on_boss_answered(jumps: bool) -> void:
-	if jumps:
+	if _picking_up:
+		_picking_up = false
+		boss_pick_up.begin()
+	elif jumps:
 		advance()
 	else:
 		stay()
@@ -282,14 +290,16 @@ func _on_arrival_call_closed() -> void:
 
 
 # The Boss calls with the promotion now, in the system the bus works in, unless the
-# systems are joined. Nothing happens before the run starts, while the tutorial has the map
-# zoomed in.
+# systems are joined: in the last system, with someone to pick up until they have.
+# Nothing happens before the run starts, while the tutorial has the map zoomed in.
 func _ring() -> void:
 	if not _started or star_map.is_joined() or system_jump.is_jumping():
 		return
 	_met_seconds = 0.0
 	var joins := star_map.get_jump_target() == null and _is_last()
-	boss_call.ring(joins, star_map.get_current().promotion_call)
+	_picking_up = joins and boss_pick_up != null and not boss_pick_up.is_under_way()
+	var own := BossPickUp.CALL_TEXT if _picking_up else star_map.get_current().promotion_call
+	boss_call.ring(joins, own)
 
 
 # Whether the bus works in the last system, whose promotion joins them all.

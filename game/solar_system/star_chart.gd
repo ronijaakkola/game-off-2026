@@ -100,8 +100,9 @@ func is_open() -> bool:
 
 
 ## Pulls the camera back over the stars ([signal opened] once there), closing the open
-## planet's or the bus's panel. Does nothing while it is in use.
-func open() -> void:
+## planet's or the bus's panel, over [member open_seconds] or, when given, [param seconds].
+## Does nothing while it is in use.
+func open(seconds := 0.0) -> void:
 	if _in_use:
 		return
 	_in_use = true
@@ -116,7 +117,7 @@ func open() -> void:
 	if Settings.reduce_motion:
 		_step(1.0)
 	else:
-		_tween_step(0.0, 1.0, open_seconds)
+		_tween_step(0.0, 1.0, seconds if seconds > 0.0 else open_seconds)
 		await _motion.finished
 	opened.emit()
 
@@ -221,7 +222,7 @@ func _step(progress: float) -> void:
 		node.visible = not gone and (system == null or _systems[system])
 		if node is AsteroidField:
 			(node as AsteroidField).set_rock_size(size)
-		elif node is WarpGate:
+		elif node is WarpGate or node is Stargate:
 			node.scale = Vector3.ONE * size
 	var plain := smoothstep(sky_fades, 1.0, progress)
 	sky.background_color = _sky_colors[0].lerp(background_color, plain)
