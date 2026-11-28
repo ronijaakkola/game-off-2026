@@ -117,6 +117,13 @@ func test_docked_at_earth_the_meeting_plays_to_its_end() -> void:
 	var dock := runner.find_child("DockPanel") as DockPanel
 	assert_bool(dock.get_stargate_row().is_open()).is_true()
 	assert_bool((runner.find_child("QuestGiver") as QuestGiver).is_line_free()).is_false()
+	var goals := (runner.find_child("Goals") as GoalTracker).get_goals()
+	var fetched: Array[String] = []
+	for goal: Goal in goals:
+		fetched.append("%s %s" % [goal.get_text(), goal.get_planet().display_name])
+	assert_array(fetched).contains_exactly(
+		["Get the briefcase from Brume", "Get the bowtie from Giant"]
+	)
 
 
 func test_a_save_brings_back_the_quest_or_the_stargate() -> void:
@@ -140,6 +147,18 @@ func test_a_save_brings_back_the_quest_or_the_stargate() -> void:
 
 	assert_bool(gate.built).is_true()
 	assert_bool((runner.find_child("QuestGiver") as QuestGiver).is_line_free()).is_false()
+
+	# The Boss's goals come back, each as far as it had got.
+	var tracker := runner.find_child("Goals") as GoalTracker
+	var brume := runner.find_child("Brume") as Planet
+	tracker.get_goals()[0].bus_docked(brume)
+	var saved := pick_up.to_save()
+	pick_up.load_save(saved)
+	var goals := tracker.get_goals()
+	assert_int(goals.size()).is_equal(2)
+	assert_object(goals[0].get_planet()).is_same(brume)
+	assert_bool(goals[0].is_met()).is_true()
+	assert_bool(goals[1].is_met()).is_false()
 
 
 func test_the_star_chart_leaves_a_stargate_not_yet_built_hidden() -> void:

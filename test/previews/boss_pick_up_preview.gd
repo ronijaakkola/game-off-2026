@@ -1,13 +1,15 @@
 extends Node
 ## The game started in Sol, docked at Earth, with The Boss's pick-up ([BossPickUp]) begun,
 ## so the meeting plays at once: the question mark in the line, the transmission and the
-## lights coming on, the stargate appearing, The Boss boarding, the stargate's row and the
-## map drawing back to the star chart. It answers the transmission and presses the row by
+## lights coming on, the stargate appearing, The Boss boarding, the stargate's row, the
+## map drawing back to the star chart, and The Boss's call about what they left behind,
+## with their goals coming in. It answers the transmissions and presses the row by
 ## itself, so `capture <this scene> --frames N` shows whichever moment N frames in falls on.
 ## With `quest` after `--` the bus starts at Mars instead, so the quest and the marker over
 ## Earth show; with `built`, the stargate is already there. One part alone plays at once
 ## with `gate` (the stargate appearing), `row` (the stargate's row and its guide card) or
-## `chart` (the HUD going and the map drawing back).
+## `chart` (the HUD going and the map drawing back) or `errands` (The Boss's call after
+## the chart, and their goals coming in).
 
 ## Seconds the transmission shows before the preview skips to its end, then answers.
 const READ_SECONDS := 4.5
@@ -33,6 +35,11 @@ func _ready() -> void:
 		pick_up._gate = Stargate.find(get_tree())
 		pick_up._build_gate()
 		return
+	if "errands" in args:
+		await (find_child("Hud") as HudLayout).hide_all()
+		pick_up._send_on_errands()
+		await _answer(find_child("TransmissionPanel") as TransmissionPanel)
+		return
 	if "built" in args or "row" in args or "chart" in args:
 		pick_up.load_save({"stage": BossPickUp.Stage.BUILT})
 		pick_up._busy = "built" not in args
@@ -47,12 +54,20 @@ func _ready() -> void:
 	while not panel.is_open():
 		await get_tree().process_frame
 	for part: int in 2:
-		await get_tree().create_timer(READ_SECONDS).timeout
-		panel.skip()
-		await get_tree().create_timer(ANSWER_SECONDS).timeout
-		panel.accept()
+		await _answer(panel)
 	var row := (find_child("DockPanel") as DockPanel).get_stargate_row()
 	while not (row.is_open() and get_tree().paused):
 		await get_tree().process_frame
 	await get_tree().create_timer(PRESS_SECONDS).timeout
 	row.pressed.emit()
+	while not panel.is_open():
+		await get_tree().process_frame
+	await _answer(panel)
+
+
+# Reads what is said, skips to its end and answers.
+func _answer(panel: TransmissionPanel) -> void:
+	await get_tree().create_timer(READ_SECONDS).timeout
+	panel.skip()
+	await get_tree().create_timer(ANSWER_SECONDS).timeout
+	panel.accept()

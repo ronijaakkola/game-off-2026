@@ -30,6 +30,11 @@ func get_text() -> String:
 	return ""
 
 
+## The planet its text ends on, shown after it as the planet's icon and name, or null.
+func get_planet() -> Planet:
+	return null
+
+
 ## How far along it is, from 0 to 1. 1 once met.
 func get_progress() -> float:
 	return 1.0 if is_met() else 0.0
