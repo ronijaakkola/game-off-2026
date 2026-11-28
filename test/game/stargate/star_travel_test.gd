@@ -2,7 +2,8 @@ extends GdUnitTestSuite
 ## Travel between stars: with the stargate built and the star chart open, the pointer on
 ## a star one link away opens its card, and its Jump button takes the bus there. The chart
 ## closes into that star's system, and the bus flies in to dock beside its stargate
-## burning no fuel, so an almost empty tank still gets there.
+## burning no fuel, so an almost empty tank still gets there. Docking there is no quick
+## stop, and the drive comes in cold even with the Warm drive.
 
 const SOL := "res://test/previews/sol_preview.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -30,7 +31,7 @@ func after_test() -> void:
 	get_tree().paused = false
 
 
-func test_jumping_to_lyra_docks_beside_its_stargate_without_burning_fuel() -> void:
+func test_jumping_to_lyra_docks_beside_its_stargate_without_burning_fuel_or_a_quick_stop() -> void:
 	var runner := scene_runner(SOL)
 	await runner.simulate_frames(2)
 	(runner.find_child("FirstShiftCall") as FirstShiftCall).cancel()
@@ -40,6 +41,7 @@ func test_jumping_to_lyra_docks_beside_its_stargate_without_burning_fuel() -> vo
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var tank := bus.get_fuel_tank()
 	tank.fuel = 0.5 * tank.burn_per_unit
+	bus.get_stats().get_traits().add(BusTraits.Type.WARM_DRIVE)
 	var chart := runner.find_child("StarChart") as StarChart
 	var travel := runner.find_child("StarTravel") as StarTravel
 	await travel.open()
@@ -58,12 +60,14 @@ func test_jumping_to_lyra_docks_beside_its_stargate_without_burning_fuel() -> vo
 	assert_bool(closed).override_failure_message("The chart never closed").is_true()
 	if is_failure():
 		return
-	var docked := func() -> bool: return bus.get_docked_planet() != null
+	var docked := func() -> bool: return bus.state == FrameshiftBus.State.DOCKED
 	assert_bool(await PauseProofWait.for_condition(docked, 8000)).is_true()
 
 	assert_object(star_map.get_current()).is_same(lyra)
 	assert_object(bus.get_docked_planet()).is_same(Stargate.find(get_tree(), lyra).planet)
 	assert_float(tank.fuel).is_equal(0.5 * tank.burn_per_unit)
+	assert_bool(bus.drive.is_quick_stop()).is_false()
+	assert_float(bus.get_warmth()).is_equal(0.0)
 
 
 # Through Input alone, at the window's base size, where its pixels are the viewport's.

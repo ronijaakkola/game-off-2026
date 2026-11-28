@@ -149,6 +149,8 @@ var _stats := BusStats.new()
 var _towing := false
 # Whether the flight under way burns no fuel, as the way in from a stargate.
 var _free := false
+# Whether the stop it is parking for came at the end of a free flight, so it is no quick one.
+var _free_stop := false
 var _glide := DockGlide.new()
 var _speed := 0.0
 var _turn_rate := 0.0
@@ -251,7 +253,8 @@ func tow_to(planet: Planet) -> void:
 
 ## Sends the bus from where it is straight to [param stop] at [param speed], with no
 ## charge, to dock there or come to rest: how it comes out of a jump to another system.
-## With [param free] it burns no fuel until it gets there or its course changes.
+## With [param free] it burns no fuel until it gets there or its course changes, and
+## docking there is no quick stop.
 func fly_in(stop: RouteStop, speed: float, free := false) -> void:
 	_free = free
 	_drive.clear()
@@ -505,6 +508,7 @@ func _turn_toward(direction: Vector3, delta: float) -> void:
 
 
 func _arrive(stop: RouteStop) -> void:
+	_free_stop = _free
 	_free = false
 	_speed = 0.0
 	_turn_rate = 0.0
@@ -515,10 +519,13 @@ func _arrive(stop: RouteStop) -> void:
 	state = State.PARKING
 
 
-# Parked side-on: the bus has docked. It waits there, course or not, for the drive.
+# Parked side-on: the bus has docked. It waits there, course or not, for the drive. Towed
+# in or in from a stargate, it is no quick stop.
 func _finish_docking() -> void:
 	state = State.DOCKED
-	_drive.begin_stop(not _towing, _stats.get_traits().has(BusTraits.Type.WARM_DRIVE))
+	var quick := not _towing and not _free_stop
+	_free_stop = false
+	_drive.begin_stop(quick, _stats.get_traits().has(BusTraits.Type.WARM_DRIVE))
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
 	if _towing:
