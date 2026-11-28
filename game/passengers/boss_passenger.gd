@@ -9,9 +9,13 @@ class_name BossPassenger
 ## and expect no time, so they are as happy as can be all ride and ask for nothing
 ## ([Passenger]), and nobody kicks them off. A save keeps
 ## a look as one of its race's heads, so The Boss from a save is dressed again
-## ([method dress]).
+## ([method dress]). Once their errand is run ([BossErrand]) they are dressed for the
+## board, in a bow tie and with a briefcase ([method dress_up]): another type, the same but
+## for those, so a save keeps it. Their head has no bow tie to show yet.
 
 const TYPE: PassengerType = preload("res://game/passengers/types/boss.tres")
+## What they are once dressed for the board.
+const DRESSED_TYPE: PassengerType = preload("res://game/passengers/types/boss_dressed.tres")
 const NAME := "The Boss"
 ## What they go by until the player meets them.
 const UNKNOWN_NAME := "???"
@@ -42,7 +46,12 @@ static func dress(passenger: Passenger) -> void:
 
 ## Whether [param passenger] is The Boss.
 static func is_boss(passenger: Passenger) -> bool:
-	return passenger != null and passenger.type == TYPE
+	return passenger != null and (passenger.type == TYPE or passenger.type == DRESSED_TYPE)
+
+
+## Dresses [param passenger], The Boss, for the board: a bow tie and a briefcase.
+static func dress_up(passenger: Passenger) -> void:
+	passenger.type = DRESSED_TYPE
 
 
 ## Whether [param passenger] is The Boss before the player has met them.

@@ -335,7 +335,9 @@ func _get_planets_by_name() -> Dictionary[String, Planet]:
 # Every passenger type that turns up, by its resource path.
 func _get_types_by_path() -> Dictionary[String, PassengerType]:
 	var types: Dictionary[String, PassengerType] = {}
-	for type: PassengerType in waiting.types + [waiting.business, Vip.TYPE, BossPassenger.TYPE]:
+	for type: PassengerType in (
+		waiting.types + [waiting.business, Vip.TYPE, BossPassenger.TYPE, BossPassenger.DRESSED_TYPE]
+	):
 		if type:
 			types[type.resource_path] = type
 	return types

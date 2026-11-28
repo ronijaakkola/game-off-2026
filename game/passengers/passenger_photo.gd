@@ -92,6 +92,8 @@ var passenger: Passenger:
 var _photo: AtlasTexture
 # The passenger's quest line the badges were last made for.
 var _quest_line := ""
+# The passenger's type the photo was last made for.
+var _type: PassengerType
 
 
 func _ready() -> void:
@@ -110,6 +112,9 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	if passenger and passenger.type != _type:
+		# Dressed anew, as The Boss is for the board: another portrait, and its badges.
+		passenger = passenger
 	if passenger and passenger.quest_line != _quest_line:
 		_show_badges()
 	var portrait := get_portrait()
@@ -173,6 +178,7 @@ func _show_badges() -> void:
 		badges.remove_child(badge)
 		badge.queue_free()
 	_quest_line = passenger.quest_line if passenger else ""
+	_type = passenger.type if passenger else null
 	# A badge would say who someone the player doesn't know yet is.
 	if not passenger or not badged or BossPassenger.is_unknown(passenger):
 		return

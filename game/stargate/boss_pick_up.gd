@@ -14,14 +14,17 @@ extends Node
 ## to go through the stargate ([StargateRow]), which a guide card has the player press, the
 ## game paused; and the HUD goes while the map draws back, slowly, to the star chart
 ## ([StarChart]), holds, and comes back. From then on nobody calls, a passenger or a VIP,
-## and the row shows the star chart for a moment: going to another star isn't built.
+## and the row opens the star chart to go to another star ([StarTravel]), wherever a
+## stargate is. The Boss then has an errand to run ([BossErrand]).
 ## A save keeps how far it has got ([signal changed]); nothing saves through the meeting,
 ## so a run continued from the middle of it has it again.
 
 ## How far it has got changed, for a save game.
 signal changed
+## The player pressed the stargate's row, once the stargate is built.
+signal travel_pressed
 
-enum Stage { WAITING, CALLED, BUILT }
+enum Stage { WAITING, CALLED, BUILT, ERRAND_DONE }
 
 ## What The Boss says as they call, after the telling off when the call opened by itself.
 const CALL_TEXT := (
@@ -65,10 +68,9 @@ const GATE_HOLD_SECONDS := 1.4
 ## Seconds the row has been in before its guide card opens.
 const CARD_SECONDS := 0.5
 ## Seconds the map takes to draw back to the star chart the first time, and that the chart
-## holds before the map comes back; and how long it holds every time after.
+## holds before the map comes back.
 const REVEAL_SECONDS := 9.0
 const REVEAL_HOLD_SECONDS := 5.0
-const LOOK_SECONDS := 3.0
 const DEBUG_BEGIN_TEXT := "Boss pick-up quest"
 
 @export var bus: FrameshiftBus
@@ -85,6 +87,8 @@ const DEBUG_BEGIN_TEXT := "Boss pick-up quest"
 @export var hud: HudLayout
 @export var rig: CameraRig
 @export var star_chart: StarChart
+## The stargate is built in its last system.
+@export var star_map: StarMap
 ## The card that has the player press the row.
 @export var guide: GuideCard
 ## Saves nothing through the meeting.
@@ -101,7 +105,7 @@ var _cards: TutorialCards
 
 
 func _ready() -> void:
-	_gate = Stargate.find(get_tree())
+	_gate = Stargate.find(get_tree(), star_map.get_systems().back())
 	_cards = TutorialCards.new(guide, CARDS)
 	dock_panel.get_stargate_row().pressed.connect(_on_row_pressed)
 	DebugPanel.add_button(DEBUG_BEGIN_TEXT, begin, self, Progression.DEBUG_GROUP)
@@ -115,12 +119,12 @@ func _exit_tree() -> void:
 func _process(_delta: float) -> void:
 	var here := _is_at_gate()
 	var row := dock_panel.get_stargate_row()
-	if row.is_open() and not (here and _stage == Stage.BUILT):
+	if row.is_open() and not (here and is_built()):
 		row.close(false)
-	elif not row.is_open() and here and _stage == Stage.BUILT and not _busy:
+	elif not row.is_open() and here and is_built() and not _busy:
 		row.open(false)
 	# With The Boss on board nobody calls, a VIP neither: they wait for a free line.
-	if _stage == Stage.BUILT:
+	if is_built():
 		quest_giver.enabled = false
 	var free := quest_giver.is_line_free() and not cabin.is_stopping()
 	if _stage == Stage.CALLED and not _busy and here and free:
@@ -130,6 +134,23 @@ func _process(_delta: float) -> void:
 ## Whether The Boss has called with it, so they don't again.
 func is_under_way() -> bool:
 	return _stage != Stage.WAITING
+
+
+## Whether the stargate is built, with The Boss on board.
+func is_built() -> bool:
+	return _stage >= Stage.BUILT
+
+
+## Whether The Boss's errand is run ([BossErrand]).
+func is_errand_done() -> bool:
+	return _stage >= Stage.ERRAND_DONE
+
+
+## The Boss's errand is run.
+func finish_errand() -> void:
+	if _stage == Stage.BUILT:
+		_stage = Stage.ERRAND_DONE
+		changed.emit()
 
 
 ## The Boss has called: whoever they sent the player for waits at the stargate's planet,
@@ -155,8 +176,8 @@ func load_save(saved: Dictionary) -> void:
 		_stage = Stage.WAITING
 	elif _stage == Stage.CALLED:
 		_wait(false)
-	elif _stage == Stage.BUILT:
-		_gate.built = true
+	elif is_built():
+		Stargate.build_all(get_tree())
 
 
 # They wait at the stargate's planet under their marker, and the quest shows.
@@ -169,9 +190,11 @@ func _wait(animated: bool) -> void:
 	goal_panel.show_quest(_quest, animated)
 
 
-# Whether the bus waits at the stargate's planet.
+# Whether the bus waits at the planet of the stargate The Boss builds or, once it is
+# built, of the one in the system the bus works in.
 func _is_at_gate() -> bool:
-	return _gate != null and bus.is_at_planet() and bus.get_docked_planet() == _gate.planet
+	var gate := Stargate.find(get_tree(), star_map.get_current()) if is_built() else _gate
+	return gate != null and bus.is_at_planet() and bus.get_docked_planet() == gate.planet
 
 
 # The meeting, from the bus docking to the star chart.
@@ -247,6 +270,7 @@ func _build_gate() -> void:
 	rig.focus(_gate, Stargate.RADIUS, reach)
 	await _pause(rig.get_focus_seconds())
 	await _gate.appear()
+	Stargate.build_all(get_tree())
 	await _pause(GATE_HOLD_SECONDS)
 	rig.release_focus()
 	await _pause(rig.get_focus_seconds())
@@ -290,10 +314,8 @@ func _pause(seconds: float) -> void:
 	await get_tree().create_timer(seconds, false).timeout
 
 
-# The row pressed once the stargate is built: the star chart shows for a moment.
+# The row pressed once the stargate is built: the star chart opens to go to another star.
 func _on_row_pressed() -> void:
-	if _busy or _stage != Stage.BUILT or star_chart.is_open():
+	if _busy or not is_built() or star_chart.is_open():
 		return
-	_busy = true
-	await _show_chart(0.0, LOOK_SECONDS)
-	_busy = false
+	travel_pressed.emit()

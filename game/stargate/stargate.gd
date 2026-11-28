@@ -3,7 +3,8 @@ extends Node3D
 ## The stargate The Boss has built beside [member planet], which the bus goes through from
 ## one star to another: a ring of dark hull with pale clamps and amber lamps round an
 ## opening that glows. Until it is [member built] it isn't there; [method appear] builds it
-## as the player watches. It keeps beside the planet as it orbits, on the side away from the
+## as the player watches, and the other systems' are there from then on
+## ([method build_all]). It keeps beside the planet as it orbits, on the side away from the
 ## star as a warp gate does, further out, and turns slowly. Its hull is lit as the planets
 ## are, from its planet's star.
 
@@ -51,9 +52,19 @@ var _glow := StandardMaterial3D.new()
 var _appearing: Tween
 
 
-## The stargate in [param tree], or null without one.
-static func find(tree: SceneTree) -> Stargate:
-	return tree.get_first_node_in_group(GROUP) as Stargate
+## The stargate in [param tree] that floats in [param system], or null without one.
+static func find(tree: SceneTree, system: StarSystem) -> Stargate:
+	for node: Node in tree.get_nodes_in_group(GROUP):
+		var gate := node as Stargate
+		if gate.planet and system.has_planet(gate.planet):
+			return gate
+	return null
+
+
+## Every stargate in [param tree] is there, as the first one is once it is built.
+static func build_all(tree: SceneTree) -> void:
+	for node: Node in tree.get_nodes_in_group(GROUP):
+		(node as Stargate).built = true
 
 
 func _ready() -> void:

@@ -16,13 +16,19 @@ static func of(run: Dictionary) -> Dictionary:
 
 ## The star map's part of a save: [param opened] systems open, [param joined] or not, and the
 ## bus in [param system].
-static func make(opened: int, joined: bool, system: String) -> Dictionary:
-	return {"opened": opened, "joined": joined, "system": system}
+static func make(opened: int, joined: bool, system: String, reached := 0) -> Dictionary:
+	return {"opened": opened, "joined": joined, "system": system, "reached": reached}
 
 
 ## How many systems [param saved] has open, from 1.
 static func get_opened(saved: Dictionary) -> int:
 	return int(saved.get("opened", 1))
+
+
+## How many systems the bus has been to, in the order they open. 0 in a save from before
+## the bus could go back to one.
+static func get_reached(saved: Dictionary) -> int:
+	return int(saved.get("reached", 0))
 
 
 static func is_joined(saved: Dictionary) -> bool:

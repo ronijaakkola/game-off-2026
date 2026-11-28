@@ -1,11 +1,12 @@
 [gd_scene format=3 uid="uid://dl00qj1joo6lh"]
 
 [ext_resource type="Script" uid="uid://b60byqdjkmg8f" path="res://game/solar_system/star_system.gd" id="1_system"]
-[ext_resource type="AudioStream" uid="uid://b2jmgmaf4lxpi" path="res://ui/audio/bgm1.ogg" id="90_music"]
 [ext_resource type="Script" uid="uid://bcxthsqtxqd30" path="res://game/solar_system/planet.gd" id="2_planet"]
 [ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
 [ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
+[ext_resource type="PackedScene" uid="uid://3uyf4jdy67ft" path="res://game/stargate/stargate.tscn" id="10_stargate"]
+[ext_resource type="AudioStream" uid="uid://b2jmgmaf4lxpi" path="res://ui/audio/bgm1.ogg" id="90_music"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.4
@@ -135,14 +136,14 @@ shader_parameter/cap_size = 0.22
 shader_parameter/seed = 37.0
 shader_parameter/terminator_softness = 0.0
 
-[node name="Vela" type="Node3D" unique_id=500631542 node_paths=PackedStringArray("star", "halo", "home")]
-star = NodePath("Star")
-halo = NodePath("Star/Halo")
+[node name="Vela" type="Node3D" unique_id=500631542 node_paths=PackedStringArray("home", "star", "halo")]
 script = ExtResource("1_system")
 display_name = "Vela"
 music = ExtResource("90_music")
 home = NodePath("Ember")
 deliveries = 20
+star = NodePath("Star")
+halo = NodePath("Star/Halo")
 
 [node name="Star" type="Node3D" parent="." unique_id=1776589872]
 
@@ -238,3 +239,6 @@ has_lab = true
 tagline = "Last stop before the dark"
 lore = "Frost circles farthest from the star, and its people like it that way: long nights, quiet labs and a sky of stars no one else gets to see. Buses are rare out here, so a full one pulling in gets a cheer."
 orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="FrostStargate" parent="." unique_id=1815368794 node_paths=PackedStringArray("planet") instance=ExtResource("10_stargate")]
+planet = NodePath("../Frost")

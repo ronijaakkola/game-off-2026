@@ -1,0 +1,50 @@
+class_name StarLinks
+extends Control
+## The dashed lines between the stars on the [StarChart]: one from each star system the
+## bus has been to to the next, in the order they open, so the stars read as one line. Each
+## stops short of both stars. They fade in over the last part of the pull back and out
+## again as it closes. The links from the star the bus is beside are brighter: the bus
+## goes through the stargate one link at a time ([method StarMap.can_travel]).
+
+## How far from each star's centre a link stops, in units.
+const GAP := 10.0
+## How far through the pull back the links start to show.
+const SHOWS_FROM := 0.75
+const WIDTH := 2.0
+const DASH := 8.0
+const COLOR := Color(1.0, 1.0, 1.0, 0.25)
+const NEAR_COLOR := Color(1.0, 1.0, 1.0, 0.55)
+
+@export var star_chart: StarChart
+@export var star_map: StarMap
+
+
+func _process(_delta: float) -> void:
+	var shown := star_chart.get_progress() > SHOWS_FROM
+	if shown or visible:
+		visible = shown
+		queue_redraw()
+
+
+func _draw() -> void:
+	var camera := get_viewport().get_camera_3d()
+	if not camera:
+		return
+	var strength := smoothstep(SHOWS_FROM, 1.0, star_chart.get_progress())
+	var systems := star_map.get_visited()
+	var current := star_map.get_current()
+	for i: int in systems.size() - 1:
+		var from := systems[i].global_position
+		var to := systems[i + 1].global_position
+		var along := (to - from).normalized()
+		var near := systems[i] == current or systems[i + 1] == current
+		var color := NEAR_COLOR if near else COLOR
+		draw_dashed_line(
+			camera.unproject_position(from + along * GAP),
+			camera.unproject_position(to - along * GAP),
+			Color(color, color.a * strength),
+			WIDTH,
+			DASH,
+			true,
+			true
+		)

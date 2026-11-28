@@ -1,0 +1,167 @@
+[gd_scene format=3 uid="uid://lew76c88ihm5"]
+
+[ext_resource type="Script" uid="uid://d35hxbjlnfpnj" path="res://game/solar_system/star_card.gd" id="1_card"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_planet"]
+[ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://shared/icons/flag.svg" id="4_flag"]
+[ext_resource type="Texture2D" uid="uid://suwje6nuvyor" path="res://shared/icons/bus.svg" id="5_bus"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 1, 1, 0.0706)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="StarCard" type="Control" unique_id=1363833381]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 208.0
+offset_bottom = 100.0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_card")
+
+[node name="Body" type="Control" parent="." unique_id=2063054673]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_right = 208.0
+offset_bottom = 100.0
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="Body" unique_id=1919924665]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 196.0
+offset_bottom = 88.0
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Body/Content" unique_id=1685089166]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Dot" type="Panel" parent="Body/Content/Header" unique_id=1866234720]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot")
+
+[node name="Names" type="VBoxContainer" parent="Body/Content/Header" unique_id=322793249]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = -2
+
+[node name="NameLabel" type="Label" parent="Body/Content/Header/Names" unique_id=1324393696]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"GuideTitleLabel"
+text = "Lyra"
+
+[node name="PlanetsLabel" type="Label" parent="Body/Content/Header/Names" unique_id=2004015698]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"DimLabel"
+text = "5 planets"
+
+[node name="Here" type="HBoxContainer" parent="Body/Content" unique_id=110352763]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="BusIcon" type="TextureRect" parent="Body/Content/Here" unique_id=693864771]
+self_modulate = Color(0.961, 0.78, 0.29, 1)
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("5_bus")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HereLabel" type="Label" parent="Body/Content/Here" unique_id=1308127829]
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+theme_override_colors/font_color = Color(0.961, 0.78, 0.29, 1)
+text = "You are here"
+
+[node name="Quest" type="PanelContainer" parent="Body/Content" unique_id=1472347720]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_quest")
+
+[node name="Row" type="HBoxContainer" parent="Body/Content/Quest" unique_id=407210653]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="FlagIconNudge" type="MarginContainer" parent="Body/Content/Quest/Row" unique_id=1598607782]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 2
+
+[node name="FlagIcon" type="TextureRect" parent="Body/Content/Quest/Row/FlagIconNudge" unique_id=2006273390]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(13, 13)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("4_flag")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuestLabel" type="Label" parent="Body/Content/Quest/Row" unique_id=869012478]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+theme_override_colors/font_color = Color(0.957, 0.945, 1, 0.651)
+text = "Stop at"
+
+[node name="QuestPlanetIconNudge" type="MarginContainer" parent="Body/Content/Quest/Row" unique_id=1792378954]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/margin_top = 4
+
+[node name="QuestPlanetIcon" type="ColorRect" parent="Body/Content/Quest/Row/QuestPlanetIconNudge" unique_id=105625676]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3_planet")
+
+[node name="QuestPlanetLabel" type="Label" parent="Body/Content/Quest/Row" unique_id=1051074688]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TinyLabel"
+text = "Hither"
+
+[node name="JumpButton" type="Button" parent="Body/Content" unique_id=1358661679]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "Jump here"
+
+[connection signal="pressed" from="Body/Content/JumpButton" to="." method="_on_jump_button_pressed"]
