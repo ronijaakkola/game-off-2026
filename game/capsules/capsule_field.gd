@@ -2,9 +2,9 @@ class_name CapsuleField
 extends Node3D
 ## The capsules adrift in the star system the bus works in ([Capsule]). Once the run proper
 ## starts, a new one appears every [member min_interval] to [member max_interval] seconds
-## while fewer than [member max_capsules] drift, somewhere open: between the heat zone and
-## the edge the camera stops at, clear of the planets and away from the bus. Each drifts
-## for [member lifetime] seconds and is gone uncollected.
+## while fewer than that system's [member max_capsules] drift, somewhere open: between the
+## heat zone and the edge the camera stops at, clear of the planets and away from the bus.
+## Each drifts for [member lifetime] seconds and is gone uncollected.
 ## Every capsule looks alike, and what it holds is rolled as the bus collects it: the
 ## [Castaway] by [method get_castaway_chance], which climbs with every capsule that held
 ## someone else ([member castaway_misses]) until it is certain, else credits, research
@@ -45,6 +45,8 @@ const BUS_CLEARANCE := 5.0
 const PLACE_TRIES := 12
 ## How far ahead of the bus the debug panel puts a capsule when no place is open.
 const DEBUG_AHEAD := 2.5
+## How far apart side by side the debug panel puts capsules ahead of the bus.
+const DEBUG_SPACING := 0.8
 const DEBUG_GROUP := "Capsules"
 const DOLLAR_ICON := preload("res://shared/icons/dollar_sign.svg")
 const RESEARCH_ICON := preload("res://shared/icons/flask_conical.svg")
@@ -56,10 +58,11 @@ const HOPPED_ICON := preload("res://game/capsules/icons/log_out.svg")
 
 ## Whether new capsules appear. Those adrift stay either way.
 @export var enabled := true
-@export_range(0, 10) var max_capsules := 2
+## How many capsules drift at once in each star system, in the order they open.
+@export var max_capsules: Array[int] = [2, 3, 3]
 ## Seconds between one capsule appearing and the next, a random value between the two.
-@export_range(1.0, 600.0, 1.0) var min_interval := 40.0
-@export_range(1.0, 600.0, 1.0) var max_interval := 70.0
+@export_range(1.0, 600.0, 1.0) var min_interval := 25.0
+@export_range(1.0, 600.0, 1.0) var max_interval := 45.0
 ## Seconds a capsule drifts before it is gone uncollected.
 @export_range(5.0, 600.0, 1.0) var lifetime := 90.0
 ## Units a second a capsule drifts: a fraction of the slowest planet.
@@ -133,6 +136,7 @@ func _ready() -> void:
 	DebugPanel.add_button(
 		"Passenger capsule", _debug_spawn.bind(Capsule.Contents.PASSENGER), self, DEBUG_GROUP
 	)
+	DebugPanel.add_button("Fill capsules", _debug_fill, self, DEBUG_GROUP)
 
 
 func _process(delta: float) -> void:
@@ -145,7 +149,7 @@ func _process(delta: float) -> void:
 			_remove(capsule)
 		elif _is_touching(capsule):
 			_collect(capsule)
-	if not _started or not enabled or _capsules.size() >= max_capsules:
+	if not _started or not enabled or _capsules.size() >= _for_level(max_capsules):
 		return
 	_until_next -= delta
 	if _until_next > 0.0:
@@ -251,7 +255,7 @@ func _collect(capsule: Capsule) -> void:
 		Capsule.Contents.PASSENGER:
 			_pay_credits(capsule)
 		Capsule.Contents.RESEARCH:
-			var points := _reward(REWARD_RESEARCH)
+			var points := _for_level(REWARD_RESEARCH)
 			if ledger:
 				ledger.earn_research(points)
 			_show_earnings()
@@ -360,7 +364,7 @@ func _get_rewards() -> Array[Capsule.Contents]:
 
 
 func _pay_credits(capsule: Capsule) -> void:
-	var credits := capsule.credits if capsule.credits > 0 else _reward(REWARD_CREDITS)
+	var credits := capsule.credits if capsule.credits > 0 else _for_level(REWARD_CREDITS)
 	if ledger:
 		ledger.earn(credits)
 	_show_earnings()
@@ -386,7 +390,7 @@ func _stamp(text: String, icon: Texture2D, kind: BusQuickText.Kind) -> void:
 		quick_text.show_text(text, icon, kind)
 
 
-func _reward(by_level: Array[int]) -> int:
+func _for_level(by_level: Array[int]) -> int:
 	return by_level[mini(_level, by_level.size() - 1)]
 
 
@@ -435,11 +439,28 @@ func _debug_spawn(contents: Capsule.Contents) -> void:
 	if not bus or not star_map:
 		return
 	_started = true
+	spawn(_debug_place(0), contents)
+
+
+# As many capsules as the star system can have adrift, rolled as they are collected, as
+# ones appearing by themselves would be.
+func _debug_fill() -> void:
+	if not bus or not star_map:
+		return
+	_started = true
+	for i: int in _for_level(max_capsules) - _capsules.size():
+		spawn(_debug_place(i), Capsule.Contents.UNDECIDED)
+
+
+# Somewhere open, or ahead of the bus when no place is open, the [param index]th a little
+# further to the side so they don't overlap.
+func _debug_place(index: int) -> Vector3:
 	var at: Variant = _find_place()
-	if at == null:
-		var ahead := -bus.global_basis.z
-		ahead = Vector3(ahead.x, 0.0, ahead.z).normalized()
-		if ahead == Vector3.ZERO:
-			ahead = Vector3.FORWARD
-		at = bus.global_position + ahead * DEBUG_AHEAD
-	spawn(at, contents)
+	if at != null:
+		return at
+	var ahead := -bus.global_basis.z
+	ahead = Vector3(ahead.x, 0.0, ahead.z).normalized()
+	if ahead == Vector3.ZERO:
+		ahead = Vector3.FORWARD
+	var side := ahead.cross(Vector3.UP) * DEBUG_SPACING * index
+	return bus.global_position + ahead * DEBUG_AHEAD + side
