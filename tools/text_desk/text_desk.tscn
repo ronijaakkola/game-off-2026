@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://cw1mvalwgtym2"]
+
+[ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="1_system"]
+[ext_resource type="Script" uid="uid://d1cprtbbffgg2" path="res://tools/text_desk/text_desk.gd" id="2_desk"]
+
+[node name="TextDesk" type="Node" unique_id=595945321]
+
+[node name="SolarSystem" parent="." unique_id=449374029 instance=ExtResource("1_system")]
+
+[node name="Desk" type="CanvasLayer" parent="." unique_id=526837270 node_paths=PackedStringArray("solar")]
+script = ExtResource("2_desk")
+solar = NodePath("../SolarSystem")
