@@ -60,6 +60,12 @@ func test_jumping_to_lyra_docks_beside_its_stargate_without_burning_fuel_or_a_qu
 	assert_bool(closed).override_failure_message("The chart never closed").is_true()
 	if is_failure():
 		return
+	var parking := func() -> bool: return bus.state == FrameshiftBus.State.PARKING
+	assert_bool(await PauseProofWait.for_condition(parking, 8000)).is_true()
+	# The next course, set as it parks, keeps the stop no quick one.
+	var gate_planet := Stargate.find(get_tree(), lyra).planet
+	var other := lyra.get_planets().filter(func(p: Planet) -> bool: return p != gate_planet)
+	bus.plot_course(RouteStop.at_planet(other[0] as Planet))
 	var docked := func() -> bool: return bus.state == FrameshiftBus.State.DOCKED
 	assert_bool(await PauseProofWait.for_condition(docked, 8000)).is_true()
 

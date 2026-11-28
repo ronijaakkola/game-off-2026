@@ -147,10 +147,9 @@ var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new(charge_time, quick_time, warm_charge_time)
 var _stats := BusStats.new()
 var _towing := false
-# Whether the flight under way burns no fuel, as the way in from a stargate.
+# Whether the flight under way burns no fuel and the stop at its end is no quick one, as
+# the way in from a stargate.
 var _free := false
-# Whether the stop it is parking for came at the end of a free flight, so it is no quick one.
-var _free_stop := false
 var _glide := DockGlide.new()
 var _speed := 0.0
 var _turn_rate := 0.0
@@ -191,7 +190,9 @@ func _ready() -> void:
 func plot_course(stop: RouteStop, add := false) -> void:
 	if _towing or route_locked or (%FuelTank as FuelTank).is_empty():
 		return
-	_free = false
+	# Parking, the flight is over but the stop at its end is still to come.
+	if state != State.PARKING:
+		_free = false
 	if not add:
 		_route.clear()
 	RouteEditing.add(_route, stop)
@@ -508,11 +509,10 @@ func _turn_toward(direction: Vector3, delta: float) -> void:
 
 
 func _arrive(stop: RouteStop) -> void:
-	_free_stop = _free
-	_free = false
 	_speed = 0.0
 	_turn_rate = 0.0
 	if not stop.planet:
+		_free = false
 		state = State.HOLDING
 		return
 	_dock(stop.planet, global_position - stop.planet.get_body_global_position())
@@ -523,9 +523,8 @@ func _arrive(stop: RouteStop) -> void:
 # in or in from a stargate, it is no quick stop.
 func _finish_docking() -> void:
 	state = State.DOCKED
-	var quick := not _towing and not _free_stop
-	_free_stop = false
-	_drive.begin_stop(quick, _stats.get_traits().has(BusTraits.Type.WARM_DRIVE))
+	_drive.begin_stop(not _towing and not _free, _stats.get_traits().has(BusTraits.Type.WARM_DRIVE))
+	_free = false
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
 	if _towing:
