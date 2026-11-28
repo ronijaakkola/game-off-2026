@@ -4,7 +4,8 @@ extends Control
 ## long as any tooltip waits, a [Tooltip] in running text saying what it is opens above the
 ## pointer and follows it, and closes when the pointer leaves it or reaches the HUD. A
 ## script that extends it says what it names ([method _get_text]) and where that is on
-## screen ([method _is_over]).
+## screen ([method _is_over]), and may put a title over it ([method _get_title]) and turn
+## the text red while something stops the player using it ([method _is_warning]).
 
 const TOOLTIP := preload("res://ui/tooltip/tooltip.tscn")
 ## Pixels between the pointer and the card.
@@ -23,8 +24,9 @@ func _ready() -> void:
 	size = Vector2.ZERO
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tooltip = TOOLTIP.instantiate() as Tooltip
-	# Running text with no name over it, as a research planet's tooltip is.
-	_tooltip.title = ""
+	# Running text with no name over it, as a research planet's tooltip is, unless the
+	# script gives one.
+	_tooltip.title = _get_title()
 	_tooltip.sentence = _get_text()
 	_tooltip.side = Tooltip.Side.ABOVE
 	_tooltip.gap = GAP
@@ -49,6 +51,12 @@ func _process(delta: float) -> void:
 	var text := _get_text()
 	if text != _tooltip.sentence:
 		_tooltip.sentence = text
+	var title := _get_title()
+	if title != _tooltip.title:
+		_tooltip.title = title
+	var warning := _is_warning()
+	if warning != _tooltip.warning:
+		_tooltip.warning = warning
 	_rested += delta
 	if _rested >= _tooltip.rest_seconds:
 		_tooltip.target = self
@@ -59,6 +67,17 @@ func _process(delta: float) -> void:
 ## [method _is_over].
 func _get_text() -> String:
 	return ""
+
+
+## A title over the text, or empty for none. Asked each frame after [method _get_text].
+func _get_title() -> String:
+	return ""
+
+
+## Whether the text reads in red, as what stops the player using what it names. Asked each
+## frame after [method _get_text].
+func _is_warning() -> bool:
+	return false
 
 
 ## Whether what it names is under the pointer at [param _pointer_at], seen through

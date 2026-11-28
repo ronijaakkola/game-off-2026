@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://crl17m0xkq6oh" path="res://ui/tooltip/tooltip.gd" id="1_tooltip"]
 [ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" uid="uid://ccmjknmmwvtlt" path="res://shared/icons/triangle_alert.svg" id="3_alert"]
 
 [node name="Tooltip" type="PanelContainer" unique_id=745819099]
 visible = false
@@ -23,7 +24,25 @@ layout_mode = 2
 theme_type_variation = &"SmallStrongLabel"
 text = "Name"
 
-[node name="SentenceLabel" type="Label" parent="Rows" unique_id=1795591975]
+[node name="SentenceRow" type="HBoxContainer" parent="Rows" unique_id=1633490285]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="WarningIcon" type="TextureRect" parent="Rows/SentenceRow" unique_id=257356913]
+unique_name_in_owner = true
+visible = false
+self_modulate = Color(0.949, 0.302, 0.4, 1)
+custom_minimum_size = Vector2(13, 13)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("3_alert")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SentenceLabel" type="Label" parent="Rows/SentenceRow" unique_id=1795591975]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TooltipSentenceLabel"

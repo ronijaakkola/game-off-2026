@@ -4,16 +4,21 @@ extends Node
 ## a gate, the dock panel's warp button reads where it goes and what it costs, and is on
 ## while the tank holds that much and the bus can go. A right click on that gate in the world,
 ## as on a stop, does what the button does, and the pointer on it shows the way as the
-## button's does. Pressed, the fuel comes out of the tank
-## and the bus warps through the gate as it jumps between star systems ([method SystemJump.warp]),
-## coming out of the other gate and flying the short way in to dock at its planet. Its
-## course is gone; whoever is on board rides along. With Gate tuning it costs
-## [constant TUNED_SHARE] of what the gate asks.
+## button's does: where it goes over what it costs, the cost in red while the tank holds
+## too little. Pressed, the bus warps
+## through the gate as it jumps between star systems ([method SystemJump.warp]), coming out
+## of the other gate and flying the short way in to dock at its planet. The fuel comes out
+## of the tank as it comes out, not as it leaves, so the Pit crew doesn't top the tank up
+## at the planet it leaves. Its course is gone; whoever is on board rides along. With Gate
+## tuning it costs [constant TUNED_SHARE] of what the gate asks.
 
 ## The bus came out of the far gate, with whoever is on board.
 signal warped
 
 const TEXT := "Warp to %s (%d%% fuel)"
+const ROUTE_TEXT := "Warp from %s to %s"
+const COST_TEXT := "Costs %d%% fuel"
+const SHORT_TEXT := "Not enough fuel (%d%%)"
 const TUNED_SHARE := 0.5
 
 @export var bus: FrameshiftBus
@@ -22,6 +27,9 @@ const TUNED_SHARE := 0.5
 @export var cabin: Cabin
 ## Plays the warp.
 @export var system_jump: SystemJump
+
+# The fuel the warp under way takes as the bus comes out.
+var _cost := 0.0
 
 
 func _ready() -> void:
@@ -64,6 +72,29 @@ func get_offer(gate: WarpGate) -> String:
 	return TEXT % [gate.partner.planet.display_name, roundi(_fuel_share(gate) * 100.0)]
 
 
+## Where going through [param gate] goes, from its planet to the other's, as the gate's
+## tooltip reads it. Empty unless it is the gate beside the planet the bus is docked at.
+func get_route(gate: WarpGate) -> String:
+	if not gate or gate != _gate():
+		return ""
+	return ROUTE_TEXT % [gate.planet.display_name, gate.partner.planet.display_name]
+
+
+## What going through [param gate] costs, or that the tank holds too little for it, as the
+## gate's tooltip reads it. Empty unless it is the gate beside the planet the bus is docked
+## at.
+func get_cost(gate: WarpGate) -> String:
+	if not gate or gate != _gate():
+		return ""
+	var share := roundi(_fuel_share(gate) * 100.0)
+	return (COST_TEXT if _can_pay(gate) else SHORT_TEXT) % share
+
+
+## Whether the tank holds too little to go through [param gate], the docked planet's.
+func is_short(gate: WarpGate) -> bool:
+	return gate != null and gate == _gate() and not _can_pay(gate)
+
+
 # The gate beside the planet the bus is docked at, when it leads somewhere.
 func _gate() -> WarpGate:
 	if not bus.is_at_planet():
@@ -97,8 +128,7 @@ func _on_teleport_pressed() -> void:
 	var gate := _gate()
 	if not gate or not _can_go() or not _can_pay(gate):
 		return
-	var tank := bus.get_fuel_tank()
-	tank.fuel -= _fuel_share(gate) * tank.capacity
+	_cost = _fuel_share(gate) * bus.get_fuel_tank().capacity
 	system_jump.warp(gate, gate.partner)
 
 
@@ -109,4 +139,7 @@ func _fuel_share(gate: WarpGate) -> float:
 
 
 func _on_came_through(_gate: WarpGate) -> void:
+	var tank := bus.get_fuel_tank()
+	tank.fuel = maxf(tank.fuel - _cost, 0.0)
+	_cost = 0.0
 	warped.emit()
