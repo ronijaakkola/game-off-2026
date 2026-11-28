@@ -5,6 +5,10 @@ extends MarginContainer
 ## under it. The screen renders the portrait and hands the card its picture
 ## ([method show_photo]).
 
+## The photo was clicked or tapped, [param across] it from 0 at its left edge to 1 at its
+## right.
+signal photo_tapped(across: float)
+
 ## Whose card it is.
 @export var creator := CreatorPortrait.Creator.RONI
 @export var display_name := ""
@@ -24,6 +28,7 @@ func _ready() -> void:
 	(%GuestName as Label).text = guest_name
 	(%GuestRoles as Label).text = guest_roles
 	(%Frame as Control).rotation = deg_to_rad(-tilt)
+	(%Frame as Control).gui_input.connect(_on_frame_gui_input)
 	var backdrop := (%Backdrop as ColorRect).material as ShaderMaterial
 	var race := CreatorPortrait.RACES[creator]
 	backdrop.set_shader_parameter(&"backdrop_color", Race.BACKDROP_COLORS[race])
@@ -39,3 +44,10 @@ func show_guest(here: float) -> void:
 ## Shows [param photo], the render of their portrait, in the frame.
 func show_photo(photo: Texture2D) -> void:
 	(%Photo as TextureRect).texture = photo
+
+
+# A touch arrives as a left click too, as Godot makes one from it.
+func _on_frame_gui_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
+		photo_tapped.emit(click.position.x / (%Frame as Control).size.x)

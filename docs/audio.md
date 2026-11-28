@@ -43,6 +43,8 @@ What plays, what is missing, and what each clip is. Levels are the mixer's table
 | `game/transmissions/voice/orange/` | 61: blips 18, long 8, question 9, exclaim 7, annoyed 3, happy 5, scared 9, kicked 2 | The same | Done |
 | `game/transmissions/voice/green/` | 61: blips 19, long 8, question 4, exclaim 7, annoyed 6, happy 8, scared 7, kicked 2 | The same. Major Tim, the castaway, talks in it too | Done |
 
+Clicking or tapping a photo on the Credits screen plays a happy stinger, and from the 4th tap of a run (taps no more than 2.5 s apart) an annoyed one: Roni in Blue's voice at a pitch of 1.0, Marko in Green's at 0.8, Sami in Orange's at 0.7 and Henna in Orange's at 1.25, each at the voice's volume.
+
 A kicked passenger screams one of their race's kicked clips (`k`), at their pitch times the voice's `kicked_pitch`, fading out over `kicked_fade`, at the voice's volume times `kicked_volume`. The kick is off in the game: hear it in the voice lab's Kicked button or the mixer's Kicked line.
 
 ## What is still silent
