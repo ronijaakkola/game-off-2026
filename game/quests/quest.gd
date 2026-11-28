@@ -57,6 +57,11 @@ func get_planet() -> Planet:
 	return null
 
 
+## What follows the planet's name in what it asks, such as "when hot enough", or empty.
+func get_condition() -> String:
+	return ""
+
+
 ## The transmission that offers it: the passenger, what they say, what they ask and the
 ## reward.
 func get_transmission() -> Transmission:

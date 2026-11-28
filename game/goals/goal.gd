@@ -94,6 +94,13 @@ func bus_held(position: Vector3, on_board: Array[Passenger]) -> void:
 		_on_bus_held(position, on_board)
 
 
+## Every frame the bus is at [param planet], parking, docked or charging there, with
+## [param on_board] riding.
+func bus_stopped_at(planet: Planet, on_board: Array[Passenger]) -> void:
+	if is_active():
+		_on_bus_stopped_at(planet, on_board)
+
+
 ## The bus went through a warp gate with [param on_board] riding.
 func bus_warped(on_board: Array[Passenger]) -> void:
 	if is_active():
@@ -149,6 +156,10 @@ func _on_credits_earned(_amount: int) -> void:
 
 
 func _on_bus_held(_position: Vector3, _on_board: Array[Passenger]) -> void:
+	pass
+
+
+func _on_bus_stopped_at(_planet: Planet, _on_board: Array[Passenger]) -> void:
 	pass
 
 

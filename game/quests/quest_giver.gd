@@ -9,7 +9,7 @@ extends Node
 ## VIP's tour ([VipCalls]) is tracked apart from that one, so a passenger's quest and a tour
 ## can be under way at once.
 ## A passenger picked up from a capsule adrift has the transmission of their [RescueQuest],
-## or in the first star system their [HopQuest], open
+## or in the first star system their [HopQuest] and in the second their [WindowHopQuest], open
 ## by itself, with no notice, [constant RESCUE_SECONDS] after ([method rescue]). They board
 ## only when the player accepts; declined, they stay adrift, at no cost.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the
@@ -322,7 +322,7 @@ func _plan(passenger: Passenger) -> Quest:
 
 
 func _plan_rescue(passenger: Passenger) -> Quest:
-	var quest: Quest = HopQuest.new() if _level == 0 else RescueQuest.new()
+	var quest := QuestPicks.for_castaway(_level)
 	quest.level = _level
 	return quest if quest.plan(passenger, bus, _planets, _waiting, _rng) else null
 

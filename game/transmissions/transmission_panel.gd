@@ -326,7 +326,8 @@ func _fill_words(transmission: Transmission) -> void:
 	(%Quest as Control).visible = transmission.is_quest()
 	(%QuestLabel as Label).text = transmission.quest
 	(%QuestPlanetIcon as PlanetIcon).planet = transmission.quest_planet
-	(%QuestPlanetLabel as Label).text = _planet_name(transmission.quest_planet)
+	var about := _planet_name(transmission.quest_planet) + " " + transmission.quest_condition
+	(%QuestPlanetLabel as Label).text = about.strip_edges()
 	(%QuestPlanet as Control).visible = transmission.quest_planet != null
 	_fill_stops(transmission.quest_stops)
 	_fill_reward(transmission)
