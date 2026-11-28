@@ -156,7 +156,8 @@ func _is_worth(offer: Quest) -> bool:
 		return true
 	var detour := INF
 	for passenger: Passenger in _cabin.get_passengers():
-		if passenger == offer.passenger:
+		# The castaway on their hop goes nowhere, so no detour costs them anything.
+		if passenger == offer.passenger or not passenger.destination:
 			continue
 		var to := passenger.destination.get_body_global_position()
 		detour = minf(detour, from.distance_to(via) + via.distance_to(to) - from.distance_to(to))

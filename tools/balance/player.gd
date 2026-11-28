@@ -41,7 +41,8 @@ func decide(state: Dictionary) -> Dictionary:
 	var board := _pick_passengers(state, seats)
 	var going: Array[String] = []
 	for passenger: Dictionary in state["on_board"]:
-		going.append(passenger["to"])
+		if passenger["to"] != "":
+			going.append(passenger["to"])
 	for passenger: Dictionary in state["waiting"]:
 		if passenger["id"] in board:
 			going.append(passenger["to"])
@@ -157,8 +158,9 @@ func _pick_passengers(state: Dictionary, seats: int) -> Array[String]:
 				free -= int(passenger["seats"])
 		return picked
 	var going: Array[String] = []
+	# The castaway on their hop goes nowhere ("") and takes up no destination.
 	for passenger: Dictionary in state["on_board"]:
-		if passenger["to"] not in going:
+		if passenger["to"] != "" and passenger["to"] not in going:
 			going.append(passenger["to"])
 	for passenger: Dictionary in state["waiting"]:
 		if passenger["id"] in picked and passenger["to"] not in going:
