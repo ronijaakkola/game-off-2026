@@ -448,8 +448,8 @@ func _init_label() -> void:
 	_label.outline_size = LABEL_OUTLINE_SIZE
 	_label.modulate = LABEL_COLOR
 	_label.outline_modulate = LABEL_OUTLINE_COLOR
-	_label.render_priority = 2
-	_label.outline_render_priority = 1
+	_label.render_priority = 3
+	_label.outline_render_priority = 2
 	_label.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
@@ -481,9 +481,11 @@ func _show_border() -> void:
 		_border_material.set_shader_parameter(&"color", color)
 
 
-# A shell drawn from behind, so only its rim past the body shows.
+# A shell drawn from behind, so only its rim past the body shows. Drawn after the rings:
+# both are see-through round the same centre, so depth sorting alone flips between them.
 static func _make_border_material() -> ShaderMaterial:
 	var material := ShaderMaterial.new()
+	material.render_priority = 1
 	material.shader = BORDER_SHADER
 	material.set_shader_parameter(&"ring", BORDER_RING_PIXELS)
 	material.set_shader_parameter(&"outline", BORDER_OUTLINE_PIXELS)
