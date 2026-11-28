@@ -1,23 +1,23 @@
 class_name WarpGateTooltip
 extends WorldTooltip
-## Names the warp gate under the pointer, as a [WorldTooltip]. No physics: the ring counts
-## as round on screen, as a planet does ([ScreenPick]).
+## Names the warp gate under the pointer, as a [WorldTooltip]. The gate beside the planet
+## the bus is docked at reads what a click on it does, as the dock panel's warp button does
+## ([GateService]).
 
 const TEXT := "Warp drive"
-## How far past the ring's frame the pointer still counts as on it, in units.
-const SLACK := 0.1
+
+## Says what a click on the gate does. Without it, every gate reads [constant TEXT].
+@export var gate_service: GateService
+
+# The gate under the pointer, as of the last _is_over().
+var _over: WarpGate
 
 
 func _get_text() -> String:
-	return TEXT
+	var offer := gate_service.get_offer(_over) if gate_service and _over else ""
+	return offer if not offer.is_empty() else TEXT
 
 
 func _is_over(camera: Camera3D, pointer: Vector2) -> bool:
-	var radius := WarpGate.RING_RADIUS + WarpGate.FRAME + SLACK
-	for gate: WarpGate in get_tree().get_nodes_in_group(WarpGate.GROUP):
-		if (
-			gate.is_visible_in_tree()
-			and ScreenPick.covers(camera, gate.global_position, radius, pointer)
-		):
-			return true
-	return false
+	_over = WarpGate.under(camera, pointer)
+	return _over != null

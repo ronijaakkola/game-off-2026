@@ -46,13 +46,17 @@ func _process(delta: float) -> void:
 		_tooltip.close()
 		return
 	global_position = _pointer
+	var text := _get_text()
+	if text != _tooltip.sentence:
+		_tooltip.sentence = text
 	_rested += delta
 	if _rested >= _tooltip.rest_seconds:
 		_tooltip.target = self
 		_tooltip.open()
 
 
-## What the card says.
+## What the card says. Asked again each frame the pointer is on what it names, after
+## [method _is_over].
 func _get_text() -> String:
 	return ""
 

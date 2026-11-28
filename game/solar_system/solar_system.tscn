@@ -130,7 +130,6 @@ fog_accent_color = Color(0.17, 0.1, 0.26, 1)
 fog_strength = 0.5
 star_color = Color(0.9, 0.88, 1, 1)
 parallax = true
-star_drift = 0.2
 
 [node name="Camera" type="Camera3D" parent="." unique_id=1555607591]
 unique_name_in_owner = true
@@ -561,10 +560,11 @@ unique_name_in_owner = true
 camera = NodePath("../../Camera")
 pick_up_markers = NodePath("../PickUpMarkers")
 
-[node name="WarpGateTooltip" type="Control" parent="Hud" unique_id=464056308]
+[node name="WarpGateTooltip" type="Control" parent="Hud" unique_id=464056308 node_paths=PackedStringArray("gate_service")]
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("155_gate_tooltip")
+gate_service = NodePath("../../GateService")
 
 [node name="CapsuleTooltip" type="Control" parent="Hud" unique_id=1707392897]
 layout_mode = 3
