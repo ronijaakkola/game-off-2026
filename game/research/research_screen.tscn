@@ -144,6 +144,16 @@ size_flags_horizontal = 3
 mouse_filter = 2
 alignment = 2
 
+[node name="GrantButton" type="Button" parent="Margin/Sheet/Pad/Rows/Header/CloseGroup" unique_id=2017104422]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_constants/icon_max_width = 14
+icon = ExtResource("6_flask")
+
 [node name="CloseButton" type="Button" parent="Margin/Sheet/Pad/Rows/Header/CloseGroup" unique_id=61349379]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(32, 32)

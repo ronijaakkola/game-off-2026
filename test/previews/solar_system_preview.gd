@@ -17,7 +17,8 @@ extends Node
 ## row in the dock panel, so their trip arc shows. `-- Research` opens the research screen
 ## on every tree, with a few upgrades of each researched, credits and points to spend on
 ## some of the rest, and the pointer over one the player can research so its card shows.
-## `-- Research promoted` opens the second stage too, `plain` leaves out the tooltip,
+## `-- Research promoted` opens the second stage too, `grant` gives the bus the Research
+## grant, with credits for two of its points, so its button shows, `plain` leaves out the tooltip,
 ## `lacking` hovers one the player can't afford instead, `hold`
 ## presses the upgrade down and keeps it held, so its fill sweeps up (`--frames 40` shows
 ## it part way), and
@@ -183,6 +184,10 @@ func _open_research(system: SolarSystem, args: PackedStringArray) -> void:
 		research.open_next_stage()
 	var ledger := system.get_ledger()
 	ledger.credits = 120
+	if "grant" in args:
+		var traits := (system.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+		traits.add(BusTraits.Type.RESEARCH_GRANT)
+		ledger.credits = 450
 	ledger.earn_research(19)
 	(system.find_child("ResourceBar") as ResourceBar).commit()
 	lab.open_screen()

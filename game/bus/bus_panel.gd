@@ -65,6 +65,9 @@ const TRAIT_NAMES := {
 	BusTraits.Type.HAPPINESS_SURVEY: "Passenger happiness survey",
 	BusTraits.Type.BUSINESS_CLASS: "Business class",
 	BusTraits.Type.SHOCK_ABSORBERS: "Shock absorbers",
+	BusTraits.Type.COMPLAINTS_BOX: "Bottomless complaints box",
+	BusTraits.Type.REMOTE_TERMINAL: "Remote terminal",
+	BusTraits.Type.RESEARCH_GRANT: "Research grant",
 }
 
 ## The width of each row's delta slot, wide enough for "+100%".

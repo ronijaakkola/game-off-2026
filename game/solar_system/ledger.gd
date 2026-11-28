@@ -24,6 +24,8 @@ signal rated(stars: float)
 ## spend with [method earn] and [method spend].
 ## How many of the latest ratings [method get_recent_rating] is the mean of.
 const RECENT_RATINGS := 10
+## With [member complaints_box], a rating under this many stars isn't counted.
+const COMPLAINTS_BOX_STARS := 3.0
 
 var credits: int:
 	get:
@@ -31,6 +33,11 @@ var credits: int:
 	set(value):
 		_credits = value
 		credits_set.emit()
+
+## Whether the Bottomless complaints box takes the poor ratings: while it does, [method rate]
+## counts none under [constant COMPLAINTS_BOX_STARS]. The bus's traits set it
+## ([ResearchLab]), so it isn't saved.
+var complaints_box := false
 
 var _credits := 0
 var _research := 0
@@ -71,9 +78,12 @@ func get_research() -> int:
 
 
 ## Counts a passenger's rating of [param stars], from 0 to [constant Passenger.MAX_STARS];
-## one out of that range counts as the nearest end.
+## one out of that range counts as the nearest end. With [member complaints_box], one under
+## [constant COMPLAINTS_BOX_STARS] isn't counted at all, and [signal rated] doesn't come.
 func rate(stars: float) -> void:
 	var clamped := clampf(stars, 0.0, Passenger.MAX_STARS)
+	if complaints_box and clamped < COMPLAINTS_BOX_STARS:
+		return
 	_rating_total += clamped
 	_rating_count += 1
 	_recent.append(clamped)

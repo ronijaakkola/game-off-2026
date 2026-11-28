@@ -234,7 +234,7 @@ A band of rows across every research tree, opened one at a time: the first with 
 The company's mechanic, who calls in a **transmission** to open research: every research tree at once in Vela, then the next **stage** of every tree in each star system after it. `MechanicCall` in code.
 
 **Lab**:
-What lets a planet research: docked or charging there, the player opens the research screen on every tree. `Planet.has_lab` in code.
+What lets a planet research: docked or charging there, the player opens the research screen on every tree. With the Remote terminal upgrade every planet can, lab or not. `Planet.has_lab` in code, and `ResearchLab.can_research_at()` for where the player can research.
 
 **Promotion**:
 What the player earns by meeting every goal a star system gives at once, with The Boss's call: it opens the next star system and jumps there, or joins every system after the last one. `Progression.advance()` in code, which calls `promote()`.

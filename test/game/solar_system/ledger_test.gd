@@ -61,3 +61,23 @@ func test_the_recent_rating_is_the_mean_of_only_the_last_ratings() -> void:
 
 	assert_float(ledger.get_recent_rating()).is_equal_approx(5.0, 0.001)
 	assert_float(ledger.get_average_rating()).is_equal_approx(3.0, 0.001)
+
+
+func test_the_complaints_box_keeps_only_the_poor_ratings_out() -> void:
+	var ledger := Ledger.new()
+	ledger.complaints_box = true
+	var rated: Array[float] = []
+	ledger.rated.connect(rated.append)
+
+	ledger.rate(2.0)
+	ledger.rate(Ledger.COMPLAINTS_BOX_STARS)
+	ledger.rate(5.0)
+
+	assert_int(ledger.get_rating_count()).is_equal(2)
+	assert_float(ledger.get_average_rating()).is_equal_approx(4.0, 0.001)
+	assert_float(ledger.get_recent_rating()).is_equal_approx(4.0, 0.001)
+	assert_array(rated).is_equal([3.0, 5.0])
+	# Without it, a poor rating counts again.
+	ledger.complaints_box = false
+	ledger.rate(1.0)
+	assert_int(ledger.get_rating_count()).is_equal(3)

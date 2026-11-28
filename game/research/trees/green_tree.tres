@@ -145,23 +145,23 @@ column = 3
 [sub_resource type="Resource" id="Resource_bottomless_complaints_box"]
 script = ExtResource("2_upgrade")
 title = "Bottomless complaints box"
-description = "Ratings below 3 stars do not affect your total rating.
-NOT IMPLEMENTED"
+description = "Rides rated under 3 stars don't count toward your rating."
 icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14
 requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_passenger_happiness_survey")])
+traits = Array[int]([21])
 tier = 4
 
 [sub_resource type="Resource" id="Resource_remote_terminal"]
 script = ExtResource("2_upgrade")
 title = "Remote terminal"
-description = "Research from any docked planet.
-NOT IMPLEMENTED"
+description = "Research at any planet the bus is docked at, lab or not."
 icon = ExtResource("31_placeholder")
 credits = 800
 points = 10
 requires = Array[Resource]([SubResource("Resource_station_cameras"), SubResource("Resource_business_class"), SubResource("Resource_gate_tuning")])
+traits = Array[int]([22])
 tier = 4
 column = 2
 
@@ -180,12 +180,12 @@ column = 4
 [sub_resource type="Resource" id="Resource_research_grant"]
 script = ExtResource("2_upgrade")
 title = "Research grant"
-description = "You can exchange 200 credits for 1 research point of any race.
-NOT IMPLEMENTED"
+description = "Buy research points with credits in the research screen, 200 credits each."
 icon = ExtResource("31_placeholder")
 credits = 1100
 points = 14
 requires = Array[Resource]([SubResource("Resource_remote_terminal"), SubResource("Resource_express_service"), SubResource("Resource_bottomless_complaints_box")])
+traits = Array[int]([23])
 tier = 5
 column = 2
 

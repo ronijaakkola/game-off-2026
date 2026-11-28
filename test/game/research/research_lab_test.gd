@@ -5,7 +5,10 @@ extends GdUnitTestSuite
 ## the cost or in a stage that isn't open. The pause menu opened over the screen takes Esc,
 ## and closing it leaves the game paused under the screen. The dock panel's Research button
 ## is outlined while the player can pay for an upgrade they couldn't when they last closed
-## the screen, and not while they can't, nor for the same ones or fewer.
+## the screen, and not while they can't, nor for the same ones or fewer. The green tree's
+## third stage: the Bottomless complaints box comes and goes on the ledger with its trait, the
+## Remote terminal researches where there is no lab, and the Research grant's button sells
+## research points while the player has the credits.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -281,3 +284,57 @@ func _send_press(at: Vector2, pressed: bool) -> void:
 	event.pressed = pressed
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
+
+
+func test_the_complaints_box_comes_and_goes_with_its_trait() -> void:
+	var traits := (_runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	assert_bool(_ledger.complaints_box).is_false()
+
+	traits.add(BusTraits.Type.COMPLAINTS_BOX)
+	assert_bool(_ledger.complaints_box).is_true()
+	traits.remove(BusTraits.Type.COMPLAINTS_BOX)
+	assert_bool(_ledger.complaints_box).is_false()
+
+
+func test_the_remote_terminal_researches_at_a_planet_with_no_lab() -> void:
+	var traits := (_runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	var no_lab := _planet_without_lab()
+	assert_bool(_lab.can_research_at(no_lab)).is_false()
+
+	traits.add(BusTraits.Type.REMOTE_TERMINAL)
+
+	assert_bool(_lab.can_research_at(no_lab)).is_true()
+
+
+func test_the_research_grant_sells_research_points_for_credits() -> void:
+	var traits := (_runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	var screen := _runner.find_child("ResearchScreen") as ResearchScreen
+	var button := screen.find_child("GrantButton") as Button
+	_ledger.credits = ResearchLab.GRANT_CREDITS * 2 + 50
+	var points := _ledger.get_research()
+	# Without the grant there is no button, and nothing to buy.
+	_lab.open_screen()
+	assert_bool(button.visible).is_false()
+	_lab.buy_point()
+	assert_int(_ledger.credits).is_equal(ResearchLab.GRANT_CREDITS * 2 + 50)
+
+	traits.add(BusTraits.Type.RESEARCH_GRANT)
+	assert_bool(button.visible).is_true()
+	button.pressed.emit()
+	button.pressed.emit()
+	# Short of the price, it sells nothing, and the button is off.
+	button.pressed.emit()
+
+	assert_int(_ledger.credits).is_equal(50)
+	assert_int(_ledger.get_research()).is_equal(points + 2)
+	await _runner.simulate_frames(2)
+	assert_bool(button.disabled).is_true()
+	screen.close()
+
+
+func _planet_without_lab() -> Planet:
+	for node: Node in _system.find_children("*", "", true, false):
+		var planet := node as Planet
+		if planet and not planet.has_lab:
+			return planet
+	return null
