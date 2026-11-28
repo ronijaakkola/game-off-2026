@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- The preview build's front page, copied to build/web-preview/index.html by
+     check.py export --preview. Like itch's embed, it runs the game in an iframe and
+     its fullscreen button fullscreens that iframe, so fullscreen behaves as on itch. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview build</title>
+<style>
+	body {
+		margin: 0;
+		padding: 16px;
+		background: #222;
+		color: #ddd;
+		font: 14px system-ui, sans-serif;
+	}
+	main {
+		width: min(1152px, 100%);
+		margin: 0 auto;
+	}
+	/* The project's base size, 1152×648, shrunk to fit narrower windows. */
+	iframe {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		border: 0;
+		background: #000;
+	}
+	nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 8px 0;
+	}
+	button {
+		font: inherit;
+		padding: 4px 12px;
+		cursor: pointer;
+	}
+	a {
+		color: #9cf;
+	}
+</style>
+</head>
+<body>
+<main>
+	<iframe id="game" src="game/index.html" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+	<nav>
+		<a href="game/index.html">Open without the frame</a>
+		<button id="fullscreen" type="button">Fullscreen</button>
+	</nav>
+</main>
+<script>
+	const game = document.getElementById("game");
+	document.getElementById("fullscreen").addEventListener("click", async () => {
+		await game.requestFullscreen();
+		// Keys go to the game, not to this button.
+		game.contentWindow.focus();
+	});
+</script>
+</body>
+</html>
