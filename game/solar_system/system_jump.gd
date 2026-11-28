@@ -54,7 +54,7 @@ const ARRIVE_SPEED := 0.6
 const WARP_GAP_SECONDS := 0.3
 ## Seconds the camera takes to glide to the far gate on a warp, easing in and out; the bus
 ## shifts in no sooner than it ends.
-const WARP_GLIDE_SECONDS := 0.7
+const WARP_GLIDE_SECONDS := CameraRig.GLIDE_SECONDS
 ## How much of the screen's width and height, at each edge, doesn't count as in view when a
 ## warp checks whether the far gate is: the HUD's panels are there.
 const WARP_VIEW_MARGIN := 0.15

@@ -603,13 +603,14 @@ camera = NodePath("../../Camera")
 bus = NodePath("../../Bus")
 panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
 
-[node name="BusIndicator" parent="Hud" unique_id=501257162 node_paths=PackedStringArray("camera", "bus", "panels", "avoid", "map_zoom", "system_jump") instance=ExtResource("160_bus_indicator")]
+[node name="BusIndicator" parent="Hud" unique_id=501257162 node_paths=PackedStringArray("camera", "bus", "panels", "avoid", "map_zoom", "system_jump", "rig") instance=ExtResource("160_bus_indicator")]
 camera = NodePath("../../Camera")
 bus = NodePath("../../Bus")
 panels = [NodePath("../PlanetPanel"), NodePath("../BusPanel")]
 avoid = [NodePath("../PassengerPanel"), NodePath("../TopRight/Stack/GoalPanel"), NodePath("../TopRight/Stack/DockPanel"), NodePath("../TopCentre/ResourceBar"), NodePath("../BusStatusPanel"), NodePath("../Notices"), NodePath("../PauseButton")]
 map_zoom = NodePath("../../MapZoom")
 system_jump = NodePath("../../SystemJump")
+rig = NodePath("../../CameraRig")
 
 [node name="PassengerPanel" parent="Hud" unique_id=1354414167 instance=ExtResource("17_panel")]
 unique_name_in_owner = true
