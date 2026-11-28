@@ -140,3 +140,20 @@ func test_a_save_brings_back_the_quest_or_the_stargate() -> void:
 
 	assert_bool(gate.built).is_true()
 	assert_bool((runner.find_child("QuestGiver") as QuestGiver).is_line_free()).is_false()
+
+
+func test_the_star_chart_leaves_a_stargate_not_yet_built_hidden() -> void:
+	var runner := scene_runner(SOL)
+	await runner.simulate_frames(2)
+	(runner.find_child("FirstShiftCall") as FirstShiftCall).cancel()
+	var chart := runner.find_child("StarChart") as StarChart
+	var gate := Stargate.find(get_tree())
+	assert_bool(gate.visible).is_false()
+
+	chart.open()
+	await await_signal_on(chart, "opened", [], 4000)
+	assert_bool(gate.visible).is_false()
+	chart.close()
+	await await_signal_on(chart, "closed", [], 4000)
+
+	assert_bool(gate.visible).is_false()

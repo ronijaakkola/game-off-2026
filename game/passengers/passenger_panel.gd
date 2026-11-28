@@ -173,7 +173,12 @@ func _group_for(key: Variant) -> DestinationGroup:
 
 
 func _on_group_emptied(group: DestinationGroup) -> void:
-	_groups.erase(_groups.find_key(group))
+	# Not by find_key(): it gives null for a group already dropped, and null is the key of
+	# those going to no planet.
+	for key: Variant in _groups:
+		if _groups[key] == group:
+			_groups.erase(key)
+			break
 	group.fold_away()
 
 
