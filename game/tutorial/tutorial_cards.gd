@@ -82,18 +82,6 @@ const CARDS := {
 		got_it = false,
 		ring = true,
 	},
-	"SERVE":
-	{
-		title = "Heard that sound?",
-		text =
-		(
-			"To keep your passengers happy, you need to serve them during their trip. This "
-			+ "one is hungry. Press and hold this button to hand them a snack!"
-		),
-		side = GuideCard.Side.RIGHT,
-		got_it = false,
-		ring = true,
-	},
 	"RATING":
 	{
 		title = "Rating",

@@ -134,12 +134,6 @@ var _warm_from: Comfort
 
 
 func _process(delta: float) -> void:
-	# Kept running through a pause, as for the tutorial's first request: only serving goes
-	# on, and the ride holds still.
-	if get_tree().paused:
-		for passenger: Passenger in _passengers:
-			_serve_request(passenger, delta)
-		return
 	var toward := DISCOMFORT_MAX if uncomfortable else 0.0
 	var speed := DISCOMFORT_RATE if uncomfortable else DISCOMFORT_RECOVERY
 	comfort.discomfort = move_toward(comfort.discomfort, toward, speed * delta)

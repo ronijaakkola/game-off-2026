@@ -53,6 +53,7 @@ const ARRIVALS := {
 ## The level each feature hint is first met in, by its name in [constant FeatureHints.HINTS],
 ## and the research guide's beside them (fast_forward_test checks every hint is here).
 const HINT_LEVELS := {
+	&"requests": 1,
 	&"goals": 1,
 	&"quests": 1,
 	&"heat_zone": 1,

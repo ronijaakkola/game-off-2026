@@ -70,6 +70,7 @@
 [ext_resource type="Script" uid="uid://djm0drj0kjupe" path="res://game/asteroid_field/asteroid_belt.gd" id="151_asteroid_belt"]
 [ext_resource type="Script" uid="uid://dhmtoofg5xs3b" path="res://game/feature_hints/asteroid_hint.gd" id="152_asteroid_hint"]
 [ext_resource type="Script" uid="uid://bghxjw2whnmcr" path="res://game/warp_gate/gate_service.gd" id="153_gate_service"]
+[ext_resource type="Script" uid="uid://cg7cykose16me" path="res://game/feature_hints/request_hint.gd" id="154_request_hint"]
 [ext_resource type="Script" uid="uid://hqwp05k18nlh" path="res://game/feature_hints/warp_hint.gd" id="154_warp_hint"]
 [ext_resource type="Script" uid="uid://bmn7hph2p0ba6" path="res://game/warp_gate/warp_gate_tooltip.gd" id="155_gate_tooltip"]
 [ext_resource type="Script" uid="uid://c3atn4ddkgf83" path="res://game/capsules/capsule_field.gd" id="156_capsules"]
@@ -422,6 +423,13 @@ dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 script = ExtResource("154_warp_hint")
 hints = NodePath("../FeatureHints")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
+
+[node name="RequestHint" type="Node" parent="." unique_id=932628320 node_paths=PackedStringArray("hints", "cabin", "passenger_panel", "tutorial")]
+script = ExtResource("154_request_hint")
+hints = NodePath("../FeatureHints")
+cabin = NodePath("../Cabin")
+passenger_panel = NodePath("../Hud/PassengerPanel")
+tutorial = NodePath("../Tutorial")
 
 [node name="QuestHint" type="Node" parent="." unique_id=1644402808 node_paths=PackedStringArray("hints", "quest_giver", "goal_panel")]
 script = ExtResource("148_quest_hint")

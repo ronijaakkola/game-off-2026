@@ -92,16 +92,10 @@ func set_burn(share: float, distance: float) -> void:
 	tank.burn_per_unit = share * tank.capacity / distance
 
 
-## Holds the game paused, or lets it go, with the portraits still moving. When
-## [param serving], so does serving: the cabin, the On board panel with its serve buttons,
-## and the tutorial, which sees it done.
-func pause(on: bool, serving := false) -> void:
+## Holds the game paused, or lets it go, with the portraits still moving.
+func pause(on: bool) -> void:
 	var t := _tutorial
-	var running: Array[Node] = [t.portrait_studio]
-	if serving or not on:
-		running.append_array([t, t.cabin, t.passenger_panel])
-	for node: Node in running:
-		node.process_mode = Node.PROCESS_MODE_ALWAYS if on else Node.PROCESS_MODE_INHERIT
+	t.portrait_studio.process_mode = (Node.PROCESS_MODE_ALWAYS if on else Node.PROCESS_MODE_INHERIT)
 	if on:
 		PauseMenu.hold(t)
 	else:

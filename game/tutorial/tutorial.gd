@@ -7,15 +7,15 @@ extends Node
 ## A step shows a guide card that points at what it is about and goes once the player has done what
 ## it says: the bus, trying the camera, the passenger waiting at home, their card in the On
 ## board panel they come into with its happiness bar, setting a course to the destination,
-## charging the drive, serving the snack the passenger asks for halfway, the stars they rate
-## the ride, the fare they pay, refuelling, and the way home by way of a capsule of credits
-## adrift in space ([WayHome]), with a word at home on chaining stops. Then The Boss calls
+## charging the drive, the stars they rate the ride, the fare they pay, refuelling, and the
+## way home by way of a capsule of credits adrift in space ([WayHome]), with a word at home
+## on chaining stops. Then The Boss calls
 ## again, and once the player answers, the HUD goes and it is over; once the map has zoomed
 ## out, The Boss's first-shift call brings the HUD back ([FirstShiftCall]). Research comes
 ## later, with the mechanic's first call ([MechanicCall], [ResearchGuide]).
 ## Most steps wait for the player to do something in the game; one that only tells them
-## something has a Got it button. The snack and the stars pause the game, and the
-## portraits keep moving. The cards are [TutorialCards].
+## something has a Got it button. The stars pause the game, and the portraits keep moving.
+## The cards are [TutorialCards].
 ## The HUD only shows what a step has brought in: the station panel comes in with the
 ## pick-up, the On board panel once the passenger boards, before their card slides into
 ## it, and the resource bar once their card has left it. The station's fuel button shows
@@ -27,8 +27,9 @@ extends Node
 ## ([member FrameshiftBus.route_locked]). What else it changes about the game is
 ## [TutorialRules]'.
 ## Through it, only home and the destination have lines, with the one passenger at home,
-## and nobody joins or leaves a line. The passenger asks for nothing but the snack. The
-## debug panel's Skip tutorial, on its Progress card, finishes it at once.
+## and nobody joins or leaves a line. The passenger asks for nothing: requests come a few
+## deliveries into the run, with their feature hint ([FeatureHints]). The debug panel's
+## Skip tutorial, on its Progress card, finishes it at once.
 
 ## The tutorial is over, done or skipped. The lines run again.
 signal finished
@@ -42,7 +43,6 @@ enum Step {
 	ROUTE,
 	CHARGE,
 	FLY,
-	SERVE,
 	RATING,
 	MONEY,
 	REFUEL,
@@ -68,7 +68,7 @@ const ON_BOARD_DELAY := PassengerCard.ENTER_SECONDS + 0.15
 ## The steps through which the passenger's trip shows, on the way to the destination.
 const TRIP_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE]
 ## The steps in which the passenger rides to the destination, paying what they should.
-const RIDE_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE, Step.FLY, Step.SERVE]
+const RIDE_STEPS: Array[Step] = [Step.ON_BOARD, Step.ROUTE, Step.CHARGE, Step.FLY]
 
 @export var bus: FrameshiftBus
 @export var cabin: Cabin
@@ -166,17 +166,12 @@ func _process(_delta: float) -> void:
 				_go_to(Step.CHARGE)
 		Step.CHARGE:
 			if bus.state == FrameshiftBus.State.FLYING:
-				_ride.leave(_distance_left())
 				_rules.set_trip_burn(_goal)
 				_go_to(Step.FLY)
 			elif not on_route:
 				_go_to(Step.ROUTE)
 		Step.FLY:
 			_fly()
-		Step.SERVE:
-			if _ride.is_served():
-				_rules.pause(false)
-				_go_to(Step.FLY)
 		Step.REFUEL:
 			var full := bus.get_fuel_tank().get_fraction() >= 1.0
 			if full and bus.is_at_planet() and not cabin.is_stopping():
@@ -242,7 +237,7 @@ func _go_to(step: Step) -> void:
 	if _step in TRIP_STEPS and step not in TRIP_STEPS:
 		trip_arc.hide_trip()
 	_step = step
-	bus.route_locked = step in [Step.FLY, Step.SERVE]
+	bus.route_locked = step == Step.FLY
 	dock_panel.beckon_boarding = step == Step.BOARD
 	_cards.close()
 	match step:
@@ -264,8 +259,6 @@ func _go_to(step: Step) -> void:
 			_open_card(bus_bars.get_frameshift_key())
 		Step.FLY:
 			dock_panel.fuel_hidden = false
-		Step.SERVE:
-			_open_serving()
 		Step.RATING:
 			_open_rating()
 		Step.MONEY:
@@ -309,23 +302,10 @@ func _on_guide_acknowledged() -> void:
 			_go_to(Step.LAST_CALL)
 
 
-# In flight: halfway to the destination the passenger asks for their snack; stopped short,
-# the course is set again.
+# In flight: stopped short, the course is set again.
 func _fly() -> void:
-	if _ride.asks_for_snack(_distance_left()):
-		_go_to(Step.SERVE)
-	elif _goal not in bus.get_route_planets() and _is_stranded():
+	if _goal not in bus.get_route_planets() and _is_stranded():
 		_go_to(Step.ROUTE)
-
-
-# The game pauses on the passenger's request, with the card beside their serve button.
-func _open_serving() -> void:
-	_rules.pause(true, true)
-	# The card shows its serve button once it has seen the request.
-	await get_tree().process_frame
-	var card := passenger_panel.get_card(_ride.passenger)
-	if _step == Step.SERVE and card:
-		_open_card(card.get_serve_button())
 
 
 # The passenger gets off at the destination: their card shows the stars they rate the
@@ -403,11 +383,6 @@ func _bring_in_on_board() -> void:
 	if _step == Step.ON_BOARD:
 		var card := passenger_panel.get_card(_ride.passenger)
 		_open_card(card if card else passenger_panel)
-
-
-# How far the bus is from where it is headed.
-func _distance_left() -> float:
-	return bus.global_position.distance_to(_goal.get_body_global_position())
 
 
 func _screen_rect(point: Vector3, radius: float) -> Rect2:
