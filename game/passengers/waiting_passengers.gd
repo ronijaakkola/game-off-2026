@@ -7,7 +7,7 @@ extends Node
 ## ([method get_waiting]). Then each is decided, one after another: a destination, which
 ## leans toward where those already in the line are going only once the bus has
 ## Timetables, and toward where someone on board is going once it has the Destination sign,
-## a race dealt from a bag, and a type by the band of the player's recent
+## a race dealt from a bag ([RaceBag]), and a type by the band of the player's recent
 ## rating ([RatingBand]), with no Business passenger in the first star system. Their
 ## trip time and fare come from the distance to their destination then.
 ## Someone who rated a ride five stars may turn up again later as a returning passenger
@@ -20,11 +20,6 @@ extends Node
 
 ## The line at [param planet] changed: someone joined it, left it or was taken from it.
 signal changed(planet: Planet)
-
-## How many of each race go into the bag the races are dealt from.
-const RACE_BAG_COPIES := 2
-## How many in one line go to the same planet at most, so a line always holds a choice.
-const MAX_SAME_DESTINATION := 2
 
 ## The ordinary kinds of passenger that turn up, picked at random.
 @export var types: Array[PassengerType] = []
@@ -108,9 +103,7 @@ var _until_leave: Dictionary[Planet, float] = {}
 # Seconds each place in a line has waited, in line order: the seen ones, then the
 # undecided ones.
 var _waited: Dictionary[Planet, Array] = {}
-var _race_bag: Array[Race.Type] = []
-# Races to deal before the bag's, first first ([method deal_next]).
-var _next_races: Array[Race.Type] = []
+var _races := RaceBag.new(_rng)
 var _returning := ReturningPassengers.new()
 
 
@@ -350,7 +343,7 @@ func create(origin: Planet) -> Passenger:
 		passenger.look = back.look
 		passenger.returning = true
 	else:
-		passenger.race = _deal_race()
+		passenger.race = _races.deal()
 		passenger.look = AlienLook.random(_rng, passenger.race)
 	return passenger
 
@@ -393,19 +386,15 @@ func _take_returning(line: Array) -> ReturningPassengers.Person:
 	)
 
 
-# A roll among the other planets, but never an abandoned one or the one [param origin]'s
-# warp gate leads to:
-# with Timetables likelier where someone in [param line] is going, with the Destination sign
-# likelier where someone on board is going, and never where MAX_SAME_DESTINATION of the
-# line already go, unless that leaves nowhere.
+# A roll among the other planets ([DestinationOdds]), but never an abandoned one or the one
+# [param origin]'s warp gate leads to: with Timetables likelier where someone in
+# [param line] is going, with the Destination sign likelier where someone on board is going.
 func _pick_destination(origin: Planet, line: Array) -> Planet:
 	var twin := WarpGate.twin_of(origin)
 	var others := _planets.filter(
 		func(planet: Planet) -> bool:
 			return planet != origin and planet != twin and not planet.abandoned
 	)
-	if others.is_empty():
-		return null
 	var leaning := timetables_in_line_weight if _has(BusTraits.Type.TIMETABLES) else 1.0
 	var signed := _has(BusTraits.Type.DESTINATION_SIGN) and cabin != null
 	var aboard: Array[Planet] = []
@@ -413,22 +402,7 @@ func _pick_destination(origin: Planet, line: Array) -> Planet:
 		aboard.assign(
 			cabin.get_passengers().map(func(p: Passenger) -> Planet: return p.destination)
 		)
-	var weights := PackedFloat32Array()
-	var total := 0.0
-	for planet: Planet in others:
-		var same := line.filter(func(p: Passenger) -> bool: return p.destination == planet).size()
-		var weight := 1.0
-		if same >= MAX_SAME_DESTINATION:
-			weight = 0.0
-		elif same > 0:
-			weight *= leaning
-		if planet in aboard:
-			weight *= destination_sign_weight
-		weights.append(weight)
-		total += weight
-	if total <= 0.0:
-		return others[_rng.randi_range(0, others.size() - 1)]
-	return others[_rng.rand_weighted(weights)]
+	return DestinationOdds.pick(_rng, others, line, leaning, aboard, destination_sign_weight)
 
 
 # Business by the star system's share, or else by the share of the band the recent rating
@@ -476,19 +450,7 @@ func _in_first_system() -> bool:
 ## Makes the next passenger created [param race], in place of a race from the bag, as the
 ## tutorial's passenger is.
 func deal_next(race: Race.Type) -> void:
-	_next_races.append(race)
-
-
-# The next race from the bag, which holds RACE_BAG_COPIES of each, shuffled, so no race
-# stays away for long; or one asked for with deal_next(), first.
-func _deal_race() -> Race.Type:
-	if not _next_races.is_empty():
-		return _next_races.pop_front()
-	if _race_bag.is_empty():
-		for value: int in Race.Type.values():
-			for i: int in RACE_BAG_COPIES:
-				_race_bag.insert(_rng.randi_range(0, _race_bag.size()), value as Race.Type)
-	return _race_bag.pop_back()
+	_races.deal_next(race)
 
 
 # Runs the clock of whoever is first in the seen line at [param planet], who leaves when

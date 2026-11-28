@@ -95,19 +95,19 @@ func test_a_line_holds_at_most_two_going_to_one_planet() -> void:
 		for passenger: Passenger in _waiting.get_waiting(_home):
 			going[passenger.destination] = going.get(passenger.destination, 0) + 1
 		for planet: Planet in going:
-			assert_int(going[planet]).is_less_equal(WaitingPassengers.MAX_SAME_DESTINATION)
+			assert_int(going[planet]).is_less_equal(DestinationOdds.MAX_SAME_DESTINATION)
 
 
 func test_races_are_dealt_evenly_from_a_bag() -> void:
 	var races: Dictionary[Race.Type, int] = {}
-	var bag := Race.Type.size() * WaitingPassengers.RACE_BAG_COPIES
+	var bag := Race.Type.size() * RaceBag.COPIES
 
 	for i: int in bag:
 		var race := _waiting.create(_home).race
 		races[race] = races.get(race, 0) + 1
 
 	for value: int in Race.Type.values():
-		assert_int(races.get(value as Race.Type, 0)).is_equal(WaitingPassengers.RACE_BAG_COPIES)
+		assert_int(races.get(value as Race.Type, 0)).is_equal(RaceBag.COPIES)
 
 
 func test_a_race_dealt_next_comes_before_the_bag_and_leaves_it_whole() -> void:
@@ -117,11 +117,11 @@ func test_a_race_dealt_next_comes_before_the_bag_and_leaves_it_whole() -> void:
 	assert_int(_waiting.create(_home).race).is_equal(Race.Type.BLUE)
 	assert_int(_waiting.create(_home).race).is_equal(Race.Type.BLUE)
 	var races: Dictionary[Race.Type, int] = {}
-	for i: int in Race.Type.size() * WaitingPassengers.RACE_BAG_COPIES:
+	for i: int in Race.Type.size() * RaceBag.COPIES:
 		var race := _waiting.create(_home).race
 		races[race] = races.get(race, 0) + 1
 	for value: int in Race.Type.values():
-		assert_int(races.get(value as Race.Type, 0)).is_equal(WaitingPassengers.RACE_BAG_COPIES)
+		assert_int(races.get(value as Race.Type, 0)).is_equal(RaceBag.COPIES)
 
 
 func test_business_passengers_turn_up_more_often_with_a_better_recent_rating() -> void:
