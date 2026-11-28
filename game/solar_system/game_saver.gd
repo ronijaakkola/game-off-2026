@@ -204,11 +204,20 @@ func start() -> void:
 		fast_forward.apply()
 
 
+## Saves the run now, for a run the main menu started, as if the bus were docked at
+## [param planet] wherever it is, holding or not: the [FastForward] keeps where each level it
+## passes through began, as a player's first save there would.
+func save_at(planet: Planet) -> void:
+	if _recording:
+		_write(planet)
+
+
 func _on_changed() -> void:
 	_dirty = true
 
 
-func _write() -> void:
+# Saves the run, with the bus docked at [param at], or where it is docked without one.
+func _write(at: Planet = null) -> void:
 	_dirty = false
 	var orbits := {}
 	var lines := {}
@@ -230,7 +239,7 @@ func _write() -> void:
 	var progress := goals.get_goals().map(func(g: Goal) -> Dictionary: return g.to_save())
 	var run := {
 		"planets": orbits,
-		"bus_planet": String(bus.get_docked_planet().name),
+		"bus_planet": String((at if at else bus.get_docked_planet()).name),
 		"fuel": bus.get_fuel_tank().fuel,
 		"reserve_used": bus.get_fuel_tank().reserve_used,
 		"ledger": _ledger.to_save(),

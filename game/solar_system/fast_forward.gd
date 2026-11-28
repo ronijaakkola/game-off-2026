@@ -1,13 +1,17 @@
 class_name FastForward
 extends Node
 ## The debug panel's Fast-forward ([method Campaign.fast_forward]): a new run that comes to a
-## later level as a player would, so the level can be tested as they see it. The run starts in
-## the level before, docked at its home planet, with what a player has as they are promoted
-## out of it: credits, research points, ratings and upgrades rolled within what balance runs
-## measured there, research open on the stages they would have, the tutorial done and every
-## feature hint they would have met before the level seen. Then the bus takes the jump, as
-## answering The Boss's promotion call does, so the level begins with its loading screen,
-## its arrival call and its starting passengers. Earlier levels keep no start of their own.
+## later level as a player would, so the level can be tested as they see it, and each level
+## before it can be played again as a player who came through it would. The run starts in
+## Level 1, docked at its home planet, with what a player has as they are promoted out of it:
+## credits, research points, ratings and upgrades rolled within what balance runs measured
+## there, research open on the stages they would have, the tutorial done and every feature
+## hint they would have met before Level 2 seen. Then the bus takes the jump, as answering The
+## Boss's promotion call does. A level on the way it only passes through: the jump there has
+## no loading screen, its start is kept as the player's first save there would keep it, the
+## bus docked at its home planet, and the run tops up to what a player has as they are
+## promoted out of it before the next jump. The last jump has the level's loading screen, its
+## arrival call and its starting passengers.
 ## Fast-forwarded to the ending, numbered one past the last level, the run starts in the last
 ## system instead, docked at [member ending_planet] with every goal there met and The Boss's
 ## call answered ([BossPickUp]), so the meeting plays as soon as the screen has faded in.
@@ -64,8 +68,11 @@ const HINT_LEVELS := {
 @export var star_map: StarMap
 @export var research_lab: ResearchLab
 @export var waiting: WaitingPassengers
-## Takes the jump.
+## Takes the jumps.
 @export var progression: Progression
+@export var system_jump: SystemJump
+## Keeps where each level passed through began.
+@export var saver: GameSaver
 ## Where The Boss waits in the last system, where a run fast-forwarded to the ending docks.
 @export var ending_planet: Planet
 ## The goals met for the ending, the VIPs' among them.
@@ -76,59 +83,56 @@ const HINT_LEVELS := {
 
 # The level number the run fast-forwards to, from 2, one past the last for the ending, or 0.
 var _level := 0
+var _ledger: Ledger
 var _rng := RandomNumberGenerator.new()
 
 
-## Starts the run in the level before the one numbered [param level]: [param bus] docked at its
-## home planet and [param ledger] holding what a player has there. One past the last level is
-## the ending: the run starts in the last system, docked at [member ending_planet]. Call it
-## before the scene is ready, as [method GameSaver.place_world] does. Gives what the
-## [StarMap] keeps, for [method StarMap.restore].
+## Starts the run in Level 1, on the way to the level numbered [param level]: [param bus]
+## docked at its home planet and [param ledger] holding what a player has there. One past the
+## last level is the ending: the run starts in the last system, docked at
+## [member ending_planet]. Call it before the scene is ready, as
+## [method GameSaver.place_world] does. Gives what the [StarMap] keeps, for
+## [method StarMap.restore].
 func place(level: int, bus: FrameshiftBus, ledger: Ledger) -> Dictionary:
 	_rng.randomize()
 	var systems := star_map.get_systems()
 	_level = clampi(level, 2, systems.size() + 1)
-	var system := systems[mini(_level, systems.size()) - 2]
-	bus.start_planet = system.home
+	_ledger = ledger
 	if _is_ending():
-		system = systems.back()
 		bus.start_planet = ending_planet
-	var arrival: Dictionary = ARRIVALS.get(_level, ARRIVALS[ARRIVALS.keys().max()])
-	ledger.credits = _roll_int(arrival.credits)
-	ledger.earn_research(_roll_int(arrival.points))
-	_rate(ledger, _roll_int(arrival.rides), _roll(arrival.average), _roll(arrival.recent))
-	return SavedStarMap.make(mini(_level - 1, systems.size()), false, String(system.name))
+		_fill_ledger(_level)
+		return SavedStarMap.make(systems.size(), false, String(systems.back().name))
+	bus.start_planet = systems[0].home
+	_fill_ledger(2)
+	return SavedStarMap.make(1, false, String(systems[0].name))
 
 
-## Once the scene has built the run: opens research on the stages the player would have,
-## researches the rolled upgrades, keeps the hints met before the level as seen, and, once the
-## screen has faded in, takes the jump, or for the ending meets every goal and has The Boss
-## wait where the bus is docked.
+## Once the scene has built the run: brings research to where the player would have it, and,
+## once the screen has faded in, takes the jumps, passing through each level before the one it
+## fast-forwards to, or for the ending meets every goal and has The Boss wait where the bus
+## is docked.
 func apply() -> void:
-	var research := research_lab.get_research()
-	research.open()
-	for stage: int in range(1, _level - 1):
-		research.open_next_stage()
-	var arrival: Dictionary = ARRIVALS.get(_level, ARRIVALS[ARRIVALS.keys().max()])
-	for i: int in _roll_int(arrival.upgrades):
-		var open := _get_researchable()
-		if open.is_empty():
-			break
-		research.research(open[_rng.randi() % open.size()])
+	research_lab.get_research().open()
 	SaveGame.mark_tutorial_done()
-	for hint: StringName in HINT_LEVELS:
-		if HINT_LEVELS[hint] < _level:
-			SaveGame.mark_hint_seen(hint)
-	# The castaway turns up in Vela, and the first Business passenger at the first stop in Lyra.
+	# The castaway turns up in Vela.
 	waiting.castaway_met = true
-	waiting.first_business_dealt = _level > 2
+	_fill_research(_level if _is_ending() else 2)
 	while SceneFlow.is_busy():
 		await get_tree().process_frame
 	if _is_ending():
 		_meet_goals()
 		boss_pick_up.begin()
-	else:
+		return
+	var shows_loading_screen := system_jump.shows_loading_screen
+	for level: int in range(3, _level + 1):
+		system_jump.shows_loading_screen = false
 		progression.advance()
+		var system: StarSystem = await system_jump.finished
+		system_jump.shows_loading_screen = shows_loading_screen
+		saver.save_at(system.home)
+		_fill_ledger(level)
+		_fill_research(level)
+	progression.advance()
 
 
 # Whether the run fast-forwards to the ending, past the last level.
@@ -152,6 +156,54 @@ func _meet_goals() -> void:
 		goal.load_save(done)
 
 
+# Rolls what a player has in the ledger as the bus arrives in the level numbered
+# [param level]: credits, research points and the rides rated, counting those rated already.
+func _fill_ledger(level: int) -> void:
+	var arrival := _get_arrival(level)
+	_ledger.credits = _roll_int(arrival.credits)
+	var points := _roll_int(arrival.points) - _ledger.get_research()
+	if points > 0:
+		_ledger.earn_research(points)
+	elif points < 0:
+		_ledger.spend_research(-points)
+	_rate(_roll_int(arrival.rides), _roll(arrival.average), _roll(arrival.recent))
+
+
+# Brings research to where a player has it as the bus arrives in the level numbered
+# [param level]: open on a stage for each level before, with the rolled number of upgrades
+# researched, and keeps the hints met before that level as seen.
+func _fill_research(level: int) -> void:
+	var research := research_lab.get_research()
+	while research.get_open_stages() < level - 1:
+		research.open_next_stage()
+	var upgrades := _roll_int(_get_arrival(level).upgrades) - _count_researched()
+	for i: int in upgrades:
+		var open := _get_researchable()
+		if open.is_empty():
+			break
+		research.research(open[_rng.randi() % open.size()])
+	for hint: StringName in HINT_LEVELS:
+		if HINT_LEVELS[hint] < level:
+			SaveGame.mark_hint_seen(hint)
+	# The first Business passenger turns up at the first stop in Lyra.
+	waiting.first_business_dealt = level > 2
+
+
+func _get_arrival(level: int) -> Dictionary:
+	return ARRIVALS.get(level, ARRIVALS[ARRIVALS.keys().max()])
+
+
+# How many upgrades are researched.
+func _count_researched() -> int:
+	var research := research_lab.get_research()
+	var count := 0
+	for tree: ResearchTree in research_lab.trees:
+		for upgrade: Upgrade in tree.upgrades:
+			if research.is_researched(upgrade):
+				count += 1
+	return count
+
+
 # Every upgrade the player could research now, the cost aside.
 func _get_researchable() -> Array[Upgrade]:
 	var research := research_lab.get_research()
@@ -167,24 +219,26 @@ func _get_researchable() -> Array[Upgrade]:
 	return found
 
 
-# Rates [param rides] rides into [param ledger]: whole stars for the last
+# Rates rides into the ledger until it has [param rides] in all: whole stars for the last
 # [constant Ledger.RECENT_RATINGS], about [param recent] on average, and the rest at whatever
-# brings every ride's to about [param average].
-func _rate(ledger: Ledger, rides: int, average: float, recent: float) -> void:
+# brings every ride's to about [param average], counting those rated already.
+func _rate(rides: int, average: float, recent: float) -> void:
+	var rated := _ledger.get_rating_count()
+	var added := maxi(rides - rated, 0)
 	var last: Array[float] = []
-	for i: int in mini(rides, Ledger.RECENT_RATINGS):
+	for i: int in mini(added, Ledger.RECENT_RATINGS):
 		var stars := floorf(recent) + (1.0 if _rng.randf() < fmod(recent, 1.0) else 0.0)
 		last.append(stars)
-	var earlier := rides - last.size()
+	var earlier := added - last.size()
 	if earlier > 0:
-		var last_total := 0.0
+		var total := _ledger.get_average_rating() * rated
 		for stars: float in last:
-			last_total += stars
-		var each := (average * rides - last_total) / earlier
+			total += stars
+		var each := (average * (rated + added) - total) / earlier
 		for i: int in earlier:
-			ledger.rate(each)
+			_ledger.rate(each)
 	for stars: float in last:
-		ledger.rate(stars)
+		_ledger.rate(stars)
 
 
 func _roll(ends: Vector2) -> float:
