@@ -81,14 +81,14 @@ layout_mode = 2
 theme_type_variation = &"DimLabel"
 text = "5 planets"
 
-[node name="Here" type="HBoxContainer" parent="Body/Content" unique_id=110352763]
+[node name="Here" type="HBoxContainer" parent="Body/Content/Header" unique_id=110352763]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="BusIcon" type="TextureRect" parent="Body/Content/Here" unique_id=693864771]
+[node name="BusIcon" type="TextureRect" parent="Body/Content/Header/Here" unique_id=693864771]
 self_modulate = Color(0.961, 0.78, 0.29, 1)
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
@@ -98,7 +98,7 @@ texture = ExtResource("5_bus")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="HereLabel" type="Label" parent="Body/Content/Here" unique_id=1308127829]
+[node name="HereLabel" type="Label" parent="Body/Content/Header/Here" unique_id=1308127829]
 layout_mode = 2
 theme_type_variation = &"TinyLabel"
 theme_override_colors/font_color = Color(0.961, 0.78, 0.29, 1)

@@ -101,15 +101,9 @@ func _on_jump_pressed() -> void:
 	await star_chart.travel(_enter.bind(star))
 	bus.process_mode = Node.PROCESS_MODE_INHERIT
 	# The way in from the stargate costs no fuel either.
-	var tank := bus.get_fuel_tank()
-	bus.docked.connect(_refill.bind(tank.fuel), CONNECT_ONE_SHOT)
-	bus.fly_in(RouteStop.at_planet(_arrival), bus.max_speed * ARRIVE_SPEED)
+	bus.fly_in(RouteStop.at_planet(_arrival), bus.max_speed * ARRIVE_SPEED, true)
 	await star_chart.close()
 	saver.holding = false
-
-
-func _refill(_planet: Planet, fuel: float) -> void:
-	bus.get_fuel_tank().fuel = fuel
 
 
 # The star map goes over to [param system], and the bus waits, held still, where it comes

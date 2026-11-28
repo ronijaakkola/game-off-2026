@@ -113,8 +113,10 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if passenger and passenger.type != _type:
-		# Dressed anew, as The Boss is for the board: another portrait, and its badges.
-		passenger = passenger
+		# Dressed anew, as The Boss is in what was fetched: it grows onto their portrait.
+		if get_portrait():
+			get_portrait().props.dress(passenger.type, true)
+		_show_badges()
 	if passenger and passenger.quest_line != _quest_line:
 		_show_badges()
 	var portrait := get_portrait()

@@ -12,7 +12,8 @@ extends Node
 ## The Boss's call over the chart, and their goals coming in). With `travel`, The Boss is
 ## on board and the star chart is open to go to another star, the pointer on Lyra; with
 ## `jump`, the bus then jumps there with a click on the card, docks where the briefcase is,
-## jumps back to Sol and closes the chart with its button.
+## jumps back to Sol and closes the chart with its button. With `dressed`, The Boss is on
+## board and a second in has their briefcase and bowtie, which grow onto their portrait.
 
 ## Seconds the transmission shows before the preview skips to its end, then answers.
 const READ_SECONDS := 4.5
@@ -45,6 +46,9 @@ func _ready() -> void:
 		while not calling.is_open():
 			await get_tree().process_frame
 		await _answer(calling)
+		return
+	if "dressed" in args:
+		_dress(pick_up)
 		return
 	if "travel" in args or "jump" in args:
 		if "jump" in args:
@@ -117,6 +121,17 @@ func _travel(pick_up: BossPickUp, jumps: bool) -> void:
 	await travel.open()
 	_click((find_child("CloseStarChart") as Button).get_global_rect().get_center())
 	await chart.closed
+
+
+# The Boss is on board, and a second in has their briefcase and their bowtie, which grow
+# onto their portrait.
+func _dress(pick_up: BossPickUp) -> void:
+	var boss := BossPassenger.create(find_child("Earth") as Planet)
+	BossPassenger.reveal(boss)
+	(find_child("Cabin") as Cabin).board(boss)
+	pick_up.load_save({"stage": BossPickUp.Stage.BUILT})
+	await get_tree().create_timer(1.0).timeout
+	BossPassenger.dress_up(boss, true, true)
 
 
 func _click(at: Vector2) -> void:

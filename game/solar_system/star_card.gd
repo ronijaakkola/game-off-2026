@@ -5,8 +5,10 @@ extends Control
 ## (a flag, what it asks and its planet), and a button to jump there. The button is off for a
 ## star more than one link away, and the star the bus is beside has "You are here" in its
 ## place. A solid dark card with a notch pointing down at the star ([method place]). It
-## grows out of the notch's tip as it comes ([method appear]) and shrinks back into it as
-## it goes ([method leave]), as a [PickUpMarker] does; under Reduce motion it only fades.
+## comes as a tooltip does ([method appear]): rising a little from the star while it fades
+## in and grows out of the notch's tip, fast at first, with no overshoot. It goes quicker
+## ([method leave]), fading and shrinking a little toward the tip. Either turns round from
+## where the other left it. Under Reduce motion it only fades.
 ## The root sits where [method place] puts it; [b]Body[/b], inside it, does the motion.
 
 ## The player pressed the button to jump to the star.
@@ -22,6 +24,13 @@ const NOTCH_WIDTH := 12.0
 const NOTCH_LENGTH := 6.0
 const FILL_COLOR := Color(0.0431, 0.0353, 0.1255)
 const BORDER_COLOR := Color(1.0, 1.0, 1.0, 0.2)
+## Coming: from this scale and this many pixels nearer the star, over these seconds.
+const APPEAR_FROM := 0.94
+const APPEAR_RISE := 6.0
+const APPEAR_SECONDS := 0.18
+## Going: to this scale, over these seconds.
+const LEAVE_TO := 0.97
+const LEAVE_SECONDS := 0.1
 const JUMP_TEXT := "Jump here"
 const FAR_TEXT := "Too far to jump"
 
@@ -86,40 +95,30 @@ func is_shown() -> bool:
 	return _shown
 
 
-## Grows the card out of the notch's tip past its size and settles it, fading it in.
+## Brings the card in from where it is: rising from the star, fading in and growing out of
+## the notch's tip.
 func appear() -> void:
+	var body := %Body as Control
+	if not visible:
+		body.modulate.a = 0.0
+		body.scale = Vector2.ONE * APPEAR_FROM
+		body.position.y = APPEAR_RISE
 	_shown = true
 	show()
-	var body := %Body as Control
 	if _tween:
 		_tween.kill()
-	_tween = create_tween()
+	_tween = create_tween().set_parallel().set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(body, ^"modulate:a", 1.0, APPEAR_SECONDS)
 	if Settings.reduce_motion:
 		body.scale = Vector2.ONE
-		_tween.tween_property(body, ^"modulate:a", 1.0, PickUpMarker.APPEAR_REDUCED_SECONDS)
+		body.position.y = 0.0
 		return
-	body.modulate.a = 0.0
-	body.scale = Vector2.ONE * PickUpMarker.APPEAR_FROM
-	_tween.set_parallel()
-	_tween.tween_property(body, ^"modulate:a", 1.0, PickUpMarker.APPEAR_FADE_SECONDS)
-	(
-		_tween
-		. tween_property(
-			body, ^"scale", Vector2.ONE * PickUpMarker.APPEAR_PEAK, PickUpMarker.APPEAR_RISE_SECONDS
-		)
-		. set_trans(Tween.TRANS_CUBIC)
-		. set_ease(Tween.EASE_OUT)
-	)
-	(
-		_tween
-		. tween_property(body, ^"scale", Vector2.ONE, PickUpMarker.APPEAR_SETTLE_SECONDS)
-		. set_delay(PickUpMarker.APPEAR_RISE_SECONDS)
-		. set_trans(Tween.TRANS_SINE)
-		. set_ease(Tween.EASE_IN_OUT)
-	)
+	_tween.tween_property(body, ^"scale", Vector2.ONE, APPEAR_SECONDS)
+	_tween.tween_property(body, ^"position:y", 0.0, APPEAR_SECONDS)
 
 
-## Shrinks the card toward the notch's tip while fading it out, then hides it.
+## Fades the card out from where it is, shrinking a little toward the notch's tip, then
+## hides it.
 func leave() -> void:
 	if not _shown:
 		return
@@ -127,17 +126,10 @@ func leave() -> void:
 	var body := %Body as Control
 	if _tween:
 		_tween.kill()
-	_tween = create_tween().set_parallel()
-	_tween.tween_property(body, ^"modulate:a", 0.0, PickUpMarker.LEAVE_SECONDS)
+	_tween = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(body, ^"modulate:a", 0.0, LEAVE_SECONDS)
 	if not Settings.reduce_motion:
-		(
-			_tween
-			. tween_property(
-				body, ^"scale", Vector2.ONE * PickUpMarker.LEAVE_TO, PickUpMarker.LEAVE_SECONDS
-			)
-			. set_trans(Tween.TRANS_CUBIC)
-			. set_ease(Tween.EASE_OUT)
-		)
+		_tween.tween_property(body, ^"scale", Vector2.ONE * LEAVE_TO, LEAVE_SECONDS)
 	_tween.chain().tween_callback(hide)
 
 

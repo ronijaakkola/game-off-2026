@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://dd4pdoap5rwvi" path="res://game/bus/bus.gd" id="1_bus"]
 [ext_resource type="Script" uid="uid://ddvccqtdkw6wu" path="res://game/bus/bus_model.gd" id="2_model"]
 [ext_resource type="Script" uid="uid://didki7xhd18nw" path="res://game/bus/route_line.gd" id="3_line"]
-[ext_resource type="Script" uid="uid://cuoggoqvxa5ln" path="res://game/bus/charge_ring.gd" id="4_ring"]
 [ext_resource type="AudioStream" uid="uid://dcb04fc88ixi5" path="res://game/bus/dock_bell.ogg" id="5_bell"]
 [ext_resource type="PackedScene" uid="uid://binbtwxaodhoe" path="res://game/bus/models/bus.glb" id="6_glb"]
 [ext_resource type="Script" uid="uid://cq4kscykvshix" path="res://game/bus/thruster_trail.gd" id="7_trail"]
@@ -27,10 +26,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.175, 0)
 [node name="RouteLine" type="MeshInstance3D" parent="." unique_id=341742303]
 unique_name_in_owner = true
 script = ExtResource("3_line")
-
-[node name="ChargeRing" type="MeshInstance3D" parent="." unique_id=104318103]
-unique_name_in_owner = true
-script = ExtResource("4_ring")
 
 [node name="ThrusterTrail" type="MeshInstance3D" parent="." unique_id=1084277193]
 unique_name_in_owner = true

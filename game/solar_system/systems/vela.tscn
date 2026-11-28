@@ -240,5 +240,5 @@ tagline = "Last stop before the dark"
 lore = "Frost circles farthest from the star, and its people like it that way: long nights, quiet labs and a sky of stars no one else gets to see. Buses are rare out here, so a full one pulling in gets a cheer."
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
-[node name="FrostStargate" parent="." unique_id=1815368794 node_paths=PackedStringArray("planet") instance=ExtResource("10_stargate")]
-planet = NodePath("../Frost")
+[node name="TerraStargate" parent="." unique_id=1815368794 node_paths=PackedStringArray("planet") instance=ExtResource("10_stargate")]
+planet = NodePath("../Terra")

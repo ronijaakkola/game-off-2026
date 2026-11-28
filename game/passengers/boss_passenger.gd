@@ -9,12 +9,12 @@ class_name BossPassenger
 ## and expect no time, so they are as happy as can be all ride and ask for nothing
 ## ([Passenger]), and nobody kicks them off. A save keeps
 ## a look as one of its race's heads, so The Boss from a save is dressed again
-## ([method dress]). As the player fetches their briefcase and their bowtie ([BossPickUp])
-## they wear them ([method dress_up]): another type each way, the same but for those, so a
-## save keeps it. Their head has no bow tie to show yet.
+## ([method dress]). They have one badge of their own, a crown. As the player fetches
+## their briefcase and their bowtie ([BossPickUp]) their portrait has them
+## ([method dress_up]): another type each way, the same but for those, so a save keeps it.
 
 const TYPE: PassengerType = preload("res://game/passengers/types/boss.tres")
-## What they are with their briefcase, with their bowtie, and with both.
+## What they are with their briefcase, with their bowtie on, and with both.
 const BRIEFCASE_TYPE: PassengerType = preload("res://game/passengers/types/boss_briefcase.tres")
 const BOWTIE_TYPE: PassengerType = preload("res://game/passengers/types/boss_bowtie.tres")
 const DRESSED_TYPE: PassengerType = preload("res://game/passengers/types/boss_dressed.tres")

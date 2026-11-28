@@ -9,18 +9,27 @@ anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("1_row")
 
-[node name="Row" type="HBoxContainer" parent="." unique_id=405003052]
+[node name="Pad" type="MarginContainer" parent="." unique_id=744228169]
 unique_name_in_owner = true
 layout_mode = 0
 mouse_filter = 2
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
+
+[node name="Row" type="HBoxContainer" parent="Pad" unique_id=405003052]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Tile" type="PanelContainer" parent="Row" unique_id=1581529672]
+[node name="Tile" type="PanelContainer" parent="Pad/Row" unique_id=1581529672]
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"IconTilePanel"
 
-[node name="Icon" type="TextureRect" parent="Row/Tile" unique_id=593817883]
+[node name="Icon" type="TextureRect" parent="Pad/Row/Tile" unique_id=593817883]
 self_modulate = Color(1, 0.831, 0.361, 1)
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
@@ -29,10 +38,10 @@ texture = ExtResource("2_star")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Button" type="Button" parent="Row" unique_id=1093935415]
+[node name="Button" type="Button" parent="Pad/Row" unique_id=1093935415]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"SmallButton"
 text = "Travel between stars"
 
-[connection signal="pressed" from="Row/Button" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="Pad/Row/Button" to="." method="_on_button_pressed"]

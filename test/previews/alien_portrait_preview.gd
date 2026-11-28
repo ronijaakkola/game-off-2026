@@ -33,7 +33,7 @@ func _ready() -> void:
 		for column: int in columns:
 			var portrait := PORTRAIT.instantiate() as AlienPortrait
 			portrait.head_model = heads[column % heads.size()]
-			portrait.wears_bow_tie = column >= heads.size()
+			portrait.props.wear(PortraitProps.TIE, column >= heads.size())
 			portrait.eye_style = style
 			portrait.skin_color = Race.SKIN_COLORS[race]
 			var x := (column - (columns - 1) / 2.0) * SPACING.x

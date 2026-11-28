@@ -2,12 +2,12 @@
 
 [ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="1_type"]
 [ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="2_need"]
-[ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="3_star"]
+[ext_resource type="Texture2D" uid="uid://yx8313nh8k7l" path="res://game/passengers/icons/crown.svg" id="3_crown"]
 
 [resource]
 script = ExtResource("1_type")
 display_name = "The Boss"
-badges = Array[Texture2D]([ExtResource("3_star")])
+badges = Array[Texture2D]([ExtResource("3_crown")])
 wears_bow_tie = true
 description = "Your boss. They take every seat, ride for as long as they like, and nobody throws them off."
 fare_multiplier = 0.0

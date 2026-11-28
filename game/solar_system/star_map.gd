@@ -76,10 +76,11 @@ func restore(saved: Dictionary, bus_planet: Planet) -> void:
 
 
 ## What a save keeps: how many systems are open and whether they are joined, and the
-## system the bus works in, by name, for the main menu to show its level's loading screen.
-## [method restore] finds that from the bus's planet instead.
+## system whose level the run is in, by name, for the main menu to show that level's
+## loading screen: the furthest one the bus has been to, wherever the stargate has taken
+## it since. [method restore] finds the system the bus works in from its planet instead.
 func to_save() -> Dictionary:
-	return SavedStarMap.make(_opened, _joined, String(get_current().name), _reached)
+	return SavedStarMap.make(_opened, _joined, String(get_furthest().name), _reached)
 
 
 ## Every star system, in the order they open.
@@ -107,7 +108,7 @@ func get_visited() -> Array[StarSystem]:
 	return systems if _joined else systems.slice(0, _reached)
 
 
-## The last of the systems the bus has been to, whose goals the run is on, wherever the
+## The last of the systems the bus has been to, whose level the run is in, wherever the
 ## stargate has taken the bus since.
 func get_furthest() -> StarSystem:
 	return get_systems()[_reached - 1]

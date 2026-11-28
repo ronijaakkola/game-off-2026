@@ -253,7 +253,8 @@ func _write() -> void:
 	}
 	SaveGame.write(run)
 	if star_map:
-		var system := String(star_map.get_current().name)
+		# The level's system: going through the stargate enters no level.
+		var system := String(star_map.get_furthest().name)
 		# A save from before saves kept their system says nothing of where the run was, so
 		# its first save is no entry.
 		var entered := not _saved_system.is_empty() and system != _saved_system

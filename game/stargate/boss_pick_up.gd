@@ -19,7 +19,7 @@ extends Node
 ## another star or close it ([StarTravel]), with the route and the bus held until it
 ## closes. From then on nobody calls, a passenger or a VIP, and the row opens the star
 ## chart the same way, wherever a stargate is. As The Boss's briefcase and bowtie are
-## fetched they wear them ([method BossPassenger.dress_up]).
+## fetched their portrait has them ([method BossPassenger.dress_up]).
 ## A save keeps how far it has got ([signal changed]); nothing saves through the meeting,
 ## so a run continued from the middle of it has it again.
 

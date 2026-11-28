@@ -154,6 +154,11 @@ func get_progress() -> float:
 	return _progress
 
 
+## Whether the bus's model is flying to another star ([method travel]).
+func is_travelling() -> bool:
+	return _travel_from.is_finite()
+
+
 ## Whether the chart is open with nothing moving, so the bus can go to another star.
 func is_still() -> bool:
 	return _in_use and _progress >= 1.0 and not (_motion and _motion.is_running())
