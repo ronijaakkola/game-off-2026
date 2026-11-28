@@ -91,13 +91,17 @@ static func restart(level: Level, tutorial := false) -> void:
 ## run that the game scene takes to [param level] as a player would come to it ([FastForward]):
 ## promoted out of the level before it with what such a player has, and then the jump.
 static func fast_forward(level: Level) -> void:
-	reset()
-	SaveGame.start_run({FAST_FORWARD_KEY: number(level)})
-	SceneFlow.go_to(GAME_SCENE)
+	_fast_forward(number(level))
 
 
-## The level number [param run], as the game scene claimed it, fast-forwards to, or 0 when it
-## is a run to play as it is ([method fast_forward]).
+## The debug panel's Fast-forward to the ending: as [method fast_forward], to just past the
+## last level, where its goals are met and the bus docks to meet The Boss ([BossPickUp]).
+static func fast_forward_to_ending() -> void:
+	_fast_forward(LEVELS.size() + 1)
+
+
+## The level number [param run], as the game scene claimed it, fast-forwards to, one past the
+## last for the ending, or 0 when it is a run to play as it is ([method fast_forward]).
 static func get_fast_forward(run: Dictionary) -> int:
 	return int(run.get(FAST_FORWARD_KEY, 0))
 
@@ -114,6 +118,12 @@ static func record(run: Dictionary, system: String, done: int, entered: bool) ->
 		starts[str(number(level))] = run
 	campaign["starts"] = starts
 	SaveGame.write_campaign(campaign)
+
+
+static func _fast_forward(to: int) -> void:
+	reset()
+	SaveGame.start_run({FAST_FORWARD_KEY: to})
+	SceneFlow.go_to(GAME_SCENE)
 
 
 # A kept start takes over the save at once, as a new run does, so quitting straight after

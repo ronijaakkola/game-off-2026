@@ -12,7 +12,8 @@ extends Control
 ## starts as on a first visit, its Reset settings puts every setting back to its default,
 ## its Voice lab opens the scene for trying the alien voices, and its Mixer opens the scene
 ## for setting how loud each sound and voice is. Its Fast-forward buttons start a run that
-## comes to Level 2 or 3 as a player would, from a fresh campaign ([method Campaign.fast_forward]).
+## comes to Level 2 or 3 as a player would, or to the ending with Sol's goals met and the bus
+## docked to meet The Boss, from a fresh campaign ([method Campaign.fast_forward]).
 
 const VOICE_LAB_SCENE := "res://game/transmissions/voice_lab.tscn"
 const MIXER_SCENE := "res://ui/mixer/mixer.tscn"
@@ -32,6 +33,7 @@ func _ready() -> void:
 	for level: Level in Campaign.LEVELS.slice(1):
 		var text := "Fast-forward to Level %d" % Campaign.number(level)
 		DebugPanel.add_button(text, Campaign.fast_forward.bind(level), self)
+	DebugPanel.add_button("Fast-forward to ending", Campaign.fast_forward_to_ending, self)
 	# The cards come in once the pan has all but settled, and the menu's rows on the way back.
 	for screen: MenuScreen in [%CampaignScreen, %CreditsScreen]:
 		screen.visibility_changed.connect(_on_panned_screen_visibility_changed)

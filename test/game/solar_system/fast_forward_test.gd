@@ -87,3 +87,31 @@ func test_fast_forwarding_to_level_3_starts_in_lyra_on_two_stages() -> void:
 	assert_int(ledger.get_rating_count()).is_between(arrival.rides.x, arrival.rides.y)
 	assert_bool(SaveGame.has_seen_hint(&"business")).is_true()
 	assert_bool(SaveGame.has_seen_hint(&"vip")).is_false()
+
+
+func test_fast_forwarding_to_the_ending_docks_at_earth_with_sol_met_and_meets_the_boss() -> void:
+	SaveGame.delete()
+	SaveGame.start_run({Campaign.FAST_FORWARD_KEY: Campaign.LEVELS.size() + 1})
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+
+	var star_map := runner.find_child("StarMap") as StarMap
+	assert_object(star_map.get_current()).is_same(runner.find_child("Sol"))
+	var bus := runner.find_child("Bus") as FrameshiftBus
+	assert_object(bus.get_docked_planet()).is_same(runner.find_child("Earth"))
+	var research := (runner.find_child("ResearchLab") as ResearchLab).get_research()
+	assert_int(research.get_open_stages()).is_equal(3)
+	assert_bool(SaveGame.has_seen_hint(&"vip")).is_true()
+
+	# Once the screen is in, Sol's goals are met, the VIPs' among them, and the meeting plays.
+	var pick_up := runner.find_child("BossPickUp") as BossPickUp
+	await assert_func(pick_up, "is_under_way").wait_until(5000).is_true()
+	var goals := runner.find_child("Goals") as GoalTracker
+	assert_bool(goals.are_all_met()).is_true()
+	var vip_goal := goals.get_goals().filter(
+		func(g: Goal) -> bool: return g is DeliveryCountGoal and (g as DeliveryCountGoal).on_time
+	)
+	assert_array(vip_goal).has_size(1)
+	var panel := runner.find_child("TransmissionPanel") as TransmissionPanel
+	var opened := await PauseProofWait.for_condition(panel.is_open, 5000)
+	assert_bool(opened).override_failure_message("The Boss's meeting never opened").is_true()
