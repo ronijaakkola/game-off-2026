@@ -17,9 +17,9 @@ signal folded
 const VIP_TEXT := "VIP"
 const STAR := preload("res://shared/icons/star.svg")
 const STAR_SIZE := 10.0
-## What the header says for passengers going to no planet: the castaway on a hop quest
-## ([HopQuest]). Its icon is then the [HopIcon].
-const NOWHERE_TEXT := "Hop location"
+## What the header says for passengers going to no planet: the castaway on a hop or a bump
+## ([HopQuest], [BumpQuest]). Its icon is then the [HopIcon].
+const NOWHERE_TEXT := "Going nowhere"
 
 ## The planet its passengers are going to, or null for those going to none.
 var planet: Planet:

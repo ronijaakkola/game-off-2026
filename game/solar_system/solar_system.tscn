@@ -525,7 +525,7 @@ star_chart = NodePath("../StarChart")
 guide = NodePath("../Hud/GuideCard")
 saver = NodePath("../GameSaver")
 
-[node name="CapsuleField" type="Node3D" parent="." unique_id=668865033 node_paths=PackedStringArray("bus", "cabin", "star_map", "waiting", "quest_giver", "quick_text", "system_jump", "research_lab", "hints")]
+[node name="CapsuleField" type="Node3D" parent="." unique_id=668865033 node_paths=PackedStringArray("bus", "cabin", "star_map", "waiting", "quest_giver", "quick_text", "system_jump", "research_lab", "hints", "vips")]
 unique_name_in_owner = true
 script = ExtResource("156_capsules")
 bus = NodePath("../Bus")
@@ -537,6 +537,7 @@ quick_text = NodePath("../Hud/BusQuickText")
 system_jump = NodePath("../SystemJump")
 research_lab = NodePath("../ResearchLab")
 hints = NodePath("../FeatureHints")
+vips = NodePath("../VipCalls")
 
 [node name="SystemJump" parent="." unique_id=380382441 node_paths=PackedStringArray("bus", "rig", "hud") instance=ExtResource("119_jump")]
 unique_name_in_owner = true

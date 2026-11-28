@@ -6,14 +6,15 @@ extends VBoxContainer
 ## a flask in their colour.
 ## The icon is an empty circle while the quest is under way, a green tick once it is done,
 ## and a red cross when it failed. A failed quest's top line dims, the reward goes, and
-## why it failed takes the name's place. While a hop location with a window is under way
-## ([WindowHopGoal]), when it opens or closes takes the name's place, in aqua while open.
+## why it failed takes the name's place. While a quest with a status is under way
+## ([method Goal.get_status]), such as a hop location with a window ([WindowHopGoal]) or a
+## bump ([BumpGoal]), the status takes the name's place, in aqua while it can be done.
 
 const DONE_COLOR := Color(0.549, 0.851, 0.4)
 const FAILED_COLOR := Color(0.949, 0.302, 0.4)
 const UNDER_WAY_COLOR := Color(0.957, 0.945, 1.0, 0.651)
 const CREDITS_COLOR := Color(1.0, 0.831, 0.361)
-## A hop location's window while it is open, in the hop zone's aqua.
+## A status while the quest can be done, in the hop zone's aqua.
 const OPEN_COLOR := Color(0.62, 1.0, 0.93)
 ## How faint a failed quest's top line is.
 const FAILED_OPACITY := 0.5
@@ -72,11 +73,10 @@ func refresh() -> void:
 		icon.self_modulate = DONE_COLOR
 	(%Ask as Control).modulate.a = FAILED_OPACITY if failed else 1.0
 	var who := quest.passenger.name if quest.passenger else ""
-	var hop := goal as HopGoal
-	var window := hop.get_window_text() if hop and goal.is_active() else ""
+	var status := goal.get_status() if goal.is_active() else ""
 	var line := %NameLabel as Label
-	line.text = goal.failure if failed and goal.failure else (window if window else who)
-	if window and hop.is_open():
+	line.text = goal.failure if failed and goal.failure else (status if status else who)
+	if status and goal.is_ready():
 		line.add_theme_color_override(&"font_color", OPEN_COLOR)
 	else:
 		line.remove_theme_color_override(&"font_color")
