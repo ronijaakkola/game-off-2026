@@ -89,7 +89,12 @@ def play_game(config: dict, project: Path = ROOT) -> None:
                 stopping = True
                 stop.start()
         code = process.wait()
-        errors = [line for line in lines if is_error(line)]
+        # Each error with the "at:" line after it, so the message names the script and line.
+        errors = [
+            line + (f" {lines[i + 1].strip()}" if lines[i + 1:i + 2] and
+                    lines[i + 1].strip().startswith("at:") else "")
+            for i, line in enumerate(lines) if is_error(line)
+        ]
         if errors:
             raise SystemExit("the run logged errors:\n" + "\n".join(errors[:10]))
         if code != 0:

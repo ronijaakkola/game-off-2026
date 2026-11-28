@@ -77,7 +77,7 @@ func deliver(passenger: Passenger, payout: int, ledger: Ledger) -> void:
 		"t": snappedf(_time, 0.1),
 		"type": passenger.type.display_name,
 		"race": Race.Type.find_key(passenger.race),
-		"to": passenger.destination.display_name,
+		"to": passenger.destination.display_name if passenger.destination else "",
 		"fare": snappedf(passenger.fare, 0.1),
 		"payout": payout,
 		"happiness": snappedf(passenger.happiness, 0.1),

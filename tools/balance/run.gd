@@ -349,7 +349,8 @@ func _passenger_row(passenger: Passenger) -> Dictionary:
 		"type": passenger.type.display_name,
 		"seats": passenger.type.seats,
 		"race": Race.Type.find_key(passenger.race),
-		"to": passenger.destination.display_name,
+		# "" for the castaway on their hop, who goes nowhere.
+		"to": passenger.destination.display_name if passenger.destination else "",
 		"fare": roundi(passenger.fare),
 		"trip_seconds": roundi(passenger.ride.trip_seconds),
 		"expected_seconds": roundi(passenger.ride.expected_seconds),
