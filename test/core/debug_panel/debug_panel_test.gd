@@ -50,19 +50,28 @@ func test_a_groups_buttons_go_on_their_own_card_that_its_toggle_opens() -> void:
 	var runner := scene_runner(SCENE)
 	var panel := runner.scene()
 	var buttons := runner.find_child("Buttons") as Container
+	var groups := runner.find_child("Groups") as Container
+	var groups_label := runner.find_child("GroupsLabel") as Control
 	var cards := runner.find_child("Cards") as Container
 	var scene := Node.new()
 	add_child(scene)
 
 	panel.call(&"add_button", "General", func() -> void: pass, scene)
+	assert_bool(groups_label.visible).is_false()
 	panel.call(&"add_button", "+1 seat", func() -> void: pass, scene, "Stats")
 	panel.call(&"add_button", "-1 seat", func() -> void: pass, scene, "Stats")
 
-	# The main card has the general button and the group's toggle; the group's own card
-	# sits to its right, shut.
-	assert_int(buttons.get_child_count()).is_equal(2)
-	var toggle := buttons.get_child(1) as Button
+	# The main card has the general button, and the group's toggle under Sections below
+	# it; the group's own card sits to its right, shut.
+	assert_int(buttons.get_child_count()).is_equal(1)
+	assert_int(groups.get_child_count()).is_equal(1)
+	assert_bool(groups_label.visible).is_true()
+	var toggle := groups.get_child(0) as Button
 	assert_str(toggle.text).is_equal("Stats")
+	assert_str((toggle.get_child(0) as Label).text).is_equal("›")
+	# The general button and the toggle are as wide as each other, so the columns line up.
+	var general := buttons.get_child(0) as Button
+	assert_float(toggle.custom_minimum_size.x).is_equal(general.custom_minimum_size.x)
 	assert_int(cards.get_child_count()).is_equal(2)
 	var stats_card := cards.get_child(1) as Control
 	assert_bool(stats_card.visible).is_false()
@@ -77,7 +86,58 @@ func test_a_groups_buttons_go_on_their_own_card_that_its_toggle_opens() -> void:
 	scene.free()
 	await runner.simulate_frames(2)
 	assert_int(buttons.get_child_count()).is_equal(0)
+	assert_int(groups.get_child_count()).is_equal(0)
+	assert_bool(groups_label.visible).is_false()
 	assert_int(cards.get_child_count()).is_equal(1)
+
+
+func test_a_slider_shows_its_value_and_acts_once_it_settles() -> void:
+	var runner := scene_runner(SCENE)
+	var panel := runner.scene()
+	var groups := runner.find_child("Groups") as Container
+	var scene := Node.new()
+	add_child(scene)
+	var got: Array[float] = []
+
+	var slider := (
+		panel.call(
+			&"add_slider",
+			"Scale",
+			0.5,
+			1.5,
+			0.05,
+			1.0,
+			func(value: float) -> void: got.append(value),
+			scene,
+			"View"
+		)
+		as HSlider
+	)
+
+	# It goes on its group's card, with its name and its value over it.
+	assert_int(groups.get_child_count()).is_equal(1)
+	var heading := slider.get_parent().get_child(0)
+	assert_str((heading.get_child(0) as Label).text).is_equal("Scale")
+	var value_label := heading.get_child(1) as Label
+	assert_str(value_label.text).is_equal("1.00")
+
+	# A click or the wheel acts at once.
+	slider.value = 0.8
+	assert_array(got).is_equal([0.8])
+	assert_str(value_label.text).is_equal("0.80")
+
+	# A drag shows each value but acts only as it lets go.
+	slider.drag_started.emit()
+	slider.value = 0.7
+	slider.value = 0.6
+	assert_array(got).is_equal([0.8])
+	assert_str(value_label.text).is_equal("0.60")
+	slider.drag_ended.emit(true)
+	assert_array(got).is_equal([0.8, 0.6])
+
+	scene.free()
+	await runner.simulate_frames(2)
+	assert_int(groups.get_child_count()).is_equal(0)
 
 
 # Through Input alone: the runner's own key calls deliver each event twice.

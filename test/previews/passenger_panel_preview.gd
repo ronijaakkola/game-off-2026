@@ -21,8 +21,14 @@ extends Node
 ## `Frustrated`), so whichever tooltip belongs there opens.
 ## `-- Returning` makes the first two seats returning passengers, a Commuter and a
 ## Business one, so their badge shows alone and after the briefcase.
+## `-- Vip` makes the first seat a VIP on a tour of three stops, the first made, so their
+## gold group sits on top with their stops under their card; with `VipLate` too, their
+## tour's time is gone, and with `VipNext` they make their next stop a second in. With
+## `PointStop` too, the pointer rests on their last stop's icon, so its name's tooltip opens.
 ## `-- Breakdown` opens the panel the pointer on a happiness bar opens, for the third
 ## seat, on a bus with Movies, after a stop too many and a quest failed.
+## `-- Castaway` makes the last seat the castaway on a hop quest, going nowhere and as happy
+## as can be, so their group shows under the planets'.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const BUSINESS := preload("res://game/passengers/types/business.tres")
@@ -90,13 +96,31 @@ func _ready() -> void:
 			passenger.frustration = FRUSTRATION[seat]
 			if not passenger.request and not type.stop_lines.is_empty():
 				passenger.activity = type.stop_lines[seat % type.stop_lines.size()]
+		if seat == 0 and "Vip" in args:
+			passenger = Passenger.new(Vip.TYPE, planets[1], 60.0, 40.0, rng)
+			passenger.tour = Tour.new([planets[3], planets[1], planets[4]], 1)
+			passenger.tick(Passenger.BOARDING_SECONDS, cabin.docked)
+			Vip.dress(passenger)
+			if "VipLate" in args:
+				passenger.ride.clock = 200.0
+		if seat == HAPPINESS.size() - 1 and "Castaway" in args:
+			Castaway.dress(passenger, false)
+			passenger.destination = null
+			passenger.quest_line = HopGoal.new(passenger, Vector3.ZERO).get_text()
 		cabin.board(passenger)
 		# After they take their seat, which puts them at what the bus can give.
 		passenger.happiness = Passenger.MAX_HAPPINESS * HAPPINESS[seat]
+		if not passenger.destination:
+			passenger.happiness = passenger.get_target()
 	var panel := %PassengerPanel as PassengerPanel
 	panel.portrait_studio = %PortraitStudio as PortraitStudio
 	panel.cabin = cabin
 	panel.kicks_allowed = "Kick" in args
+	if "VipNext" in OS.get_cmdline_user_args():
+		await get_tree().create_timer(1.2).timeout
+		for passenger: Passenger in cabin.get_passengers():
+			if passenger.tour:
+				passenger.tour.advance()
 	if "Scare" in OS.get_cmdline_user_args():
 		await get_tree().process_frame
 		await get_tree().process_frame
@@ -144,6 +168,17 @@ func _ready() -> void:
 			move.position = at
 			move.global_position = at
 			get_viewport().push_input(move)
+	if "PointStop" in args:
+		# The groups take a moment to open to their cards' height, moving the row.
+		await get_tree().create_timer(1.0).timeout
+		var strip := panel.find_children("*", "TourStrip", true, false)[0]
+		var icons := strip.find_children("*", "PlanetIcon", true, false)
+		var last := icons[icons.size() - 1] as Control
+		var hover := InputEventMouseMotion.new()
+		hover.position = last.get_global_rect().get_center()
+		hover.global_position = hover.position
+		# In the canvas's own pixels, so it lands at any window size.
+		get_viewport().push_input(hover, true)
 	if "Kick" in OS.get_cmdline_user_args():
 		# The cards lay out a frame in.
 		await get_tree().process_frame

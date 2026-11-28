@@ -4,10 +4,12 @@ extends Node
 ## them, and how far the player has got through them. Until they are joined the bus works
 ## in one system at a time: only that one shows, and the camera stays over it. A promotion
 ## there opens the next system ([method promote]), and the bus jumps to it once it is empty
-## ([method enter]). It never goes back. The promotion in the last system joins them: every
-## system shows, the camera roams over all of them and zooms out further, and passengers
-## travel between them. As they join, the camera pulls slowly back from the system the bus
-## is in until all of them show, locked meanwhile; under Reduce motion it cuts there.
+## ([method enter]). Through the stargate it goes back and forth between the systems it has
+## been to, one star at a time ([method can_travel]). The promotion in the last system
+## joins them: every system shows, the camera roams over all of them and zooms out
+## further, and passengers travel between them. As they join, the camera pulls slowly back
+## from the system the bus is in until all of them show, locked meanwhile; under Reduce
+## motion it cuts there.
 
 ## The systems the bus works in, or the one it can jump to, changed.
 signal changed
@@ -39,8 +41,21 @@ var _current := 0
 # How many systems are open: the current one and those before it, and the next one once a
 # promotion opens it.
 var _opened := 1
+# How many systems the bus has been to: the first ones, in the order they open.
+var _reached := 1
 var _joined := false
 var _reveal: Tween
+
+
+func _ready() -> void:
+	if not sky:
+		return
+	# The sky's stars hide behind every star's halo; those of hidden systems hide nothing.
+	var halos: Array[MeshInstance3D] = []
+	for system: StarSystem in get_systems():
+		if system.halo:
+			halos.append(system.halo)
+	sky.star_covers = halos
 
 
 ## Puts the map as a saved run had it: [param saved] from [method to_save], with the bus at
@@ -55,15 +70,17 @@ func restore(saved: Dictionary, bus_planet: Planet) -> void:
 		if bus_planet and systems[i].has_planet(bus_planet):
 			_current = i
 	_opened = maxi(_opened, _current + 1)
+	_reached = clampi(maxi(SavedStarMap.get_reached(saved), _current + 1), 1, systems.size())
 	show_systems()
 	rig.position = systems[_current].position
 
 
 ## What a save keeps: how many systems are open and whether they are joined, and the
-## system the bus works in, by name, for the main menu to show its level's loading screen.
-## [method restore] finds that from the bus's planet instead.
+## system whose level the run is in, by name, for the main menu to show that level's
+## loading screen: the furthest one the bus has been to, wherever the stargate has taken
+## it since. [method restore] finds the system the bus works in from its planet instead.
 func to_save() -> Dictionary:
-	return SavedStarMap.make(_opened, _joined, String(get_current().name))
+	return SavedStarMap.make(_opened, _joined, String(get_furthest().name), _reached)
 
 
 ## Every star system, in the order they open.
@@ -84,6 +101,26 @@ func is_joined() -> bool:
 	return _joined
 
 
+## The systems the bus has been to, in the order they open, or every one once they are
+## joined.
+func get_visited() -> Array[StarSystem]:
+	var systems := get_systems()
+	return systems if _joined else systems.slice(0, _reached)
+
+
+## The last of the systems the bus has been to, whose level the run is in, wherever the
+## stargate has taken the bus since.
+func get_furthest() -> StarSystem:
+	return get_systems()[_reached - 1]
+
+
+## Whether the bus can go through the stargate to [param system]: one it has been to, the
+## one before or after the one it works in.
+func can_travel(system: StarSystem) -> bool:
+	var index := get_systems().find(system)
+	return index >= 0 and index < _reached and absi(index - _current) == 1
+
+
 ## How many systems the player has been promoted out of: each opened the next, and the
 ## last joined them.
 func count_done() -> int:
@@ -92,9 +129,9 @@ func count_done() -> int:
 
 ## The system the bus can jump to, now that a promotion has opened it, or null.
 func get_jump_target() -> StarSystem:
-	if _joined or _opened <= _current + 1:
+	if _joined or _opened <= _reached:
 		return null
-	return get_systems()[_current + 1]
+	return get_systems()[_reached]
 
 
 ## The planets passengers wait at and travel between: the current system's, or every
@@ -132,13 +169,15 @@ func promote() -> void:
 	changed.emit()
 
 
-## The bus has jumped to [param system], which becomes the one it works in.
+## The bus has jumped to [param system], or gone there through the stargate: it becomes
+## the one it works in.
 func enter(system: StarSystem) -> void:
 	var index := get_systems().find(system)
 	if index < 0:
 		return
 	_current = index
 	_opened = maxi(_opened, index + 1)
+	_reached = maxi(_reached, index + 1)
 	show_systems()
 	changed.emit()
 

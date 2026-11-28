@@ -8,7 +8,8 @@ extends RefCounted
 ## way to the nearest planet someone else on board is going to, and the player declines one
 ## whose planet is too far for the fuel left, as a dock decision would refuel for
 ## ([constant Player.FUEL_MARGIN]). "call_think" is the
-## seconds from the call ringing to the answer. An accepted quest sets the course to its
+## seconds from the call ringing to the answer. A transmission that opens by itself, as the
+## castaway's rescue, is answered at once in the same way. An accepted quest sets the course to its
 ## planet at once: docking there is an express quest's stop and an errand's, and flying in
 ## is a flyby.
 
@@ -44,6 +45,9 @@ var _answer_in := 0.0
 var _time := 0.0
 var _call_times: Array[float] = []
 var _quest: Quest
+# Whether the transmission showing was answered: it stays open, and the game paused, while
+# it closes.
+var _responded := false
 
 
 func _init(
@@ -54,6 +58,7 @@ func _init(
 	_detour = detour
 	_giver = system.get_node(^"%QuestGiver") as QuestGiver
 	_panel = system.get_node(^"TransmissionPanel") as TransmissionPanel
+	_panel.answered.connect(func(_accepted: bool) -> void: _responded = false)
 	_notices = system.get_node(^"%Notices") as NoticeStack
 	_bus = system.get_node(^"%Bus") as FrameshiftBus
 	_cabin = system.get_node(^"%Cabin") as Cabin
@@ -105,9 +110,19 @@ func _answer() -> void:
 	# As the notice's own button does: it answers, then leaves, so it is never seen again.
 	call.action_pressed.emit()
 	call.dismiss()
-	var offer := _giver.get_offer()
-	if not _panel.is_open():
-		return
+	if _panel.is_open():
+		_respond(_giver.get_offer())
+
+
+## While the game is paused: answers a transmission that opened with no call notice, as
+## the castaway's rescue does.
+func answer_open() -> void:
+	if _panel.is_open() and not _responded:
+		_respond(_giver.get_offer())
+
+
+func _respond(offer: Quest) -> void:
+	_responded = true
 	# A call that only says something, as the mechanic's: read, and closed.
 	if not offer:
 		_panel.skip()
@@ -141,7 +156,8 @@ func _is_worth(offer: Quest) -> bool:
 		return true
 	var detour := INF
 	for passenger: Passenger in _cabin.get_passengers():
-		if passenger == offer.passenger:
+		# The castaway on their hop goes nowhere, so no detour costs them anything.
+		if passenger == offer.passenger or not passenger.destination:
 			continue
 		var to := passenger.destination.get_body_global_position()
 		detour = minf(detour, from.distance_to(via) + via.distance_to(to) - from.distance_to(to))

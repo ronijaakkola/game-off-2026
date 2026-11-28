@@ -28,8 +28,8 @@ signal delivered(passenger: Passenger, payout: int)
 ## The player kicked [param passenger] off the bus mid-ride ([method kick]). They pay
 ## nothing and rate nothing, and the rest take a [constant KICK_SHOCK].
 signal kicked(passenger: Passenger)
-## [param passenger] stayed behind as the bus jumped to the next star system
-## ([method leave_behind]). They pay nothing and rate nothing.
+## [param passenger] stayed behind in space, as the bus jumped to the next star system or
+## as they hopped out ([method leave_behind]). They pay nothing and rate nothing.
 signal left_behind(passenger: Passenger)
 ## Everyone getting off at the stop [method stop_at] started has got off, one step after
 ## the last of them. Emitted even when nobody got off.
@@ -184,7 +184,7 @@ func get_passengers() -> Array[Passenger]:
 
 
 func has_free_seat() -> bool:
-	return _passengers.size() < seats
+	return Seating.count(_passengers, seats) < seats
 
 
 ## How many requests can be open at once: [constant QUIET_SEATS] fewer than the seats, and
@@ -193,9 +193,10 @@ func get_request_limit() -> int:
 	return maxi(seats - QUIET_SEATS, 1)
 
 
-## Seats no one has taken or been picked up for.
+## Seats no one has taken or been picked up for, each passenger taking as many as their type
+## says ([Seating]).
 func get_free_seats() -> int:
-	return maxi(seats - _passengers.size() - _getting_on.size(), 0)
+	return maxi(seats - Seating.count(_passengers + _getting_on, seats), 0)
 
 
 ## How many on board or picked up are going to [param planet].
@@ -212,10 +213,10 @@ func is_stopping() -> bool:
 	return _stopping
 
 
-## Takes [param passenger] on board at once. False, and nothing happens, when every seat
-## is taken.
+## Takes [param passenger] on board at once. False, and nothing happens, when too few seats
+## are free for them.
 func board(passenger: Passenger) -> bool:
-	if not has_free_seat() or passenger in _passengers:
+	if passenger in _passengers or not Seating.has_room(self, passenger):
 		return false
 	_take_seat(passenger)
 	return true
@@ -236,22 +237,23 @@ func get_serving_amenity(passenger: Passenger) -> Amenity:
 
 
 ## The player kicks [param passenger] off the bus: they leave their seat at once, wherever
-## the bus is, paying and rating nothing, and everyone left takes [constant KICK_SHOCK].
-## False, and nothing happens, when they aren't on board, as when they are already getting
-## off at a stop.
-func kick(passenger: Passenger) -> bool:
+## the bus is, paying and rating nothing, and everyone left takes [constant KICK_SHOCK]
+## when [param shocks]. False, and nothing happens, when they aren't on board, as when they
+## are already getting off at a stop.
+func kick(passenger: Passenger, shocks := true) -> bool:
 	if passenger not in _passengers:
 		return false
 	_passengers.erase(passenger)
 	_forget(passenger)
-	shock(KICK_SHOCK)
+	if shocks:
+		shock(KICK_SHOCK)
 	kicked.emit(passenger)
 	return true
 
 
-## [param passenger] stays behind as the bus jumps to the next star system: they leave their
-## seat at once, out of sight, paying and rating nothing, and nobody takes a shock. False,
-## and nothing happens, when they aren't on board.
+## [param passenger] stays behind in space, as the bus jumps to the next star system or as
+## the [Castaway] hops out: they leave their seat at once, paying and rating nothing, and
+## nobody takes a shock. False, and nothing happens, when they aren't on board.
 func leave_behind(passenger: Passenger) -> bool:
 	if passenger not in _passengers:
 		return false
@@ -311,21 +313,24 @@ func react_to_overheat(seconds: float) -> void:
 ## Starts a stop at [param planet]. Everyone going there leaves their seat now, and their
 ## happiness stops, so they pay by the mood they arrived in, after any disappointment at a
 ## request left unserved ([method Passenger.arrive]); they get off one at a time. For
-## everyone riding on it is a stop on the way ([method Passenger.pass_stop]).
+## everyone riding on it is a stop on the way ([method Passenger.pass_stop]), but for a VIP
+## whose tour it is on, who stays on, bound for the next ([Tour]).
 ## The first one goes at once, and [signal stop_finished] comes [member step_seconds] after
 ## the last, or at once when nobody gets off or on.
 func stop_at(planet: Planet) -> void:
 	var leaving: Array[Passenger] = []
 	for passenger: Passenger in _passengers.duplicate():
-		if passenger.destination == planet:
+		if passenger.destination != planet:
+			passenger.pass_stop(planet)
+		elif passenger.tour and passenger.tour.advance():
+			passenger.destination = passenger.tour.get_next()
+		else:
 			_passengers.erase(passenger)
 			_forget(passenger)
 			_getting_off.append(passenger)
 			passenger.arrive()
 			_payouts.append(passenger.get_payout(tip if _has(BusTraits.Type.TIP_JAR) else 0.0))
 			leaving.append(passenger)
-		else:
-			passenger.pass_stop(planet)
 	for passenger: Passenger in leaving:
 		getting_off.emit(passenger)
 	_unloading = true
@@ -334,9 +339,9 @@ func stop_at(planet: Planet) -> void:
 
 ## The player picks up [param passenger]: they get on after everyone getting off and
 ## everyone picked up before them, one step each, so a stop starts if none is under way.
-## False, and nothing happens, when no seat is free for them.
+## False, and nothing happens, when too few seats are free for them.
 func pick_up(passenger: Passenger) -> bool:
-	if get_free_seats() <= 0 or passenger in _passengers or passenger in _getting_on:
+	if not Seating.fits(passenger, self) or passenger in _passengers or passenger in _getting_on:
 		return false
 	_getting_on.append(passenger)
 	if not _stopping:

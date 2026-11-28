@@ -2,19 +2,24 @@ extends Node
 ## The solar system's buttons on the debug panel: emptying or lowering the fuel, heating
 ## the bus to where it warns or until it overheats, scaring the passengers, showing
 ## notices, an incoming transmission whose Answer opens a test quest, a passenger calling
-## with a real quest as soon as one can, completing the quest under way, a card of quick
-## stop windows and warm charges to try, and a card each of buttons that change the bus's
-## stats and turn its traits on or off, as upgrades would.
+## with a real quest as soon as one can, a VIP calling and each hand-written VIP calling,
+## completing the quest under way, a card of quick
+## stop windows and warm charges to try, and a card of buttons that turn the bus's traits
+## on or off, as upgrades would, and a card that puts a pick-up marker over a planet or
+## takes it away.
 
-## The percent of top speed, the fuel tank and portion size the stat buttons add or take
-## away, and the seats, on every click.
-const STAT_PERCENT := 20
-const SEATS := 1
-## The debug panel's group for the stat buttons: its own card, opened from the main one.
-const STATS_GROUP := "Stats"
+## The debug panel's group for the fuel, heat and scare buttons.
+const BUS_GROUP := "Bus"
+## The debug panel's group for the transmissions, quests and notices, shared with The Boss's
+## first shift call.
+const CALLS_GROUP := FirstShiftCall.DEBUG_GROUP
 ## The debug panel's group for the trait buttons, one per trait that turns it on or off.
 const TRAITS_GROUP := "Traits"
 const QUICK_GROUP := "Quick stop"
+const PICK_UP_GROUP := "Pick-up marker"
+## The made-up person a pick-up marker shows, and the line under their name.
+const PICK_UP_TYPE := preload("res://game/passengers/types/commuter.tres")
+const PICK_UP_LINE := "Waiting for a pick-up"
 ## The quick stop windows the Quick stop card offers, in seconds.
 const QUICK_TIMES: Array[float] = [5.0, 6.0, 7.0, 8.0, 10.0]
 ## The warm charges it offers, in seconds of holding.
@@ -27,26 +32,28 @@ const TEST_TYPE := preload("res://game/passengers/types/business.tres")
 @export var notices: NoticeStack
 @export var transmission_panel: TransmissionPanel
 @export var quest_giver: QuestGiver
+@export var vips: VipCalls
 ## Where the test quest's caller is going, and the planet their quest names.
 @export var test_destination: Planet
 @export var test_flyby_planet: Planet
+@export var pick_up_markers: PickUpMarkers
 
 
 func _ready() -> void:
-	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self)
-	DebugPanel.add_button("Low fuel", _debug_low_fuel, self)
-	DebugPanel.add_button("Heat to warning", _debug_heat_to_warning, self)
-	DebugPanel.add_button("Overheat", _debug_overheat, self)
-	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self)
-	DebugPanel.add_button("Incoming transmission", _debug_incoming_transmission, self)
-	DebugPanel.add_button("Offer quest", _debug_offer_quest, self)
-	DebugPanel.add_button("Complete quest", _debug_complete_quest, self)
-	DebugPanel.add_button("Test notices", _debug_test_notices, self)
-	var percent := StatModifier.Kind.PERCENT
-	_add_stat_buttons(BusStats.Type.MAX_SPEED, percent, STAT_PERCENT, "% top speed")
-	_add_stat_buttons(BusStats.Type.FUEL_CAPACITY, percent, STAT_PERCENT, "% fuel tank")
-	_add_stat_buttons(BusStats.Type.SEATS, StatModifier.Kind.FLAT, SEATS, " seat")
-	_add_stat_buttons(BusStats.Type.PORTION_SIZE, percent, STAT_PERCENT, "% portions")
+	DebugPanel.add_button("Empty fuel", _debug_empty_fuel, self, BUS_GROUP)
+	DebugPanel.add_button("Low fuel", _debug_low_fuel, self, BUS_GROUP)
+	DebugPanel.add_button("Heat to warning", _debug_heat_to_warning, self, BUS_GROUP)
+	DebugPanel.add_button("Overheat", _debug_overheat, self, BUS_GROUP)
+	DebugPanel.add_button("Scare passengers", _debug_scare_passengers, self, BUS_GROUP)
+	var transmission := _debug_incoming_transmission
+	DebugPanel.add_button("Incoming transmission", transmission, self, CALLS_GROUP)
+	DebugPanel.add_button("Offer quest", _debug_offer_quest, self, CALLS_GROUP)
+	DebugPanel.add_button("VIP call", _debug_vip_call, self, CALLS_GROUP)
+	for custom: CustomVip in vips.custom_vips:
+		var named := "VIP call: %s %s" % [custom.title, custom.name]
+		DebugPanel.add_button(named, vips.call_soon.bind(custom), self, CALLS_GROUP)
+	DebugPanel.add_button("Complete quest", _debug_complete_quest, self, CALLS_GROUP)
+	DebugPanel.add_button("Test notices", _debug_test_notices, self, CALLS_GROUP)
 	for seconds: float in QUICK_TIMES:
 		var label := "Quick stop %s s" % String.num(seconds, 2)
 		DebugPanel.add_button(label, _debug_quick_time.bind(seconds), self, QUICK_GROUP)
@@ -57,17 +64,12 @@ func _ready() -> void:
 		var text := "Toggle %s" % String(BusTraits.Type.keys()[value]).capitalize().to_lower()
 		var action := _debug_toggle_trait.bind(value as BusTraits.Type)
 		DebugPanel.add_button(text, action, self, TRAITS_GROUP)
-
-
-# A pair of buttons for the type stat on the Stats card, "+20% top speed" and
-# "-20% top speed": one adds step, the other takes it away.
-func _add_stat_buttons(
-	type: BusStats.Type, kind: StatModifier.Kind, step: int, what: String
-) -> void:
-	for amount: int in [step, -step]:
-		var text := "%+d%s" % [amount, what]
-		var action := _debug_change_stat.bind(type, kind, amount)
-		DebugPanel.add_button(text, action, self, STATS_GROUP)
+	var on_frost := _debug_toggle_pick_up.bind(test_flyby_planet)
+	DebugPanel.add_button("Toggle on Frost", on_frost, self, PICK_UP_GROUP)
+	var on_giant := _debug_toggle_pick_up.bind(test_destination)
+	DebugPanel.add_button("Toggle on Giant", on_giant, self, PICK_UP_GROUP)
+	var docked := func() -> void: _debug_toggle_pick_up(bus.get_docked_planet())
+	DebugPanel.add_button("Toggle where docked", docked, self, PICK_UP_GROUP)
 
 
 # How long a quick stop lasts, said in a notice.
@@ -120,6 +122,11 @@ func _debug_offer_quest() -> void:
 	quest_giver.call_soon()
 
 
+# VIP call: a VIP calls from a planet as soon as nothing else has the line, in any system.
+func _debug_vip_call() -> void:
+	vips.call_soon()
+
+
 # Complete quest: the quest under way is done, as if the bus had flown past or docked at
 # its planet, so its reward, the caller's lift and their dance show. With none under way,
 # the first passenger on board gets the lift and the dance alone.
@@ -166,17 +173,6 @@ func _test_quest() -> Transmission:
 	return transmission
 
 
-# The stat buttons, each a modifier like an upgrade's, another with every click. Once the
-# stat is at its floor, taking away adds nothing, so the clicks that bring it back up
-# count from there.
-func _debug_change_stat(type: BusStats.Type, kind: StatModifier.Kind, amount: int) -> void:
-	var stats := bus.get_stats()
-	var stat := stats.get_stat(type)
-	if amount < 0 and stat.get_value() <= stat.minimum:
-		return
-	stats.add_modifier(StatModifier.new(type, kind, amount))
-
-
 # The trait buttons: gives the bus the trait, as an upgrade would, or takes it back out.
 func _debug_toggle_trait(type: BusTraits.Type) -> void:
 	var traits := bus.get_stats().get_traits()
@@ -184,3 +180,15 @@ func _debug_toggle_trait(type: BusTraits.Type) -> void:
 		traits.remove(type)
 	else:
 		traits.add(type)
+
+
+# The pick-up marker buttons: a made-up person's marker over [param planet], or none if
+# one shows there already.
+func _debug_toggle_pick_up(planet: Planet) -> void:
+	if not planet:
+		return
+	if pick_up_markers.has_marker(planet):
+		pick_up_markers.remove_marker(planet)
+		return
+	var passenger := Passenger.new(PICK_UP_TYPE, test_destination, 60.0, 40.0)
+	pick_up_markers.show_marker(planet, passenger, PICK_UP_LINE)

@@ -15,7 +15,7 @@
       naming a star system ("Lyra") is promoted as in play until it works there, and the
       table adds rows for that system from the bus's arrival ("next: ..."); give it
       "overrides": {"mechanic": true} so research opens as in play. Without a file it
-      plays the game as it is.
+      plays the game as it is. tools/balance/every_system.json plays every star system.
   uv run tools/balance.py play DIR [DECISION] [--seed N] [--minutes M] [--policy JSON]
       A game played turn by turn, one dock at a time, for a person or an agent. With no
       DECISION it starts the game in DIR (or shows where it stands). A DECISION is JSON:
@@ -89,7 +89,12 @@ def play_game(config: dict, project: Path = ROOT) -> None:
                 stopping = True
                 stop.start()
         code = process.wait()
-        errors = [line for line in lines if is_error(line)]
+        # Each error with the "at:" line after it, so the message names the script and line.
+        errors = [
+            line + (f" {lines[i + 1].strip()}" if lines[i + 1:i + 2] and
+                    lines[i + 1].strip().startswith("at:") else "")
+            for i, line in enumerate(lines) if is_error(line)
+        ]
         if errors:
             raise SystemExit("the run logged errors:\n" + "\n".join(errors[:10]))
         if code != 0:

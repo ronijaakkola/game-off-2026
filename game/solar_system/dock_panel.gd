@@ -17,18 +17,20 @@ extends Control
 ## shrinks as smoothly as the row closes. The root is a slot of no height that marks the
 ## panel's place in the corner, and the card hangs down from it. So the card's top edge
 ## stays put however its height changes, with no container to re-sort a frame later and
-## round the height to whole pixels. "Nobody waiting." sits under the rows, so a row going
-## out uncovers it and the card only shrinks. The pointer over a row shows that passenger's
-## trip, and a click on a row pins it, so it stays shown once the pointer leaves, until the
-## row is clicked again, the passenger boards or the bus leaves. The row whose trip shows is
-## highlighted. While [member beckon_boarding], the card's border glows and every row
-## calls for its button to be pressed ([member BoardingRow.beckoning]), in one pulse: they
-## brighten quickly and fade slowly, again and again, and hold bright under Reduce motion.
+## round the height to whole pixels. "Nobody waiting." ([EmptyLineLabel]) sits under the
+## rows. At an abandoned planet where nobody waits, a message says so in place of the
+## line. The pointer over a row shows that passenger's trip, and a click on a row pins it,
+## so it stays shown once the pointer leaves, until the row is clicked again, the passenger
+## boards or the bus leaves. The row whose trip shows is highlighted. While
+## [member beckon_boarding], the card's border glows and every row calls for its button to
+## be pressed
+## ([member BoardingRow.beckoning]), in one pulse: they brighten quickly and fade slowly,
+## again and again, and hold bright under Reduce motion.
 ## Board all steps back to a plain button meanwhile, so there is one thing to press.
 ## While the player can pay for an upgrade they couldn't when they last closed the research
 ## screen ([method ResearchLab.has_unseen_upgrade]), the Research button has a thin outline
-## in the Frameshift key's yellow on its edge, fainter than the key's and pulsing in step
-## with it, and holding still under Reduce motion.
+## on its edge ([ResearchNudge]). Where the stargate is, once it is built, a row to go
+## through it joins the services ([StargateRow]).
 ## While [member research_hidden], as through the tutorial and until research is
 ## open ([MechanicCall]), there is no Research button,
 ## and while [member fuel_hidden] no fuel button, while [member fuel_locked] one that is
@@ -55,18 +57,6 @@ const SLIDE_SECONDS := 0.35
 const RESEARCH_IN_SECONDS := 0.3
 # How far past the slot's right edge the card goes, so it is out of sight.
 const OFF_RIGHT := 32.0
-## The seconds a beckoning pulse takes to brighten, and to fade before the next.
-const BECKON_RISE_SECONDS := 0.3
-const BECKON_FADE_SECONDS := 1.0
-## The card's border while beckoning: its width in pixels, its colour at the height of a
-## pulse, and its opacity between pulses, as a share of that.
-const BECKON_BORDER := 2
-const BECKON_COLOR := Color(1.0, 1.0, 1.0, 0.9)
-const BECKON_BORDER_LOW := 0.25
-# The Research button's outline is a nudge, fainter than the Frameshift key's: its opacity
-# swings between these.
-const NUDGE_DIM := 0.15
-const NUDGE_BRIGHT := 0.6
 
 ## Who waits at each planet.
 @export var waiting: WaitingPassengers:
@@ -125,6 +115,9 @@ var fuel_hidden := false:
 		if is_node_ready():
 			_show_services()
 
+## Whether the pointer is on the warp gate in the world, which shows its way as the pointer
+## on the Teleport button does ([GateService]).
+var gate_hovered := false
 ## Whether the fuel button shows but is off, reading what filling up would cost.
 var fuel_locked := false
 ## Whether Board all is hidden.
@@ -132,7 +125,7 @@ var board_all_hidden := false:
 	set(value):
 		board_all_hidden = value
 		if is_node_ready():
-			(%BoardAllButton as Control).visible = not value
+			_show_line()
 
 # The planet whose line the panel lists. It stays while the panel slides out.
 var _shown: Planet
@@ -146,10 +139,7 @@ var _pinned: Passenger
 var _gate_previewed: Planet
 # The passenger whose trip shows, as last sent in trip_previewed.
 var _previewed: Passenger
-var _beckon: Tween
-# Whether "Nobody waiting." shows, or is on its way in, and its fade.
-var _empty := true
-var _empty_fade: Tween
+var _beckon: BeckonPulse
 # What the Teleport button reads, or empty while its row hides.
 var _teleport_text := ""
 # How much of its height the Research row has, from 0 to 1, and the tween growing it in.
@@ -162,6 +152,7 @@ func _ready() -> void:
 	# sorts at the end of the frame. Fitting the card again as the content's size changes
 	# keeps the card and Board all in step with it in that same frame, not a frame behind.
 	(%Content as Control).minimum_size_changed.connect(_on_content_resized)
+	get_stargate_row().visibility_changed.connect(_show_services)
 	_show_planet()
 
 
@@ -276,14 +267,27 @@ func _show_services() -> void:
 	(%FuelRow as Control).visible = fuel
 	(%ResearchSlot as Control).visible = _shows_lab()
 	(%TeleportSlot as Control).visible = teleport
-	(%Services as Control).visible = fuel or _shows_lab() or teleport
-	(%FuelRule as Control).visible = fuel or _shows_lab() or teleport
+	var any := fuel or _shows_lab() or teleport or get_stargate_row().is_open()
+	(%Services as Control).visible = any
+	(%FuelRule as Control).visible = any
 	# Under the fuel or Research row's gap when either shows.
 	var gap := (
 		(%Content as Control).get_theme_constant(&"separation") if fuel or _shows_lab() else 0
 	)
 	(%TeleportSlot as Control).add_theme_constant_override(&"margin_top", gap)
+	var separation := (%Content as Control).get_theme_constant(&"separation")
+	get_stargate_row().gap = separation if fuel or _shows_lab() or teleport else 0
 	_fit_research()
+
+
+# The line's heading, Board all and rows, or at an abandoned planet with nobody waiting
+# the message instead.
+func _show_line() -> void:
+	var abandoned := _shown != null and _shown.abandoned and _rows.is_empty()
+	(%WaitingLabel as Control).visible = not abandoned
+	(%BoardAllButton as Control).visible = not abandoned and not board_all_hidden
+	(%List as Control).visible = not abandoned
+	(%AbandonedMessage as Control).visible = abandoned
 
 
 # The Research row in its slot, under the fuel row's gap when that shows, with the slot as
@@ -357,74 +361,29 @@ func _sync_rows(animated := true) -> void:
 		_rows[passenger] = row
 		if animated and visible:
 			row.enter()
-	_show_empty(line.is_empty(), animated and visible)
-
-
-# Shows "Nobody waiting." while [param empty]. When [param animated], it fades in once the
-# last row has faded out, and fades out under the first row to come, staying in the layout
-# until that row's place has opened past it, so the card never snaps shorter.
-func _show_empty(empty: bool, animated: bool) -> void:
-	var label := %EmptyLabel as Control
-	if animated and empty == _empty:
-		return
-	_empty = empty
-	if _empty_fade:
-		_empty_fade.kill()
-	if not animated or Settings.reduce_motion:
-		label.visible = empty
-		label.modulate.a = 1.0
-		return
-	_empty_fade = create_tween()
-	if empty:
-		if not label.visible:
-			label.modulate.a = 0.0
-			label.visible = true
-		_empty_fade.tween_interval(BoardingRow.EXIT_SECONDS)
-		_empty_fade.tween_property(label, ^"modulate:a", 1.0, BoardingRow.EXIT_SECONDS)
-	else:
-		_empty_fade.tween_property(label, ^"modulate:a", 0.0, BoardingRow.EXIT_SECONDS)
-		_empty_fade.tween_interval(BoardingRow.GAP_SECONDS - BoardingRow.EXIT_SECONDS)
-		_empty_fade.tween_callback(label.hide)
+	(%EmptyLabel as EmptyLineLabel).show_empty(line.is_empty(), animated and visible)
+	_show_line()
 
 
 # Pulses the card's border and the rows while beckoning, or puts the card back.
 func _start_beckon() -> void:
-	if _beckon:
-		_beckon.kill()
-		_beckon = null
-	_set_beckon_glow(1.0)
-	if not beckon_boarding:
-		(%Card as Control).remove_theme_stylebox_override(&"panel")
-		return
-	if Settings.reduce_motion:
-		return
-	_beckon = create_tween().set_loops().set_trans(Tween.TRANS_SINE)
-	_beckon.tween_method(_set_beckon_glow, 0.0, 1.0, BECKON_RISE_SECONDS)
-	_beckon.tween_method(_set_beckon_glow, 1.0, 0.0, BECKON_FADE_SECONDS)
+	if not _beckon:
+		_beckon = BeckonPulse.new(%Card as Control, _set_rows_glow)
+	_beckon.play(beckon_boarding)
 
 
-func _set_beckon_glow(glow: float) -> void:
+func _set_rows_glow(glow: float) -> void:
 	for row: BoardingRow in _rows.values():
 		row.beckon_glow = glow
-	if not beckon_boarding:
-		return
-	var card := %Card as Control
-	card.remove_theme_stylebox_override(&"panel")
-	var style := card.get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
-	if not style:
-		return
-	style.set_border_width_all(BECKON_BORDER)
-	style.border_color = BECKON_COLOR
-	style.border_color.a *= lerpf(BECKON_BORDER_LOW, 1.0, glow)
-	card.add_theme_stylebox_override(&"panel", style)
 
 
-# Shows the way through the gate while the pointer is over the Teleport button, else the
-# trip of the passenger whose row it is over, else the pinned one's, and nobody's once the
-# bus has left. Highlights that row, and tells the parent when either changes.
+# Shows the way through the gate while the pointer is over the Teleport button or the gate,
+# else the trip of the passenger whose row it is over, else the pinned one's, and nobody's
+# once the bus has left. Highlights that row, and tells the parent when either changes.
 func _preview() -> void:
 	var gate_to: Planet = null
-	if planet and not _teleport_text.is_empty() and (%TeleportButton as Button).is_hovered():
+	var on_gate := gate_hovered or (%TeleportButton as Button).is_hovered()
+	if planet and not _teleport_text.is_empty() and on_gate:
 		gate_to = WarpGate.twin_of(planet)
 	if gate_to != _gate_previewed:
 		_gate_previewed = gate_to
@@ -446,12 +405,13 @@ func _preview() -> void:
 func _show_buttons() -> void:
 	var free := cabin.get_free_seats() > 0 if cabin else true
 	for row: BoardingRow in _rows.values():
-		row.can_board = free
+		row.can_board = Seating.can_pick_up(cabin, row.passenger) if cabin else true
 		row.along = cabin.count_going_to(row.passenger.destination) if cabin else 0
 	var button := %BoardAllButton as Button
 	button.text = "Board all" if free else "Bus full %d/%d" % [cabin.seats, cabin.seats]
 	button.disabled = not free or _rows.is_empty()
-	_nudge_research(_shows_lab() and research_lab != null and research_lab.has_unseen_upgrade())
+	var unseen := research_lab != null and research_lab.has_unseen_upgrade()
+	(%ResearchNudge as ResearchNudge).nudging = _shows_lab() and unseen
 
 
 ## The fuel button, for a guide card to point at.
@@ -469,6 +429,11 @@ func get_teleport_row() -> Control:
 	return %TeleportRow
 
 
+## The stargate's row, which whoever built the stargate opens and closes ([BossPickUp]).
+func get_stargate_row() -> StargateRow:
+	return %StargateRow
+
+
 ## The Research button's row, its icon included, for a guide card to point at.
 func get_research_row() -> Control:
 	return %ResearchRow
@@ -483,19 +448,6 @@ func get_row(passenger: Passenger) -> Control:
 ## for that the player hasn't seen on the research screen.
 func is_research_nudging() -> bool:
 	return (%ResearchNudge as CanvasItem).visible
-
-
-# Shows the pulsing outline on the Research button, or hides it.
-func _nudge_research(nudging: bool) -> void:
-	var outline := %ResearchNudge as CanvasItem
-	outline.visible = nudging
-	if not nudging:
-		return
-	var pulse := 1.0
-	if not Settings.reduce_motion:
-		var seconds := Time.get_ticks_msec() / 1000.0
-		pulse = 0.5 - 0.5 * cos(seconds * TAU / FrameshiftKey.PULSE_SECONDS)
-	outline.self_modulate.a = lerpf(NUDGE_DIM, NUDGE_BRIGHT, pulse)
 
 
 # Sizes the slot to the card's width, and hangs the card down from the slot, as tall as
@@ -550,7 +502,8 @@ func _on_teleport_button_pressed() -> void:
 
 
 func _on_board_all_button_pressed() -> void:
-	for passenger: Passenger in _rows.keys():
+	# Only a VIP's own button kicks passengers off to make room for them.
+	for passenger: Passenger in _rows.keys().filter(Seating.fits.bind(cabin)):
 		board_pressed.emit(passenger)
 
 

@@ -33,6 +33,8 @@
 [ext_resource type="AudioStream" uid="uid://bcxhhx626yt1b" path="res://game/transmissions/voice/blue/b_e04.ogg" id="e04"]
 [ext_resource type="AudioStream" uid="uid://vmd8d7l2kcqx" path="res://game/transmissions/voice/blue/b_h01.ogg" id="h01"]
 [ext_resource type="AudioStream" uid="uid://ch4nkme7puepp" path="res://game/transmissions/voice/blue/b_h02.ogg" id="h02"]
+[ext_resource type="AudioStream" uid="uid://dj0qvd7n1ko6e" path="res://game/transmissions/voice/blue/b_h03.ogg" id="h03"]
+[ext_resource type="AudioStream" uid="uid://bimx0am6wjix4" path="res://game/transmissions/voice/blue/b_h04.ogg" id="h04"]
 [ext_resource type="AudioStream" uid="uid://bvle14p1fnh16" path="res://game/transmissions/voice/blue/b_l01.ogg" id="l01"]
 [ext_resource type="AudioStream" uid="uid://cjqva7kpavtg5" path="res://game/transmissions/voice/blue/b_l02.ogg" id="l02"]
 [ext_resource type="AudioStream" uid="uid://dg67xdk8po3x4" path="res://game/transmissions/voice/blue/b_l03.ogg" id="l03"]
@@ -48,6 +50,9 @@
 [ext_resource type="AudioStream" uid="uid://beci236srjwp" path="res://game/transmissions/voice/blue/b_s01.ogg" id="s01"]
 [ext_resource type="AudioStream" uid="uid://bnrlrmfq8tmar" path="res://game/transmissions/voice/blue/b_s02.ogg" id="s02"]
 [ext_resource type="AudioStream" uid="uid://bbioo1qgia6hy" path="res://game/transmissions/voice/blue/b_s03.ogg" id="s03"]
+[ext_resource type="AudioStream" uid="uid://don2k6dwel652" path="res://game/transmissions/voice/blue/b_k01.ogg" id="k01"]
+[ext_resource type="AudioStream" uid="uid://b0lnlmifvi636" path="res://game/transmissions/voice/blue/b_k02.ogg" id="k02"]
+[ext_resource type="AudioStream" uid="uid://csjcdrnb7w1py" path="res://game/transmissions/voice/blue/b_k03.ogg" id="k03"]
 [ext_resource type="Script" uid="uid://jvrxrmesvlbt" path="res://game/transmissions/voice/voice.gd" id="voice_script"]
 
 [resource]
@@ -57,8 +62,9 @@ questions = Array[AudioStream]([ExtResource("q01"), ExtResource("q02"), ExtResou
 exclaims = Array[AudioStream]([ExtResource("e01"), ExtResource("e02"), ExtResource("e03"), ExtResource("e04")])
 longs = Array[AudioStream]([ExtResource("l01"), ExtResource("l02"), ExtResource("l03"), ExtResource("l04"), ExtResource("l05"), ExtResource("l06"), ExtResource("l07"), ExtResource("l08")])
 stingers_annoyed = Array[AudioStream]([ExtResource("a01"), ExtResource("a02"), ExtResource("a03"), ExtResource("a04")])
-stingers_happy = Array[AudioStream]([ExtResource("h01"), ExtResource("h02")])
+stingers_happy = Array[AudioStream]([ExtResource("h01"), ExtResource("h02"), ExtResource("h03"), ExtResource("h04")])
 stingers_scared = Array[AudioStream]([ExtResource("s01"), ExtResource("s02"), ExtResource("s03")])
+kicked = Array[AudioStream]([ExtResource("k01"), ExtResource("k02"), ExtResource("k03")])
 typing_speed = 1.0
 volume = 0.4
 pitch_min = 0.9
@@ -68,10 +74,11 @@ pitch_jitter = 0.07
 start_long_chance = 0.5
 pause_long_chance = 0.3
 long_pause = 0.15
+kicked_pitch = 1.2
 blip_speed = 1.0
 min_word_letters = 3
 long_word_letters = 8
-max_overlap = 0.18
+max_overlap = 0.315
 fade_in = 0.006
 fade_out = 0.025
 words_per_blip_min = 1

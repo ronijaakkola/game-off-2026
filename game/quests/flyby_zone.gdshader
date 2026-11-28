@@ -16,6 +16,10 @@ uniform float turn = 0.0;
 // From 0 to 1: how much brighter it shows, as it pulses while the pointer is on its quest.
 uniform float flash : hint_range(0.0, 1.0) = 0.0;
 uniform float flash_gain = 1.6;
+// From 0 to 1: how open it is. Closed, as a hop location outside its window, it has no
+// fill and a faint ring.
+uniform float open : hint_range(0.0, 1.0) = 1.0;
+uniform float closed_ring = 0.4;
 // From 0 to 1: how much of it shows, as it fades in and out with the quest.
 uniform float opacity : hint_range(0.0, 1.0) = 0.0;
 
@@ -30,8 +34,8 @@ void fragment() {
 	float edge = clamp(dashes * pixel / (TAU * max(d, 0.01)), 0.001, 0.25);
 	float dash = smoothstep(0.0, edge, along) * (1.0 - smoothstep(dash_share, dash_share + edge, along));
 	float line = ring * dash;
-	float fill = fill_color.a * mix(0.45, 1.0, d * d);
+	float fill = fill_color.a * mix(0.45, 1.0, d * d) * open;
 	ALBEDO = mix(fill_color.rgb, ring_color.rgb, line);
-	float shade = mix(fill * (1.0 + flash * flash_gain), ring_color.a * (1.0 + flash), line);
+	float shade = mix(fill * (1.0 + flash * flash_gain), ring_color.a * mix(closed_ring, 1.0, open) * (1.0 + flash), line);
 	ALPHA = shade * inside * opacity;
 }

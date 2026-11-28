@@ -48,12 +48,17 @@ var _shown: Dictionary[Node, Callable] = {}
 # Who waits for a free slot, first in line first, and the look and type they asked for.
 var _waiting: Array[Node] = []
 var _asked: Dictionary[Node, Array] = {}
+# The materials no portrait draws until a passenger sweats or is angry: the drops' and the
+# anger mark's. Kept here from the start, so the loading screen draws them first
+# ([MaterialWarmUp]) and their shaders are compiled by then.
+var _late_materials: Array[Material] = []
 
 
 func _ready() -> void:
 	size = Vector2i(SLOTS * _pitch(), _pitch())
 	(%Camera as Camera3D).size = _pitch() * SLOT / TILE
 	_slots.resize(SLOTS)
+	_late_materials = [PortraitSweat.get_material(), AngerMark.make_material()]
 	_update_rendering()
 
 
@@ -147,7 +152,7 @@ static func new_portrait(look: AlienLook, type: PassengerType) -> AlienPortrait:
 	portrait.head_model = look.head
 	portrait.eye_style = look.eye_style
 	portrait.skin_color = look.skin_color
-	portrait.wears_bow_tie = type != null and type.wears_bow_tie
+	portrait.props.dress(type)
 	return portrait
 
 

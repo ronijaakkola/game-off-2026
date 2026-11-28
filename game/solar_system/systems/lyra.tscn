@@ -6,6 +6,8 @@
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
 [ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
 [ext_resource type="Script" uid="uid://b3wlb2uewmlfq" path="res://game/warp_gate/warp_gate.gd" id="9_gate"]
+[ext_resource type="PackedScene" uid="uid://3uyf4jdy67ft" path="res://game/stargate/stargate.tscn" id="10_stargate"]
+[ext_resource type="AudioStream" uid="uid://bxki2d1flchda" path="res://ui/audio/bgm2.ogg" id="90_music"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
 radius = 2.9
@@ -135,9 +137,10 @@ shader_parameter/band_count = 2.0
 shader_parameter/gap = 0.16
 shader_parameter/opacity = 1.0
 
-[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("home")]
+[node name="Lyra" type="Node3D" unique_id=546292341 node_paths=PackedStringArray("home", "star", "halo")]
 script = ExtResource("1_system")
 display_name = "Lyra"
+music = ExtResource("90_music")
 home = NodePath("Hither")
 jump_arrival = Vector3(0, 0, 12)
 bounds_radius = 22.5
@@ -155,6 +158,8 @@ star_radius = 2.9
 zone_color = Color(0.541, 0.816, 1, 0.07)
 hot_color = Color(1, 1, 1, 0.12)
 smoke_color = Color(0.604, 0.863, 1, 0.07)
+star = NodePath("Star")
+halo = NodePath("Star/Halo")
 background_color = Color(0.059, 0.133, 0.22, 1)
 fog_color = Color(0.075, 0.227, 0.333, 1)
 fog_accent_color = Color(0.102, 0.165, 0.353, 1)
@@ -265,3 +270,6 @@ partner = NodePath("../YonGate")
 script = ExtResource("9_gate")
 planet = NodePath("../Yon")
 partner = NodePath("../HitherGate")
+
+[node name="CinderStargate" parent="." unique_id=752692036 node_paths=PackedStringArray("planet") instance=ExtResource("10_stargate")]
+planet = NodePath("../Cinder")

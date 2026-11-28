@@ -6,6 +6,8 @@ extends RefCounted
 ## A decision is a Dictionary: "board" (ids of waiting passengers), "kick" (names on
 ## board), "research" (upgrade ids), "refuel" (bool) and "next" (a planet's name).
 ## The same policy says how it answers calls with quests in flight (calls.gd).
+## A VIP's tour comes first: it picks up a VIP waiting where it docks before anyone else,
+## and flies to the stop the VIP on board is on, or to where an accepted VIP waits.
 
 ## Flying this many times the straight distance must fit in the tank, or the bot refuels:
 ## planets move, and the bus chases them. It also refuels below the policy's
@@ -39,11 +41,14 @@ func decide(state: Dictionary) -> Dictionary:
 	var board := _pick_passengers(state, seats)
 	var going: Array[String] = []
 	for passenger: Dictionary in state["on_board"]:
-		going.append(passenger["to"])
+		if passenger["to"] != "":
+			going.append(passenger["to"])
 	for passenger: Dictionary in state["waiting"]:
 		if passenger["id"] in board:
 			going.append(passenger["to"])
-	var next := _pick_next(state, going)
+	var next := _pick_vip_stop(state, board)
+	if next.is_empty():
+		next = _pick_next(state, going)
 	var needed := _distance_to(state, next) * FUEL_MARGIN * float(state["fuel"]["burn_per_unit"])
 	var below := float(policy.get("refuel_below", 0.5))
 	var low := float(state["fuel"]["fuel"]) < float(state["fuel"]["capacity"]) * below
@@ -129,31 +134,43 @@ func _seats_from(state: Dictionary, id: String) -> int:
 	return 0
 
 
+# A VIP waiting here is picked up first, when their seats are free.
 # "all" takes everyone who fits, longest waiting first, as the dock panel's button does.
 # "smart" takes those going where someone on board already goes first, then the nearest
 # destinations, and never to more than max_destinations planets at once. "business" set
 # to "avoid" leaves Business passengers behind, and "prefer" takes them first.
 func _pick_passengers(state: Dictionary, seats: int) -> Array[String]:
 	var picked: Array[String] = []
+	var free := seats
 	var line: Array = (state["waiting"] as Array).duplicate()
+	for passenger: Dictionary in line:
+		if passenger["type"] == Vip.TYPE.display_name and int(passenger["seats"]) <= free:
+			picked.append(passenger["id"])
+			free -= int(passenger["seats"])
+	line = line.filter(func(p: Dictionary) -> bool: return p["id"] not in picked)
 	var business := str(policy.get("business", "any"))
 	if business == "avoid":
 		line = line.filter(func(p: Dictionary) -> bool: return p["type"] != "Business")
 	if str(policy.get("board", "smart")) == "all":
 		for passenger: Dictionary in line:
-			if picked.size() < seats:
+			if int(passenger["seats"]) <= free:
 				picked.append(passenger["id"])
+				free -= int(passenger["seats"])
 		return picked
 	var going: Array[String] = []
+	# The castaway on their hop goes nowhere ("") and takes up no destination.
 	for passenger: Dictionary in state["on_board"]:
-		if passenger["to"] not in going:
+		if passenger["to"] != "" and passenger["to"] not in going:
+			going.append(passenger["to"])
+	for passenger: Dictionary in state["waiting"]:
+		if passenger["id"] in picked and passenger["to"] not in going:
 			going.append(passenger["to"])
 	var most := int(policy.get("max_destinations", 2))
-	while picked.size() < seats:
+	while free > 0:
 		var best: Dictionary = {}
 		var best_score := INF
 		for passenger: Dictionary in line:
-			if passenger["id"] in picked:
+			if passenger["id"] in picked or int(passenger["seats"]) > free:
 				continue
 			var known: bool = passenger["to"] in going
 			if not known and going.size() >= most:
@@ -167,9 +184,23 @@ func _pick_passengers(state: Dictionary, seats: int) -> Array[String]:
 		if best.is_empty():
 			break
 		picked.append(best["id"])
+		free -= int(best["seats"])
 		if best["to"] not in going:
 			going.append(best["to"])
 	return picked
+
+
+# The stop the VIP on board, or picked up here, is on, or where an accepted VIP waits for
+# the bus; "" with no VIP.
+func _pick_vip_stop(state: Dictionary, board: Array[String]) -> String:
+	for passenger: Dictionary in state["on_board"]:
+		if passenger["type"] == Vip.TYPE.display_name:
+			return passenger["to"]
+	for passenger: Dictionary in state["waiting"]:
+		if passenger["type"] == Vip.TYPE.display_name and passenger["id"] in board:
+			return passenger["to"]
+	var at := str(state.get("vip_pick_up", ""))
+	return "" if at == state["planet"] else at
 
 
 # The nearest of the planets someone is going to, or with nobody on board, the nearest

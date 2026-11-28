@@ -441,12 +441,20 @@ func _show() -> void:
 	(%ActivityLabel as Control).visible = not button.visible
 	button.progress = passenger.serving
 	if _requests_heard >= 0 and passenger.requests_opened > _requests_heard:
-		Psst.play()
+		_call_out()
 	_requests_heard = passenger.requests_opened
 	if passenger.request:
 		# Docked, the station serves it, and the cabin's line says so.
 		var label := passenger.activity if docked else passenger.request.serve_label
 		button.show_request(label, passenger.request.icon)
+
+
+# The passenger asks for something: they call out in their race's annoyed stinger, at their own
+# pitch. A race with no voice yet is silent.
+func _call_out() -> void:
+	var speaker := %Speaker as VoiceSpeaker
+	speaker.begin(passenger.race, passenger.name)
+	speaker.play_stinger(Voice.Stinger.ANNOYED)
 
 
 # The trail behind the bar: a drop of TRAIL_JUMP or more holds it where it was for

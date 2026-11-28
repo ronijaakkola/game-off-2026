@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 ## at, and in the trees' first layout or the one now, and the research stages that were
 ## open. A New game after the tutorial starts at Terra. The first save in another star
 ## system keeps the run as that level began, and starting the level from it starts there.
+## Going back to an earlier star through the stargate leaves the run in the furthest level.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -70,7 +71,7 @@ func _upgrade_at(lab: ResearchLab, tree_title: String, tier: int, column: int) -
 
 func test_the_first_save_in_a_new_system_keeps_the_run_as_its_level_began() -> void:
 	SaveGame.delete()
-	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Sol")})
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Vela")})
 	SaveGame.continue_saved()
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)
@@ -91,6 +92,22 @@ func test_the_first_save_in_a_new_system_keeps_the_run_as_its_level_began() -> v
 	assert_str(SavedStarMap.get_system(SavedStarMap.of(kept))).is_equal("Lyra")
 
 
+func test_a_save_after_going_back_through_the_stargate_keeps_the_furthest_level() -> void:
+	SaveGame.delete()
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(3, false, "Sol", 3)})
+	SaveGame.continue_saved()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var star_map := runner.find_child("StarMap") as StarMap
+
+	star_map.enter(runner.find_child("Lyra") as StarSystem)
+	(runner.find_child("GameSaver") as GameSaver)._write()
+
+	var saved := SavedStarMap.of(SaveGame.get_saved_run())
+	assert_str(SavedStarMap.get_system(saved)).is_equal("Sol")
+	assert_dict(_kept_starts()).is_empty()
+
+
 # A save from before saves kept their system says nothing of where its run was.
 func test_continuing_a_save_without_its_system_keeps_no_start() -> void:
 	SaveGame.delete()
@@ -107,7 +124,7 @@ func test_starting_level_2_from_its_kept_start_docks_in_lyra() -> void:
 	var start := {SavedStarMap.KEY: SavedStarMap.make(2, false, "Lyra")}
 	start["bus_planet"] = "Hither"
 	SaveGame.write_campaign({"done": 1, "starts": {"2": start}})
-	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(1, false, "Sol")})
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(1, false, "Vela")})
 	Campaign._start(load("res://shared/level_art/level_2.tres"), false)
 	var runner := scene_runner(SCENE)
 	await runner.simulate_frames(2)

@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://3uyf4jdy67ft"]
+
+[ext_resource type="Script" uid="uid://bqt5210036od1" path="res://game/stargate/stargate.gd" id="1_gate"]
+[ext_resource type="PackedScene" uid="uid://dlkbkft2jjx31" path="res://game/stargate/models/stargate.glb" id="2_model"]
+
+[node name="Stargate" type="Node3D" unique_id=190217559]
+script = ExtResource("1_gate")
+
+[node name="Lean" type="Node3D" parent="." unique_id=1080904241]
+unique_name_in_owner = true
+
+[node name="Spin" type="Node3D" parent="Lean" unique_id=1712830233]
+unique_name_in_owner = true
+
+[node name="Model" parent="Lean/Spin" unique_id=307359174 instance=ExtResource("2_model")]
+unique_name_in_owner = true
+transform = Transform3D(0.64, 0, 0, 0, 0.64, 0, 0, 0, 0.64, 0, -0.5312, 0)
+
+[node name="Glow" type="MeshInstance3D" parent="." unique_id=155138194]
+unique_name_in_owner = true

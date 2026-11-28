@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://bl01xy5yjkwdf"]
+
+[ext_resource type="Script" uid="uid://deawnwe3bdhri" path="res://ui/main_menu/title_card.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://jxl4lq5xa0ne" path="res://ui/main_menu/logo.svg" id="2_logo"]
+[ext_resource type="Theme" uid="uid://67yr7b2dkwjh" path="res://ui/theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" uid="uid://c4l137alvwqjl" path="res://ui/guide_card/icons/mouse_left.svg" id="4_mouse"]
+
+[node name="TitleCard" type="Control" unique_id=1129101151]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_theme")
+script = ExtResource("1_script")
+
+[node name="Cover" type="ColorRect" parent="." unique_id=2052539835]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.0902, 0.0745, 0.2078, 1)
+
+[node name="Logo" type="TextureRect" parent="." unique_id=185577580]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -191.5
+offset_top = -65.0
+offset_right = 191.5
+offset_bottom = 65.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Prompt" type="HBoxContainer" parent="." unique_id=21491378]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = 100.0
+offset_right = 160.0
+offset_bottom = 128.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Mouse" type="TextureRect" parent="Prompt" unique_id=1646932160]
+custom_minimum_size = Vector2(15, 20)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("4_mouse")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Prompt" unique_id=1556058033]
+layout_mode = 2
+theme_type_variation = &"TitlePromptLabel"
+text = "Click to start"

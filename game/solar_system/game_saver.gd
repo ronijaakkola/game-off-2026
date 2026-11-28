@@ -10,8 +10,10 @@ extends Node
 ## its orbit, the bus's planet, fuel and reserve, the [Ledger], the researched upgrades, whether
 ## research and which stages are open, the passengers on board and in every line, those
 ## who may come back, the goals'
-## progress, the quest under way and how far through the star systems the player has got.
-## The course, the charge and what passengers were doing start afresh.
+## progress, the quest under way, how far The Boss's pick-up has got and how far through
+## the star systems the player has got.
+## The course, the charge and what passengers were doing start afresh. A run the debug panel
+## fast-forwards is neither: its [FastForward] builds it.
 ## Putting a run back comes in two steps, so the scene builds a continued run as it builds
 ## a new one: [method place_world] before anything in the scene is ready, then
 ## [method start] once it is, which applies the rest on top.
@@ -67,13 +69,22 @@ const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
 ## Who is on board.
 @export var cabin: Cabin
 @export var goals: GoalTracker
-## Whose quest under way is kept.
+## Whose quests under way are kept.
 @export var quest_giver: QuestGiver
+## How close VIPs are to calling, so a VIP goal comes back before the goals' progress.
+@export var vips: VipCalls
 ## Which upgrades are researched, whether research and which stages are open, and every
 ## research tree.
 @export var research_lab: ResearchLab
 ## Which star systems are open and joined. The bus's planet says which one it works in.
 @export var star_map: StarMap
+## How close the next capsule is to holding the castaway.
+@export var capsules: CapsuleField
+## Takes a run the debug panel fast-forwards to a later level ([method Campaign.fast_forward])
+## there, in place of a new run or a continued one.
+@export var fast_forward: FastForward
+## How far The Boss's pick-up has got.
+@export var boss_pick_up: BossPickUp
 
 ## Who waits at each planet. The parent sets it before [method start].
 var waiting: WaitingPassengers
@@ -82,6 +93,7 @@ var holding := false
 
 var _recording := false
 var _continued := false
+var _fast_forwarding := false
 var _tutorial := false
 # The star system the run last saved in, so the first save in another is where its level
 # began ([Campaign]).
@@ -108,6 +120,13 @@ func place_world(planets: Array[Planet], ledger: Ledger) -> void:
 	_recording = SaveGame.has_started_run()
 	_tutorial = SaveGame.wants_tutorial()
 	_saved = SaveGame.claim_run()
+	var skip_to := Campaign.get_fast_forward(_saved)
+	if skip_to > 1 and fast_forward:
+		_fast_forwarding = true
+		_saved = {SavedStarMap.KEY: fast_forward.place(skip_to, bus, ledger)}
+		# Its first save in the next system is where that level began.
+		_saved_system = SavedStarMap.get_system(SavedStarMap.of(_saved))
+		return
 	_continued = not _saved.is_empty()
 	_saved_system = SavedStarMap.get_system(SavedStarMap.of(_saved))
 	if not _continued:
@@ -151,7 +170,7 @@ func is_saved_run() -> bool:
 ## Whether the main menu started this run afresh, rather than continuing a save or the
 ## scene being run on its own.
 func is_new_run() -> bool:
-	return _recording and not _continued
+	return _recording and not _continued and not _fast_forwarding
 
 
 ## Once the scene has built its run: continuing one, puts back the upgrades, the fuel, the
@@ -169,6 +188,8 @@ func start() -> void:
 		quest_giver.changed.connect(_on_changed)
 	if star_map:
 		star_map.changed.connect(_on_changed)
+	if boss_pick_up:
+		boss_pick_up.changed.connect(_on_changed)
 	research_lab.get_research().researched.connect(_on_changed.unbind(1))
 	research_lab.get_research().stage_opened.connect(_on_changed.unbind(1))
 	research_lab.get_research().opened.connect(_on_changed)
@@ -179,6 +200,8 @@ func start() -> void:
 	_ledger.research_spent.connect(_on_changed.unbind(1))
 	# A new run takes over the save at once, so Continue never brings back an older one.
 	_dirty = not _continued
+	if _fast_forwarding:
+		fast_forward.apply()
 
 
 func _on_changed() -> void:
@@ -195,6 +218,7 @@ func _write() -> void:
 		lines[planet.name] = {
 			"seen": seen.map(func(p: Passenger) -> Dictionary: return p.to_save()),
 			"unseen": waiting.count_at(planet) - seen.size(),
+			"found_abandoned": planet.found_abandoned,
 		}
 	var researched: Array[String] = []
 	var research := research_lab.get_research()
@@ -218,13 +242,19 @@ func _write() -> void:
 		"cabin": on_board,
 		"lines": lines,
 		"first_business": waiting.first_business_dealt,
+		"castaway_met": waiting.castaway_met,
+		"castaway_misses": capsules.castaway_misses if capsules else 0,
+		"castaway_found": capsules.castaway_found if capsules else false,
 		"returning": waiting.get_returning().to_save(),
 		"goals": progress,
-		"quest": quest_giver.to_save(cabin.get_passengers()) if quest_giver else {},
+		"quests": quest_giver.to_save(cabin.get_passengers()) if quest_giver else [],
+		"vips": vips.to_save() if vips else {},
+		"boss_pick_up": boss_pick_up.to_save() if boss_pick_up else {},
 	}
 	SaveGame.write(run)
 	if star_map:
-		var system := String(star_map.get_current().name)
+		# The level's system: going through the stargate enters no level.
+		var system := String(star_map.get_furthest().name)
 		# A save from before saves kept their system says nothing of where the run was, so
 		# its first save is no entry.
 		var entered := not _saved_system.is_empty() and system != _saved_system
@@ -257,6 +287,10 @@ func _restore() -> void:
 	var by_name := _get_planets_by_name()
 	var types := _get_types_by_path()
 	waiting.first_business_dealt = bool(_saved.get("first_business", false))
+	waiting.castaway_met = bool(_saved.get("castaway_met", false))
+	if capsules:
+		capsules.castaway_misses = int(_saved.get("castaway_misses", 0))
+		capsules.castaway_found = bool(_saved.get("castaway_found", false))
 	waiting.get_returning().load_save(_saved.get("returning", []), types)
 	var lines: Dictionary = _saved.get("lines", {})
 	for planet: Planet in _planets:
@@ -267,16 +301,29 @@ func _restore() -> void:
 			if passenger:
 				seen.append(passenger)
 		waiting.restore(planet, seen, int(line.get("unseen", 0)))
+		planet.found_abandoned = bool(line.get("found_abandoned", false))
 	for saved: Variant in _saved.get("cabin", []):
 		var passenger := Passenger.from_save(saved as Dictionary, types, by_name)
 		if passenger:
+			if Castaway.is_castaway(passenger):
+				Castaway.dress(passenger, passenger.returning)
+			if Vip.is_vip(passenger):
+				Vip.dress(passenger)
+			if BossPassenger.is_boss(passenger):
+				BossPassenger.dress(passenger)
 			cabin.board(passenger)
+	if vips:
+		vips.load_save(_saved.get("vips", {}))
 	var saved_goals: Array = _saved.get("goals", [])
 	var tracked := goals.get_goals()
 	for i: int in mini(saved_goals.size(), tracked.size()):
 		tracked[i].load_save(saved_goals[i] as Dictionary)
 	if quest_giver:
-		quest_giver.load_save(_saved.get("quest", {}), cabin.get_passengers(), by_name)
+		# A save from before tours were kept apart has one quest.
+		var quests: Array = _saved.get("quests", [_saved.get("quest", {})])
+		quest_giver.load_save(quests, cabin.get_passengers(), by_name)
+	if boss_pick_up:
+		boss_pick_up.load_save(_saved.get("boss_pick_up", {}))
 
 
 func _get_planets_by_name() -> Dictionary[String, Planet]:
@@ -289,7 +336,7 @@ func _get_planets_by_name() -> Dictionary[String, Planet]:
 # Every passenger type that turns up, by its resource path.
 func _get_types_by_path() -> Dictionary[String, PassengerType]:
 	var types: Dictionary[String, PassengerType] = {}
-	for type: PassengerType in waiting.types + [waiting.business]:
+	for type: PassengerType in waiting.types + [waiting.business, Vip.TYPE] + BossPassenger.TYPES:
 		if type:
 			types[type.resource_path] = type
 	return types

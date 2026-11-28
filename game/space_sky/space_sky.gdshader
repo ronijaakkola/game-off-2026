@@ -26,5 +26,6 @@ void sky() {
 		far_stars = dir * star_density * 2.3 + 41.0;
 	}
 	float stars = star_layer(near_stars, parallax) + 0.6 * star_layer(far_stars, parallax);
+	stars *= star_uncovered(dir);
 	COLOR = sky_color(fog_amounts(fog_point), stars, FRAGCOORD.xy);
 }

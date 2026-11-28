@@ -5,6 +5,8 @@ const SCENE := "res://game/solar_system/camera_rig.tscn"
 const SOLAR_SYSTEM := "res://game/solar_system/solar_system.tscn"
 # A fixed frame time, so how far a held key pans doesn't depend on the machine's speed.
 const FRAME_MS := 50
+# Frames for a drag to ease to within a pixel of the pointer, down to a drag_smoothing of 12.
+const DRAG_SETTLE_FRAMES := 12
 
 var _held: Array[Key] = []
 var _window_size: Vector2i
@@ -253,19 +255,19 @@ func test_dragging_with_the_middle_button_keeps_the_grabbed_point_under_the_poin
 
 	_send_button(MOUSE_BUTTON_MIDDLE, true, Vector2(300, 350))
 	_send_motion(Vector2(250, 350))
-	await runner.simulate_frames(3, FRAME_MS)
+	await runner.simulate_frames(DRAG_SETTLE_FRAMES, FRAME_MS)
 	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(250, 350))).is_less(1.0)
 
 	# At the window edge, where edge scrolling would take over, the drag carries on by itself.
 	_send_motion(Vector2(4, 350))
-	await runner.simulate_frames(3, FRAME_MS)
+	await runner.simulate_frames(DRAG_SETTLE_FRAMES, FRAME_MS)
 	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(4, 350))).is_less(1.0)
 
+	# Let go, the pointer moves on alone and the camera stays where the drag left it.
 	_send_button(MOUSE_BUTTON_MIDDLE, false, Vector2(4, 350))
-	var position_after := rig.position
 	_send_motion(Vector2(300, 100))
-	await runner.simulate_frames(3, FRAME_MS)
-	assert_vector(rig.position).is_equal_approx(position_after, Vector3.ONE * 0.001)
+	await runner.simulate_frames(DRAG_SETTLE_FRAMES, FRAME_MS)
+	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(4, 350))).is_less(1.0)
 
 
 func test_dragging_with_the_left_button_on_the_map_pans_but_a_click_does_not() -> void:
@@ -284,7 +286,7 @@ func test_dragging_with_the_left_button_on_the_map_pans_but_a_click_does_not() -
 
 	var grabbed := _plane_point(camera, Vector2(300, 350))
 	_send_motion(Vector2(250, 350))
-	await runner.simulate_frames(3, FRAME_MS)
+	await runner.simulate_frames(DRAG_SETTLE_FRAMES, FRAME_MS)
 	assert_bool(rig.is_dragging()).is_true()
 	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(250, 350))).is_less(1.0)
 	_send_button(MOUSE_BUTTON_LEFT, false, Vector2(250, 350))
@@ -305,6 +307,28 @@ func test_a_left_drag_that_starts_on_a_panel_does_not_pan() -> void:
 	_send_button(MOUSE_BUTTON_LEFT, false, on_panel + Vector2(-200, -200))
 	assert_bool(rig.is_dragging()).is_false()
 	assert_vector(rig.position).is_equal_approx(start, Vector3.ONE * 0.001)
+
+
+func test_a_window_narrower_than_the_base_sees_as_wide_and_drags_true() -> void:
+	# 5:4 at the base's width: the stretch leaves the width at 1152 and the height at 922.
+	get_tree().root.size = Vector2i(1152, 922)
+	var runner := scene_runner(SOLAR_SYSTEM)
+	var rig := runner.find_child("CameraRig") as CameraRig
+	var camera := runner.find_child("Camera") as Camera3D
+	var shot := runner.find_child("Shot") as Node3D
+	await runner.simulate_frames(2, FRAME_MS)
+
+	assert_float(rig.get_view_scale()).is_equal_approx(922.0 / 648.0, 0.001)
+	var back := rig.global_position.distance_to(shot.global_position)
+	assert_float(back).is_equal_approx(rig.distance * rig.get_view_scale(), 0.01)
+
+	var grabbed := _plane_point(camera, Vector2(300, 600))
+	_send_button(MOUSE_BUTTON_MIDDLE, true, Vector2(300, 600))
+	_send_motion(Vector2(500, 500))
+	await runner.simulate_frames(DRAG_SETTLE_FRAMES, FRAME_MS)
+	_send_button(MOUSE_BUTTON_MIDDLE, false, Vector2(500, 500))
+	assert_float(camera.unproject_position(grabbed).distance_to(Vector2(500, 500))).is_less(1.0)
+	get_tree().root.size = Vector2i(1152, 648)
 
 
 func test_pan_and_zoom_do_nothing_while_focused() -> void:

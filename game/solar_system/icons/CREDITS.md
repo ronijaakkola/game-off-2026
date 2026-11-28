@@ -12,3 +12,4 @@ The icons are from [Lucide](https://lucide.dev) (`lucide-static` 0.460.0), with 
 | `clock.svg` | `clock` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `phone_off.svg` | `phone-off` (`lucide-static` 1.52.0) | ISC (`LICENSE.txt`) |
 | `hexagon.svg` | `hexagon` | ISC (`LICENSE.txt`) |
+| `user_round_x.svg` | `user-round-x` | ISC (`LICENSE.txt`) |

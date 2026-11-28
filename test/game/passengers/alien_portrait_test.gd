@@ -25,7 +25,9 @@ func test_the_preview_shows_each_race_s_heads_with_their_eyes_in_its_colour() ->
 		assert_that(skin.get_shader_parameter(&"color")).is_equal(portrait.skin_color)
 		var ties := portrait.find_children("*Tie", "MeshInstance3D", true, false)
 		assert_int(ties.size()).is_equal(1)
-		assert_bool((ties[0] as MeshInstance3D).visible).is_equal(portrait.wears_bow_tie)
+		assert_bool((ties[0] as MeshInstance3D).visible).is_equal(
+			portrait.props.is_worn(PortraitProps.TIE)
+		)
 	var blue: Array[int] = [2, 2, 2, 2]
 	var orange: Array[int] = [1, 2, 1, 2]
 	var green: Array[int] = [2, 2, 2, 2]

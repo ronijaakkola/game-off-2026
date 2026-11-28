@@ -4,8 +4,9 @@ extends MenuScreen
 ## It opens with the level in progress picked, or else the next one not done. A level in
 ## progress continues, with a restart beside it; one done plays again from where it began;
 ## any other open one plays. Starting a level over, or any level that would replace the
-## run in play, asks first ([RestartDialog]). A locked card can't be picked. Level 1's
-## card has a Play tutorial box, ticked until the player has been through the tutorial. A
+## run in play, asks first ([RestartDialog]). A locked card can't be picked. Until the
+## player has been through the tutorial, Level 1 always opens on it; after, Level 1's card
+## has a Play tutorial box, cleared, to play it again, and ticking it picks that card. A
 ## menu opens it over itself ([MenuScreen]).
 
 ## Seconds the actions take to appear under a newly picked card.
@@ -25,8 +26,13 @@ func _ready() -> void:
 		var card: LevelCard = CARD.instantiate()
 		(%Cards as Control).add_child(card)
 		card.focus_entered.connect(_pick.bind(card))
+		card.tutorial_ticked.connect(FocusRing.grab.bind(card))
 		_cards.append(card)
 	visibility_changed.connect(_on_shown_or_hidden)
+	# The cards show their levels as the menu loads, so the pictures are read and first
+	# drawn then ([method MenuScreen._warm_up]): read as the screen opens, they made its
+	# first frame long enough for the transition to skip ahead.
+	_opening()
 
 
 func _opening() -> void:
@@ -41,7 +47,7 @@ func _opening() -> void:
 		elif not Campaign.is_open(level):
 			state = LevelCard.State.LOCKED
 		_cards[i].show_level(level, i + 1, state)
-	_cards[0].set_tutorial(not SaveGame.is_tutorial_done())
+	_cards[0].offer_tutorial(SaveGame.is_tutorial_done())
 	_pick(_first_pick(), true)
 
 
@@ -106,7 +112,7 @@ func _on_play_button_pressed() -> void:
 	if Campaign.replaces_run(level):
 		(%RestartDialog as RestartDialog).ask(level, Campaign.get_in_progress())
 	else:
-		Campaign.play(level, _cards[0].wants_tutorial())
+		Campaign.play(level, _wants_tutorial())
 
 
 func _on_restart_button_pressed() -> void:
@@ -114,7 +120,13 @@ func _on_restart_button_pressed() -> void:
 
 
 func _on_restart_dialog_confirmed() -> void:
-	Campaign.restart(_picked.level, _cards[0].wants_tutorial())
+	Campaign.restart(_picked.level, _wants_tutorial())
+
+
+# Whether Level 1 opens on the tutorial: always until the player has been through it, and
+# after that when they tick the box.
+func _wants_tutorial() -> bool:
+	return not SaveGame.is_tutorial_done() or _cards[0].wants_tutorial()
 
 
 # The cards lay out once shown, so the actions find the picked one's place then.
@@ -122,6 +134,3 @@ func _on_shown_or_hidden() -> void:
 	if visible and _picked:
 		await get_tree().process_frame
 		(%Actions as Control).position.x = MenuScreen.rest_position(_picked).x
-	elif not visible:
-		for card: LevelCard in _cards:
-			card.clear()

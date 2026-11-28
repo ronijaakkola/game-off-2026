@@ -13,6 +13,10 @@ const SETTLE_SECONDS := 0.3
 var _shown_for := 0.0
 
 
+func _ready() -> void:
+	hints.set_debug_target(&"warp_drive", dock_panel.get_teleport_row)
+
+
 func _process(delta: float) -> void:
 	var row := dock_panel.get_teleport_row()
 	if not dock_panel.is_in() or not row.is_visible_in_tree():

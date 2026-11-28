@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://dumwopf6q5ybi" path="res://ui/main_menu/menu_background.gd" id="15_background"]
 [ext_resource type="PackedScene" uid="uid://cnkby7aoge78f" path="res://ui/credits/credits_screen.tscn" id="16_credits"]
 [ext_resource type="Texture2D" uid="uid://cegpug3j7vho6" path="res://ui/icons/users.svg" id="17_credits_icon"]
+[ext_resource type="PackedScene" uid="uid://bl01xy5yjkwdf" path="res://ui/main_menu/title_card.tscn" id="18_title_card"]
 [ext_resource type="Script" uid="uid://ccakhq4ektqka" path="res://ui/build_label.gd" id="99_build"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_panorama"]
@@ -123,14 +124,16 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 1
+theme_override_constants/separation = 3
 
 [node name="Label" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=476412501]
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 theme_type_variation = &"SlantTitleLabel"
 theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.1059, 0.0902, 0.251, 1)
 text = "Continue"
+vertical_alignment = 2
 
 [node name="Where" type="Label" parent="Home/Column/Items/ContinueButton/Margin/Lead/Lines" unique_id=1351472788]
 unique_name_in_owner = true
@@ -234,40 +237,10 @@ size_flags_vertical = 8
 theme_type_variation = &"FaintLabel"
 script = ExtResource("99_build")
 
-[node name="StartOverlay" type="PanelContainer" parent="." unique_id=298445105]
+[node name="TitleCard" parent="." unique_id=700336622 instance=ExtResource("18_title_card")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_type_variation = &"SpacePanel"
-
-[node name="Center" type="CenterContainer" parent="StartOverlay" unique_id=2123297052]
-layout_mode = 2
-mouse_filter = 2
-
-[node name="Items" type="VBoxContainer" parent="StartOverlay/Center" unique_id=2015960449]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 28
-
-[node name="Logo" type="TextureRect" parent="StartOverlay/Center/Items" unique_id=911897652]
-custom_minimum_size = Vector2(383, 130)
-layout_mode = 2
-mouse_filter = 2
-texture = ExtResource("6_logo")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Label" type="Label" parent="StartOverlay/Center/Items" unique_id=2085566611]
-layout_mode = 2
-theme_type_variation = &"DimLabel"
-theme_override_font_sizes/font_size = 13
-text = "Click to start"
-horizontal_alignment = 1
 
 [connection signal="pressed" from="Home/Column/Items/ContinueButton" to="." method="_on_continue_button_pressed"]
 [connection signal="pressed" from="Home/Column/Items/PlayButton" to="." method="_on_play_button_pressed"]
@@ -277,4 +250,4 @@ horizontal_alignment = 1
 [connection signal="pressed" from="Home/Column/Items/CreditsButton" to="." method="_on_credits_button_pressed"]
 [connection signal="pressed" from="Home/Column/Items/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="campaign_reset" from="SettingsMenu" to="." method="_on_settings_menu_campaign_reset"]
-[connection signal="gui_input" from="StartOverlay" to="." method="_on_start_overlay_gui_input"]
+[connection signal="started" from="TitleCard" to="." method="_on_title_card_started"]

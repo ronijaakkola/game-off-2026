@@ -1,10 +1,10 @@
 class_name MenuBackground
 extends TextureRect
 ## The menus' background ([code]panorama.gdshader[/code]): pans to the picture's other half
-## for the campaign screen and lets its stars drift. Under Reduce motion the stars hold
+## for the campaign and credits screens and lets its stars drift. Under Reduce motion the stars hold
 ## still and the pan cuts.
 
-## Seconds the background takes to pan to the campaign screen's half and back.
+## Seconds the background takes to pan to its other half and back.
 const PAN_SECONDS := 0.6
 
 var _material: ShaderMaterial
@@ -18,7 +18,7 @@ func _ready() -> void:
 	_on_resized()
 
 
-## Pans to the picture's right half for the campaign screen ([param right]), or back.
+## Pans to the picture's right half ([param right]), or back.
 func pan_to(right: bool) -> void:
 	var to := 1.0 if right else 0.0
 	if _pan:
@@ -28,6 +28,13 @@ func pan_to(right: bool) -> void:
 		return
 	_pan = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	_pan.tween_property(_material, ^"shader_parameter/pan", to, PAN_SECONDS)
+
+
+## Shows the picture's right half ([param right]), or its left, at once.
+func show_half(right: bool) -> void:
+	if _pan:
+		_pan.kill()
+	_material.set_shader_parameter(&"pan", 1.0 if right else 0.0)
 
 
 func _process(delta: float) -> void:

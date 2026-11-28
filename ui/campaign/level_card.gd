@@ -2,9 +2,12 @@ class_name LevelCard
 extends Button
 ## A level's card in the campaign screen: its slice of the level's picture, its number and
 ## name, and how far the player has got with it, a Completed! stamp, an In progress badge
-## or, locked, a lock and what opens it. Level 1's card has the Play tutorial checkbox.
+## or, locked, a lock and what opens it. Level 1's card can offer the Play tutorial checkbox.
 ## Picked, its border is the light one and its picture zooms in a little, easing out (at
 ## once under Reduce motion). A locked card can't be pressed.
+
+## The player ticked the Play tutorial box.
+signal tutorial_ticked
 
 enum State { OPEN = 0, IN_PROGRESS = 1, DONE = 2, LOCKED = 3 }
 
@@ -32,6 +35,7 @@ func _ready() -> void:
 	_material.set_shader_parameter(&"zoom", 1.0)
 	(%Picture as Control).material = _material
 	(%Picture as Control).resized.connect(_on_picture_resized)
+	(%PlayTutorial as CheckBox).toggled.connect(_on_play_tutorial_toggled)
 	_on_picture_resized()
 
 
@@ -57,7 +61,7 @@ func show_level(shown: Level, number: int, card_state: State) -> void:
 	(%InProgress as Control).visible = state == State.IN_PROGRESS
 	(%Locked as Control).visible = locked
 	(%LockedReason as Label).text = "Complete Level %d first" % (number - 1)
-	(%TutorialChip as Control).visible = number == 1
+	(%TutorialChip as Control).hide()
 
 
 ## Whether the Play tutorial box is ticked.
@@ -65,14 +69,10 @@ func wants_tutorial() -> bool:
 	return (%PlayTutorial as CheckBox).button_pressed
 
 
-## Ticks the Play tutorial box, or clears it.
-func set_tutorial(on: bool) -> void:
-	(%PlayTutorial as CheckBox).button_pressed = on
-
-
-## Lets go of the picture, so it isn't kept in memory while the game plays.
-func clear() -> void:
-	_material.set_shader_parameter(&"picture", null)
+## Shows the Play tutorial box, cleared, if [param offered], or hides it.
+func offer_tutorial(offered: bool) -> void:
+	(%TutorialChip as Control).visible = offered
+	(%PlayTutorial as CheckBox).button_pressed = false
 
 
 # At once while the card isn't on screen, so the screen opens with it already zoomed.
@@ -84,6 +84,11 @@ func _zoom_to(zoom: float) -> void:
 		return
 	_zoom = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUART)
 	_zoom.tween_property(_material, ^"shader_parameter/zoom", zoom, ZOOM_SECONDS)
+
+
+func _on_play_tutorial_toggled(on: bool) -> void:
+	if on:
+		tutorial_ticked.emit()
 
 
 func _on_picture_resized() -> void:

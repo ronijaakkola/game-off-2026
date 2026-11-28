@@ -19,12 +19,18 @@ const MECHANIC_RACE := Race.Type.BLUE
 
 ## Who calls, and how their portrait looks.
 var caller_name := ""
+## What a call notice names them while the player doesn't know them yet, or empty for the
+## notice's own "Unknown caller".
+var unknown_name := ""
 var look: AlienLook
 ## The caller's race: they talk in its voice, and the screen's backdrop is its deep shade.
 var race := Race.Type.GREEN
 ## The screen's backdrop for a caller who isn't in front of their race's, or see-through
 ## for the race's deep shade.
 var backdrop_color := Color.TRANSPARENT
+## Whether the caller floats in space: the backdrop is stars and fog in
+## [member backdrop_color], with no sky or ground.
+var in_space := false
 ## The caller's passenger type, whose badges sit on the screen's corner with their tooltip,
 ## as on a passenger's portrait, or null for a caller who isn't a passenger.
 var type: PassengerType
@@ -33,6 +39,13 @@ var destination: Planet
 ## Whether the caller sits in the dark: only their outline shows, with no eyes, colour or
 ## mood.
 var shadowed := false
+## What a caller who sits in the dark says first, before [member text]: once it is said the
+## lights come on over them ([method TransmissionScreen.light_up]), and they go on with the
+## rest. Empty for a caller who stays as they are.
+var opening := ""
+## What the caller says next once this is answered, on the same screen with the modal
+## still open, or null when the answer ends the transmission.
+var then: Transmission
 ## The face the caller makes on the screen: anger frowns, a happy caller beams now and then.
 var mood := Passenger.Mood.OKAY
 ## Whether the caller glares whatever their mood: the eyes of full anger, with no anger
@@ -45,6 +58,10 @@ var text := ""
 ## set, follows it with its icon and name.
 var quest := ""
 var quest_planet: Planet
+## What follows the planet's name there, such as "when hot enough", or empty.
+var quest_condition := ""
+## The planets a quest asks for after that one, in order, shown under it, as a VIP's tour.
+var quest_stops: Array[Planet] = []
 ## What a quest pays when it is done. Nothing shows when both are empty.
 var reward_credits := 0
 var reward_research := 0
@@ -58,7 +75,8 @@ var decline_text := ""
 var answers_alike := false
 
 
-## A transmission from [param passenger], in their look, mood and badges.
+## A transmission from [param passenger], in their look, mood and badges. The [Castaway]
+## calls from space.
 static func from_passenger(passenger: Passenger) -> Transmission:
 	var transmission := Transmission.new()
 	transmission.caller_name = passenger.name
@@ -67,6 +85,11 @@ static func from_passenger(passenger: Passenger) -> Transmission:
 	transmission.type = passenger.type
 	transmission.destination = passenger.destination
 	transmission.mood = passenger.get_mood()
+	if Vip.is_vip(passenger):
+		transmission.backdrop_color = Vip.BACKDROP
+	if Castaway.is_castaway(passenger):
+		transmission.backdrop_color = Castaway.get_space_color(passenger)
+		transmission.in_space = true
 	return transmission
 
 

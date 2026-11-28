@@ -12,11 +12,12 @@ extends Node3D
 ##
 ## The rocks are two MultiMeshes, big rocks and pebbles, each one draw call, built at load
 ## from [RockMesh] shapes, so there is nothing to model and nothing to update per frame but
-## the belt's turn. They tumble in their shader.
+## the belt's turn and the tumble's clock. They tumble in their shader, by that clock, so
+## they stop with the game.
 ##
 ## It lowers [member FrameshiftBus.speed_cap] after the [HeatZone] has set it for the frame
-## ([member Node.process_priority] 1), so the lower of the two holds, and lifts it again as
-## the bus leaves the rocks, so it works with no HeatZone too.
+## ([constant FrameOrder.AFTER_HEAT_ZONE]), so the lower of the two holds, and lifts it
+## again as the bus leaves the rocks, so it works with no HeatZone too.
 
 ## The bus flew into the rocks.
 signal entered_rocks
@@ -74,17 +75,28 @@ const ROUGH_RIDE := "Rough ride!"
 @export_range(0.0, 5.0, 0.05) var open_spot := 1.3
 ## How far above or below the orbit plane the rocks reach, at the band's middle.
 @export_range(0.0, 2.0, 0.01) var height := 0.35
+## The rocks' colour, and the tint of their night side.
+@export var rock_color := Color(0.831, 0.925, 1.0)
+@export var shadow_color := Color(0.541, 0.651, 0.902)
 
 # The cap it puts on the bus's speed, easing down to rough_speed among the rocks.
 var _cap := INF
 var _in_rocks := false
 var _until_bump := 0.0
+# Seconds of play the rocks have tumbled for, which stops while the game is paused.
+var _tumble_time := 0.0
 
 
 func _ready() -> void:
-	process_priority = 1
+	process_priority = FrameOrder.AFTER_HEAT_ZONE
 	if not belt:
 		belt = AsteroidBelt.new()
+	# Its own copy of the scene's material, so each field has its own colours and star.
+	var material := (%Rocks as MultiMeshInstance3D).material_override.duplicate() as ShaderMaterial
+	material.set_shader_parameter(&"color", rock_color)
+	material.set_shader_parameter(&"shadow_color", shadow_color)
+	(%Rocks as MultiMeshInstance3D).material_override = material
+	(%Pebbles as MultiMeshInstance3D).material_override = material
 	var rng := RandomNumberGenerator.new()
 	rng.seed = rock_seed
 	(%Rocks as MultiMeshInstance3D).multimesh = RockScatter.scatter(
@@ -95,12 +107,20 @@ func _ready() -> void:
 	)
 
 
+## Draws every rock at [param value] of its size where it sits, from 0 (gone) to 1, as the
+## [StarChart] does to take the field out. The rocks the bus rides through stay.
+func set_rock_size(value: float) -> void:
+	var material := (%Rocks as MultiMeshInstance3D).material_override as ShaderMaterial
+	material.set_shader_parameter(&"size", value)
+
+
 ## Whether the bus is among the rocks now, flying.
 func is_bus_in_rocks() -> bool:
 	return _in_rocks
 
 
 func _process(delta: float) -> void:
+	_tumble_time += delta
 	var pace := orbit_clock.get_speed() if orbit_clock else 1.0
 	if orbit_period != 0.0:
 		rotation.y = wrapf(rotation.y + TAU / orbit_period * pace * delta, 0.0, TAU)
@@ -109,6 +129,7 @@ func _process(delta: float) -> void:
 	for node: Node in [%Rocks, %Pebbles]:
 		var material := (node as MultiMeshInstance3D).material_override as ShaderMaterial
 		ShaderValues.show(material, &"tumble", 0.0 if Settings.reduce_motion else 1.0)
+		ShaderValues.show(material, &"tumble_time", _tumble_time)
 		ShaderValues.show(material, &"light_source", global_position)
 	if bus:
 		_ride(delta)

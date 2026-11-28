@@ -1,14 +1,14 @@
 class_name WayHome
 extends RefCounted
-## The [Tutorial]'s way home from the destination, by way of a point in space: the player
-## sets a waypoint on a marked spot above home, toward the destination
-## ([method get_spot]), and flies there, then, holding in space, sets the course home and
-## flies on. Each course has a card
-## ([method get_card]) with a ring: the spot, then home. Only those can be the course, a
-## click near the spot sets it in the spot's middle, and once set the course locks, so the
-## one thing left is to frameshift. Held at the spot, the drive stays warm, so the course
-## home leaves at once, with no charge. Leaving the first time, the whole way is set to burn
-## [constant FUEL] of the tank.
+## The [Tutorial]'s way home from the destination, by way of a capsule: one holding
+## [constant TutorialRules.CAPSULE_CREDITS] credits appears on a spot above home, toward
+## the destination ([method get_spot]), holding still. The player sets a waypoint on it and
+## flies there, collecting it, then, holding in space, sets the course home and flies on.
+## Each course has a card ([method get_card]) with a ring: the capsule, then home. Only
+## those can be the course, a click near the spot sets it in the spot's middle, and once set
+## the course locks, so the one thing left is to frameshift. Held at the spot, the drive
+## stays warm, so the course home leaves at once, with no charge. Leaving the first time,
+## the whole way is set to burn [constant FUEL] of the tank.
 
 enum Part { SPOT, LEAVE, FLY_SPOT, HOME, FLY_HOME }
 
@@ -20,7 +20,7 @@ const SPOT_ALONG := 6.0
 const SPOT_UP := 5.0
 ## How far from the spot a right click still sets the waypoint, in units.
 const SPOT_REACH := 1.5
-## The size of the spot's ring, as the radius of a ball, in units.
+## The size of the ring round the capsule on the spot, as the radius of a ball, in units.
 const SPOT_RADIUS := 0.5
 
 var _tutorial: Tutorial
@@ -35,9 +35,10 @@ func _init(tutorial: Tutorial, rules: TutorialRules) -> void:
 	_rules = rules
 	var facing := -tutorial.get_viewport().get_camera_3d().global_basis.z
 	_up = RouteStop.flat(facing).normalized()
+	tutorial.capsules.place(get_spot(), TutorialRules.CAPSULE_CREDITS)
 
 
-## The marked spot, on the orbit plane.
+## The spot the capsule holds still on, on the orbit plane.
 func get_spot() -> Vector3:
 	var home := RouteStop.flat(_tutorial.home.get_body_global_position())
 	var away := RouteStop.flat(_tutorial.destination.get_body_global_position()) - home

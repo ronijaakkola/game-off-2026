@@ -140,8 +140,9 @@ func setup(kind: Kind, text: String, closable: bool, seconds: float, action: Str
 
 
 ## Shows who calls, on a call [method setup] made: [param caller]'s photo, rendered in
-## [param studio], and name over the line, or their outline and "Unknown caller" when the
-## player doesn't [param known] them yet, and with [param declinable] a decline button
+## [param studio], and name over the line, or their outline and "Unknown caller", or the
+## caller's own [member Transmission.unknown_name], when the player doesn't [param known]
+## them yet, and with [param declinable] a decline button
 ## left of the action. Call it before it enters the tree.
 func show_caller(
 	caller: Transmission, known: bool, declinable: bool, studio: PortraitStudio
@@ -152,7 +153,8 @@ func show_caller(
 	photo.show_caller(caller, known)
 	photo.show()
 	var caller_name := %CallerName as Label
-	caller_name.text = caller.caller_name if known else UNKNOWN_CALLER
+	var unknown := caller.unknown_name if caller.unknown_name else UNKNOWN_CALLER
+	caller_name.text = caller.caller_name if known else unknown
 	caller_name.show()
 	(%Line as HBoxContainer).add_theme_constant_override(&"separation", CALLER_LINE_GAP)
 	(%Icon as Control).custom_minimum_size = Vector2.ONE * CALLER_ICON_SIZE

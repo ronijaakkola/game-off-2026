@@ -2,7 +2,9 @@ class_name GateService
 extends Node
 ## Sells trips through the warp gates ([WarpGate]): while the bus is docked at a planet with
 ## a gate, the dock panel's warp button reads where it goes and what it costs, and is on
-## while the tank holds that much and the bus can go. Pressed, the fuel comes out of the tank
+## while the tank holds that much and the bus can go. A right click on that gate in the world,
+## as on a stop, does what the button does, and the pointer on it shows the way as the
+## button's does. Pressed, the fuel comes out of the tank
 ## and the bus warps through the gate as it jumps between star systems ([method SystemJump.warp]),
 ## coming out of the other gate and flying the short way in to dock at its planet. Its
 ## course is gone; whoever is on board rides along. With Gate tuning it costs
@@ -29,11 +31,37 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var gate := _gate()
+	var viewport := get_viewport()
+	dock_panel.gate_hovered = (
+		gate != null
+		and not viewport.gui_get_hovered_control()
+		and _is_on_gate(gate, viewport.get_mouse_position())
+	)
 	if not gate:
 		dock_panel.show_teleport("", false)
 		return
-	var text := TEXT % [gate.partner.planet.display_name, roundi(_fuel_share(gate) * 100.0)]
-	dock_panel.show_teleport(text, _can_go() and _can_pay(gate))
+	dock_panel.show_teleport(get_offer(gate), _can_go() and _can_pay(gate))
+
+
+# Before the solar system sees the press, so a right click on the gate never sets a course,
+# whether it warps or the bus can't go or pay.
+func _unhandled_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if not click or not click.pressed or click.button_index != MOUSE_BUTTON_RIGHT:
+		return
+	var gate := _gate()
+	if not gate or not _is_on_gate(gate, click.position):
+		return
+	get_viewport().set_input_as_handled()
+	_on_teleport_pressed()
+
+
+## What going through [param gate] offers: where it leads and the fuel it takes, as the
+## warp button reads. Empty unless it is the gate beside the planet the bus is docked at.
+func get_offer(gate: WarpGate) -> String:
+	if not gate or gate != _gate():
+		return ""
+	return TEXT % [gate.partner.planet.display_name, roundi(_fuel_share(gate) * 100.0)]
 
 
 # The gate beside the planet the bus is docked at, when it leads somewhere.
@@ -42,6 +70,12 @@ func _gate() -> WarpGate:
 		return null
 	var gate := WarpGate.of(bus.get_docked_planet())
 	return gate if gate and gate.partner and gate.partner.planet else null
+
+
+# Whether [param pointer] is on [param gate] on screen.
+func _is_on_gate(gate: WarpGate, pointer: Vector2) -> bool:
+	var camera := get_viewport().get_camera_3d()
+	return camera != null and WarpGate.under(camera, pointer) == gate
 
 
 # Whether the bus can go now: docked and still, with no stop or call under way.

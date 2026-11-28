@@ -5,5 +5,9 @@
 [resource]
 script = ExtResource("1_level")
 title = "Return to home"
-star_system = "Draco"
+star_system = "Sol"
+picture = "res://shared/level_art/level_3_loading.jpg"
+card_crop = Rect2(0.2821, 0.0201, 0.4557, 0.9599)
+from_planet_color = Color(0.784, 0.333, 0.227, 1)
+to_planet_color = Color(0.247, 0.525, 0.788, 1)
 tips = PackedStringArray()

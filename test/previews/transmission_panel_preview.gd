@@ -1,7 +1,8 @@
 extends Node
 ## The solar system with a transmission open: the boss's message by default, from the dark
 ## or with `revealed` in the light; with `quest` a passenger's quest with a reward and Yes
-## and No; or with `goals_met` The Boss's call once every goal is met (`unanswered` for the
+## and No; with `vip` a VIP's call with their tour; or with `goals_met` The Boss's call
+## once every goal is met (`unanswered` for the
 ## call left ringing); or with `mechanic` the mechanic's first call. `skip` shows it all
 ## at once, as a click on the modal does.
 
@@ -22,6 +23,12 @@ func _ready() -> void:
 		transmission.reward_research = 2
 		transmission.accept_text = "Yes"
 		transmission.decline_text = "No"
+	elif "vip" in args:
+		var vips := $SolarSystem.find_child("VipCalls") as VipCalls
+		vips.seed_dice(3)
+		var offer := vips._plan()
+		offer.pick_up_seconds = 70.0
+		transmission = offer.get_transmission()
 	elif "goals_met" in args:
 		transmission = Transmission.from_boss()
 		transmission.caller_name = GoalsMetCall.CALLER
@@ -29,6 +36,7 @@ func _ready() -> void:
 		var opening := GoalsMetCall.UNANSWERED_TEXT if unanswered else GoalsMetCall.TEXT
 		transmission.text = opening + GoalsMetCall.OFFER
 		transmission.accept_text = GoalsMetCall.JUMP_ANSWER
+		transmission.decline_text = GoalsMetCall.STAY_ANSWER
 	elif "mechanic" in args:
 		transmission = Transmission.from_mechanic()
 		transmission.text = MechanicCall.RESEARCH_TEXT

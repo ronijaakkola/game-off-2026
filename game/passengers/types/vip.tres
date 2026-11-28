@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="PassengerType" format=3 uid="uid://due7h38jw48pl"]
+
+[ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="1_type"]
+[ext_resource type="Resource" uid="uid://luqs0adq8oj6" path="res://game/passengers/needs/snack.tres" id="2_snack"]
+[ext_resource type="Resource" uid="uid://be5jdsgim3cu2" path="res://game/passengers/needs/drink.tres" id="3_drink"]
+[ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="4_need"]
+[ext_resource type="Texture2D" uid="uid://bvb548im7nuek" path="res://shared/icons/star.svg" id="5_star"]
+
+[resource]
+script = ExtResource("1_type")
+display_name = "VIP"
+badges = Array[Texture2D]([ExtResource("5_star")])
+description = "They call to be picked up and want several stops in order. They pay well."
+fare_multiplier = 1.6
+research_points = 3
+seats = 2
+slack = 1.5
+needs = Array[ExtResource("4_need")]([ExtResource("2_snack"), ExtResource("3_drink")])
+need_interval_scale = 0.6
+idle_lines = Array[String](["Admiring their reflection", "Signing an autograph", "Posing for nobody", "Polishing their sunglasses", "Humming their own song", "Practising a wave"])
+sleep_lines = Array[String](["Beauty sleep..."])
+watch_lines = Array[String](["Watching their own show", "Watching themselves on screen"])
+stop_lines = Array[String](["“This isn’t on my list”", "“Who are all these people?”", "Calling their agent"])
+late_lines = Array[String](["“My fans are waiting”", "“I’m fashionably late. Too late”", "Calling their agent"])
+overheat_lines = Array[String](["“My hair!”", "Fanning with an autograph", "Melting, glamorously", "Calling their agent"])
+quest_declined_lines = Array[String](["“Do you know who I am?”"])
+quest_failed_lines = Array[String](["“Do you know who I am?”", "“You’ll hear from my agent”"])
+quest_done_lines = Array[String](["“Marvellous, darling!”", "“You may keep the autograph”", "“Five stars. Like me”"])
+names = Array[String](["Vontti", "Tuomazus", "Ev'elinis", "Rasmusar", "Jen'na", "Auron", "Ar'tturi", "Aenna-marek", "Taepani", "Fil'ip", "Sufoi", "Vinkent", "Monno", "Iveel", "Isabelix", "Lenon", "Meoje", "Tommus", "Neeleth", "Zhen'nifer", "Reizhis", "Lileth", "Thajoni", "Zhoanna", "Evelinus", "Sisus", "Veisa", "Han'nes", "Viljanenus", "Autar", "Tinhoun", "Kasperor", "Zari", "Tobiazor", "Ramion", "Viljamus", "Ozeila", "Irvor", "Mianka", "Harrus", "Aeila", "Kimen", "Lotteth", "Sylvon", "Aidra", "Adamen", "Alzan", "Er'nek", "Oros", "Ittram", "Peale", "Eemek", "Eerri", "Ail'ar", "Semo", "Oal'li", "Mon'iqar", "Jarion", "Iiriz", "Eisa", "Jaerno", "Aniit", "Sisqo", "Eerion", "Kaiza", "Miris", "Kaalle", "Zoin'tu", "Mie", "Aelarko", "Agas", "Allon", "Vil'ja", "Qimi", "Loloun", "Zaku", "Allis", "Topus", "Liaisa", "Rojrip", "Eolis", "Alinen", "Jianno", "Iroke", "Zhaana", "Noahor", "Irtep", "Nue"])
+titles = Array[String](["Sir", "Dame", "Lord", "Lady", "Baron", "Baroness", "Count", "Countess", "Duke", "Duchess", "Marquis", "Viscount", "Prince", "Princess", "Madam", "Monsieur", "Icon", "Mogul", "Magnate", "Ambassador", "Senator", "Chancellor", "Admiral", "Professor", "Doctor", "Judge", "Influencer", "Superstar", "Celebrity", "President"])

@@ -26,12 +26,12 @@ signal goal_failed(goal: Goal)
 		if cabin:
 			cabin.delivered.disconnect(_on_delivered)
 			cabin.kicked.disconnect(_on_kicked)
-			cabin.left_behind.disconnect(_on_kicked)
+			cabin.left_behind.disconnect(_on_left_behind)
 		cabin = value
 		if cabin:
 			cabin.delivered.connect(_on_delivered)
 			cabin.kicked.connect(_on_kicked)
-			cabin.left_behind.connect(_on_kicked)
+			cabin.left_behind.connect(_on_left_behind)
 
 ## Tells the goals when the bus warps. None, and no goal hears of a warp.
 @export var gate_service: GateService:
@@ -49,9 +49,11 @@ var ledger: Ledger:
 	set(value):
 		if ledger:
 			ledger.rated.disconnect(_on_rated)
+			ledger.credits_earned.disconnect(_on_credits_earned)
 		ledger = value
 		if ledger:
 			ledger.rated.connect(_on_rated)
+			ledger.credits_earned.connect(_on_credits_earned)
 			_on_rated(0.0)
 
 ## While true, the goals are told nothing more, so each stays as it stands: a promotion
@@ -69,12 +71,16 @@ func _process(delta: float) -> void:
 	var on_board: Array[Passenger] = cabin.get_passengers() if cabin else []
 	var in_flight := not bus.is_at_planet()
 	var held := bus.state == FrameshiftBus.State.HOLDING
+	# The planet it parks at, too.
+	var at := bus.get_docked_planet()
 	var in_rocks := asteroid_field != null and asteroid_field.is_bus_in_rocks()
 	var hot := bus.temperature.is_uncomfortable()
 	for goal: Goal in _goals.duplicate():
 		goal.bus_moved(bus.global_position, on_board, in_flight)
 		if held:
 			goal.bus_held(bus.global_position, on_board)
+		if at:
+			goal.bus_stopped_at(at, on_board)
 		if in_rocks:
 			goal.bus_in_rocks(delta, on_board)
 		if hot:
@@ -136,12 +142,19 @@ func _on_delivered(passenger: Passenger, _payout: int) -> void:
 		goal.passenger_delivered(passenger)
 
 
-# Left behind at a jump counts as kicked: the quest about them can no longer be done.
 func _on_kicked(passenger: Passenger) -> void:
 	if frozen:
 		return
 	for goal: Goal in _goals.duplicate():
 		goal.passenger_kicked(passenger)
+
+
+# Left behind at a jump, or hopping out: most quests about them can no longer be done.
+func _on_left_behind(passenger: Passenger) -> void:
+	if frozen:
+		return
+	for goal: Goal in _goals.duplicate():
+		goal.passenger_kicked(passenger, true)
 
 
 func _on_bus_docked(planet: Planet) -> void:
@@ -166,6 +179,13 @@ func _on_rated(_stars: float) -> void:
 	var count := ledger.get_rating_count()
 	for goal: Goal in _goals.duplicate():
 		goal.rating_changed(recent, count)
+
+
+func _on_credits_earned(amount: int) -> void:
+	if frozen:
+		return
+	for goal: Goal in _goals.duplicate():
+		goal.credits_earned(amount)
 
 
 func _on_goal_changed(goal: Goal) -> void:

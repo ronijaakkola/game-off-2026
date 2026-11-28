@@ -283,3 +283,98 @@ func test_set_planets_says_every_line_it_empties_has_changed() -> void:
 
 	assert_int(_waiting.count_at(_home)).is_equal(0)
 	assert_array(changed).contains_exactly_in_any_order([_home, _away, next])
+
+
+func test_a_capsule_always_holds_the_castaway_who_comes_back_once_met() -> void:
+	var first := _waiting.create_adrift(Vector3(5.0, 0.0, 0.0))
+	_waiting.castaway_met = true
+	var second := _waiting.create_adrift(Vector3(-5.0, 0.0, 0.0))
+
+	for passenger: Passenger in [first, second]:
+		assert_str(passenger.name).is_equal(Castaway.NAME)
+		assert_int(passenger.race).is_equal(Castaway.RACE)
+	assert_object(second.look.head).is_same(first.look.head)
+	assert_bool(first.returning).is_false()
+	assert_bool(second.returning).is_true()
+
+
+func test_nobody_waits_at_an_abandoned_planet_or_travels_there() -> void:
+	_quiet()
+	var third := _planet()
+	third.abandoned = true
+	_waiting.max_per_planet = 3
+	_waiting.set_planets([_home, _away, third])
+
+	_waiting.add_starting_passengers(third)
+	for i: int in 3:
+		_waiting.add(third)
+	_waiting.restore(third, [_waiting.create(_home)], 2)
+
+	assert_int(_waiting.count_at(third)).is_equal(0)
+	assert_bool(third.found_abandoned).is_false()
+	assert_array(_waiting.get_waiting(third)).is_empty()
+	# Looking at its empty line is how the player finds out.
+	assert_bool(third.found_abandoned).is_true()
+	for i: int in 30:
+		assert_object(_waiting.create(_home).destination).is_same(_away)
+
+
+func test_nobody_rides_the_bus_to_the_planet_a_warp_gate_leads_to() -> void:
+	var third := _planet()
+	_waiting.set_planets([_home, _away, third])
+	var here := WarpGate.new()
+	var there := WarpGate.new()
+	here.planet = _home
+	there.planet = _away
+	here.partner = there
+	there.partner = here
+	_home.add_child(here)
+	_away.add_child(there)
+
+	for i: int in 30:
+		assert_object(_waiting.create(_home).destination).is_same(third)
+		assert_object(_waiting.create(_away).destination).is_same(third)
+
+
+func test_fares_follow_the_fare_multiplier_of_the_star_system_the_bus_works_in() -> void:
+	_away.start_angle = 180.0
+	var ordinary := _waiting.create(_home).fare
+	var map := auto_free(StarMap.new()) as StarMap
+	map.world = auto_free(Node3D.new()) as Node3D
+	var system := StarSystem.new()
+	system.fare_multiplier = 1.5
+	map.world.add_child(system)
+	_waiting.star_map = map
+
+	assert_float(ordinary).is_greater(0.0)
+	assert_float(_waiting.create(_home).fare).is_equal_approx(ordinary * 1.5, 0.001)
+
+
+func test_a_vip_takes_a_place_in_the_line_so_nobody_new_turns_up_past_the_limit() -> void:
+	_waiting.add(_home)
+	_waiting.reserved = _vip_at(_home)
+
+	_waiting.add(_home)
+	_waiting.add(_home)
+
+	var line := _waiting.get_waiting(_home)
+	assert_int(line.size()).is_equal(_waiting.max_per_planet)
+	assert_bool(Vip.is_vip(line[0])).is_true()
+
+
+func test_a_vip_at_a_full_line_waits_first_and_the_newest_leaves() -> void:
+	_waiting.add(_home)
+	_waiting.add(_home)
+	var oldest: Passenger = _waiting.get_waiting(_home)[0]
+	var vip := _vip_at(_home)
+
+	_waiting.reserved = vip
+
+	var line := _waiting.get_waiting(_home)
+	assert_array(line).contains_exactly([vip, oldest])
+
+
+func _vip_at(planet: Planet) -> Passenger:
+	var vip := Passenger.new(Vip.TYPE, _away, 10.0, 10.0)
+	vip.origin = planet
+	return vip

@@ -58,11 +58,14 @@ var _star_map: StarMap
 var _progression: Progression
 var _mechanic: MechanicCall
 var _jump: SystemJump
+var _giver: QuestGiver
 # Whether the bus has come out of a jump and not yet set off from where it rests.
 var _arrived := false
 
 
 func _ready() -> void:
+	# A transmission pauses the game until it is answered, so the player runs while paused.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	var args := OS.get_cmdline_user_args()
 	var text := FileAccess.get_file_as_string(args[0]) if not args.is_empty() else ""
 	var parsed: Variant = JSON.parse_string(text)
@@ -76,6 +79,8 @@ func _ready() -> void:
 	_overrides.apply_to_resources()
 	_system = (load(SCENE) as PackedScene).instantiate() as SolarSystem
 	_overrides.apply_before_ready(_system)
+	# The game pauses as in play, though the player doesn't.
+	_system.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(_system)
 	_bus = _system.get_node(^"%Bus") as FrameshiftBus
 	_cabin = _system.get_node(^"%Cabin") as Cabin
@@ -88,6 +93,8 @@ func _ready() -> void:
 	# Unless told where to, nobody is promoted, so the run stays on the first research
 	# stage after the goals.
 	_progression.promotes = _config.has("promote_to")
+	# Nobody is there to press Start.
+	_jump.shows_loading_screen = false
 	_jump.finished.connect(_on_jumped)
 	var first := _star_map.get_current()
 	_ledger = _system.get_ledger()
@@ -98,7 +105,9 @@ func _ready() -> void:
 	# The same dice for the same seed: the lines start over with it, and the calls.
 	var seed_value := int(_config.get("seed", 1))
 	_waiting.seed_dice(seed_value)
-	(_system.get_node(^"%QuestGiver") as QuestGiver).seed_dice(seed_value + 104729)
+	_giver = _system.get_node(^"%QuestGiver") as QuestGiver
+	_giver.seed_dice(seed_value + 104729)
+	(_system.get_node(^"%CapsuleField") as CapsuleField).seed_dice(seed_value + 130363)
 	_waiting.start(_planets, _bus.get_docked_planet(), _ledger)
 	_player = Player.new(_config.get("policy", {}), seed_value + 7919)
 	_think_left = float(_player.policy.get("dock_think", 3.0))
@@ -119,6 +128,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if not _system:
+		return
+	if get_tree().paused:
+		_calls.answer_open()
 		return
 	_time += delta
 	_recorder.tick(delta, _bus, _cabin, _ledger)
@@ -319,15 +331,26 @@ func _describe() -> Dictionary:
 		"planets": planets,
 		"upgrades": _upgrade_rows(here),
 		"news": _recorder.news + _calls.news,
+		"vip_pick_up": _vip_pick_up(),
 	}
+
+
+# Where the VIP whose tour was accepted waits to be picked up, or "" with none waiting.
+func _vip_pick_up() -> String:
+	var tour := _giver.get_tour()
+	if not tour or (tour.goal as VipTourGoal).boarded:
+		return ""
+	return tour.passenger.origin.display_name
 
 
 func _passenger_row(passenger: Passenger) -> Dictionary:
 	return {
 		"name": passenger.name,
 		"type": passenger.type.display_name,
+		"seats": passenger.type.seats,
 		"race": Race.Type.find_key(passenger.race),
-		"to": passenger.destination.display_name,
+		# "" for the castaway on their hop, who goes nowhere.
+		"to": passenger.destination.display_name if passenger.destination else "",
 		"fare": roundi(passenger.fare),
 		"trip_seconds": roundi(passenger.ride.trip_seconds),
 		"expected_seconds": roundi(passenger.ride.expected_seconds),

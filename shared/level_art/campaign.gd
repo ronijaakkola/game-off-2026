@@ -1,7 +1,7 @@
 class_name Campaign
 ## The levels, played in order, and how far through them the player has got. A level is a
-## stage of the one run, in its own star system: Level 1 in Sol, Level 2 in Lyra, Level 3 in
-## Draco. It is done once a promotion there opens the next system, and the next level is
+## stage of the one run, in its own star system: Level 1 in Vela, Level 2 in Lyra, Level 3 in
+## Sol. It is done once a promotion there opens the next system, and the next level is
 ## open once the one before is done. The run as each level began is kept, so a level can be
 ## restarted or played again with what was earned before it; starting one over replaces the
 ## run, and how far the player has got stays.
@@ -14,6 +14,9 @@ const LEVELS: Array[Level] = [
 	preload("res://shared/level_art/level_3.tres"),
 ]
 const GAME_SCENE := "res://game/solar_system/solar_system.tscn"
+## The key of a started run that holds only the level it fast-forwards to
+## ([method fast_forward]); never saved.
+const FAST_FORWARD_KEY := "fast_forward"
 
 
 ## [param level]'s number, from 1.
@@ -82,6 +85,21 @@ static func play(level: Level, tutorial := false) -> void:
 static func restart(level: Level, tutorial := false) -> void:
 	_start(level, tutorial)
 	SceneFlow.go_to(GAME_SCENE, level)
+
+
+## The debug panel's Fast-forward: forgets everything, as [method reset] does, and starts a
+## run that the game scene takes to [param level] as a player would come to it ([FastForward]):
+## promoted out of the level before it with what such a player has, and then the jump.
+static func fast_forward(level: Level) -> void:
+	reset()
+	SaveGame.start_run({FAST_FORWARD_KEY: number(level)})
+	SceneFlow.go_to(GAME_SCENE)
+
+
+## The level number [param run], as the game scene claimed it, fast-forwards to, or 0 when it
+## is a run to play as it is ([method fast_forward]).
+static func get_fast_forward(run: Dictionary) -> int:
+	return int(run.get(FAST_FORWARD_KEY, 0))
 
 
 ## Adds a save of the [param run] to the record: [param done] levels finished, and, when

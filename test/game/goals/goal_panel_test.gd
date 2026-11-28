@@ -4,11 +4,15 @@ extends GdUnitTestSuite
 
 const PANEL := "res://game/goals/goal_panel.tscn"
 const CIRCLE_CHECK := preload("res://shared/icons/circle_check.svg")
+## Milliseconds for a row to come in or go, with room to spare.
+const SETTLE_MS := 700
 
 
 func test_the_preview_shows_the_designed_goals() -> void:
 	var runner := scene_runner("res://test/previews/goal_panel_preview.tscn")
 	await runner.simulate_frames(5)
+	# The preview's goals replace the scene's while the panel shows, so they come in.
+	await await_millis(SETTLE_MS)
 	var rows := _rows(runner.find_child("GoalPanel"))
 
 	assert_int(rows.size()).is_equal(2)
@@ -18,6 +22,29 @@ func test_the_preview_shows_the_designed_goals() -> void:
 	assert_str(_text(rows[1])).is_equal("Maintain 4.0 rating")
 	assert_str(_value(rows[1])).is_equal("4.2")
 	assert_bool(_is_ticked(rows[1])).is_true()
+
+
+# The target mark sticks out over and under the bar, and the bar sits at the bottom of the
+# goals: nothing the panel clips to may cut it off.
+func test_the_rating_goals_target_mark_shows_whole() -> void:
+	var runner := scene_runner("res://test/previews/goal_panel_preview.tscn")
+	await runner.simulate_frames(5)
+	# The preview's goals replace the scene's while the panel shows, so they come in.
+	await await_millis(SETTLE_MS)
+	var panel := runner.find_child("GoalPanel") as Control
+	var marker := _rows(panel)[1].find_child("Marker") as Control
+	assert_bool(marker.visible).is_true()
+
+	var mark := marker.get_global_rect()
+	var parent := marker.get_parent_control()
+	while parent:
+		if parent.clip_contents:
+			(
+				assert_bool(parent.get_global_rect().encloses(mark))
+				. override_failure_message("%s cuts off the mark at %s" % [parent.name, mark])
+				. is_true()
+			)
+		parent = parent.get_parent_control()
 
 
 func test_shows_a_row_for_each_goal_added_and_hides_with_none() -> void:
@@ -32,7 +59,7 @@ func test_shows_a_row_for_each_goal_added_and_hides_with_none() -> void:
 	assert_int(_rows(runner.scene()).size()).is_equal(1)
 
 	tracker.remove(goal)
-	await runner.simulate_frames(1)
+	await await_millis(SETTLE_MS)
 	assert_bool((runner.scene() as Control).visible).is_false()
 	assert_int(_rows(runner.scene()).size()).is_equal(0)
 
@@ -78,7 +105,9 @@ func _tracker(runner: GdUnitSceneRunner) -> GoalTracker:
 func _rows(panel: Node) -> Array[GoalRow]:
 	var rows: Array[GoalRow] = []
 	for row: Node in panel.find_children("*", "GoalRow", true, false):
-		if not row.is_queued_for_deletion():
+		# A row whose goal has gone stays a moment while it leaves.
+		var slot := row.get_parent() as SlideSlot
+		if not row.is_queued_for_deletion() and (not slot or slot.is_open()):
 			rows.append(row as GoalRow)
 	return rows
 

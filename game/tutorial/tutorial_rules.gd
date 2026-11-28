@@ -10,12 +10,15 @@ extends RefCounted
 ## so, nor a Board all or Research button, and the On board panel holds arrivals. Fuel is
 ## free at home and the destination, a trip between them burns half the tank
 ## ([method set_trip_burn]) and the way home whatever share [WayHome] asks for
-## ([method set_burn]), and the passenger pays [constant FARE] ([method hold_fare]). The lab
-## badges and the Research button stay hidden once it is over, until the mechanic opens
+## ([method set_burn]), and the passenger pays [constant FARE] ([method hold_fare]). Once
+## it is over, no capsule it put out is left adrift, and the lab badges and the Research
+## button stay hidden once it is over, until the mechanic opens
 ## research ([MechanicCall]).
 
-## What the passenger pays.
-const FARE := 120.0
+## What the passenger pays, and what the capsule on the way home holds ([WayHome]): 120
+## credits in all, the first upgrade's price.
+const FARE := 70.0
+const CAPSULE_CREDITS := 50
 ## The share of the tank a trip between home and the destination burns.
 const TRIP_FUEL := 0.5
 
@@ -71,6 +74,7 @@ func lift() -> void:
 	t.bus.get_fuel_tank().burn_per_unit = _burn
 	t.bus.warm_time = _warm_time
 	t.bus.get_fuel_tank().fill()
+	t.capsules.clear()
 	for planet: Planet in _prices:
 		planet.fuel_price = _prices[planet]
 

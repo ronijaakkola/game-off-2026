@@ -1,10 +1,11 @@
 extends GdUnitTestSuite
 ## The end of a star system: once every goal has held for 5 s The Boss calls with the
-## promotion, and its one answer, "Jump to new system", jumps the bus to the next system
-## from wherever it is, leaving whoever is on board behind. The goals the promotion took
-## stay on the goal panel, ticked, until the next system's goals replace them.
+## promotion, and its answer "Jump to new system" jumps the bus to the next system from
+## wherever it is, leaving whoever is on board behind. The goals the promotion took stay on
+## the goal panel, ticked, until the next system's goals replace them.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
+const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
 
 
 ## A goal that is always met.
@@ -13,6 +14,13 @@ class MetGoal:
 
 	func is_met() -> bool:
 		return true
+
+
+# A jump that failed under the loading screen must not leave the next test paused.
+func after_test() -> void:
+	get_tree().paused = false
+	await assert_func(SceneFlow, "is_busy").wait_until(5000).is_false()
+	get_tree().root.set_disable_input(false)
 
 
 func before() -> void:
@@ -57,15 +65,28 @@ func test_the_boss_calls_once_the_goals_hold_and_answered_jumps_with_anyone_on_b
 	assert_bool(panel.is_open()).is_true()
 	var answer := panel.find_child("AcceptButton", true, false) as Button
 	assert_str(answer.text).is_equal(GoalsMetCall.JUMP_ANSWER)
-	assert_bool((panel.find_child("DeclineButton", true, false) as Control).visible).is_false()
+	var stay := panel.find_child("DeclineButton", true, false) as Button
+	assert_bool(stay.visible).is_true()
+	assert_str(stay.text).is_equal(GoalsMetCall.STAY_ANSWER)
 	var jump := runner.find_child("SystemJump") as SystemJump
 	monitor_signals(jump)
 
 	panel.accept()
 
-	var lyra := runner.find_child("Lyra") as StarSystem
-	await assert_signal(jump).wait_until(10000).is_emitted("finished", [lyra])
+	# In the black between the systems, Level 2's loading screen waits for Start.
+	var start := SceneFlow.find_child("StartButton", true, false) as Button
+	var shown := await PauseProofWait.for_condition(
+		func() -> bool: return start.is_visible_in_tree() and get_tree().paused, 20000
+	)
+	assert_bool(shown).override_failure_message("Level 2's loading screen never showed").is_true()
+	if is_failure():
+		return
 	var star_map := runner.find_child("StarMap") as StarMap
+	var lyra := runner.find_child("Lyra") as StarSystem
+	assert_object(star_map.get_current()).is_not_same(lyra)
+	start.pressed.emit()
+
+	await assert_signal(jump).wait_until(10000).is_emitted("finished", [lyra])
 	assert_object(star_map.get_current()).is_same(lyra)
 	assert_array(cabin.get_passengers()).not_contains([passenger])
 	assert_bool(boss.is_ringing()).is_false()
@@ -104,3 +125,60 @@ func test_a_promotion_leaves_the_goals_on_the_panel_until_the_next_ones_come() -
 	assert_bool(goals.frozen).is_false()
 	assert_bool(goals.are_all_met()).is_false()
 	assert_bool(panel.visible).is_true()
+
+
+func test_staying_after_a_promotion_swaps_the_goals_for_a_jump_taken_later() -> void:
+	SaveGame.mark_tutorial_done()
+	SaveGame.write({})
+	SaveGame.continue_saved()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var goals := runner.find_child("Goals") as GoalTracker
+	var panel := runner.find_child("GoalPanel") as GoalPanel
+	var star_map := runner.find_child("StarMap") as StarMap
+	var vela := runner.find_child("Vela") as StarSystem
+	var lyra := runner.find_child("Lyra") as StarSystem
+	var jump := runner.find_child("SystemJump") as SystemJump
+	assert_bool(goals.get_goals().is_empty()).is_false()
+
+	(runner.find_child("GoalsMetCall") as GoalsMetCall).answered.emit(false)
+	await runner.simulate_frames(10, 100)
+
+	assert_object(star_map.get_current()).is_same(vela)
+	assert_bool(jump.is_jumping()).is_false()
+	assert_array(goals.get_goals()).is_empty()
+	assert_bool(panel.is_offering_jump()).is_true()
+	assert_bool(panel.get_jump_button().is_visible_in_tree()).is_true()
+	monitor_signals(jump)
+
+	(panel.get_jump_button() as Button).pressed.emit()
+
+	var start := SceneFlow.find_child("StartButton", true, false) as Button
+	var shown := await PauseProofWait.for_condition(
+		func() -> bool: return start.is_visible_in_tree() and get_tree().paused, 20000
+	)
+	assert_bool(shown).override_failure_message("Level 2's loading screen never showed").is_true()
+	if is_failure():
+		return
+	start.pressed.emit()
+	await assert_signal(jump).wait_until(10000).is_emitted("finished", [lyra])
+	await runner.simulate_frames(2)
+	assert_object(star_map.get_current()).is_same(lyra)
+	assert_bool(panel.is_offering_jump()).is_false()
+	assert_bool(goals.get_goals().is_empty()).is_false()
+	assert_bool(goals.are_all_met()).is_false()
+
+
+func test_a_run_saved_while_staying_after_a_promotion_offers_the_jump_again() -> void:
+	SaveGame.mark_tutorial_done()
+	SaveGame.write({SavedStarMap.KEY: SavedStarMap.make(2, false, "Vela")})
+	SaveGame.continue_saved()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var goals := runner.find_child("Goals") as GoalTracker
+	var panel := runner.find_child("GoalPanel") as GoalPanel
+	var star_map := runner.find_child("StarMap") as StarMap
+
+	assert_object(star_map.get_current()).is_same(runner.find_child("Vela"))
+	assert_array(goals.get_goals()).is_empty()
+	assert_bool(panel.is_offering_jump()).is_true()

@@ -5,7 +5,8 @@ extends RefCounted
 ## "snack.min_interval", "drink.max_interval", "cabin.seats", "tank.burn_per_unit", and
 ## the drive's "bus.charge_time", "bus.quick_time" and "bus.warm_charge_time", and
 ## "temperature.comfortable_temperature", "quests.done_happiness" and
-## "cabin.quality_per_upgrade", and a star system's by its name, as "lyra.fare_multiplier":
+## "cabin.quality_per_upgrade", "capsules.enabled" and "capsules.passenger_chance",
+## and a star system's by its name, as "lyra.fare_multiplier":
 ## any exported number on those resources and nodes.
 ## "upgrade_credits" / "upgrade_points", a list of costs by tree row, and "upgrade_cost",
 ## one upgrade's own {title: [credits, points]}. "start_with" set to "all" starts on a bus
@@ -16,8 +17,8 @@ extends RefCounted
 ## which it does; otherwise research is open from the start.
 ## "after_tutorial" (true unless set false) starts where a new run starts once the
 ## tutorial is over: docked at its destination (the Moon) facing home, on a full tank, with
-## nothing researched and the credits and research point its one ride paid. False starts
-## as the scene does on its own: docked at Ember, with nothing.
+## nothing researched, the credits its ride and capsule paid and the research point the ride
+## paid. False starts as the scene does on its own: docked at Ember, with nothing.
 
 const COMMUTER := "res://game/passengers/types/commuter.tres"
 const BUSINESS := "res://game/passengers/types/business.tres"
@@ -69,6 +70,7 @@ func apply_to_scene(system: SolarSystem, planets: Array[Planet]) -> void:
 			"bus": bus,
 			"temperature": bus.temperature,
 			"quests": system.get_node(^"%QuestGiver"),
+			"capsules": system.get_node(^"%CapsuleField"),
 		}
 	)
 	for planet: Planet in planets:
@@ -95,7 +97,7 @@ func apply_to_scene(system: SolarSystem, planets: Array[Planet]) -> void:
 			_set_cost(upgrade)
 	tank.fill()
 	if _after_tutorial():
-		system.get_ledger().earn(roundi(TutorialRules.FARE))
+		system.get_ledger().earn(roundi(TutorialRules.FARE) + TutorialRules.CAPSULE_CREDITS)
 		system.get_ledger().earn_research()
 
 

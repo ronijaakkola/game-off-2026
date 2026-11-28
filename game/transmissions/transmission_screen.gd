@@ -31,6 +31,11 @@ const TALK_BLEND := 6.0
 const SHADOW_SKIN := Color(0.035, 0.03, 0.06)
 const SHADOW_BACKDROP := Color(0.02, 0.02, 0.07)
 const SHADOW_FRAME := Color(0.2, 0.19, 0.26)
+## The lights coming on over a shadowed caller: seconds lit, then dark, in turn, as a tube
+## that flickers before it catches. It ends lit.
+const FLICKER: Array[float] = [0.05, 0.22, 0.07, 0.12, 0.04, 0.3, 0.12, 0.07]
+## Seconds from the lights starting to come on until they are on.
+const LIGHT_SECONDS := 0.99
 
 ## Whether the caller is talking.
 var talking := false
@@ -40,6 +45,10 @@ var _talk := 0.0
 var _talk_time := 0.0
 # The one tween that turns the tube on or off.
 var _power: Tween
+# The caller in the light, while the lights come on over their outline, and the tween that
+# flickers between the two.
+var _lit: AlienPortrait
+var _lights: Tween
 
 
 func _ready() -> void:
@@ -65,16 +74,8 @@ func _process(delta: float) -> void:
 ## Puts [param transmission]'s caller on the screen, with the tube off.
 func show_caller(transmission: Transmission) -> void:
 	clear()
-	_portrait = PortraitStudio.new_portrait(transmission.look, transmission.type)
-	var dark := transmission.shadowed
-	%Talk.add_child(_portrait)
-	PortraitStudio.frame(_portrait)
-	dress(_portrait, transmission, dark)
-	var backdrop := (%Backdrop as ColorRect).material as ShaderMaterial
-	backdrop.set_shader_parameter(&"backdrop_color", get_backdrop_color(transmission, dark))
-	var border := (%Border as Panel).get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
-	border.border_color = get_frame_color(transmission, dark)
-	(%Border as Panel).add_theme_stylebox_override(&"panel", border)
+	_portrait = _add_portrait(transmission, transmission.shadowed)
+	_show_room(transmission, transmission.shadowed)
 	_show_badges(transmission.type)
 	(%Viewport as SubViewport).render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
@@ -100,14 +101,42 @@ static func get_backdrop_color(transmission: Transmission, dark: bool) -> Color:
 	return SHADOW_BACKDROP if dark else transmission.get_backdrop_color()
 
 
+## Whether the backdrop behind [param transmission]'s caller is space: never with
+## [param dark].
+static func is_in_space(transmission: Transmission, dark: bool) -> bool:
+	return transmission.in_space and not dark
+
+
 ## The frame round [param transmission]'s caller: their skin colour, or the dark room's
 ## with [param dark].
 static func get_frame_color(transmission: Transmission, dark: bool) -> Color:
 	return SHADOW_FRAME if dark else transmission.look.skin_color
 
 
+## Turns the lights on over [param transmission]'s caller, who sat in the dark: they
+## flicker a few times ([constant FLICKER]) and stay on, showing the caller's face, colour
+## and room. Under Reduce motion they come on at once.
+func light_up(transmission: Transmission) -> void:
+	if not _portrait or _lit:
+		return
+	_lit = _add_portrait(transmission, false)
+	if _lights:
+		_lights.kill()
+	_lights = create_tween()
+	if not Settings.reduce_motion:
+		for i: int in FLICKER.size():
+			_lights.tween_callback(_set_lit.bind(transmission, i % 2 == 0))
+			_lights.tween_interval(FLICKER[i])
+	_lights.tween_callback(_finish_lighting.bind(transmission))
+
+
 ## Takes the caller off the screen and stops rendering.
 func clear() -> void:
+	if _lights:
+		_lights.kill()
+	if _lit:
+		_lit.queue_free()
+		_lit = null
 	if _portrait:
 		_portrait.queue_free()
 		_portrait = null
@@ -155,6 +184,42 @@ func turn_off() -> void:
 	_power.tween_method(_set_power, 1.0, 0.0, OFF_SECONDS).set_ease(Tween.EASE_IN_OUT).set_trans(
 		Tween.TRANS_CUBIC
 	)
+
+
+# A portrait of [param transmission]'s caller on the screen, dressed for the dark room with
+# [param dark].
+func _add_portrait(transmission: Transmission, dark: bool) -> AlienPortrait:
+	var portrait := PortraitStudio.new_portrait(transmission.look, transmission.type)
+	%Talk.add_child(portrait)
+	PortraitStudio.frame(portrait)
+	dress(portrait, transmission, dark)
+	return portrait
+
+
+# The backdrop behind [param transmission]'s caller and the frame round them: the dark
+# room's with [param dark].
+func _show_room(transmission: Transmission, dark: bool) -> void:
+	var backdrop := (%Backdrop as ColorRect).material as ShaderMaterial
+	backdrop.set_shader_parameter(&"backdrop_color", get_backdrop_color(transmission, dark))
+	backdrop.set_shader_parameter(&"space", is_in_space(transmission, dark))
+	var border := (%Border as Panel).get_theme_stylebox(&"panel").duplicate() as StyleBoxFlat
+	border.border_color = get_frame_color(transmission, dark)
+	(%Border as Panel).add_theme_stylebox_override(&"panel", border)
+
+
+# Shows the caller in the light or as their outline, while the lights flicker.
+func _set_lit(transmission: Transmission, lit: bool) -> void:
+	_lit.visible = lit
+	_portrait.visible = not lit
+	_show_room(transmission, not lit)
+
+
+# The lights are on: the outline goes, and the caller in the light is the one on screen.
+func _finish_lighting(transmission: Transmission) -> void:
+	_set_lit(transmission, true)
+	_portrait.queue_free()
+	_portrait = _lit
+	_lit = null
 
 
 # The type's badges, each with the type's tooltip as on a passenger's photo; none without

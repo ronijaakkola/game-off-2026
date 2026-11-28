@@ -9,7 +9,11 @@
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="7_flask"]
 [ext_resource type="Texture2D" uid="uid://bx5fr0dpvayyy" path="res://game/solar_system/icons/chevron_right.svg" id="8_chevron"]
 [ext_resource type="Texture2D" uid="uid://b3syb2f5pm1co" path="res://game/solar_system/icons/hexagon.svg" id="9_hexagon"]
+[ext_resource type="PackedScene" uid="uid://orvp3o7uegy3" path="res://game/stargate/stargate_row.tscn" id="10_stargate"]
+[ext_resource type="Script" uid="uid://yttf4x4lapgb" path="res://game/solar_system/research_nudge.gd" id="11_nudge"]
 [ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
+[ext_resource type="Script" uid="uid://dtwwylvr7xiyo" path="res://game/solar_system/empty_line_label.gd" id="91_empty"]
+[ext_resource type="Texture2D" uid="uid://ce4ax86y8uxqb" path="res://game/solar_system/icons/user_round_x.svg" id="92_nobody"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nudge"]
 draw_center = false
@@ -167,6 +171,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_nudge")
+script = ExtResource("11_nudge")
 
 [node name="Chevron" type="TextureRect" parent="Card/Clip/Content/Services/ResearchSlot/ResearchRow/ResearchButton" unique_id=757989064]
 self_modulate = Color(0.957, 0.945, 1, 0.651)
@@ -220,6 +225,10 @@ size_flags_horizontal = 3
 theme_type_variation = &"SmallButton"
 text = "Teleport"
 
+[node name="StargateRow" parent="Card/Clip/Content/Services" unique_id=872340802 instance=ExtResource("10_stargate")]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="FuelRule" type="Control" parent="Card/Clip/Content" unique_id=1536806567]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 1)
@@ -241,6 +250,7 @@ theme_type_variation = &"SmallPrimaryButton"
 text = "Board all"
 
 [node name="List" type="MarginContainer" parent="Card/Clip/Content" unique_id=526103822]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/margin_bottom = -4
@@ -252,6 +262,7 @@ size_flags_vertical = 0
 theme_type_variation = &"FaintLabel"
 theme_override_styles/normal = SubResource("StyleBoxEmpty_empty")
 text = "Nobody waiting."
+script = ExtResource("91_empty")
 
 [node name="Rows" type="VBoxContainer" parent="Card/Clip/Content/List" unique_id=288850977]
 unique_name_in_owner = true
@@ -260,6 +271,54 @@ layout_mode = 2
 size_flags_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 0
+
+[node name="AbandonedMessage" type="PanelContainer" parent="Card/Clip/Content" unique_id=251972195]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RowPanel"
+
+[node name="Padding" type="MarginContainer" parent="Card/Clip/Content/AbandonedMessage" unique_id=53776991]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 8
+
+[node name="Stack" type="VBoxContainer" parent="Card/Clip/Content/AbandonedMessage/Padding" unique_id=1762101244]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Card/Clip/Content/AbandonedMessage/Padding/Stack" unique_id=742596923]
+self_modulate = Color(0.957, 0.945, 1, 0.651)
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("92_nobody")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Lines" type="VBoxContainer" parent="Card/Clip/Content/AbandonedMessage/Padding/Stack" unique_id=1063774016]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="AbandonedLabel" type="Label" parent="Card/Clip/Content/AbandonedMessage/Padding/Stack/Lines" unique_id=508117168]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "This planet has been abandoned."
+horizontal_alignment = 1
+
+[node name="NobodyLabel" type="Label" parent="Card/Clip/Content/AbandonedMessage/Padding/Stack/Lines" unique_id=481280344]
+layout_mode = 2
+theme_type_variation = &"DescriptionLabel"
+text = "Nobody lives here."
+horizontal_alignment = 1
 
 [connection signal="pressed" from="Card/Clip/Content/Services/ResearchSlot/ResearchRow/ResearchButton" to="." method="_on_research_button_pressed"]
 [connection signal="pressed" from="Card/Clip/Content/Services/TeleportSlot/TeleportRow/TeleportButton" to="." method="_on_teleport_button_pressed"]

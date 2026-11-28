@@ -14,7 +14,9 @@ extends Control
 ## pointer over one shows a tooltip with the type's name and description. A returning
 ## passenger ([member Passenger.returning]) wears a badge for it after those, and a flag
 ## badge joins them while a quest is about the passenger, its tooltip saying what the quest
-## asks. With
+## asks. A VIP's photo shines ([PhotoShine]) over a backdrop of its own, and someone the
+## player doesn't know yet ([BossPassenger]) is their outline in the dark under a question
+## mark ([PhotoMark]). With
 ## [member flat] on, it is a flat square with rounded corners instead, as big as the minimum
 ## size, with no frame and no tilt.
 
@@ -35,8 +37,8 @@ const BADGE_PHOTO_SIZE := 32.0
 const BADGE_GROWTH := 0.5
 ## The framed photo's size as laid out in its scene, in pixels.
 const FRAME_SIZE := 50.0
-## The flat photo's corner radius, in pixels, and at most this share of its width, so a
-## small one stays a rounded square.
+## The flat photo's corner radius by default, in pixels, and at most this share of its
+## width, so a small one stays a rounded square.
 const FLAT_RADIUS := 8
 const FLAT_RADIUS_SHARE := 0.25
 ## The photo's tilt, in degrees either way.
@@ -51,6 +53,9 @@ const MOOD_ANGER: Dictionary[Passenger.Mood, float] = {
 ## Whether the photo is a flat rounded square rather than a tilted, framed print. Set it
 ## in the scene that uses the photo; it applies once, when the photo is ready.
 @export var flat := false
+## The flat photo's corner radius, in pixels, at most [constant FLAT_RADIUS_SHARE] of its
+## width. Set it in the scene that uses the photo, as [member flat].
+@export var flat_radius := FLAT_RADIUS
 ## Whether it wears badges. A photo too small for them, as in a quest's row, turns it off.
 @export var badged := true
 ## Whether the passenger rides the bus, so their portrait leans with its pushes. Their
@@ -59,6 +64,15 @@ var riding := false:
 	set(value):
 		riding = value
 		set_process(value)
+
+## How opaque the photo's parents make it, for a parent that fades it to set. The
+## portrait's colours are premultiplied by its alpha, so they fade along with it; without
+## that a see-through portrait shows white.
+var opacity := 1.0:
+	set(value):
+		opacity = value
+		var shade := Color(value, value, value)
+		(%Photo as TextureRect).self_modulate = shade
 
 ## Where the portrait is rendered.
 var studio: PortraitStudio:
@@ -78,6 +92,8 @@ var passenger: Passenger:
 var _photo: AtlasTexture
 # The passenger's quest line the badges were last made for.
 var _quest_line := ""
+# The passenger's type the photo was last made for.
+var _type: PassengerType
 
 
 func _ready() -> void:
@@ -96,6 +112,11 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	if passenger and passenger.type != _type:
+		# Dressed anew, as The Boss is in what was fetched: it grows onto their portrait.
+		if get_portrait():
+			get_portrait().props.dress(passenger.type, true)
+		_show_badges()
 	if passenger and passenger.quest_line != _quest_line:
 		_show_badges()
 	var portrait := get_portrait()
@@ -124,7 +145,20 @@ func _show() -> void:
 	_show_badges()
 	if not passenger:
 		return
-	_backdrop().set_shader_parameter(&"backdrop_color", Race.BACKDROP_COLORS[passenger.race])
+	var adrift := Castaway.is_castaway(passenger)
+	var color := (
+		Castaway.get_space_color(passenger) if adrift else Race.BACKDROP_COLORS[passenger.race]
+	)
+	if Vip.is_vip(passenger):
+		color = Vip.BACKDROP
+		if (%Photo as Control).get_child_count() == 0:
+			(%Photo as Control).add_child(PhotoShine.new())
+	if BossPassenger.is_unknown(passenger):
+		color = TransmissionScreen.SHADOW_BACKDROP
+		if (%Photo as Control).get_child_count() == 0:
+			(%Photo as Control).add_child(PhotoMark.new())
+	_backdrop().set_shader_parameter(&"backdrop_color", color)
+	_backdrop().set_shader_parameter(&"space", adrift)
 	if studio and not _photo and is_inside_tree():
 		studio.lend(self, passenger.look, passenger.type, _on_lent)
 
@@ -133,6 +167,9 @@ func _show() -> void:
 func _on_lent(photo: AtlasTexture) -> void:
 	_photo = photo
 	(%Photo as TextureRect).texture = photo
+	# Someone the player doesn't know yet is only their outline in the dark.
+	if photo and BossPassenger.is_unknown(passenger):
+		TransmissionScreen.dress(get_portrait(), null, true)
 
 
 # One badge for each of the passenger's type's, one for coming back, then a flag while a
@@ -143,7 +180,9 @@ func _show_badges() -> void:
 		badges.remove_child(badge)
 		badge.queue_free()
 	_quest_line = passenger.quest_line if passenger else ""
-	if not passenger or not badged:
+	_type = passenger.type if passenger else null
+	# A badge would say who someone the player doesn't know yet is.
+	if not passenger or not badged or BossPassenger.is_unknown(passenger):
 		return
 	var type := passenger.type
 	for texture: Texture2D in type.badges:
@@ -194,7 +233,7 @@ func _give_back() -> void:
 func _flatten() -> void:
 	var frame := %Frame as Control
 	var mask := StyleBoxFlat.new()
-	mask.set_corner_radius_all(mini(FLAT_RADIUS, roundi(custom_minimum_size.x * FLAT_RADIUS_SHARE)))
+	mask.set_corner_radius_all(mini(flat_radius, roundi(custom_minimum_size.x * FLAT_RADIUS_SHARE)))
 	frame.add_theme_stylebox_override(&"panel", mask)
 	frame.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 	frame.position = Vector2.ZERO

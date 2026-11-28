@@ -3,11 +3,13 @@ extends Node
 ## The Boss's call with the promotion, which [method ring] starts once every goal holds.
 ## The call notice's Answer opens their transmission; left unanswered for
 ## [constant ANSWER_SECONDS] seconds while it shows, it opens by itself, and The Boss starts
-## by telling the player off. Its one answer takes the promotion: "Jump to new system", or,
-## in the last system, an answer to every system joining. Nobody else calls while it rings.
+## by telling the player off. Either answer takes the promotion: "Jump to new system" jumps
+## now, and "Stay for now" keeps the bus in this system, with the jump on the goal panel. In
+## the last system its one answer is to every system joining. Nobody else calls while it rings.
 
-## The player answered The Boss: the promotion goes ahead.
-signal answered
+## The player answered The Boss: the promotion goes ahead, jumping now if [param jumps],
+## else staying in this system for now.
+signal answered(jumps: bool)
 
 ## Seconds of play the call notice shows, unanswered, before the transmission opens by itself.
 const ANSWER_SECONDS := 10.0
@@ -26,8 +28,10 @@ const JOIN_OFFER := (
 )
 const TEXT := "What, really? You did it? "
 const UNANSWERED_TEXT := "Number one rule: when I call, you [shout]pick[/shout] up. "
-## The answer that jumps, and the one that joins every system.
+## The answer that jumps, the one that stays in the system for now, and the one that joins
+## every system.
 const JUMP_ANSWER := "Jump to new system"
+const STAY_ANSWER := "Stay for now"
 const JOIN_ANSWER := "Sure boss"
 
 @export var notices: NoticeStack
@@ -90,12 +94,14 @@ func _open(opening: String) -> void:
 	if opening == UNANSWERED_TEXT:
 		call.mood = Passenger.Mood.ANNOYED
 	call.accept_text = JOIN_ANSWER if _joins else JUMP_ANSWER
+	if not _joins:
+		call.decline_text = STAY_ANSWER
 	transmission_panel.open(call)
-	await transmission_panel.answered
+	var jumps: bool = await transmission_panel.answered
 	if quest_giver:
 		quest_giver.enabled = _quests_were_enabled
 	_ringing = false
-	answered.emit()
+	answered.emit(jumps or _joins)
 
 
 # The Boss, as they call.

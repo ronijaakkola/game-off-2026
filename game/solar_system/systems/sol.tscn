@@ -1,236 +1,317 @@
-[gd_scene format=3 uid="uid://dl00qj1joo6lh"]
+[gd_scene format=3 uid="uid://c27bke4n6kwiy"]
 
 [ext_resource type="Script" uid="uid://b60byqdjkmg8f" path="res://game/solar_system/star_system.gd" id="1_system"]
 [ext_resource type="Script" uid="uid://bcxthsqtxqd30" path="res://game/solar_system/planet.gd" id="2_planet"]
 [ext_resource type="Shader" uid="uid://d14kseoo3gcic" path="res://game/solar_system/planet.gdshader" id="3_surface"]
 [ext_resource type="Shader" uid="uid://64owpj35yndw" path="res://game/solar_system/planet_rings.gdshader" id="4_rings"]
 [ext_resource type="Shader" uid="uid://c22csuensnsq" path="res://game/solar_system/star_halo.gdshader" id="5_halo"]
+[ext_resource type="Script" uid="uid://dajf73oqy6see" path="res://game/solar_system/planet_smoke.gd" id="6_smoke"]
+[ext_resource type="Script" uid="uid://b3wlb2uewmlfq" path="res://game/warp_gate/warp_gate.gd" id="7_gate"]
+[ext_resource type="PackedScene" uid="uid://3uyf4jdy67ft" path="res://game/stargate/stargate.tscn" id="8_stargate"]
+[ext_resource type="AudioStream" uid="uid://b2jmgmaf4lxpi" path="res://ui/audio/bgm1.ogg" id="90_music"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_star"]
-radius = 2.4
-height = 4.8
+radius = 2.6
+height = 5.2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_star"]
 shading_mode = 0
-albedo_color = Color(1, 0.82, 0.25, 1)
+albedo_color = Color(1, 0.416, 0.239, 1)
 
 [sub_resource type="QuadMesh" id="QuadMesh_halo"]
-size = Vector2(7.7, 7.7)
+size = Vector2(8.3, 8.3)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_halo"]
 render_priority = -1
 shader = ExtResource("5_halo")
-shader_parameter/halo_color = Color(1, 0.7, 0.3, 0.4)
+shader_parameter/halo_color = Color(1, 0.29, 0.165, 0.4)
 shader_parameter/ring_count = 2
 shader_parameter/inner_radius = 0.78
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ember"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_venus"]
 render_priority = 0
 shader = ExtResource("3_surface")
 shader_parameter/light_source = Vector3(0, 0, 0)
 shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(0.82, 0.58, 0.4, 1)
-shader_parameter/mid_color = Color(0.66, 0.43, 0.3, 1)
-shader_parameter/top_color = Color(0.94, 0.78, 0.58, 1)
-shader_parameter/mid_threshold = 0.55
-shader_parameter/top_threshold = 0.68
-shader_parameter/noise_scale = 2.6
-shader_parameter/stripes = 0.0
-shader_parameter/stripe_count = 6.0
+shader_parameter/shadow_color = Color(0.851, 0.639, 0.722, 1)
+shader_parameter/base_color = Color(0.91, 0.69, 0.29, 1)
+shader_parameter/mid_color = Color(0.788, 0.541, 0.18, 1)
+shader_parameter/top_color = Color(0.961, 0.835, 0.541, 1)
+shader_parameter/mid_threshold = 0.45
+shader_parameter/top_threshold = 0.75
+shader_parameter/noise_scale = 1.6
+shader_parameter/stripes = 0.7
+shader_parameter/stripe_count = 7.0
 shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
 shader_parameter/cap_size = 0.0
-shader_parameter/seed = 3.0
+shader_parameter/seed = 61.0
 shader_parameter/terminator_softness = 0.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orbit"]
 transparency = 1
 cull_mode = 2
 shading_mode = 0
-albedo_color = Color(0.8, 0.8, 1, 0.3)
+albedo_color = Color(1, 0.753, 0.69, 0.3)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_terra"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_earth"]
 render_priority = 0
 shader = ExtResource("3_surface")
 shader_parameter/light_source = Vector3(0, 0, 0)
 shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(0.5, 0.82, 0.34, 1)
-shader_parameter/mid_color = Color(0.84, 0.95, 0.56, 1)
-shader_parameter/top_color = Color(0.36, 0.71, 0.35, 1)
-shader_parameter/mid_threshold = 0.5
-shader_parameter/top_threshold = 0.54
-shader_parameter/noise_scale = 1.8
-shader_parameter/stripes = 0.0
-shader_parameter/stripe_count = 6.0
-shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.0
-shader_parameter/seed = 11.0
-shader_parameter/terminator_softness = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_moon"]
-render_priority = 0
-shader = ExtResource("3_surface")
-shader_parameter/light_source = Vector3(0, 0, 0)
-shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(0.95, 0.93, 1, 1)
-shader_parameter/mid_color = Color(0.8, 0.78, 0.95, 1)
-shader_parameter/top_color = Color(0.8, 0.78, 0.95, 1)
-shader_parameter/mid_threshold = 0.6
-shader_parameter/top_threshold = 1.0
-shader_parameter/noise_scale = 3.0
-shader_parameter/stripes = 0.0
-shader_parameter/stripe_count = 6.0
-shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.0
-shader_parameter/seed = 5.0
-shader_parameter/terminator_softness = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_giant"]
-render_priority = 0
-shader = ExtResource("3_surface")
-shader_parameter/light_source = Vector3(0, 0, 0)
-shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(1, 0.6, 0.25, 1)
-shader_parameter/mid_color = Color(0.95, 0.42, 0.22, 1)
-shader_parameter/top_color = Color(1, 0.8, 0.5, 1)
-shader_parameter/mid_threshold = 0.45
-shader_parameter/top_threshold = 0.8
-shader_parameter/noise_scale = 1.4
-shader_parameter/stripes = 1.0
-shader_parameter/stripe_count = 5.0
-shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.0
-shader_parameter/seed = 21.0
-shader_parameter/terminator_softness = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_giant_rings"]
-render_priority = 0
-shader = ExtResource("4_rings")
-shader_parameter/color_a = Color(0.72, 0.72, 1, 1)
-shader_parameter/color_b = Color(0.56, 0.56, 0.92, 1)
-shader_parameter/band_count = 3.0
-shader_parameter/gap = 0.12
-shader_parameter/opacity = 1.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_frost"]
-render_priority = 0
-shader = ExtResource("3_surface")
-shader_parameter/light_source = Vector3(0, 0, 0)
-shader_parameter/light_is_directional = false
-shader_parameter/shadow_color = Color(0.735, 0.701, 0.896, 1)
-shader_parameter/base_color = Color(1, 0.62, 0.74, 1)
-shader_parameter/mid_color = Color(1, 0.76, 0.84, 1)
-shader_parameter/top_color = Color(1, 0.92, 0.95, 1)
-shader_parameter/mid_threshold = 0.5
+shader_parameter/shadow_color = Color(0.851, 0.639, 0.722, 1)
+shader_parameter/base_color = Color(0.247, 0.525, 0.788, 1)
+shader_parameter/mid_color = Color(0.49, 0.541, 0.306, 1)
+shader_parameter/top_color = Color(0.541, 0.384, 0.282, 1)
+shader_parameter/mid_threshold = 0.52
 shader_parameter/top_threshold = 0.66
 shader_parameter/noise_scale = 2.2
 shader_parameter/stripes = 0.0
 shader_parameter/stripe_count = 6.0
 shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
-shader_parameter/cap_size = 0.22
-shader_parameter/seed = 37.0
+shader_parameter/cap_size = 0.16
+shader_parameter/seed = 67.0
 shader_parameter/terminator_softness = 0.0
 
-[node name="Sol" type="Node3D" unique_id=500631542 node_paths=PackedStringArray("home")]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mars"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.851, 0.639, 0.722, 1)
+shader_parameter/base_color = Color(0.784, 0.333, 0.227, 1)
+shader_parameter/mid_color = Color(0.627, 0.243, 0.173, 1)
+shader_parameter/top_color = Color(0.878, 0.541, 0.376, 1)
+shader_parameter/mid_threshold = 0.5
+shader_parameter/top_threshold = 0.72
+shader_parameter/noise_scale = 2.6
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.1
+shader_parameter/seed = 71.0
+shader_parameter/terminator_softness = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jupiter"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.851, 0.639, 0.722, 1)
+shader_parameter/base_color = Color(0.851, 0.659, 0.467, 1)
+shader_parameter/mid_color = Color(0.725, 0.471, 0.31, 1)
+shader_parameter/top_color = Color(0.941, 0.847, 0.69, 1)
+shader_parameter/mid_threshold = 0.45
+shader_parameter/top_threshold = 0.8
+shader_parameter/noise_scale = 1.4
+shader_parameter/stripes = 1.0
+shader_parameter/stripe_count = 7.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
+shader_parameter/seed = 73.0
+shader_parameter/terminator_softness = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_saturn"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.851, 0.639, 0.722, 1)
+shader_parameter/base_color = Color(0.902, 0.812, 0.604, 1)
+shader_parameter/mid_color = Color(0.804, 0.69, 0.478, 1)
+shader_parameter/top_color = Color(0.953, 0.902, 0.753, 1)
+shader_parameter/mid_threshold = 0.5
+shader_parameter/top_threshold = 0.8
+shader_parameter/noise_scale = 1.2
+shader_parameter/stripes = 0.8
+shader_parameter/stripe_count = 5.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
+shader_parameter/seed = 79.0
+shader_parameter/terminator_softness = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_saturn_rings"]
+render_priority = 0
+shader = ExtResource("4_rings")
+shader_parameter/color_a = Color(1, 0.702, 0.541, 1)
+shader_parameter/color_b = Color(0.878, 0.541, 0.416, 1)
+shader_parameter/band_count = 3.0
+shader_parameter/gap = 0.12
+shader_parameter/opacity = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pluto"]
+render_priority = 0
+shader = ExtResource("3_surface")
+shader_parameter/light_source = Vector3(0, 0, 0)
+shader_parameter/light_is_directional = false
+shader_parameter/shadow_color = Color(0.851, 0.639, 0.722, 1)
+shader_parameter/base_color = Color(1, 0.91, 0.871, 1)
+shader_parameter/mid_color = Color(0.941, 0.784, 0.737, 1)
+shader_parameter/top_color = Color(0.851, 0.659, 0.596, 1)
+shader_parameter/mid_threshold = 0.5
+shader_parameter/top_threshold = 0.74
+shader_parameter/noise_scale = 2.8
+shader_parameter/stripes = 0.0
+shader_parameter/stripe_count = 6.0
+shader_parameter/cap_color = Color(0.95, 0.97, 1, 1)
+shader_parameter/cap_size = 0.0
+shader_parameter/seed = 83.0
+shader_parameter/terminator_softness = 0.0
+
+[node name="Sol" type="Node3D" unique_id=109947984 node_paths=PackedStringArray("home", "star", "halo")]
 script = ExtResource("1_system")
 display_name = "Sol"
-home = NodePath("Ember")
-deliveries = 20
+music = ExtResource("90_music")
+home = NodePath("Mars")
+bounds_radius = 22.0
+max_distance = 62.0
+arrival_call = "Welcome to Sol. The sun here is dying, and Earth was abandoned long ago. The planets that are left still need a bus. Get to work."
+mechanic_call = "Last shipment, and the best I've got. The lab has the final upgrades in every tree. And kid, watch the sun: it's old and restless. When it starts throbbing, its heat swells right out to Jupiter. Look, it's starting now!"
+deliveries = 25
+vip_deliveries = 5
+credits = 10000
+rating = 0.0
+zone_radius = 6.6
+hot_zone_radius = 4.8
+star_radius = 2.6
+zone_color = Color(1, 0.478, 0.29, 0.07)
+hot_color = Color(1, 0.227, 0.165, 0.12)
+smoke_color = Color(1, 0.416, 0.227, 0.07)
+swell_zone_radius = 14.9
+swell_hot_zone_radius = 9.0
+swell_heating = 1.5
+swell_standing_heating = 4.0
+star = NodePath("Star")
+halo = NodePath("Star/Halo")
+background_color = Color(0.165, 0.063, 0.125, 1)
+fog_color = Color(0.239, 0.082, 0.149, 1)
+fog_accent_color = Color(0.29, 0.122, 0.102, 1)
+sky_star_color = Color(1, 0.851, 0.78, 1)
 
-[node name="Star" type="Node3D" parent="." unique_id=1776589872]
+[node name="Star" type="Node3D" parent="." unique_id=2084677052]
 
-[node name="Surface" type="MeshInstance3D" parent="Star" unique_id=1034569457]
+[node name="Surface" type="MeshInstance3D" parent="Star" unique_id=596986701]
 cast_shadow = 0
 mesh = SubResource("SphereMesh_star")
 surface_material_override/0 = SubResource("StandardMaterial3D_star")
 
-[node name="Halo" type="MeshInstance3D" parent="Star" unique_id=1176841719]
+[node name="Halo" type="MeshInstance3D" parent="Star" unique_id=914780376]
 cast_shadow = 0
 mesh = SubResource("QuadMesh_halo")
 surface_material_override/0 = SubResource("ShaderMaterial_halo")
 
-[node name="Ember" type="Node3D" parent="." unique_id=1041072857]
+[node name="Venus" type="Node3D" parent="." unique_id=1347216572]
 script = ExtResource("2_planet")
-display_name = "Ember"
-radius = 0.39
-orbit_radius = 5.2
-orbit_period = 70.0
-start_angle = 200.0
-spin_period = 27.0
-surface_material = SubResource("ShaderMaterial_ember")
-icon_color = Color(0.82, 0.58, 0.4, 1)
-tagline = "Towns that chase the dusk"
-lore = "Ember turns slowly, close to the star, and its towns roll along the dusk line to stay out of the noon heat. Everyone here is always on the move, and most of them would rather someone else did the driving."
+display_name = "Venus"
+radius = 0.42
+orbit_radius = 6.0
+orbit_period = 90.0
+start_angle = 30.0
+spin_period = 60.0
+surface_material = SubResource("ShaderMaterial_venus")
+icon_color = Color(0.91, 0.69, 0.29, 1)
+fuel_price = 0.12
+tagline = "Closer to the sun than is wise"
+lore = "Venus was never comfortable, and the swollen sun has not helped. Its cloud cities ride higher every year to stay out of the heat, and the people in them have stopped pretending they will ever come down."
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
-[node name="Terra" type="Node3D" parent="." unique_id=664976043]
+[node name="Earth" type="Node3D" parent="." unique_id=1594488871]
 script = ExtResource("2_planet")
-display_name = "Terra"
+display_name = "Earth"
 radius = 0.5
 orbit_radius = 8.6
-orbit_period = 120.0
-start_angle = 300.0
-spin_period = 36.0
-tilt = 15.0
-surface_material = SubResource("ShaderMaterial_terra")
-icon_color = Color(0.5, 0.82, 0.34, 1)
-fuel_price = 0.12
-has_lab = true
-tagline = "Where every route begins"
-lore = "The old orbital yards over Terra built the first frameshift buses, and the depot still keeps their timetables. Half the system calls it home, and the other half is visiting relatives. A bus here is expected on time, to the second."
+orbit_period = 130.0
+start_angle = 250.0
+spin_period = 30.0
+tilt = 23.0
+surface_material = SubResource("ShaderMaterial_earth")
+icon_color = Color(0.247, 0.525, 0.788, 1)
+icon_land_color = Color(0.49, 0.6, 0.31, 1)
+icon_cap_color = Color(0.96, 0.97, 1, 1)
+sells_fuel = false
+abandoned = true
+tagline = "Nobody lives here any more"
+lore = "Earth is where everyone came from, and almost nobody stayed. The fires that started when the sun turned red still burn, and their smoke shows from orbit. One station keeps its lights on for the few who come back to look."
 orbit_material = SubResource("StandardMaterial3D_orbit")
 
-[node name="Moon" type="Node3D" parent="Terra" unique_id=399859515]
+[node name="Mars" type="Node3D" parent="." unique_id=470072202]
 script = ExtResource("2_planet")
-display_name = "Moon"
-radius = 0.15
-orbit_radius = 2.0
-start_angle = 20.0
-spin_period = 0.0
-surface_material = SubResource("ShaderMaterial_moon")
-icon_color = Color(0.95, 0.93, 1, 1)
-fuel_price = 0.15
-tagline = "Terra's quiet balcony"
-lore = "A short hop from Terra, the Moon is where people go to look back at it. Its fuel comes up out of Terra's gravity a canister at a time, which is why it costs what it costs. The domes keep the air in, not the warmth: bring a jacket."
-orbit_width = 0.03
-orbit_material = SubResource("StandardMaterial3D_orbit")
-
-[node name="Giant" type="Node3D" parent="." unique_id=868252868]
-script = ExtResource("2_planet")
-display_name = "Giant"
-orbit_radius = 13.2
-orbit_period = 220.0
+display_name = "Mars"
+radius = 0.32
+orbit_radius = 11.0
+orbit_period = 175.0
 start_angle = 140.0
-spin_period = 48.0
-tilt = 18.0
-surface_material = SubResource("ShaderMaterial_giant")
-icon_color = Color(1, 0.6, 0.25, 1)
-fuel_price = 0.06
+spin_period = 31.0
+tilt = 25.0
+surface_material = SubResource("ShaderMaterial_mars")
+icon_color = Color(0.784, 0.333, 0.227, 1)
 has_lab = true
-tagline = "The rings pay for everything"
-lore = "Giant's ring miners skim fuel straight off the ice and sell it cheaper than anyone in the system. The labs in its cloud cities study whatever the miners haul in. No one has seen the surface, and no one is sure there is one."
+tagline = "The old colony, now the capital"
+lore = "Mars took in most of Earth when it emptied, and has been crowded and proud ever since. Its labs fill the old canyons, and the depot here is the one every driver in Sol reports to."
 orbit_material = SubResource("StandardMaterial3D_orbit")
-ring_material = SubResource("ShaderMaterial_giant_rings")
-ring_inner = 1.35
-ring_outer = 2.2
-icon_ring_color = Color(0.72, 0.72, 1, 1)
 
-[node name="Frost" type="Node3D" parent="." unique_id=472268043]
+[node name="Jupiter" type="Node3D" parent="." unique_id=729202747]
 script = ExtResource("2_planet")
-display_name = "Frost"
-radius = 0.425
-orbit_radius = 17.5
-orbit_period = 320.0
-start_angle = 20.0
-spin_period = 42.0
-tilt = -10.0
-surface_material = SubResource("ShaderMaterial_frost")
-icon_color = Color(1, 0.62, 0.74, 1)
+display_name = "Jupiter"
+radius = 0.9
+orbit_radius = 14.9
+orbit_period = 250.0
+start_angle = 300.0
+spin_period = 16.0
+tilt = 3.0
+surface_material = SubResource("ShaderMaterial_jupiter")
+icon_color = Color(0.79, 0.5, 0.36, 1)
 fuel_price = 0.08
-has_lab = true
-tagline = "Last stop before the dark"
-lore = "Frost circles farthest from the star, and its people like it that way: long nights, quiet labs and a sky of stars no one else gets to see. Buses are rare out here, so a full one pulling in gets a cheer."
+tagline = "A storm older than the company"
+lore = "Jupiter's stations hang in its upper clouds and scoop fuel straight out of them. The great storm still turns below, and the locals give directions by it."
 orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="Saturn" type="Node3D" parent="." unique_id=1385574935]
+script = ExtResource("2_planet")
+display_name = "Saturn"
+radius = 0.7
+orbit_radius = 17.4
+orbit_period = 310.0
+start_angle = 80.0
+spin_period = 18.0
+tilt = 27.0
+surface_material = SubResource("ShaderMaterial_saturn")
+icon_color = Color(0.902, 0.812, 0.604, 1)
+has_lab = true
+tagline = "The view everyone came for"
+lore = "Saturn's ring stations were built for tourists and kept by scientists, who study the red light coming through the ice. Both still argue about who gets the window seats."
+orbit_material = SubResource("StandardMaterial3D_orbit")
+ring_material = SubResource("ShaderMaterial_saturn_rings")
+ring_outer = 1.9
+icon_ring_color = Color(1, 0.702, 0.541, 1)
+
+[node name="Pluto" type="Node3D" parent="." unique_id=955395834]
+script = ExtResource("2_planet")
+display_name = "Pluto"
+radius = 0.2
+orbit_radius = 20.9
+orbit_period = 380.0
+start_angle = 200.0
+spin_period = 50.0
+surface_material = SubResource("ShaderMaterial_pluto")
+icon_color = Color(1, 0.91, 0.871, 1)
+fuel_price = 0.05
+tagline = "Still a planet out here"
+lore = "Pluto is a long way out and likes it that way. Its ice is the cheapest fuel in Sol, and the one rule at its depot is never to bring up what it is or is not."
+orbit_material = SubResource("StandardMaterial3D_orbit")
+
+[node name="EarthSmoke" type="Node3D" parent="." unique_id=1998303546 node_paths=PackedStringArray("planet")]
+script = ExtResource("6_smoke")
+planet = NodePath("../Earth")
+
+[node name="EarthStargate" parent="." unique_id=1319889343 node_paths=PackedStringArray("planet") instance=ExtResource("8_stargate")]
+planet = NodePath("../Earth")
+
+[node name="VenusGate" type="Node3D" parent="." unique_id=1539740272 node_paths=PackedStringArray("planet", "partner")]
+script = ExtResource("7_gate")
+planet = NodePath("../Venus")
+partner = NodePath("../PlutoGate")
+
+[node name="PlutoGate" type="Node3D" parent="." unique_id=503562901 node_paths=PackedStringArray("planet", "partner")]
+script = ExtResource("7_gate")
+planet = NodePath("../Pluto")
+partner = NodePath("../VenusGate")

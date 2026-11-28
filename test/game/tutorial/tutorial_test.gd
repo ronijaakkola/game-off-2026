@@ -3,7 +3,8 @@ extends GdUnitTestSuite
 ## either of the two answers starts the steps on the guide card beside the bus, and the
 ## camera's card after it waits for the player to both pan and zoom the camera. Through the
 ## call, the menu button still opens the pause menu. Skipping the tutorial puts back every
-## rule it changed and fills the tank, and the next new run starts without it.
+## rule it changed and fills the tank, and the next new run starts without it. On the way
+## home a capsule of credits waits still on the spot, and the fare and it make 120 credits.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -146,6 +147,44 @@ func test_skipping_puts_back_what_it_changed() -> void:
 	assert_bool((runner.find_child("Bus") as FrameshiftBus).route_locked).is_false()
 
 
+func test_on_the_way_home_a_capsule_on_the_spot_pays_the_rest_of_the_tutorials_credits() -> void:
+	SaveGame.start_new()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var tutorial := runner.find_child("Tutorial") as Tutorial
+	var capsules := runner.find_child("CapsuleField") as CapsuleField
+	var ledger := (runner.scene() as SolarSystem).get_ledger()
+	var before := ledger.credits
+
+	var way_home := WayHome.new(tutorial, TutorialRules.new(tutorial))
+	await runner.simulate_frames(30)
+	assert_int(capsules.get_capsules().size()).is_equal(1)
+	var capsule := capsules.get_capsules()[0]
+	assert_vector(capsule.get_flat_position()).is_equal_approx(
+		way_home.get_spot(), Vector3.ONE * 0.01
+	)
+	var bus := tutorial.bus
+	bus.fly_in(RouteStop.at_point(way_home.get_spot()), bus.max_speed)
+	await assert_func(self, "_is_holding", [bus]).wait_until(20000).is_true()
+	await runner.simulate_frames(2)
+
+	assert_array(capsules.get_capsules()).is_empty()
+	assert_int(ledger.credits - before).is_equal(TutorialRules.CAPSULE_CREDITS)
+	assert_float(TutorialRules.FARE + TutorialRules.CAPSULE_CREDITS).is_equal(120.0)
+
+
+func test_skipping_takes_away_the_capsule_on_the_way_home() -> void:
+	SaveGame.start_new()
+	var runner := scene_runner(SCENE)
+	await runner.simulate_frames(2)
+	var tutorial := runner.find_child("Tutorial") as Tutorial
+	WayHome.new(tutorial, TutorialRules.new(tutorial))
+
+	tutorial.skip()
+
+	assert_array((runner.find_child("CapsuleField") as CapsuleField).get_capsules()).is_empty()
+
+
 func test_the_run_starts_on_a_full_tank_after_the_tutorial() -> void:
 	SaveGame.start_new()
 	var runner := scene_runner(SCENE)
@@ -197,6 +236,10 @@ func test_the_heat_zone_fades_in_full_size_once_the_map_zooms_out() -> void:
 
 
 # Waits until the guide card shows the card that starts with [param text], fully open.
+func _is_holding(bus: FrameshiftBus) -> bool:
+	return bus.state == FrameshiftBus.State.HOLDING
+
+
 func _wait_for_card(guide: GuideCard, text: String) -> void:
 	await assert_func(self, "_shows_card", [guide, text]).wait_until(5000).is_true()
 	await await_millis(int(Tooltip.OPEN_SECONDS * 1000.0) + 100)

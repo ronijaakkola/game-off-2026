@@ -85,6 +85,11 @@ func get_late_seconds() -> float:
 	return maxf(clock - expected_seconds - leeway, 0.0)
 
 
+## Seconds of their clock until they are late, leeway and all. Negative once they are.
+func get_seconds_left() -> float:
+	return expected_seconds + leeway - clock
+
+
 ## How many stops past their tolerance the bus has made.
 func get_extra_stops() -> int:
 	return maxi(stops - tolerance, 0)

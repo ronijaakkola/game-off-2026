@@ -32,8 +32,6 @@ const CAP_HEIGHT := 0.68
 const TILT_DEGREES := -5.0
 ## The gap between the stamp's lowest point and the top of the bus on screen, in pixels.
 const BUS_GAP := 6.0
-## After the camera and the bus have moved each frame, as the map's other labels.
-const PROCESS_PRIORITY := 302
 const FONT := preload("res://ui/fonts/baloo_2.ttf")
 const WEIGHT_TAG := 2003265652
 const RESERVE_TEXT := "Reserve tank!"
@@ -71,7 +69,7 @@ var _play: Tween
 
 
 func _ready() -> void:
-	process_priority = PROCESS_PRIORITY
+	process_priority = FrameOrder.SCREEN_MARKERS
 	_font.base_font = FONT
 	_font.variation_opentype = {WEIGHT_TAG: 800}
 	hide()

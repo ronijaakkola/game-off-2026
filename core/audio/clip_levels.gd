@@ -11,16 +11,13 @@ extends RefCounted
 ## a use of the clips: the clips stay in the folder of the feature that plays them.
 const LEVELS: Dictionary[String, float] = {
 	"game/bus/dock_bell.ogg": 0.5,
-	"game/bus/flying.ogg": 0.4,
-	"game/passengers/psst_1.ogg": 0.3,
-	"game/passengers/psst_2.ogg": 0.3,
-	"game/passengers/psst_3.ogg": 0.3,
-	"game/passengers/wilhelm_scream.ogg": 0.23,
+	"game/bus/flying.ogg": 0.7,
 	"game/solar_system/fuel.ogg": 0.35,
 	"game/solar_system/ringtone.ogg": 0.15,
-	"ui/audio/bg.ogg": 1.0,
+	"ui/audio/bgm1.ogg": 0.7,
+	"ui/audio/bgm2.ogg": 0.7,
 	"ui/audio/key_click.ogg": 1.0,
-	"ui/audio/menu_music.ogg": 1.0,
+	"ui/audio/menu_music.ogg": 0.7,
 	"ui/audio/ui_click.ogg": 1.0,
 }
 ## The level of a clip with no entry.

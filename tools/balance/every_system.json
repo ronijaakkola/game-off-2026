@@ -1,0 +1,5 @@
+[
+  {"name": "Ember"},
+  {"name": "to Lyra", "promote_to": "Lyra", "overrides": {"mechanic": true}},
+  {"name": "to Sol", "promote_to": "Sol", "overrides": {"mechanic": true}}
+]

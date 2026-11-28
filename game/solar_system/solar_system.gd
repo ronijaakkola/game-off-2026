@@ -48,9 +48,6 @@ const LABEL_PIXELS := 13.0
 const LABEL_GAP_PIXELS := 0.0
 ## Seconds for the names and the open planet's hover border to fade out or back in.
 const FADE_SECONDS := 0.4
-## The process priority Phantom Camera's host sets on itself to move the camera, after
-## everything it follows.
-const CAMERA_HOST_PRIORITY := 300
 ## How fast the game runs, as a share of real time: the bus, the planets and the
 ## passengers alike, so nothing about a ride changes but how long it takes to play.
 const PACE := 0.9
@@ -101,8 +98,8 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	# After the planets, the bus and the camera have moved this frame, so the names and
 	# the waiting markers follow where they are now, not where they were a frame
-	# ago. The camera moves last of those: Phantom Camera's host runs at priority 300.
-	process_priority = CAMERA_HOST_PRIORITY + 1
+	# ago. The camera moves last of those, at FrameOrder.CAMERA_HOST.
+	process_priority = FrameOrder.AFTER_CAMERA
 	Engine.time_scale = PACE
 	(%OrbitClock as OrbitClock).start(_planets)
 	_course_drag = CourseDrag.new(%Bus as FrameshiftBus, %Camera as Camera3D)
@@ -322,7 +319,7 @@ func _update_fade(delta: float) -> void:
 	var open := get_open_planet()
 	if open:
 		_faded_planet = open
-	var target := 0.0 if open or is_bus_open() else 1.0
+	var target := 0.0 if open or is_bus_open() or (%StarChart as StarChart).is_open() else 1.0
 	_fade = move_toward(_fade, target, delta / FADE_SECONDS)
 	if _fade >= 1.0:
 		_faded_planet = null
@@ -345,6 +342,7 @@ func _start_passengers() -> void:
 	(%Goals as GoalTracker).ledger = _ledger
 	var progression := %Progression as Progression
 	progression.ledger = _ledger
+	(%CapsuleField as CapsuleField).ledger = _ledger
 	if not (%MapZoom as MapZoom).is_zoomed():
 		progression.start()
 	var lab := %ResearchLab as ResearchLab
@@ -405,12 +403,12 @@ func _on_board_pressed(passenger: Passenger) -> void:
 	var bus := %Bus as FrameshiftBus
 	var cabin := %Cabin as Cabin
 	var planet := bus.get_docked_planet()
-	if not planet or not bus.is_at_planet() or cabin.get_free_seats() <= 0:
+	if not planet or not bus.is_at_planet() or not Seating.can_pick_up(cabin, passenger):
 		return
 	if not (%WaitingPassengers as WaitingPassengers).take(planet, passenger):
 		return
 	bus.boarding = true
-	cabin.pick_up(passenger)
+	Seating.pick_up(cabin, passenger)
 
 
 # The dock panel's Research button: opens the research screen on every tree.
@@ -430,7 +428,7 @@ func _on_kicked(passenger: Passenger) -> void:
 	figure.light_source = bus.get_model().light_source
 	add_child(figure)
 	var door := bus.global_transform * FrameshiftBus.DOOR
-	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color)
+	figure.throw(door, -bus.global_basis.x.normalized(), passenger.look.skin_color, passenger)
 
 
 # The bus jumps to the next star system: whatever is open closes.
@@ -477,7 +475,8 @@ func _planet_at(screen_point: Vector2) -> Planet:
 # badges and the fuel forecast fade with the names.
 func _place_waiting(under: Planet) -> void:
 	var bus := %Bus as FrameshiftBus
-	var docked := bus.is_at_planet() and not (%SystemJump as SystemJump).is_jumping()
+	var away := (%SystemJump as SystemJump).is_jumping() or (%StarChart as StarChart).is_open()
+	var docked := bus.is_at_planet() and not away
 	(%DockPanel as DockPanel).planet = bus.get_docked_planet() if docked else null
 	var markers := %WaitingMarkers as WaitingMarkers
 	markers.modulate.a = _fade

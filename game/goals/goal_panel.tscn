@@ -5,6 +5,8 @@
 [ext_resource type="Material" uid="uid://cti4ji4gh5xnp" path="res://ui/glass.tres" id="3_glass"]
 [ext_resource type="Texture2D" uid="uid://c4wc5owrqvxse" path="res://shared/icons/flag.svg" id="4_flag"]
 [ext_resource type="Script" uid="uid://cl22jrg7jqt6w" path="res://game/goals/slide_slot.gd" id="5_slot"]
+[ext_resource type="PackedScene" uid="uid://73wpdpb1csa2" path="res://game/goals/jump_card.tscn" id="6_jump_card"]
+[ext_resource type="Script" uid="uid://dl6jwib3kd3a0" path="res://game/passengers/morph_label.gd" id="7_morph"]
 [ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 
 [node name="GoalPanel" type="PanelContainer" unique_id=835696988]
@@ -16,24 +18,51 @@ theme_type_variation = &"CardPanel"
 script = ExtResource("1_panel")
 
 [node name="Rows" type="VBoxContainer" parent="." unique_id=957470234]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 0
 
-[node name="Goals" type="VBoxContainer" parent="Rows" unique_id=1832644416]
+[node name="GoalSlot" type="Control" parent="Rows" unique_id=534469648]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
+script = ExtResource("5_slot")
+sideways = true
 
-[node name="Header" type="Label" parent="Rows/Goals" unique_id=832714428]
+[node name="Goals" type="VBoxContainer" parent="Rows/GoalSlot" unique_id=1832644416]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+
+[node name="Header" type="Label" parent="Rows/GoalSlot/Goals" unique_id=832714428]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"PillLabel"
 text = "To get promoted"
+script = ExtResource("7_morph")
 
-[node name="GoalRows" type="VBoxContainer" parent="Rows/Goals" unique_id=979652074]
+[node name="Body" type="Control" parent="Rows/GoalSlot/Goals" unique_id=877565334]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
+
+[node name="GoalRows" type="VBoxContainer" parent="Rows/GoalSlot/Goals/Body" unique_id=979652074]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="JumpButton" parent="Rows/GoalSlot/Goals/Body" unique_id=347228793 instance=ExtResource("6_jump_card")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 8.0
+grow_horizontal = 2
 
 [node name="QuestSlot" type="Control" parent="Rows" unique_id=1111104264]
 unique_name_in_owner = true

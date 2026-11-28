@@ -80,12 +80,18 @@ static var _sphere: SphereMesh
 ## The one colour that stands for this body in the UI, such as a passenger card's
 ## destination icon. Pick the colour the body reads as from the camera.
 @export var icon_color := Color.WHITE
+## Land drawn over the icon in a few patches, and an ice cap at its top, for a body that
+## needs telling apart from the others at a glance, as Earth does. Transparent draws none.
+@export var icon_land_color := Color.TRANSPARENT
+@export var icon_cap_color := Color.TRANSPARENT
 ## Whether the bus can buy fuel here.
 @export var sells_fuel := true
 ## Credits for one unit of fuel bought here. The bus's tank holds 100.
 @export_range(0.0, 10.0, 0.01, "or_greater") var fuel_price := 0.1
 ## Whether it has a lab, where the player can research upgrades from every research tree.
 @export var has_lab := false
+## Whether nobody lives here any more: nobody ever waits at its station.
+@export var abandoned := false
 ## A line under its name in its planet panel: what it is known for. Empty shows none.
 @export var tagline := ""
 ## A few sentences about it at the foot of its planet panel. Empty shows none.
@@ -130,6 +136,8 @@ var border := Border.NONE:
 	set(value):
 		border = value
 		_show_border()
+## Whether the player has found it [member abandoned], by seeing its empty line.
+var found_abandoned := false
 ## How opaque the border is, from 0 (hidden) to 1, for fading it.
 var border_opacity := 1.0:
 	set(value):
@@ -187,6 +195,9 @@ var orbit_speed := 1.0
 ## the orbit comes from it alone, however the speed changed on the way, so a save game keeps
 ## it to put the planet back. Set before the planet is ready, it starts there.
 var orbit_time := 0.0
+## The star system it is in, moons included, or null outside one. Its [StarSystem] sets it
+## as the system is ready, so ask the planet rather than climb the tree to find it.
+var star_system: StarSystem
 ## Where the star that lights its surface is, in global space. Its [StarSystem] sets it.
 var light_source := Vector3.ZERO:
 	set(value):

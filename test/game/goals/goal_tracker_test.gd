@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## The goals the tracker follows, told what happens in a real Cabin and Ledger: deliveries
 ## count toward a milestone, a quest completes on its passenger's delivery and fails on
-## their kick, and a standing rating goal follows the ledger.
+## their kick, a standing rating goal follows the ledger, an on-time milestone skips the
+## late, and an earning goal counts credits that come in, whatever is spent.
 
 var _tracker: GoalTracker
 var _cabin: Cabin
@@ -41,6 +42,22 @@ func test_a_milestone_counts_deliveries_from_when_it_is_added_but_not_kicks() ->
 	await _deliver(_passenger())
 	assert_bool(goal.is_met()).is_true()
 	assert_float(goal.get_progress()).is_equal(1.0)
+
+
+func test_a_milestone_of_one_type_counts_only_those_passengers() -> void:
+	var business := PassengerType.new()
+	var goal := DeliveryCountGoal.new(2, business)
+	_tracker.add(goal)
+
+	await _deliver(_passenger())
+	await _deliver(_passenger(business))
+
+	assert_float(goal.get_progress()).is_equal(0.5)
+	assert_bool(goal.is_met()).is_false()
+
+	await _deliver(_passenger(business))
+
+	assert_bool(goal.is_met()).is_true()
 
 
 func test_a_quest_completes_when_its_passenger_is_delivered() -> void:
@@ -143,8 +160,49 @@ func test_frozen_goals_stay_as_they_stand() -> void:
 	assert_float(rating.get_progress()).is_equal(1.0)
 
 
-func _passenger() -> Passenger:
-	return Passenger.new(PassengerType.new(), _away, 100.0, 40.0)
+func test_an_on_time_milestone_skips_passengers_who_were_late() -> void:
+	var goal := DeliveryCountGoal.new(1, Vip.TYPE, true)
+	_tracker.add(goal)
+	var late := _passenger(Vip.TYPE)
+	late.ride.clock = late.ride.get_seconds_left() + 1.0
+
+	await _deliver(late)
+
+	assert_bool(goal.is_met()).is_false()
+	assert_str(goal.get_text()).is_equal("Deliver 1 VIP passengers on time")
+
+	await _deliver(_passenger(Vip.TYPE))
+
+	assert_bool(goal.is_met()).is_true()
+
+
+func test_an_earning_goal_counts_credits_earned_and_ignores_spending() -> void:
+	var goal := EarnCreditsGoal.new(1000)
+	_tracker.add(goal)
+
+	_ledger.earn(600)
+	_ledger.spend(500)
+
+	assert_int(goal.earned).is_equal(600)
+	assert_bool(goal.is_met()).is_false()
+
+	_ledger.earn(400)
+
+	assert_bool(goal.is_met()).is_true()
+
+
+func test_an_earning_goal_comes_back_from_a_save() -> void:
+	var goal := EarnCreditsGoal.new(1000)
+	goal.earned = 250
+	var back := EarnCreditsGoal.new(1000)
+
+	back.load_save(goal.to_save())
+
+	assert_int(back.earned).is_equal(250)
+
+
+func _passenger(type: PassengerType = PassengerType.new()) -> Passenger:
+	return Passenger.new(type, _away, 100.0, 40.0)
 
 
 func _board(passenger: Passenger) -> Passenger:

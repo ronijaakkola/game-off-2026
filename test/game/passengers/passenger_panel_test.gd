@@ -280,6 +280,35 @@ func test_a_passenger_boarding_while_arrivals_are_held_comes_in_once_let_go() ->
 	assert_int(_cards_in(cards).size()).is_equal(1)
 
 
+func test_a_group_that_empties_after_it_is_dropped_leaves_the_hop_group_alone() -> void:
+	var runner := scene_runner(SCENE)
+	var cabin := _cabin(runner)
+	var terra: Planet = auto_free(Planet.new())
+	terra.name = "Terra"
+	cabin.board(_passenger(terra, 1000.0))
+	cabin.board(_passenger(null, 1000.0))
+	await runner.simulate_frames(2)
+	var cards := runner.find_child("Cards") as Control
+	var terra_group := cards.get_child(0) as DestinationGroup
+	# Shown afresh, as when the cabin is set again, the old groups are dropped; one of them
+	# says it has emptied a moment later.
+	runner.set_property("cabin", cabin)
+	terra_group.emptied.emit()
+
+	cabin.board(_passenger(null, 1000.0))
+	await runner.simulate_frames(2)
+
+	var hops := 0
+	for group: Node in cards.get_children():
+		var live := not group.is_queued_for_deletion()
+		if (
+			live
+			and (group.find_child("PlanetLabel") as Label).text == DestinationGroup.NOWHERE_TEXT
+		):
+			hops += 1
+	assert_int(hops).is_equal(1)
+
+
 func _names(group: Node) -> Array[String]:
 	var names: Array[String] = []
 	for card: PassengerCard in _cards_in(group):

@@ -1,8 +1,9 @@
 extends GdUnitTestSuite
 ## The heat zone keeping the bus out of the star: a bus sent straight at it brakes to a stop
 ## short of its surface and overheats there, its route kept. The route waits there for a
-## charge until it has cooled. Driven frame by frame with a fixed
-## step.
+## charge until it has cooled. A swelling star's heat reaches a bus docked past its resting
+## zone only while swollen, and one parked there through a swell overheats. Driven frame by
+## frame with a fixed step.
 
 const BUS := "res://game/bus/bus.tscn"
 const HEAT_SHADER := "res://game/solar_system/heat_zone.gdshader"
@@ -147,6 +148,46 @@ func test_overheated_on_the_way_in_beside_the_star_the_same_course_gets_out() ->
 	assert_float(nearest).is_greater(temperature.star_radius + FrameshiftBus.RADIUS)
 
 
+func test_a_swollen_star_heats_a_bus_docked_past_its_resting_zone() -> void:
+	var temperature := _bus.temperature
+	_star.swell_zone_radius = 14.9
+	var at_rest := temperature.temperature
+	for i: int in roundi(60.0 / STEP):
+		_step_swelling()
+	assert_float(temperature.temperature).is_equal(at_rest)
+
+	_star.start_swell()
+	for i: int in MAX_STEPS:
+		_step_swelling()
+		if _star.get_swell() == 1.0:
+			break
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_float(temperature.temperature).is_greater(at_rest)
+
+
+func test_a_bus_parked_through_a_swell_overheats() -> void:
+	var temperature := _bus.temperature
+	_star.swell_zone_radius = 16.0
+	_star.swell_standing_heating = 4.0
+	var overheats := [0]
+	temperature.overheated.connect(func() -> void: overheats[0] += 1)
+	_star.start_swell()
+	var swelled := false
+	for i: int in MAX_STEPS:
+		_step_swelling()
+		swelled = swelled or _star.get_swell() == 1.0
+		if swelled and _star.get_swell() == 0.0:
+			break
+	assert_bool(swelled).is_true()
+	assert_int(_bus.state).is_equal(FrameshiftBus.State.DOCKED)
+	assert_int(overheats[0]).is_greater(0)
+
+
+func _step_swelling() -> void:
+	_star._process(STEP)
+	_step()
+
+
 # The bus runs first each frame, as it does in the game, so it flies by last frame's cap.
 func _step() -> void:
 	_bus._process(STEP)
@@ -167,3 +208,24 @@ func _planet(parent: Node3D, at: Vector3) -> Planet:
 	planet.position = at
 	parent.add_child(planet)
 	return planet
+
+
+# The smoke drifted on the shader's TIME, which keeps counting while the game is paused, so
+# it went on churning under the pause menu.
+func test_the_smoke_holds_still_while_the_game_is_paused() -> void:
+	var material := _zone.zone.material_override as ShaderMaterial
+	_zone.set_process(true)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var drifted := material.get_shader_parameter(&"smoke_time") as float
+	assert_float(drifted).is_greater(0.0)
+
+	get_tree().paused = true
+	for i: int in 5:
+		await get_tree().process_frame
+	get_tree().paused = false
+
+	assert_float(material.get_shader_parameter(&"smoke_time") as float).is_equal(drifted)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_float(material.get_shader_parameter(&"smoke_time") as float).is_greater(drifted)

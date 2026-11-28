@@ -80,6 +80,19 @@ var ledger: Ledger
 ## Whether a line has been decided at the bus's stop past the first star system. Until
 ## then, the first passenger decided in every line there is Business.
 var first_business_dealt := false
+## Whether the player has rescued the [Castaway] in this run, so they come back as a
+## returning passenger.
+var castaway_met := false
+## Who the player agreed to pick up, as a VIP, or null: they wait at their
+## [member Passenger.origin], first in its line and never leaving, and take one of its
+## [member max_per_planet] places. A line already full loses its newest to make room.
+var reserved: Passenger:
+	set(value):
+		var planet := value.origin if value else reserved.origin if reserved else null
+		reserved = value
+		if value and _waiting.has(planet) and count_at(planet) >= max_per_planet:
+			_drop_newest(planet)
+		changed.emit(planet)
 
 var _rng := RandomNumberGenerator.new()
 var _planets: Array[Planet] = []
@@ -135,9 +148,11 @@ func get_returning() -> ReturningPassengers:
 
 
 ## [param passenger] got off at their destination: after a five-star ride they may come
-## back later, by [member return_chance].
+## back later, by [member return_chance]. Never the [Castaway], who only ever drifts, nor a
+## [Vip], who never waits in a line.
 func remember(passenger: Passenger) -> void:
-	_returning.remember(passenger, return_chance)
+	if not Castaway.is_castaway(passenger) and not Vip.is_vip(passenger):
+		_returning.remember(passenger, return_chance)
 
 
 ## The planets passengers wait at and travel between. Starts every planet empty, those
@@ -198,10 +213,13 @@ func add_starting_passengers(bus_planet: Planet) -> void:
 			add(planet)
 
 
-## Puts someone new in line at [param planet], not yet decided, unless
-## [member max_per_planet] already wait there or [member max_total] wait in all.
+## Puts someone new in line at [param planet], not yet decided, unless it is abandoned,
+## [member max_per_planet] already wait there, a [member reserved] VIP among them, or
+## [member max_total] wait in all.
 func add(planet: Planet) -> void:
-	if not _waiting.has(planet) or count_at(planet) >= max_per_planet:
+	if not _waiting.has(planet) or planet.abandoned:
+		return
+	if count_at(planet) + (1 if reserved and reserved.origin == planet else 0) >= max_per_planet:
 		return
 	if count_all() >= max_total:
 		return
@@ -210,7 +228,19 @@ func add(planet: Planet) -> void:
 	changed.emit(planet)
 
 
-## How many wait at [param planet], seen or not.
+# Takes whoever joined the line at [param planet] last out of it: someone not yet seen if
+# there is one, as they joined after everyone seen.
+func _drop_newest(planet: Planet) -> void:
+	if _undecided[planet] > 0:
+		_undecided[planet] -= 1
+	elif not _waiting[planet].is_empty():
+		_waiting[planet].pop_back()
+	else:
+		return
+	_waited[planet].pop_back()
+
+
+## How many wait at [param planet], seen or not, besides the [member reserved] VIP.
 func count_at(planet: Planet) -> int:
 	return _waiting.get(planet, []).size() + _undecided.get(planet, 0)
 
@@ -224,8 +254,11 @@ func count_all() -> int:
 
 
 ## Who waits at [param planet], longest waiting first. Asking is the player seeing the
-## line: it decides everyone in it who wasn't yet, as the bus and the line are now.
+## line: it decides everyone in it who wasn't yet, as the bus and the line are now, and at
+## an abandoned planet the player finds that out ([member Planet.found_abandoned]).
 func get_waiting(planet: Planet) -> Array[Passenger]:
+	if planet and planet.abandoned:
+		planet.found_abandoned = true
 	while _undecided.get(planet, 0) > 0:
 		_undecided[planet] -= 1
 		var passenger := create(planet)
@@ -235,6 +268,8 @@ func get_waiting(planet: Planet) -> Array[Passenger]:
 			_waited[planet].remove_at(_waiting[planet].size())
 	var line: Array[Passenger] = []
 	line.assign(_waiting.get(planet, []))
+	if reserved and reserved.origin == planet:
+		line.push_front(reserved)
 	return line
 
 
@@ -249,7 +284,7 @@ func get_seen(planet: Planet) -> Array[Passenger]:
 ## Puts the line at [param planet] back as a save game had it: [param seen] first, then
 ## [param unseen] more not yet decided. The line's clocks start afresh.
 func restore(planet: Planet, seen: Array[Passenger], unseen: int) -> void:
-	if not _waiting.has(planet):
+	if not _waiting.has(planet) or planet.abandoned:
 		return
 	_waiting[planet] = seen.slice(0, max_per_planet)
 	_undecided[planet] = clampi(unseen, 0, max_per_planet - _waiting[planet].size())
@@ -263,6 +298,9 @@ func restore(planet: Planet, seen: Array[Passenger], unseen: int) -> void:
 ## Takes [param passenger] out of the line at [param planet], as they are picked up. False
 ## when they don't wait there.
 func take(planet: Planet, passenger: Passenger) -> bool:
+	if passenger == reserved:
+		reserved = null
+		return true
 	var queue: Array = _waiting.get(planet, [])
 	if passenger not in queue:
 		return false
@@ -317,6 +355,26 @@ func create(origin: Planet) -> Passenger:
 	return passenger
 
 
+## The [Castaway], stranded in a capsule adrift at [param at]: the first ordinary type,
+## going to any planet, with their fare and trip time from there, flown without a charge,
+## and a returning passenger once [member castaway_met]. Null when there is no planet or no
+## type.
+func create_adrift(at: Vector3) -> Passenger:
+	var destination := _pick_destination(null, [])
+	if not destination or types.is_empty():
+		return null
+	var distance := at.distance_to(destination.get_body_global_position())
+	var passenger := Passenger.new(
+		types[0],
+		destination,
+		get_trip_seconds(distance, true),
+		distance * get_fare_per_unit(),
+		_rng
+	)
+	Castaway.dress(passenger, castaway_met)
+	return passenger
+
+
 # Someone who comes back into [param line] now, by [member returning_share], or null: at
 # most one in a line, and a Business passenger only where the line has room for one more
 # of them and still a place for someone ordinary, and never in the first star system.
@@ -335,14 +393,16 @@ func _take_returning(line: Array) -> ReturningPassengers.Person:
 	)
 
 
-# A roll among the other planets, but never the one [param origin]'s warp gate leads to:
+# A roll among the other planets, but never an abandoned one or the one [param origin]'s
+# warp gate leads to:
 # with Timetables likelier where someone in [param line] is going, with the Destination sign
 # likelier where someone on board is going, and never where MAX_SAME_DESTINATION of the
 # line already go, unless that leaves nowhere.
 func _pick_destination(origin: Planet, line: Array) -> Planet:
 	var twin := WarpGate.twin_of(origin)
 	var others := _planets.filter(
-		func(planet: Planet) -> bool: return planet != origin and planet != twin
+		func(planet: Planet) -> bool:
+			return planet != origin and planet != twin and not planet.abandoned
 	)
 	if others.is_empty():
 		return null

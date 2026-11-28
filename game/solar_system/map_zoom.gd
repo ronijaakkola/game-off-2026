@@ -37,7 +37,9 @@ signal zoomed_out
 ## Seconds the zoom out takes.
 @export_range(0.1, 20.0, 0.1) var zoom_out_seconds := 7.0
 ## How much of the screen's height the whole map takes at the end of the zoom out, from its
-## outermost orbit's far edge to its near one.
+## outermost orbit's far edge to its near one, at the project's base aspect: a narrower
+## window shows it as wide across as the base does, and smaller ([method
+## CameraRig.get_view_scale]).
 @export_range(0.5, 1.0, 0.01) var fit_height := 0.94
 ## Seconds it holds at the whole map before the camera is the player's again.
 @export_range(0.0, 20.0, 0.1) var settle_seconds := 4.0

@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 ## A passenger's photo takes a portrait from the studio, and waits for a free slot when
 ## the studio is full. It wears their type's badges, and their portrait their type's bow tie.
+## What the player fetches for The Boss grows onto the portrait they already have.
 
 const SCENE := preload("res://game/passengers/passenger_photo.tscn")
 const STUDIO := preload("res://game/passengers/portrait_studio.tscn")
@@ -57,6 +58,31 @@ func test_a_business_passenger_s_portrait_wears_a_bow_tie_and_a_commuter_s_doesn
 	assert_array(worn).is_equal([true, false])
 
 
+func test_what_is_fetched_for_the_boss_grows_onto_their_portrait() -> void:
+	var studio: PortraitStudio = auto_free(STUDIO.instantiate())
+	add_child(studio)
+	var boss := BossPassenger.create(auto_free(Planet.new()) as Planet)
+	BossPassenger.reveal(boss)
+	var photo: PassengerPhoto = auto_free(SCENE.instantiate())
+	photo.studio = studio
+	photo.passenger = boss
+	# On board, as The Boss is while the player fetches their things.
+	photo.riding = true
+	add_child(photo)
+	var portrait := photo.get_portrait()
+	assert_array(_props_shown(portrait)).is_equal([false, false])
+
+	BossPassenger.dress_up(boss, true, false)
+	await await_millis(600)
+	assert_array(_props_shown(portrait)).is_equal([false, true])
+
+	BossPassenger.dress_up(boss, true, true)
+	await await_millis(600)
+	assert_array(_props_shown(portrait)).is_equal([true, true])
+	assert_object(photo.get_portrait()).is_same(portrait)
+	assert_int(_badges(photo).size()).is_equal(BossPassenger.TYPE.badges.size())
+
+
 func _passenger(type: PassengerType = COMMUTER) -> Passenger:
 	var planet: Planet = auto_free(Planet.new())
 	return Passenger.new(type, planet, 60.0, 40.0)
@@ -73,3 +99,15 @@ func _badges(photo: PassengerPhoto) -> Array[PhotoBadge]:
 static func _wears_bow_tie(portrait: AlienPortrait) -> bool:
 	var ties := portrait.find_children("*Tie", "MeshInstance3D", true, false)
 	return ties.size() == 1 and (ties[0] as MeshInstance3D).visible
+
+
+# Whether the portrait's bow tie, then its briefcase, show at their full size.
+static func _props_shown(portrait: AlienPortrait) -> Array[bool]:
+	var shown: Array[bool] = []
+	for kind: String in [PortraitProps.TIE, PortraitProps.BRIEFCASE]:
+		var parts := portrait.find_children("*" + kind, "Node3D", true, false)
+		var full := not parts.is_empty()
+		for part: Node3D in parts:
+			full = full and part.visible and part.scale.is_equal_approx(Vector3.ONE)
+		shown.append(full)
+	return shown

@@ -147,6 +147,8 @@ var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new(charge_time, quick_time, warm_charge_time)
 var _stats := BusStats.new()
 var _towing := false
+# Whether the flight under way burns no fuel, as the way in from a stargate.
+var _free := false
 var _glide := DockGlide.new()
 var _speed := 0.0
 var _turning := BusTurning.new()
@@ -172,7 +174,6 @@ func _ready() -> void:
 		rotation.y = _glide.get_heading()
 	# Where the bus starts, while SceneFlow's fade covers the screen.
 	(%RouteLine as RouteLine).warm_up(global_position)
-	%ChargeRing.warm_up(global_position)
 
 
 ## Sets the route to [param stop], or with [param add] adds it to the end
@@ -182,6 +183,7 @@ func _ready() -> void:
 func plot_course(stop: RouteStop, add := false) -> void:
 	if _towing or route_locked or (%FuelTank as FuelTank).is_empty():
 		return
+	_free = false
 	if not add:
 		_route.clear()
 	RouteEditing.add(_route, stop)
@@ -243,7 +245,9 @@ func tow_to(planet: Planet) -> void:
 
 ## Sends the bus from where it is straight to [param stop] at [param speed], with no
 ## charge, to dock there or come to rest: how it comes out of a jump to another system.
-func fly_in(stop: RouteStop, speed: float) -> void:
+## With [param free] it burns no fuel until it gets there or its course changes.
+func fly_in(stop: RouteStop, speed: float, free := false) -> void:
+	_free = free
 	_drive.clear()
 	_drive.held = false
 	_glide.planet = null
@@ -370,8 +374,6 @@ func _process(delta: float) -> void:
 			_follow_dock(delta)
 			_face_dock_side(delta)
 			_start_charge()
-			if state == State.DOCKED:
-				%ChargeRing.show_progress(global_position, get_warmth())
 		State.CHARGING:
 			_follow_dock(delta)
 			_face_next_stop(delta)
@@ -383,8 +385,6 @@ func _process(delta: float) -> void:
 					left_quickly.emit()
 			elif _drive.is_drained():
 				_stop_charge()
-			else:
-				%ChargeRing.show_progress(global_position, _drive.get_progress())
 		State.PARKING:
 			_follow_dock(delta)
 			_face_dock_side(delta)
@@ -446,10 +446,10 @@ func _fly(delta: float) -> void:
 	_move(minf(_speed * delta, distance))
 
 
-# Moves the bus forward, burning fuel unless it is towed.
+# Moves the bus forward, burning fuel unless it is towed or the flight is free.
 func _move(distance: float) -> void:
 	global_position += _forward() * distance
-	if not _towing:
+	if not _towing and not _free:
 		(%FuelTank as FuelTank).burn(distance)
 
 
@@ -490,6 +490,7 @@ func _glide_speed() -> float:
 
 
 func _arrive(stop: RouteStop) -> void:
+	_free = false
 	_speed = 0.0
 	_turning.stop()
 	if not stop.planet:
@@ -531,11 +532,9 @@ func _start_charge() -> void:
 func _stop_charge() -> void:
 	_drive.clear()
 	state = State.DOCKED if _glide.planet else State.HOLDING
-	%ChargeRing.show_progress(global_position, 0.0)
 
 
 func _undock() -> void:
-	%ChargeRing.show_progress(global_position, 0.0)
 	_drive.clear()
 	_drive.held = false
 	_drive.end_stop()

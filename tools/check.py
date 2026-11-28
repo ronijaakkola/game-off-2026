@@ -233,6 +233,7 @@ LAYOUT = "CODING_STANDARDS.md, Layout"
 NAMING = "CODING_STANDARDS.md, Naming"
 STATIC_TYPING = "CODING_STANDARDS.md, Static typing"
 SCRIPT_SIZE = "CODING_STANDARDS.md, Script size"
+PROCESS_ORDER = "CODING_STANDARDS.md, Process order"
 GLOSSARY = "CONTEXT.md"
 SHADER_COMMENTS = "docs/web-constraints.md, Shader comments are //"
 UNIQUE_IDS = ".claude/skills/edit-tscn/SKILL.md, uid and unique_id"
@@ -273,6 +274,13 @@ PRIVATE_MEMBER = re.compile(r"(?:(?<!\w)(?!(?:self|super)\b)\w+|[)\]])\s*\.\s*(_
 # A member this script declares, so `other._name` is another instance of this same class.
 OWN_MEMBER = re.compile(r"^[ \t]*(?:static[ \t]+)?(?:var|const|func|signal)[ \t]+(_\w+)", re.MULTILINE)
 DYNAMIC_MEMBER = re.compile(r"\.\s*(set|set_deferred|get)\s*\(")
+# A process priority set from anything but one FrameOrder stage: process_priority = 302,
+# = SOME_CONST + 1, or set_process_priority(...).
+PROCESS_PRIORITY = re.compile(
+    r"\b(?:(process(?:_physics)?_priority)\s*=(?!=)[ \t]*([^\n]*)|(set_process(?:_physics)?_priority)\s*\()"
+)
+FRAME_ORDER_STAGE = re.compile(r"FrameOrder\.[A-Z][A-Z0-9_]*")
+FRAME_ORDER_SCRIPT = "game/solar_system/frame_order.gd"
 # A func or signal declaration up to the bracket that opens its parameters, the
 # parameters in one, and a [param name] in a ## comment.
 DOC_DECLARATION = re.compile(
@@ -286,12 +294,29 @@ DOC_PARAM = re.compile(r"\[param (\w+)\]")
 OWN_GET_PARENT = re.compile(
     r"(?:(?<![\w.])|\bself\s*\.\s*)(get_parent(?:_node_3d|_control)?|find_parent)\s*\("
 )
+# Climbing the tree from another node: a walk that steps to each parent in turn
+# (node = node.get_parent()), or find_parent() on another node. Either finds the scene
+# around that node by its shape, as the node's own get_parent() would.
+ANCESTOR_WALK = re.compile(
+    r"\b(\w+)\s*=\s*(?:\(\s*)?\1\s*\.\s*(get_parent(?:_node_3d|_control)?)\s*\("
+    r"|(?<!\bself)(?<!\s)\s*\.\s*(find_parent)\s*\("
+)
 # A node looked up by path under another node, the way into another scene's insides. The
 # root's own children are autoloads and LimboConsole (Dev console), so they are left alone.
 # The match starts right after the word before the dot, so a space there can't slip past.
 FOREIGN_NODE_PATH = re.compile(
     r"(?<!\bself)(?<!\broot)(?<!\s)\s*\.\s*(get_node|get_node_or_null|has_node)\s*\("
 )
+# A scene the script preloads or loads into a const, one instanced from it, and a search
+# for nodes under a node. A search inside a held scene is the same reach as get_node() on
+# it; one inside an imported model (.glb), which has no script to ask, is left alone.
+SCENE_CONST = re.compile(
+    r"^[ \t]*const[ \t]+(\w+)[ \t]*(?::[^=\n]*)?=[ \t]*(?:pre)?load\s*\(", re.MULTILINE
+)
+INSTANCE_VAR = re.compile(
+    r"\bvar[ \t]+(\w+)[ \t]*(?::[^=\n]*)?=[ \t]*(\w+)\s*\.\s*instantiate\s*\("
+)
+FIND_CHILD = re.compile(r"\b(\w+)\s*\.\s*(find_child(?:ren)?)\s*\(")
 SHADER_DIRECTIVE = re.compile(
     r"#\s*(define|undef|include|if|ifdef|ifndef|elif|else|endif|error|pragma)\b"
 )
@@ -462,6 +487,8 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
             rules += feature_asset_problems(path)
         if path.endswith(MEDIA):
             rules += duplicate_asset_problems(path)
+        if path.endswith(".svg"):
+            rules += raster_svg_problems(path)
         # The hook leaves this out: a scene is missing its ids for as long as it is being
         # written, and check.py ids fills them in once. The commit hook and CI catch it.
         if path.endswith((".tscn", ".tres")) and not hook:
@@ -563,6 +590,27 @@ def duplicate_asset_problems(path: str) -> list[str]:
         )
         problems.append(problem(path, None, "duplicate-asset", message, LAYOUT))
     return problems
+
+
+# The SVGs that must be pixels: a custom mouse cursor takes an image, not a DPITexture.
+RASTER_SVG_FOLDERS = ("core/cursor/",)
+
+
+def raster_svg_problems(path: str) -> list[str]:
+    """An SVG imported as a texture is pixels at one size, which the canvas_items stretch
+    blurs in any window bigger than the base 1152x648, and more on a HiDPI screen. As a
+    DPITexture it is drawn again at the size it shows at."""
+    imported = Path(f"{path}.import")
+    if path.startswith(RASTER_SVG_FOLDERS) or not imported.is_file():
+        return []
+    if 'importer="texture"' not in imported.read_text(encoding="utf-8", errors="replace"):
+        return []
+    message = (
+        "it imports as pixels at one size, which blur once the window scales the game up. "
+        "Pick DPITexture under Import As in the Import dock and reimport, keeping its "
+        "svg/scale as base_scale."
+    )
+    return [problem(path, None, "raster-svg", message, ASSETS)]
 
 
 # What an SVG shows leaves out its comments, such as the license line whose version
@@ -781,6 +829,7 @@ def script_problems(path: str, hook: bool) -> list[str]:
     problems += user_path_problems(path, strings, outside)
     if not outside:
         problems += saved_enum_problems(path, code)
+        problems += process_priority_problems(path, code)
     # The hook leaves this out: a script may name a scene before it is written.
     if not (outside or hook):
         problems += missing_path_problems(path, strings)
@@ -882,9 +931,12 @@ def private_member_problems(path: str, code: str) -> list[str]:
 
 def surroundings_problems(path: str, code: str, strings: list[tuple[int, str]]) -> list[str]:
     """Scenes stay unaware of their surroundings, and of the insides of the scenes they
-    hold: another node's get_node() is flagged. Only the node's own get_parent() is
-    flagged: body.get_parent() (on a body that entered an Area3D, say) looks into
-    another scene, not out of this one."""
+    hold: another node's get_node() is flagged, and a node search inside a scene this
+    script instances. The node's own get_parent() is flagged, and so is a climb from
+    another node to an ancestor (node = node.get_parent() in a loop, other.find_parent()),
+    which knows the shape of the tree around it. One step, body.get_parent() (on a body
+    that entered an Area3D, say), looks into another scene, not out of this one, and is
+    left alone."""
     out = (
         "out of the scene. Signal up to the parent instead, or take the node in with an "
         "@export var or a setter the parent calls."
@@ -896,6 +948,16 @@ def surroundings_problems(path: str, code: str, strings: list[tuple[int, str]]) 
     found = [
         (line_at(code, m.start()), "no-get-parent", f"{m.group(1)}() reaches {out}")
         for m in OWN_GET_PARENT.finditer(code)
+    ]
+    found += [
+        (
+            line_at(code, m.start()),
+            "no-ancestor-walk",
+            f"{m.group(2) or m.group(3)}() climbs the tree from another node to find what "
+            "is around it, so moving that node quietly finds nothing. Ask the node: have "
+            "the owner set a member on it, as StarSystem sets Planet.star_system.",
+        )
+        for m in ANCESTOR_WALK.finditer(code)
     ]
     found += [
         (line_at(code, m.start()), "no-root-path", f"$/root {absolute}")
@@ -912,6 +974,7 @@ def surroundings_problems(path: str, code: str, strings: list[tuple[int, str]]) 
         )
         for m in FOREIGN_NODE_PATH.finditer(code)
     ]
+    found += held_scene_search_problems(code, strings)
     for line, text in strings:
         if re.match(r"\.\.(/|$)", text):
             found.append((line, "no-parent-path", f'"{text}" is a node path {out}'))
@@ -920,6 +983,34 @@ def surroundings_problems(path: str, code: str, strings: list[tuple[int, str]]) 
     return [
         problem(path, line, rule, message, SCENE_COMPOSITION)
         for line, rule, message in sorted(found)
+    ]
+
+
+def held_scene_search_problems(
+    code: str, strings: list[tuple[int, str]]
+) -> list[tuple[int, str, str]]:
+    """A find_child() or find_children() on a node instanced from a .tscn the script
+    names in a const: the scene's nodes are its own, as with another node's get_node()."""
+    paths: dict[int, str] = {}
+    for line, text in strings:
+        paths.setdefault(line, text)
+    scenes = {
+        m.group(1)
+        for m in SCENE_CONST.finditer(code)
+        if paths.get(line_at(code, m.start()), "").endswith(".tscn")
+    }
+    held = {m.group(1) for m in INSTANCE_VAR.finditer(code) if m.group(2) in scenes}
+    return [
+        (
+            line_at(code, m.start()),
+            "no-foreign-node-path",
+            f"{m.group(2)}() on {m.group(1)}, a scene this script holds, reaches into that "
+            "scene's own nodes, so a part added or renamed there changes this script's work "
+            "with no error. Give the scene's script a class_name and a method that does the "
+            "job, as PassengerFigure.paint() colours the figure, and call that.",
+        )
+        for m in FIND_CHILD.finditer(code)
+        if m.group(1) in held
     ]
 
 
@@ -1071,6 +1162,26 @@ def missing_ext_resource_problems(path: str) -> list[str]:
                 "so this file fails to load. Fix the path, or write the file first."
             )
         problems.append(problem(path, number, "path-exists", message, SCENE_COMPOSITION))
+    return problems
+
+
+def process_priority_problems(path: str, code: str) -> list[str]:
+    """Nodes that place themselves from what others moved this frame run in a fixed order,
+    and a number typed out in one script falls out of step with the rest without an error:
+    the node just trails by a frame. So a game script sets a process priority only to one
+    FrameOrder stage, and a new place in the order is a new stage there."""
+    problems = []
+    for m in PROCESS_PRIORITY.finditer(code):
+        if m.group(1) and FRAME_ORDER_STAGE.fullmatch(m.group(2).strip()):
+            continue
+        name = m.group(1) or f"{m.group(3)}()"
+        message = (
+            f"{name} takes something other than one FrameOrder stage, so it can fall "
+            "out of step with the nodes it must run before or after, with no error. Write "
+            f"{m.group(1) or 'process_priority'} = FrameOrder.<STAGE>, and add a stage to "
+            f"{FRAME_ORDER_SCRIPT} for a new place in the order."
+        )
+        problems.append(problem(path, line_at(code, m.start()), "frame-order", message, PROCESS_ORDER))
     return problems
 
 
@@ -1664,6 +1775,12 @@ def verify_resave(order: list[str], before: list[str], originals: dict[str, byte
     if not summary or result.returncode != 0 or summary.group(2) != "0":
         print(result.stdout, end="")
         raise CheckFailed("Godot could not save the files above")
+    if SCRIPT_FAILED.search(result.stdout):
+        print(result.stdout, end="")
+        raise CheckFailed(
+            "a script failed to compile during the resave (above), so its exports would "
+            "save wrong. tools/resave.gd says when scripts compile there"
+        )
     changes = dump_changes(before, resource_dump(order))
     if changes:
         print("\n".join(changes))
@@ -1680,6 +1797,12 @@ def verify_resave(order: list[str], before: list[str], originals: dict[str, byte
             "scripts, so a value a script's _init() sets loads the same with or without "
             "the line. Set that value in _ready() instead, or put it in the scene"
         )
+
+
+# A script that failed to compile: the resave packs its node without its exports' values.
+SCRIPT_FAILED = re.compile(
+    r"^SCRIPT ERROR: (Parse|Compile) Error|^ERROR: Failed to load script", re.MULTILINE
+)
 
 
 # What a resave may change on a line: the ids it adds, the ids it renumbers, and counts.

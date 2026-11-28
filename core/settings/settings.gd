@@ -11,19 +11,20 @@ const PATH := "user://settings.cfg"
 const SECTION := "settings"
 const SAVE_DELAY := 0.4
 
-## Starts at a quarter, 12 dB under full, so a first launch, often with the system volume
-## up, isn't loud.
-var master_volume := 0.25:
+## The three volumes start at the middle of their sliders, at the notch, so the player has
+## as much room to turn each up as down. The clip levels ([ClipLevels]) and the voices'
+## volumes are mixed to sound right there.
+var master_volume := 0.5:
 	set(value):
 		master_volume = value
 		Audio.set_volume(Audio.Bus.MASTER, value)
 		_queue_save()
-var music_volume := 0.6:
+var music_volume := 0.5:
 	set(value):
 		music_volume = value
 		Audio.set_volume(Audio.Bus.MUSIC, value)
 		_queue_save()
-var sfx_volume := 0.8:
+var sfx_volume := 0.5:
 	set(value):
 		sfx_volume = value
 		Audio.set_volume(Audio.Bus.SFX, value)

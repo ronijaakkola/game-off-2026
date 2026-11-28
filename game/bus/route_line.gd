@@ -7,8 +7,6 @@ extends MeshInstance3D
 ## the camera has moved each frame. It draws in global space.
 
 const SHADER := preload("res://game/bus/route_line.gdshader")
-## The process priority Phantom Camera's host sets on itself to move the camera.
-const CAMERA_HOST_PRIORITY := 300
 ## Straight pieces in each leg, so its width on screen holds along it.
 const SEGMENTS := 12
 ## Half the bus's width on the orbit plane; its half length is [constant FrameshiftBus.RADIUS].
@@ -43,7 +41,7 @@ var _material := ShaderMaterial.new()
 
 
 func _ready() -> void:
-	process_priority = CAMERA_HOST_PRIORITY + 1
+	process_priority = FrameOrder.AFTER_CAMERA
 	top_level = true
 	global_transform = Transform3D.IDENTITY
 	mesh = _mesh

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b4sjhjtuh7ukn" path="res://game/goals/goal_row.gd" id="1_row"]
 [ext_resource type="Texture2D" uid="uid://d3m3waisgmnv2" path="res://game/goals/icons/circle.svg" id="2_circle"]
+[ext_resource type="Script" uid="uid://cn5rxpywaqxlf" path="res://game/passengers/planet_icon.gd" id="3_planet"]
 
 [node name="GoalRow" type="VBoxContainer" unique_id=793273329]
 mouse_filter = 2
@@ -30,6 +31,24 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"GoalLabel"
 text = "Deliver 50 passengers"
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="PlanetIcon" type="ColorRect" parent="Label" unique_id=1985637561]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("3_planet")
+
+[node name="PlanetLabel" type="Label" parent="Label" unique_id=941172278]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"GoalLabel"
 vertical_alignment = 1
 text_overrun_behavior = 3
 

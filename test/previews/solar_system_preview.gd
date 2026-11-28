@@ -43,6 +43,11 @@ extends Node
 ## feature hint show on it, about 0.9 s in (`--frames 110`), if this machine never closed it.
 ## `-- Full` opens nothing, fills every seat and puts one in line at Ember, then clicks
 ## their Board button once the dock panel has slid in, so the bus full notice shows.
+## `-- PickUp` opens nothing and shows a pick-up marker over Terra, or the planet named
+## after it, as it grows in (`--frames 20` shows it settled); `open` puts the pointer on
+## the planet a moment later, so the card opens to the name; `lab` shows the lab badges
+## too, so the lab's tooltip opens above the marker (`--frames 90`), and `leave` takes it
+## away again 0.5 s in, so it shrinks out over frames 30 to 39.
 
 const COMMUTER := preload("res://game/passengers/types/commuter.tres")
 const TIMER := preload("res://game/bus/icons/timer.svg")
@@ -119,8 +124,10 @@ func _ready() -> void:
 		await get_tree().create_timer(1.0).timeout
 		cabin.kick(cabin.get_passengers()[1])
 		return
-	if planet_name in ["Research", "Quick", "Full", "Call", "Flyby"]:
-		if planet_name == "Call":
+	if planet_name in ["Research", "Quick", "Full", "Call", "Flyby", "PickUp"]:
+		if planet_name == "PickUp":
+			await _show_pick_up(system, name_given)
+		elif planet_name == "Call":
 			await _take_mechanics_call(system)
 		elif planet_name == "Research":
 			await _open_research(system, name_given)
@@ -340,3 +347,26 @@ func _point_at(planet: Planet) -> void:
 	motion.position = at
 	motion.global_position = at
 	Input.parse_input_event(motion)
+
+
+# A made-up person's pick-up marker over Terra, or the planet named after `PickUp`, and with
+# `open` the pointer on that planet once it has grown in, with `lab` the lab badges shown,
+# and with `leave` the marker taken away once it has grown in.
+func _show_pick_up(system: SolarSystem, args: PackedStringArray) -> void:
+	var named := args[1] if args.size() > 1 and args[1] not in ["open", "lab", "leave"] else "Terra"
+	if "lab" in args:
+		(system.find_child("LabBadges") as Control).show()
+	var planet := system.find_child(named) as Planet
+	var passenger := Passenger.new(COMMUTER, planet, 60.0, 40.0)
+	var markers := system.find_child("PickUpMarkers") as PickUpMarkers
+	markers.show_marker(planet, passenger, "Waiting for a pick-up")
+	if "leave" in args:
+		await get_tree().create_timer(0.5).timeout
+		markers.remove_marker(planet)
+	if "open" not in args:
+		return
+	await get_tree().create_timer(0.5).timeout
+	# The planet moves, so the pointer follows it.
+	while is_inside_tree():
+		_point_at(planet)
+		await get_tree().process_frame
