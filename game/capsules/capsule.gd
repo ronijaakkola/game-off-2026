@@ -196,8 +196,7 @@ func _build() -> void:
 	ring.outer_radius = PING_RADIUS + PING_WIDTH
 	ring.rings = 48
 	ring.ring_segments = 4
-	_ping_material = _flat(Color(LAMP_COLOR, PING_ALPHA))
-	_ping_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_ping_material = make_ping_material()
 	ring.material = _ping_material
 	var ping := MeshInstance3D.new()
 	ping.mesh = ring
@@ -207,7 +206,15 @@ func _build() -> void:
 	add_child(_ping, false, Node.INTERNAL_MODE_FRONT)
 
 
-func _flat(color: Color) -> StandardMaterial3D:
+## The ping ring's material, each capsule's own, since it fades. [CapsuleField] keeps one
+## from the start, so its shader is compiled before the first capsule shows.
+static func make_ping_material() -> StandardMaterial3D:
+	var material := _flat(Color(LAMP_COLOR, PING_ALPHA))
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	return material
+
+
+static func _flat(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.albedo_color = color

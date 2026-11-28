@@ -53,10 +53,16 @@ var _requested_direction := Vector2i.ZERO
 var _requested_frame := -1
 # The shape and direction on screen now: x the shape, y and z the direction.
 var _shown := Vector3i(-1, 0, 0)
+# Each image's pixels, read once. The web reads a texture's pixels back from the graphics
+# card every time it is asked for them, which stalls the frame, and a cursor set from a
+# texture asks each time the shape changes: on every press and release.
+var _pixels: Dictionary[Texture2D, Image] = {}
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	for texture: Texture2D in IMAGES.values() + EDGE_SCROLL_IMAGES.values():
+		_pixels[texture] = texture.get_image()
 
 
 func _process(_delta: float) -> void:
@@ -97,4 +103,4 @@ func _apply(shape: Shape, direction: Vector2i) -> void:
 		texture = IMAGES[shape]
 		hotspot = HOTSPOTS[shape]
 	for slot: Input.CursorShape in SLOTS:
-		Input.set_custom_mouse_cursor(texture, slot, hotspot)
+		Input.set_custom_mouse_cursor(_pixels[texture], slot, hotspot)

@@ -108,11 +108,16 @@ var _capsules: Array[Capsule] = []
 var _figure: CastawayFigure
 # Made once it is in the tree: a scene stores every member of a node another node exports.
 var _rng: RandomNumberGenerator
+# A capsule's ping ring makes its own material as the capsule appears, in the middle of
+# play. Kept here from the start, so the loading screen draws it first ([MaterialWarmUp])
+# and its shader is compiled by then.
+var _ping_material: Material
 
 
 func _ready() -> void:
 	if not _rng:
 		_rng = RandomNumberGenerator.new()
+	_ping_material = Capsule.make_ping_material()
 	if quest_giver:
 		quest_giver.rescue_answered.connect(_on_rescue_answered)
 		quest_giver.quest_added.connect(_on_quest_added)

@@ -20,11 +20,8 @@ const PULSE := 0.12
 func setup(portrait: Node3D, head: Node3D, bounds: AABB) -> void:
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE * (bounds.size.x + bounds.size.y) * 0.5 * SIZE
-	var material := ShaderMaterial.new()
-	material.shader = SHADER
-	material.render_priority = 1
 	mesh = quad
-	material_override = material
+	material_override = make_material()
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	visible = false
 	var middle := bounds.get_center()
@@ -33,6 +30,15 @@ func setup(portrait: Node3D, head: Node3D, bounds: AABB) -> void:
 	head.add_child(self)
 	global_position = portrait.global_transform * at
 	global_basis = portrait.global_basis
+
+
+## A mark's material. [PortraitStudio] keeps one from the start, so its shader is compiled
+## before the first passenger is angry.
+static func make_material() -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = SHADER
+	material.render_priority = 1
+	return material
 
 
 ## Shows [param fury], from 0 to 1, [param time] seconds in, pulsing by [param motion].
