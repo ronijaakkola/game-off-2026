@@ -8,8 +8,8 @@ extends Node
 ## With `quest` after `--` the bus starts at Mars instead, so the quest and the marker over
 ## Earth show; with `built`, the stargate is already there. One part alone plays at once
 ## with `gate` (the stargate appearing), `row` (the stargate's row and its guide card) or
-## `chart` (the HUD going and the map drawing back) or `errands` (The Boss's call after
-## the chart, and their goals coming in).
+## `chart` (the HUD going and the map drawing back) or `errands` (the map drawing back,
+## The Boss's call over the chart, and their goals coming in).
 
 ## Seconds the transmission shows before the preview skips to its end, then answers.
 const READ_SECONDS := 4.5
@@ -37,8 +37,11 @@ func _ready() -> void:
 		return
 	if "errands" in args:
 		await (find_child("Hud") as HudLayout).hide_all()
-		pick_up._send_on_errands()
-		await _answer(find_child("TransmissionPanel") as TransmissionPanel)
+		pick_up._send_on_errands(0.0)
+		var calling := find_child("TransmissionPanel") as TransmissionPanel
+		while not calling.is_open():
+			await get_tree().process_frame
+		await _answer(calling)
 		return
 	if "built" in args or "row" in args or "chart" in args:
 		pick_up.load_save({"stage": BossPickUp.Stage.BUILT})
@@ -47,7 +50,7 @@ func _ready() -> void:
 			pick_up._teach_row()
 		elif "chart" in args:
 			await (find_child("Hud") as HudLayout).hide_all()
-			pick_up._show_chart(BossPickUp.REVEAL_SECONDS, BossPickUp.REVEAL_HOLD_SECONDS)
+			pick_up.star_chart.open(BossPickUp.REVEAL_SECONDS)
 		return
 	pick_up.begin()
 	var panel := find_child("TransmissionPanel") as TransmissionPanel

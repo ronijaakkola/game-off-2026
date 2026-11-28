@@ -187,7 +187,7 @@ A stamp of a few words with an icon that lands over the bus when something about
 - **The dock panel** slides out as the chart starts to open, and back in once it has closed.
 - **Closing** plays the same back over 1.5 s. Pan and zoom wait from the opening until it has closed.
 - Under Reduce motion it cuts both ways.
-- **The first time,** from the station's Travel between stars after The Boss boards, every panel, the bus bars, the notices and the pause button go first, as before the tutorial's zoom out, and the camera then draws back over 9 s instead of 2. The chart holds 5 s and closes as ever, and the HUD comes back as it does after a call.
+- **The first time,** from the station's Travel between stars after The Boss boards, every panel, the bus bars, the notices and the pause button go first, as before the tutorial's zoom out, and the camera then draws back over 9 s instead of 2. The chart stays open: 1 s later The Boss's transmission opens over it, and once it closes the HUD comes back over the chart as it does after a call, still taking no clicks but on the notices and the pause button.
 
 ### The stargate
 
