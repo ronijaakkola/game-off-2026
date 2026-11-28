@@ -8,8 +8,8 @@ extends Node
 ## quest is under way, and the wait until the next call starts only once it has ended. A
 ## VIP's tour ([VipCalls]) is tracked apart from that one, so a passenger's quest and a tour
 ## can be under way at once.
-## A passenger picked up from a capsule adrift has the transmission of their [RescueQuest],
-## or in the first star system their [HopQuest] and in the second their [WindowHopQuest], open
+## A passenger picked up from a capsule adrift has the transmission of their quest
+## ([method QuestPicks.for_castaway]), a [HopQuest], [WindowHopQuest] or [BumpQuest], open
 ## by itself, with no notice, [constant RESCUE_SECONDS] after ([method rescue]). They board
 ## only when the player accepts; declined, they stay adrift, at no cost.
 ## Accepting makes the quest's change, tracks its goal in [member quests] and flags the

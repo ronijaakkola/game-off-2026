@@ -67,10 +67,13 @@ static func _business_kinds(field: AsteroidField, rng: RandomNumberGenerator) ->
 
 
 ## The quest the castaway asks for in star system [param level], counted from 0: a hop in
-## the first, a hop with a window in the second, and a rescue after.
+## the first, a hop with a window in the second, to be bumped off by a VIP where VIPs call,
+## and a rescue anywhere else.
 static func for_castaway(level: int) -> Quest:
 	if level == 0:
 		return HopQuest.new()
 	if level == 1:
 		return WindowHopQuest.new()
+	if level == VipCalls.LEVEL:
+		return BumpQuest.new()
 	return RescueQuest.new()

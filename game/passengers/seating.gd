@@ -2,9 +2,10 @@ class_name Seating
 extends RefCounted
 ## How many of the bus's seats passengers take: each as many as their type says
 ## ([member PassengerType.seats]), so a VIP takes two. A VIP can always be picked up on a
-## bus with seats enough: with too few free, passengers on board picked at random are
-## kicked off to make room, one at a time, [constant KICK_GAP_SECONDS] apart so their
-## screams don't overlap, and the VIP is picked up after the last. The rest on board take no
+## bus with seats enough: with too few free, passengers on board are kicked off to make
+## room, the [Castaway] first and the rest picked at random, one at a time,
+## [constant KICK_GAP_SECONDS] apart so their screams don't overlap, and the VIP is picked
+## up after the last. The rest on board take no
 ## shock: the player didn't kick them. The Boss ([BossPassenger]) takes every seat the bus
 ## has, however many that is, and is never one of those kicked off.
 
@@ -51,6 +52,10 @@ static func can_pick_up(cabin: Cabin, passenger: Passenger) -> bool:
 static func pick_up(cabin: Cabin, passenger: Passenger) -> void:
 	var on_board := _get_kickable(cabin)
 	on_board.shuffle()
+	# The castaway goes first: last off the back. Being bumped is what they want ([BumpQuest]).
+	for castaway: Passenger in on_board.filter(Castaway.is_castaway):
+		on_board.erase(castaway)
+		on_board.append(castaway)
 	var short := get_seats(passenger, cabin.seats) - cabin.get_free_seats()
 	var kicks: Array[Passenger] = []
 	while short > 0 and not on_board.is_empty():
