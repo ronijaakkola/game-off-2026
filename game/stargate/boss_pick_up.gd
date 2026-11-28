@@ -83,8 +83,6 @@ const CARD_SECONDS := 0.5
 const REVEAL_SECONDS := 9.0
 const REVEAL_HOLD_SECONDS := 1.0
 const LOOK_SECONDS := 3.0
-## Seconds between one of The Boss's goals coming in and the next.
-const GOAL_STEP_SECONDS := 0.15
 const DEBUG_BEGIN_TEXT := "Boss pick-up quest"
 
 @export var bus: FrameshiftBus
@@ -272,7 +270,7 @@ func _send_on_errands(seconds: float) -> void:
 	await transmission_panel.answered
 	hud.reveal_bars()
 	await hud.reveal([HudLayout.Part.RESOURCE_BAR, HudLayout.Part.ON_BOARD, HudLayout.Part.STATION])
-	await _give_goals(true)
+	_give_goals(true)
 
 
 # The Boss's transmission over the star chart: the things they left behind.
@@ -284,16 +282,17 @@ func _get_errands() -> Transmission:
 	return errands
 
 
-# The Boss's goals replace the system's under their own heading: [param animated], the
-# heading morphs and the system's go while The Boss's come in one after another.
+# The Boss's goals replace the system's under their own heading: [param animated], as the
+# goal panel swaps goals ([method GoalPanel.swap_goals]).
 func _give_goals(animated: bool) -> void:
-	goal_panel.set_header(ERRANDS_HEADER, animated)
+	goal_panel.swap_goals(ERRANDS_HEADER, _set_goals, animated)
+
+
+func _set_goals() -> void:
 	for goal: Goal in goals.get_goals():
 		goals.remove(goal)
 	goals.frozen = false
 	goals.add(FetchGoal.new(BRIEFCASE, briefcase_planet))
-	if animated:
-		await _pause(GOAL_STEP_SECONDS)
 	goals.add(FetchGoal.new(BOWTIE, bowtie_planet))
 
 
