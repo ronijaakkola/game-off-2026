@@ -21,5 +21,6 @@ void sky() {
 	vec2 fog = textureLod(fog_map, map_uv, 0.0).rg;
 	float stars = star_layer(near_star_layer_point(dir), true)
 		+ 0.6 * star_layer(far_star_layer_point(dir), true);
+	stars *= star_uncovered(dir);
 	COLOR = sky_color(fog, stars, FRAGCOORD.xy);
 }

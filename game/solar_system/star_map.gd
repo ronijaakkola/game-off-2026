@@ -43,6 +43,17 @@ var _joined := false
 var _reveal: Tween
 
 
+func _ready() -> void:
+	if not sky:
+		return
+	# The sky's stars hide behind every star's halo; those of hidden systems hide nothing.
+	var halos: Array[MeshInstance3D] = []
+	for system: StarSystem in get_systems():
+		if system.halo:
+			halos.append(system.halo)
+	sky.star_covers = halos
+
+
 ## Puts the map as a saved run had it: [param saved] from [method to_save], with the bus at
 ## [param bus_planet], whose system is the one it works in. Call it before the scene is
 ## ready, so the camera starts over that system.

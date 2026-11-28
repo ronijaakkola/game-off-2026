@@ -88,6 +88,8 @@ const UNREST_PULSE := 0.035
 ## The star's body and halo, which pulse slowly while it swells and faster as it is about
 ## to, through the swell. They are what is left of the system on the [StarChart].
 @export var star: Node3D
+## The star's see-through halo, which the [SpaceSky]'s stars hide behind.
+@export var halo: MeshInstance3D
 
 @export_group("Sky")
 ## The [SpaceSky]'s colours while the bus works here.
