@@ -470,12 +470,14 @@ capsules = NodePath("../CapsuleField")
 fast_forward = NodePath("../FastForward")
 boss_pick_up = NodePath("../BossPickUp")
 
-[node name="FastForward" type="Node" parent="." unique_id=921399770 node_paths=PackedStringArray("star_map", "research_lab", "waiting", "progression", "ending_planet", "goals", "vips", "boss_pick_up")]
+[node name="FastForward" type="Node" parent="." unique_id=921399770 node_paths=PackedStringArray("star_map", "research_lab", "waiting", "progression", "system_jump", "saver", "ending_planet", "goals", "vips", "boss_pick_up")]
 script = ExtResource("ff_fast_forward")
 star_map = NodePath("../StarMap")
 research_lab = NodePath("../ResearchLab")
 waiting = NodePath("../WaitingPassengers")
 progression = NodePath("../Progression")
+system_jump = NodePath("../SystemJump")
+saver = NodePath("../GameSaver")
 ending_planet = NodePath("../World/Sol/Earth")
 goals = NodePath("../Goals")
 vips = NodePath("../VipCalls")
