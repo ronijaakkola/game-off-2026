@@ -28,6 +28,8 @@ const CLOSE_SECONDS := 0.1
 const CLOSED_SCALE := 0.94
 ## How far toward the target it starts, in pixels, which it slides out from as it opens.
 const SLIDE_PIXELS := 6.0
+## The sentence's colour while [member warning]: the loss's red.
+const WARNING_COLOR := Color("f24d66")
 ## Seconds after a card starts to close in which the next one opens at once.
 const WARM_SECONDS := 0.3
 ## The least room it leaves to the screen's side edges, in pixels.
@@ -85,6 +87,14 @@ var extra: Control:
 			rows.add_child(extra)
 		if _open:
 			_fit()
+
+## Whether the sentence reads in the loss's red behind a warning sign, as what stops the
+## player using the target.
+var warning := false:
+	set(value):
+		warning = value
+		if is_node_ready():
+			_show_text()
 
 ## Whether it stays shut whatever the pointer does, as while it has nothing to say.
 var muted := false
@@ -249,6 +259,13 @@ func _show_text() -> void:
 	var label := %SentenceLabel as Label
 	label.text = sentence
 	label.visible = not sentence.is_empty()
+	# The row, not only the label, or an empty one would still take the rows' gap.
+	(%SentenceRow as Control).visible = label.visible
+	(%WarningIcon as Control).visible = warning
+	if warning:
+		label.add_theme_color_override(&"font_color", WARNING_COLOR)
+	else:
+		label.remove_theme_color_override(&"font_color")
 	theme_type_variation = &"TooltipCardPanel" if label.visible else &"TooltipNamePanel"
 	# A wrapping label asks for no width, so it gets what its text needs, up to the most.
 	var font := label.get_theme_font(&"font")

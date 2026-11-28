@@ -1,7 +1,8 @@
 extends GdUnitTestSuite
 ## The warp between Lyra's twins, through the dock panel's button: docked at Hither, it reads
-## where it goes and its share of a full tank, and pressed it takes that fuel and the bus
-## comes out at Yon. With less fuel than that in the tank, it is off and takes nothing.
+## where it goes and its share of a full tank, and pressed the bus comes out at Yon, taking
+## that fuel only as it comes out. With less fuel than that in the tank, it is off and takes
+## nothing.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 
@@ -14,7 +15,7 @@ func after() -> void:
 	SaveGame.use_player_files()
 
 
-func test_the_warp_takes_its_share_of_a_full_tank_and_the_bus_comes_out_at_the_twin() -> void:
+func test_the_bus_comes_out_at_the_twin_and_only_then_pays_its_share() -> void:
 	var runner := await _docked_at_hither(1.0)
 	var tank := (runner.find_child("Bus") as FrameshiftBus).get_fuel_tank()
 	var button := runner.find_child("TeleportButton") as Button
@@ -26,8 +27,9 @@ func test_the_warp_takes_its_share_of_a_full_tank_and_the_bus_comes_out_at_the_t
 
 	button.pressed.emit()
 
-	assert_float(tank.fuel).is_equal_approx(full * 0.5, 0.001)
+	assert_float(tank.fuel).is_equal_approx(full, 0.001)
 	await assert_signal(service).wait_until(10000).is_emitted("warped")
+	assert_float(tank.fuel).is_equal_approx(full * 0.5, 0.001)
 	var bus := runner.find_child("Bus") as FrameshiftBus
 	var yon := runner.find_child("Yon") as Planet
 	await assert_func(bus, "get_docked_planet").wait_until(10000).is_equal(yon)
