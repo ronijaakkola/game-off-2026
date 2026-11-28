@@ -5,7 +5,11 @@ extends GdUnitTestSuite
 ## the cost or in a stage that isn't open. The pause menu opened over the screen takes Esc,
 ## and closing it leaves the game paused under the screen. The dock panel's Research button
 ## is outlined while the player can pay for an upgrade they couldn't when they last closed
-## the screen, and not while they can't, nor for the same ones or fewer.
+## the screen, and not while they can't, nor for the same ones or fewer. The green tree's
+## third stage: the Bottomless complaints box comes and goes on the ledger with its trait, the
+## Remote terminal researches where there is no lab and takes the lab badges away, even
+## ones made after it, and the Research grant's buttons trade research points and credits
+## both ways while the player has what they give.
 
 const SCENE := "res://game/solar_system/solar_system.tscn"
 const PauseProofWait := preload("res://test/support/pause_proof_wait.gd")
@@ -281,3 +285,110 @@ func _send_press(at: Vector2, pressed: bool) -> void:
 	event.pressed = pressed
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
+
+
+func test_the_complaints_box_comes_and_goes_with_its_trait() -> void:
+	var traits := (_runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	assert_bool(_ledger.complaints_box).is_false()
+
+	traits.add(BusTraits.Type.COMPLAINTS_BOX)
+	assert_bool(_ledger.complaints_box).is_true()
+	traits.remove(BusTraits.Type.COMPLAINTS_BOX)
+	assert_bool(_ledger.complaints_box).is_false()
+
+
+func test_the_remote_terminal_researches_at_a_planet_with_no_lab() -> void:
+	var traits := (_runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	var no_lab := _planet_without_lab()
+	assert_bool(_lab.can_research_at(no_lab)).is_false()
+
+	traits.add(BusTraits.Type.REMOTE_TERMINAL)
+
+	assert_bool(_lab.can_research_at(no_lab)).is_true()
+
+
+func test_the_research_grant_trades_research_points_and_credits_both_ways() -> void:
+	var traits := (_runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	var screen := _runner.find_child("ResearchScreen") as ResearchScreen
+	var buy := screen.find_child("BuyPointButton") as Button
+	var sell := screen.find_child("SellPointButton") as Button
+	var price := ResearchLab.POINT_PRICE
+	_ledger.credits = price * 2 + 50
+	var points := _ledger.get_research()
+	# Without the grant there are no buttons, and nothing to trade.
+	_lab.open_screen()
+	assert_bool(buy.visible or sell.visible).is_false()
+	_lab.buy_point()
+	_lab.sell_point()
+	assert_int(_ledger.credits).is_equal(price * 2 + 50)
+
+	traits.add(BusTraits.Type.RESEARCH_GRANT)
+	assert_bool(buy.visible and sell.visible).is_true()
+	buy.pressed.emit()
+	buy.pressed.emit()
+	# Short of the price, it sells nothing, and the button is off.
+	buy.pressed.emit()
+	assert_int(_ledger.credits).is_equal(50)
+	assert_int(_ledger.get_research()).is_equal(points + 2)
+	await _runner.simulate_frames(2)
+	assert_bool(buy.disabled).is_true()
+
+	for i: int in points + 2:
+		sell.pressed.emit()
+	# With no point left, it buys none, and the button is off.
+	sell.pressed.emit()
+	assert_int(_ledger.get_research()).is_equal(0)
+	assert_int(_ledger.credits).is_equal(50 + price * (points + 2))
+	await _runner.simulate_frames(2)
+	assert_bool(sell.disabled).is_true()
+	assert_bool(buy.disabled).is_false()
+	screen.close()
+
+
+func _planet_without_lab() -> Planet:
+	for node: Node in _system.find_children("*", "", true, false):
+		var planet := node as Planet
+		if planet and not planet.has_lab:
+			return planet
+	return null
+
+
+func test_the_remote_terminal_takes_the_lab_badges_away() -> void:
+	var traits := (_runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	var badges := _runner.find_child("LabBadges") as LabBadges
+	var lab := _planet_with_lab()
+	await _runner.simulate_frames(2)
+	assert_bool(badges.is_shown(lab)).is_true()
+
+	traits.add(BusTraits.Type.REMOTE_TERMINAL)
+	await await_millis(int(LabBadges.POP_SECONDS * 1000) + 200)
+
+	assert_bool(badges.is_shown(lab)).is_false()
+	traits.remove(BusTraits.Type.REMOTE_TERMINAL)
+	await _runner.simulate_frames(2)
+	assert_bool(badges.is_shown(lab)).is_true()
+
+
+func _planet_with_lab() -> Planet:
+	for node: Node in _system.find_children("*", "", true, false):
+		var planet := node as Planet
+		if planet and planet.has_lab:
+			return planet
+	return null
+
+
+func test_lab_badges_made_after_the_remote_terminal_stay_away() -> void:
+	var traits := (_runner.find_child("Bus") as FrameshiftBus).get_stats().get_traits()
+	var badges := _runner.find_child("LabBadges") as LabBadges
+	var lab := _planet_with_lab()
+	traits.add(BusTraits.Type.REMOTE_TERMINAL)
+	await await_millis(int(LabBadges.POP_SECONDS * 1000) + 200)
+
+	# As in a continued run, where the badges are made after the upgrades are back, and as
+	# a mechanic's call pops one in.
+	var planets: Array[Planet] = [lab]
+	badges.set_planets(planets)
+	badges.pop_in(lab)
+	await _runner.simulate_frames(2)
+
+	assert_bool(badges.is_shown(lab)).is_false()

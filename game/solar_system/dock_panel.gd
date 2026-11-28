@@ -1,12 +1,12 @@
 class_name DockPanel
 extends Control
-## What the bus can do at the station of the planet it is docked at, in the top right
-## corner: the planet's icon and name, then its services: where the planet sells fuel, a
-## button to hold down to refuel, and where it has a lab, a button to open the research
-## screen. Under a faint line, who waits there: a button to pick up everyone that
-## fits, and a row for each passenger, longest waiting first, with their portrait, how many
-## on the bus are going their way too, and a button to pick them up. The services and Board
-## all sit above the rows, so they stay in place as the rows come and go. The parent sets
+## What the bus can do at the station of the planet it is docked at, in the top right corner: the
+## planet's icon and name, then its services: where the planet sells fuel, a button to hold down to
+## refuel, and where the player can research (a lab, or anywhere with the Remote terminal), a
+## button to open the research screen. Under a faint line, who waits there: a button to pick up
+## everyone that fits, and a row for each passenger, longest waiting first, with their portrait,
+## how many on the bus are going their way too, and a button to pick them up. The services and
+## Board all sit above the rows, so they stay in place as the rows come and go. The parent sets
 ## [member planet] while the bus is docked or charging.
 ## The board buttons are off while every seat is taken. It only asks: the parent picks the
 ## passenger up, pumps the fuel while [method is_fuel_held], and turns the fuel button on or
@@ -329,9 +329,9 @@ func _set_research_open(open: float) -> void:
 	_fit_research()
 
 
-# Whether the shown planet's lab has its Research button.
+# Whether the shown planet has the Research button: a lab, or the Remote terminal.
 func _shows_lab() -> bool:
-	return _shown != null and _shown.has_lab and not research_hidden
+	return _shown and not research_hidden and research_lab and research_lab.can_research_at(_shown)
 
 
 # Adds a row for each passenger new in line, which comes in when [param animated], and

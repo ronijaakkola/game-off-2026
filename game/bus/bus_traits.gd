@@ -58,6 +58,12 @@ enum Type {
 	BUSINESS_CLASS = 19,
 	## Asteroid knocks shock less, and the rocks slow the bus less ([AsteroidField]).
 	SHOCK_ABSORBERS = 20,
+	## Rides rated under 3 stars don't count toward the rating ([Ledger]).
+	COMPLAINTS_BOX = 21,
+	## Docked at any planet, the player can research there, lab or not ([ResearchLab]).
+	REMOTE_TERMINAL = 22,
+	## The research screen sells research points for credits ([ResearchLab]).
+	RESEARCH_GRANT = 23,
 }
 
 # How many times each trait the bus has was added and not yet taken out.
