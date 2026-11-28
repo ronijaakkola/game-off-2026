@@ -12,6 +12,8 @@ extends Node
 ## the start, and come into view as the camera rises. [method close] plays it back. The HUD
 ## stays, and takes no clicks but on the notices and the pause button while the chart is
 ## open, as pan and zoom wait. Under Reduce motion both cut.
+## Open, the bus can go to another star ([method travel]): its model flies there over the
+## chart, and the chart then closes into that star's system.
 
 ## The camera is over the stars.
 signal opened
@@ -47,6 +49,8 @@ const DEBUG_CLOSE_TEXT := "Close star chart"
 @export_range(0.1, 20.0, 0.1) var open_seconds := 2.0
 ## Seconds the way back in takes.
 @export_range(0.1, 20.0, 0.1) var close_seconds := 1.5
+## Seconds the bus's model takes to fly from one star to another.
+@export_range(0.1, 20.0, 0.1) var travel_seconds := 1.8
 
 @export_group("Timing")
 ## How far through the pull back the orbit lines are gone, from 0 to 1.
@@ -84,6 +88,10 @@ var _contents: Array[Node3D] = []
 var _planets: Array[Planet] = []
 # How far the pull back has got, from 0 to 1.
 var _progress := 0.0
+# Where the bus's model flies from on its way to another star, and how far it has got,
+# from 0 to 1. Not finite while it stays beside its star.
+var _travel_from := Vector3.INF
+var _travel := 1.0
 # Null with the debug panel off.
 var _debug_button: Button
 
@@ -139,6 +147,55 @@ func close() -> void:
 		_debug_button.text = DEBUG_OPEN_TEXT
 	hud.uncover()
 	closed.emit()
+
+
+## How far the pull back has got, from 0 (the map) to 1 (the chart).
+func get_progress() -> float:
+	return _progress
+
+
+## Whether the bus's model is flying to another star ([method travel]).
+func is_travelling() -> bool:
+	return _travel_from.is_finite()
+
+
+## Whether the chart is open with nothing moving, so the bus can go to another star.
+func is_still() -> bool:
+	return _in_use and _progress >= 1.0 and not (_motion and _motion.is_running())
+
+
+## The bus goes to another star while the chart is open and still. [param enter] makes that
+## star's system the one the bus works in and puts the bus there; the chart is then that
+## system's, and the bus's model flies from beside the star it left to beside the new one.
+## It returns once the model is there; [method close] then closes into the new system.
+func travel(enter: Callable) -> void:
+	if not is_still():
+		return
+	var from := bus.get_model().global_position
+	# The map as it was, so the chart can keep the new system's in its place.
+	_step(0.0)
+	_restore()
+	enter.call()
+	rig.move_to(star_map.get_current().position)
+	# Within what the new system lets the camera zoom out to, at once.
+	rig.set_distance(rig.distance)
+	_remember()
+	_travel_from = from
+	_travel = 0.0
+	_step(1.0)
+	if not Settings.reduce_motion:
+		if _motion:
+			_motion.kill()
+		_motion = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		_motion.tween_method(_set_travel, 0.0, 1.0, travel_seconds)
+		await _motion.finished
+	_travel_from = Vector3.INF
+	_travel = 1.0
+
+
+func _set_travel(along: float) -> void:
+	_travel = along
+	_place_bus()
 
 
 ## How much of their orbit speed the planets run at: all of it on the map, less and less as
@@ -245,7 +302,10 @@ func _place_bus() -> void:
 	var out := bus.global_position - star
 	out = Vector3(out.x, 0.0, out.z)
 	var side := out.normalized() if out.length() > 0.01 else Vector3.RIGHT
-	model.shown_at = bus.global_position.lerp(star + side * bus_star_distance, along)
+	var beside := star + side * bus_star_distance
+	if _travel_from.is_finite():
+		beside = _travel_from.lerp(beside, _travel)
+	model.shown_at = bus.global_position.lerp(beside, along)
 	# The rig has just put the shot where the camera will be.
 	var back := rig.global_basis.z
 	var eye := rig.global_position + back * rig.distance * rig.get_view_scale()

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PassengerType" format=3 uid="uid://c76pb1q78wt5p"]
+
+[ext_resource type="Script" uid="uid://x4cad2fcnynb" path="res://game/passengers/passenger_type.gd" id="1_type"]
+[ext_resource type="Script" uid="uid://c2phktb6vlxmk" path="res://game/passengers/need.gd" id="2_need"]
+[ext_resource type="Texture2D" uid="uid://yx8313nh8k7l" path="res://game/passengers/icons/crown.svg" id="3_crown"]
+
+[resource]
+script = ExtResource("1_type")
+display_name = "The Boss"
+badges = Array[Texture2D]([ExtResource("3_crown")])
+wears_bow_tie = true
+description = "Your boss. They take every seat, ride for as long as they like, and nobody throws them off."
+fare_multiplier = 0.0
+research_points = 0
+idle_lines = Array[String](["Counting the day's takings", "Checking the route twice", "Practising a speech for the board", "Tapping the armrest", "Reading a contract"])
+watch_lines = Array[String](["Watching the stock ticker"])
+docked_lines = Array[String](["“Why have we stopped?”", "Checking the time"])
+names = Array[String](["The Boss"])

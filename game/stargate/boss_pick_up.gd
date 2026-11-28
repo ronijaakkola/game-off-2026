@@ -15,14 +15,19 @@ extends Node
 ## game paused; and the HUD goes while the map draws back, slowly, to the star chart
 ## ([StarChart]), where it stays. There The Boss's transmission opens by itself about the
 ## things they left behind, the HUD comes back over the chart, and The Boss's goals take
-## the place of the system's ([FetchGoal]). The route and the bus stay held until the chart
-## closes, which nothing in play does yet: going to another star isn't built. From then on
-## nobody calls, a passenger or a VIP, and the row shows the star chart for a moment.
+## the place of the system's ([FetchGoal]). The chart is then open for the player to go to
+## another star or close it ([StarTravel]), with the route and the bus held until it
+## closes. From then on nobody calls, a passenger or a VIP, and the row opens the star
+## chart the same way, wherever a stargate is. As The Boss's briefcase and bowtie are
+## fetched their portrait has them ([method BossPassenger.dress_up]).
 ## A save keeps how far it has got ([signal changed]); nothing saves through the meeting,
 ## so a run continued from the middle of it has it again.
 
 ## How far it has got changed, for a save game.
 signal changed
+## The star chart is to open for the player to go to another star, or is open for it: they
+## pressed the stargate's row, or The Boss has given their goals over the chart.
+signal travel_pressed
 
 enum Stage { WAITING, CALLED, BUILT }
 
@@ -79,10 +84,9 @@ const GATE_HOLD_SECONDS := 1.4
 ## Seconds the row has been in before its guide card opens.
 const CARD_SECONDS := 0.5
 ## Seconds the map takes to draw back to the star chart the first time, and that the chart
-## holds before The Boss's transmission opens; and how long it holds every time after.
+## holds before The Boss's transmission opens.
 const REVEAL_SECONDS := 9.0
 const REVEAL_HOLD_SECONDS := 1.0
-const LOOK_SECONDS := 3.0
 const DEBUG_BEGIN_TEXT := "Boss pick-up quest"
 
 @export var bus: FrameshiftBus
@@ -104,6 +108,8 @@ const DEBUG_BEGIN_TEXT := "Boss pick-up quest"
 @export var hud: HudLayout
 @export var rig: CameraRig
 @export var star_chart: StarChart
+## The stargate is built in its last system.
+@export var star_map: StarMap
 ## The card that has the player press the row.
 @export var guide: GuideCard
 ## Saves nothing through the meeting.
@@ -120,9 +126,10 @@ var _cards: TutorialCards
 
 
 func _ready() -> void:
-	_gate = Stargate.find(get_tree())
+	_gate = Stargate.find(get_tree(), star_map.get_systems().back())
 	_cards = TutorialCards.new(guide, CARDS)
 	dock_panel.get_stargate_row().pressed.connect(_on_row_pressed)
+	goals.goal_completed.connect(_dress.unbind(1))
 	DebugPanel.add_button(DEBUG_BEGIN_TEXT, begin, self, Progression.DEBUG_GROUP)
 
 
@@ -134,12 +141,12 @@ func _exit_tree() -> void:
 func _process(_delta: float) -> void:
 	var here := _is_at_gate()
 	var row := dock_panel.get_stargate_row()
-	if row.is_open() and not (here and _stage == Stage.BUILT):
+	if row.is_open() and not (here and is_built()):
 		row.close(false)
-	elif not row.is_open() and here and _stage == Stage.BUILT and not _busy:
+	elif not row.is_open() and here and is_built() and not _busy:
 		row.open(false)
 	# With The Boss on board nobody calls, a VIP neither: they wait for a free line.
-	if _stage == Stage.BUILT:
+	if is_built():
 		quest_giver.enabled = false
 	var free := quest_giver.is_line_free() and not cabin.is_stopping()
 	if _stage == Stage.CALLED and not _busy and here and free:
@@ -149,6 +156,20 @@ func _process(_delta: float) -> void:
 ## Whether The Boss has called with it, so they don't again.
 func is_under_way() -> bool:
 	return _stage != Stage.WAITING
+
+
+## Whether the stargate is built, with The Boss on board.
+func is_built() -> bool:
+	return _stage == Stage.BUILT
+
+
+## What The Boss still has the player fetch from one of [param system]'s planets, or null.
+func get_fetch(system: StarSystem) -> FetchGoal:
+	for goal: Goal in goals.get_goals():
+		var fetch := goal as FetchGoal
+		if fetch and is_built() and not fetch.is_met() and system.has_planet(fetch.planet):
+			return fetch
+	return null
 
 
 ## The Boss has called: whoever they sent the player for waits at the stargate's planet,
@@ -177,13 +198,14 @@ func load_save(saved: Dictionary) -> void:
 		_stage = Stage.WAITING
 	elif _stage == Stage.CALLED:
 		_wait(false)
-	elif _stage == Stage.BUILT:
-		_gate.built = true
+	elif is_built():
+		Stargate.build_all(get_tree())
 		_give_goals(false)
 		var saved_goals: Array = saved.get("goals", [])
 		var given := goals.get_goals()
 		for i: int in mini(saved_goals.size(), given.size()):
 			given[i].load_save(saved_goals[i] as Dictionary)
+		_dress()
 
 
 # They wait at the stargate's planet under their marker, and the quest shows.
@@ -196,9 +218,11 @@ func _wait(animated: bool) -> void:
 	goal_panel.show_quest(_quest, animated)
 
 
-# Whether the bus waits at the stargate's planet.
+# Whether the bus waits at the planet of the stargate The Boss builds or, once it is
+# built, of the one in the system the bus works in.
 func _is_at_gate() -> bool:
-	return _gate != null and bus.is_at_planet() and bus.get_docked_planet() == _gate.planet
+	var gate := Stargate.find(get_tree(), star_map.get_current()) if is_built() else _gate
+	return gate != null and bus.is_at_planet() and bus.get_docked_planet() == gate.planet
 
 
 # The meeting, from the bus docking to the star chart.
@@ -241,8 +265,9 @@ func _meet() -> void:
 	saver.holding = false
 	_busy = false
 	changed.emit()
-	# The chart closing, when going to another star is built, hands the bus back.
+	# The chart closing, with a jump to another star or without, hands the bus back.
 	star_chart.closed.connect(_hold.bind(false), CONNECT_ONE_SHOT)
+	travel_pressed.emit()
 
 
 # The Boss's transmission at the meeting: two parts on one screen, the lights coming on
@@ -288,6 +313,17 @@ func _give_goals(animated: bool) -> void:
 	goal_panel.swap_goals(ERRANDS_HEADER, _set_goals, animated)
 
 
+# The Boss wears what has been fetched.
+func _dress() -> void:
+	var fetched: Array[String] = []
+	for goal: Goal in goals.get_goals():
+		if goal is FetchGoal and goal.is_met():
+			fetched.append((goal as FetchGoal).thing)
+	for passenger: Passenger in cabin.get_passengers():
+		if BossPassenger.is_boss(passenger):
+			BossPassenger.dress_up(passenger, BRIEFCASE in fetched, BOWTIE in fetched)
+
+
 func _set_goals() -> void:
 	for goal: Goal in goals.get_goals():
 		goals.remove(goal)
@@ -310,6 +346,7 @@ func _build_gate() -> void:
 	rig.focus(_gate, Stargate.RADIUS, reach)
 	await _pause(rig.get_focus_seconds())
 	await _gate.appear()
+	Stargate.build_all(get_tree())
 	await _pause(GATE_HOLD_SECONDS)
 	rig.release_focus()
 	await _pause(rig.get_focus_seconds())
@@ -345,12 +382,8 @@ func _pause(seconds: float) -> void:
 	await get_tree().create_timer(seconds, false).timeout
 
 
-# The row pressed once the stargate is built: the star chart shows for a moment.
+# The row pressed once the stargate is built: the star chart opens to go to another star.
 func _on_row_pressed() -> void:
-	if _busy or _stage != Stage.BUILT or star_chart.is_open():
+	if _busy or not is_built() or star_chart.is_open():
 		return
-	_busy = true
-	await star_chart.open()
-	await _pause(LOOK_SECONDS)
-	await star_chart.close()
-	_busy = false
+	travel_pressed.emit()

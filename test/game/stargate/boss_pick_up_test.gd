@@ -110,7 +110,7 @@ func test_docked_at_earth_the_meeting_plays_to_its_end() -> void:
 	assert_int(on_board.size()).is_equal(1)
 	assert_str(on_board[0].name).is_equal(BossPassenger.NAME)
 	assert_int(cabin.get_free_seats()).is_equal(0)
-	assert_bool(Stargate.find(get_tree()).built).is_true()
+	assert_bool((runner.find_child("EarthStargate") as Stargate).built).is_true()
 	assert_bool(charted[0]).override_failure_message("The star chart never showed").is_true()
 	# It ends on the star chart, the bus held until the chart closes.
 	assert_bool(chart.is_open()).is_true()
@@ -142,7 +142,7 @@ func test_a_save_brings_back_the_quest_or_the_stargate() -> void:
 	var pick_up := runner.find_child("BossPickUp") as BossPickUp
 	var markers := runner.find_child("PickUpMarkers") as PickUpMarkers
 	var earth := runner.find_child("Earth") as Planet
-	var gate := Stargate.find(get_tree())
+	var gate := runner.find_child("EarthStargate") as Stargate
 
 	pick_up.load_save({"stage": BossPickUp.Stage.CALLED})
 
@@ -175,7 +175,7 @@ func test_the_star_chart_leaves_a_stargate_not_yet_built_hidden() -> void:
 	await runner.simulate_frames(2)
 	(runner.find_child("FirstShiftCall") as FirstShiftCall).cancel()
 	var chart := runner.find_child("StarChart") as StarChart
-	var gate := Stargate.find(get_tree())
+	var gate := runner.find_child("EarthStargate") as Stargate
 	assert_bool(gate.visible).is_false()
 
 	chart.open()

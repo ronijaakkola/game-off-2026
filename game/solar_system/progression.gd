@@ -110,6 +110,8 @@ func _process(delta: float) -> void:
 		and goals.are_all_met()
 		# In the last system The Boss calls once, with someone to pick up.
 		and not (_is_last() and (not boss_pick_up or boss_pick_up.is_under_way()))
+		# Nor once the bus goes between stars with The Boss on board.
+		and not (boss_pick_up and boss_pick_up.is_under_way())
 	)
 	_met_seconds = _met_seconds + delta if counting else 0.0
 	if _met_seconds >= CALL_DELAY and not quest_giver.is_calling():
@@ -236,14 +238,14 @@ func _add_goals() -> void:
 	var deliveries := star_map.joined_deliveries
 	var rating := star_map.joined_rating
 	if not star_map.is_joined():
-		deliveries = star_map.get_current().deliveries
-		rating = star_map.get_current().rating
+		deliveries = star_map.get_furthest().deliveries
+		rating = star_map.get_furthest().rating
 	goals.add(DeliveryCountGoal.new(deliveries))
-	if not star_map.is_joined() and star_map.get_current().business_deliveries > 0:
-		var business := star_map.get_current().business_deliveries
+	if not star_map.is_joined() and star_map.get_furthest().business_deliveries > 0:
+		var business := star_map.get_furthest().business_deliveries
 		goals.add(DeliveryCountGoal.new(business, waiting.business))
-	if not star_map.is_joined() and star_map.get_current().credits > 0:
-		goals.add(EarnCreditsGoal.new(star_map.get_current().credits))
+	if not star_map.is_joined() and star_map.get_furthest().credits > 0:
+		goals.add(EarnCreditsGoal.new(star_map.get_furthest().credits))
 	if rating > 0.0:
 		goals.add(RatingGoal.new(rating))
 	if vips and vips.is_unlocked():
@@ -253,9 +255,9 @@ func _add_goals() -> void:
 # Once VIPs call in the system the bus works in, its goals ask for some of them delivered on
 # time, when it has such a goal.
 func _add_vip_goal() -> void:
-	if star_map.is_joined() or goals.frozen or star_map.get_current().vip_deliveries <= 0:
+	if star_map.is_joined() or goals.frozen or star_map.get_furthest().vip_deliveries <= 0:
 		return
-	goals.add(DeliveryCountGoal.new(star_map.get_current().vip_deliveries, Vip.TYPE, true))
+	goals.add(DeliveryCountGoal.new(star_map.get_furthest().vip_deliveries, Vip.TYPE, true))
 
 
 # The camera is over the new system: it becomes the one the bus works in, and its lines

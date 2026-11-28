@@ -157,7 +157,7 @@ func _on_restart_dialog_confirmed() -> void:
 
 # The level the game is in.
 func _level() -> Level:
-	var level := Campaign.find(String(star_map.get_current().name)) if star_map else null
+	var level := Campaign.find(String(star_map.get_furthest().name)) if star_map else null
 	if level == null:
 		level = Campaign.get_in_progress()
 	return level if level else Campaign.LEVELS[0]

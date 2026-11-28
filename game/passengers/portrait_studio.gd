@@ -152,7 +152,7 @@ static func new_portrait(look: AlienLook, type: PassengerType) -> AlienPortrait:
 	portrait.head_model = look.head
 	portrait.eye_style = look.eye_style
 	portrait.skin_color = look.skin_color
-	portrait.wears_bow_tie = type != null and type.wears_bow_tie
+	portrait.props.dress(type)
 	return portrait
 
 

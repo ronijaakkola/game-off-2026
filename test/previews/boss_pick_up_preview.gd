@@ -9,7 +9,11 @@ extends Node
 ## Earth show; with `built`, the stargate is already there. One part alone plays at once
 ## with `gate` (the stargate appearing), `row` (the stargate's row and its guide card) or
 ## `chart` (the HUD going and the map drawing back) or `errands` (the map drawing back,
-## The Boss's call over the chart, and their goals coming in).
+## The Boss's call over the chart, and their goals coming in). With `travel`, The Boss is
+## on board and the star chart is open to go to another star, the pointer on Lyra; with
+## `jump`, the bus then jumps there with a click on the card, docks where the briefcase is,
+## jumps back to Sol and closes the chart with its button. With `dressed`, The Boss is on
+## board and a second in has their briefcase and bowtie, which grow onto their portrait.
 
 ## Seconds the transmission shows before the preview skips to its end, then answers.
 const READ_SECONDS := 4.5
@@ -32,7 +36,7 @@ func _ready() -> void:
 	var pick_up := find_child("BossPickUp") as BossPickUp
 	var args := OS.get_cmdline_user_args()
 	if "gate" in args:
-		pick_up._gate = Stargate.find(get_tree())
+		pick_up._gate = find_child("EarthStargate") as Stargate
 		pick_up._build_gate()
 		return
 	if "errands" in args:
@@ -42,6 +46,15 @@ func _ready() -> void:
 		while not calling.is_open():
 			await get_tree().process_frame
 		await _answer(calling)
+		return
+	if "dressed" in args:
+		_dress(pick_up)
+		return
+	if "travel" in args or "jump" in args:
+		if "jump" in args:
+			# Where the bus comes out in Lyra, so the briefcase is fetched as it docks.
+			pick_up.briefcase_planet = find_child("Cinder") as Planet
+		_travel(pick_up, "jump" in args)
 		return
 	if "built" in args or "row" in args or "chart" in args:
 		pick_up.load_save({"stage": BossPickUp.Stage.BUILT})
@@ -74,3 +87,59 @@ func _answer(panel: TransmissionPanel) -> void:
 	panel.skip()
 	await get_tree().create_timer(ANSWER_SECONDS).timeout
 	panel.accept()
+
+
+# The Boss is on board with the stargate built and the star chart open to go to another
+# star, the pointer on Lyra; with [param jumps], the bus goes there.
+func _travel(pick_up: BossPickUp, jumps: bool) -> void:
+	var boss := BossPassenger.create(find_child("Earth") as Planet)
+	BossPassenger.reveal(boss)
+	(find_child("Cabin") as Cabin).board(boss)
+	(find_child("StarMap") as StarMap).restore({"reached": 3}, find_child("Earth") as Planet)
+	pick_up.load_save({"stage": BossPickUp.Stage.BUILT})
+	var travel := find_child("StarTravel") as StarTravel
+	await travel.open()
+	var lyra := (find_child("Lyra") as StarSystem).global_position
+	get_viewport().warp_mouse(get_viewport().get_camera_3d().unproject_position(lyra))
+	if not jumps:
+		return
+	# A real click on the card's button, through the HUD's click block.
+	await get_tree().create_timer(1.0).timeout
+	var button := find_child("StarCard").find_child("JumpButton") as Button
+	_click(button.get_global_rect().get_center())
+	var chart := find_child("StarChart") as StarChart
+	await chart.closed
+	var bus := find_child("Bus") as FrameshiftBus
+	await bus.docked
+	await get_tree().create_timer(1.0).timeout
+	# Back to Sol: Vela is too far from there, so its button does nothing.
+	await travel.open()
+	travel._star = find_child("Sol") as StarSystem
+	travel._on_jump_pressed()
+	await chart.closed
+	await bus.docked
+	await travel.open()
+	_click((find_child("CloseStarChart") as Button).get_global_rect().get_center())
+	await chart.closed
+
+
+# The Boss is on board, and a second in has their briefcase and their bowtie, which grow
+# onto their portrait.
+func _dress(pick_up: BossPickUp) -> void:
+	var boss := BossPassenger.create(find_child("Earth") as Planet)
+	BossPassenger.reveal(boss)
+	(find_child("Cabin") as Cabin).board(boss)
+	pick_up.load_save({"stage": BossPickUp.Stage.BUILT})
+	await get_tree().create_timer(1.0).timeout
+	BossPassenger.dress_up(boss, true, true)
+
+
+func _click(at: Vector2) -> void:
+	get_viewport().warp_mouse(at)
+	for pressed: bool in [true, false]:
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = pressed
+		click.position = at
+		click.global_position = at
+		get_viewport().push_input(click)

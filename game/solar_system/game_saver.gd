@@ -253,7 +253,8 @@ func _write() -> void:
 	}
 	SaveGame.write(run)
 	if star_map:
-		var system := String(star_map.get_current().name)
+		# The level's system: going through the stargate enters no level.
+		var system := String(star_map.get_furthest().name)
 		# A save from before saves kept their system says nothing of where the run was, so
 		# its first save is no entry.
 		var entered := not _saved_system.is_empty() and system != _saved_system
@@ -335,7 +336,7 @@ func _get_planets_by_name() -> Dictionary[String, Planet]:
 # Every passenger type that turns up, by its resource path.
 func _get_types_by_path() -> Dictionary[String, PassengerType]:
 	var types: Dictionary[String, PassengerType] = {}
-	for type: PassengerType in waiting.types + [waiting.business, Vip.TYPE, BossPassenger.TYPE]:
+	for type: PassengerType in waiting.types + [waiting.business, Vip.TYPE] + BossPassenger.TYPES:
 		if type:
 			types[type.resource_path] = type
 	return types

@@ -275,6 +275,8 @@ func _show_services() -> void:
 		(%Content as Control).get_theme_constant(&"separation") if fuel or _shows_lab() else 0
 	)
 	(%TeleportSlot as Control).add_theme_constant_override(&"margin_top", gap)
+	var separation := (%Content as Control).get_theme_constant(&"separation")
+	get_stargate_row().gap = separation if fuel or _shows_lab() or teleport else 0
 	_fit_research()
 
 
