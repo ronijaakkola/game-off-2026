@@ -187,11 +187,7 @@ static func from_save(
 	passenger.origin = planets.get(saved.get("origin", ""))
 	passenger.name = saved.get("name", passenger.name)
 	passenger.fare = float(saved.get("fare", 0.0))
-	var ride := passenger.ride
-	ride.expected_seconds = float(saved.get("expected_seconds", ride.expected_seconds))
-	ride.leeway = float(saved.get("leeway", 0.0))
-	ride.clock = float(saved.get("clock", 0.0))
-	ride.stops = int(saved.get("stops", 0))
+	passenger.ride.load_save(saved)
 	passenger.race = int(saved.get("race", passenger.race)) as Race.Type
 	passenger.look = AlienLook.from_save(saved.get("look", {}), passenger.race)
 	passenger.happiness = float(saved.get("happiness", BASE_HAPPINESS))
@@ -432,22 +428,17 @@ func tick(
 ## go by name, and their type by its resource path.
 func to_save() -> Dictionary:
 	var held := request if request else _held_request
-	return {
+	var saved := {
 		"type": type.resource_path,
 		"name": name,
 		"origin": String(origin.name) if origin else "",
 		"destination": String(destination.name) if destination else "",
 		"fare": fare,
-		"trip_seconds": ride.trip_seconds,
-		"expected_seconds": ride.expected_seconds,
 		"race": race,
 		"look": look.to_save(race),
 		"happiness": happiness,
-		"leeway": ride.leeway,
-		"stops": ride.stops,
 		"departed": _departed,
 		"shaken": _shaken,
-		"clock": ride.clock,
 		"need_timers": _appetite.to_save(),
 		"held_need": type.needs.find(held) if held else -1,
 		"request_age": _request_age,
@@ -457,6 +448,8 @@ func to_save() -> Dictionary:
 		"returning": returning,
 		"tour": tour.to_save() if tour else {},
 	}
+	saved.merge(ride.to_save())
+	return saved
 
 
 ## Serves the open request at once, all of it, as [method feed] would once full. Does

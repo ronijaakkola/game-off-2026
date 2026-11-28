@@ -472,6 +472,9 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
     for path in paths:
         if path.endswith(".gd"):
             rules += script_problems(path, hook)
+        # The hook leaves this out: a feature may grow a script before moving a job out.
+        if path.endswith(".gd") and not hook:
+            rules += script_growth_problems(path)
         elif path.endswith(".tscn"):
             rules += scene_problems(path)
         elif path.endswith(".gdshader"):
@@ -660,11 +663,80 @@ def script_size_warnings(scripts: list[str]) -> list[str]:
         if lines >= SCRIPT_LINES_WARNING:
             warnings.append(
                 f"{path}: Warning: {lines} lines, and lint fails past {SCRIPT_LINES_LIMIT}. "
-                "If your change adds to it, move one job out to a component node, a static "
-                "helper or a Resource in the same change. Don't trim comments or pack lines "
-                f"to fit. (script-size; {SCRIPT_SIZE})"
+                "A change that adds to it fails (script-growth) unless it moves one job out "
+                "to a component node, a static helper or a Resource. Don't trim comments or "
+                f"pack lines to fit. (script-size; {SCRIPT_SIZE})"
             )
+            if not growth_base():
+                warnings[-1] += (
+                    " script-growth can't run here, with no merge base with origin/main: "
+                    "git fetch origin main to check before CI does."
+                )
     return warnings
+
+
+def script_growth_problems(path: str) -> list[str]:
+    """A script already past the warning before this change must not end the change
+    longer: the warning alone was read and passed over, change after change, until the
+    script met the limit with every job still in it. Measured against growth_base()."""
+    if path.startswith("test/"):
+        return []
+    lines = len(Path(path).read_text(encoding="utf-8", errors="replace").splitlines())
+    if lines <= SCRIPT_LINES_WARNING:
+        return []
+    before = lines_before_change(path)
+    if before is None or before < SCRIPT_LINES_WARNING or lines <= before:
+        return []
+    message = (
+        f"{lines} lines, up from {before} before this change, when it was already past "
+        f"{SCRIPT_LINES_WARNING}. Move one job out to a component node, a static helper or "
+        f"a Resource so it ends at {before} lines or fewer. Trimming comments or packing "
+        "lines doesn't count. When no job comes out cleanly, stop and ask the human, "
+        "naming the split you would make."
+    )
+    return [problem(path, None, "script-growth", message, SCRIPT_SIZE)]
+
+
+def lines_before_change(path: str) -> int | None:
+    """How many lines path had at growth_base(), or None when it wasn't there or there
+    is no base to compare with. While a merge is under way, as when main is merged into
+    the branch, the side merged in counts too: what main grew isn't this change's."""
+    base = growth_base()
+    if not base:
+        return None
+    counts = [lines_at(base, path)]
+    if not os.environ.get("SCRIPT_SIZE_BASE"):
+        merging = subprocess.run(
+            ["git", "rev-parse", "-q", "--verify", "MERGE_HEAD"], capture_output=True, text=True
+        )
+        if merging.returncode == 0:
+            counts.append(lines_at(merging.stdout.strip(), path))
+    found = [count for count in counts if count is not None]
+    return max(found) if found else None
+
+
+def lines_at(commit: str, path: str) -> int | None:
+    """How many lines path has at commit, or None when it isn't there."""
+    shown = subprocess.run(
+        ["git", "show", f"{commit}:{path}"], capture_output=True, text=True, encoding="utf-8"
+    )
+    return len(shown.stdout.splitlines()) if shown.returncode == 0 else None
+
+
+@cache
+def growth_base() -> str | None:
+    """The commit a change is measured from: SCRIPT_SIZE_BASE when set (CI sets it to the
+    pull request's base), else where HEAD left origin/main, else main. None outside git or
+    without either, as in a shallow clone of a branch alone; CI still checks."""
+    if os.environ.get("SCRIPT_SIZE_BASE"):
+        return os.environ["SCRIPT_SIZE_BASE"]
+    for main in ("origin/main", "main"):
+        found = subprocess.run(
+            ["git", "merge-base", "HEAD", main], capture_output=True, text=True, encoding="utf-8"
+        )
+        if found.returncode == 0:
+            return found.stdout.strip()
+    return None
 
 
 def never_terms() -> list[tuple[re.Pattern, str, str]]:

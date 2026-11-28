@@ -206,7 +206,6 @@ func start() -> void:
 	_rules.apply()
 	_rules.set_trip_burn(_goal)
 	guide.acknowledged.connect(_on_guide_acknowledged)
-	pause_menu.offers_skip_tutorial = true
 	pause_menu.skip_tutorial_pressed.connect(skip)
 	cabin.getting_off.connect(_on_getting_off)
 	intro.ended.connect(_on_call_ended)
@@ -466,14 +465,9 @@ func _finish() -> void:
 	lab_badges.hide()
 	# The camera stays locked: the zoom out holds it until the run starts.
 	_rules.lift()
-	pause_menu.offers_skip_tutorial = false
-	resource_bar.breathe(false)
-	_rules.pause(false)
 	if _step in TRIP_STEPS:
 		trip_arc.hide_trip()
 	_step = Step.DONE
-	bus.route_locked = false
-	dock_panel.beckon_boarding = false
 	set_process(false)
 	intro.cancel()
 	_cards.close()

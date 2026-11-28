@@ -39,7 +39,7 @@ Keep the loop short while a feature takes shape: `load` (10 s) and the suites fo
 
 - Paste the result lines of `uv run tools/check.py all` exactly as printed, failing step included.
 - When a change is about feel (the soft look, lighting, camera, motion, sound), end with "Needs a visual check: `<scene>`".
-- When `lint` warned that a script you added to is near its size limit (`script-size`), say which job you moved out, or the split you would make and why it didn't come out cleanly.
+- When you moved a job out of a script past 500 lines (`script-size`, `script-growth`), say which job and where it went.
 - When a check can't run (Godot not found, no window for `capture`), say which ones didn't run and name the editor equivalent for the human, from the last column of README.md, Checks.
 
 ## Issues

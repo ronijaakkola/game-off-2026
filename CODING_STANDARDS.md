@@ -107,7 +107,7 @@ A script is at most 600 lines; `gdlint` fails a longer one (`max-file-lines`). P
 
 Each new file follows Layout and Naming. Never split into numbered parts or a `*_helpers.gd` grab-bag: each new script is named after the one job it does.
 
-From 500 lines, `check.py lint` warns (`script-size`). A change that adds to such a script moves one job out in the same change, so the script ends no longer than it started. Trimming comments, joining lines or dropping blank lines to fit is not a split: the script still does as many jobs, and the next change meets the same wall. When no job comes out cleanly, say so in the handoff and name the split you would make, so the human can decide.
+From 500 lines, `check.py lint` warns (`script-size`). A change that adds to such a script moves one job out in the same change, so the script ends no longer than it started: `check.py lint` fails on a script that was past 500 lines where the branch left `main` and is longer now (`script-growth`). The edit hook leaves it out, so a feature may take shape first and the job move out after. Trimming comments, joining lines or dropping blank lines to fit is not a split: the script still does as many jobs, and the next change meets the same wall. When no job comes out cleanly, stop and ask the human, naming the split you would make.
 
 ## Signals: local or bus
 

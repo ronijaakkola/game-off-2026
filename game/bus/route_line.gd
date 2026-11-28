@@ -53,6 +53,15 @@ func _ready() -> void:
 	_material.set_shader_parameter(&"marker_reach", marker_pixels)
 
 
+## Draws a short line at [param at] for one frame, so its material compiles now, while
+## something such as SceneFlow's fade covers the screen, and not when the first route
+## shows.
+func warm_up(at: Vector3) -> void:
+	draw_route(PackedVector3Array([at, at + Vector3.LEFT]), PackedVector3Array([at + Vector3.LEFT]))
+	await get_tree().process_frame
+	draw_route(PackedVector3Array(), PackedVector3Array())
+
+
 ## Draws the line from the bus at [param from], facing [param forward], through
 ## [param stops]. Points in space get a diamond.
 func draw_stops(from: Vector3, stops: Array[RouteStop], forward: Vector3) -> void:
