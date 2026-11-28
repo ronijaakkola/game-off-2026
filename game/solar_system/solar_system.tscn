@@ -509,7 +509,7 @@ saver = NodePath("../GameSaver")
 goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
 boss_pick_up = NodePath("../BossPickUp")
 
-[node name="BossPickUp" type="Node" parent="." unique_id=1814853010 node_paths=PackedStringArray("bus", "cabin", "waiting", "quest_giver", "transmission_panel", "pick_up_markers", "goal_panel", "dock_panel", "hud", "rig", "star_chart", "guide", "saver")]
+[node name="BossPickUp" type="Node" parent="." unique_id=1814853010 node_paths=PackedStringArray("bus", "cabin", "waiting", "quest_giver", "transmission_panel", "pick_up_markers", "goal_panel", "goals", "briefcase_planet", "bowtie_planet", "dock_panel", "hud", "rig", "star_chart", "guide", "saver")]
 script = ExtResource("201_boss_pick_up")
 bus = NodePath("../Bus")
 cabin = NodePath("../Cabin")
@@ -518,6 +518,9 @@ quest_giver = NodePath("../QuestGiver")
 transmission_panel = NodePath("../TransmissionPanel")
 pick_up_markers = NodePath("../Hud/PickUpMarkers")
 goal_panel = NodePath("../Hud/TopRight/Stack/GoalPanel")
+goals = NodePath("../Goals")
+briefcase_planet = NodePath("../World/Lyra/Brume")
+bowtie_planet = NodePath("../World/Vela/Giant")
 dock_panel = NodePath("../Hud/TopRight/Stack/DockPanel")
 hud = NodePath("../Hud")
 rig = NodePath("../CameraRig")

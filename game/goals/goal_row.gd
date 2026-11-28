@@ -5,7 +5,8 @@ extends VBoxContainer
 ## turns green with it. A delivery goal shows its count ("12/50") and fills with it. A
 ## rating goal shows the recent rating ("4.2", or a dash before the first rating) on a bar of
 ## five stars, with a mark at the target. Any other goal shows only its text and icon.
-## A failed goal's icon is a red cross.
+## A failed goal's icon is a red cross. A goal to fetch something from a planet ([FetchGoal])
+## ends its text on the planet's icon and name.
 
 const MET_COLOR := Color(0.549, 0.851, 0.4)
 const FAILED_COLOR := Color(0.949, 0.302, 0.4)
@@ -46,7 +47,19 @@ func refresh() -> void:
 	if failed:
 		icon.texture = CIRCLE_X
 		icon.self_modulate = FAILED_COLOR
-	(%TextLabel as Label).text = goal.get_text()
+	var text := %TextLabel as Label
+	text.text = goal.get_text()
+	var planet := (goal as FetchGoal).planet if goal is FetchGoal else null
+	(%PlanetIcon as PlanetIcon).planet = planet
+	var named := %PlanetLabel as Label
+	named.visible = planet != null
+	named.text = planet.display_name if planet else ""
+	# The planet's name takes the room left, so the icon sits right after the text, which
+	# then asks for its whole width: a label that trims asks for none.
+	text.size_flags_horizontal = Control.SIZE_FILL if planet else Control.SIZE_EXPAND_FILL
+	text.text_overrun_behavior = (
+		TextServer.OVERRUN_NO_TRIMMING if planet else TextServer.OVERRUN_TRIM_ELLIPSIS
+	)
 	var bar := %Bar as ProgressBar
 	if met:
 		bar.add_theme_stylebox_override(&"fill", _met_fill)
