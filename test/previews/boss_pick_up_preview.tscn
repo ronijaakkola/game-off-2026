@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://dtv28ixyvycr1"]
+
+[ext_resource type="Script" uid="uid://xh2bsxu2j7c8" path="res://test/previews/boss_pick_up_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" uid="uid://dl44qfykqfvcv" path="res://game/solar_system/solar_system.tscn" id="2_system"]
+
+[node name="BossPickUpPreview" type="Node" unique_id=1455591845]
+script = ExtResource("1_preview")
+
+[node name="SolarSystem" parent="." unique_id=97683481 instance=ExtResource("2_system")]

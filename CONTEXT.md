@@ -255,6 +255,10 @@ _Avoid_: progress (the goals' own), level select
 The map pulled back until the star systems the bus has been to show as stars alone, in plain space, with the bus beside the one it is in. `StarChart` in code.
 _Avoid_: galaxy map, star map (the `StarMap` keeps the systems and how far the player has got)
 
+**Stargate**:
+What The Boss has built beside Earth once the player has picked them up there: a ring the bus goes through from one star to another. It isn't there before. `Stargate` in code; the story that builds it, from The Boss's call to the star chart, is The Boss's pick-up, `BossPickUp`.
+_Avoid_: portal, warp gate (the pair inside one star system)
+
 **Jump**:
 The bus's frameshift from one star system to the next, once a promotion opens it: it leaves from wherever the bus is, without whoever is on board, and comes out at the next system's home planet. `SystemJump` in code; the stretch and streak it shares with the tow ship are `FrameshiftShift`.
 _Avoid_: warp, hyperspace, travel (a trip between planets)

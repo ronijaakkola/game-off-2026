@@ -270,6 +270,18 @@ func _on_quest_added(quest: Quest) -> void:
 	_add_quest(quest, true)
 
 
+## Shows a row for [param quest], which the [member quest_giver] doesn't give, as The Boss's
+## pick-up is, coming in when [param animated]. Its goal is built.
+func show_quest(quest: Quest, animated := true) -> void:
+	if not _quest_slots.has(quest):
+		_add_quest(quest, animated)
+
+
+## Takes the row [method show_quest] added for [param quest] away.
+func hide_quest(quest: Quest) -> void:
+	_on_quest_removed(quest)
+
+
 # Adds a row for [param quest] in a slot of its own. The first row brings the whole part
 # in; a later one opens its own slot.
 func _add_quest(quest: Quest, animated: bool) -> void:

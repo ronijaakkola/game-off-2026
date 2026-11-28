@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://d2p5j5ko114j8" path="res://shared/icons/flask_conical.svg" id="7_flask"]
 [ext_resource type="Texture2D" uid="uid://bx5fr0dpvayyy" path="res://game/solar_system/icons/chevron_right.svg" id="8_chevron"]
 [ext_resource type="Texture2D" uid="uid://b3syb2f5pm1co" path="res://game/solar_system/icons/hexagon.svg" id="9_hexagon"]
+[ext_resource type="PackedScene" uid="uid://orvp3o7uegy3" path="res://game/stargate/stargate_row.tscn" id="10_stargate"]
+[ext_resource type="Script" uid="uid://yttf4x4lapgb" path="res://game/solar_system/research_nudge.gd" id="11_nudge"]
 [ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="90_hairline"]
 [ext_resource type="Script" uid="uid://dtwwylvr7xiyo" path="res://game/solar_system/empty_line_label.gd" id="91_empty"]
 [ext_resource type="Texture2D" uid="uid://ce4ax86y8uxqb" path="res://game/solar_system/icons/user_round_x.svg" id="92_nobody"]
@@ -169,6 +171,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_nudge")
+script = ExtResource("11_nudge")
 
 [node name="Chevron" type="TextureRect" parent="Card/Clip/Content/Services/ResearchSlot/ResearchRow/ResearchButton" unique_id=757989064]
 self_modulate = Color(0.957, 0.945, 1, 0.651)
@@ -221,6 +224,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"SmallButton"
 text = "Teleport"
+
+[node name="StargateRow" parent="Card/Clip/Content/Services" unique_id=872340802 instance=ExtResource("10_stargate")]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="FuelRule" type="Control" parent="Card/Clip/Content" unique_id=1536806567]
 unique_name_in_owner = true

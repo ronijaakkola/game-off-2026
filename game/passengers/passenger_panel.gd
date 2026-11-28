@@ -22,6 +22,9 @@ extends MarginContainer
 
 const CARD := preload("res://game/passengers/passenger_card.tscn")
 const GROUP := preload("res://game/passengers/destination_group.tscn")
+## What the VIP group and The Boss's go by among the groups, which have no planet.
+const VIP_KEY := &"vip"
+const BOSS_KEY := &"boss"
 ## Pixels between the board's edge and a card's options, which sit outside it.
 const OPTIONS_GAP := 6.0
 
@@ -68,7 +71,8 @@ var kicks_allowed := false:
 			card.kickable = value
 
 var _cards: Dictionary[Passenger, PassengerCard] = {}
-var _groups: Dictionary[Planet, DestinationGroup] = {}
+# By where they are going: a planet, null for nowhere, or one of the keys below.
+var _groups: Dictionary[Variant, DestinationGroup] = {}
 var _seats_shown := Vector2i(-1, -1)
 # Who boarded while arrivals were held, in order.
 var _held: Array[Passenger] = []
@@ -83,7 +87,7 @@ func _process(_delta: float) -> void:
 	(%Cards as Control).visible = (%Cards as Control).get_child_count() > 0
 	if not cabin:
 		return
-	var shown := Vector2i(Seating.count(cabin.get_passengers()), cabin.seats)
+	var shown := Vector2i(Seating.count(cabin.get_passengers(), cabin.seats), cabin.seats)
 	if shown != _seats_shown:
 		_seats_shown = shown
 		(%SeatLabel as Label).text = "%d/%d" % [shown.x, shown.y]
@@ -135,51 +139,59 @@ func _add_card(passenger: Passenger) -> PassengerCard:
 	if not passenger.rerouted.is_connected(on_rerouted):
 		passenger.rerouted.connect(on_rerouted)
 	_cards[passenger] = card
-	_group_for(_get_key(passenger), passenger.tour != null).add_card(card)
+	_group_for(_get_key(passenger)).add_card(card)
 	return card
 
 
-# Which group [param passenger]'s card is in: their destination's, or for a VIP on a tour
-# the VIP group, which has no planet.
-func _get_key(passenger: Passenger) -> Planet:
-	return null if passenger.tour else passenger.destination
+# Which group [param passenger]'s card is in: their destination's, null for the castaway
+# on a hop, who is going to no planet, or the VIP group's or The Boss's key, which have no
+# planet either.
+func _get_key(passenger: Passenger) -> Variant:
+	if BossPassenger.is_boss(passenger):
+		return BOSS_KEY
+	return VIP_KEY if passenger.tour else passenger.destination
 
 
-# The group for those going to [param planet], made at the bottom if there is none yet, or
-# the [param vip] group, with no planet, on top. The castaway on a hop, also going to no
-# planet, rides only in the first star system, where no VIP does, so the two never meet.
-func _group_for(planet: Planet, vip := false) -> DestinationGroup:
-	var group: DestinationGroup = _groups.get(planet)
+# The group [param key] names, made at the bottom if there is none yet, or for the VIP
+# group and The Boss's, on top.
+func _group_for(key: Variant) -> DestinationGroup:
+	var group: DestinationGroup = _groups.get(key)
 	if group:
 		return group
 	group = GROUP.instantiate() as DestinationGroup
-	group.planet = planet
-	group.vip = vip
+	group.planet = key if key is Planet else null
+	group.vip = key is StringName and key == VIP_KEY
+	if key is StringName and key == BOSS_KEY:
+		group.title = BossPassenger.NAME
 	group.emptied.connect(_on_group_emptied.bind(group))
 	group.folded.connect(group.queue_free)
-	_groups[planet] = group
+	_groups[key] = group
 	%Cards.add_child(group)
-	if vip:
+	if key is StringName:
 		%Cards.move_child(group, 0)
 	return group
 
 
 func _on_group_emptied(group: DestinationGroup) -> void:
-	if _groups.get(group.planet) == group:
-		_groups.erase(group.planet)
+	# Not by find_key(): it gives null for a group already dropped, and null is the key of
+	# those going to no planet.
+	for key: Variant in _groups:
+		if _groups[key] == group:
+			_groups.erase(key)
+			break
 	group.fold_away()
 
 
 # With [param keep_emptied], a group nobody is going to keeps its last count: it is about
 # to fold away.
 func _show_counts(keep_emptied := false) -> void:
-	for planet: Planet in _groups:
+	for key: Variant in _groups:
 		var count := 0
 		for passenger: Passenger in _cards:
-			if _get_key(passenger) == planet:
+			if is_same(_get_key(passenger), key):
 				count += 1
 		if count > 0 or not keep_emptied:
-			_groups[planet].show_count(count)
+			_groups[key].show_count(count)
 
 
 func _on_getting_off(passenger: Passenger) -> void:

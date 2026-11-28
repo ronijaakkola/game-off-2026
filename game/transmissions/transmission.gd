@@ -39,6 +39,13 @@ var destination: Planet
 ## Whether the caller sits in the dark: only their outline shows, with no eyes, colour or
 ## mood.
 var shadowed := false
+## What a caller who sits in the dark says first, before [member text]: once it is said the
+## lights come on over them ([method TransmissionScreen.light_up]), and they go on with the
+## rest. Empty for a caller who stays as they are.
+var opening := ""
+## What the caller says next once this is answered, on the same screen with the modal
+## still open, or null when the answer ends the transmission.
+var then: Transmission
 ## The face the caller makes on the screen: anger frowns, a happy caller beams now and then.
 var mood := Passenger.Mood.OKAY
 ## Whether the caller glares whatever their mood: the eyes of full anger, with no anger
