@@ -505,7 +505,15 @@ def lint_problems(paths: list[str], hook: bool) -> tuple[list[str], list[str]]:
         if linter.returncode != 0:
             problems.append(lint_output.rstrip())
         problems += formatting_problems(formatter, gdlint_failed=linter.returncode != 0)
-    warnings = [] if hook else asset_size_warnings(paths) + script_size_warnings(scripts)
+    warnings = []
+    # The hook leaves this out: a script grows while a job is on its way out of it, and
+    # the commit hook and CI catch what is left.
+    if not hook:
+        growth = script_growth_problems(scripts)
+        rules += growth
+        grown = {line.split(":", 1)[0] for line in growth}
+        sized = [path for path in scripts if path not in grown]
+        warnings = asset_size_warnings(paths) + script_size_warnings(sized)
     return problems + rules, warnings
 
 
@@ -665,6 +673,52 @@ def script_size_warnings(scripts: list[str]) -> list[str]:
                 f"to fit. (script-size; {SCRIPT_SIZE})"
             )
     return warnings
+
+
+def size_base() -> str | None:
+    """The commit a change's script sizes are measured from: in CI, LINT_BASE (the PR merge
+    commit's first parent, main as it is); elsewhere where the branch left origin/main.
+    None when there is none to read, as in a shallow clone, and the check is skipped."""
+    try:
+        base = os.environ.get("LINT_BASE")
+        return git("rev-parse", "--verify", "-q", base) if base else git(
+            "merge-base", "HEAD", "origin/main"
+        )
+    except (CheckFailed, OSError):
+        return None
+
+
+def script_growth_problems(scripts: list[str]) -> list[str]:
+    """Past the warning, a change that adds to a script moves a job out, so the script
+    ends no longer than it started. A warning alone let scripts creep a few lines at a
+    time, each change too small to split for, until one hits the limit and has to shave
+    lines. Scripts already past it stay as they are until something adds to them."""
+    longer = {}
+    for path in scripts:
+        if path.startswith("test/"):
+            continue
+        lines = len(Path(path).read_text(encoding="utf-8", errors="replace").splitlines())
+        if lines > SCRIPT_LINES_WARNING:
+            longer[path] = lines
+    base = size_base() if longer else None
+    if not base:
+        return []
+    problems = []
+    for path, lines in longer.items():
+        try:
+            before = len(git("show", f"{base}:{path}").splitlines())
+        except CheckFailed:
+            continue
+        if before >= SCRIPT_LINES_WARNING and lines > before:
+            message = (
+                f"{lines} lines, {lines - before} more than the {before} it had at "
+                f"{base[:7]} (main), and it was past {SCRIPT_LINES_WARNING} already. Move "
+                "one job out to a component node, a static helper or a Resource in the "
+                f"same change, so it ends no longer than {before}. Don't trim comments or "
+                "pack lines to fit."
+            )
+            problems.append(problem(path, None, "script-growth", message, SCRIPT_SIZE))
+    return problems
 
 
 def never_terms() -> list[tuple[re.Pattern, str, str]]:
