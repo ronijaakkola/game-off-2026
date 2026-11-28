@@ -13,7 +13,7 @@ extends VBoxContainer
 
 const FUEL_COLOR := Color(0.6, 0.95, 1.0, 1.0)
 const FUEL_LOW_COLOR := Color(0.95, 0.3, 0.4, 1.0)
-# At or under this share of a full tank, the fuel shows in FUEL_LOW_COLOR.
+# At or under this share of a full tank, the fuel gauge ([FuelGauge]) warns in FUEL_LOW_COLOR.
 const FUEL_LOW := 0.25
 const TEMPERATURE_COLOR := Color(0.549, 0.851, 0.4, 1.0)
 const TEMPERATURE_HIGH_COLOR := Color(0.98, 0.8, 0.38, 1.0)
@@ -28,18 +28,12 @@ const TEMPERATURE_HIGH := 45.0
 		if is_node_ready():
 			(%RouteBar as RouteBar).bus = bus
 
-# The fuel bar's fill, a copy of the scene's, so its colour can change.
-var _fuel_fill: StyleBoxFlat
-var _fuel_low := false
 var _temperature_color := TEMPERATURE_COLOR
 # Whether the bus waited to leave last frame, to pop the key up the moment it does.
 var _was_waiting := false
 
 
 func _ready() -> void:
-	var bar := %FuelBar as ProgressBar
-	_fuel_fill = (bar.get_theme_stylebox(&"fill") as StyleBoxFlat).duplicate() as StyleBoxFlat
-	bar.add_theme_stylebox_override(&"fill", _fuel_fill)
 	(%RouteBar as RouteBar).bus = bus
 	_show()
 
@@ -90,24 +84,8 @@ func _show() -> void:
 	# A charge that hasn't moved yet still latches the key.
 	key.charge = maxf(bus.get_charge_progress(), 0.02) if charging else 0.0
 	key.warmth = bus.get_warmth()
-	_show_fuel()
+	(%FuelGauge as FuelGauge).fraction = bus.get_fuel_tank().get_fraction()
 	_show_temperature()
-
-
-func _show_fuel() -> void:
-	var fraction := bus.get_fuel_tank().get_fraction()
-	(%FuelBar as ProgressBar).value = fraction
-	_set_text(%FuelAmount, "%d%%" % ceili(fraction * 100.0))
-	var low := fraction <= FUEL_LOW
-	if low == _fuel_low:
-		return
-	_fuel_low = low
-	_fuel_fill.bg_color = FUEL_LOW_COLOR if low else FUEL_COLOR
-	var amount := %FuelAmount as Label
-	if low:
-		amount.add_theme_color_override(&"font_color", FUEL_LOW_COLOR)
-	else:
-		amount.remove_theme_color_override(&"font_color")
 
 
 func _show_temperature() -> void:
