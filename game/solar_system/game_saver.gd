@@ -73,6 +73,8 @@ const FIRST_LAYOUT_PLACES: Dictionary[String, String] = {
 @export var quest_giver: QuestGiver
 ## How close VIPs are to calling, so a VIP goal comes back before the goals' progress.
 @export var vips: VipCalls
+## How many passengers have been delivered towards the mechanic's next call.
+@export var mechanic: MechanicCall
 ## Which upgrades are researched, whether research and which stages are open, and every
 ## research tree.
 @export var research_lab: ResearchLab
@@ -258,6 +260,7 @@ func _write(at: Planet = null) -> void:
 		"goals": progress,
 		"quests": quest_giver.to_save(cabin.get_passengers()) if quest_giver else [],
 		"vips": vips.to_save() if vips else {},
+		"mechanic": mechanic.to_save() if mechanic else {},
 		"boss_pick_up": boss_pick_up.to_save() if boss_pick_up else {},
 	}
 	SaveGame.write(run)
@@ -323,6 +326,8 @@ func _restore() -> void:
 			cabin.board(passenger)
 	if vips:
 		vips.load_save(_saved.get("vips", {}))
+	if mechanic:
+		mechanic.load_save(_saved.get("mechanic", {}))
 	var saved_goals: Array = _saved.get("goals", [])
 	var tracked := goals.get_goals()
 	for i: int in mini(saved_goals.size(), tracked.size()):

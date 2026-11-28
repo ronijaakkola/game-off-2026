@@ -45,9 +45,8 @@ const UNREST_PULSE := 0.035
 @export_group("Goals")
 ## The goals a promotion takes here: deliver this many passengers, this many of them
 ## Business, and keep this recent rating. Once VIPs call here ([VipCalls]), deliver this
-## many of them on time too, and earn this many credits here. A 0 has no such goal, but for
-## the deliveries.
-@export_range(1, 1000, 1) var deliveries := 30
+## many of them on time too, and earn this many credits here. A 0 has no such goal.
+@export_range(0, 1000, 1) var deliveries := 30
 @export_range(0, 1000, 1) var business_deliveries := 0
 @export_range(0, 100, 1) var vip_deliveries := 0
 @export_range(0, 1000000, 500) var credits := 0
