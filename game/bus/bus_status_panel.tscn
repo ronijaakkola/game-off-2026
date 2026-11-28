@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://dt7n63aq7jtgn" path="res://game/bus/icons/thermometer.svg" id="8_thermometer"]
 [ext_resource type="Script" uid="uid://dcdn22pu2jb5x" path="res://game/bus/temperature_gauge.gd" id="9_gauge"]
 [ext_resource type="Script" uid="uid://cxpievv81snbv" path="res://ui/hairline.gd" id="10_hairline"]
+[ext_resource type="Script" uid="uid://dnnbag3cs4vji" path="res://game/bus/fuel_gauge.gd" id="11_fuel_gauge"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuel"]
 bg_color = Color(0.6, 0.949, 1, 1)
@@ -46,30 +47,33 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 12
 
-[node name="FuelBox" type="MarginContainer" parent="BusBar/Row" unique_id=581405897]
+[node name="FuelGauge" type="MarginContainer" parent="BusBar/Row" unique_id=581405897]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/margin_bottom = 6
+script = ExtResource("11_fuel_gauge")
 
-[node name="FuelGauge" type="VBoxContainer" parent="BusBar/Row/FuelBox" unique_id=812908986]
+[node name="FuelColumn" type="VBoxContainer" parent="BusBar/Row/FuelGauge" unique_id=812908986]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="FuelRow" type="HBoxContainer" parent="BusBar/Row/FuelBox/FuelGauge" unique_id=1784337636]
+[node name="FuelRow" type="HBoxContainer" parent="BusBar/Row/FuelGauge/FuelColumn" unique_id=1784337636]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="FuelNudge" type="MarginContainer" parent="BusBar/Row/FuelBox/FuelGauge/FuelRow" unique_id=1652748653]
+[node name="FuelNudge" type="MarginContainer" parent="BusBar/Row/FuelGauge/FuelColumn/FuelRow" unique_id=1652748653]
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/margin_top = 2
 
-[node name="FuelIcon" type="TextureRect" parent="BusBar/Row/FuelBox/FuelGauge/FuelRow/FuelNudge" unique_id=1211769540]
+[node name="FuelIcon" type="TextureRect" parent="BusBar/Row/FuelGauge/FuelColumn/FuelRow/FuelNudge" unique_id=1211769540]
+unique_name_in_owner = true
 self_modulate = Color(0.6, 0.949, 1, 1)
 custom_minimum_size = Vector2(11, 11)
 layout_mode = 2
@@ -79,20 +83,20 @@ texture = ExtResource("6_fuel")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="FuelLabel" type="Label" parent="BusBar/Row/FuelBox/FuelGauge/FuelRow" unique_id=492183118]
+[node name="FuelLabel" type="Label" parent="BusBar/Row/FuelGauge/FuelColumn/FuelRow" unique_id=492183118]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"DimLabel"
 text = "Fuel"
 
-[node name="FuelAmount" type="Label" parent="BusBar/Row/FuelBox/FuelGauge/FuelRow" unique_id=2031955704]
+[node name="FuelAmount" type="Label" parent="BusBar/Row/FuelGauge/FuelColumn/FuelRow" unique_id=2031955704]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallStrongLabel"
 text = "100%"
 horizontal_alignment = 2
 
-[node name="FuelBar" type="ProgressBar" parent="BusBar/Row/FuelBox/FuelGauge" unique_id=1218609742]
+[node name="FuelBar" type="ProgressBar" parent="BusBar/Row/FuelGauge/FuelColumn" unique_id=1218609742]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
