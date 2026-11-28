@@ -147,7 +147,8 @@ var _route: Array[RouteStop] = []
 var _drive := FrameshiftDrive.new(charge_time, quick_time, warm_charge_time)
 var _stats := BusStats.new()
 var _towing := false
-# Whether the flight under way burns no fuel, as the way in from a stargate.
+# Whether the flight under way burns no fuel and the stop at its end is no quick one, as
+# the way in from a stargate.
 var _free := false
 var _glide := DockGlide.new()
 var _speed := 0.0
@@ -189,7 +190,9 @@ func _ready() -> void:
 func plot_course(stop: RouteStop, add := false) -> void:
 	if _towing or route_locked or (%FuelTank as FuelTank).is_empty():
 		return
-	_free = false
+	# Parking, the flight is over but the stop at its end is still to come.
+	if state != State.PARKING:
+		_free = false
 	if not add:
 		_route.clear()
 	RouteEditing.add(_route, stop)
@@ -251,7 +254,8 @@ func tow_to(planet: Planet) -> void:
 
 ## Sends the bus from where it is straight to [param stop] at [param speed], with no
 ## charge, to dock there or come to rest: how it comes out of a jump to another system.
-## With [param free] it burns no fuel until it gets there or its course changes.
+## With [param free] it burns no fuel until it gets there or its course changes, and
+## docking there is no quick stop.
 func fly_in(stop: RouteStop, speed: float, free := false) -> void:
 	_free = free
 	_drive.clear()
@@ -505,20 +509,22 @@ func _turn_toward(direction: Vector3, delta: float) -> void:
 
 
 func _arrive(stop: RouteStop) -> void:
-	_free = false
 	_speed = 0.0
 	_turn_rate = 0.0
 	if not stop.planet:
+		_free = false
 		state = State.HOLDING
 		return
 	_dock(stop.planet, global_position - stop.planet.get_body_global_position())
 	state = State.PARKING
 
 
-# Parked side-on: the bus has docked. It waits there, course or not, for the drive.
+# Parked side-on: the bus has docked. It waits there, course or not, for the drive. Towed
+# in or in from a stargate, it is no quick stop.
 func _finish_docking() -> void:
 	state = State.DOCKED
-	_drive.begin_stop(not _towing, _stats.get_traits().has(BusTraits.Type.WARM_DRIVE))
+	_drive.begin_stop(not _towing and not _free, _stats.get_traits().has(BusTraits.Type.WARM_DRIVE))
+	_free = false
 	if dock_sound:
 		Audio.play_sfx(dock_sound)
 	if _towing:

@@ -143,11 +143,16 @@ func _is_ending() -> bool:
 
 # Every goal of the last system met, as when The Boss calls: VIPs have started calling there,
 # which adds their goal, and each milestone is completed with its count reached. A standing
-# goal holds by the rolled rating.
+# goal holds by the rolled rating, topped up with five-star rides where it falls short.
 func _meet_goals() -> void:
 	vips.load_save({"delivered": VipCalls.FIRST_DELIVERIES})
 	for goal: Goal in goals.get_goals():
 		if goal.is_standing():
+			# Ten fives make the recent rating five.
+			for i: int in Ledger.RECENT_RATINGS:
+				if goal.is_met():
+					break
+				_ledger.rate(5.0)
 			continue
 		var done := {"state": Goal.State.COMPLETED}
 		if goal is DeliveryCountGoal:
